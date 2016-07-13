@@ -66,17 +66,25 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 IO.Debug("<LivenessDebug> Captured program state '{0}' at " +
                     "scheduling choice.", fingerprint.GetHashCode());
             }
-            else if (scheduleStep.Type == ScheduleStepType.NondeterministicChoice)
+            else if (scheduleStep.Type == ScheduleStepType.NondeterministicChoice &&
+                scheduleStep.BooleanChoice != null)
             {
                 IO.Debug("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
-                    "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.Choice);
+                    "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.BooleanChoice.Value);
             }
-            else if (scheduleStep.Type == ScheduleStepType.FairNondeterministicChoice)
+            else if (scheduleStep.Type == ScheduleStepType.FairNondeterministicChoice &&
+                scheduleStep.BooleanChoice != null)
             {
                 IO.Debug("<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice " +
-                    "'{1}-{2}'.", fingerprint.GetHashCode(), scheduleStep.NondetId, scheduleStep.Choice);
+                    "'{1}-{2}'.", fingerprint.GetHashCode(), scheduleStep.NondetId, scheduleStep.BooleanChoice.Value);
             }
-            
+            else if (scheduleStep.Type == ScheduleStepType.NondeterministicChoice &&
+                scheduleStep.IntegerChoice != null)
+            {
+                IO.Debug("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
+                    "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
+            }
+
             var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             this.StateMap.Add(scheduleStep, state);
 

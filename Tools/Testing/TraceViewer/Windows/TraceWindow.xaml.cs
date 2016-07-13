@@ -314,7 +314,14 @@ namespace Microsoft.PSharp.Visualization
                 }
                 else if (traceStep.Type == BugTraceStepType.RandomChoice)
                 {
-                    action = $"Nondeterministically chose '{traceStep.RandomChoice}'.";
+                    if (traceStep.RandomBooleanChoice != null)
+                    {
+                        action = $"Nondeterministically chose '{traceStep.RandomBooleanChoice.Value}'.";
+                    }
+                    else
+                    {
+                        action = $"Nondeterministically chose '{traceStep.RandomIntegerChoice.Value}'.";
+                    }
                 }
                 else if (traceStep.Type == BugTraceStepType.Halt)
                 {

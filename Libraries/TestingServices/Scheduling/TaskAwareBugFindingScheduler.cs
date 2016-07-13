@@ -70,24 +70,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (this.BugFound || !base.IsSchedulerRunning)
             {
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                base.Stop();
             }
-
-            // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedMaxSchedulingSteps())
-            {
-                IO.Debug("<ScheduleDebug> Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
-
-                if (base.NumberOfAvailableMachinesToSchedule() == 0)
-                {
-                    this.HasFullyExploredSchedule = true;
-                }
-
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
-            }
+            
+            // Checks if the scheduling steps bound has been reached.
+            this.CheckIfSchedulingStepsBoundIsReached(true);
 
             foreach (var task in base.MachineInfos.Where(val => val.IsBlocked))
             {
@@ -125,8 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.WrappedTaskMap.TryGetValue((int)id, out machineInfo)))
             {
                 IO.Debug($"<ScheduleDebug> Unable to schedule task '{id}'.");
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                base.Stop();
             }
 
             MachineInfo next = null;
@@ -134,8 +120,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                base.Stop();
             }
 
             base.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
@@ -234,8 +219,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.WrappedTaskMap.TryGetValue((int)id, out machineInfo)))
             {
                 IO.Debug($"<ScheduleDebug> Unable to start task '{id}'.");
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                base.Stop();
             }
 
             IO.Debug($"<ScheduleDebug> Started task '{machineInfo.Id}' of machine " +

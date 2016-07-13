@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Threading;
@@ -586,9 +587,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal override bool GetNondeterministicChoice(AbstractMachine machine, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(
+            AbstractMachine machine, int maxValue)
         {
-            var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
+            var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(maxValue);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
@@ -611,9 +613,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal override bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(
+            AbstractMachine machine, string uniqueId)
         {
-            var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
+            var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(2, uniqueId);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
@@ -624,6 +627,32 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
             
+            this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
+
+            return choice;
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic integer choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Integer</returns>
+        internal override int GetNondeterministicIntegerChoice(
+            AbstractMachine machine, int maxValue)
+        {
+            var choice = this.BugFinder.GetNextNondeterministicIntegerChoice(maxValue);
+            if (machine != null)
+            {
+                IO.Log($"<RandomLog> Machine '{machine.Id}' " +
+                    $"nondeterministically chose '{choice}'.");
+            }
+            else
+            {
+                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
+            }
+
             this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;

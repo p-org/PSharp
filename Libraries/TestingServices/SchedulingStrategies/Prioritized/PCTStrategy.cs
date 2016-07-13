@@ -117,12 +117,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
             if (this.Random.Next(maxValue) == 0)
@@ -136,30 +136,25 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public bool GetNextIntegerChoice(int maxValue, out int next)
+        {
+            next = this.Random.Next(maxValue);
+            this.ExploredSteps++;
+            return true;
+        }
+
+        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
         public int GetExploredSteps()
         {
             return this.ExploredSteps;
-        }
-
-        /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
-        {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
-        {
-            return this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -173,8 +168,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return false;
             }
-
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>

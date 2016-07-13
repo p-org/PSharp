@@ -98,7 +98,6 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/check-races"))
             {
-                base.Configuration.AnalyzeDataFlow = true;
                 base.Configuration.AnalyzeDataRaces = true;
             }
             else if (option.ToLower().Equals("/emit-control-flow"))
@@ -147,6 +146,18 @@ namespace Microsoft.PSharp.Utilities
             if (base.Configuration.SolutionFilePath.Equals(""))
             {
                 IO.Error.ReportAndExit("Please give a valid solution path.");
+            }
+        }
+
+        /// <summary>
+        /// Updates the configuration depending on the
+        /// user specified options.
+        /// </summary>
+        protected override void UpdateConfiguration()
+        {
+            if (base.Configuration.AnalyzeDataRaces)
+            {
+                base.Configuration.AnalyzeDataFlow = true;
             }
         }
 

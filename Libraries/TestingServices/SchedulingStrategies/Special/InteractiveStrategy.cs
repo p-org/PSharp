@@ -38,11 +38,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private List<string> InputCache;
 
         /// <summary>
-        /// The maximum number of explored steps.
-        /// </summary>
-        private int MaxExploredSteps;
-
-        /// <summary>
         /// The number of explored steps.
         /// </summary>
         private int ExploredSteps;
@@ -64,7 +59,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.InputCache = new List<string>();
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.PrioritizedOperationId = 0;
         }
@@ -203,12 +197,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
             this.ExploredSteps++;
@@ -278,30 +272,92 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public bool GetNextIntegerChoice(int maxValue, out int next)
+        {
+            next = 0;
+            this.ExploredSteps++;
+
+            var parsed = false;
+            while (!parsed)
+            {
+                if (this.InputCache.Count >= this.ExploredSteps)
+                {
+                    var step = this.InputCache[this.ExploredSteps - 1];
+                    if (step.Length > 0)
+                    {
+                        next = Convert.ToInt32(this.InputCache[this.ExploredSteps - 1]);
+                    }
+                    else
+                    {
+                        this.InputCache[this.ExploredSteps - 1] = "0";
+                    }
+
+                    parsed = true;
+                    break;
+                }
+
+                IO.PrintLine($">> Choose an integer (< {maxValue}) [step '{this.ExploredSteps}']");
+
+                var input = IO.GetLine();
+                if (input.Equals("replay"))
+                {
+                    if (!this.Replay())
+                    {
+                        continue;
+                    }
+
+                    this.Configuration.SchedulingIterations++;
+                    this.ConfigureNextIteration();
+                    return false;
+                }
+                else if (input.Equals("jump"))
+                {
+                    this.Jump();
+                    continue;
+                }
+                else if (input.Equals("reset"))
+                {
+                    this.Configuration.SchedulingIterations++;
+                    this.Reset();
+                    return false;
+                }
+                else if (input.Length > 0)
+                {
+                    try
+                    {
+                        next = Convert.ToInt32(input);
+                    }
+                    catch (FormatException)
+                    {
+                        IO.PrintLine(">> Wrong format, please retry ...");
+                        continue;
+                    }
+                }
+
+                if (next >= maxValue)
+                {
+                    IO.PrintLine($">> {next} is >= {maxValue}, please retry ...");
+                }
+
+                this.InputCache.Add(input);
+                parsed = true;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
         public int GetExploredSteps()
         {
             return this.ExploredSteps;
-        }
-
-        /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
-        {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
-        {
-            return this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -315,8 +371,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return false;
             }
-
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -333,7 +389,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
-            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
         }
 

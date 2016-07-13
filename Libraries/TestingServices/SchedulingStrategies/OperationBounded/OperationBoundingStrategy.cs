@@ -141,12 +141,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public abstract bool GetNextChoice(int maxValue, out bool next);
+        public abstract bool GetNextBooleanChoice(int maxValue, out bool next);
+
+        /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public abstract bool GetNextIntegerChoice(int maxValue, out int next);
 
         /// <summary>
         /// Returns the explored steps.
@@ -155,24 +163,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public int GetExploredSteps()
         {
             return this.ExploredSteps;
-        }
-
-        /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
-        {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
-        {
-            return this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -186,8 +176,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return false;
             }
-
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>

@@ -59,6 +59,7 @@ namespace Microsoft.PSharp.Utilities
             }
 
             this.CheckForParsingErrors();
+            this.UpdateConfiguration();
             return Configuration;
         }
 
@@ -138,6 +139,12 @@ namespace Microsoft.PSharp.Utilities
         /// Checks for parsing errors.
         /// </summary>
         protected abstract void CheckForParsingErrors();
+
+        /// <summary>
+        /// Updates the configuration depending on the
+        /// user specified options.
+        /// </summary>
+        protected abstract void UpdateConfiguration();
 
         /// <summary>
         /// Shows help.

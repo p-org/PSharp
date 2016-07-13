@@ -362,7 +362,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.AttachDebugger = false;
             this.ScheduleIntraMachineConcurrency = false;
-            this.LivenessTemperatureThreshold = 1000;
+            this.LivenessTemperatureThreshold = 0;
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;

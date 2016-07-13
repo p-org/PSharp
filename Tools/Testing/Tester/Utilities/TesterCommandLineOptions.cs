@@ -262,6 +262,7 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/state-caching"))
             {
                 base.Configuration.CacheProgramState = true;
+                base.Configuration.LivenessTemperatureThreshold = 100;
             }
             else if (option.ToLower().Equals("/opbound"))
             {
@@ -319,6 +320,26 @@ namespace Microsoft.PSharp.Utilities
                 IO.Error.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
                     "must have a max scheduling steps bound, which can be given using " +
                     "'/max-steps:[bound]', where [bound] > 0.");
+            }
+        }
+
+        /// <summary>
+        /// Updates the configuration depending on the
+        /// user specified options.
+        /// </summary>
+        protected override void UpdateConfiguration()
+        {
+            if (base.Configuration.LivenessTemperatureThreshold == 0)
+            {
+                if (base.Configuration.CacheProgramState)
+                {
+                    base.Configuration.LivenessTemperatureThreshold = 100;
+                }
+                else if (base.Configuration.MaxSchedulingSteps > 0)
+                {
+                    base.Configuration.LivenessTemperatureThreshold =
+                        base.Configuration.MaxSchedulingSteps / 2;
+                }
             }
         }
 

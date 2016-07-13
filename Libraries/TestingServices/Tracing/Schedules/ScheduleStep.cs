@@ -56,10 +56,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         internal string NondetId;
 
         /// <summary>
-        /// The non-deterministic choice value. Only relevant if
+        /// The non-deterministic boolean choice value. Only relevant if
         /// this is a choice schedule step.
         /// </summary>
-        internal bool Choice;
+        internal bool? BooleanChoice;
+
+        /// <summary>
+        /// The non-deterministic integer choice value. Only relevant if
+        /// this is a choice schedule step.
+        /// </summary>
+        internal int? IntegerChoice;
 
         /// <summary>
         /// Previous schedule step.
@@ -92,6 +98,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.ScheduledMachineType = scheduledMachine.Id.Type;
             scheduleStep.ScheduledMachineId = scheduledMachine.Id.Value;
 
+            scheduleStep.BooleanChoice = null;
+            scheduleStep.IntegerChoice = null;
+
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
 
@@ -116,6 +125,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.ScheduledMachineType = scheduledMachineType;
             scheduleStep.ScheduledMachineId = scheduledMachineId;
 
+            scheduleStep.BooleanChoice = null;
+            scheduleStep.IntegerChoice = null;
+
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
 
@@ -123,19 +135,20 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         }
 
         /// <summary>
-        /// Creates a nondeterministic choice schedule step.
+        /// Creates a nondeterministic boolean choice schedule step.
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="choice">Choice</param>
         /// <returns>ScheduleStep</returns>
-        internal static ScheduleStep CreateNondeterministicChoice(int index, bool choice)
+        internal static ScheduleStep CreateNondeterministicBooleanChoice(int index, bool choice)
         {
             var scheduleStep = new ScheduleStep();
 
             scheduleStep.Index = index;
             scheduleStep.Type = ScheduleStepType.NondeterministicChoice;
 
-            scheduleStep.Choice = choice;
+            scheduleStep.BooleanChoice = choice;
+            scheduleStep.IntegerChoice = null;
 
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
@@ -144,13 +157,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         }
 
         /// <summary>
-        /// Creates a fair nondeterministic choice schedule step.
+        /// Creates a fair nondeterministic boolean choice schedule step.
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="uniqueId">Unique id</param>
         /// <param name="choice">Choice</param>
         /// <returns>ScheduleStep</returns>
-        internal static ScheduleStep CreateFairNondeterministicChoice(int index, string uniqueId, bool choice)
+        internal static ScheduleStep CreateFairNondeterministicBooleanChoice(
+            int index, string uniqueId, bool choice)
         {
             var scheduleStep = new ScheduleStep();
 
@@ -158,7 +172,30 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Type = ScheduleStepType.FairNondeterministicChoice;
 
             scheduleStep.NondetId = uniqueId;
-            scheduleStep.Choice = choice;
+            scheduleStep.BooleanChoice = choice;
+            scheduleStep.IntegerChoice = null;
+
+            scheduleStep.Previous = null;
+            scheduleStep.Next = null;
+
+            return scheduleStep;
+        }
+
+        /// <summary>
+        /// Creates a nondeterministic integer choice schedule step.
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="choice">Choice</param>
+        /// <returns>ScheduleStep</returns>
+        internal static ScheduleStep CreateNondeterministicIntegerChoice(int index, int choice)
+        {
+            var scheduleStep = new ScheduleStep();
+
+            scheduleStep.Index = index;
+            scheduleStep.Type = ScheduleStepType.NondeterministicChoice;
+
+            scheduleStep.BooleanChoice = null;
+            scheduleStep.IntegerChoice = choice;
 
             scheduleStep.Previous = null;
             scheduleStep.Next = null;

@@ -385,19 +385,31 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         public virtual bool Random()
         {
-            return this.GetNondeterministicChoice(null, 2);
+            return this.GetNondeterministicBooleanChoice(null, 2);
         }
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled
         /// during analysis or testing. The value is used to generate a number
-        /// in the range [1..maxValue], where 1 triggers true.
+        /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
         public virtual bool Random(int maxValue)
         {
-            return this.GetNondeterministicChoice(null, maxValue);
+            return this.GetNondeterministicBooleanChoice(null, maxValue);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic integer choice, that can be
+        /// controlled during analysis or testing. The value is used
+        /// to generate an integer in the range [0..maxValue).
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Integer</returns>
+        public virtual int RandomInteger(int maxValue)
+        {
+            return this.GetNondeterministicIntegerChoice(null, maxValue);
         }
 
         /// <summary>
@@ -712,7 +724,8 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetNondeterministicChoice(AbstractMachine machine, int maxValue)
+        internal virtual bool GetNondeterministicBooleanChoice(
+            AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -732,9 +745,24 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
+        internal virtual bool GetFairNondeterministicBooleanChoice(
+            AbstractMachine machine, string uniqueId)
         {
-            return this.GetNondeterministicChoice(machine, 2);
+            return this.GetNondeterministicBooleanChoice(machine, 2);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic integer choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Integer</returns>
+        internal virtual int GetNondeterministicIntegerChoice(
+            AbstractMachine machine, int maxValue)
+        {
+            Random random = new Random(DateTime.Now.Millisecond);
+            return random.Next(maxValue);
         }
 
         /// <summary>

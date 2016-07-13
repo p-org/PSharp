@@ -67,10 +67,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal MachineId TargetMachine;
 
         /// <summary>
-        /// The taken nondeterministic choice.
+        /// The taken nondeterministic boolean choice.
         /// </summary>
         [DataMember]
-        internal bool RandomChoice;
+        internal bool? RandomBooleanChoice;
+
+        /// <summary>
+        /// The taken nondeterministic integer choice.
+        /// </summary>
+        [DataMember]
+        internal int? RandomIntegerChoice;
 
         /// <summary>
         /// Extra information that can be used to
@@ -103,12 +109,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="action">MethodInfo</param>
         /// <param name="targetMachine">Target machine</param>
-        /// <param name="choice">Choice</param>
+        /// <param name="boolChoice">Boolean choice</param>
+        /// <param name="intChoice">Integer choice</param>
         /// <param name="extraInfo">Extra info</param>
         /// <returns>BugTraceStep</returns>
         internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
             string machineState, EventInfo eventInfo, MethodInfo action, MachineId targetMachine,
-            bool choice, string extraInfo)
+            bool? boolChoice, int? intChoice, string extraInfo)
         {
             var traceStep = new BugTraceStep();
 
@@ -126,7 +133,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             }
 
             traceStep.TargetMachine = targetMachine;
-            traceStep.RandomChoice = choice;
+            traceStep.RandomBooleanChoice = boolChoice;
+            traceStep.RandomIntegerChoice = intChoice;
             traceStep.ExtraInfo = extraInfo;
 
             traceStep.Previous = null;

@@ -31,30 +31,26 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current);
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        bool GetNextChoice(int maxValue, out bool next);
+        bool GetNextBooleanChoice(int maxValue, out bool next);
+
+        /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        bool GetNextIntegerChoice(int maxValue, out int next);
 
         /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
         int GetExploredSteps();
-
-        /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        int GetMaxExploredSteps();
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        int GetMaxSchedulingSteps();
 
         /// <summary>
         /// True if the scheduling strategy has reached the max
