@@ -95,6 +95,15 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
+        /// Updates the configuration depending on the
+        /// user specified options.
+        /// </summary>
+        protected override void UpdateConfiguration()
+        {
+
+        }
+
+        /// <summary>
         /// Shows help.
         /// </summary>
         protected override void ShowHelp()

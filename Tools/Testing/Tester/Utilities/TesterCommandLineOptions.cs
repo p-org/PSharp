@@ -324,6 +324,26 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
+        /// Updates the configuration depending on the
+        /// user specified options.
+        /// </summary>
+        protected override void UpdateConfiguration()
+        {
+            if (base.Configuration.LivenessTemperatureThreshold == 0)
+            {
+                if (base.Configuration.CacheProgramState)
+                {
+                    base.Configuration.LivenessTemperatureThreshold = 100;
+                }
+                else if (base.Configuration.MaxSchedulingSteps > 0)
+                {
+                    base.Configuration.LivenessTemperatureThreshold =
+                        base.Configuration.MaxSchedulingSteps / 2;
+                }
+            }
+        }
+
+        /// <summary>
         /// Shows help.
         /// </summary>
         protected override void ShowHelp()
