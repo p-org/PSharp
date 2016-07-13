@@ -49,11 +49,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private int NumberOfCoinFlips;
 
         /// <summary>
-        /// The maximum number of explored steps.
-        /// </summary>
-        private int MaxExploredSteps;
-
-        /// <summary>
         /// The number of explored steps.
         /// </summary>
         private int ExploredSteps;
@@ -73,7 +68,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
             this.NumberOfCoinFlips = numberOfCoinFlips;
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
 
@@ -175,36 +169,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps.
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
+        /// <returns>Boolean</returns>
+        public bool HasReachedMaxSchedulingSteps()
         {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the depth bound.
-        /// </summary> 
-        /// <returns>Depth bound</returns>  
-        public int GetDepthBound()
-        {
-            return this.Configuration.DepthBound;
-        }
-
-        /// <summary>
-        /// True if the scheduling strategy has reached the depth
-        /// bound for the given scheduling iteration.
-        /// </summary>
-        /// <returns>Depth bound</returns>
-        public bool HasReachedDepthBound()
-        {
-            if (this.Configuration.DepthBound == 0)
+            if (this.Configuration.MaxSchedulingSteps == 0)
             {
                 return false;
             }
-
-            return this.ExploredSteps == this.GetDepthBound();
+            
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -221,7 +197,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
-            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
         }
 
@@ -230,7 +205,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.Random = new Random(this.Seed);
         }

@@ -72,13 +72,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             foreach (var step in traceDump)
             {
+                int intChoice;
                 if (step.Equals("True"))
                 {
-                    this.AddNondeterministicChoice(true);
+                    this.AddNondeterministicBooleanChoice(true);
                 }
                 else if (step.Equals("False"))
                 {
-                    this.AddNondeterministicChoice(false);
+                    this.AddNondeterministicBooleanChoice(false);
+                }
+                else if (int.TryParse(step, out intChoice))
+                {
+                    this.AddNondeterministicIntegerChoice(intChoice);
                 }
                 else
                 {
@@ -111,23 +116,36 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         }
 
         /// <summary>
-        /// Adds a nondeterministic choice.
+        /// Adds a nondeterministic boolean choice.
         /// </summary>
         /// <param name="choice">Choice</param>
-        internal void AddNondeterministicChoice(bool choice)
+        internal void AddNondeterministicBooleanChoice(bool choice)
         {
-            var scheduleStep = ScheduleStep.CreateNondeterministicChoice(this.Count, choice);
+            var scheduleStep = ScheduleStep.CreateNondeterministicBooleanChoice(
+                this.Count, choice);
             this.Push(scheduleStep);
         }
 
         /// <summary>
-        /// Adds a fair nondeterministic choice.
+        /// Adds a fair nondeterministic boolean choice.
         /// </summary>
         /// <param name="uniqueId">Unique nondet id</param>
         /// <param name="choice">Choice</param>
-        internal void AddFairNondeterministicChoice(string uniqueId, bool choice)
+        internal void AddFairNondeterministicBooleanChoice(string uniqueId, bool choice)
         {
-            var scheduleStep = ScheduleStep.CreateFairNondeterministicChoice(this.Count, uniqueId, choice);
+            var scheduleStep = ScheduleStep.CreateFairNondeterministicBooleanChoice(
+                this.Count, uniqueId, choice);
+            this.Push(scheduleStep);
+        }
+
+        /// <summary>
+        /// Adds a nondeterministic integer choice.
+        /// </summary>
+        /// <param name="choice">Choice</param>
+        internal void AddNondeterministicIntegerChoice(int choice)
+        {
+            var scheduleStep = ScheduleStep.CreateNondeterministicIntegerChoice(
+                this.Count, choice);
             this.Push(scheduleStep);
         }
 

@@ -71,14 +71,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Maximum number of explored steps.
-        /// </summary>
-        internal int MaxExploredSteps
-        {
-            get { return this.Strategy.GetMaxExploredSteps(); }
-        }
-
-        /// <summary>
         /// Checks if the schedule has been fully explored.
         /// </summary>
         protected internal bool HasFullyExploredSchedule { get; protected set; }
@@ -224,11 +216,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (uniqueId == null)
             {
-                this.Runtime.ScheduleTrace.AddNondeterministicChoice(choice);
+                this.Runtime.ScheduleTrace.AddNondeterministicBooleanChoice(choice);
             }
             else
             {
-                this.Runtime.ScheduleTrace.AddFairNondeterministicChoice(uniqueId, choice);
+                this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
 
             if (this.Runtime.Configuration.CacheProgramState &&
@@ -250,15 +242,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached(false);
 
-            var choice = false;
-            if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
+            var choice = 0;
+            if (!this.Strategy.GetNextIntegerChoice(maxValue, out choice))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
 
-            this.Runtime.ScheduleTrace.AddNondeterministicChoice(choice);
+            this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
 
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
@@ -492,7 +484,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
+                    $"{this.Runtime.Configuration.MaxSchedulingSteps} reached.");
 
                 if (isSchedulingDecision &&
                     this.NumberOfAvailableMachinesToSchedule() == 0)

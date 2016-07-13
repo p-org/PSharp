@@ -53,15 +53,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.CurrentDepth = 1;
         }
 
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public new int GetMaxSchedulingSteps()
-        {
-            return this.CurrentDepth;
-        }
-
         /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
@@ -69,7 +60,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Depth bound</returns>
         public new bool HasReachedMaxSchedulingSteps()
         {
-            return base.ExploredSteps == this.GetMaxSchedulingSteps();
+            return base.ExploredSteps == this.CurrentDepth;
         }
 
         /// <summary>

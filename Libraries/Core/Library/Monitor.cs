@@ -73,10 +73,9 @@ namespace Microsoft.PSharp
         private HashSet<Type> IgnoredEvents;
 
         /// <summary>
-        /// A counter that increases in each step of
-        /// the execution, as long as the monitor
-        /// remains in a hot state. If the temperature
-        /// reaches the specified limit, then a potential
+        /// A counter that increases in each step of the execution,
+        /// as long as the monitor remains in a hot state. If the
+        /// temperature reaches the specified limit, then a potential
         /// liveness bug has been found.
         /// </summary>
         private int LivenessTemperature;
