@@ -47,12 +47,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public override bool GetNextChoice(int maxValue, out bool next)
+        public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
 
@@ -63,6 +63,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.ExploredSteps++;
 
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public override bool GetNextIntegerChoice(int maxValue, out int next)
+        {
+            next = this.Random.Next(maxValue);
+            this.ExploredSteps++;
             return true;
         }
 

@@ -455,7 +455,43 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected bool Random()
         {
-            return base.Runtime.GetNondeterministicChoice(this, 2);
+            return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing. The value is used
+        /// to generate a number in the range [1..maxValue], where 1
+        /// triggers true.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Boolean</returns>
+        protected bool Random(int maxValue)
+        {
+            return base.Runtime.GetNondeterministicBooleanChoice(this, maxValue);
+        }
+
+        /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        protected bool FairRandom()
+        {
+            return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
+        }
+
+        /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing.
+        /// </summary>
+        /// <param name="uniqueId">Unique id</param>
+        /// <returns>Boolean</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected bool FairRandom(int uniqueId)
+        {
+            var havocId = base.Id.Name + "_" + this.CurrentStateName + "_" + uniqueId;
+            return base.Runtime.GetFairNondeterministicBooleanChoice(this, havocId);
         }
 
         /// <summary>
@@ -469,29 +505,6 @@ namespace Microsoft.PSharp
         protected bool Random(int maxValue)
         {
             return base.Runtime.GetNondeterministicChoice(this, maxValue);
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected bool FairRandom()
-        {
-            return base.Runtime.GetNondeterministicChoice(this, 2);
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be controlled
-        /// during analysis or testing.
-        /// </summary>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected bool FairRandom(int uniqueId)
-        {
-            var havocId = base.Id.Name + "_" + this.CurrentStateName + "_" + uniqueId;
-            return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
         /// <summary>

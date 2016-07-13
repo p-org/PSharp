@@ -40,7 +40,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Stack of nondeterministic choices.
         /// </summary>
-        private List<List<NondetChoice>> NondetStack;
+        private List<List<NondetBooleanChoice>> BoolNondetStack;
+
+        /// <summary>
+        /// Stack of nondeterministic choices.
+        /// </summary>
+        private List<List<NondetIntegerChoice>> IntNondetStack;
 
         /// <summary>
         /// Current schedule index.
@@ -74,7 +79,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.ScheduleStack = new List<List<SChoice>>();
-            this.NondetStack = new List<List<NondetChoice>>();
+            this.BoolNondetStack = new List<List<NondetBooleanChoice>>();
+            this.IntNondetStack = new List<List<NondetIntegerChoice>>();
             this.SchIndex = 0;
             this.NondetIndex = 0;
             this.MaxExploredSteps = 0;
@@ -148,27 +154,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            NondetChoice nextChoice = null;
-            List<NondetChoice> ncs = null;
+            NondetBooleanChoice nextChoice = null;
+            List<NondetBooleanChoice> ncs = null;
 
-            if (this.NondetIndex < this.NondetStack.Count)
+            if (this.NondetIndex < this.BoolNondetStack.Count)
             {
-                ncs = this.NondetStack[this.NondetIndex];
+                ncs = this.BoolNondetStack[this.NondetIndex];
             }
             else
             {
-                ncs = new List<NondetChoice>();
-                ncs.Add(new NondetChoice(false));
-                ncs.Add(new NondetChoice(true));
+                ncs = new List<NondetBooleanChoice>();
+                ncs.Add(new NondetBooleanChoice(false));
+                ncs.Add(new NondetBooleanChoice(true));
 
-                this.NondetStack.Add(ncs);
+                this.BoolNondetStack.Add(ncs);
             }
 
             nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
@@ -180,7 +186,55 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (this.NondetIndex > 0)
             {
-                var previousChoice = this.NondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
+                var previousChoice = this.BoolNondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
+                previousChoice.IsDone = false;
+            }
+
+            next = nextChoice.Value;
+            nextChoice.IsDone = true;
+            this.NondetIndex++;
+
+            this.ExploredSteps++;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public bool GetNextIntegerChoice(int maxValue, out int next)
+        {
+            NondetIntegerChoice nextChoice = null;
+            List<NondetIntegerChoice> ncs = null;
+
+            if (this.NondetIndex < this.IntNondetStack.Count)
+            {
+                ncs = this.IntNondetStack[this.NondetIndex];
+            }
+            else
+            {
+                ncs = new List<NondetIntegerChoice>();
+                for (int value = 0; value < maxValue; value++)
+                {
+                    ncs.Add(new NondetIntegerChoice(value));
+                }
+
+                this.IntNondetStack.Add(ncs);
+            }
+
+            nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
+            if (nextChoice == null)
+            {
+                next = 0;
+                return false;
+            }
+
+            if (this.NondetIndex > 0)
+            {
+                var previousChoice = this.IntNondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
 
@@ -203,7 +257,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps in all iterations.
+        /// Returns the maximum explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
         public int GetMaxExploredSteps()
@@ -212,27 +266,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
+        /// Returns the depth bound.
         /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
+        /// <returns>Depth bound</returns>  
+        public int GetDepthBound()
         {
-            return this.Configuration.MaxSchedulingSteps;
+            return this.Configuration.DepthBound;
         }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the depth
+        /// bound for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
+        /// <returns>Depth bound</returns>
+        public bool HasReachedDepthBound()
         {
-            if (this.GetMaxSchedulingSteps() == 0)
+            if (this.GetDepthBound() == 0)
             {
                 return false;
             }
 
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -257,26 +311,46 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.SchIndex = 0;
             this.NondetIndex = 0;
 
-            for (int idx = this.NondetStack.Count - 1; idx > 0; idx--)
+            for (int idx = this.BoolNondetStack.Count - 1; idx > 0; idx--)
             {
-                if (!this.NondetStack[idx].All(val => val.IsDone))
+                if (!this.BoolNondetStack[idx].All(val => val.IsDone))
                 {
                     break;
                 }
 
-                var previousChoice = this.NondetStack[idx - 1].First(val => !val.IsDone);
+                var previousChoice = this.BoolNondetStack[idx - 1].First(val => !val.IsDone);
                 previousChoice.IsDone = true;
 
-                this.NondetStack.RemoveAt(idx);
+                this.BoolNondetStack.RemoveAt(idx);
             }
 
-            if (this.NondetStack.Count > 0 &&
-                this.NondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
+            for (int idx = this.IntNondetStack.Count - 1; idx > 0; idx--)
             {
-                this.NondetStack.Clear();
+                if (!this.IntNondetStack[idx].All(val => val.IsDone))
+                {
+                    break;
+                }
+
+                var previousChoice = this.IntNondetStack[idx - 1].First(val => !val.IsDone);
+                previousChoice.IsDone = true;
+
+                this.IntNondetStack.RemoveAt(idx);
             }
 
-            if (this.NondetStack.Count == 0)
+            if (this.BoolNondetStack.Count > 0 &&
+                this.BoolNondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
+            {
+                this.BoolNondetStack.Clear();
+            }
+
+            if (this.IntNondetStack.Count > 0 &&
+                this.IntNondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
+            {
+                this.IntNondetStack.Clear();
+            }
+
+            if (this.BoolNondetStack.Count == 0 &&
+                this.IntNondetStack.Count == 0)
             {
                 for (int idx = this.ScheduleStack.Count - 1; idx > 0; idx--)
                 {
@@ -307,7 +381,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             this.ScheduleStack.Clear();
-            this.NondetStack.Clear();
+            this.BoolNondetStack.Clear();
+            this.IntNondetStack.Clear();
             this.SchIndex = 0;
             this.NondetIndex = 0;
             this.MaxExploredSteps = 0;
@@ -345,11 +420,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             IO.PrintLine("*******************");
-            IO.PrintLine("Random stack size: " + this.NondetStack.Count);
-            for (int idx = 0; idx < this.NondetStack.Count; idx++)
+            IO.PrintLine("Random bool stack size: " + this.BoolNondetStack.Count);
+            for (int idx = 0; idx < this.BoolNondetStack.Count; idx++)
             {
                 IO.PrintLine("Index: " + idx);
-                foreach (var nc in this.NondetStack[idx])
+                foreach (var nc in this.BoolNondetStack[idx])
+                {
+                    IO.Print(nc.Value + " [" + nc.IsDone + "], ");
+                }
+                IO.PrintLine("");
+            }
+            IO.PrintLine("*******************");
+
+            IO.PrintLine("*******************");
+            IO.PrintLine("Random int stack size: " + this.IntNondetStack.Count);
+            for (int idx = 0; idx < this.IntNondetStack.Count; idx++)
+            {
+                IO.PrintLine("Index: " + idx);
+                foreach (var nc in this.IntNondetStack[idx])
                 {
                     IO.Print(nc.Value + " [" + nc.IsDone + "], ");
                 }
@@ -383,7 +471,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// corresponds to the choice and a boolean that is true if
         /// the choice has been previously explored.
         /// </summary>
-        private class NondetChoice
+        private class NondetBooleanChoice
         {
             internal bool Value;
             internal bool IsDone;
@@ -392,7 +480,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             /// Constructor.
             /// </summary>
             /// <param name="value">Value</param>
-            internal NondetChoice(bool value)
+            internal NondetBooleanChoice(bool value)
+            {
+                this.Value = value;
+                this.IsDone = false;
+            }
+        }
+
+        /// <summary>
+        /// A nondeterministic choice. Contains an integer value that
+        /// corresponds to the choice and a boolean that is true if
+        /// the choice has been previously explored.
+        /// </summary>
+        private class NondetIntegerChoice
+        {
+            internal int Value;
+            internal bool IsDone;
+
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            /// <param name="value">Value</param>
+            internal NondetIntegerChoice(int value)
             {
                 this.Value = value;
                 this.IsDone = false;

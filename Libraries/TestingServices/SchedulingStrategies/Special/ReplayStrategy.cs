@@ -112,12 +112,37 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(int maxValue, out bool next)
+        {
+            if (this.ExploredSteps >= this.ScheduleTrace.Count)
+            {
+                IO.Error.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
+            }
+
+            ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
+            if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+            {
+                IO.Error.ReportAndExit("Trace is not reproducible: next step is not a nondeterministic choice.");
+            }
+
+            next = nextStep.Choice;
+            this.ExploredSteps++;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public virtual bool GetNextIntegerChoice(int maxValue, out int next)
         {
             if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
@@ -146,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps in all iterations.
+        /// Returns the maximum explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
         public int GetMaxExploredSteps()
@@ -155,27 +180,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
+        /// Returns the depth bound.
         /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
+        /// <returns>Depth bound</returns>  
+        public int GetDepthBound()
         {
-            return this.Configuration.MaxSchedulingSteps;
+            return this.Configuration.DepthBound;
         }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the depth
+        /// bound for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
+        /// <returns>Depth bound</returns>
+        public bool HasReachedDepthBound()
         {
-            if (this.Configuration.MaxSchedulingSteps == 0)
+            if (this.Configuration.DepthBound == 0)
             {
                 return false;
             }
 
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>

@@ -74,20 +74,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new OperationCanceledException();
             }
 
-            // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedMaxSchedulingSteps())
-            {
-                IO.Debug("<ScheduleDebug> Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
-
-                if (base.NumberOfAvailableMachinesToSchedule() == 0)
-                {
-                    this.HasFullyExploredSchedule = true;
-                }
-
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
-            }
+            // Checks if the scheduling steps bound has been reached.
+            this.CheckIfSchedulingStepsBoundIsReached(true);
 
             foreach (var task in base.MachineInfos.Where(val => val.IsBlocked))
             {

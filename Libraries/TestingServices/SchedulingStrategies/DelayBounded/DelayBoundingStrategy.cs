@@ -33,6 +33,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         protected Configuration Configuration;
 
         /// <summary>
+        /// Nondeterminitic seed.
+        /// </summary>
+        protected int Seed;
+
+        /// <summary>
+        /// Randomizer.
+        /// </summary>
+        protected Random Random;
+
+        /// <summary>
         /// The maximum number of explored steps.
         /// </summary>
         protected int MaxExploredSteps;
@@ -64,6 +74,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public DelayBoundingStrategy(Configuration configuration, int delays)
         {
             this.Configuration = configuration;
+            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            this.Random = new Random(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.MaxDelays = delays;
@@ -116,12 +128,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public virtual bool GetNextChoice(int maxValue, out bool next)
+        public virtual bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
             if (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
@@ -137,6 +149,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public virtual bool GetNextIntegerChoice(int maxValue, out int next)
+        {
+            next = this.Random.Next(maxValue);
+            this.ExploredSteps++;
+            return true;
+        }
+
+        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
@@ -146,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps in all iterations.
+        /// Returns the maximum explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
         public int GetMaxExploredSteps()
@@ -155,27 +180,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
+        /// Returns the depth bound.
         /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
+        /// <returns>Depth bound</returns>  
+        public int GetDepthBound()
         {
-            return this.Configuration.MaxSchedulingSteps;
+            return this.Configuration.DepthBound;
         }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the depth
+        /// bound for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
-        public bool HasReachedMaxSchedulingSteps()
+        public bool HasReachedDepthBound()
         {
-            if (this.Configuration.MaxSchedulingSteps == 0)
+            if (this.Configuration.DepthBound == 0)
             {
                 return false;
             }
 
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -197,6 +222,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public virtual void Reset()
         {
+            this.Random = new Random(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.RemainingDelays.Clear();

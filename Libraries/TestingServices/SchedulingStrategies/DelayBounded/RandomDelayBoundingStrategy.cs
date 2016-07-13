@@ -28,16 +28,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #region fields
 
         /// <summary>
-        /// Nondeterminitic seed.
-        /// </summary>
-        private int Seed;
-
-        /// <summary>
-        /// Randomizer.
-        /// </summary>
-        private Random Random;
-
-        /// <summary>
         /// Delays during this iteration.
         /// </summary>
         private List<int> CurrentIterationDelays;
@@ -54,8 +44,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public RandomDelayBoundingStrategy(Configuration configuration, int delays)
             : base(configuration, delays)
         {
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new Random(this.Seed);
             this.CurrentIterationDelays = new List<int>();
         }
 
@@ -70,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             base.RemainingDelays.Clear();
             for (int idx = 0; idx < base.MaxDelays; idx++)
             {
-                base.RemainingDelays.Add(this.Random.Next(base.MaxExploredSteps));
+                base.RemainingDelays.Add(base.Random.Next(base.MaxExploredSteps));
             }
 
             base.RemainingDelays.Sort();
@@ -84,7 +72,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public override void Reset()
         {
-            this.Random = new Random(this.Seed);
             base.Reset();
         }
 
@@ -94,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            var text = "Random seed '" + this.Seed + "', '" + base.MaxDelays + "' delays, delays '[";
+            var text = "Random seed '" + base.Seed + "', '" + base.MaxDelays + "' delays, delays '[";
             for (int idx = 0; idx < this.CurrentIterationDelays.Count; idx++)
             {
                 text += this.CurrentIterationDelays[idx];

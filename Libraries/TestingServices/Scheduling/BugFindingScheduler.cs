@@ -128,28 +128,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new OperationCanceledException();
             }
 
-            // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedMaxSchedulingSteps())
-            {
-                var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
-
-                if (this.NumberOfAvailableMachinesToSchedule() == 0)
-                {
-                    this.HasFullyExploredSchedule = true;
-                }
-
-                if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
-                {
-                    this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
-                }
-                else
-                {
-                    IO.Debug($"<ScheduleDebug> {msg}");
-                    this.KillRemainingMachines();
-                    throw new OperationCanceledException();
-                }
-            }
+            // Checks if the scheduling steps bound has been reached.
+            this.CheckIfSchedulingStepsBoundIsReached(true);
 
             MachineInfo machineInfo = null;
             if (!this.TaskMap.TryGetValue((int)id, out machineInfo))
@@ -223,32 +203,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next nondeterministic choice.
+        /// Returns the next nondeterministic boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal bool GetNextNondeterministicChoice(int maxValue, string uniqueId = null)
+        internal bool GetNextNondeterministicBooleanChoice(
+            int maxValue, string uniqueId = null)
         {
-            // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedMaxSchedulingSteps())
-            {
-                var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
-                if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
-                {
-                    this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
-                }
-                else
-                {
-                    IO.Debug($"<ScheduleDebug> {msg}");
-                    this.KillRemainingMachines();
-                    throw new OperationCanceledException();
-                }
-            }
+            // Checks if the scheduling steps bound has been reached.
+            this.CheckIfSchedulingStepsBoundIsReached(false);
 
             var choice = false;
-            if (!this.Strategy.GetNextChoice(maxValue, out choice))
+            if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
@@ -263,6 +230,35 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicChoice(uniqueId, choice);
             }
+
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
+            return choice;
+        }
+
+        /// <summary>
+        /// Returns the next nondeterministic integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Integer</returns>
+        internal int GetNextNondeterministicIntegerChoice(int maxValue)
+        {
+            // Checks if the scheduling steps bound has been reached.
+            this.CheckIfSchedulingStepsBoundIsReached(false);
+
+            var choice = false;
+            if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
+            {
+                IO.Debug("<ScheduleDebug> Schedule explored.");
+                this.KillRemainingMachines();
+                throw new OperationCanceledException();
+            }
+
+            this.Runtime.ScheduleTrace.AddNondeterministicChoice(choice);
 
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
@@ -483,6 +479,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var availableMachines = this.MachineInfos.Where(
                 m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
             return availableMachines.Count;
+        }
+
+        /// <summary>
+        /// Checks if the scheduling steps bound has been reached.
+        /// If yes, it stops the scheduler and kills all enabled
+        /// machines.
+        /// </summary>
+        /// <param name="isSchedulingDecision">Is a machine scheduling decision</param>
+        protected void CheckIfSchedulingStepsBoundIsReached(bool isSchedulingDecision)
+        {
+            if (this.Strategy.HasReachedMaxSchedulingSteps())
+            {
+                var msg = IO.Format("Scheduling steps bound of " +
+                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
+
+                if (isSchedulingDecision &&
+                    this.NumberOfAvailableMachinesToSchedule() == 0)
+                {
+                    this.HasFullyExploredSchedule = true;
+                }
+
+                if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
+                {
+                    this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
+                }
+                else
+                {
+                    IO.Debug($"<ScheduleDebug> {msg}");
+                    this.KillRemainingMachines();
+                    throw new OperationCanceledException();
+                }
+            }
         }
 
         /// <summary>
