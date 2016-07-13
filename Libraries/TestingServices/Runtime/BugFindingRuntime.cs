@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// Class implementing the P# bug-finding runtime.
     /// </summary>
-    internal sealed class PSharpBugFindingRuntime : PSharpRuntime
+    internal sealed class PSharpBugFindingRuntime : PSharpRuntime, IDisposable
     {
         #region fields
 
@@ -1269,6 +1269,24 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.ScheduleOnWait(tasks, false);
             return Task.WhenAny(tasks);
+        }
+
+        #endregion
+
+        #region cleanup methods
+
+        /// <summary>
+        /// Disposes runtime resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Monitors.Clear();
+            this.MachineActionTraceMap.Clear();
+
+            this.LivenessChecker = null;
+            this.StateCache = null;
+            this.ScheduleTrace = null;
+            this.BugTrace = null;
         }
 
         #endregion

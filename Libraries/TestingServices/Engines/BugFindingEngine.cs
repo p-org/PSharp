@@ -389,6 +389,8 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         maxIterations++;
                     }
+
+                    runtime.Dispose();
                 }
                 
                 try

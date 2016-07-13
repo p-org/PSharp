@@ -108,6 +108,19 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.PotentialCycle.Count > 0)
             {
+                var coldMonitors = this.HotMonitors.Where(m => m.IsInColdState()).ToList();
+                if (coldMonitors.Count > 0)
+                {
+                    foreach (var coldMonitor in coldMonitors)
+                    {
+                        IO.Debug($"Trace is not reproducible: monitor {coldMonitor.Id} " +
+                        "transitioned to a cold state.");
+                    }
+
+                    this.EscapeCycle();
+                    return;
+                }
+
                 this.LivenessTemperature++;
                 if (this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
                 {
