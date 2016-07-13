@@ -225,17 +225,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.HotMonitors = this.GetHotMonitors(this.PotentialCycle);
             if (this.HotMonitors.Count > 0)
             {
-                //IO.Debug("<LivenessDebug> POTENTIAL BUG.");
-
-                //foreach (var monitor in this.HotMonitors)
-                //{
-                //    string message = IO.Format("Monitor '{0}' detected infinite execution that " +
-                //        "violates a liveness property.", monitor.GetType().Name);
-                //    this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
-                //}
-
-                //this.Runtime.BugFinder.Stop();
-                
                 IO.Debug("<LivenessDebug> ------------- CYCLE --------------.");
                 foreach (var x in this.PotentialCycle)
                 {
