@@ -481,9 +481,13 @@ namespace Microsoft.PSharp.TestingServices
                     stringBuilder.Append($"{step.ScheduledMachine.Id.Type}" +
                         $"({step.ScheduledMachine.Id.Value})");
                 }
+                else if (step.BooleanChoice != null)
+                {
+                    stringBuilder.Append(step.BooleanChoice.Value);
+                }
                 else
                 {
-                    stringBuilder.Append(step.Choice);
+                    stringBuilder.Append(step.IntegerChoice.Value);
                 }
 
                 if (idx < runtime.ScheduleTrace.Count - 1)

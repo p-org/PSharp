@@ -211,9 +211,13 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 {
                     IO.Debug($"{x.Index} :: {x.ScheduledMachine.Id}");
                 }
+                else if (x.BooleanChoice != null)
+                {
+                    IO.Debug($"{x.Index} :: {x.BooleanChoice.Value}");
+                }
                 else
                 {
-                    IO.Debug($"{x.Index} :: {x.Choice}");
+                    IO.Debug($"{x.Index} :: {x.IntegerChoice.Value}");
                 }
             }
             IO.Debug("<LivenessDebug> ----------------------------------.");
@@ -239,22 +243,19 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         IO.Debug($"{x.Item1.Index} :: {x.Item1.ScheduledMachine.Id}");
                     }
+                    else if (x.Item1.BooleanChoice != null)
+                    {
+                        IO.Debug($"{x.Item1.Index} :: {x.Item1.BooleanChoice.Value}");
+                    }
                     else
                     {
-                        IO.Debug($"{x.Item1.Index} :: {x.Item1.Choice}");
+                        IO.Debug($"{x.Item1.Index} :: {x.Item1.IntegerChoice.Value}");
                     }
                 }
                 IO.Debug("<LivenessDebug> ----------------------------------.");
-
-                //CycleReplayStrategy strategy = new CycleReplayStrategy(
-                //    this.Runtime.Configuration,
-                //    this.PotentialCycle.Select(val => val.Item1).ToList());
+                
                 this.BugFindingSchedulingStrategy = this.Runtime.BugFinder.
                     SwitchSchedulingStrategy(this);
-                //strategy.Initialize(this.BugFindingSchedulingStrategy, this.EscapeCycle);
-                
-                //this.BugFindingSchedulingStrategy = this.Runtime.BugFinder.
-                //    SwitchSchedulingStrategy(this.BugFindingSchedulingStrategy);
             }
             else
             {
@@ -340,10 +341,11 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             var falseChoices = new HashSet<string>();
 
             var fairNondeterministicChoiceSteps = cycle.Where(
-                val => val.Item1.Type == ScheduleStepType.FairNondeterministicChoice);
+                val => val.Item1.Type == ScheduleStepType.FairNondeterministicChoice &&
+                val.Item1.BooleanChoice != null);
             foreach (var step in fairNondeterministicChoiceSteps)
             {
-                if (step.Item1.Choice)
+                if (step.Item1.BooleanChoice.Value)
                 {
                     trueChoices.Add(step.Item1.NondetId);
                 }
@@ -474,24 +476,54 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Returns the next choice.
+        /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.GetNextChoice(int maxValue, out bool next)
+        bool ISchedulingStrategy.GetNextBooleanChoice(int maxValue, out bool next)
         {
             ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-            if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+            if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
+                nextStep.BooleanChoice == null)
             {
-                IO.Debug("Trace is not reproducible: next step is not a nondeterministic choice.");
+                IO.Debug("Trace is not reproducible: next step is not a nondeterministic boolean choice.");
                 this.EscapeCycle();
-                return this.BugFindingSchedulingStrategy.GetNextChoice(maxValue, out next);
+                return this.BugFindingSchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
             }
 
-            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.Choice}'.");
+            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.BooleanChoice.Value}'.");
 
-            next = nextStep.Choice;
+            next = nextStep.BooleanChoice.Value;
+            this.CurrentCycleIndex++;
+            if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+            {
+                this.CurrentCycleIndex = 0;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.GetNextIntegerChoice(int maxValue, out int next)
+        {
+            ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
+            if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
+                nextStep.IntegerChoice == null)
+            {
+                IO.Debug("Trace is not reproducible: next step is not a nondeterministic integer choice.");
+                this.EscapeCycle();
+                return this.BugFindingSchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+            }
+
+            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.IntegerChoice.Value}'.");
+
+            next = nextStep.IntegerChoice.Value;
             this.CurrentCycleIndex++;
             if (this.CurrentCycleIndex == this.PotentialCycle.Count)
             {

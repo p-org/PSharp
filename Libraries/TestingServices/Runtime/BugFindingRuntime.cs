@@ -642,7 +642,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override int GetNondeterministicIntegerChoice(
             AbstractMachine machine, int maxValue)
         {
-            var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(2, uniqueId);
+            var choice = this.BugFinder.GetNextNondeterministicIntegerChoice(2);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
@@ -656,11 +656,6 @@ namespace Microsoft.PSharp.TestingServices
             this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;
-
-
-
-            Random random = new Random(DateTime.Now.Millisecond);
-            return random.Next(maxValue);
         }
 
         /// <summary>

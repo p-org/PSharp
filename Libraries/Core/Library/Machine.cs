@@ -461,7 +461,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing. The value is used
-        /// to generate a number in the range [1..maxValue], where 1
+        /// to generate a number in the range [0..maxValue), where 0
         /// triggers true.
         /// </summary>
         /// <param name="maxValue">Max value</param>
@@ -495,16 +495,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
+        /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing. The value is used
-        /// to generate a number in the range [1..maxValue], where 1
-        /// triggers true.
+        /// to generate an integer in the range [0..maxValue).
         /// </summary>
         /// <param name="maxValue">Max value</param>
-        /// <returns>Boolean</returns>
-        protected bool Random(int maxValue)
+        /// <returns>Integer</returns>
+        protected int RandomInteger(int maxValue)
         {
-            return base.Runtime.GetNondeterministicChoice(this, maxValue);
+            return base.Runtime.GetNondeterministicIntegerChoice(this, maxValue);
         }
 
         /// <summary>

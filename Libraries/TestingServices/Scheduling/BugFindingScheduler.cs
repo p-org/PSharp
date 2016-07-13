@@ -116,19 +116,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (this.BugFound || !this.IsSchedulerRunning)
             {
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             // Checks if the scheduling steps bound has been reached.
-            this.CheckIfSchedulingStepsBoundIsReached(true);
+            this.CheckIfSchedulingStepsBoundIsReached(false);
 
             MachineInfo machineInfo = null;
             if (!this.TaskMap.TryGetValue((int)id, out machineInfo))
             {
                 IO.Debug($"<ScheduleDebug> Unable to schedule task '{id}'.");
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             MachineInfo next = null;
@@ -136,8 +134,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
@@ -450,10 +447,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Switches the scheduler to the specified scheduling strategy,
+        /// and returns the previously installed strategy.
+        /// </summary>
+        /// <param name="strategy">ISchedulingStrategy</param>
+        /// <returns>ISchedulingStrategy</returns>
+        internal ISchedulingStrategy SwitchSchedulingStrategy(ISchedulingStrategy strategy)
+        {
+            ISchedulingStrategy previous = this.Strategy;
+            this.Strategy = strategy;
+            return previous;
+        }
+
+        /// <summary>
         /// Stops the scheduler.
         /// </summary>
         internal void Stop()
         {
+            this.IsSchedulerRunning = false;
             this.KillRemainingMachines();
             throw new OperationCanceledException();
         }
@@ -510,8 +521,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         protected void KillRemainingMachines()
         {
-            this.IsSchedulerRunning = false;
-
             foreach (var machineInfo in this.MachineInfos)
             {
                 machineInfo.IsActive = true;
