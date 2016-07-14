@@ -138,14 +138,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
-
-            // Checks the liveness monitors for potential liveness bugs.
-            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
+            
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
+
+            // Checks the liveness monitors for potential liveness bugs.
+            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
 
             IO.Debug($"<ScheduleDebug> Schedule task '{next.Id}' of machine " +
                 $"'{next.Machine.Id}'.");
@@ -219,14 +220,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
-
-            // Checks the liveness monitors for potential liveness bugs.
-            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
+            
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
+
+            // Checks the liveness monitors for potential liveness bugs.
+            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
 
             return choice;
         }
@@ -250,14 +252,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
-
-            // Checks the liveness monitors for potential liveness bugs.
-            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
+            
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
+
+            // Checks the liveness monitors for potential liveness bugs.
+            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
 
             return choice;
         }

@@ -52,6 +52,20 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         }
 
         /// <summary>
+        /// Returns the state corresponding to the
+        /// specified schedule step.
+        /// </summary>
+        /// <param name="key">ScheduleStep</param>
+        /// <returns>State</returns>
+        internal State this[ScheduleStep key]
+        {
+            get
+            {
+                return this.StateMap[key];
+            }
+        }
+
+        /// <summary>
         /// Captures a snapshot of the program state.
         /// </summary>
         /// <param name="scheduleStep">ScheduleStep</param>
@@ -86,13 +100,23 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             }
 
             var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
+
             this.StateMap.Add(scheduleStep, state);
 
             if (stateExists)
             {
                 IO.Debug("<LivenessDebug> Detected potential infinite execution.");
-                this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, this.StateMap);
+                this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint);
             }
+        }
+
+        /// <summary>
+        /// Removes the specified schedule step from the cache.
+        /// </summary>
+        /// <param name="scheduleStep">ScheduleStep</param>
+        internal void Remove(ScheduleStep scheduleStep)
+        {
+            this.StateMap.Remove(scheduleStep);
         }
 
         #endregion
