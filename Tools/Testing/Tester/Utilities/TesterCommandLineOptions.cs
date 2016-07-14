@@ -262,7 +262,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/state-caching"))
             {
                 base.Configuration.CacheProgramState = true;
-                base.Configuration.LivenessTemperatureThreshold = 100;
             }
             else if (option.ToLower().Equals("/opbound"))
             {
