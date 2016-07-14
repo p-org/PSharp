@@ -14,6 +14,8 @@
 
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
     /// <summary>
@@ -41,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
 
         #endregion
 
-        #region internal API
+        #region method
 
         /// <summary>
         /// Constructor.
@@ -55,6 +57,23 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             this.Fingerprint = fingerprint;
             this.EnabledMachines = enabledMachines;
             this.MonitorStatus = monitorStatus;
+        }
+
+        /// <summary>
+        /// Pretty prints the state.
+        /// </summary>
+        internal void PrettyPrint()
+        {
+            IO.PrintLine($"Fingerprint: {this.Fingerprint}");
+            foreach (var m in this.EnabledMachines)
+            {
+                IO.PrintLine($"  Enabled machine: {m.Id}");
+            }
+
+            foreach (var m in this.MonitorStatus)
+            {
+                IO.PrintLine($"  Monitor status: {m.Key.Id} is {m.Value}");
+            }
         }
 
         #endregion
