@@ -207,10 +207,16 @@ namespace Microsoft.PSharp.Utilities
         public int LivenessTemperatureThreshold;
 
         /// <summary>
-        /// If true, then the P# tester will perform state
-        /// caching when checking liveness properties.
+        /// If true, then the P# tester will perform state-caching
+        /// when checking liveness properties.
         /// </summary>
         public bool CacheProgramState;
+
+        /// <summary>
+        /// Enables the cycle-replaying strategy when using
+        /// state-caching for liveness checking.
+        /// </summary>
+        public bool EnableCycleReplayingStrategy;
 
         /// <summary>
         /// If true, then the P# tester will try to bound
@@ -364,6 +370,7 @@ namespace Microsoft.PSharp.Utilities
             this.ScheduleIntraMachineConcurrency = false;
             this.LivenessTemperatureThreshold = 0;
             this.CacheProgramState = false;
+            this.EnableCycleReplayingStrategy = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
             

@@ -263,6 +263,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.CacheProgramState = true;
             }
+            else if (option.ToLower().Equals("/cycle-replay"))
+            {
+                base.Configuration.EnableCycleReplayingStrategy = true;
+            }
             else if (option.ToLower().Equals("/opbound"))
             {
                 base.Configuration.BoundOperations = true;
@@ -328,6 +332,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void UpdateConfiguration()
         {
+            if (base.Configuration.EnableCycleReplayingStrategy)
+            {
+                base.Configuration.CacheProgramState = true;
+            }
+
             if (base.Configuration.LivenessTemperatureThreshold == 0)
             {
                 if (base.Configuration.CacheProgramState)

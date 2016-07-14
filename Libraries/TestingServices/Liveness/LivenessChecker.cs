@@ -70,6 +70,16 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         private int CurrentCycleIndex;
 
+        /// <summary>
+        /// Nondeterminitic seed.
+        /// </summary>
+        private int Seed;
+
+        /// <summary>
+        /// Randomizer.
+        /// </summary>
+        private Random Random;
+
         #endregion
 
         #region internal methods
@@ -81,11 +91,16 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         internal LivenessChecker(PSharpBugFindingRuntime runtime)
         {
             this.Runtime = runtime;
+
             this.Monitors = new List<Monitor>();
             this.PotentialCycle = new List<Tuple<ScheduleStep, State>>();
             this.HotMonitors = new HashSet<Monitor>();
+
             this.LivenessTemperature = 0;
             this.CurrentCycleIndex = 0;
+
+            this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
@@ -433,7 +448,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        bool ISchedulingStrategy.TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices,
+            MachineInfo current)
         {
             var availableMachines = choices.Where(
                 m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
@@ -447,33 +463,41 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
             }
 
-            ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-            if (nextStep.Type != ScheduleStepType.SchedulingChoice)
+            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
             {
-                IO.Debug("Trace is not reproducible: next step is not a scheduling choice.");
-                this.EscapeCycle();
-                return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
+                ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
+                if (nextStep.Type != ScheduleStepType.SchedulingChoice)
+                {
+                    IO.Debug("Trace is not reproducible: next step is not a scheduling choice.");
+                    this.EscapeCycle();
+                    return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
+                }
+
+                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachine.Id}'.");
+
+                next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
+                    nextStep.ScheduledMachineType) &&
+                    m.Machine.Id.Value == nextStep.ScheduledMachineId);
+                if (next == null)
+                {
+                    IO.Debug("Trace is not reproducible: cannot detect machine with type " +
+                        $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
+                    this.EscapeCycle();
+                    return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
+                }
+
+                this.CurrentCycleIndex++;
+                if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+                {
+                    this.CurrentCycleIndex = 0;
+                }
             }
-
-            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachine.Id}'.");
-
-            next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
-                nextStep.ScheduledMachineType) &&
-                m.Machine.Id.Value == nextStep.ScheduledMachineId);
-            if (next == null)
+            else
             {
-                IO.Debug("Trace is not reproducible: cannot detect machine with type " +
-                    $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
-                this.EscapeCycle();
-                return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
+                int idx = this.Random.Next(availableMachines.Count);
+                next = availableMachines[idx];
             }
-
-            this.CurrentCycleIndex++;
-            if (this.CurrentCycleIndex == this.PotentialCycle.Count)
-            {
-                this.CurrentCycleIndex = 0;
-            }
-
+            
             return true;
         }
 
@@ -485,24 +509,36 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <returns>Boolean</returns>
         bool ISchedulingStrategy.GetNextBooleanChoice(int maxValue, out bool next)
         {
-            ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-            if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
-                nextStep.BooleanChoice == null)
+            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
             {
-                IO.Debug("Trace is not reproducible: next step is not a nondeterministic boolean choice.");
-                this.EscapeCycle();
-                return this.BugFindingSchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+                ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
+                if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
+                    nextStep.BooleanChoice == null)
+                {
+                    IO.Debug("Trace is not reproducible: next step is not a nondeterministic boolean choice.");
+                    this.EscapeCycle();
+                    return this.BugFindingSchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+                }
+
+                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.BooleanChoice.Value}'.");
+
+                next = nextStep.BooleanChoice.Value;
+
+                this.CurrentCycleIndex++;
+                if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+                {
+                    this.CurrentCycleIndex = 0;
+                }
             }
-
-            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.BooleanChoice.Value}'.");
-
-            next = nextStep.BooleanChoice.Value;
-            this.CurrentCycleIndex++;
-            if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+            else
             {
-                this.CurrentCycleIndex = 0;
+                next = false;
+                if (this.Random.Next(maxValue) == 0)
+                {
+                    next = true;
+                }
             }
-
+            
             return true;
         }
 
@@ -514,24 +550,32 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <returns>Boolean</returns>
         bool ISchedulingStrategy.GetNextIntegerChoice(int maxValue, out int next)
         {
-            ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-            if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
-                nextStep.IntegerChoice == null)
+            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
             {
-                IO.Debug("Trace is not reproducible: next step is not a nondeterministic integer choice.");
-                this.EscapeCycle();
-                return this.BugFindingSchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+                ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
+                if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
+                    nextStep.IntegerChoice == null)
+                {
+                    IO.Debug("Trace is not reproducible: next step is not a nondeterministic integer choice.");
+                    this.EscapeCycle();
+                    return this.BugFindingSchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+                }
+
+                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.IntegerChoice.Value}'.");
+
+                next = nextStep.IntegerChoice.Value;
+
+                this.CurrentCycleIndex++;
+                if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+                {
+                    this.CurrentCycleIndex = 0;
+                }
             }
-
-            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.IntegerChoice.Value}'.");
-
-            next = nextStep.IntegerChoice.Value;
-            this.CurrentCycleIndex++;
-            if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+            else
             {
-                this.CurrentCycleIndex = 0;
+                next = this.Random.Next(maxValue);
             }
-
+            
             return true;
         }
 
