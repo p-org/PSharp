@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.LanguageServices
             new TriggerRewriter(this).Rewrite();
             new CurrentStateRewriter(this).Rewrite();
             new ThisRewriter(this).Rewrite();
-            new NondeterministicChoiceRewriter(this).Rewrite();
+            new RandomChoiceRewriter(this).Rewrite();
         }
 
         /// <summary>

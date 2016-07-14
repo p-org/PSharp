@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="NondeterministicChoiceRewriter.cs">
+// <copyright file="RandomChoiceRewriter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
-    /// The nondetermnistic choice expression rewriter.
+    /// The random choice expression rewriter.
     /// </summary>
-    internal sealed class NondeterministicChoiceRewriter : PSharpRewriter
+    internal sealed class RandomChoiceRewriter : PSharpRewriter
     {
         #region public API
 
@@ -33,14 +33,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="program">IPSharpProgram</param>
-        internal NondeterministicChoiceRewriter(IPSharpProgram program)
+        internal RandomChoiceRewriter(IPSharpProgram program)
             : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the nondetermnistic choice expressions in the program.
+        /// Rewrites the random choice expressions in the program.
         /// </summary>
         internal void Rewrite()
         {
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region private methods
 
         /// <summary>
-        /// Rewrites the expression with a nondetermnistic choice expression.
+        /// Rewrites the expression with a random choice expression.
         /// </summary>
         /// <param name="node">PrefixUnaryExpressionSyntax</param>
         /// <returns>SyntaxNode</returns>

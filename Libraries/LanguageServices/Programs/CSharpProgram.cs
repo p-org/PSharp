@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.LanguageServices
             new RaiseRewriter(this).Rewrite();
             new GotoStateRewriter(this).Rewrite();
             new PopRewriter(this).Rewrite();
-            new FairNondetRewriter(this).Rewrite();
+            new FairRandomRewriter(this).Rewrite();
         }
 
         /// <summary>

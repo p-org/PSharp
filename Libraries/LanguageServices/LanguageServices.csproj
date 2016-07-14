@@ -145,10 +145,10 @@
     <Compile Include="Rewriting\Attributes\CustomCSharpRewritingPass.cs" />
     <Compile Include="Rewriting\CSharp\CSharpRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
-    <Compile Include="Rewriting\CSharp\Statements\FairNondetRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\FairRandomRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\GotoStateRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
-    <Compile Include="Rewriting\PSharp\Expressions\NondeterministicChoiceRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Expressions\RandomChoiceRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\ThisRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\CurrentStateRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\TriggerRewriter.cs" />

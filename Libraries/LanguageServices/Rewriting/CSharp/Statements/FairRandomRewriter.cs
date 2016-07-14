@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FairNondetRewriter.cs">
+// <copyright file="FairRandomRewriter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,14 +23,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 {
     /// <summary>
-    /// The fair nondet statement rewriter.
+    /// The fair random statement rewriter.
     /// </summary>
-    internal sealed class FairNondetRewriter : CSharpRewriter
+    internal sealed class FairRandomRewriter : CSharpRewriter
     {
         #region public API
 
         /// <summary>
-        /// Counter of unique nondet statement ids.
+        /// Counter of unique random statement ids.
         /// </summary>
         private static int IdCounter;
 
@@ -41,16 +41,16 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Static constructor.
         /// </summary>
-        static FairNondetRewriter()
+        static FairRandomRewriter()
         {
-            FairNondetRewriter.IdCounter = 0;
+            FairRandomRewriter.IdCounter = 0;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="program">IPSharpProgram</param>
-        internal FairNondetRewriter(IPSharpProgram program)
+        internal FairRandomRewriter(IPSharpProgram program)
             : base(program)
         {
             
@@ -64,9 +64,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
             var compilation = base.Program.GetProject().GetCompilation();
             var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
 
-            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
-                Where(val => val.Expression is InvocationExpressionSyntax).
-                Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.FairNondet", model)).
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
+                Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.FairRandom", model)).
                 ToList();
 
             if (statements.Count == 0)
@@ -86,16 +85,16 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         #region private methods
 
         /// <summary>
-        /// Rewrites the fair nondet statement.
+        /// Rewrites the fair random statement.
         /// </summary>
-        /// <param name="node">ExpressionStatementSyntax</param>
+        /// <param name="node">InvocationExpressionSyntax</param>
         /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
+        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            var uniqueId = FairNondetRewriter.IdCounter;
-            FairNondetRewriter.IdCounter++;
+            var uniqueId = FairRandomRewriter.IdCounter;
+            FairRandomRewriter.IdCounter++;
 
-            var text = "this.FairNondet(" + uniqueId + ")";
+            var text = "this.FairRandom(" + uniqueId + ")";
             var rewritten = SyntaxFactory.ParseExpression(text);
             rewritten = rewritten.WithTriviaFrom(node);
 
