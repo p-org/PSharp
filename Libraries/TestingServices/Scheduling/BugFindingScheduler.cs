@@ -220,6 +220,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
 
+            // Checks the liveness monitors for potential liveness bugs.
+            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
@@ -249,6 +251,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
 
+            // Checks the liveness monitors for potential liveness bugs.
+            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
