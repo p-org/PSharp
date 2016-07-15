@@ -25,7 +25,8 @@ We welcome contributions! However, before you start contributing, please read ca
 ## Contact us
 
 If you would like to use P# in your project, or have any specific questions, please feel free to contact one of the following members of the P# team (@p-org/psharp-developers):
-- Pantazis Deligiannis (p.deligiannis@imperial.ac.uk) [Maintainer]
-- Akash Lal (akashl@microsoft.com) [Maintainer]
+- Akash Lal (akashl@microsoft.com)
+- Rashmi Mudduluru (t-rasmud@microsoft.com)
+- Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 - Shaz Qadeer (qadeer@microsoft.com)
 - Cheng Huang (cheng.huang@microsoft.com)
