@@ -228,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
 
-            this.Send(null, target, e, false);
+            this.Send(GetCurrentMachine(), target, e, false);
         }
 
         /// <summary>
