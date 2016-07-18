@@ -77,7 +77,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region public API
+        #region public methods
 
         /// <summary>
         /// Creates a new P# runtime.
@@ -189,21 +189,6 @@ namespace Microsoft.PSharp
                (int)Task.CurrentId);
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             return machine.Id;
-        }
-
-        /// <summary>
-        /// Gets the currently executing machine.
-        /// </summary>
-        /// <returns>MachineId or null, if not present</returns>
-        internal virtual Machine GetCurrentMachine()
-        {
-            //  The current task does not correspond to a machine.
-            if (Task.CurrentId == null) return null;
-
-            // The current task does not correspond to a machine.
-            if (!this.TaskMap.ContainsKey((int)Task.CurrentId)) return null;
-
-            return this.TaskMap[(int)Task.CurrentId];
         }
 
         /// <summary>
@@ -573,7 +558,28 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region internal API
+        #region internal methods
+
+        /// <summary>
+        /// Gets the currently executing machine.
+        /// </summary>
+        /// <returns>Machine or null, if not present</returns>
+        internal virtual Machine GetCurrentMachine()
+        {
+            //  The current task does not correspond to a machine.
+            if (Task.CurrentId == null)
+            {
+                return null;
+            }
+
+            // The current task does not correspond to a machine.
+            if (!this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                return null;
+            }
+
+            return this.TaskMap[(int)Task.CurrentId];
+        }
 
         /// <summary>
         /// Tries to create a new machine of the specified type.
