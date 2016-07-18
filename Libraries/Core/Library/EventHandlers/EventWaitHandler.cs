@@ -34,11 +34,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal readonly Func<Event, bool> Predicate;
 
-        /// <summary>
-        /// Action handler.
-        /// </summary>
-        internal readonly Action<Event> Action;
-
         #endregion
 
         #region constructors
@@ -62,31 +57,6 @@ namespace Microsoft.PSharp
         {
             this.EventType = eventType;
             this.Predicate = predicate;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="action">Action</param>
-        internal EventWaitHandler(Type eventType, Action<Event> action)
-        {
-            this.EventType = eventType;
-            this.Predicate = (Event e) => true;
-            this.Action = action;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="action">Action</param>
-        internal EventWaitHandler(Type eventType, Func<Event, bool> predicate, Action<Event> action)
-        {
-            this.EventType = eventType;
-            this.Predicate = predicate;
-            this.Action = action;
         }
 
         #endregion

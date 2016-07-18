@@ -103,6 +103,11 @@ namespace Microsoft.PSharp
         internal bool IsWaitingToReceive;
 
         /// <summary>
+        /// Event obtained via Receive
+        /// </summary>
+        internal Event EventViaReceive;
+
+        /// <summary>
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
@@ -122,12 +127,6 @@ namespace Microsoft.PSharp
         /// executes when the event is received.
         /// </summary>
         private List<EventWaitHandler> EventWaitHandlers;
-
-        /// <summary>
-        /// Gets the received event and an optional associated action. If no event
-        /// has been received this will return null.
-        /// </summary>
-        private Tuple<Event, Action<Event>> ReceivedEventHandler;
 
         /// <summary>
         /// Gets the current state.
@@ -329,7 +328,8 @@ namespace Microsoft.PSharp
         /// Blocks and waits to receive an event of the specified types.
         /// </summary>
         /// <param name="eventTypes">Event types</param>
-        protected internal void Receive(params Type[] eventTypes)
+        /// <returns>Event received</returns>
+        protected internal Event Receive(params Type[] eventTypes)
         {
             foreach (var type in eventTypes)
             {
@@ -337,6 +337,7 @@ namespace Microsoft.PSharp
             }
 
             this.WaitOnEvent();
+            return this.EventViaReceive;
         }
 
         /// <summary>
@@ -345,35 +346,12 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
-        protected internal void Receive(Type eventType, Func<Event, bool> predicate)
+        /// <returns>Event received</returns>
+        protected internal Event Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
             this.WaitOnEvent();
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified type, and
-        /// executes a specified action upon receiving the event.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="action">Action</param>
-        protected internal void Receive(Type eventType, Action<Event> action)
-        {
-            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, action));
-            this.WaitOnEvent();
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified type, and
-        /// executes a specified action upon receiving the event.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="action">Action</param>
-        protected internal void Receive(Type eventType, Func<Event, bool> predicate, Action<Event> action)
-        {
-            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate, action));
-            this.WaitOnEvent();
+            return this.EventViaReceive;
         }
 
         /// <summary>
@@ -381,7 +359,8 @@ namespace Microsoft.PSharp
         /// that satisfy the specified predicates.
         /// </summary>
         /// <param name="events">Event types and predicates</param>
-        protected internal void Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        /// <returns>Event received</returns>
+        protected internal Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             foreach (var e in events)
             {
@@ -389,37 +368,7 @@ namespace Microsoft.PSharp
             }
 
             this.WaitOnEvent();
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types, and
-        /// executes a specified action upon receiving the event.
-        /// </summary>
-        /// <param name="events">Event types and handlers</param>
-        protected internal void Receive(params Tuple<Type, Action<Event>>[] events)
-        {
-            foreach (var e in events)
-            {
-                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
-            }
-
-            this.WaitOnEvent();
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types
-        /// that satisfy the specified predicates, and executes a specified
-        /// action upon receiving the event.
-        /// </summary>
-        /// <param name="events">Event types, predicates and handlers</param>
-        protected internal void Receive(params Tuple<Type, Func<Event, bool>, Action<Event>>[] events)
-        {
-            foreach (var e in events)
-            {
-                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2, e.Item3));
-            }
-
-            this.WaitOnEvent();
+            return this.EventViaReceive;
         }
 
         /// <summary>
@@ -562,8 +511,7 @@ namespace Microsoft.PSharp
                            val.Predicate(eventInfo.Event));
                 if (eventWaitHandler != null)
                 {
-                    this.ReceivedEventHandler = new Tuple<Event, Action<Event>>(
-                        eventInfo.Event, eventWaitHandler.Action);
+                    this.EventViaReceive = eventInfo.Event;
                     this.EventWaitHandlers.Clear();
                     base.Runtime.NotifyReceivedEvent(this, eventInfo);
                     return;
@@ -907,6 +855,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private void WaitOnEvent()
         {
+            this.EventViaReceive = null;
+
             lock (this.Inbox)
             {
                 // Iterate through the events in the inbox.
@@ -919,15 +869,14 @@ namespace Microsoft.PSharp
                                val.Predicate(this.Inbox[idx].Event));
                     if (eventWaitHandler != null)
                     {
-                        this.ReceivedEventHandler = new Tuple<Event, Action<Event>>(
-                            this.Inbox[idx].Event, eventWaitHandler.Action);
+                        this.EventViaReceive = this.Inbox[idx].Event;
                         this.EventWaitHandlers.Clear();
                         this.Inbox.RemoveAt(idx);
                         break;
                     }
                 }
 
-                if (this.ReceivedEventHandler == null)
+                if (this.EventViaReceive == null)
                 {
                     this.IsWaitingToReceive = true;
                 }
@@ -943,63 +892,6 @@ namespace Microsoft.PSharp
                 
                 base.Runtime.NotifyWaitEvents(this, events);
                 this.IsWaitingToReceive = false;
-            }
-            
-            this.HandleReceivedEvent();
-        }
-
-        /// <summary>
-        /// Handles an event that the machine was waiting to arrive.
-        /// </summary>
-        private void HandleReceivedEvent()
-        {
-            // Assigns the received event.
-            this.ReceivedEvent = this.ReceivedEventHandler.Item1;
-
-            var action = this.ReceivedEventHandler.Item2;
-            this.ReceivedEventHandler = null;
-
-            try
-            {
-                // Invokes the received event action,
-                // if there is one available.
-                action?.Invoke(this.ReceivedEvent);
-            }
-            catch (Exception ex)
-            {
-                this.IsHalted = true;
-
-                Exception innerException = ex;
-                while (innerException is TargetInvocationException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is AggregateException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is OperationCanceledException)
-                {
-                    IO.Debug("<Exception> OperationCanceledException was " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else if (innerException is TaskSchedulerException)
-                {
-                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else
-                {
-                    if (Debugger.IsAttached)
-                    {
-                        throw innerException;
-                    }
-
-                    // Handles generic exception.
-                    this.ReportGenericAssertion(innerException);
-                }
             }
         }
 
