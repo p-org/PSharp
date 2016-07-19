@@ -337,7 +337,10 @@ namespace Microsoft.PSharp
             }
 
             this.WaitOnEvent();
-            return this.EventViaReceive;
+
+            var received = this.EventViaReceive;
+            this.EventViaReceive = null;
+            return received;
         }
 
         /// <summary>
@@ -351,7 +354,9 @@ namespace Microsoft.PSharp
         {
             this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
             this.WaitOnEvent();
-            return this.EventViaReceive;
+            var received = this.EventViaReceive;
+            this.EventViaReceive = null;
+            return received;
         }
 
         /// <summary>
@@ -368,7 +373,9 @@ namespace Microsoft.PSharp
             }
 
             this.WaitOnEvent();
-            return this.EventViaReceive;
+            var received = this.EventViaReceive;
+            this.EventViaReceive = null;
+            return received;
         }
 
         /// <summary>
@@ -855,8 +862,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private void WaitOnEvent()
         {
-            this.EventViaReceive = null;
-
             lock (this.Inbox)
             {
                 // Iterate through the events in the inbox.
