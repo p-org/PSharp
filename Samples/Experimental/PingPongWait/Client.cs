@@ -27,10 +27,8 @@ namespace PingPong
         {
             while (this.Counter < 5)
             {
-                this.Receive(new Tuple<Type, Action>(typeof(Ping), () =>
-                {
-                    this.SendPong();
-                }));
+                this.Receive(typeof(Ping));
+                this.SendPong();
             }
 
             this.Raise(new Halt());
