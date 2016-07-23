@@ -314,18 +314,25 @@ namespace Microsoft.PSharp.TestingServices
 
             MachineId mid = new MachineId(type, friendlyName, this);
 
+            var machineNewlyConstructed = false;
             if (!MachineConstructorMap.ContainsKey(type))
             {
                 Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
                     Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
                 MachineConstructorMap[type] = constructor;
+                machineNewlyConstructed = true;
             }
 
             Machine machine = MachineConstructorMap[type]();
 
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
-            
+
+            if (this.Configuration.EnableVisualization && machineNewlyConstructed)
+            {
+                this.VisualizeMachine(machine);
+            }
+
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid}' was already created.");
 
@@ -976,6 +983,23 @@ namespace Microsoft.PSharp.TestingServices
             string destState = machine.CurrentState.Name;
 
             this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+
+        /// <summary>
+        /// Visualizes a machine
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void VisualizeMachine(Machine machine)
+        {
+            var machineName = machine.GetType().Name;
+
+            // fetch states
+            var states = machine.GetAllStates();
+
+            foreach (var state in states)
+            {
+                this.Visualizer.DeclareMachineState(machineName, state);
+            }
         }
 
         /// <summary>

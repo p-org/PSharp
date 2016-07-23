@@ -245,6 +245,17 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
+
+        /// <summary>
+        /// Declares a state
+        /// </summary>
+        /// <param name="machine">Machine name</param>
+        /// <param name="state">state name</param>
+        public void DeclareMachineState(string machine, string state)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region protected methods

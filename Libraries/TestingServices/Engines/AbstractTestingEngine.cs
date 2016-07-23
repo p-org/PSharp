@@ -552,7 +552,8 @@ namespace Microsoft.PSharp.TestingServices
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
             var directoryPath = this.GetOutputDirectory();
             var graphFile = directoryPath + name + ".dgml";
-            this.Visualizer = new PSharpDgmlVisualizer(graphFile);
+            var coverageFile = directoryPath + name + ".coverage.txt";
+            this.Visualizer = new PSharpDgmlVisualizer(graphFile, coverageFile);
         }
 
         /// <summary>

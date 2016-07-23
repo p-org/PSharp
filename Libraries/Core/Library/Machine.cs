@@ -1552,5 +1552,24 @@ namespace Microsoft.PSharp
         }
 
         #endregion
+
+        #region Visualization
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for visualization)
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        internal HashSet<string> GetAllStates()
+        {
+            this.Assert(StateMap.ContainsKey(this.GetType()), $"Machine '{base.Id}' hasn't populated its states yet.");
+            var AllStates = new HashSet<string>();
+            foreach (var state in StateMap[this.GetType()])
+            {
+                AllStates.Add(state.GetType().Name);
+            }
+            return AllStates;
+        }
+
+        #endregion
     }
 }

@@ -42,5 +42,13 @@ namespace Microsoft.PSharp.Visualization
         /// <param name="stateTarget">Target state</param>
         void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
             string machineTarget, string stateTarget);
+
+        /// <summary>
+        /// Declares a state
+        /// </summary>
+        /// <param name="machine">Machine name</param>
+        /// <param name="state">state name</param>
+        void DeclareMachineState(string machine, string state);
+
     }
 }
