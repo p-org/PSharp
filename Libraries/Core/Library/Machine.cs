@@ -103,11 +103,6 @@ namespace Microsoft.PSharp
         internal bool IsWaitingToReceive;
 
         /// <summary>
-        /// Event obtained via Receive
-        /// </summary>
-        internal Event EventViaReceive;
-
-        /// <summary>
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
@@ -127,6 +122,11 @@ namespace Microsoft.PSharp
         /// executes when the event is received.
         /// </summary>
         private List<EventWaitHandler> EventWaitHandlers;
+
+        /// <summary>
+        /// Event obtained using the receive statement.
+        /// </summary>
+        private Event EventViaReceiveStatement;
 
         /// <summary>
         /// Gets the current state.
@@ -338,8 +338,8 @@ namespace Microsoft.PSharp
 
             this.WaitOnEvent();
 
-            var received = this.EventViaReceive;
-            this.EventViaReceive = null;
+            var received = this.EventViaReceiveStatement;
+            this.EventViaReceiveStatement = null;
             return received;
         }
 
@@ -354,8 +354,9 @@ namespace Microsoft.PSharp
         {
             this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
             this.WaitOnEvent();
-            var received = this.EventViaReceive;
-            this.EventViaReceive = null;
+
+            var received = this.EventViaReceiveStatement;
+            this.EventViaReceiveStatement = null;
             return received;
         }
 
@@ -373,8 +374,9 @@ namespace Microsoft.PSharp
             }
 
             this.WaitOnEvent();
-            var received = this.EventViaReceive;
-            this.EventViaReceive = null;
+
+            var received = this.EventViaReceiveStatement;
+            this.EventViaReceiveStatement = null;
             return received;
         }
 
@@ -518,7 +520,7 @@ namespace Microsoft.PSharp
                            val.Predicate(eventInfo.Event));
                 if (eventWaitHandler != null)
                 {
-                    this.EventViaReceive = eventInfo.Event;
+                    this.EventViaReceiveStatement = eventInfo.Event;
                     this.EventWaitHandlers.Clear();
                     base.Runtime.NotifyReceivedEvent(this, eventInfo);
                     return;
@@ -874,14 +876,14 @@ namespace Microsoft.PSharp
                                val.Predicate(this.Inbox[idx].Event));
                     if (eventWaitHandler != null)
                     {
-                        this.EventViaReceive = this.Inbox[idx].Event;
+                        this.EventViaReceiveStatement = this.Inbox[idx].Event;
                         this.EventWaitHandlers.Clear();
                         this.Inbox.RemoveAt(idx);
                         break;
                     }
                 }
 
-                if (this.EventViaReceive == null)
+                if (this.EventViaReceiveStatement == null)
                 {
                     this.IsWaitingToReceive = true;
                 }
