@@ -166,6 +166,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Checks if this a fair scheduling strategy.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public bool IsFair()
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Resets the scheduling strategy.
         /// </summary>
         public void Reset()

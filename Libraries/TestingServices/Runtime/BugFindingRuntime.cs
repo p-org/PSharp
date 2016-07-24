@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
 
             this.StateCache = new StateCache(this);
-            this.LivenessChecker = new LivenessChecker(this);
+            this.LivenessChecker = new LivenessChecker(this, strategy);
             this.Visualizer = visualizer;
 
             this.OperationIdCounter = 0;

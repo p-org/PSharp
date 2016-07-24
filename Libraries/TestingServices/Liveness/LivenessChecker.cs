@@ -94,7 +94,9 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Constructor.
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
-        internal LivenessChecker(PSharpBugFindingRuntime runtime)
+        /// <param name="bugFindingSchedulingStrategy">ISchedulingStrategy</param>
+        internal LivenessChecker(PSharpBugFindingRuntime runtime,
+            ISchedulingStrategy bugFindingSchedulingStrategy)
         {
             this.Runtime = runtime;
 
@@ -105,6 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.LivenessTemperature = 0;
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
+            this.BugFindingSchedulingStrategy = bugFindingSchedulingStrategy;
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
@@ -170,7 +173,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     this.Runtime.BugFinder.Stop();
                 }
             }
-            else if (!this.Runtime.Configuration.CacheProgramState)
+            else if (!this.Runtime.Configuration.CacheProgramState &&
+                this.BugFindingSchedulingStrategy.IsFair()) 
             {
                 foreach (var monitor in this.Monitors)
                 {
@@ -291,8 +295,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.HotMonitors.Count > 0)
             {
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Max(val => val.Index);
-                this.BugFindingSchedulingStrategy = this.Runtime.BugFinder.
-                    SwitchSchedulingStrategy(this);
+                this.Runtime.BugFinder.SwitchSchedulingStrategy(this);
             }
             else
             {
@@ -629,6 +632,15 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         bool ISchedulingStrategy.HasFinished()
         {
             return false;
+        }
+
+        /// <summary>
+        /// Checks if this a fair scheduling strategy.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.IsFair()
+        {
+            return true;
         }
 
         /// <summary>
