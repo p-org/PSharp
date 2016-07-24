@@ -66,6 +66,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         bool HasFinished();
 
         /// <summary>
+        /// Checks if this a fair scheduling strategy.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool IsFair();
+
+        /// <summary>
         /// Prepares the next scheduling iteration.
         /// </summary>
         void ConfigureNextIteration();
@@ -74,11 +80,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Resets the scheduling strategy.
         /// </summary>
         void Reset();
-
-        /// <summary>
-        /// Is this a fair scheduler?
-        /// </summary>
-        bool IsFair();
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.

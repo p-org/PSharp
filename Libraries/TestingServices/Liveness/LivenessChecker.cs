@@ -66,11 +66,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private int LivenessTemperature;
 
         /// <summary>
-        /// Are we using a fair scheduler
-        /// </summary>
-        private bool IsSchedulerFair;
-
-        /// <summary>
         /// The index of the last scheduling step in
         /// the currently detected cycle.
         /// </summary>
@@ -99,8 +94,9 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Constructor.
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
-        /// <param name="IsFair">Is scheduler fair</param>
-        internal LivenessChecker(PSharpBugFindingRuntime runtime, bool IsFair)
+        /// <param name="bugFindingSchedulingStrategy">ISchedulingStrategy</param>
+        internal LivenessChecker(PSharpBugFindingRuntime runtime,
+            ISchedulingStrategy bugFindingSchedulingStrategy)
         {
             this.Runtime = runtime;
 
@@ -111,7 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.LivenessTemperature = 0;
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
-            this.IsSchedulerFair = IsFair;
+            this.BugFindingSchedulingStrategy = bugFindingSchedulingStrategy;
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
@@ -177,7 +173,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     this.Runtime.BugFinder.Stop();
                 }
             }
-            else if (!this.Runtime.Configuration.CacheProgramState && IsSchedulerFair) 
+            else if (!this.Runtime.Configuration.CacheProgramState &&
+                this.BugFindingSchedulingStrategy.IsFair()) 
             {
                 foreach (var monitor in this.Monitors)
                 {
@@ -298,8 +295,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.HotMonitors.Count > 0)
             {
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Max(val => val.Index);
-                this.BugFindingSchedulingStrategy = this.Runtime.BugFinder.
-                    SwitchSchedulingStrategy(this);
+                this.Runtime.BugFinder.SwitchSchedulingStrategy(this);
             }
             else
             {
@@ -639,6 +635,15 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
+        /// Checks if this a fair scheduling strategy.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.IsFair()
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
         void ISchedulingStrategy.ConfigureNextIteration()
@@ -661,14 +666,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         string ISchedulingStrategy.GetDescription()
         {
             return this.BugFindingSchedulingStrategy.GetDescription();
-        }
-
-        /// <summary>
-        /// Is this a fair scheduler?
-        /// </summary>
-        public bool IsFair()
-        {
-            return true;
         }
 
         #endregion

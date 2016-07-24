@@ -195,6 +195,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Checks if this a fair scheduling strategy.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public bool IsFair()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
         public abstract void ConfigureNextIteration();
@@ -215,14 +224,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <returns>String</returns>
         public abstract string GetDescription();
-
-        /// <summary>
-        /// Is this a fair scheduler?
-        /// </summary>
-        public bool IsFair()
-        {
-            return false;
-        }
 
         #endregion
     }
