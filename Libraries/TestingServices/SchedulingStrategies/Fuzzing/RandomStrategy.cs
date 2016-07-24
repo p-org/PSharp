@@ -183,6 +183,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             return "Random seed '" + this.Seed + "'.";
         }
 
+        /// <summary>
+        /// Is this a fair scheduler?
+        /// </summary>
+        public bool IsFair()
+        {
+            return true;
+        }
+
         #endregion
     }
 }

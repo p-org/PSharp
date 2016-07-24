@@ -66,6 +66,11 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private int LivenessTemperature;
 
         /// <summary>
+        /// Are we using a fair scheduler
+        /// </summary>
+        private bool IsSchedulerFair;
+
+        /// <summary>
         /// The index of the last scheduling step in
         /// the currently detected cycle.
         /// </summary>
@@ -94,7 +99,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Constructor.
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
-        internal LivenessChecker(PSharpBugFindingRuntime runtime)
+        /// <param name="IsFair">Is scheduler fair</param>
+        internal LivenessChecker(PSharpBugFindingRuntime runtime, bool IsFair)
         {
             this.Runtime = runtime;
 
@@ -105,6 +111,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.LivenessTemperature = 0;
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
+            this.IsSchedulerFair = IsFair;
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
@@ -170,7 +177,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     this.Runtime.BugFinder.Stop();
                 }
             }
-            else if (!this.Runtime.Configuration.CacheProgramState)
+            else if (!this.Runtime.Configuration.CacheProgramState && IsSchedulerFair) 
             {
                 foreach (var monitor in this.Monitors)
                 {
@@ -654,6 +661,14 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         string ISchedulingStrategy.GetDescription()
         {
             return this.BugFindingSchedulingStrategy.GetDescription();
+        }
+
+        /// <summary>
+        /// Is this a fair scheduler?
+        /// </summary>
+        public bool IsFair()
+        {
+            return true;
         }
 
         #endregion

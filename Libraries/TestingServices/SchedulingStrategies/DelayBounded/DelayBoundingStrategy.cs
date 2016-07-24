@@ -216,6 +216,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public abstract string GetDescription();
 
+        /// <summary>
+        /// Is this a fair scheduler?
+        /// </summary>
+        public bool IsFair()
+        {
+            return false;
+        }
+
         #endregion
     }
 }

@@ -76,6 +76,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         void Reset();
 
         /// <summary>
+        /// Is this a fair scheduler?
+        /// </summary>
+        bool IsFair();
+
+        /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>

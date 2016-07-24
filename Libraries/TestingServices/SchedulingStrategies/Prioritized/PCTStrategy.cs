@@ -240,6 +240,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             return text;
         }
 
+        /// <summary>
+        /// Is this a fair scheduler?
+        /// </summary>
+        public bool IsFair()
+        {
+            return false;
+        }
+
         #endregion
 
         #region private methods
