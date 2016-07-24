@@ -55,6 +55,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private string ReproducableTrace;
 
+        /// <summary>
+        /// Number of times max steps was it.
+        /// </summary>
+        private int MaxStepsHit;
+
         #endregion
 
         #region public API
@@ -199,6 +204,7 @@ namespace Microsoft.PSharp.TestingServices
             this.ExploredSchedules = 0;
             this.ReadableTrace = "";
             this.ReproducableTrace = "";
+            this.MaxStepsHit = 0;
         }
 
         #endregion
@@ -339,6 +345,11 @@ namespace Microsoft.PSharp.TestingServices
                     this.ExploredSchedules++;
                     base.ExploredDepth = runtime.BugFinder.ExploredSteps;
 
+                    if (runtime.BugFinder.HitMaxSteps)
+                    {
+                        this.MaxStepsHit++;
+                    }
+
                     if (runtime.BugFinder.BugFound)
                     {
                         base.NumOfFoundBugs++;
@@ -461,6 +472,10 @@ namespace Microsoft.PSharp.TestingServices
                 report.Append($"{prefix} Configured to explore up to " +
                     $"'{base.Configuration.MaxSchedulingSteps}' max steps.");
                 report.AppendLine();
+                report.AppendFormat("{0} Hit max-steps bound in {1}% schedules", prefix,
+                    (this.MaxStepsHit * 100 / this.ExploredSchedules));
+                report.AppendLine();
+
             }
 
             report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
