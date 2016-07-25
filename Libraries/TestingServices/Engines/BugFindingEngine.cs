@@ -345,7 +345,7 @@ namespace Microsoft.PSharp.TestingServices
                     this.ExploredSchedules++;
                     base.ExploredDepth = runtime.BugFinder.ExploredSteps;
 
-                    if (runtime.BugFinder.HitMaxSteps)
+                    if (Strategy.HasReachedMaxSchedulingSteps())
                     {
                         this.MaxStepsHit++;
                     }

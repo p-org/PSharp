@@ -63,14 +63,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// True if max steps was hit.
-        /// </summary>
-        internal bool HitMaxSteps
-        {
-            get; private set;
-        }
-
-        /// <summary>
         /// Number of explored steps.
         /// </summary>
         internal int ExploredSteps
@@ -108,7 +100,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.TaskMap = new ConcurrentDictionary<int, MachineInfo>();
             this.IsSchedulerRunning = true;
             this.BugFound = false;
-            this.HitMaxSteps = false;
             this.HasFullyExploredSchedule = false;
         }
 
@@ -512,8 +503,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 var msg = IO.Format("Scheduling steps bound of " +
                     $"{this.Runtime.Configuration.MaxSchedulingSteps} reached.");
-
-                HitMaxSteps = true;
 
                 if (isSchedulingDecision &&
                     this.NumberOfAvailableMachinesToSchedule() == 0)
