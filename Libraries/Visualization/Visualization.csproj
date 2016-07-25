@@ -70,7 +70,6 @@
   <ItemGroup>
     <Compile Include="IProgramVisualizer.cs" />
     <Compile Include="PSharpDgmlVisualizer.cs" />
-    <Compile Include="PSharpProgramVisualizer.cs" />
     <Compile Include="Transition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -288,7 +288,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (base.Configuration.EnableVisualization)
                     {
-                        base.Visualizer.Refresh();
+                        base.Visualizer.Step();
                     }
 
                     if (this.Configuration.EnableDataRaceDetection)
@@ -392,7 +392,12 @@ namespace Microsoft.PSharp.TestingServices
 
                     runtime.Dispose();
                 }
-                
+
+                if (base.Configuration.EnableVisualization)
+                {
+                    base.Visualizer.Refresh();
+                }
+
                 try
                 {
                     if (base.TestDisposeMethod != null)
