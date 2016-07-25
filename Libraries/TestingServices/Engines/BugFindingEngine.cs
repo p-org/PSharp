@@ -469,10 +469,8 @@ namespace Microsoft.PSharp.TestingServices
 
             if (base.Configuration.MaxSchedulingSteps > 0)
             {
-                report.Append($"{prefix} Configured to explore up to " +
-                    $"'{base.Configuration.MaxSchedulingSteps}' max steps.");
-                report.AppendLine();
-                report.AppendFormat("{0} Hit max-steps bound in {1}% schedules", prefix,
+                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
+                    prefix, base.Configuration.MaxSchedulingSteps,
                     (this.MaxStepsHit * 100 / this.ExploredSchedules));
                 report.AppendLine();
 
