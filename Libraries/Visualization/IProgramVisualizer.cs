@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.Visualization
         Task StartAsync();
 
         /// <summary>
-        /// Called when a testing iteration finishes
+        /// Called when a testing iteration finishes.
         /// </summary>
         void Step();
 
@@ -49,14 +49,14 @@ namespace Microsoft.PSharp.Visualization
             string machineTarget, string stateTarget);
 
         /// <summary>
-        /// Declares a state
+        /// Declares a state.
         /// </summary>
         /// <param name="machine">Machine name</param>
         /// <param name="state">state name</param>
         void DeclareMachineState(string machine, string state);
 
         /// <summary>
-        /// Declares a registered state, event pair
+        /// Declares a registered state, event pair.
         /// </summary>
         /// <param name="machine">Machine name</param>
         /// <param name="state">state name</param>

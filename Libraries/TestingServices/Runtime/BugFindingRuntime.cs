@@ -314,13 +314,13 @@ namespace Microsoft.PSharp.TestingServices
 
             MachineId mid = new MachineId(type, friendlyName, this);
 
-            var machineNewlyConstructed = false;
+            var isMachineNewlyConstructed = false;
             if (!MachineConstructorMap.ContainsKey(type))
             {
                 Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
                     Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
                 MachineConstructorMap[type] = constructor;
-                machineNewlyConstructed = true;
+                isMachineNewlyConstructed = true;
             }
 
             Machine machine = MachineConstructorMap[type]();
@@ -328,7 +328,7 @@ namespace Microsoft.PSharp.TestingServices
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
 
-            if (this.Configuration.EnableVisualization && machineNewlyConstructed)
+            if (this.Configuration.EnableVisualization && isMachineNewlyConstructed)
             {
                 this.VisualizeMachine(machine);
             }
@@ -986,7 +986,7 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Visualizes a machine
+        /// Visualizes a machine.
         /// </summary>
         /// <param name="machine">Machine</param>
         private void VisualizeMachine(Machine machine)
