@@ -197,7 +197,7 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Initialized the bug-finding engine.
+        /// Initializes the bug-finding engine.
         /// </summary>
         private void Initialize()
         {
@@ -345,7 +345,7 @@ namespace Microsoft.PSharp.TestingServices
                     this.ExploredSchedules++;
                     base.ExploredDepth = runtime.BugFinder.ExploredSteps;
 
-                    if (Strategy.HasReachedMaxSchedulingSteps())
+                    if (base.Strategy.HasReachedMaxSchedulingSteps())
                     {
                         this.MaxStepsHit++;
                     }
