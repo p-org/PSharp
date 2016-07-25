@@ -234,8 +234,7 @@ namespace Microsoft.PSharp
                 $"{(int)Task.CurrentId} does not correspond to a machine.");
 
             Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(eventTypes);
-            return machine.ReceivedEvent;
+            return machine.Receive(eventTypes);
         }
 
         /// <summary>
@@ -254,50 +253,7 @@ namespace Microsoft.PSharp
                 $"{(int)Task.CurrentId} does not belong to a machine.");
 
             Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(eventType, predicate);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types, and
-        /// executes a specified action on receiving the event.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="action">Action</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(Type eventType, Action<Event> action)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(eventType, action);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfies
-        /// the specified predicate, and executes a specified action on receiving the
-        /// event. Returns the received event.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="action">Action</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(Type eventType, Func<Event, bool> predicate, Action<Event> action)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(eventType, predicate, action);
-            return machine.ReceivedEvent;
+            return machine.Receive(eventType, predicate);
         }
 
         /// <summary>
@@ -315,48 +271,7 @@ namespace Microsoft.PSharp
                 $"{(int)Task.CurrentId} does not belong to a machine.");
 
             Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types, and
-        /// executes a specified action on receiving the event. Returns the
-        /// received event.
-        /// </summary>
-        /// <param name="events">Event types and handlers</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(params Tuple<Type, Action<Event>>[] events)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfy
-        /// the specified predicates, and executes a specified action upon receiving
-        /// the event. Returns the received event.
-        /// </summary>
-        /// <param name="events">Event types, predicates and handlers</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(params Tuple<Type, Func<Event, bool>, Action<Event>>[] events)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
-            return machine.ReceivedEvent;
+            return machine.Receive(events);
         }
 
         /// <summary>
