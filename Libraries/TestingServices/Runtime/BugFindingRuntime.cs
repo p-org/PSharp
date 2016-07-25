@@ -1000,6 +1000,14 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Visualizer.DeclareMachineState(machineName, state);
             }
+
+            // fetch registered events
+            var pairs = machine.GetAllStateEventPairs();
+
+            foreach (var tup in pairs)
+            {
+                this.Visualizer.DeclareStateEvent(machineName, tup.Item1, tup.Item2);
+            }
         }
 
         /// <summary>
