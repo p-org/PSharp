@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.TestingServices
             Task task = new Task(() =>
             {
                 var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                    base.Strategy, base.Visualizer);
+                    base.Strategy, base.CoverageInfo);
 
                 StringWriter sw = null;
                 if (base.Configuration.RedirectTestConsoleOutput &&

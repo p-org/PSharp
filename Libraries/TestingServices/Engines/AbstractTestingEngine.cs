@@ -75,6 +75,12 @@ namespace Microsoft.PSharp.TestingServices
         protected ISchedulingStrategy Strategy;
 
         /// <summary>
+        /// Data structure containing information
+        /// regarding testing coverage.
+        /// </summary>
+        protected CoverageInfo CoverageInfo;
+
+        /// <summary>
         /// The program visualizer.
         /// </summary>
         protected IProgramVisualizer Visualizer;
@@ -554,6 +560,7 @@ namespace Microsoft.PSharp.TestingServices
             var graphFile = directoryPath + name + ".dgml";
             var coverageFile = directoryPath + name + ".coverage.txt";
             this.Visualizer = new PSharpDgmlVisualizer(graphFile, coverageFile);
+            this.CoverageInfo = this.Visualizer.CoverageInfo;
         }
 
         /// <summary>

@@ -86,9 +86,10 @@ namespace Microsoft.PSharp.TestingServices
         internal LivenessChecker LivenessChecker;
 
         /// <summary>
-        /// The P# program visualizer.
+        /// Data structure containing information
+        /// regarding testing coverage.
         /// </summary>
-        internal IProgramVisualizer Visualizer;
+        internal CoverageInfo CoverageInfo;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -103,10 +104,10 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        /// <param name="visualizer">Visualizer</param>
+        /// <param name="coverageInfo">CoverageInfo</param>
         /// </summary>
         internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy,
-            IProgramVisualizer visualizer)
+            CoverageInfo coverageInfo)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
@@ -130,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this, strategy);
-            this.Visualizer = visualizer;
+            this.CoverageInfo = coverageInfo;
 
             this.OperationIdCounter = 0;
         }
@@ -982,7 +983,7 @@ namespace Microsoft.PSharp.TestingServices
             string destMachine = machine.GetType().Name;
             string destState = machine.CurrentState.Name;
 
-            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
 
         /// <summary>
@@ -998,7 +999,7 @@ namespace Microsoft.PSharp.TestingServices
 
             foreach (var state in states)
             {
-                this.Visualizer.DeclareMachineState(machineName, state);
+                this.CoverageInfo.DeclareMachineState(machineName, state);
             }
 
             // fetch registered events
@@ -1006,7 +1007,7 @@ namespace Microsoft.PSharp.TestingServices
 
             foreach (var tup in pairs)
             {
-                this.Visualizer.DeclareStateEvent(machineName, tup.Item1, tup.Item2);
+                this.CoverageInfo.DeclareStateEvent(machineName, tup.Item1, tup.Item2);
             }
         }
 
@@ -1038,7 +1039,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
 
         /// <summary>

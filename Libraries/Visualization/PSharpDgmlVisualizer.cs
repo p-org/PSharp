@@ -49,19 +49,10 @@ namespace Microsoft.PSharp.Visualization
         private TextWriter CoverageFileWriter;
 
         /// <summary>
-        /// Map from machines to states.
+        /// Data structure containing information
+        /// regarding testing coverage.
         /// </summary>
-        private Dictionary<string, HashSet<string>> MachinesToStates;
-
-        /// <summary>
-        /// Set of (machines, states, registered events).
-        /// </summary>
-        private HashSet<Tuple<string, string, string>> RegisteredEvents;
-         
-        /// <summary>
-        /// Set of machine transitions.
-        /// </summary>
-        private HashSet<Transition> Transitions;
+        public CoverageInfo CoverageInfo { get; }
 
         #endregion
 
@@ -77,10 +68,7 @@ namespace Microsoft.PSharp.Visualization
             this.GraphFile = graphFile;
             this.CodeCoverageFile = coverageFile;
             this.Writer = null;
-
-            this.MachinesToStates = new Dictionary<string, HashSet<string>>();
-            this.RegisteredEvents = new HashSet<Tuple<string, string, string>>();
-            this.Transitions = new HashSet<Transition>();
+            this.CoverageInfo = new CoverageInfo();
         }
 
         /// <summary>
@@ -127,45 +115,6 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
-        /// <summary>
-        /// Adds a new transition.
-        /// </summary>
-        /// <param name="machineOrigin">Origin machine</param>
-        /// <param name="stateOrigin">Origin state</param>
-        /// <param name="edgeLabel">Edge label</param>
-        /// <param name="machineTarget">Target machine</param>
-        /// <param name="stateTarget">Target state</param>
-        public void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
-            string machineTarget, string stateTarget)
-        {
-            this.AddState(machineOrigin, stateOrigin);
-            this.AddState(machineTarget, stateTarget);
-            this.Transitions.Add(new Transition(machineOrigin, stateOrigin,
-                edgeLabel, machineTarget, stateTarget));
-        }
-
-        /// <summary>
-        /// Declares a state.
-        /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">state name</param>
-        public void DeclareMachineState(string machine, string state)
-        {
-            this.AddState(machine, state);
-        }
-
-        /// <summary>
-        /// Declares a registered state, event pair.
-        /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">state name</param>
-        /// <param name="eventName">Event name that the state is prepared to handle</param>
-        public void DeclareStateEvent(string machine, string state, string eventName)
-        {
-            this.AddState(machine, state);
-            this.RegisteredEvents.Add(Tuple.Create(machine, state, eventName));
-        }
-
         #endregion
 
         #region private methods
@@ -187,7 +136,7 @@ namespace Microsoft.PSharp.Visualization
             this.Writer.WriteStartElement("Nodes");
 
             // Iterates machines.
-            foreach (var machine in this.MachinesToStates.Keys)
+            foreach (var machine in this.CoverageInfo.MachinesToStates.Keys)
             {
                 this.Writer.WriteStartElement("Node");
                 this.Writer.WriteAttributeString("Id", machine);
@@ -196,7 +145,7 @@ namespace Microsoft.PSharp.Visualization
             }
 
             // Iterates states.
-            foreach (var tup in this.MachinesToStates)
+            foreach (var tup in this.CoverageInfo.MachinesToStates)
             {
                 var machine = tup.Key;
                 foreach (var state in tup.Value)
@@ -215,7 +164,7 @@ namespace Microsoft.PSharp.Visualization
             this.Writer.WriteStartElement("Links");
 
             // Iterates states.
-            foreach (var tup in this.MachinesToStates)
+            foreach (var tup in this.CoverageInfo.MachinesToStates)
             {
                 var machine = tup.Key;
                 foreach (var state in tup.Value)
@@ -229,7 +178,7 @@ namespace Microsoft.PSharp.Visualization
             }
             
             // Iterates transitions.
-            foreach (var transition in this.Transitions)
+            foreach (var transition in this.CoverageInfo.Transitions)
             {
                 this.Writer.WriteStartElement("Link");
                 this.Writer.WriteAttributeString("Source", GetStateId(transition.MachineOrigin, transition.StateOrigin));
@@ -253,12 +202,12 @@ namespace Microsoft.PSharp.Visualization
         /// </summary>
         private void WriteCoverageFile()
         {
-            var machines = new List<string>(MachinesToStates.Keys);
+            var machines = new List<string>(this.CoverageInfo.MachinesToStates.Keys);
 
             #region registered event coverage
 
-            var uncoveredEvents = new HashSet<Tuple<string, string, string>>(this.RegisteredEvents);
-            foreach (var transition in Transitions)
+            var uncoveredEvents = new HashSet<Tuple<string, string, string>>(this.CoverageInfo.RegisteredEvents);
+            foreach (var transition in this.CoverageInfo.Transitions)
             {
                 if (transition.MachineOrigin == transition.MachineTarget)
                 {
@@ -271,21 +220,22 @@ namespace Microsoft.PSharp.Visualization
             }
 
             this.CoverageFileWriter.WriteLine("Total event coverage: {0}%",
-                this.RegisteredEvents.Count == 0 ? "100" : 
-                ((this.RegisteredEvents.Count - uncoveredEvents.Count) * 100.0 / this.RegisteredEvents.Count).ToString("F1"));
+                this.CoverageInfo.RegisteredEvents.Count == 0 ? "100" : 
+                ((this.CoverageInfo.RegisteredEvents.Count - uncoveredEvents.Count) * 100.0 /
+                this.CoverageInfo.RegisteredEvents.Count).ToString("F1"));
 
             // Map from machines to states to registered events
             var machineToStatesToEvents = new Dictionary<string, Dictionary<string, HashSet<string>>>();
             machines.ForEach(m => machineToStatesToEvents.Add(m, new Dictionary<string, HashSet<string>>()));
             machines.ForEach(m =>
             {
-                foreach (var state in MachinesToStates[m])
+                foreach (var state in this.CoverageInfo.MachinesToStates[m])
                 {
                     machineToStatesToEvents[m].Add(state, new HashSet<string>());
                 }
             });
 
-            foreach (var ev in this.RegisteredEvents)
+            foreach (var ev in this.CoverageInfo.RegisteredEvents)
             {
                 machineToStatesToEvents[ev.Item1][ev.Item2].Add(ev.Item3);
             }
@@ -303,7 +253,7 @@ namespace Microsoft.PSharp.Visualization
             machines.ForEach(m => machineToOutgoingTransitions.Add(m, new List<Transition>()));
             machines.ForEach(m => machineToIntraTransitions.Add(m, new List<Transition>()));
 
-            foreach (var tr in Transitions)
+            foreach (var tr in this.CoverageInfo.Transitions)
             {
                 if (tr.MachineOrigin == tr.MachineTarget)
                 {
@@ -325,7 +275,7 @@ namespace Microsoft.PSharp.Visualization
                 #region registered event coverage
 
                 var machineUncoveredEvents = new Dictionary<string, HashSet<string>>();
-                foreach (var state in MachinesToStates[machine])
+                foreach (var state in this.CoverageInfo.MachinesToStates[machine])
                 {
                     machineUncoveredEvents.Add(state, new HashSet<string>(machineToStatesToEvents[machine][state]));
                 }
@@ -358,7 +308,7 @@ namespace Microsoft.PSharp.Visualization
                 #endregion
 
                 // Find uncovered states
-                var uncoveredStates = new HashSet<string>(MachinesToStates[machine]);
+                var uncoveredStates = new HashSet<string>(this.CoverageInfo.MachinesToStates[machine]);
                 foreach (var tr in machineToIntraTransitions[machine])
                 {
                     uncoveredStates.Remove(tr.StateOrigin);
@@ -418,7 +368,7 @@ namespace Microsoft.PSharp.Visualization
                 }
 
                 // Per-state data
-                foreach (var state in MachinesToStates[machine])
+                foreach (var state in this.CoverageInfo.MachinesToStates[machine])
                 {
                     this.CoverageFileWriter.WriteLine();
                     this.CoverageFileWriter.WriteLine("\tState: {0}{1}", state, uncoveredStates.Contains(state) ? " is uncovered" : "");
@@ -477,21 +427,6 @@ namespace Microsoft.PSharp.Visualization
 
                 this.CoverageFileWriter.WriteLine();
             }
-        }
-
-        /// <summary>
-        /// Adds a new state.
-        /// </summary>
-        /// <param name="machineName">Machine name</param>
-        /// <param name="stateName">State name</param>
-        private void AddState(string machineName, string stateName)
-        {
-            if (!this.MachinesToStates.ContainsKey(machineName))
-            {
-                this.MachinesToStates.Add(machineName, new HashSet<string>());
-            }
-
-            this.MachinesToStates[machineName].Add(stateName);
         }
 
         /// <summary>

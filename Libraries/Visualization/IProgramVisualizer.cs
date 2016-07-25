@@ -21,6 +21,18 @@ namespace Microsoft.PSharp.Visualization
     /// </summary>
     public interface IProgramVisualizer
     {
+        #region properties
+
+        /// <summary>
+        /// Data structure containing information
+        /// regarding testing coverage.
+        /// </summary>
+        CoverageInfo CoverageInfo { get; }
+
+        #endregion
+
+        #region methods
+
         /// <summary>
         /// Starts the visualisation asynchronously.
         /// </summary>
@@ -37,30 +49,6 @@ namespace Microsoft.PSharp.Visualization
         /// </summary>
         void Refresh();
 
-        /// <summary>
-        /// Adds a new transition.
-        /// </summary>
-        /// <param name="machineOrigin">Origin machine</param>
-        /// <param name="stateOrigin">Origin state</param>
-        /// <param name="edgeLabel">Edge label</param>
-        /// <param name="machineTarget">Target machine</param>
-        /// <param name="stateTarget">Target state</param>
-        void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
-            string machineTarget, string stateTarget);
-
-        /// <summary>
-        /// Declares a state.
-        /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">state name</param>
-        void DeclareMachineState(string machine, string state);
-
-        /// <summary>
-        /// Declares a registered state, event pair.
-        /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">state name</param>
-        /// <param name="eventName">Event name that the state is prepared to handle</param>
-        void DeclareStateEvent(string machine, string state, string eventName);
+        #endregion
     }
 }
