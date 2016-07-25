@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.Visualization
+namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
     /// A P# program transition.

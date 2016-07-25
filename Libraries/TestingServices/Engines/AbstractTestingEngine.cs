@@ -20,10 +20,11 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.TestingServices.Visualization;
 using Microsoft.PSharp.Utilities;
-using Microsoft.PSharp.Visualization;
 
 namespace Microsoft.PSharp.TestingServices
 {

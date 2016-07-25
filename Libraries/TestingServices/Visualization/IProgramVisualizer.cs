@@ -14,7 +14,9 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.Visualization
+using Microsoft.PSharp.TestingServices.Coverage;
+
+namespace Microsoft.PSharp.TestingServices.Visualization
 {
     /// <summary>
     /// Interface of a program visualizer.

@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Microsoft.PSharp.Visualization
+namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
     /// Class for storing coverage-specific data.
