@@ -56,8 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Coverage\CoverageInfo.cs" />
-    <Compile Include="Visualization\IProgramVisualizer.cs" />
-    <Compile Include="Visualization\PSharpDgmlVisualizer.cs" />
+    <Compile Include="Coverage\CodeCoverageReporter.cs" />
     <Compile Include="Coverage\Transition.cs" />
     <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />

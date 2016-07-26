@@ -23,7 +23,6 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
-using Microsoft.PSharp.TestingServices.Visualization;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -76,17 +75,6 @@ namespace Microsoft.PSharp.TestingServices
         protected ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Data structure containing information
-        /// regarding testing coverage.
-        /// </summary>
-        protected CoverageInfo CoverageInfo;
-
-        /// <summary>
-        /// The program visualizer.
-        /// </summary>
-        protected IProgramVisualizer Visualizer;
-
-        /// <summary>
         /// Set of callbacks to invoke at the end
         /// of each iteration.
         /// </summary>
@@ -115,6 +103,12 @@ namespace Microsoft.PSharp.TestingServices
         #endregion
 
         #region properties
+
+        /// <summary>
+        /// Data structure containing information
+        /// regarding testing coverage.
+        /// </summary>
+        public CoverageInfo CoverageInfo { get; set; }
 
         /// <summary>
         /// The latest bug report, if any.
@@ -148,11 +142,19 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource.Cancel();
         }
-
+        
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
         public virtual void TryEmitTraces()
+        {
+            // No-op, must be implemented in subclass.
+        }
+
+        /// <summary>
+        /// Tries to emit the testing coverage report, if any.
+        /// </summary>
+        public virtual void TryEmitCoverageReport()
         {
             // No-op, must be implemented in subclass.
         }
@@ -246,6 +248,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource = new CancellationTokenSource();
 
+            this.CoverageInfo = new CoverageInfo();
             this.BugReport = "";
             this.NumOfFoundBugs = 0;
             this.ExploredDepth = 0;
@@ -318,11 +321,6 @@ namespace Microsoft.PSharp.TestingServices
                     "available in parallel testing.");
             }
 
-            if (this.Configuration.EnableVisualization)
-            {
-                this.InitializeVisualizer();
-            }
-
             if (this.Configuration.PrintTrace)
             {
                 this.Configuration.SchedulingIterations = 1;
@@ -346,12 +344,6 @@ namespace Microsoft.PSharp.TestingServices
                 System.Diagnostics.Debugger.Launch();
             }
 
-            Task visualizationTask = null;
-            if (this.Configuration.EnableVisualization)
-            {
-                visualizationTask = this.StartVisualizing();
-            }
-
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.CreateRuntimeTracesDirectory();
@@ -369,11 +361,6 @@ namespace Microsoft.PSharp.TestingServices
             {
                 task.Start();
                 task.Wait(this.CancellationTokenSource.Token);
-                
-                if (this.Configuration.EnableVisualization)
-                {
-                    visualizationTask.Wait(this.CancellationTokenSource.Token);
-                }
             }
             catch (OperationCanceledException)
             {
@@ -429,17 +416,6 @@ namespace Microsoft.PSharp.TestingServices
                     this.CleanTemporaryFiles();
                 }
             }
-        }
-
-        /// <summary>
-        /// Starts visualizing the P# program being tested,
-        /// and returns the visualization task.
-        /// </summary>
-        /// <returns>Task</returns>
-        protected Task StartVisualizing()
-        {
-            Task visualizationTask = this.Visualizer.StartAsync();
-            return visualizationTask;
         }
 
         #endregion
@@ -549,19 +525,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return testMethods;
-        }
-
-        /// <summary>
-        /// Initializes the visualizer.
-        /// </summary>
-        private void InitializeVisualizer()
-        {
-            var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = this.GetOutputDirectory();
-            var graphFile = directoryPath + name + ".dgml";
-            var coverageFile = directoryPath + name + ".coverage.txt";
-            this.Visualizer = new PSharpDgmlVisualizer(graphFile, coverageFile);
-            this.CoverageInfo = this.Visualizer.CoverageInfo;
         }
 
         /// <summary>

@@ -13,11 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 
+using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -44,6 +47,11 @@ namespace Microsoft.PSharp.TestingServices
         /// The notification listening service.
         /// </summary>
         private ServiceHost NotificationService;
+        
+        /// <summary>
+        /// The testing coverage info per process.
+        /// </summary>
+        private ConcurrentDictionary<int, CoverageInfo> CoverageInfos;
 
         /// <summary>
         /// The testing profiler.
@@ -56,9 +64,10 @@ namespace Microsoft.PSharp.TestingServices
         private object SchedulerLock;
 
         /// <summary>
-        /// Checks if a bug was discovered.
+        /// The process id of the process that
+        /// discovered a bug, else -1.
         /// </summary>
-        private bool BugFound;
+        private int BugFoundByProcess;
 
         #endregion
 
@@ -75,12 +84,12 @@ namespace Microsoft.PSharp.TestingServices
             bool result = false;
             lock (this.SchedulerLock)
             {
-                if (!this.BugFound)
+                if (this.BugFoundByProcess < 0)
                 {
                     IO.PrintLine($"... Testing task '{processId}' " +
                         "found a bug.");
 
-                    this.BugFound = true;
+                    this.BugFoundByProcess = processId;
                     foreach (var testingProcess in this.TestingProcesses)
                     {
                         if (testingProcess.Key == processId)
@@ -89,6 +98,12 @@ namespace Microsoft.PSharp.TestingServices
                         }
                         else
                         {
+                            if (this.Configuration.ReportCodeCoverage)
+                            {
+                                var coverageInfo = this.GetCoverageData(testingProcess.Key);
+                                this.CoverageInfos.TryAdd(testingProcess.Key, coverageInfo);
+                            }
+
                             testingProcess.Value.Kill();
                         }
                     }
@@ -96,6 +111,53 @@ namespace Microsoft.PSharp.TestingServices
             }
             
             return result;
+        }
+
+        /// <summary>
+        /// Sends the coverage data.
+        /// </summary>
+        /// <param name="coverageInfo">CoverageInfo</param>
+        /// <param name="processId">Unique process id</param>
+        void ITestingProcessScheduler.SetCoverageData(CoverageInfo coverageInfo, int processId)
+        {
+            this.CoverageInfos.TryAdd(processId, coverageInfo);
+        }
+
+        /// <summary>
+        /// Gets the global coverage data for the specified process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>List of CoverageInfo</returns>
+        IList<CoverageInfo> ITestingProcessScheduler.GetGlobalCoverageData(int processId)
+        {
+            var globalCoverageInfo = new List<CoverageInfo>();
+            globalCoverageInfo.AddRange(this.CoverageInfos.Where(
+                val => val.Key != processId).Select(val => val.Value));
+            return globalCoverageInfo;
+        }
+
+        /// <summary>
+        /// Checks if the specified process should emit coverage data.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>Boolean value</returns>
+        bool ITestingProcessScheduler.ShouldEmitCoverageData(int processId)
+        {
+            lock (this.SchedulerLock)
+            {
+                if (this.BugFoundByProcess == processId)
+                {
+                    return true;
+                }
+
+                if (this.TestingProcesses.Where(val => val.Key != processId).
+                    All(val => val.Value.HasExited))
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         #endregion
@@ -160,9 +222,10 @@ namespace Microsoft.PSharp.TestingServices
         private TestingProcessScheduler(Configuration configuration)
         {
             this.TestingProcesses = new Dictionary<int, Process>();
+            this.CoverageInfos = new ConcurrentDictionary<int, CoverageInfo>();
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
-            this.BugFound = false;
+            this.BugFoundByProcess = -1;
 
             configuration.Verbose = 1;
             configuration.PrintTrace = false;
@@ -182,7 +245,9 @@ namespace Microsoft.PSharp.TestingServices
         private void OpenNotificationListener()
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
+
             WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcessScheduler), binding, address);
@@ -204,6 +269,26 @@ namespace Microsoft.PSharp.TestingServices
                     "rights to open the remote testing notification listener. " +
                     "Please run the process as administrator.");
             }
+        }
+
+        /// <summary>
+        /// Gets the coverage data associated with the specified testing process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>CoverageInfo</returns>
+        private CoverageInfo GetCoverageData(int processId)
+        {
+            Uri address = new Uri("http://localhost:8080/psharp/testing/process/" + processId + "/");
+
+            WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
+
+            EndpointAddress endpoint = new EndpointAddress(address);
+
+            var testingProcess = ChannelFactory<ITestingProcess>.
+                    CreateChannel(binding, endpoint);
+
+            return testingProcess.GetCoverageData();
         }
 
         #endregion

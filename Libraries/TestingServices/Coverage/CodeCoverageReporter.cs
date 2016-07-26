@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpProgramVisualizer.cs">
+// <copyright file="CodeCoverageReporter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,69 +16,34 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
-using Microsoft.PSharp.TestingServices.Coverage;
-
-namespace Microsoft.PSharp.TestingServices.Visualization
+namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
-    /// Class implementing a P# program visualizer.
+    /// The P# code coverage reporter.
     /// </summary>
-    class PSharpDgmlVisualizer : IProgramVisualizer
+    class CodeCoverageReporter
     {
         #region fields
-
-        /// <summary>
-        /// The graph file.
-        /// </summary>
-        private readonly string GraphFile;
-
-        /// <summary>
-        /// The code coverage file.
-        /// </summary>
-        private readonly string CodeCoverageFile;
-
-        /// <summary>
-        /// The XML writer.
-        /// </summary>
-        private XmlTextWriter Writer;
-
-        /// <summary>
-        /// The coverage file writer.
-        /// </summary>
-        private TextWriter CoverageFileWriter;
 
         /// <summary>
         /// Data structure containing information
         /// regarding testing coverage.
         /// </summary>
-        public CoverageInfo CoverageInfo { get; }
+        private readonly CoverageInfo CoverageInfo;
 
         #endregion
 
-        #region constructors and destructor
+        #region constructors
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="graphFile">Graph file</param>
-        /// <param name="coverageFile">Code coverage file</param>
-        public PSharpDgmlVisualizer(string graphFile, string coverageFile)
+        /// <param name="coverageInfo">CoverageInfo</param>
+        public CodeCoverageReporter(CoverageInfo coverageInfo)
         {
-            this.GraphFile = graphFile;
-            this.CodeCoverageFile = coverageFile;
-            this.Writer = null;
-            this.CoverageInfo = new CoverageInfo();
-        }
-
-        /// <summary>
-        /// Destructor.
-        /// </summary>
-        ~PSharpDgmlVisualizer()
-        {
-            this.Refresh();
+            this.CoverageInfo = coverageInfo;
         }
 
         #endregion
@@ -86,34 +51,26 @@ namespace Microsoft.PSharp.TestingServices.Visualization
         #region public methods
 
         /// <summary>
-        /// Starts the visualisation asynchronously.
+        /// Emits the visualization graph.
         /// </summary>
-        /// <returns>Task</returns>
-        public Task StartAsync()
+        /// <param name="graphFile">Graph file</param>
+        public void EmitVisualizationGraph(string graphFile)
         {
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Called when a testing iteration finishes.
-        /// </summary>
-        public void Step()
-        {
-            // skip
-        }
-
-        /// <summary>
-        /// Refreshes the visualization.
-        /// </summary>
-        public void Refresh()
-        {
-            this.Writer = new XmlTextWriter(this.GraphFile, Encoding.UTF8);
-            this.WriteVisualizationGraph();
-            this.Writer.Close();
-
-            using (this.CoverageFileWriter = new StreamWriter(this.CodeCoverageFile))
+            using (var writer = new XmlTextWriter(graphFile, Encoding.UTF8))
             {
-                this.WriteCoverageFile();
+                this.WriteVisualizationGraph(writer);
+            }
+        }
+
+        /// <summary>
+        /// Emits the code coverage report.
+        /// </summary>
+        /// <param name="coverageFile">Code coverage file</param>
+        public void EmitCoverageReport(string coverageFile)
+        {
+            using (var writer = new StreamWriter(coverageFile))
+            {
+                this.WriteCoverageFile(writer);
             }
         }
 
@@ -124,26 +81,27 @@ namespace Microsoft.PSharp.TestingServices.Visualization
         /// <summary>
         /// Writes the visualization graph.
         /// </summary>
-        private void WriteVisualizationGraph()
+        /// <param name="writer">XmlTextWriter</param>
+        private void WriteVisualizationGraph(XmlTextWriter writer)
         {
             // Starts document.
-            this.Writer.WriteStartDocument(true);
-            this.Writer.Formatting = Formatting.Indented;
-            this.Writer.Indentation = 2;
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
 
             // Starts DirectedGraph element.
-            this.Writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
+            writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
 
             // Starts Nodes element.
-            this.Writer.WriteStartElement("Nodes");
+            writer.WriteStartElement("Nodes");
 
             // Iterates machines.
             foreach (var machine in this.CoverageInfo.MachinesToStates.Keys)
             {
-                this.Writer.WriteStartElement("Node");
-                this.Writer.WriteAttributeString("Id", machine);
-                this.Writer.WriteAttributeString("Group", "Expanded");
-                this.Writer.WriteEndElement();
+                writer.WriteStartElement("Node");
+                writer.WriteAttributeString("Id", machine);
+                writer.WriteAttributeString("Group", "Expanded");
+                writer.WriteEndElement();
             }
 
             // Iterates states.
@@ -152,18 +110,18 @@ namespace Microsoft.PSharp.TestingServices.Visualization
                 var machine = tup.Key;
                 foreach (var state in tup.Value)
                 {
-                    this.Writer.WriteStartElement("Node");
-                    this.Writer.WriteAttributeString("Id", GetStateId(machine, state));
-                    this.Writer.WriteAttributeString("Label", state);
-                    this.Writer.WriteEndElement();
+                    writer.WriteStartElement("Node");
+                    writer.WriteAttributeString("Id", this.GetStateId(machine, state));
+                    writer.WriteAttributeString("Label", state);
+                    writer.WriteEndElement();
                 }
             }
 
             // Ends Nodes element.
-            this.Writer.WriteEndElement();
+            writer.WriteEndElement();
 
             // Starts Links element.
-            this.Writer.WriteStartElement("Links");
+            writer.WriteStartElement("Links");
 
             // Iterates states.
             foreach (var tup in this.CoverageInfo.MachinesToStates)
@@ -171,38 +129,39 @@ namespace Microsoft.PSharp.TestingServices.Visualization
                 var machine = tup.Key;
                 foreach (var state in tup.Value)
                 {
-                    this.Writer.WriteStartElement("Link");
-                    this.Writer.WriteAttributeString("Source", machine);
-                    this.Writer.WriteAttributeString("Target", GetStateId(machine, state));
-                    this.Writer.WriteAttributeString("Category", "Contains");
-                    this.Writer.WriteEndElement();
+                    writer.WriteStartElement("Link");
+                    writer.WriteAttributeString("Source", machine);
+                    writer.WriteAttributeString("Target", this.GetStateId(machine, state));
+                    writer.WriteAttributeString("Category", "Contains");
+                    writer.WriteEndElement();
                 }
             }
             
             // Iterates transitions.
             foreach (var transition in this.CoverageInfo.Transitions)
             {
-                this.Writer.WriteStartElement("Link");
-                this.Writer.WriteAttributeString("Source", GetStateId(transition.MachineOrigin, transition.StateOrigin));
-                this.Writer.WriteAttributeString("Target", GetStateId(transition.MachineTarget, transition.StateTarget));
-                this.Writer.WriteAttributeString("Label", transition.EdgeLabel);
-                this.Writer.WriteEndElement();
+                writer.WriteStartElement("Link");
+                writer.WriteAttributeString("Source", this.GetStateId(transition.MachineOrigin, transition.StateOrigin));
+                writer.WriteAttributeString("Target", this.GetStateId(transition.MachineTarget, transition.StateTarget));
+                writer.WriteAttributeString("Label", transition.EdgeLabel);
+                writer.WriteEndElement();
             }
 
             // Ends Links element.
-            this.Writer.WriteEndElement();
+            writer.WriteEndElement();
 
             // Ends DirectedGraph element.
-            this.Writer.WriteEndElement();
+            writer.WriteEndElement();
 
             // Ends document.
-            this.Writer.WriteEndDocument();
+            writer.WriteEndDocument();
         }
 
         /// <summary>
         /// Writes the visualization graph.
         /// </summary>
-        private void WriteCoverageFile()
+        /// <param name="writer">TextWriter</param>
+        private void WriteCoverageFile(TextWriter writer)
         {
             var machines = new List<string>(this.CoverageInfo.MachinesToStates.Keys);
 
@@ -221,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Visualization
                 }
             }
 
-            this.CoverageFileWriter.WriteLine("Total event coverage: {0}%",
+            writer.WriteLine("Total event coverage: {0}%",
                 this.CoverageInfo.RegisteredEvents.Count == 0 ? "100" : 
                 ((this.CoverageInfo.RegisteredEvents.Count - uncoveredEvents.Count) * 100.0 /
                 this.CoverageInfo.RegisteredEvents.Count).ToString("F1"));
@@ -271,8 +230,8 @@ namespace Microsoft.PSharp.TestingServices.Visualization
             // Per-machine data
             foreach (var machine in machines)
             {
-                this.CoverageFileWriter.WriteLine("Machine: {0}", machine);
-                this.CoverageFileWriter.WriteLine("***************");
+                writer.WriteLine("Machine: {0}", machine);
+                writer.WriteLine("***************");
 
                 #region registered event coverage
 
@@ -303,7 +262,7 @@ namespace Microsoft.PSharp.TestingServices.Visualization
                     numUncoveredEvents += tup.Value.Count;
                 }
 
-                this.CoverageFileWriter.WriteLine("Machine event coverage: {0}%", 
+                writer.WriteLine("Machine event coverage: {0}%", 
                     numTotalEvents == 0 ? "100" :
                     ((numTotalEvents - numUncoveredEvents) * 100.0 / numTotalEvents).ToString("F1"));
 
@@ -372,11 +331,11 @@ namespace Microsoft.PSharp.TestingServices.Visualization
                 // Per-state data
                 foreach (var state in this.CoverageInfo.MachinesToStates[machine])
                 {
-                    this.CoverageFileWriter.WriteLine();
-                    this.CoverageFileWriter.WriteLine("\tState: {0}{1}", state, uncoveredStates.Contains(state) ? " is uncovered" : "");
+                    writer.WriteLine();
+                    writer.WriteLine("\tState: {0}{1}", state, uncoveredStates.Contains(state) ? " is uncovered" : "");
                     if (!uncoveredStates.Contains(state))
                     {
-                        this.CoverageFileWriter.WriteLine("\t\tState event coverage: {0}%",
+                        writer.WriteLine("\t\tState event coverage: {0}%",
                             machineToStatesToEvents[machine][state].Count == 0 ? "100" :
                             ((machineToStatesToEvents[machine][state].Count - machineUncoveredEvents[state].Count) * 100.0 /
                               machineToStatesToEvents[machine][state].Count).ToString("F1"));
@@ -384,50 +343,50 @@ namespace Microsoft.PSharp.TestingServices.Visualization
 
                     if (stateToIncomingEvents.ContainsKey(state) && stateToIncomingEvents[state].Count > 0)
                     {
-                        this.CoverageFileWriter.Write("\t\tEvents Received: ");
+                        writer.Write("\t\tEvents Received: ");
                         foreach (var e in stateToIncomingEvents[state])
                         {
-                            this.CoverageFileWriter.Write("{0} ", e);
+                            writer.Write("{0} ", e);
                         }
 
-                        this.CoverageFileWriter.WriteLine();
+                        writer.WriteLine();
                     }
 
                     if (stateToOutgoingEvents.ContainsKey(state) && stateToOutgoingEvents[state].Count > 0)
                     {
-                        this.CoverageFileWriter.Write("\t\tEvents Sent: ");
+                        writer.Write("\t\tEvents Sent: ");
                         foreach (var e in stateToOutgoingEvents[state])
                         {
-                            this.CoverageFileWriter.Write("{0} ", e);
+                            writer.Write("{0} ", e);
                         }
 
-                        this.CoverageFileWriter.WriteLine();
+                        writer.WriteLine();
                     }
 
                     if (stateToIncomingStates.ContainsKey(state) && stateToIncomingStates[state].Count > 0)
                     {
-                        this.CoverageFileWriter.Write("\t\tPrevious States: ");
+                        writer.Write("\t\tPrevious States: ");
                         foreach (var s in stateToIncomingStates[state])
                         {
-                            this.CoverageFileWriter.Write("{0} ", s);
+                            writer.Write("{0} ", s);
                         }
 
-                        this.CoverageFileWriter.WriteLine();
+                        writer.WriteLine();
                     }
 
                     if (stateToOutgoingStates.ContainsKey(state) && stateToOutgoingStates[state].Count > 0)
                     {
-                        this.CoverageFileWriter.Write("\t\tNext States: ");
+                        writer.Write("\t\tNext States: ");
                         foreach (var s in stateToOutgoingStates[state])
                         {
-                            this.CoverageFileWriter.Write("{0} ", s);
+                            writer.Write("{0} ", s);
                         }
 
-                        this.CoverageFileWriter.WriteLine();
+                        writer.WriteLine();
                     }
                 }
 
-                this.CoverageFileWriter.WriteLine();
+                writer.WriteLine();
             }
         }
 

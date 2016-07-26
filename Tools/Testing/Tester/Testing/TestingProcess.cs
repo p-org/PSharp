@@ -13,11 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.ServiceModel;
+using System.ServiceModel.Description;
 using System.Timers;
 
+using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -25,9 +28,15 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// A P# testing process.
     /// </summary>
-    internal sealed class TestingProcess
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+    internal sealed class TestingProcess : ITestingProcess
     {
         #region fields
+
+        /// <summary>
+        /// The notification listening service.
+        /// </summary>
+        private ServiceHost NotificationService;
 
         /// <summary>
         /// Configuration.
@@ -44,6 +53,19 @@ namespace Microsoft.PSharp.TestingServices
         /// The remote testing scheduler.
         /// </summary>
         private ITestingProcessScheduler TestingScheduler;
+
+        #endregion
+
+        #region remote testing process methods
+
+        /// <summary>
+        /// Returns the coverage data.
+        /// </summary>
+        /// <returns>CoverageInfo</returns>
+        CoverageInfo ITestingProcess.GetCoverageData()
+        {
+            return this.TestingEngine.CoverageInfo;
+        }
 
         #endregion
 
@@ -67,6 +89,7 @@ namespace Microsoft.PSharp.TestingServices
             Timer timer = null;
             if (this.Configuration.ParallelBugFindingTasks > 1)
             {
+                this.OpenNotificationListener();
                 timer = this.CreateParentStatusMonitorTimer();
                 timer.Start();
             }
@@ -81,10 +104,23 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     this.TestingEngine.TryEmitTraces();
                 }
+
+                if (this.Configuration.ReportCodeCoverage)
+                {
+                    this.TestingEngine.TryEmitCoverageReport();
+                }
             }
-            else if (this.TestingEngine.NumOfFoundBugs > 0)
+            else
             {
-                this.NotifyBugFound();
+                if (this.TestingEngine.NumOfFoundBugs > 0)
+                {
+                    this.NotifyBugFound();
+                }
+
+                if (this.Configuration.ReportCodeCoverage)
+                {
+                    this.SendAndEmitCoverageData();
+                }
             }
 
             if (timer != null)
@@ -119,6 +155,74 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
+        /// Opens the remote notification listener.
+        /// </summary>
+        private void OpenNotificationListener()
+        {
+            Uri address = new Uri("http://localhost:8080/psharp/testing/process/" +
+                this.Configuration.TestingProcessId + "/");
+
+            WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
+
+            this.NotificationService = new ServiceHost(this);
+            this.NotificationService.AddServiceEndpoint(typeof(ITestingProcess), binding, address);
+
+            if (this.Configuration.EnableDebugging)
+            {
+                ServiceDebugBehavior debug = this.NotificationService.Description.
+                    Behaviors.Find<ServiceDebugBehavior>();
+                debug.IncludeExceptionDetailInFaults = true;
+            }
+
+            try
+            {
+                this.NotificationService.Open();
+            }
+            catch (AddressAccessDeniedException)
+            {
+                IO.Error.ReportAndExit("Your process does not have access " +
+                    "rights to open the remote testing notification listener. " +
+                    "Please run the process as administrator.");
+            }
+        }
+
+        /// <summary>
+        /// Sends the coverage data associated with this testing process,
+        /// and emits the results if the scheduler allows.
+        /// </summary>
+        private void SendAndEmitCoverageData()
+        {
+            Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
+
+            WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
+
+            EndpointAddress endpoint = new EndpointAddress(address);
+
+            if (this.TestingScheduler == null)
+            {
+                this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
+                    CreateChannel(binding, endpoint);
+            }
+
+            this.TestingScheduler.SetCoverageData(this.TestingEngine.CoverageInfo,
+                this.Configuration.TestingProcessId);
+
+            if (this.TestingScheduler.ShouldEmitCoverageData(this.Configuration.TestingProcessId))
+            {
+                IList<CoverageInfo> globalCoverageInfo = this.TestingScheduler.GetGlobalCoverageData(
+                    this.Configuration.TestingProcessId);
+                foreach (var coverageInfo in globalCoverageInfo)
+                {
+                    this.TestingEngine.CoverageInfo.Merge(coverageInfo);
+                }
+                
+                this.TestingEngine.TryEmitCoverageReport();
+            }
+        }
+
+        /// <summary>
         /// Notifies the remote testing scheduler
         /// about a discovered bug.
         /// </summary>
@@ -127,10 +231,15 @@ namespace Microsoft.PSharp.TestingServices
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
 
             WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
+
             EndpointAddress endpoint = new EndpointAddress(address);
 
-            this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
-                CreateChannel(binding, endpoint);
+            if (this.TestingScheduler == null)
+            {
+                this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
+                    CreateChannel(binding, endpoint);
+            }
 
             if (this.TestingScheduler.NotifyBugFound(this.Configuration.TestingProcessId))
             {

@@ -180,13 +180,8 @@ namespace Microsoft.PSharp.TestingServices
                     }
                 }
 
-                // Wait for test to terminate.
+                // Wait for the test to terminate.
                 runtime.Wait();
-
-                if (base.Configuration.EnableVisualization)
-                {
-                    base.Visualizer.Refresh();
-                }
 
                 try
                 {

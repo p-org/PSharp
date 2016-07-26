@@ -61,7 +61,9 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Remote\ITestingProcess.cs" />
     <Compile Include="Remote\ITestingProcessScheduler.cs" />
+    <Compile Include="Remote\KnownTypesProvider.cs" />
     <Compile Include="Testing\TestingPortfolio.cs" />
     <Compile Include="Testing\TestingProcess.cs" />
     <Compile Include="Testing\TestingProcessFactory.cs" />

@@ -14,6 +14,8 @@
 
 using System;
 
+using Microsoft.PSharp.TestingServices.Coverage;
+
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
@@ -22,6 +24,12 @@ namespace Microsoft.PSharp.TestingServices
     public interface ITestingEngine
     {
         #region properties
+
+        /// <summary>
+        /// Data structure containing information
+        /// regarding testing coverage.
+        /// </summary>
+        CoverageInfo CoverageInfo { get; set; }
 
         /// <summary>
         /// The latest bug report, if any.
@@ -57,6 +65,11 @@ namespace Microsoft.PSharp.TestingServices
         /// Tries to emit the testing traces, if any.
         /// </summary>
         void TryEmitTraces();
+
+        /// <summary>
+        /// Tries to emit the testing coverage report, if any.
+        /// </summary>
+        void TryEmitCoverageReport();
 
         /// <summary>
         /// Registers a callback to invoke at the end

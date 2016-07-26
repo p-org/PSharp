@@ -329,9 +329,9 @@ namespace Microsoft.PSharp.TestingServices
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
 
-            if (this.Configuration.EnableVisualization && isMachineNewlyConstructed)
+            if (this.Configuration.ReportCodeCoverage && isMachineNewlyConstructed)
             {
-                this.VisualizeMachine(machine);
+                this.ReportCodeCoverageOfMachine(machine);
             }
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
@@ -791,12 +791,10 @@ namespace Microsoft.PSharp.TestingServices
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
             
-            if (this.Configuration.EnableVisualization)
+            if (this.Configuration.ReportCodeCoverage)
             {
-                // Visualizes the received event and the state
-                // transition, if there is any.
-                this.VisualizeReceivedEvent(machine, eventInfo);
-                this.VisualizeStateTransition(machine, eventInfo);
+                this.ReportCodeCoverageOfReceivedEvent(machine, eventInfo);
+                this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -852,10 +850,9 @@ namespace Microsoft.PSharp.TestingServices
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
             
-            if (this.Configuration.EnableVisualization)
+            if (this.Configuration.ReportCodeCoverage)
             {
-                // Visualizes the state transition, if there is any.
-                this.VisualizeStateTransition(machine, eventInfo);
+                this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -971,11 +968,11 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
-        /// Visualizes a received event.
+        /// Reports code coverage for the specified received event.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void VisualizeReceivedEvent(Machine machine, EventInfo eventInfo)
+        private void ReportCodeCoverageOfReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             string originMachine = eventInfo.OriginInfo.SenderMachineName;
             string originState = eventInfo.OriginInfo.SenderStateName;
@@ -987,10 +984,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Visualizes a machine.
+        /// Reports code coverage for the specified machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void VisualizeMachine(Machine machine)
+        private void ReportCodeCoverageOfMachine(Machine machine)
         {
             var machineName = machine.GetType().Name;
 
@@ -1012,11 +1009,11 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Visualizes a state transition.
+        /// Reports code coverage for the specified state transition.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void VisualizeStateTransition(Machine machine, EventInfo eventInfo)
+        private void ReportCodeCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
             string originState = machine.CurrentState.Name;

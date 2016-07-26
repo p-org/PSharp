@@ -12,7 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.ServiceModel;
+
+using Microsoft.PSharp.TestingServices.Coverage;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -20,6 +23,7 @@ namespace Microsoft.PSharp.TestingServices
     /// Interface for a remote P# testing process scheduler.
     /// </summary>
     [ServiceContract(Namespace = "Microsoft.PSharp")]
+    [ServiceKnownType("GetKnownTypes", typeof(KnownTypesProvider))]
     internal interface ITestingProcessScheduler
     {
         /// <summary>
@@ -30,5 +34,29 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Boolean value</returns>
         [OperationContract]
         bool NotifyBugFound(int processId);
+
+        /// <summary>
+        /// Sets the coverage data from the specified process.
+        /// </summary>
+        /// <param name="coverageInfo">CoverageInfo</param>
+        /// <param name="processId">Unique process id</param>
+        [OperationContract]
+        void SetCoverageData(CoverageInfo coverageInfo, int processId);
+
+        /// <summary>
+        /// Gets the global coverage data for the specified process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>List of CoverageInfo</returns>
+        [OperationContract]
+        IList<CoverageInfo> GetGlobalCoverageData(int processId);
+
+        /// <summary>
+        /// Checks if the specified process should emit coverage data.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>Boolean value</returns>
+        [OperationContract]
+        bool ShouldEmitCoverageData(int processId);
     }
 }

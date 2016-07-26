@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IProgramVisualizer.cs">
+// <copyright file="KnownTypesProvider.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,45 +12,30 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 using Microsoft.PSharp.TestingServices.Coverage;
 
-namespace Microsoft.PSharp.TestingServices.Visualization
+namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
-    /// Interface of a program visualizer.
+    /// Provider for known types. Used for serialization.
     /// </summary>
-    public interface IProgramVisualizer
+    internal static class KnownTypesProvider
     {
-        #region properties
-
         /// <summary>
-        /// Data structure containing information
-        /// regarding testing coverage.
+        /// Known types used for serialization.
         /// </summary>
-        CoverageInfo CoverageInfo { get; }
+        public static List<Type> KnownTypes = new List<Type> {
+            typeof(CoverageInfo),
+            typeof(Transition)
+        };
 
-        #endregion
-
-        #region methods
-
-        /// <summary>
-        /// Starts the visualisation asynchronously.
-        /// </summary>
-        /// <returns>Task</returns>
-        Task StartAsync();
-
-        /// <summary>
-        /// Called when a testing iteration finishes.
-        /// </summary>
-        void Step();
-
-        /// <summary>
-        /// Refreshes the visualization.
-        /// </summary>
-        void Refresh();
-
-        #endregion
+        public static IEnumerable<Type> GetKnownTypes(ICustomAttributeProvider provider)
+        {
+            return KnownTypes;
+        }
     }
 }

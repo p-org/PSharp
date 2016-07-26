@@ -30,19 +30,19 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// Map from machines to states.
         /// </summary>
         [DataMember]
-        internal Dictionary<string, HashSet<string>> MachinesToStates { get; }
+        public Dictionary<string, HashSet<string>> MachinesToStates { get; private set; }
 
         /// <summary>
         /// Set of (machines, states, registered events).
         /// </summary>
         [DataMember]
-        internal HashSet<Tuple<string, string, string>> RegisteredEvents { get; }
+        public HashSet<Tuple<string, string, string>> RegisteredEvents { get; private set; }
 
         /// <summary>
         /// Set of machine transitions.
         /// </summary>
         [DataMember]
-        internal HashSet<Transition> Transitions { get; }
+        public HashSet<Transition> Transitions { get; private set; }
 
         #endregion
 
@@ -56,6 +56,33 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             this.MachinesToStates = new Dictionary<string, HashSet<string>>();
             this.RegisteredEvents = new HashSet<Tuple<string, string, string>>();
             this.Transitions = new HashSet<Transition>();
+        }
+
+        /// <summary>
+        /// Merges the information from the specified
+        /// coverage info. This is not thread-safe.
+        /// </summary>
+        /// <param name="coverageInfo">CoverageInfo</param>
+        public void Merge(CoverageInfo coverageInfo)
+        {
+            foreach (var machine in coverageInfo.MachinesToStates)
+            {
+                foreach (var state in machine.Value)
+                {
+                    this.DeclareMachineState(machine.Key, state);
+                }
+            }
+
+            foreach (var tup in coverageInfo.RegisteredEvents)
+            {
+                this.DeclareStateEvent(tup.Item1, tup.Item2, tup.Item3);
+            }
+
+            foreach (var transition in coverageInfo.Transitions)
+            {
+                this.AddTransition(transition.MachineOrigin, transition.StateOrigin,
+                    transition.EdgeLabel, transition.MachineTarget, transition.StateTarget);
+            }
         }
 
         #endregion

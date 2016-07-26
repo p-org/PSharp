@@ -12,36 +12,44 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Runtime.Serialization;
+
 namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
     /// A P# program transition.
     /// </summary>
-    internal struct Transition
+    [DataContract]
+    public struct Transition
     {
         /// <summary>
         /// The origin machine.
         /// </summary>
+        [DataMember]
         public readonly string MachineOrigin;
 
         /// <summary>
         /// The origin state.
         /// </summary>
+        [DataMember]
         public readonly string StateOrigin;
 
         /// <summary>
         /// The edge label.
         /// </summary>
+        [DataMember]
         public readonly string EdgeLabel;
 
         /// <summary>
         /// The target machine.
         /// </summary>
+        [DataMember]
         public readonly string MachineTarget;
 
         /// <summary>
         /// The target state.
         /// </summary>
+        [DataMember]
         public readonly string StateTarget;
 
         /// <summary>

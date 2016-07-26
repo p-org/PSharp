@@ -195,9 +195,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.PerformFullExploration = true;
             }
-            else if (option.ToLower().Equals("/visualize"))
+            else if (option.ToLower().Equals("/coverage-report"))
             {
-                base.Configuration.EnableVisualization = true;
+                base.Configuration.ReportCodeCoverage = true;
             }
             else if (option.ToLower().Equals("/detect-races"))
             {
