@@ -241,7 +241,7 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
-        #region visualization options
+        #region code coverage options
 
         /// <summary>
         /// Enables code coverage reporting of a P# program.

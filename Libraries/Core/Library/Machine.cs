@@ -1400,11 +1400,11 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region visualization methods
+        #region code coverage methods
 
         /// <summary>
         /// Returns the set of all states in the machine
-        /// (for visualization).
+        /// (for code coverage).
         /// </summary>
         /// <returns>Set of all states in the machine</returns>
         internal HashSet<string> GetAllStates()
@@ -1423,7 +1423,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Returns the set of all (states, registered event) pairs in the machine
-        /// (for visualization).
+        /// (for code coverage).
         /// </summary>
         /// <returns>Set of all (states, registered event) pairs in the machine</returns>
         internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
