@@ -26,10 +26,10 @@ namespace Microsoft.PSharp.TestingServices
     internal interface ITestingProcess
     {
         /// <summary>
-        /// Returns the coverage data.
+        /// Returns the test report.
         /// </summary>
-        /// <returns>CoverageInfo</returns>
+        /// <returns>TestReport</returns>
         [OperationContract]
-        CoverageInfo GetCoverageData();
+        TestReport GetTestReport();
     }
 }

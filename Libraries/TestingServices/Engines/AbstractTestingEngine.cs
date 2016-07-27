@@ -233,7 +233,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource = new CancellationTokenSource();
 
-            this.TestReport = new TestReport(this.Configuration);
+            this.TestReport = new TestReport();
             this.PrintGuard = 1;
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)

@@ -49,9 +49,9 @@ namespace Microsoft.PSharp.TestingServices
         private ServiceHost NotificationService;
         
         /// <summary>
-        /// The testing coverage info per process.
+        /// The test reports per process.
         /// </summary>
-        private ConcurrentDictionary<int, CoverageInfo> CoverageInfos;
+        private ConcurrentDictionary<int, TestReport> TestReports;
 
         /// <summary>
         /// The testing profiler.
@@ -79,9 +79,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
-        bool ITestingProcessScheduler.NotifyBugFound(int processId)
+        void ITestingProcessScheduler.NotifyBugFound(int processId)
         {
-            bool result = false;
             lock (this.SchedulerLock)
             {
                 if (this.BugFoundByProcess < 0)
@@ -92,16 +91,12 @@ namespace Microsoft.PSharp.TestingServices
                     this.BugFoundByProcess = processId;
                     foreach (var testingProcess in this.TestingProcesses)
                     {
-                        if (testingProcess.Key == processId)
-                        {
-                            result = true;
-                        }
-                        else
+                        if (testingProcess.Key != processId)
                         {
                             if (this.Configuration.ReportCodeCoverage)
                             {
-                                var coverageInfo = this.GetCoverageData(testingProcess.Key);
-                                this.CoverageInfos.TryAdd(testingProcess.Key, coverageInfo);
+                                var testReport = this.GetTestReport(testingProcess.Key);
+                                this.TestReports.TryAdd(testingProcess.Key, testReport);
                             }
 
                             testingProcess.Value.Kill();
@@ -109,39 +104,37 @@ namespace Microsoft.PSharp.TestingServices
                     }
                 }
             }
-            
-            return result;
         }
 
         /// <summary>
-        /// Sends the coverage data.
+        /// Sets the test data from the specified process.
         /// </summary>
-        /// <param name="coverageInfo">CoverageInfo</param>
+        /// <param name="testReport">TestReport</param>
         /// <param name="processId">Unique process id</param>
-        void ITestingProcessScheduler.SetCoverageData(CoverageInfo coverageInfo, int processId)
+        void ITestingProcessScheduler.SetTestData(TestReport testReport, int processId)
         {
-            this.CoverageInfos.TryAdd(processId, coverageInfo);
+            this.TestReports.TryAdd(processId, testReport);
         }
 
         /// <summary>
-        /// Gets the global coverage data for the specified process.
+        /// Gets the global test data for the specified process.
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>List of CoverageInfo</returns>
-        IList<CoverageInfo> ITestingProcessScheduler.GetGlobalCoverageData(int processId)
+        IList<TestReport> ITestingProcessScheduler.GetGlobalTestData(int processId)
         {
-            var globalCoverageInfo = new List<CoverageInfo>();
-            globalCoverageInfo.AddRange(this.CoverageInfos.Where(
+            var globalTestReport = new List<TestReport>();
+            globalTestReport.AddRange(this.TestReports.Where(
                 val => val.Key != processId).Select(val => val.Value));
-            return globalCoverageInfo;
+            return globalTestReport;
         }
 
         /// <summary>
-        /// Checks if the specified process should emit coverage data.
+        /// Checks if the specified process should emit the test report.
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
-        bool ITestingProcessScheduler.ShouldEmitCoverageData(int processId)
+        bool ITestingProcessScheduler.ShouldEmitTestReport(int processId)
         {
             lock (this.SchedulerLock)
             {
@@ -222,7 +215,7 @@ namespace Microsoft.PSharp.TestingServices
         private TestingProcessScheduler(Configuration configuration)
         {
             this.TestingProcesses = new Dictionary<int, Process>();
-            this.CoverageInfos = new ConcurrentDictionary<int, CoverageInfo>();
+            this.TestReports = new ConcurrentDictionary<int, TestReport>();
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
             this.BugFoundByProcess = -1;
@@ -272,11 +265,11 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Gets the coverage data associated with the specified testing process.
+        /// Gets the test report from the specified testing process.
         /// </summary>
         /// <param name="processId">Unique process id</param>
-        /// <returns>CoverageInfo</returns>
-        private CoverageInfo GetCoverageData(int processId)
+        /// <returns>TestReport</returns>
+        private TestReport GetTestReport(int processId)
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/process/" + processId + "/");
 
@@ -288,7 +281,7 @@ namespace Microsoft.PSharp.TestingServices
             var testingProcess = ChannelFactory<ITestingProcess>.
                     CreateChannel(binding, endpoint);
 
-            return testingProcess.GetCoverageData();
+            return testingProcess.GetTestReport();
         }
 
         #endregion

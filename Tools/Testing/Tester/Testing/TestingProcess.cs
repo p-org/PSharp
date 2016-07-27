@@ -20,7 +20,6 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Timers;
 
-using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -59,12 +58,12 @@ namespace Microsoft.PSharp.TestingServices
         #region remote testing process methods
 
         /// <summary>
-        /// Returns the coverage data.
+        /// Returns the test report.
         /// </summary>
-        /// <returns>CoverageInfo</returns>
-        CoverageInfo ITestingProcess.GetCoverageData()
+        /// <returns>TestReport</returns>
+        TestReport ITestingProcess.GetTestReport()
         {
-            return this.TestingEngine.TestReport.CoverageInfo;
+            return this.TestingEngine.TestReport;
         }
 
         #endregion
@@ -98,17 +97,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.ParallelBugFindingTasks == 1)
             {
-                IO.PrintLine(this.TestingEngine.Report());
-                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
-                    this.Configuration.PrintTrace)
-                {
-                    this.TestingEngine.TryEmitTraces();
-                }
-
-                if (this.Configuration.ReportCodeCoverage)
-                {
-                    this.TestingEngine.TryEmitCoverageReport();
-                }
+                this.EmitTestReport();
             }
             else
             {
@@ -117,9 +106,17 @@ namespace Microsoft.PSharp.TestingServices
                     this.NotifyBugFound();
                 }
 
-                if (this.Configuration.ReportCodeCoverage)
+                this.SendTestReport();
+                if (this.TestingScheduler.ShouldEmitTestReport(this.Configuration.TestingProcessId))
                 {
-                    this.SendAndEmitCoverageData();
+                    IList<TestReport> globalTestReport = this.TestingScheduler.GetGlobalTestData(
+                        this.Configuration.TestingProcessId);
+                    foreach (var testReport in globalTestReport)
+                    {
+                        this.TestingEngine.TestReport.Merge(testReport);
+                    }
+
+                    this.EmitTestReport();
                 }
             }
 
@@ -188,10 +185,9 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Sends the coverage data associated with this testing process,
-        /// and emits the results if the scheduler allows.
+        /// Sends the test report associated with this testing process.
         /// </summary>
-        private void SendAndEmitCoverageData()
+        private void SendTestReport()
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
 
@@ -206,18 +202,24 @@ namespace Microsoft.PSharp.TestingServices
                     CreateChannel(binding, endpoint);
             }
 
-            this.TestingScheduler.SetCoverageData(this.TestingEngine.TestReport.CoverageInfo,
+            this.TestingScheduler.SetTestData(this.TestingEngine.TestReport,
                 this.Configuration.TestingProcessId);
+        }
 
-            if (this.TestingScheduler.ShouldEmitCoverageData(this.Configuration.TestingProcessId))
+        /// <summary>
+        /// Emits the test report.
+        /// </summary>
+        private void EmitTestReport()
+        {
+            IO.PrintLine(this.TestingEngine.Report());
+            if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
+                this.Configuration.PrintTrace)
             {
-                IList<CoverageInfo> globalCoverageInfo = this.TestingScheduler.GetGlobalCoverageData(
-                    this.Configuration.TestingProcessId);
-                foreach (var coverageInfo in globalCoverageInfo)
-                {
-                    this.TestingEngine.TestReport.CoverageInfo.Merge(coverageInfo);
-                }
-                
+                this.TestingEngine.TryEmitTraces();
+            }
+
+            if (this.Configuration.ReportCodeCoverage)
+            {
                 this.TestingEngine.TryEmitCoverageReport();
             }
         }
@@ -241,11 +243,7 @@ namespace Microsoft.PSharp.TestingServices
                     CreateChannel(binding, endpoint);
             }
 
-            if (this.TestingScheduler.NotifyBugFound(this.Configuration.TestingProcessId))
-            {
-                IO.PrintLine(this.TestingEngine.Report());
-                this.TestingEngine.TryEmitTraces();
-            }
+            this.TestingScheduler.NotifyBugFound(this.Configuration.TestingProcessId);
         }
 
         /// <summary>

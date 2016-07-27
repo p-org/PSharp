@@ -33,30 +33,30 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
         [OperationContract]
-        bool NotifyBugFound(int processId);
+        void NotifyBugFound(int processId);
 
         /// <summary>
-        /// Sets the coverage data from the specified process.
+        /// Sets the test data from the specified process.
         /// </summary>
-        /// <param name="coverageInfo">CoverageInfo</param>
+        /// <param name="testReport">TestReport</param>
         /// <param name="processId">Unique process id</param>
         [OperationContract]
-        void SetCoverageData(CoverageInfo coverageInfo, int processId);
+        void SetTestData(TestReport testReport, int processId);
 
         /// <summary>
-        /// Gets the global coverage data for the specified process.
+        /// Gets the global test data for the specified process.
         /// </summary>
         /// <param name="processId">Unique process id</param>
-        /// <returns>List of CoverageInfo</returns>
+        /// <returns>List of TestReport</returns>
         [OperationContract]
-        IList<CoverageInfo> GetGlobalCoverageData(int processId);
+        IList<TestReport> GetGlobalTestData(int processId);
 
         /// <summary>
-        /// Checks if the specified process should emit coverage data.
+        /// Checks if the specified process should emit the test report.
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
         [OperationContract]
-        bool ShouldEmitCoverageData(int processId);
+        bool ShouldEmitTestReport(int processId);
     }
 }

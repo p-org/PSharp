@@ -29,6 +29,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Known types used for serialization.
         /// </summary>
         public static List<Type> KnownTypes = new List<Type> {
+            typeof(TestReport),
             typeof(CoverageInfo),
             typeof(Transition)
         };

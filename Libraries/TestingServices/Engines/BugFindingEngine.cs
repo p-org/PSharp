@@ -458,8 +458,38 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Report</returns>
         private string CreateReport(string prefix)
         {
-            base.TestReport.TestingTime = base.Profiler.Results();
-            return base.TestReport.GetText(prefix);
+            StringBuilder report = new StringBuilder();
+
+            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.TestReport.NumOfFoundBugs,
+                base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendLine();
+            report.AppendFormat("{0} Explored {1} schedule{2}.", prefix,
+                base.TestReport.NumOfExploredSchedules,
+                base.TestReport.NumOfExploredSchedules == 1 ? "" : "s");
+            report.AppendLine();
+
+            if (base.TestReport.NumOfExploredSchedules > 0)
+            {
+                report.AppendFormat("{0} Found {1}% buggy schedules.", prefix,
+                    (base.TestReport.NumOfFoundBugs * 100 / base.TestReport.NumOfExploredSchedules));
+                report.AppendLine();
+                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on last iteration).",
+                    prefix, base.TestReport.ExploredStepsInAverage,
+                    base.TestReport.ExploredStepsInAverage == 1 ? "" : "s");
+                report.AppendLine();
+            }
+
+            if (this.Configuration.MaxSchedulingSteps > 0)
+            {
+                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
+                    prefix, this.Configuration.MaxSchedulingSteps,
+                    (base.TestReport.MaxStepsHit * 100 / base.TestReport.NumOfExploredSchedules));
+                report.AppendLine();
+            }
+
+            report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
+
+            return report.ToString();
         }
 
         /// <summary>
