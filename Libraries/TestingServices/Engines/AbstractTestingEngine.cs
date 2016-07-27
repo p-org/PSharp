@@ -106,24 +106,9 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Data structure containing information
-        /// regarding testing coverage.
+        /// gathered during testing.
         /// </summary>
-        public CoverageInfo CoverageInfo { get; set; }
-
-        /// <summary>
-        /// The latest bug report, if any.
-        /// </summary>
-        public string BugReport { get; protected set; }
-
-        /// <summary>
-        /// Number of found bugs.
-        /// </summary>
-        public int NumOfFoundBugs { get; protected set; }
-
-        /// <summary>
-        /// Explored depth of scheduling decisions.
-        /// </summary>
-        public int ExploredDepth { get; protected set; }
+        public TestReport TestReport { get; set; }
 
         #endregion
 
@@ -248,10 +233,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource = new CancellationTokenSource();
 
-            this.CoverageInfo = new CoverageInfo();
-            this.BugReport = "";
-            this.NumOfFoundBugs = 0;
-            this.ExploredDepth = 0;
+            this.TestReport = new TestReport(this.Configuration);
             this.PrintGuard = 1;
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)

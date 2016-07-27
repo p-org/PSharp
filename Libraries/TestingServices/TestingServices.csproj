@@ -55,9 +55,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Coverage\CoverageInfo.cs" />
-    <Compile Include="Coverage\CodeCoverageReporter.cs" />
-    <Compile Include="Coverage\Transition.cs" />
+    <Compile Include="Statistics\TestReport.cs" />
+    <Compile Include="Statistics\Coverage\CoverageInfo.cs" />
+    <Compile Include="Statistics\Coverage\CodeCoverageReporter.cs" />
+    <Compile Include="Statistics\Coverage\Transition.cs" />
     <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />
     <Compile Include="Engines\ITestingEngine.cs" />

@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             var bugReport = "Value is '1' (expected '0').";
-            Assert.AreEqual(bugReport, engine.BugReport);
+            Assert.AreEqual(bugReport, engine.TestReport.BugReport);
         }
     }
 }

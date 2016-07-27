@@ -36,11 +36,6 @@ namespace Microsoft.PSharp.TestingServices
     internal sealed class BugFindingEngine : AbstractTestingEngine
     {
         #region fields
-        
-        /// <summary>
-        /// Explored schedules so far.
-        /// </summary>
-        private int ExploredSchedules;
 
         /// <summary>
         /// The readable trace, if any.
@@ -56,11 +51,6 @@ namespace Microsoft.PSharp.TestingServices
         /// The reproducable trace, if any.
         /// </summary>
         private string ReproducableTrace;
-
-        /// <summary>
-        /// Number of times max steps was it.
-        /// </summary>
-        private int MaxStepsHit;
 
         #endregion
 
@@ -164,7 +154,7 @@ namespace Microsoft.PSharp.TestingServices
                 string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
                 string directoryPath = base.GetOutputDirectory();
 
-                var codeCoverageReporter = new CodeCoverageReporter(base.CoverageInfo);
+                var codeCoverageReporter = new CodeCoverageReporter(base.TestReport.CoverageInfo);
 
                 string[] graphFiles = Directory.GetFiles(directoryPath, name + "_*.dgml");
                 string graphFilePath = directoryPath + name + "_" + graphFiles.Length + ".dgml";
@@ -230,10 +220,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
-            this.ExploredSchedules = 0;
             this.ReadableTrace = "";
             this.ReproducableTrace = "";
-            this.MaxStepsHit = 0;
         }
 
         #endregion
@@ -288,7 +276,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                        base.Strategy, base.CoverageInfo);
+                        base.Strategy, base.TestReport.CoverageInfo);
 
                     StringWriter sw = null;
                     if (base.Configuration.RedirectTestConsoleOutput &&
@@ -366,28 +354,28 @@ namespace Microsoft.PSharp.TestingServices
                         base.ResetOutput();
                     }
 
-                    this.ExploredSchedules++;
-                    base.ExploredDepth = runtime.BugFinder.ExploredSteps;
+                    this.TestReport.NumOfExploredSchedules++;
+                    base.TestReport.ExploredStepsInAverage = runtime.BugFinder.ExploredSteps;
 
                     if (base.Strategy.HasReachedMaxSchedulingSteps())
                     {
-                        this.MaxStepsHit++;
+                        this.TestReport.MaxStepsHit++;
                     }
 
                     if (runtime.BugFinder.BugFound)
                     {
-                        base.NumOfFoundBugs++;
-                        base.BugReport = runtime.BugFinder.BugReport;
+                        base.TestReport.NumOfFoundBugs++;
+                        base.TestReport.BugReport = runtime.BugFinder.BugReport;
 
                         if (base.Configuration.PerformFullExploration)
                         {
                             IO.PrintLine($"..... Iteration #{i + 1} triggered " +
-                                $"bug #{base.NumOfFoundBugs}");
+                                $"bug #{base.TestReport.NumOfFoundBugs}");
                         }
                     }
                     else
                     {
-                        base.BugReport = "";
+                        base.TestReport.BugReport = "";
                     }
 
                     if (base.Strategy.HasFinished())
@@ -397,7 +385,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     base.Strategy.ConfigureNextIteration();
 
-                    if (!base.Configuration.PerformFullExploration && base.NumOfFoundBugs > 0)
+                    if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
                     {
                         if (sw != null && !base.Configuration.SuppressTrace)
                         {
@@ -470,39 +458,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Report</returns>
         private string CreateReport(string prefix)
         {
-            StringBuilder report = new StringBuilder();
-
-            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.NumOfFoundBugs,
-                base.NumOfFoundBugs == 1 ? "" : "s");
-            report.AppendLine();
-            report.AppendFormat("{0} Explored {1} {2} schedule{3}.", prefix,
-                this.ExploredSchedules,
-                base.Strategy.HasFinished() ? "(all)" : "",
-                this.ExploredSchedules == 1 ? "" : "s");
-            report.AppendLine();
-
-            if (this.ExploredSchedules > 0)
-            {
-                report.AppendFormat("{0} Found {1}% buggy schedules.", prefix,
-                    (base.NumOfFoundBugs * 100 / this.ExploredSchedules));
-                report.AppendLine();
-                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on last iteration).",
-                    prefix, base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
-                report.AppendLine();
-            }
-
-            if (base.Configuration.MaxSchedulingSteps > 0)
-            {
-                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-                    prefix, base.Configuration.MaxSchedulingSteps,
-                    (this.MaxStepsHit * 100 / this.ExploredSchedules));
-                report.AppendLine();
-
-            }
-
-            report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
-
-            return report.ToString();
+            base.TestReport.TestingTime = base.Profiler.Results();
+            return base.TestReport.GetText(prefix);
         }
 
         /// <summary>

@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>CoverageInfo</returns>
         CoverageInfo ITestingProcess.GetCoverageData()
         {
-            return this.TestingEngine.CoverageInfo;
+            return this.TestingEngine.TestReport.CoverageInfo;
         }
 
         #endregion
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.ParallelBugFindingTasks == 1)
             {
                 IO.PrintLine(this.TestingEngine.Report());
-                if (this.TestingEngine.NumOfFoundBugs > 0 ||
+                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
                     this.Configuration.PrintTrace)
                 {
                     this.TestingEngine.TryEmitTraces();
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                if (this.TestingEngine.NumOfFoundBugs > 0)
+                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
                 {
                     this.NotifyBugFound();
                 }
@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices
                     CreateChannel(binding, endpoint);
             }
 
-            this.TestingScheduler.SetCoverageData(this.TestingEngine.CoverageInfo,
+            this.TestingScheduler.SetCoverageData(this.TestingEngine.TestReport.CoverageInfo,
                 this.Configuration.TestingProcessId);
 
             if (this.TestingScheduler.ShouldEmitCoverageData(this.Configuration.TestingProcessId))
@@ -215,7 +215,7 @@ namespace Microsoft.PSharp.TestingServices
                     this.Configuration.TestingProcessId);
                 foreach (var coverageInfo in globalCoverageInfo)
                 {
-                    this.TestingEngine.CoverageInfo.Merge(coverageInfo);
+                    this.TestingEngine.TestReport.CoverageInfo.Merge(coverageInfo);
                 }
                 
                 this.TestingEngine.TryEmitCoverageReport();

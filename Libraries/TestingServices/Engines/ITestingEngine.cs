@@ -14,8 +14,6 @@
 
 using System;
 
-using Microsoft.PSharp.TestingServices.Coverage;
-
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
@@ -27,24 +25,9 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Data structure containing information
-        /// regarding testing coverage.
+        /// gathered during testing.
         /// </summary>
-        CoverageInfo CoverageInfo { get; set; }
-
-        /// <summary>
-        /// The latest bug report, if any.
-        /// </summary>
-        string BugReport { get; }
-
-        /// <summary>
-        /// Number of found bugs.
-        /// </summary>
-        int NumOfFoundBugs { get; }
-
-        /// <summary>
-        /// Explored depth of scheduling decisions.
-        /// </summary>
-        int ExploredDepth { get; }
+        TestReport TestReport { get; }
 
         #endregion
 
