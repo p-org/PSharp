@@ -500,7 +500,7 @@ namespace Microsoft.PSharp.TestingServices
 
                 report.AppendFormat("{0} Instrumented {1} scheduling point{2} (min).",
                     prefix.Equals("...") ? "....." : prefix,
-                    base.TestReport.MinExploredSteps,
+                    base.TestReport.MinExploredSteps < 0 ? 0 : base.TestReport.MinExploredSteps,
                     base.TestReport.MinExploredSteps == 1 ? "" : "s");
                 report.AppendLine();
 
