@@ -356,8 +356,6 @@ namespace Microsoft.PSharp.TestingServices
                     else
                     {
                         IO.Error.PrintLine("... Timed out.");
-                        IO.Error.PrintLine(this.Report());
-                        IO.Error.PrintLine(". Done");
                     }
                 }
             }
