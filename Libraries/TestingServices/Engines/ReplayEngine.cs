@@ -85,8 +85,8 @@ namespace Microsoft.PSharp.TestingServices
                 base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
             report.AppendLine();
             report.AppendFormat("... Instrumented {0} scheduling point{1}.",
-                base.TestReport.ExploredStepsInAverage,
-                base.TestReport.ExploredStepsInAverage == 1 ? "" : "s");
+                base.TestReport.MaxExploredSteps,
+                base.TestReport.MaxExploredSteps == 1 ? "" : "s");
             report.AppendLine();
 
             report.Append($"... Elapsed {base.Profiler.Results()} sec.");
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices
                     base.ResetOutput();
                 }
 
-                base.TestReport.ExploredStepsInAverage = runtime.BugFinder.ExploredSteps;
+                base.TestReport.MaxExploredSteps = runtime.BugFinder.ExploredSteps;
 
                 if (runtime.BugFinder.BugFound)
                 {

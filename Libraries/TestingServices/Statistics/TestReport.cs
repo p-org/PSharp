@@ -53,10 +53,23 @@ namespace Microsoft.PSharp.TestingServices
         public string BugReport { get; internal set; }
 
         /// <summary>
-        /// Explored scheduling steps in average.
+        /// The total explored scheduling steps (across
+        /// all testing iterations).
         /// </summary>
         [DataMember]
-        public int ExploredStepsInAverage { get; internal set; }
+        public int TotalExploredSteps { get; internal set; }
+
+        /// <summary>
+        /// The min explored scheduling steps in average.
+        /// </summary>
+        [DataMember]
+        public int MinExploredSteps { get; internal set; }
+
+        /// <summary>
+        /// The max explored scheduling steps in average.
+        /// </summary>
+        [DataMember]
+        public int MaxExploredSteps { get; internal set; }
 
         /// <summary>
         /// Number of times the max steps bound was hit.
@@ -74,10 +87,13 @@ namespace Microsoft.PSharp.TestingServices
         public TestReport()
         {
             this.CoverageInfo = new CoverageInfo();
-            
+
+            this.NumOfExploredSchedules = 0;
             this.NumOfFoundBugs = 0;
             this.BugReport = "";
-            this.ExploredStepsInAverage = 0;
+            this.TotalExploredSteps = 0;
+            this.MinExploredSteps = -1;
+            this.MaxExploredSteps = 0;
             this.MaxStepsHit = 0;
         }
 
@@ -93,6 +109,22 @@ namespace Microsoft.PSharp.TestingServices
         public void Merge(TestReport testReport)
         {
             this.CoverageInfo.Merge(testReport.CoverageInfo);
+
+            this.NumOfExploredSchedules += testReport.NumOfExploredSchedules;
+            this.MaxStepsHit += testReport.MaxStepsHit;
+
+            if (testReport.MinExploredSteps >= 0 &&
+                this.MinExploredSteps > testReport.MinExploredSteps)
+            {
+                this.MinExploredSteps = testReport.MinExploredSteps;
+            }
+
+            if (this.MaxExploredSteps < testReport.MaxExploredSteps)
+            {
+                this.MaxExploredSteps = testReport.MaxExploredSteps;
+            }
+
+            this.TotalExploredSteps += testReport.TotalExploredSteps;
         }
 
         #endregion

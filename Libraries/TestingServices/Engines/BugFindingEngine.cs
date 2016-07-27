@@ -355,11 +355,25 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     this.TestReport.NumOfExploredSchedules++;
-                    base.TestReport.ExploredStepsInAverage = runtime.BugFinder.ExploredSteps;
+
+                    if (this.TestReport.MinExploredSteps < 0 ||
+                        this.TestReport.MinExploredSteps > runtime.BugFinder.ExploredSteps)
+                    {
+                        this.TestReport.MinExploredSteps = runtime.BugFinder.ExploredSteps;
+                    }
+
+                    if (this.TestReport.MaxExploredSteps < runtime.BugFinder.ExploredSteps)
+                    {
+                        this.TestReport.MaxExploredSteps = runtime.BugFinder.ExploredSteps;
+                    }
 
                     if (base.Strategy.HasReachedMaxSchedulingSteps())
                     {
                         this.TestReport.MaxStepsHit++;
+                    }
+                    else
+                    {
+                        base.TestReport.TotalExploredSteps += runtime.BugFinder.ExploredSteps;
                     }
 
                     if (runtime.BugFinder.BugFound)
@@ -470,20 +484,39 @@ namespace Microsoft.PSharp.TestingServices
 
             if (base.TestReport.NumOfExploredSchedules > 0)
             {
-                report.AppendFormat("{0} Found {1}% buggy schedules.", prefix,
-                    (base.TestReport.NumOfFoundBugs * 100 / base.TestReport.NumOfExploredSchedules));
+                if (base.TestReport.NumOfFoundBugs > 0)
+                {
+                    report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        ((double)base.TestReport.NumOfFoundBugs / base.TestReport.NumOfExploredSchedules) * 100);
+                    report.AppendLine();
+                }
+
+                int averageExploredSteps = base.TestReport.TotalExploredSteps / base.TestReport.NumOfExploredSchedules;
+                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on average in terminating tests).",
+                    prefix.Equals("...") ? "....." : prefix,
+                    averageExploredSteps, averageExploredSteps == 1 ? "" : "s");
                 report.AppendLine();
-                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on last iteration).",
-                    prefix, base.TestReport.ExploredStepsInAverage,
-                    base.TestReport.ExploredStepsInAverage == 1 ? "" : "s");
+
+                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (min).",
+                    prefix.Equals("...") ? "....." : prefix,
+                    base.TestReport.MinExploredSteps,
+                    base.TestReport.MinExploredSteps == 1 ? "" : "s");
+                report.AppendLine();
+
+                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (max).",
+                    prefix.Equals("...") ? "....." : prefix,
+                    base.TestReport.MaxExploredSteps,
+                    base.TestReport.MaxExploredSteps == 1 ? "" : "s");
                 report.AppendLine();
             }
 
             if (this.Configuration.MaxSchedulingSteps > 0)
             {
-                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-                    prefix, this.Configuration.MaxSchedulingSteps,
-                    (base.TestReport.MaxStepsHit * 100 / base.TestReport.NumOfExploredSchedules));
+                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2:F2}% schedules.",
+                    prefix.Equals("...") ? "....." : prefix,
+                    base.Configuration.MaxSchedulingSteps,
+                    ((double)base.TestReport.MaxStepsHit / (double)base.TestReport.NumOfExploredSchedules) * 100);
                 report.AppendLine();
             }
 
