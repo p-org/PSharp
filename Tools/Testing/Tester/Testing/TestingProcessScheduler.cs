@@ -39,19 +39,24 @@ namespace Microsoft.PSharp.TestingServices
         private Configuration Configuration;
 
         /// <summary>
-        /// Map from testing process ids to testing processes.
-        /// </summary>
-        private Dictionary<int, Process> TestingProcesses;
-
-        /// <summary>
         /// The notification listening service.
         /// </summary>
         private ServiceHost NotificationService;
+
+        /// <summary>
+        /// Map from testing process ids to testing processes.
+        /// </summary>
+        private Dictionary<int, Process> TestingProcesses;
         
         /// <summary>
         /// The test reports per process.
         /// </summary>
         private ConcurrentDictionary<int, TestReport> TestReports;
+
+        /// <summary>
+        /// Number of terminated testing processes.
+        /// </summary>
+        private int NumOfTerminatedTestingProcesses;
 
         /// <summary>
         /// The testing profiler.
@@ -138,13 +143,14 @@ namespace Microsoft.PSharp.TestingServices
         {
             lock (this.SchedulerLock)
             {
+                this.NumOfTerminatedTestingProcesses++;
+
                 if (this.BugFoundByProcess == processId)
                 {
                     return true;
                 }
 
-                if (this.TestingProcesses.Where(val => val.Key != processId).
-                    All(val => val.Value.HasExited))
+                if (this.NumOfTerminatedTestingProcesses == this.TestingProcesses.Count)
                 {
                     return true;
                 }
@@ -216,6 +222,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.TestingProcesses = new Dictionary<int, Process>();
             this.TestReports = new ConcurrentDictionary<int, TestReport>();
+            this.NumOfTerminatedTestingProcesses = 0;
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
             this.BugFoundByProcess = -1;
