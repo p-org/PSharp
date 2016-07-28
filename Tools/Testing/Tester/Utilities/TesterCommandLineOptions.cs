@@ -217,13 +217,35 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().StartsWith("/max-steps:") && option.Length > 11)
             {
                 int i = 0;
-                if (!int.TryParse(option.Substring(11), out i) && i >= 0)
+                int j = 0;
+                var tokens = option.Split(new char[] { ':' }, System.StringSplitOptions.RemoveEmptyEntries);
+                if (tokens.Length > 3 || tokens.Length <= 1)
                 {
-                    IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
-                        " steps to explore '/max-steps:[x]', where [x] >= 0.");
+                    IO.Error.ReportAndExit("Invalid number of options supplied via /max-steps");
+                }
+                if (tokens.Length >= 2)
+                {
+                    if (!int.TryParse(tokens[1], out i) && i >= 0)
+                    {
+                        IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
+                            " steps to explore '/max-steps:[x]', where [x] >= 0.");
+                    }
+                }
+                if (tokens.Length == 3)
+                {
+                    if (!int.TryParse(tokens[2], out j) && j >= 0)
+                    {
+                        IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
+                            " steps to explore '/max-steps:[x]', where [x] >= 0.");
+                    }
+                }
+                else
+                {
+                    j = i;
                 }
 
-                base.Configuration.MaxSchedulingSteps = i;
+                base.Configuration.MaxFairSchedulingSteps = i;
+                base.Configuration.MaxUnfairSchedulingSteps = j;
             }
             else if (option.ToLower().Equals("/depth-bound-bug"))
             {
@@ -309,16 +331,21 @@ namespace Microsoft.PSharp.Utilities
                         "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
                         "experimental strategies also exist, but are not listed here).");
             }
-            
+
+            if (base.Configuration.MaxUnfairSchedulingSteps < base.Configuration.MaxFairSchedulingSteps)
+            {
+                IO.Error.ReportAndExit("For the flag /max-steps:N:M, please make sure that M >= N.");
+            }
+
             if (base.Configuration.SafetyPrefixBound > 0 &&
-                base.Configuration.SafetyPrefixBound >= base.Configuration.MaxSchedulingSteps)
+                base.Configuration.SafetyPrefixBound >= base.Configuration.MaxFairSchedulingSteps)
             {
                 IO.Error.ReportAndExit("Please give a safety prefix bound that is less than the " +
                     "max scheduling steps bound.");
             }
 
             if (base.Configuration.SchedulingStrategy.Equals("iddfs") &&
-                base.Configuration.MaxSchedulingSteps == 0)
+                base.Configuration.MaxFairSchedulingSteps == 0)
             {
                 IO.Error.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
                     "must have a max scheduling steps bound, which can be given using " +
@@ -343,10 +370,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.LivenessTemperatureThreshold = 100;
                 }
-                else if (base.Configuration.MaxSchedulingSteps > 0)
+                else if (base.Configuration.MaxUnfairSchedulingSteps > 0)
                 {
                     base.Configuration.LivenessTemperatureThreshold =
-                        base.Configuration.MaxSchedulingSteps / 2;
+                        base.Configuration.MaxUnfairSchedulingSteps / 2;
                 }
             }
         }

@@ -467,13 +467,12 @@ namespace Microsoft.PSharp.TestingServices
                 report.AppendLine();
             }
 
-            if (base.Configuration.MaxSchedulingSteps > 0)
+            if (base.Configuration.MaxFairSchedulingSteps > 0)
             {
                 report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-                    prefix, base.Configuration.MaxSchedulingSteps,
+                    prefix, base.Configuration.MaxFairSchedulingSteps,
                     (this.MaxStepsHit * 100 / this.ExploredSchedules));
                 report.AppendLine();
-
             }
 
             report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
