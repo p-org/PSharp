@@ -257,12 +257,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            if (this.Configuration.MaxFairSchedulingSteps == 0)
+            var bound = (IsFair() ? this.Configuration.MaxFairSchedulingSteps : this.Configuration.MaxUnfairSchedulingSteps);
+
+            if (bound == 0)
             {
                 return false;
             }
 
-            return this.ExploredSteps == (IsFair() ? this.Configuration.MaxFairSchedulingSteps : this.Configuration.MaxUnfairSchedulingSteps);
+            return this.ExploredSteps == bound;
         }
 
         /// <summary>

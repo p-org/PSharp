@@ -58,7 +58,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Number of times max steps was it.
         /// </summary>
-        private int MaxStepsHit;
+        private int MaxStepsHitFair;
+
+        /// <summary>
+        /// Number of times max steps was it.
+        /// </summary>
+        private int MaxStepsHitUnfair;
 
         #endregion
 
@@ -204,7 +209,8 @@ namespace Microsoft.PSharp.TestingServices
             this.ExploredSchedules = 0;
             this.ReadableTrace = "";
             this.ReproducableTrace = "";
-            this.MaxStepsHit = 0;
+            this.MaxStepsHitFair = 0;
+            this.MaxStepsHitUnfair = 0;
         }
 
         #endregion
@@ -347,7 +353,14 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (base.Strategy.HasReachedMaxSchedulingSteps())
                     {
-                        this.MaxStepsHit++;
+                        if (base.Strategy.IsFair())
+                        {
+                            this.MaxStepsHitFair++;
+                        }
+                        else
+                        {
+                            this.MaxStepsHitUnfair++;
+                        }
                     }
 
                     if (runtime.BugFinder.BugFound)
@@ -467,11 +480,21 @@ namespace Microsoft.PSharp.TestingServices
                 report.AppendLine();
             }
 
-            if (base.Configuration.MaxFairSchedulingSteps > 0)
+            if (base.Configuration.MaxUnfairSchedulingSteps > 0 &&
+                this.MaxStepsHitUnfair > 0)
+            {
+                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
+                    prefix, base.Configuration.MaxUnfairSchedulingSteps,
+                    (this.MaxStepsHitUnfair * 100 / this.ExploredSchedules));
+                report.AppendLine();
+            }
+            if (base.Configuration.MaxFairSchedulingSteps > 0 && 
+                base.Configuration.MaxFairSchedulingSteps != base.Configuration.MaxUnfairSchedulingSteps &&
+                this.MaxStepsHitFair > 0)
             {
                 report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
                     prefix, base.Configuration.MaxFairSchedulingSteps,
-                    (this.MaxStepsHit * 100 / this.ExploredSchedules));
+                    (this.MaxStepsHitFair * 100 / this.ExploredSchedules));
                 report.AppendLine();
             }
 
