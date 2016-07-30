@@ -511,41 +511,36 @@ namespace Microsoft.PSharp.TestingServices
                     report.AppendLine();
                 }
 
-                if (base.TestReport.MinExploredFairSteps >= 0 ||
-                    base.TestReport.MinExploredFairSteps >= 0 ||
-                    base.TestReport.MaxExploredFairSteps >= 0)
+                if (base.TestReport.NumOfExploredFairSchedules > 0)
                 {
                     report.AppendFormat("{0} Statistics from fair terminating schedules:",
                         prefix);
                     report.AppendLine();
-                }
 
-                if (base.TestReport.MinExploredFairSteps >= 0)
-                {
-                    int averageExploredSteps = base.TestReport.TotalExploredFairSteps /
+                    int averageExploredFairSteps = base.TestReport.TotalExploredFairSteps /
                         base.TestReport.NumOfExploredFairSchedules;
                     report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on average).",
                         prefix.Equals("...") ? "....." : prefix,
-                        averageExploredSteps, averageExploredSteps == 1 ? "" : "s");
+                        averageExploredFairSteps, averageExploredFairSteps == 1 ? "" : "s");
                     report.AppendLine();
-                }
 
-                if (base.TestReport.MinExploredFairSteps >= 0)
-                {
-                    report.AppendFormat("{0} Instrumented {1} scheduling point{2} (min).",
-                        prefix.Equals("...") ? "....." : prefix,
-                        base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
-                        base.TestReport.MinExploredFairSteps == 1 ? "" : "s");
-                    report.AppendLine();
-                }
+                    if (base.TestReport.MinExploredFairSteps >= 0)
+                    {
+                        report.AppendFormat("{0} Instrumented {1} scheduling point{2} (min).",
+                            prefix.Equals("...") ? "....." : prefix,
+                            base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
+                            base.TestReport.MinExploredFairSteps == 1 ? "" : "s");
+                        report.AppendLine();
+                    }
 
-                if (base.TestReport.MaxExploredFairSteps >= 0)
-                {
-                    report.AppendFormat("{0} Instrumented {1} scheduling point{2} (max).",
-                        prefix.Equals("...") ? "....." : prefix,
-                        base.TestReport.MaxExploredFairSteps,
-                        base.TestReport.MaxExploredFairSteps == 1 ? "" : "s");
-                    report.AppendLine();
+                    if (base.TestReport.MaxExploredFairSteps >= 0)
+                    {
+                        report.AppendFormat("{0} Instrumented {1} scheduling point{2} (max).",
+                            prefix.Equals("...") ? "....." : prefix,
+                            base.TestReport.MaxExploredFairSteps,
+                            base.TestReport.MaxExploredFairSteps == 1 ? "" : "s");
+                        report.AppendLine();
+                    }
                 }
             }
 
