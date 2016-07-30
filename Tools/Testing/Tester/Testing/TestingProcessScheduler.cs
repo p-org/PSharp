@@ -236,7 +236,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Profiler.StopMeasuringExecutionTime();
 
-            IO.PrintLine($"... Parallel testing elapsed {this.Profiler.Results()} sec.");
+            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
 
             // Closes the remote notification listener.
             this.CloseNotificationListener();
