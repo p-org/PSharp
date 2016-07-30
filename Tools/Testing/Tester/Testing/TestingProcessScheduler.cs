@@ -208,6 +208,9 @@ namespace Microsoft.PSharp.TestingServices
             this.Profiler.StopMeasuringExecutionTime();
 
             IO.PrintLine($"... Parallel testing elapsed {this.Profiler.Results()} sec.");
+
+            // Closes the remote notification listener.
+            this.CloseNotificationListener();
         }
 
         #endregion
@@ -246,7 +249,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
 
-            WSHttpBinding binding = new WSHttpBinding();
+            BasicHttpBinding binding = new BasicHttpBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
@@ -272,6 +275,35 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Closes the remote notification listener.
+        /// </summary>
+        private void CloseNotificationListener()
+        {
+            if (this.NotificationService.State == CommunicationState.Opened)
+            {
+                try
+                {
+                    this.NotificationService.Close();
+                }
+                catch (CommunicationException)
+                {
+                    this.NotificationService.Abort();
+                    throw;
+                }
+                catch (TimeoutException)
+                {
+                    this.NotificationService.Abort();
+                    throw;
+                }
+                catch (Exception)
+                {
+                    this.NotificationService.Abort();
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the test report from the specified testing process.
         /// </summary>
         /// <param name="processId">Unique process id</param>
@@ -280,7 +312,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/process/" + processId + "/");
 
-            WSHttpBinding binding = new WSHttpBinding();
+            BasicHttpBinding binding = new BasicHttpBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);

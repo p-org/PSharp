@@ -95,11 +95,7 @@ namespace Microsoft.PSharp.TestingServices
             
             this.TestingEngine.Run();
 
-            if (this.Configuration.ParallelBugFindingTasks == 1)
-            {
-                this.EmitTestReport();
-            }
-            else
+            if (this.Configuration.ParallelBugFindingTasks > 1)
             {
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
                 {
@@ -118,6 +114,12 @@ namespace Microsoft.PSharp.TestingServices
 
                     this.EmitTestReport();
                 }
+
+                this.CloseNotificationListener();
+            }
+            else
+            {
+                this.EmitTestReport();
             }
 
             if (timer != null)
@@ -159,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices
             Uri address = new Uri("http://localhost:8080/psharp/testing/process/" +
                 this.Configuration.TestingProcessId + "/");
 
-            WSHttpBinding binding = new WSHttpBinding();
+            BasicHttpBinding binding = new BasicHttpBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
@@ -185,13 +187,42 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Closes the remote notification listener.
+        /// </summary>
+        private void CloseNotificationListener()
+        {
+            if (this.NotificationService.State == CommunicationState.Opened)
+            {
+                try
+                {
+                    this.NotificationService.Close();
+                }
+                catch (CommunicationException)
+                {
+                    this.NotificationService.Abort();
+                    throw;
+                }
+                catch (TimeoutException)
+                {
+                    this.NotificationService.Abort();
+                    throw;
+                }
+                catch (Exception)
+                {
+                    this.NotificationService.Abort();
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
         /// Sends the test report associated with this testing process.
         /// </summary>
         private void SendTestReport()
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
 
-            WSHttpBinding binding = new WSHttpBinding();
+            BasicHttpBinding binding = new BasicHttpBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
@@ -232,7 +263,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
 
-            WSHttpBinding binding = new WSHttpBinding();
+            BasicHttpBinding binding = new BasicHttpBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
