@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
@@ -28,7 +29,6 @@ using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
-using Microsoft.PSharp.Visualization;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -86,9 +86,10 @@ namespace Microsoft.PSharp.TestingServices
         internal LivenessChecker LivenessChecker;
 
         /// <summary>
-        /// The P# program visualizer.
+        /// Data structure containing information
+        /// regarding testing coverage.
         /// </summary>
-        internal IProgramVisualizer Visualizer;
+        internal CoverageInfo CoverageInfo;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -103,10 +104,10 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        /// <param name="visualizer">Visualizer</param>
+        /// <param name="coverageInfo">CoverageInfo</param>
         /// </summary>
         internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy,
-            IProgramVisualizer visualizer)
+            CoverageInfo coverageInfo)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
@@ -130,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this, strategy);
-            this.Visualizer = visualizer;
+            this.CoverageInfo = coverageInfo;
 
             this.OperationIdCounter = 0;
         }
@@ -314,18 +315,25 @@ namespace Microsoft.PSharp.TestingServices
 
             MachineId mid = new MachineId(type, friendlyName, this);
 
+            var isMachineNewlyConstructed = false;
             if (!MachineConstructorMap.ContainsKey(type))
             {
                 Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
                     Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
                 MachineConstructorMap[type] = constructor;
+                isMachineNewlyConstructed = true;
             }
 
             Machine machine = MachineConstructorMap[type]();
 
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
-            
+
+            if (this.Configuration.ReportCodeCoverage && isMachineNewlyConstructed)
+            {
+                this.ReportCodeCoverageOfMachine(machine);
+            }
+
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid}' was already created.");
 
@@ -783,12 +791,10 @@ namespace Microsoft.PSharp.TestingServices
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
             
-            if (this.Configuration.EnableVisualization)
+            if (this.Configuration.ReportCodeCoverage)
             {
-                // Visualizes the received event and the state
-                // transition, if there is any.
-                this.VisualizeReceivedEvent(machine, eventInfo);
-                this.VisualizeStateTransition(machine, eventInfo);
+                this.ReportCodeCoverageOfReceivedEvent(machine, eventInfo);
+                this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -844,10 +850,9 @@ namespace Microsoft.PSharp.TestingServices
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
             
-            if (this.Configuration.EnableVisualization)
+            if (this.Configuration.ReportCodeCoverage)
             {
-                // Visualizes the state transition, if there is any.
-                this.VisualizeStateTransition(machine, eventInfo);
+                this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -963,11 +968,11 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
-        /// Visualizes a received event.
+        /// Reports code coverage for the specified received event.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void VisualizeReceivedEvent(Machine machine, EventInfo eventInfo)
+        private void ReportCodeCoverageOfReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             string originMachine = eventInfo.OriginInfo.SenderMachineName;
             string originState = eventInfo.OriginInfo.SenderStateName;
@@ -975,15 +980,40 @@ namespace Microsoft.PSharp.TestingServices
             string destMachine = machine.GetType().Name;
             string destState = machine.CurrentState.Name;
 
-            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
 
         /// <summary>
-        /// Visualizes a state transition.
+        /// Reports code coverage for the specified machine.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void ReportCodeCoverageOfMachine(Machine machine)
+        {
+            var machineName = machine.GetType().Name;
+
+            // fetch states
+            var states = machine.GetAllStates();
+
+            foreach (var state in states)
+            {
+                this.CoverageInfo.DeclareMachineState(machineName, state);
+            }
+
+            // fetch registered events
+            var pairs = machine.GetAllStateEventPairs();
+
+            foreach (var tup in pairs)
+            {
+                this.CoverageInfo.DeclareStateEvent(machineName, tup.Item1, tup.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Reports code coverage for the specified state transition.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void VisualizeStateTransition(Machine machine, EventInfo eventInfo)
+        private void ReportCodeCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
             string originState = machine.CurrentState.Name;
@@ -1006,7 +1036,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
 
         /// <summary>

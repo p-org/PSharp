@@ -241,12 +241,12 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
-        #region visualization options
+        #region code coverage options
 
         /// <summary>
-        /// Enables visualization of a P# program.
+        /// Enables code coverage reporting of a P# program.
         /// </summary>
-        public bool EnableVisualization;
+        public bool ReportCodeCoverage;
 
         #endregion
 
@@ -376,7 +376,7 @@ namespace Microsoft.PSharp.Utilities
             
             this.EnableDataRaceDetection = false;
 
-            this.EnableVisualization = false;
+            this.ReportCodeCoverage = false;
 
             this.ContainerId = 0;
             this.NumberOfContainers = 1;

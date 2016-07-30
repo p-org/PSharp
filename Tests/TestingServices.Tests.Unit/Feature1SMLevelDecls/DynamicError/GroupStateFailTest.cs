@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             var bugReport = "Assertion failure.";
-            Assert.AreEqual(bugReport, engine.BugReport);
+            Assert.AreEqual(bugReport, engine.TestReport.BugReport);
         }
     }
 }

@@ -12,7 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.ServiceModel;
+
+using Microsoft.PSharp.TestingServices.Coverage;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -20,6 +23,7 @@ namespace Microsoft.PSharp.TestingServices
     /// Interface for a remote P# testing process scheduler.
     /// </summary>
     [ServiceContract(Namespace = "Microsoft.PSharp")]
+    [ServiceKnownType("GetKnownTypes", typeof(KnownTypesProvider))]
     internal interface ITestingProcessScheduler
     {
         /// <summary>
@@ -29,6 +33,30 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
         [OperationContract]
-        bool NotifyBugFound(int processId);
+        void NotifyBugFound(int processId);
+
+        /// <summary>
+        /// Sets the test data from the specified process.
+        /// </summary>
+        /// <param name="testReport">TestReport</param>
+        /// <param name="processId">Unique process id</param>
+        [OperationContract]
+        void SetTestData(TestReport testReport, int processId);
+
+        /// <summary>
+        /// Gets the global test data for the specified process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>List of TestReport</returns>
+        [OperationContract]
+        IList<TestReport> GetGlobalTestData(int processId);
+
+        /// <summary>
+        /// Checks if the specified process should emit the test report.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>Boolean value</returns>
+        [OperationContract]
+        bool ShouldEmitTestReport(int processId);
     }
 }

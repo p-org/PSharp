@@ -24,19 +24,10 @@ namespace Microsoft.PSharp.TestingServices
         #region properties
 
         /// <summary>
-        /// The latest bug report, if any.
+        /// Data structure containing information
+        /// gathered during testing.
         /// </summary>
-        string BugReport { get; }
-
-        /// <summary>
-        /// Number of found bugs.
-        /// </summary>
-        int NumOfFoundBugs { get; }
-
-        /// <summary>
-        /// Explored depth of scheduling decisions.
-        /// </summary>
-        int ExploredDepth { get; }
+        TestReport TestReport { get; }
 
         #endregion
 
@@ -57,6 +48,11 @@ namespace Microsoft.PSharp.TestingServices
         /// Tries to emit the testing traces, if any.
         /// </summary>
         void TryEmitTraces();
+
+        /// <summary>
+        /// Tries to emit the testing coverage report, if any.
+        /// </summary>
+        void TryEmitCoverageReport();
 
         /// <summary>
         /// Registers a callback to invoke at the end

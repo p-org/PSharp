@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IProgramVisualizer.cs">
+// <copyright file="Transition.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,35 +12,62 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
-namespace Microsoft.PSharp.Visualization
+namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
-    /// Interface of a program visualizer.
+    /// A P# program transition.
     /// </summary>
-    public interface IProgramVisualizer
+    [DataContract]
+    public struct Transition
     {
         /// <summary>
-        /// Starts the visualisation asynchronously.
+        /// The origin machine.
         /// </summary>
-        /// <returns>Task</returns>
-        Task StartAsync();
-        
-        /// <summary>
-        /// Refreshes the visualization.
-        /// </summary>
-        void Refresh();
+        [DataMember]
+        public readonly string MachineOrigin;
 
         /// <summary>
-        /// Adds a new transition.
+        /// The origin state.
+        /// </summary>
+        [DataMember]
+        public readonly string StateOrigin;
+
+        /// <summary>
+        /// The edge label.
+        /// </summary>
+        [DataMember]
+        public readonly string EdgeLabel;
+
+        /// <summary>
+        /// The target machine.
+        /// </summary>
+        [DataMember]
+        public readonly string MachineTarget;
+
+        /// <summary>
+        /// The target state.
+        /// </summary>
+        [DataMember]
+        public readonly string StateTarget;
+
+        /// <summary>
+        /// Constructor.
         /// </summary>
         /// <param name="machineOrigin">Origin machine</param>
         /// <param name="stateOrigin">Origin state</param>
         /// <param name="edgeLabel">Edge label</param>
         /// <param name="machineTarget">Target machine</param>
         /// <param name="stateTarget">Target state</param>
-        void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
-            string machineTarget, string stateTarget);
+        public Transition(string machineOrigin, string stateOrigin, string edgeLabel,
+            string machineTarget, string stateTarget)
+        {
+            this.MachineOrigin = machineOrigin;
+            this.StateOrigin = stateOrigin;
+            this.EdgeLabel = edgeLabel;
+            this.MachineTarget = machineTarget;
+            this.StateTarget = stateTarget;
+        }
     }
 }

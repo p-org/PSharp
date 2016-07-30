@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 configuration, TestProgram.Execute);
             engine.Run();
 
-            Assert.AreEqual(0, engine.NumOfFoundBugs);
+            Assert.AreEqual(0, engine.TestReport.NumOfFoundBugs);
         }
     }
 }

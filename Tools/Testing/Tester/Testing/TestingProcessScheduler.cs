@@ -13,11 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 
+using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -36,14 +39,24 @@ namespace Microsoft.PSharp.TestingServices
         private Configuration Configuration;
 
         /// <summary>
-        /// Map from testing process ids to testing processes.
-        /// </summary>
-        private Dictionary<int, Process> TestingProcesses;
-
-        /// <summary>
         /// The notification listening service.
         /// </summary>
         private ServiceHost NotificationService;
+
+        /// <summary>
+        /// Map from testing process ids to testing processes.
+        /// </summary>
+        private Dictionary<int, Process> TestingProcesses;
+        
+        /// <summary>
+        /// The test reports per process.
+        /// </summary>
+        private ConcurrentDictionary<int, TestReport> TestReports;
+
+        /// <summary>
+        /// Number of terminated testing processes.
+        /// </summary>
+        private int NumOfTerminatedTestingProcesses;
 
         /// <summary>
         /// The testing profiler.
@@ -56,9 +69,10 @@ namespace Microsoft.PSharp.TestingServices
         private object SchedulerLock;
 
         /// <summary>
-        /// Checks if a bug was discovered.
+        /// The process id of the process that
+        /// discovered a bug, else -1.
         /// </summary>
-        private bool BugFound;
+        private int BugFoundByProcess;
 
         #endregion
 
@@ -70,32 +84,79 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
-        bool ITestingProcessScheduler.NotifyBugFound(int processId)
+        void ITestingProcessScheduler.NotifyBugFound(int processId)
         {
-            bool result = false;
             lock (this.SchedulerLock)
             {
-                if (!this.BugFound)
+                if (this.BugFoundByProcess < 0)
                 {
                     IO.PrintLine($"... Testing task '{processId}' " +
                         "found a bug.");
 
-                    this.BugFound = true;
+                    this.BugFoundByProcess = processId;
                     foreach (var testingProcess in this.TestingProcesses)
                     {
-                        if (testingProcess.Key == processId)
+                        if (testingProcess.Key != processId)
                         {
-                            result = true;
-                        }
-                        else
-                        {
+                            if (this.Configuration.ReportCodeCoverage)
+                            {
+                                var testReport = this.GetTestReport(testingProcess.Key);
+                                this.TestReports.TryAdd(testingProcess.Key, testReport);
+                            }
+
                             testingProcess.Value.Kill();
                         }
                     }
                 }
             }
-            
-            return result;
+        }
+
+        /// <summary>
+        /// Sets the test data from the specified process.
+        /// </summary>
+        /// <param name="testReport">TestReport</param>
+        /// <param name="processId">Unique process id</param>
+        void ITestingProcessScheduler.SetTestData(TestReport testReport, int processId)
+        {
+            this.TestReports.TryAdd(processId, testReport);
+        }
+
+        /// <summary>
+        /// Gets the global test data for the specified process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>List of CoverageInfo</returns>
+        IList<TestReport> ITestingProcessScheduler.GetGlobalTestData(int processId)
+        {
+            var globalTestReport = new List<TestReport>();
+            globalTestReport.AddRange(this.TestReports.Where(
+                val => val.Key != processId).Select(val => val.Value));
+            return globalTestReport;
+        }
+
+        /// <summary>
+        /// Checks if the specified process should emit the test report.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>Boolean value</returns>
+        bool ITestingProcessScheduler.ShouldEmitTestReport(int processId)
+        {
+            lock (this.SchedulerLock)
+            {
+                this.NumOfTerminatedTestingProcesses++;
+
+                if (this.BugFoundByProcess == processId)
+                {
+                    return true;
+                }
+
+                if (this.NumOfTerminatedTestingProcesses == this.TestingProcesses.Count)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         #endregion
@@ -160,9 +221,11 @@ namespace Microsoft.PSharp.TestingServices
         private TestingProcessScheduler(Configuration configuration)
         {
             this.TestingProcesses = new Dictionary<int, Process>();
+            this.TestReports = new ConcurrentDictionary<int, TestReport>();
+            this.NumOfTerminatedTestingProcesses = 0;
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
-            this.BugFound = false;
+            this.BugFoundByProcess = -1;
 
             configuration.Verbose = 1;
             configuration.PrintTrace = false;
@@ -182,7 +245,9 @@ namespace Microsoft.PSharp.TestingServices
         private void OpenNotificationListener()
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
+
             WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcessScheduler), binding, address);
@@ -204,6 +269,26 @@ namespace Microsoft.PSharp.TestingServices
                     "rights to open the remote testing notification listener. " +
                     "Please run the process as administrator.");
             }
+        }
+
+        /// <summary>
+        /// Gets the test report from the specified testing process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>TestReport</returns>
+        private TestReport GetTestReport(int processId)
+        {
+            Uri address = new Uri("http://localhost:8080/psharp/testing/process/" + processId + "/");
+
+            WSHttpBinding binding = new WSHttpBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
+
+            EndpointAddress endpoint = new EndpointAddress(address);
+
+            var testingProcess = ChannelFactory<ITestingProcess>.
+                    CreateChannel(binding, endpoint);
+
+            return testingProcess.GetTestReport();
         }
 
         #endregion
