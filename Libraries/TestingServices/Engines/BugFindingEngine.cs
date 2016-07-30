@@ -354,27 +354,7 @@ namespace Microsoft.PSharp.TestingServices
                         base.ResetOutput();
                     }
 
-                    this.TestReport.NumOfExploredSchedules++;
-
-                    if (this.TestReport.MinExploredSteps < 0 ||
-                        this.TestReport.MinExploredSteps > runtime.BugFinder.ExploredSteps)
-                    {
-                        this.TestReport.MinExploredSteps = runtime.BugFinder.ExploredSteps;
-                    }
-
-                    if (this.TestReport.MaxExploredSteps < runtime.BugFinder.ExploredSteps)
-                    {
-                        this.TestReport.MaxExploredSteps = runtime.BugFinder.ExploredSteps;
-                    }
-
-                    if (base.Strategy.HasReachedMaxSchedulingSteps())
-                    {
-                        this.TestReport.MaxStepsHit++;
-                    }
-                    else
-                    {
-                        base.TestReport.TotalExploredSteps += runtime.BugFinder.ExploredSteps;
-                    }
+                    this.GatherIterationStatistics(runtime);
 
                     if (runtime.BugFinder.BugFound)
                     {
@@ -452,6 +432,43 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Gathers the exploration strategy statistics for
+        /// the current iteration.
+        /// </summary>
+        /// <param name="runtime">PSharpBugFindingRuntime</param>
+        private void GatherIterationStatistics(PSharpBugFindingRuntime runtime)
+        {
+            if (base.Strategy.IsFair())
+            {
+                this.TestReport.NumOfExploredFairSchedules++;
+            }
+            else
+            {
+                this.TestReport.NumOfExploredUnfairSchedules++;
+            }
+
+            if (base.Strategy.HasReachedMaxSchedulingSteps())
+            {
+                base.TestReport.MaxStepsHit++;
+            }
+            else if (base.Strategy.IsFair())
+            {
+                base.TestReport.TotalExploredFairSteps += runtime.BugFinder.ExploredSteps;
+
+                if (base.TestReport.MinExploredFairSteps < 0 ||
+                    base.TestReport.MinExploredFairSteps > runtime.BugFinder.ExploredSteps)
+                {
+                    base.TestReport.MinExploredFairSteps = runtime.BugFinder.ExploredSteps;
+                }
+
+                if (base.TestReport.MaxExploredFairSteps < runtime.BugFinder.ExploredSteps)
+                {
+                    base.TestReport.MaxExploredFairSteps = runtime.BugFinder.ExploredSteps;
+                }
+            }
+        }
+
+        /// <summary>
         /// Cleans up the P# runtime. Called before the next
         /// testing iteration starts.
         /// </summary>
@@ -477,38 +494,59 @@ namespace Microsoft.PSharp.TestingServices
             report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.TestReport.NumOfFoundBugs,
                 base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
             report.AppendLine();
-            report.AppendFormat("{0} Explored {1} schedule{2}.", prefix,
-                base.TestReport.NumOfExploredSchedules,
-                base.TestReport.NumOfExploredSchedules == 1 ? "" : "s");
+
+            int totalExploredSchedules = base.TestReport.NumOfExploredFairSchedules +
+                base.TestReport.NumOfExploredUnfairSchedules;
+            report.AppendFormat("{0} Explored {1} schedule{2}.",
+                prefix, totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s");
             report.AppendLine();
 
-            if (base.TestReport.NumOfExploredSchedules > 0)
+            if (totalExploredSchedules > 0)
             {
                 if (base.TestReport.NumOfFoundBugs > 0)
                 {
                     report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
                         prefix.Equals("...") ? "....." : prefix,
-                        ((double)base.TestReport.NumOfFoundBugs / base.TestReport.NumOfExploredSchedules) * 100);
+                        ((double)base.TestReport.NumOfFoundBugs / totalExploredSchedules) * 100);
                     report.AppendLine();
                 }
 
-                int averageExploredSteps = base.TestReport.TotalExploredSteps / base.TestReport.NumOfExploredSchedules;
-                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on average in terminating tests).",
-                    prefix.Equals("...") ? "....." : prefix,
-                    averageExploredSteps, averageExploredSteps == 1 ? "" : "s");
-                report.AppendLine();
+                if (base.TestReport.MinExploredFairSteps >= 0 ||
+                    base.TestReport.MinExploredFairSteps >= 0 ||
+                    base.TestReport.MaxExploredFairSteps >= 0)
+                {
+                    report.AppendFormat("{0} Statistics from fair terminating schedules:",
+                        prefix);
+                    report.AppendLine();
+                }
 
-                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (min).",
-                    prefix.Equals("...") ? "....." : prefix,
-                    base.TestReport.MinExploredSteps < 0 ? 0 : base.TestReport.MinExploredSteps,
-                    base.TestReport.MinExploredSteps == 1 ? "" : "s");
-                report.AppendLine();
+                if (base.TestReport.MinExploredFairSteps >= 0)
+                {
+                    int averageExploredSteps = base.TestReport.TotalExploredFairSteps /
+                        base.TestReport.NumOfExploredFairSchedules;
+                    report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on average).",
+                        prefix.Equals("...") ? "....." : prefix,
+                        averageExploredSteps, averageExploredSteps == 1 ? "" : "s");
+                    report.AppendLine();
+                }
 
-                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (max).",
-                    prefix.Equals("...") ? "....." : prefix,
-                    base.TestReport.MaxExploredSteps,
-                    base.TestReport.MaxExploredSteps == 1 ? "" : "s");
-                report.AppendLine();
+                if (base.TestReport.MinExploredFairSteps >= 0)
+                {
+                    report.AppendFormat("{0} Instrumented {1} scheduling point{2} (min).",
+                        prefix.Equals("...") ? "....." : prefix,
+                        base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
+                        base.TestReport.MinExploredFairSteps == 1 ? "" : "s");
+                    report.AppendLine();
+                }
+
+                if (base.TestReport.MaxExploredFairSteps >= 0)
+                {
+                    report.AppendFormat("{0} Instrumented {1} scheduling point{2} (max).",
+                        prefix.Equals("...") ? "....." : prefix,
+                        base.TestReport.MaxExploredFairSteps,
+                        base.TestReport.MaxExploredFairSteps == 1 ? "" : "s");
+                    report.AppendLine();
+                }
             }
 
             if (this.Configuration.MaxSchedulingSteps > 0)
@@ -516,7 +554,7 @@ namespace Microsoft.PSharp.TestingServices
                 report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2:F2}% schedules.",
                     prefix.Equals("...") ? "....." : prefix,
                     base.Configuration.MaxSchedulingSteps,
-                    ((double)base.TestReport.MaxStepsHit / (double)base.TestReport.NumOfExploredSchedules) * 100);
+                    ((double)base.TestReport.MaxStepsHit / (double)totalExploredSchedules) * 100);
                 report.AppendLine();
             }
 

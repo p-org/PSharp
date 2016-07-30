@@ -35,10 +35,16 @@ namespace Microsoft.PSharp.TestingServices
         public CoverageInfo CoverageInfo { get; private set; }
 
         /// <summary>
-        /// Number of explored schedules.
+        /// Number of explored fair schedules.
         /// </summary>
         [DataMember]
-        public int NumOfExploredSchedules { get; internal set; }
+        public int NumOfExploredFairSchedules { get; internal set; }
+
+        /// <summary>
+        /// Number of explored unfair schedules.
+        /// </summary>
+        [DataMember]
+        public int NumOfExploredUnfairSchedules { get; internal set; }
 
         /// <summary>
         /// Number of found bugs.
@@ -54,22 +60,24 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// The total explored scheduling steps (across
-        /// all testing iterations).
+        /// all testing iterations), in fair tests.
         /// </summary>
         [DataMember]
-        public int TotalExploredSteps { get; internal set; }
+        public int TotalExploredFairSteps { get; internal set; }
 
         /// <summary>
-        /// The min explored scheduling steps in average.
+        /// The min explored scheduling steps in average,
+        /// in fair tests.
         /// </summary>
         [DataMember]
-        public int MinExploredSteps { get; internal set; }
+        public int MinExploredFairSteps { get; internal set; }
 
         /// <summary>
-        /// The max explored scheduling steps in average.
+        /// The max explored scheduling steps in average,
+        /// in fair tests.
         /// </summary>
         [DataMember]
-        public int MaxExploredSteps { get; internal set; }
+        public int MaxExploredFairSteps { get; internal set; }
 
         /// <summary>
         /// Number of times the max steps bound was hit.
@@ -88,12 +96,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CoverageInfo = new CoverageInfo();
 
-            this.NumOfExploredSchedules = 0;
+            this.NumOfExploredFairSchedules = 0;
+            this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
             this.BugReport = "";
-            this.TotalExploredSteps = 0;
-            this.MinExploredSteps = -1;
-            this.MaxExploredSteps = 0;
+            this.TotalExploredFairSteps = 0;
+            this.MinExploredFairSteps = -1;
+            this.MaxExploredFairSteps = -1;
             this.MaxStepsHit = 0;
         }
 
@@ -110,21 +119,22 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CoverageInfo.Merge(testReport.CoverageInfo);
 
-            this.NumOfExploredSchedules += testReport.NumOfExploredSchedules;
+            this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
+            this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
             this.MaxStepsHit += testReport.MaxStepsHit;
 
-            if (testReport.MinExploredSteps >= 0 &&
-                this.MinExploredSteps > testReport.MinExploredSteps)
+            if (testReport.MinExploredFairSteps >= 0 &&
+                this.MinExploredFairSteps > testReport.MinExploredFairSteps)
             {
-                this.MinExploredSteps = testReport.MinExploredSteps;
+                this.MinExploredFairSteps = testReport.MinExploredFairSteps;
             }
 
-            if (this.MaxExploredSteps < testReport.MaxExploredSteps)
+            if (this.MaxExploredFairSteps < testReport.MaxExploredFairSteps)
             {
-                this.MaxExploredSteps = testReport.MaxExploredSteps;
+                this.MaxExploredFairSteps = testReport.MaxExploredFairSteps;
             }
 
-            this.TotalExploredSteps += testReport.TotalExploredSteps;
+            this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
         }
 
         #endregion
