@@ -275,6 +275,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.DynamicEventQueuePrioritization = true;
             }
+            else if (option.ToLower().Equals("/visualize"))
+            {
+                IO.Error.ReportAndExit("Command line option '/visualize' is deprecated. " +
+                    "Please use '/coverage-report' instead.");
+            }
             else
             {
                 base.ParseOption(option);
