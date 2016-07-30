@@ -124,7 +124,8 @@ namespace Microsoft.PSharp.TestingServices
             this.MaxStepsHit += testReport.MaxStepsHit;
 
             if (testReport.MinExploredFairSteps >= 0 &&
-                this.MinExploredFairSteps > testReport.MinExploredFairSteps)
+                (this.MinExploredFairSteps < 0 ||
+                this.MinExploredFairSteps > testReport.MinExploredFairSteps))
             {
                 this.MinExploredFairSteps = testReport.MinExploredFairSteps;
             }
