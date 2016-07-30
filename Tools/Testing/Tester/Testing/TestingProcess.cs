@@ -94,14 +94,14 @@ namespace Microsoft.PSharp.TestingServices
             }
             
             this.TestingEngine.Run();
-
+            
             if (this.Configuration.ParallelBugFindingTasks > 1)
             {
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
                 {
                     this.NotifyBugFound();
                 }
-
+                
                 this.SendTestReport();
                 if (this.TestingScheduler.ShouldEmitTestReport(this.Configuration.TestingProcessId))
                 {
@@ -242,7 +242,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void EmitTestReport()
         {
-            IO.PrintLine(this.TestingEngine.Report());
+            IO.Error.PrintLine(this.TestingEngine.Report());
             if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
                 this.Configuration.PrintTrace)
             {

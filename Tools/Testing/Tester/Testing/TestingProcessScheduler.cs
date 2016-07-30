@@ -47,7 +47,12 @@ namespace Microsoft.PSharp.TestingServices
         /// Map from testing process ids to testing processes.
         /// </summary>
         private Dictionary<int, Process> TestingProcesses;
-        
+
+        /// <summary>
+        /// Map from testing process ids to testing process channels.
+        /// </summary>
+        private Dictionary<int, ITestingProcess> TestingProcessChannels;
+
         /// <summary>
         /// The test reports per process.
         /// </summary>
@@ -100,11 +105,23 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             if (this.Configuration.ReportCodeCoverage)
                             {
-                                var testReport = this.GetTestReport(testingProcess.Key);
-                                this.TestReports.TryAdd(testingProcess.Key, testReport);
+                                TestReport testReport = this.GetTestReport(testingProcess.Key);
+                                if (testReport != null)
+                                {
+                                    this.TestReports.TryAdd(testingProcess.Key, testReport);
+                                }
                             }
 
-                            testingProcess.Value.Kill();
+                            try
+                            {
+                                this.TestingProcesses[testingProcess.Key].Kill();
+                                this.TestingProcesses[testingProcess.Key].Dispose();
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                IO.Debug("... Unable to terminate testing task " +
+                                    $"'{testingProcess.Key}'. Task has already terminated.");
+                            }
                         }
                     }
                 }
@@ -118,7 +135,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="processId">Unique process id</param>
         void ITestingProcessScheduler.SetTestData(TestReport testReport, int processId)
         {
-            this.TestReports.TryAdd(processId, testReport);
+            lock (this.SchedulerLock)
+            {
+                this.TestReports.TryAdd(processId, testReport);
+            }
         }
 
         /// <summary>
@@ -186,6 +206,7 @@ namespace Microsoft.PSharp.TestingServices
             for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
                 this.TestingProcesses.Add(testId, TestingProcessFactory.Create(testId, this.Configuration));
+                this.TestingProcessChannels.Add(testId, this.CreateTestingProcessChannel(testId));
             }
 
             IO.PrintLine($"... Created '{this.Configuration.ParallelBugFindingTasks}' " +
@@ -202,7 +223,15 @@ namespace Microsoft.PSharp.TestingServices
             // Waits the testing processes to exit.
             for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
-                this.TestingProcesses[testId].WaitForExit();
+                try
+                {
+                    this.TestingProcesses[testId].WaitForExit();
+                }
+                catch (InvalidOperationException)
+                {
+                    IO.Debug($"... Unable to wait for testing task '{testId}' to " +
+                        "terminate. Task has already terminated.");
+                }
             }
 
             this.Profiler.StopMeasuringExecutionTime();
@@ -224,6 +253,7 @@ namespace Microsoft.PSharp.TestingServices
         private TestingProcessScheduler(Configuration configuration)
         {
             this.TestingProcesses = new Dictionary<int, Process>();
+            this.TestingProcessChannels = new Dictionary<int, ITestingProcess>();
             this.TestReports = new ConcurrentDictionary<int, TestReport>();
             this.NumOfTerminatedTestingProcesses = 0;
             this.Profiler = new Profiler();
@@ -304,11 +334,11 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Gets the test report from the specified testing process.
+        /// Creates and returns a new testing process communication channel.
         /// </summary>
         /// <param name="processId">Unique process id</param>
-        /// <returns>TestReport</returns>
-        private TestReport GetTestReport(int processId)
+        /// <returns>ITestingProcess</returns>
+        private ITestingProcess CreateTestingProcessChannel(int processId)
         {
             Uri address = new Uri("http://localhost:8080/psharp/testing/process/" + processId + "/");
 
@@ -317,10 +347,30 @@ namespace Microsoft.PSharp.TestingServices
 
             EndpointAddress endpoint = new EndpointAddress(address);
 
-            var testingProcess = ChannelFactory<ITestingProcess>.
-                    CreateChannel(binding, endpoint);
+            return ChannelFactory<ITestingProcess>.CreateChannel(binding, endpoint);
+        }
 
-            return testingProcess.GetTestReport();
+        /// <summary>
+        /// Gets the test report from the specified testing process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        /// <returns>TestReport</returns>
+        private TestReport GetTestReport(int processId)
+        {
+            TestReport testReport = null;
+
+            try
+            {
+                testReport = this.GetTestReport(processId);
+            }
+            catch (CommunicationException ex)
+            {
+                IO.Debug("... Unable to communicate with testing task " +
+                    $"'{processId}'. Task has already terminated.");
+                IO.Debug(ex.ToString());
+            }
+
+            return testReport;
         }
 
         #endregion

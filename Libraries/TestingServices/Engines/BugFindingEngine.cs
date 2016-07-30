@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices
                     Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
                 string readableTracePath = directoryPath + name + "_" + readableTraces.Length + ".txt";
 
-                IO.PrintLine($"... Writing {readableTracePath}");
+                IO.Error.PrintLine($"... Writing {readableTracePath}");
                 File.WriteAllText(readableTracePath, this.ReadableTrace);
             }
 
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    IO.PrintLine($"... Writing {bugTracePath}");
+                    IO.Error.PrintLine($"... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices
                 string[] reproTraces = Directory.GetFiles(directoryPath, name + "_*.schedule");
                 string reproTracePath = directoryPath + name + "_" + reproTraces.Length + ".schedule";
 
-                IO.PrintLine($"... Writing {reproTracePath}");
+                IO.Error.PrintLine($"... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
             }
         }
@@ -159,13 +159,13 @@ namespace Microsoft.PSharp.TestingServices
                 string[] graphFiles = Directory.GetFiles(directoryPath, name + "_*.dgml");
                 string graphFilePath = directoryPath + name + "_" + graphFiles.Length + ".dgml";
 
-                IO.PrintLine($"... Writing {graphFilePath}");
+                IO.Error.PrintLine($"... Writing {graphFilePath}");
                 codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
 
                 string[] coverageFiles = Directory.GetFiles(directoryPath, name + "_*.coverage.txt");
                 string coverageFilePath = directoryPath + name + "_" + coverageFiles.Length + ".coverage.txt";
 
-                IO.PrintLine($"... Writing {coverageFilePath}");
+                IO.Error.PrintLine($"... Writing {coverageFilePath}");
                 codeCoverageReporter.EmitCoverageReport(coverageFilePath);
             }
         }
@@ -511,6 +511,15 @@ namespace Microsoft.PSharp.TestingServices
                     report.AppendLine();
                 }
 
+                if (this.Configuration.MaxSchedulingSteps > 0)
+                {
+                    report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2:F2}% schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        base.Configuration.MaxSchedulingSteps,
+                        ((double)base.TestReport.MaxStepsHit / (double)totalExploredSchedules) * 100);
+                    report.AppendLine();
+                }
+
                 if (base.TestReport.NumOfExploredFairSchedules > 0)
                 {
                     report.AppendFormat("{0} Statistics from fair terminating schedules:",
@@ -542,15 +551,6 @@ namespace Microsoft.PSharp.TestingServices
                         report.AppendLine();
                     }
                 }
-            }
-
-            if (this.Configuration.MaxSchedulingSteps > 0)
-            {
-                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2:F2}% schedules.",
-                    prefix.Equals("...") ? "....." : prefix,
-                    base.Configuration.MaxSchedulingSteps,
-                    ((double)base.TestReport.MaxStepsHit / (double)totalExploredSchedules) * 100);
-                report.AppendLine();
             }
 
             report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
