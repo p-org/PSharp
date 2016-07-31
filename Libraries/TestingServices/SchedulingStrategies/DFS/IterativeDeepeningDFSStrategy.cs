@@ -49,7 +49,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public IterativeDeepeningDFSStrategy(Configuration configuration)
             : base(configuration)
         {
-            this.MaxDepth = IsFair() ? configuration.MaxFairSchedulingSteps : configuration.MaxUnfairSchedulingSteps;
+            this.MaxDepth = base.IsFair() ? configuration.MaxFairSchedulingSteps :
+                configuration.MaxUnfairSchedulingSteps;
             this.CurrentDepth = 1;
         }
 

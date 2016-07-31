@@ -55,6 +55,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Statistics\TestReport.cs" />
+    <Compile Include="Statistics\Coverage\CoverageInfo.cs" />
+    <Compile Include="Statistics\Coverage\CodeCoverageReporter.cs" />
+    <Compile Include="Statistics\Coverage\Transition.cs" />
     <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />
     <Compile Include="Engines\ITestingEngine.cs" />
@@ -101,10 +105,6 @@
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Visualization\Visualization.csproj">
-      <Project>{81980f5a-06a4-47f0-86f3-b72f50bae572}</Project>
-      <Name>Visualization</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

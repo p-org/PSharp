@@ -141,26 +141,10 @@ namespace Microsoft.PSharp.Utilities
 
         /// <summary>
         /// The maximum scheduling steps to explore
-        /// for both fair and unfair schedulers.
-        /// By default there is no bound.
-        /// </summary>
-        public int MaxSchedulingSteps
-        {
-            set
-            {
-                MaxUnfairSchedulingSteps = value;
-                MaxFairSchedulingSteps = value;
-            }
-        }
-
-
-        /// <summary>
-        /// The maximum scheduling steps to explore
         /// for fair schedulers.
         /// By default there is no bound.
         /// </summary>
         public int MaxFairSchedulingSteps;
-
 
         /// <summary>
         /// The maximum scheduling steps to explore
@@ -168,6 +152,26 @@ namespace Microsoft.PSharp.Utilities
         /// By default there is no bound.
         /// </summary>
         public int MaxUnfairSchedulingSteps;
+
+        /// <summary>
+        /// The maximum scheduling steps to explore
+        /// for both fair and unfair schedulers.
+        /// By default there is no bound.
+        /// </summary>
+        public int MaxSchedulingSteps
+        {
+            set
+            {
+                this.MaxUnfairSchedulingSteps = value;
+                this.MaxFairSchedulingSteps = value;
+            }
+        }
+
+        /// <summary>
+        /// True if the user has explicitly set the
+        /// fair scheduling steps bound.
+        /// </summary>
+        internal bool UserExplicitlySetMaxFairSchedulingSteps;
 
         /// <summary>
         /// Number of parallel bug-finding tasks.
@@ -265,12 +269,12 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
-        #region visualization options
+        #region code coverage options
 
         /// <summary>
-        /// Enables visualization of a P# program.
+        /// Enables code coverage reporting of a P# program.
         /// </summary>
-        public bool EnableVisualization;
+        public bool ReportCodeCoverage;
 
         #endregion
 
@@ -382,6 +386,7 @@ namespace Microsoft.PSharp.Utilities
             this.PerformFullExploration = false;
             this.MaxFairSchedulingSteps = 0;
             this.MaxUnfairSchedulingSteps = 0;
+            this.UserExplicitlySetMaxFairSchedulingSteps = false;
             this.ParallelBugFindingTasks = 1;
             this.TestingSchedulerProcessId = -1;
             this.TestingProcessId = -1;
@@ -401,7 +406,7 @@ namespace Microsoft.PSharp.Utilities
             
             this.EnableDataRaceDetection = false;
 
-            this.EnableVisualization = false;
+            this.ReportCodeCoverage = false;
 
             this.ContainerId = 0;
             this.NumberOfContainers = 1;

@@ -19,8 +19,10 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -36,11 +38,6 @@ namespace Microsoft.PSharp.TestingServices
         #region fields
 
         /// <summary>
-        /// Explored schedules so far.
-        /// </summary>
-        private int ExploredSchedules;
-
-        /// <summary>
         /// The readable trace, if any.
         /// </summary>
         private string ReadableTrace;
@@ -54,16 +51,6 @@ namespace Microsoft.PSharp.TestingServices
         /// The reproducable trace, if any.
         /// </summary>
         private string ReproducableTrace;
-
-        /// <summary>
-        /// Number of times max steps was it.
-        /// </summary>
-        private int MaxStepsHitFair;
-
-        /// <summary>
-        /// Number of times max steps was it.
-        /// </summary>
-        private int MaxStepsHitUnfair;
 
         #endregion
 
@@ -112,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Execute(task);
             return this;
         }
-
+        
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
@@ -124,23 +111,24 @@ namespace Microsoft.PSharp.TestingServices
             // Emits the human readable trace, if it exists.
             if (!this.ReadableTrace.Equals(""))
             {
-                string[] readableTraces = Directory.GetFiles(directoryPath, name + "*.txt");
-                string readableTracesPath = directoryPath + name + "_" + readableTraces.Length + ".txt";
+                string[] readableTraces = Directory.GetFiles(directoryPath, name + "_*.txt").
+                    Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
+                string readableTracePath = directoryPath + name + "_" + readableTraces.Length + ".txt";
 
-                IO.PrintLine($"... Writing {readableTracesPath}");
-                File.WriteAllText(readableTracesPath, this.ReadableTrace);
+                IO.Error.PrintLine($"... Writing {readableTracePath}");
+                File.WriteAllText(readableTracePath, this.ReadableTrace);
             }
 
             // Emits the bug trace, if it exists.
             if (this.BugTrace != null)
             {
-                string[] bugTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
-                string bugTracesPath = directoryPath + name + "_" + bugTraces.Length + ".pstrace";
+                string[] bugTraces = Directory.GetFiles(directoryPath, name + "_*.pstrace");
+                string bugTracePath = directoryPath + name + "_" + bugTraces.Length + ".pstrace";
 
-                using (FileStream stream = File.Open(bugTracesPath, FileMode.Create))
+                using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    IO.PrintLine($"... Writing {bugTracesPath}");
+                    IO.Error.PrintLine($"... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }
@@ -148,11 +136,37 @@ namespace Microsoft.PSharp.TestingServices
             // Emits the reproducable trace, if it exists.
             if (!this.ReproducableTrace.Equals(""))
             {
-                string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.schedule");
-                string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".schedule";
+                string[] reproTraces = Directory.GetFiles(directoryPath, name + "_*.schedule");
+                string reproTracePath = directoryPath + name + "_" + reproTraces.Length + ".schedule";
 
-                IO.PrintLine($"... Writing {reproTracesPath}");
-                File.WriteAllText(reproTracesPath, this.ReproducableTrace);
+                IO.Error.PrintLine($"... Writing {reproTracePath}");
+                File.WriteAllText(reproTracePath, this.ReproducableTrace);
+            }
+        }
+
+        /// <summary>
+        /// Tries to emit the testing coverage report, if any.
+        /// </summary>
+        public override void TryEmitCoverageReport()
+        {
+            if (base.Configuration.ReportCodeCoverage)
+            {
+                string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+                string directoryPath = base.GetOutputDirectory();
+
+                var codeCoverageReporter = new CodeCoverageReporter(base.TestReport.CoverageInfo);
+
+                string[] graphFiles = Directory.GetFiles(directoryPath, name + "_*.dgml");
+                string graphFilePath = directoryPath + name + "_" + graphFiles.Length + ".dgml";
+
+                IO.Error.PrintLine($"... Writing {graphFilePath}");
+                codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
+
+                string[] coverageFiles = Directory.GetFiles(directoryPath, name + "_*.coverage.txt");
+                string coverageFilePath = directoryPath + name + "_" + coverageFiles.Length + ".coverage.txt";
+
+                IO.Error.PrintLine($"... Writing {coverageFilePath}");
+                codeCoverageReporter.EmitCoverageReport(coverageFilePath);
             }
         }
 
@@ -206,11 +220,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
-            this.ExploredSchedules = 0;
             this.ReadableTrace = "";
             this.ReproducableTrace = "";
-            this.MaxStepsHitFair = 0;
-            this.MaxStepsHitUnfair = 0;
         }
 
         #endregion
@@ -265,7 +276,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                        base.Strategy, base.Visualizer);
+                        base.Strategy, base.TestReport.CoverageInfo);
 
                     StringWriter sw = null;
                     if (base.Configuration.RedirectTestConsoleOutput &&
@@ -295,13 +306,8 @@ namespace Microsoft.PSharp.TestingServices
                         }
                     }
 
-                    // Wait for test to terminate.
+                    // Wait for the test to terminate.
                     runtime.Wait();
-
-                    if (base.Configuration.EnableVisualization)
-                    {
-                        base.Visualizer.Refresh();
-                    }
 
                     if (this.Configuration.EnableDataRaceDetection)
                     {
@@ -347,36 +353,23 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         base.ResetOutput();
                     }
-
-                    this.ExploredSchedules++;
-                    base.ExploredDepth = runtime.BugFinder.ExploredSteps;
-
-                    if (base.Strategy.HasReachedMaxSchedulingSteps())
-                    {
-                        if (base.Strategy.IsFair())
-                        {
-                            this.MaxStepsHitFair++;
-                        }
-                        else
-                        {
-                            this.MaxStepsHitUnfair++;
-                        }
-                    }
+                    
+                    this.GatherIterationStatistics(runtime);
 
                     if (runtime.BugFinder.BugFound)
                     {
-                        base.NumOfFoundBugs++;
-                        base.BugReport = runtime.BugFinder.BugReport;
+                        base.TestReport.NumOfFoundBugs++;
+                        base.TestReport.BugReport = runtime.BugFinder.BugReport;
 
                         if (base.Configuration.PerformFullExploration)
                         {
                             IO.PrintLine($"..... Iteration #{i + 1} triggered " +
-                                $"bug #{base.NumOfFoundBugs}");
+                                $"bug #{base.TestReport.NumOfFoundBugs}");
                         }
                     }
                     else
                     {
-                        base.BugReport = "";
+                        base.TestReport.BugReport = "";
                     }
 
                     if (base.Strategy.HasFinished())
@@ -386,7 +379,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     base.Strategy.ConfigureNextIteration();
 
-                    if (!base.Configuration.PerformFullExploration && base.NumOfFoundBugs > 0)
+                    if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
                     {
                         if (sw != null && !base.Configuration.SuppressTrace)
                         {
@@ -439,6 +432,51 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Gathers the exploration strategy statistics for
+        /// the current iteration.
+        /// </summary>
+        /// <param name="runtime">PSharpBugFindingRuntime</param>
+        private void GatherIterationStatistics(PSharpBugFindingRuntime runtime)
+        {
+            if (base.Strategy.IsFair())
+            {
+                base.TestReport.NumOfExploredFairSchedules++;
+
+                if (base.Strategy.HasReachedMaxSchedulingSteps() ||
+                    (!base.Configuration.UserExplicitlySetMaxFairSchedulingSteps &&
+                    runtime.BugFinder.ExploredSteps >= base.Configuration.MaxUnfairSchedulingSteps))
+                {
+                    base.TestReport.MaxFairStepsHit++;
+                }
+
+                if (!base.Strategy.HasReachedMaxSchedulingSteps())
+                {
+                    base.TestReport.TotalExploredFairSteps += runtime.BugFinder.ExploredSteps;
+
+                    if (base.TestReport.MinExploredFairSteps < 0 ||
+                        base.TestReport.MinExploredFairSteps > runtime.BugFinder.ExploredSteps)
+                    {
+                        base.TestReport.MinExploredFairSteps = runtime.BugFinder.ExploredSteps;
+                    }
+
+                    if (base.TestReport.MaxExploredFairSteps < runtime.BugFinder.ExploredSteps)
+                    {
+                        base.TestReport.MaxExploredFairSteps = runtime.BugFinder.ExploredSteps;
+                    }
+                }
+            }
+            else
+            {
+                base.TestReport.NumOfExploredUnfairSchedules++;
+
+                if (base.Strategy.HasReachedMaxSchedulingSteps())
+                {
+                    base.TestReport.MaxUnfairStepsHit++;
+                }
+            }
+        }
+
+        /// <summary>
         /// Cleans up the P# runtime. Called before the next
         /// testing iteration starts.
         /// </summary>
@@ -461,44 +499,102 @@ namespace Microsoft.PSharp.TestingServices
         {
             StringBuilder report = new StringBuilder();
 
-            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.NumOfFoundBugs,
-                base.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.TestReport.NumOfFoundBugs,
+                base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
+
             report.AppendLine();
-            report.AppendFormat("{0} Explored {1} {2} schedule{3}.", prefix,
-                this.ExploredSchedules,
-                base.Strategy.HasFinished() ? "(all)" : "",
-                this.ExploredSchedules == 1 ? "" : "s");
+            report.AppendFormat("{0} Scheduling statistics:",
+                prefix);
+
+            int totalExploredSchedules = base.TestReport.NumOfExploredFairSchedules +
+                base.TestReport.NumOfExploredUnfairSchedules;
+
             report.AppendLine();
+            report.AppendFormat("{0} Explored {1} schedule{2}: {3} (fair), {4} (unfair).",
+                prefix.Equals("...") ? "....." : prefix,
+                totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s",
+                base.TestReport.NumOfExploredFairSchedules,
+                base.TestReport.NumOfExploredUnfairSchedules);
 
-            if (this.ExploredSchedules > 0)
+            if (totalExploredSchedules > 0 &&
+                base.TestReport.NumOfFoundBugs > 0)
             {
-                report.AppendFormat("{0} Found {1}% buggy schedules.", prefix,
-                    (base.NumOfFoundBugs * 100 / this.ExploredSchedules));
                 report.AppendLine();
-                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on last iteration).",
-                    prefix, base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+                report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
+                    prefix.Equals("...") ? "....." : prefix,
+                    ((double)base.TestReport.NumOfFoundBugs / totalExploredSchedules) * 100);
+            }
+            
+            if (base.TestReport.NumOfExploredFairSchedules > 0)
+            {
+                int fairSchedulingStepsBound = base.Configuration.MaxUnfairSchedulingSteps;
+                if (base.Configuration.UserExplicitlySetMaxFairSchedulingSteps)
+                {
+                    fairSchedulingStepsBound = base.Configuration.MaxFairSchedulingSteps;
+                }
+
+                int averageExploredFairSteps = base.TestReport.TotalExploredFairSteps /
+                    base.TestReport.NumOfExploredFairSchedules;
+
                 report.AppendLine();
+                report.AppendFormat("{0} Number of scheduling points (in fair terminating schedules): " +
+                    "{1} (min), {2} (avg), {3} (max).",
+                    prefix.Equals("...") ? "....." : prefix,
+                    base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
+                    averageExploredFairSteps,
+                    base.TestReport.MaxExploredFairSteps);
+
+                if (fairSchedulingStepsBound > 0 &&
+                    base.TestReport.MaxFairStepsHit > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        fairSchedulingStepsBound,
+                        ((double)base.TestReport.MaxFairStepsHit /
+                        (double)base.TestReport.NumOfExploredFairSchedules) * 100);
+                }
             }
 
-            if (base.Configuration.MaxUnfairSchedulingSteps > 0 &&
-                this.MaxStepsHitUnfair > 0)
+            if (base.TestReport.NumOfExploredUnfairSchedules > 0)
             {
-                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-                    prefix, base.Configuration.MaxUnfairSchedulingSteps,
-                    (this.MaxStepsHitUnfair * 100 / this.ExploredSchedules));
-                report.AppendLine();
-            }
-            if (base.Configuration.MaxFairSchedulingSteps > 0 && 
-                base.Configuration.MaxFairSchedulingSteps != base.Configuration.MaxUnfairSchedulingSteps &&
-                this.MaxStepsHitFair > 0)
-            {
-                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-                    prefix, base.Configuration.MaxFairSchedulingSteps,
-                    (this.MaxStepsHitFair * 100 / this.ExploredSchedules));
-                report.AppendLine();
+                int unfairSchedulingStepsBound = base.Configuration.MaxUnfairSchedulingSteps;
+
+                if (unfairSchedulingStepsBound > 0 &&
+                    base.TestReport.MaxUnfairStepsHit > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2:F2}% of the unfair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        unfairSchedulingStepsBound,
+                        ((double)base.TestReport.MaxUnfairStepsHit /
+                        (double)base.TestReport.NumOfExploredUnfairSchedules) * 100);
+                }
             }
 
-            report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
+//<<<<<<< HEAD
+//            if (base.Configuration.MaxUnfairSchedulingSteps > 0 &&
+//                this.MaxStepsHitUnfair > 0)
+//            {
+//                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
+//                    prefix, base.Configuration.MaxUnfairSchedulingSteps,
+//                    (this.MaxStepsHitUnfair * 100 / this.ExploredSchedules));
+//                report.AppendLine();
+//            }
+//            if (base.Configuration.MaxFairSchedulingSteps > 0 && 
+//                base.Configuration.MaxFairSchedulingSteps != base.Configuration.MaxUnfairSchedulingSteps &&
+//                this.MaxStepsHitFair > 0)
+//            {
+//                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
+//                    prefix, base.Configuration.MaxFairSchedulingSteps,
+//                    (this.MaxStepsHitFair * 100 / this.ExploredSchedules));
+//                report.AppendLine();
+//=======
+            if (base.Configuration.ParallelBugFindingTasks == 1)
+            {
+                report.AppendLine();
+                report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
+            }
 
             return report.ToString();
         }

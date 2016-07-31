@@ -195,9 +195,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.PerformFullExploration = true;
             }
-            else if (option.ToLower().Equals("/visualize"))
+            else if (option.ToLower().Equals("/coverage-report"))
             {
-                base.Configuration.EnableVisualization = true;
+                base.Configuration.ReportCodeCoverage = true;
             }
             else if (option.ToLower().Equals("/detect-races"))
             {
@@ -221,8 +221,9 @@ namespace Microsoft.PSharp.Utilities
                 var tokens = option.Split(new char[] { ':' }, System.StringSplitOptions.RemoveEmptyEntries);
                 if (tokens.Length > 3 || tokens.Length <= 1)
                 {
-                    IO.Error.ReportAndExit("Invalid number of options supplied via /max-steps");
+                    IO.Error.ReportAndExit("Invalid number of options supplied via '/max-steps'.");
                 }
+
                 if (tokens.Length >= 2)
                 {
                     if (!int.TryParse(tokens[1], out i) && i >= 0)
@@ -231,6 +232,7 @@ namespace Microsoft.PSharp.Utilities
                             " steps to explore '/max-steps:[x]', where [x] >= 0.");
                     }
                 }
+
                 if (tokens.Length == 3)
                 {
                     if (!int.TryParse(tokens[2], out j) && j >= 0)
@@ -238,6 +240,8 @@ namespace Microsoft.PSharp.Utilities
                         IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
                             " steps to explore '/max-steps:[x]:[y]', where [y] >= 0.");
                     }
+
+                    base.Configuration.UserExplicitlySetMaxFairSchedulingSteps = true;
                 }
                 else
                 {
@@ -297,6 +301,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.DynamicEventQueuePrioritization = true;
             }
+            else if (option.ToLower().Equals("/visualize"))
+            {
+                IO.Error.ReportAndExit("Command line option '/visualize' is deprecated. " +
+                    "Please use '/coverage-report' instead.");
+            }
             else
             {
                 base.ParseOption(option);
@@ -334,7 +343,7 @@ namespace Microsoft.PSharp.Utilities
 
             if (base.Configuration.MaxFairSchedulingSteps < base.Configuration.MaxUnfairSchedulingSteps)
             {
-                IO.Error.ReportAndExit("For the flag /max-steps:N:M, please make sure that M >= N.");
+                IO.Error.ReportAndExit("For the option '/max-steps:[N]:[M]', please make sure that [M] >= [N].");
             }
 
             if (base.Configuration.SafetyPrefixBound > 0 &&
@@ -392,24 +401,24 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /s:[x]\t Path to a P# solution";
             help += "\n  /test:[x]\t Name of a project in the P# solution to test";
             help += "\n  /o:[x]\t Path for output files";
-            help += "\n  /timeout:[x]\t Timeout in seconds (default is no timeout)";
+            help += "\n  /timeout:[x]\t Timeout in seconds (disabled by default)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n\n ---------------------------";
             help += "\n Systematic testing options:";
             help += "\n ---------------------------";
-            help += "\n  /i:[x]\t Number of schedules to explore for bugs";
-            help += "\n  /parallel:[x]\t Number of parallel testing tasks";
-            help += "\n  /interactive\t Enable interactive scheduling";
-            help += "\n  /sch:[x]\t Choose a systematic testing strategy ('random' by default)";
-            help += "\n  /max-steps:[x] Max scheduling steps to be explored ('10000' by default)";
-            help += "\n  /sch-seed:[x]\t Choose a scheduling seed (signed 32-bit integer)";
+            help += "\n  /i:[x]\t\t Number of schedules to explore for bugs";
+            help += "\n  /parallel:[x]\t\t Number of parallel testing tasks ('1' by default)";
+            help += "\n  /coverage-report\t Print code coverage statistics";
+            help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
+            help += "\n  /max-steps:[x]\t Max scheduling steps to be explored (disabled by default)";
 
             help += "\n\n ---------------------";
             help += "\n Experimental options:";
             help += "\n ---------------------";
-            help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
+            help += "\n  /tpl\t\t Enable intra-machine concurrency scheduling";
+            help += "\n  /interactive\t Enable interactive scheduling";
 
             help += "\n";
 

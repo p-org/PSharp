@@ -110,9 +110,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 configuration, TestProgram.Execute);
             engine.Run();
 
-            Assert.AreEqual(1, engine.NumOfFoundBugs);
+            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
             var bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            Assert.AreEqual(bugReport, engine.BugReport);
+            Assert.AreEqual(bugReport, engine.TestReport.BugReport);
         }
     }
 }

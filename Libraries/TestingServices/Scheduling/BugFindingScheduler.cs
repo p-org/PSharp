@@ -502,7 +502,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 var msg = IO.Format("Scheduling steps bound of {0} reached.",
-                    this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps: this.Runtime.Configuration.MaxUnfairSchedulingSteps);
+                    this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps :
+                    this.Runtime.Configuration.MaxUnfairSchedulingSteps);
 
                 if (isSchedulingDecision &&
                     this.NumberOfAvailableMachinesToSchedule() == 0)

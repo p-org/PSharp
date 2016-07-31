@@ -175,7 +175,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (IsFair() ? this.Configuration.MaxFairSchedulingSteps : this.Configuration.MaxUnfairSchedulingSteps);
+            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
+                this.Configuration.MaxUnfairSchedulingSteps);
 
             if (bound == 0)
             {

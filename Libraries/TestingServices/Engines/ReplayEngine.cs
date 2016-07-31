@@ -81,11 +81,8 @@ namespace Microsoft.PSharp.TestingServices
         {
             StringBuilder report = new StringBuilder();
 
-            report.AppendFormat("... Reproduced {0} bug{1}.", base.NumOfFoundBugs,
-                base.NumOfFoundBugs == 1 ? "" : "s");
-            report.AppendLine();
-            report.AppendFormat("... Instrumented {0} scheduling point{1}.",
-                base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+            report.AppendFormat("... Reproduced {0} bug{1}.", base.TestReport.NumOfFoundBugs,
+                base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
             report.AppendLine();
 
             report.Append($"... Elapsed {base.Profiler.Results()} sec.");
@@ -142,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices
             Task task = new Task(() =>
             {
                 var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                    base.Strategy, base.Visualizer);
+                    base.Strategy, base.TestReport.CoverageInfo);
 
                 StringWriter sw = null;
                 if (base.Configuration.RedirectTestConsoleOutput &&
@@ -180,13 +177,8 @@ namespace Microsoft.PSharp.TestingServices
                     }
                 }
 
-                // Wait for test to terminate.
+                // Wait for the test to terminate.
                 runtime.Wait();
-
-                if (base.Configuration.EnableVisualization)
-                {
-                    base.Visualizer.Refresh();
-                }
 
                 try
                 {
@@ -225,16 +217,14 @@ namespace Microsoft.PSharp.TestingServices
                     base.ResetOutput();
                 }
 
-                base.ExploredDepth = runtime.BugFinder.ExploredSteps;
-
                 if (runtime.BugFinder.BugFound)
                 {
-                    base.NumOfFoundBugs++;
-                    base.BugReport = runtime.BugFinder.BugReport;
+                    base.TestReport.NumOfFoundBugs++;
+                    base.TestReport.BugReport = runtime.BugFinder.BugReport;
                 }
                 else
                 {
-                    base.BugReport = "";
+                    base.TestReport.BugReport = "";
                 }
             }, base.CancellationTokenSource.Token);
 

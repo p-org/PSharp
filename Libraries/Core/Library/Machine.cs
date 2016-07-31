@@ -1400,6 +1400,61 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region code coverage methods
+
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        internal HashSet<string> GetAllStates()
+        {
+            this.Assert(StateMap.ContainsKey(this.GetType()),
+                $"Machine '{base.Id}' hasn't populated its states yet.");
+
+            var allStates = new HashSet<string>();
+            foreach (var state in StateMap[this.GetType()])
+            {
+                allStates.Add(state.GetType().Name);
+            }
+
+            return allStates;
+        }
+
+        /// <summary>
+        /// Returns the set of all (states, registered event) pairs in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        {
+            this.Assert(StateMap.ContainsKey(this.GetType()),
+                $"Machine '{base.Id}' hasn't populated its states yet.");
+
+            var pairs = new HashSet<Tuple<string, string>>();
+            foreach (var state in StateMap[this.GetType()])
+            {
+                foreach (var binding in state.ActionBindings)
+                {
+                    pairs.Add(Tuple.Create(state.GetType().Name, binding.Key.Name));
+                }
+
+                foreach (var transition in state.GotoTransitions)
+                {
+                    pairs.Add(Tuple.Create(state.GetType().Name, transition.Key.Name));
+                }
+
+                foreach (var pushtransition in state.PushTransitions)
+                {
+                    pairs.Add(Tuple.Create(state.GetType().Name, pushtransition.Key.Name));
+                }
+            }
+
+            return pairs;
+        }
+
+        #endregion
+        
         #region error checking
 
         /// <summary>

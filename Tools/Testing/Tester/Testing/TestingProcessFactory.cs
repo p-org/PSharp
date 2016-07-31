@@ -68,7 +68,16 @@ namespace Microsoft.PSharp.TestingServices
             arguments.Append($"/test:{configuration.AssemblyToBeAnalyzed} ");
             arguments.Append($"/i:{configuration.SchedulingIterations} ");
             arguments.Append($"/timeout:{configuration.Timeout} ");
-            arguments.Append($"/max-steps:{configuration.MaxUnfairSchedulingSteps}:{configuration.MaxFairSchedulingSteps} ");
+
+            if (configuration.UserExplicitlySetMaxFairSchedulingSteps)
+            {
+                arguments.Append($"/max-steps:{configuration.MaxUnfairSchedulingSteps}:" +
+                    $"{configuration.MaxFairSchedulingSteps} ");
+            }
+            else
+            {
+                arguments.Append($"/max-steps:{configuration.MaxUnfairSchedulingSteps} ");
+            }
 
             if (configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {
@@ -79,6 +88,11 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
                 arguments.Append($"/sch:{configuration.SchedulingStrategy} ");
+            }
+
+            if (configuration.ReportCodeCoverage)
+            {
+                arguments.Append($"/coverage-report ");
             }
 
             arguments.Append($"/parallel:{configuration.ParallelBugFindingTasks} ");
