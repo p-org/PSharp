@@ -4,7 +4,7 @@ A toolkit for **building**, **analyzing**, **systematically testing** and **debu
 
 ## Features
 The P# framework provides:
-- Language extensions to C# for building **event-driven asynchronous** applications, writing **test harnesses**, and specifying **safety and liveness properties**.
+- Language extensions to C# for building **event-driven asynchronous** applications, writing **test harnesses**, and specifying **safety** and **liveness properties**.
 - A **systematic testing engine** that can capture and control all specified nondeterminism in the system, systematically explore the actual executable code to discover bugs, and report bug traces. A P# bug trace provides a global order of all communication events, and thus is easier to debug.
 - Support for **replaying** bug traces, and **debugging** them using the Visual Studio debugger.
 
