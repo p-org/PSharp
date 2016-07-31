@@ -510,7 +510,7 @@ namespace Microsoft.PSharp.TestingServices
                 base.TestReport.NumOfExploredUnfairSchedules;
 
             report.AppendLine();
-            report.AppendFormat("{0} Explored {1} schedule{2}: {3} (fair), {4} (unfair).",
+            report.AppendFormat("{0} Explored {1} schedule{2}: {3} fair and {4} unfair.",
                 prefix.Equals("...") ? "....." : prefix,
                 totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s",
                 base.TestReport.NumOfExploredFairSchedules,
@@ -533,16 +533,19 @@ namespace Microsoft.PSharp.TestingServices
                     fairSchedulingStepsBound = base.Configuration.MaxFairSchedulingSteps;
                 }
 
-                int averageExploredFairSteps = base.TestReport.TotalExploredFairSteps /
-                    base.TestReport.NumOfExploredFairSchedules;
+                if (base.TestReport.TotalExploredFairSteps > 0)
+                {
+                    int averageExploredFairSteps = base.TestReport.TotalExploredFairSteps /
+                        base.TestReport.NumOfExploredFairSchedules;
 
-                report.AppendLine();
-                report.AppendFormat("{0} Number of scheduling points (in fair terminating schedules): " +
-                    "{1} (min), {2} (avg), {3} (max).",
-                    prefix.Equals("...") ? "....." : prefix,
-                    base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
-                    averageExploredFairSteps,
-                    base.TestReport.MaxExploredFairSteps);
+                    report.AppendLine();
+                    report.AppendFormat("{0} Number of scheduling points (in fair terminating schedules): " +
+                        "{1} (min), {2} (avg), {3} (max).",
+                        prefix.Equals("...") ? "....." : prefix,
+                        base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
+                        averageExploredFairSteps,
+                        base.TestReport.MaxExploredFairSteps < 0 ? 0 : base.TestReport.MaxExploredFairSteps);
+                }
 
                 if (fairSchedulingStepsBound > 0 &&
                     base.TestReport.MaxFairStepsHit > 0)
@@ -571,25 +574,7 @@ namespace Microsoft.PSharp.TestingServices
                         (double)base.TestReport.NumOfExploredUnfairSchedules) * 100);
                 }
             }
-
-//<<<<<<< HEAD
-//            if (base.Configuration.MaxUnfairSchedulingSteps > 0 &&
-//                this.MaxStepsHitUnfair > 0)
-//            {
-//                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-//                    prefix, base.Configuration.MaxUnfairSchedulingSteps,
-//                    (this.MaxStepsHitUnfair * 100 / this.ExploredSchedules));
-//                report.AppendLine();
-//            }
-//            if (base.Configuration.MaxFairSchedulingSteps > 0 && 
-//                base.Configuration.MaxFairSchedulingSteps != base.Configuration.MaxUnfairSchedulingSteps &&
-//                this.MaxStepsHitFair > 0)
-//            {
-//                report.AppendFormat("{0} Hit max-steps bound of '{1}' in {2}% schedules.",
-//                    prefix, base.Configuration.MaxFairSchedulingSteps,
-//                    (this.MaxStepsHitFair * 100 / this.ExploredSchedules));
-//                report.AppendLine();
-//=======
+            
             if (base.Configuration.ParallelBugFindingTasks == 1)
             {
                 report.AppendLine();
