@@ -105,6 +105,8 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             if (this.Configuration.ReportCodeCoverage)
                             {
+                                this.StopTestingProcess(testingProcess.Key);
+
                                 TestReport testReport = this.GetTestReport(testingProcess.Key);
                                 if (testReport != null)
                                 {
@@ -351,6 +353,24 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Stops the testing process.
+        /// </summary>
+        /// <param name="processId">Unique process id</param>
+        private void StopTestingProcess(int processId)
+        {
+            try
+            {
+                this.TestingProcessChannels[processId].Stop();
+            }
+            catch (CommunicationException ex)
+            {
+                IO.Debug("... Unable to communicate with testing task " +
+                    $"'{processId}'. Task has already terminated.");
+                IO.Debug(ex.ToString());
+            }
+        }
+
+        /// <summary>
         /// Gets the test report from the specified testing process.
         /// </summary>
         /// <param name="processId">Unique process id</param>
@@ -361,7 +381,7 @@ namespace Microsoft.PSharp.TestingServices
 
             try
             {
-                testReport = this.GetTestReport(processId);
+                testReport = this.TestingProcessChannels[processId].GetTestReport();
             }
             catch (CommunicationException ex)
             {

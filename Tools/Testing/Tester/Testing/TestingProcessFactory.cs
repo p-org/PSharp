@@ -68,7 +68,16 @@ namespace Microsoft.PSharp.TestingServices
             arguments.Append($"/test:{configuration.AssemblyToBeAnalyzed} ");
             arguments.Append($"/i:{configuration.SchedulingIterations} ");
             arguments.Append($"/timeout:{configuration.Timeout} ");
-            arguments.Append($"/max-steps:{configuration.MaxSchedulingSteps} ");
+
+            if (configuration.UserExplicitlySetMaxFairSchedulingSteps)
+            {
+                arguments.Append($"/max-steps:{configuration.MaxUnfairSchedulingSteps}:" +
+                    $"{configuration.MaxFairSchedulingSteps} ");
+            }
+            else
+            {
+                arguments.Append($"/max-steps:{configuration.MaxUnfairSchedulingSteps} ");
+            }
 
             if (configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {

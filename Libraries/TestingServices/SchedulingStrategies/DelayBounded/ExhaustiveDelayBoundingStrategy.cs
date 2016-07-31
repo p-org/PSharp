@@ -54,8 +54,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
             base.ExploredSteps = 0;
-
-            var bound = Math.Min(base.Configuration.MaxSchedulingSteps, base.MaxExploredSteps);
+            
+            var bound = Math.Min(
+                (base.IsFair() ? base.Configuration.MaxFairSchedulingSteps :
+                base.Configuration.MaxUnfairSchedulingSteps),
+                base.MaxExploredSteps);
             for (var idx = 0; idx < base.MaxDelays; idx++)
             {
                 if (this.DelaysCache[idx] < bound)

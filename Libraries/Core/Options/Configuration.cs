@@ -140,10 +140,38 @@ namespace Microsoft.PSharp.Utilities
         public bool PerformFullExploration;
 
         /// <summary>
-        /// The maximum scheduling steps to explore.
+        /// The maximum scheduling steps to explore
+        /// for fair schedulers.
         /// By default there is no bound.
         /// </summary>
-        public int MaxSchedulingSteps;
+        public int MaxFairSchedulingSteps;
+
+        /// <summary>
+        /// The maximum scheduling steps to explore
+        /// for unfair schedulers.
+        /// By default there is no bound.
+        /// </summary>
+        public int MaxUnfairSchedulingSteps;
+
+        /// <summary>
+        /// The maximum scheduling steps to explore
+        /// for both fair and unfair schedulers.
+        /// By default there is no bound.
+        /// </summary>
+        public int MaxSchedulingSteps
+        {
+            set
+            {
+                this.MaxUnfairSchedulingSteps = value;
+                this.MaxFairSchedulingSteps = value;
+            }
+        }
+
+        /// <summary>
+        /// True if the user has explicitly set the
+        /// fair scheduling steps bound.
+        /// </summary>
+        internal bool UserExplicitlySetMaxFairSchedulingSteps;
 
         /// <summary>
         /// Number of parallel bug-finding tasks.
@@ -356,7 +384,9 @@ namespace Microsoft.PSharp.Utilities
             this.RandomSchedulingSeed = null;
 
             this.PerformFullExploration = false;
-            this.MaxSchedulingSteps = 0;
+            this.MaxFairSchedulingSteps = 0;
+            this.MaxUnfairSchedulingSteps = 0;
+            this.UserExplicitlySetMaxFairSchedulingSteps = false;
             this.ParallelBugFindingTasks = 1;
             this.TestingSchedulerProcessId = -1;
             this.TestingProcessId = -1;

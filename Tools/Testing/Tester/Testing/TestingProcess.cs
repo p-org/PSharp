@@ -66,6 +66,14 @@ namespace Microsoft.PSharp.TestingServices
             return this.TestingEngine.TestReport;
         }
 
+        /// <summary>
+        /// Stops testing.
+        /// </summary>
+        void ITestingProcess.Stop()
+        {
+            this.TestingEngine.Stop();
+        }
+
         #endregion
 
         #region internal methods

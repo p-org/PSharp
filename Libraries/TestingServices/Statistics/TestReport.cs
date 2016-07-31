@@ -59,13 +59,6 @@ namespace Microsoft.PSharp.TestingServices
         public string BugReport { get; internal set; }
 
         /// <summary>
-        /// The total explored scheduling steps (across
-        /// all testing iterations), in fair tests.
-        /// </summary>
-        [DataMember]
-        public int TotalExploredFairSteps { get; internal set; }
-
-        /// <summary>
         /// The min explored scheduling steps in average,
         /// in fair tests.
         /// </summary>
@@ -80,10 +73,32 @@ namespace Microsoft.PSharp.TestingServices
         public int MaxExploredFairSteps { get; internal set; }
 
         /// <summary>
-        /// Number of times the max steps bound was hit.
+        /// The total explored scheduling steps (across
+        /// all testing iterations), in fair tests.
         /// </summary>
         [DataMember]
-        public int MaxStepsHit { get; internal set; }
+        public int TotalExploredFairSteps { get; internal set; }
+
+        /// <summary>
+        /// Number of times the fair max steps bound was hit,
+        /// in fair tests.
+        /// </summary>
+        [DataMember]
+        public int MaxFairStepsHitInFairTests { get; internal set; }
+
+        /// <summary>
+        /// Number of times the unfair max steps bound was hit,
+        /// in fair tests.
+        /// </summary>
+        [DataMember]
+        public int MaxUnfairStepsHitInFairTests { get; internal set; }
+
+        /// <summary>
+        /// Number of times the unfair max steps bound was hit,
+        /// in unfair tests.
+        /// </summary>
+        [DataMember]
+        public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
         #endregion
 
@@ -100,10 +115,13 @@ namespace Microsoft.PSharp.TestingServices
             this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
             this.BugReport = "";
-            this.TotalExploredFairSteps = 0;
+
             this.MinExploredFairSteps = -1;
             this.MaxExploredFairSteps = -1;
-            this.MaxStepsHit = 0;
+            this.TotalExploredFairSteps = 0;
+            this.MaxFairStepsHitInFairTests = 0;
+            this.MaxUnfairStepsHitInFairTests = 0;
+            this.MaxUnfairStepsHitInUnfairTests = 0;
         }
 
         #endregion
@@ -121,7 +139,6 @@ namespace Microsoft.PSharp.TestingServices
 
             this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
             this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
-            this.MaxStepsHit += testReport.MaxStepsHit;
 
             if (testReport.MinExploredFairSteps >= 0 &&
                 (this.MinExploredFairSteps < 0 ||
@@ -136,6 +153,10 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
+
+            this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
+            this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
+            this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
         }
 
         #endregion

@@ -31,5 +31,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>TestReport</returns>
         [OperationContract]
         TestReport GetTestReport();
+
+        /// <summary>
+        /// Stops testing.
+        /// </summary>
+        [OperationContract]
+        void Stop();
     }
 }
