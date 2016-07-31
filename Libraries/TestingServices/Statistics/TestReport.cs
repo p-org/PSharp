@@ -80,18 +80,25 @@ namespace Microsoft.PSharp.TestingServices
         public int TotalExploredFairSteps { get; internal set; }
 
         /// <summary>
-        /// Number of times the max steps bound was hit,
+        /// Number of times the fair max steps bound was hit,
         /// in fair tests.
         /// </summary>
         [DataMember]
-        public int MaxFairStepsHit { get; internal set; }
+        public int MaxFairStepsHitInFairTests { get; internal set; }
 
         /// <summary>
-        /// Number of times the max steps bound was hit,
+        /// Number of times the unfair max steps bound was hit,
+        /// in fair tests.
+        /// </summary>
+        [DataMember]
+        public int MaxUnfairStepsHitInFairTests { get; internal set; }
+
+        /// <summary>
+        /// Number of times the unfair max steps bound was hit,
         /// in unfair tests.
         /// </summary>
         [DataMember]
-        public int MaxUnfairStepsHit { get; internal set; }
+        public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
         #endregion
 
@@ -112,8 +119,9 @@ namespace Microsoft.PSharp.TestingServices
             this.MinExploredFairSteps = -1;
             this.MaxExploredFairSteps = -1;
             this.TotalExploredFairSteps = 0;
-            this.MaxFairStepsHit = 0;
-            this.MaxUnfairStepsHit = 0;
+            this.MaxFairStepsHitInFairTests = 0;
+            this.MaxUnfairStepsHitInFairTests = 0;
+            this.MaxUnfairStepsHitInUnfairTests = 0;
         }
 
         #endregion
@@ -146,8 +154,9 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
 
-            this.MaxFairStepsHit += testReport.MaxFairStepsHit;
-            this.MaxUnfairStepsHit += testReport.MaxUnfairStepsHit;
+            this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
+            this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
+            this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
         }
 
         #endregion
