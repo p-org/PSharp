@@ -798,7 +798,6 @@ namespace Microsoft.PSharp
         internal virtual void NotifyHalted(Machine machine)
         {
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
-            // No-op for real execution.
         }
 
         /// <summary>

@@ -355,7 +355,11 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
+            lock (this.Inbox)
+            {
+                this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
+            }
+
             this.WaitOnEvent();
 
             var received = this.EventViaReceiveStatement;
@@ -371,9 +375,12 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            foreach (var e in events)
+            lock (this.Inbox)
             {
-                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
+                foreach (var e in events)
+                {
+                    this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
+                }
             }
 
             this.WaitOnEvent();
@@ -903,6 +910,7 @@ namespace Microsoft.PSharp
                         events += " '" + ewh.EventType.FullName + "'";
                     }
                 }
+
                 base.Runtime.NotifyWaitEvents(this, events);
                 this.IsWaitingToReceive = false;
             }
