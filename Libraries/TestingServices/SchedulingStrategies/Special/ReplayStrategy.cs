@@ -201,7 +201,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            return this.ExploredSteps == bound;
+            return this.ExploredSteps >= bound;
         }
 
         /// <summary>
