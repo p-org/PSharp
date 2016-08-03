@@ -331,9 +331,12 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Type[] eventTypes)
         {
-            foreach (var type in eventTypes)
+            lock (this.Inbox)
             {
-                this.EventWaitHandlers.Add(new EventWaitHandler(type));
+                foreach (var type in eventTypes)
+                {
+                    this.EventWaitHandlers.Add(new EventWaitHandler(type));
+                }
             }
 
             this.WaitOnEvent();
@@ -789,9 +792,9 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            base.Runtime.NotifyHalted(this);
                             this.IsHalted = true;
                             this.CleanUpResources();
+                            base.Runtime.NotifyHalted(this);
                         }
                         
                         return;
@@ -892,11 +895,14 @@ namespace Microsoft.PSharp
             if (this.IsWaitingToReceive)
             {
                 string events = "";
-                foreach (var ewh in this.EventWaitHandlers)
+
+                lock (this.Inbox)
                 {
-                    events += " '" + ewh.EventType.FullName + "'";
+                    foreach (var ewh in this.EventWaitHandlers)
+                    {
+                        events += " '" + ewh.EventType.FullName + "'";
+                    }
                 }
-                
                 base.Runtime.NotifyWaitEvents(this, events);
                 this.IsWaitingToReceive = false;
             }
