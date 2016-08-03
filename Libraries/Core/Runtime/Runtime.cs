@@ -602,8 +602,12 @@ namespace Microsoft.PSharp
 
             EventInfo eventInfo = new EventInfo(e, originInfo);
 
-            Machine machine = this.MachineMap[mid.Value];
-
+            Machine machine = null;
+            if (!this.MachineMap.TryGetValue(mid.Value, out machine))
+            {
+                return;
+            }
+            
             bool runHandler = false;
             machine.Enqueue(eventInfo, ref runHandler);
 
