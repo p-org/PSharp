@@ -598,6 +598,26 @@ namespace Microsoft.PSharp.TestingServices
         private void ConstructReproducableTrace(PSharpBugFindingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
+
+            if (this.Strategy.IsFair())
+            {
+                stringBuilder.Append("--fair-scheduling").Append(Environment.NewLine);
+            }
+
+            if (base.Configuration.CacheProgramState)
+            {
+                stringBuilder.Append("--state-caching").Append(Environment.NewLine);
+                stringBuilder.Append("--liveness-temperature-threshold:" +
+                    base.Configuration.LivenessTemperatureThreshold).
+                    Append(Environment.NewLine);
+            }
+            else
+            {
+                stringBuilder.Append("--liveness-temperature-threshold:" +
+                    base.Configuration.LivenessTemperatureThreshold).
+                    Append(Environment.NewLine);
+            }
+
             for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
                 ScheduleStep step = runtime.ScheduleTrace[idx];
@@ -620,7 +640,7 @@ namespace Microsoft.PSharp.TestingServices
                     stringBuilder.Append(Environment.NewLine);
                 }
             }
-
+            
             this.ReproducableTrace = stringBuilder.ToString();
         }
 

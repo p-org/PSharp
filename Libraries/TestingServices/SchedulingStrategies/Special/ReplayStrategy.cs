@@ -48,6 +48,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private int ExploredSteps;
 
+        /// <summary>
+        /// Is the scheduler that produced the
+        /// schedule trace fair?
+        /// </summary>
+        private bool IsSchedulerFair;
+
         #endregion
 
         #region public API
@@ -57,12 +63,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="trace">ScheduleTrace</param>
-        public ReplayStrategy(Configuration configuration, ScheduleTrace trace)
+        /// <param name="isFair">Is scheduler fair</param>
+        public ReplayStrategy(Configuration configuration, ScheduleTrace trace, bool isFair)
         {
             this.Configuration = configuration;
             this.ScheduleTrace = trace;
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
+            this.IsSchedulerFair = isFair;
         }
 
         /// <summary>
@@ -219,7 +227,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
-            return false;
+            return this.IsSchedulerFair;
         }
 
         /// <summary>
