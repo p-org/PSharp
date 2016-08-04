@@ -73,7 +73,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             foreach (var step in traceDump)
             {
                 int intChoice;
-                if (step.Equals("True"))
+                if (step.StartsWith("--"))
+                {
+                    continue;
+                }
+                else if (step.Equals("True"))
                 {
                     this.AddNondeterministicBooleanChoice(true);
                 }

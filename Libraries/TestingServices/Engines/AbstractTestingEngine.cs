@@ -246,8 +246,32 @@ namespace Microsoft.PSharp.TestingServices
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {
                 string[] scheduleDump = File.ReadAllLines(this.Configuration.ScheduleFile);
+                bool isFair = false;
+
+                foreach (var line in scheduleDump)
+                {
+                    if (!line.StartsWith("--"))
+                    {
+                        break;
+                    }
+
+                    if (line.Equals("--fair-scheduling"))
+                    {
+                        isFair = true;
+                    }
+                    else if (line.Equals("--state-caching"))
+                    {
+                        this.Configuration.CacheProgramState = true;
+                    }
+                    else if (line.StartsWith("--liveness-temperature-threshold"))
+                    {
+                        this.Configuration.LivenessTemperatureThreshold =
+                            Int32.Parse(line.Substring(33));
+                    }
+                }
+
                 ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
-                this.Strategy = new ReplayStrategy(this.Configuration, schedule);
+                this.Strategy = new ReplayStrategy(this.Configuration, schedule, isFair);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
