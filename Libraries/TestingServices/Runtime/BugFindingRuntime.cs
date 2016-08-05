@@ -513,7 +513,11 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            Machine machine = this.MachineMap[mid.Value];
+            Machine machine = null;
+            if (!this.MachineMap.TryGetValue(mid.Value, out machine))
+            {
+                return;
+            }
 
             bool runNewHandler = false;
             machine.Enqueue(eventInfo, ref runNewHandler);
@@ -910,6 +914,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.BugTrace.AddHaltStep(machine.Id, null);
             IO.Log($"<HaltLog> Machine '{machine.Id}' halted.");
+            //this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 
         /// <summary>

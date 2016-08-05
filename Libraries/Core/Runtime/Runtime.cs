@@ -534,6 +534,13 @@ namespace Microsoft.PSharp
                     machine.GotoStartState(e);
                     machine.RunEventHandler();
                 }
+                catch (Exception)
+                {
+                    if (this.Configuration.ThrowInternalExceptions)
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
@@ -602,8 +609,12 @@ namespace Microsoft.PSharp
 
             EventInfo eventInfo = new EventInfo(e, originInfo);
 
-            Machine machine = this.MachineMap[mid.Value];
-
+            Machine machine = null;
+            if (!this.MachineMap.TryGetValue(mid.Value, out machine))
+            {
+                return;
+            }
+            
             bool runHandler = false;
             machine.Enqueue(eventInfo, ref runHandler);
 
@@ -617,6 +628,13 @@ namespace Microsoft.PSharp
                 try
                 {
                     machine.RunEventHandler();
+                }
+                catch (Exception)
+                {
+                    if (this.Configuration.ThrowInternalExceptions)
+                    {
+                        throw;
+                    }
                 }
                 finally
                 {
@@ -797,7 +815,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         internal virtual void NotifyHalted(Machine machine)
         {
-            // No-op for real execution.
+            this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 
         /// <summary>

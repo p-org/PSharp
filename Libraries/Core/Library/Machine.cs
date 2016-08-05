@@ -331,9 +331,12 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Type[] eventTypes)
         {
-            foreach (var type in eventTypes)
+            lock (this.Inbox)
             {
-                this.EventWaitHandlers.Add(new EventWaitHandler(type));
+                foreach (var type in eventTypes)
+                {
+                    this.EventWaitHandlers.Add(new EventWaitHandler(type));
+                }
             }
 
             this.WaitOnEvent();
@@ -352,7 +355,11 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
+            lock (this.Inbox)
+            {
+                this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
+            }
+
             this.WaitOnEvent();
 
             var received = this.EventViaReceiveStatement;
@@ -368,9 +375,12 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            foreach (var e in events)
+            lock (this.Inbox)
             {
-                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
+                foreach (var e in events)
+                {
+                    this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
+                }
             }
 
             this.WaitOnEvent();
@@ -789,9 +799,9 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            base.Runtime.NotifyHalted(this);
                             this.IsHalted = true;
                             this.CleanUpResources();
+                            base.Runtime.NotifyHalted(this);
                         }
                         
                         return;
@@ -892,11 +902,15 @@ namespace Microsoft.PSharp
             if (this.IsWaitingToReceive)
             {
                 string events = "";
-                foreach (var ewh in this.EventWaitHandlers)
+
+                lock (this.Inbox)
                 {
-                    events += " '" + ewh.EventType.FullName + "'";
+                    foreach (var ewh in this.EventWaitHandlers)
+                    {
+                        events += " '" + ewh.EventType.FullName + "'";
+                    }
                 }
-                
+
                 base.Runtime.NotifyWaitEvents(this, events);
                 this.IsWaitingToReceive = false;
             }
@@ -1025,7 +1039,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached)
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
                     {
                         throw innerException;
                     }
@@ -1135,7 +1150,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached)
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
                     {
                         throw innerException;
                     }
@@ -1207,7 +1223,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached)
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
                     {
                         throw innerException;
                     }
