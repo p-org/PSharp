@@ -90,10 +90,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [TestMethod]
         public void TestNoMemoryLeakAfterHalt()
         {
-            var configuration = Configuration.Create();
-            configuration.ThrowInternalExceptions = true;
-
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = PSharpRuntime.Create();
             Program.Execute(runtime);
             runtime.Wait();
         }
