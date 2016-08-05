@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D388CB45-F077-4278-B174-796A8C9BF927}</ProjectGuid>
+    <ProjectGuid>{FD33B00B-47B9-48FE-9D35-633A0736D0E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Unit</RootNamespace>

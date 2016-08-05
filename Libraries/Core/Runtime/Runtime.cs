@@ -534,6 +534,13 @@ namespace Microsoft.PSharp
                     machine.GotoStartState(e);
                     machine.RunEventHandler();
                 }
+                catch (Exception)
+                {
+                    if (this.Configuration.ThrowInternalExceptions)
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
@@ -621,6 +628,13 @@ namespace Microsoft.PSharp
                 try
                 {
                     machine.RunEventHandler();
+                }
+                catch (Exception)
+                {
+                    if (this.Configuration.ThrowInternalExceptions)
+                    {
+                        throw;
+                    }
                 }
                 finally
                 {

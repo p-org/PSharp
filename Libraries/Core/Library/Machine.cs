@@ -1039,7 +1039,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached)
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
                     {
                         throw innerException;
                     }
@@ -1149,7 +1150,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached)
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
                     {
                         throw innerException;
                     }
@@ -1221,7 +1223,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached)
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
                     {
                         throw innerException;
                     }
