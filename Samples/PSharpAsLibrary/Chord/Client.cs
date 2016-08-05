@@ -47,7 +47,11 @@ namespace Chord
         {
             this.ClusterManager = (this.ReceivedEvent as Config).ClusterManager;
             this.Keys = (this.ReceivedEvent as Config).Keys;
-            // this.Keys.Add(17);
+
+            // LIVENESS BUG: can never detect the key, and keeps looping without
+            // exiting the process. Enable to introduce the bug.
+            //this.Keys.Add(17);
+
             this.QueryCounter = 0;
 
             this.Raise(new Local());

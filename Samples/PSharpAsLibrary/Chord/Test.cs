@@ -4,6 +4,15 @@ using Microsoft.PSharp;
 
 namespace Chord
 {
+    /// <summary>
+    /// How to run:
+    /// 
+    /// .\PSharpTester.exe /test:PSharp\Samples\PSharpAsLibrary\Binaries\Debug\Chord.dll /i:100 /max-steps:1000
+    /// 
+    /// Liveness bug found in:
+    ///  
+    /// Client.cs, line 53
+    /// </summary>
     public class Test
     {
         static void Main(string[] args)
