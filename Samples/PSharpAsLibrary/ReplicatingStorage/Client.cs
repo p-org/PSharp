@@ -75,7 +75,7 @@ namespace ReplicatingStorage
 
         void PumpRequestOnEntry()
         {
-            var command = new Random().Next(100);
+            int command = this.RandomInteger(100) + 1;
             this.Counter++;
 
             Console.WriteLine("\n [Client] new request {0}.\n", command);

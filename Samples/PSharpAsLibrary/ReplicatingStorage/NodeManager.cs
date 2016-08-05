@@ -66,11 +66,6 @@ namespace ReplicatingStorage
         private Dictionary<int, bool> StorageNodeMap;
 
         /// <summary>
-        /// The latest data.
-        /// </summary>
-        private int LatestData;
-
-        /// <summary>
         /// Map from storage node ids to data they contain.
         /// </summary>
         private Dictionary<int, int> DataMap;
@@ -101,7 +96,6 @@ namespace ReplicatingStorage
             this.StorageNodes = new List<MachineId>();
             this.StorageNodeMap = new Dictionary<int, bool>();
             this.DataMap = new Dictionary<int, int>();
-            this.LatestData = 0;
 
             this.RepairTimer = this.CreateMachine(typeof(RepairTimer));
             this.Send(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));
@@ -149,17 +143,13 @@ namespace ReplicatingStorage
 
         void RepairNodes()
         {
-            var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
-                OrderByDescending(v => v.Count()).FirstOrDefault();
-            if (consensus == null || this.LatestData > consensus.Key)
+            if (this.DataMap.Count == 0)
             {
                 return;
             }
-
-            Console.WriteLine("\n [NodeManager] consensus {0} - {1}.\n",
-                consensus.Count(), consensus.Key);
-
-            var numOfReplicas = consensus.Count();
+            
+            var latestData = this.DataMap.Values.Max();
+            var numOfReplicas = this.DataMap.Count(kvp => kvp.Value == latestData);
             if (numOfReplicas >= this.NumberOfReplicas)
             {
                 return;
@@ -167,10 +157,10 @@ namespace ReplicatingStorage
 
             foreach (var node in this.DataMap)
             {
-                if (node.Value != consensus.Key)
+                if (node.Value != latestData)
                 {
                     Console.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
-                    this.Send(this.StorageNodes[node.Key], new StorageNode.SyncRequest(consensus.Key));
+                    this.Send(this.StorageNodes[node.Key], new StorageNode.SyncRequest(latestData));
                     numOfReplicas++;
                 }
 
@@ -185,11 +175,6 @@ namespace ReplicatingStorage
         {
             var nodeId = (this.ReceivedEvent as StorageNode.SyncReport).NodeId;
             var data = (this.ReceivedEvent as StorageNode.SyncReport).Data;
-
-            if (this.LatestData < data)
-            {
-                this.LatestData = data;
-            }
 
             // BUG: can fail to ever repair again as it thinks there are enough replicas.
             // Enable to introduce a bug fix.

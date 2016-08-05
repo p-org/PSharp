@@ -48,7 +48,6 @@ namespace ReplicatingStorage
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
-        [DeferEvents(typeof(FailureTimer.Timeout))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -61,9 +60,6 @@ namespace ReplicatingStorage
 
             this.NodeManager = this.CreateMachine(typeof(NodeManager));
             this.Client = this.CreateMachine(typeof(Client));
-
-            this.FailureTimer = this.CreateMachine(typeof(FailureTimer));
-            this.Send(this.FailureTimer, new FailureTimer.ConfigureEvent(this.Id));
 
             this.Raise(new LocalEvent());
         }
@@ -88,27 +84,36 @@ namespace ReplicatingStorage
         {
             var node = (this.ReceivedEvent as NotifyNode).Node;
             this.AliveNodes.Add(node);
+
+            if (this.AliveNodes.Count == this.NumberOfReplicas &&
+                this.FailureTimer == null)
+            {
+                this.FailureTimer = this.CreateMachine(typeof(FailureTimer));
+                this.Send(this.FailureTimer, new FailureTimer.ConfigureEvent(this.Id));
+            }
         }
 
         void InjectFault()
         {
-            if (this.NumberOfFaults == 0)
+            if (this.NumberOfFaults == 0 ||
+                this.AliveNodes.Count == 0)
             {
                 return;
             }
 
-            foreach (var node in this.AliveNodes)
-            {
-                if (this.Random())
-                {
-                    Console.WriteLine("\n [Environment] injecting fault.\n");
+            int nodeId = this.RandomInteger(this.AliveNodes.Count);
+            var node = this.AliveNodes[nodeId];
 
-                    this.Send(node, new FaultInject());
-                    this.Send(this.NodeManager, new NodeManager.NotifyFailure(node));
-                    this.AliveNodes.Remove(node);
-                    this.NumberOfFaults--;
-                    break;
-                }
+            Console.WriteLine("\n [Environment] injecting fault.\n");
+
+            this.Send(node, new FaultInject());
+            this.Send(this.NodeManager, new NodeManager.NotifyFailure(node));
+            this.AliveNodes.Remove(node);
+
+            this.NumberOfFaults--;
+            if (this.NumberOfFaults == 0)
+            {
+                this.Send(this.FailureTimer, new Halt());
             }
         }
 
