@@ -613,7 +613,7 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
             
-            this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
+            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;
         }
@@ -639,7 +639,7 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
             
-            this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
+            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;
         }
@@ -665,7 +665,7 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
 
-            this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
+            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;
         }
