@@ -67,6 +67,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Integration\Correct\NoMemoryLeakInEventSendingTest.cs" />
     <Compile Include="Integration\Correct\NoMemoryLeakAfterHaltTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
