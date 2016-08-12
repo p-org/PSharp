@@ -59,8 +59,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ExtendedReflection">
-      <HintPath>..\..\..\References\ExtendedReflection\Microsoft.ExtendedReflection.dll</HintPath>
+    <Reference Include="Microsoft.ExtendedReflection, Version=0.14.40609.4, Culture=neutral, PublicKeyToken=76a274db078248c8, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\MyProjects\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -105,24 +106,24 @@
     <Compile Include="Utilities\RaceDetectorCommandLineOptions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ThreadMonitor\ThreadMonitor.csproj">
       <Project>{f9c12014-b9a5-4a0a-9e32-5e233a2cb904}</Project>
       <Name>ThreadMonitor</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="PSharp.snk" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>"$(FrameworkSDKDIR)\bin\NETFX 4.6 Tools\gacutil" /i "..\References\ExtendedReflection\Microsoft.ExtendedReflection.dll"
-regsvr32 /s "..\References\\ExtendedReflection\Microsoft.ExtendedReflection.ClrMonitor.X86.dll"
+    <PostBuildEvent>"$(FrameworkSDKDIR)\bin\NETFX 4.6 Tools\gacutil" /i D:\MyProjects\Microsoft.ExtendedReflection.dll"
+regsvr32 /s "D:\MyProjects\Microsoft.ExtendedReflection.ClrMonitor.X86.dll"
+
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

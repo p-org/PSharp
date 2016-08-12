@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.Monitoring
             var ex = (Exception)args.ExceptionObject;
             IO.Debug(ex.Message);
             IO.Debug(ex.StackTrace);
-            ErrorReporter.ReportAndExit("internal failure: {0}: {1}, {2}",
+            IO.Error.ReportAndExit("internal failure: {0}: {1}, {2}",
                 ex.GetType().ToString(), ex.Message, ex.StackTrace);
         }
     }

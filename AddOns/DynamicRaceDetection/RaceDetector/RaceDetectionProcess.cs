@@ -93,7 +93,7 @@ namespace Microsoft.PSharp
             Profiler.StartMeasuringExecutionTime();
 
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                AppDomain.CurrentDomain.BaseDirectory + "\\PSharpThreadMonitor.exe",
+                AppDomain.CurrentDomain.BaseDirectory + "\\ThreadMonitor.exe",
                 args, // arguments
                 MonitorInstrumentationFlags.All, // monitor flags
                 true, // track gc accesses

@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             this.VcCount = mFileEntries.Count() + 5;
 
             //TODO: fix this
-            /*
+            
             foreach (string fileName in mFileEntries)
             {
                 //chain decomposition
@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     this.VcCount = tc;
             }
             this.VcCount = this.VcCount + 1;
-            */
+            
 
             foreach (string fileName in mFileEntries)
             {
