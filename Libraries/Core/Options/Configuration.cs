@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.Utilities
         /// True if the user has explicitly set the
         /// fair scheduling steps bound.
         /// </summary>
-        internal bool UserExplicitlySetMaxFairSchedulingSteps;
+        public bool UserExplicitlySetMaxFairSchedulingSteps;
 
         /// <summary>
         /// Number of parallel bug-finding tasks.
