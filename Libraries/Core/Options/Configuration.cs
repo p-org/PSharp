@@ -114,6 +114,11 @@ namespace Microsoft.PSharp.Utilities
         public string AssemblyToBeAnalyzed;
 
         /// <summary>
+        /// Test method to be used.
+        /// </summary>
+        public string TestMethodName;
+
+        /// <summary>
         /// The schedule file to be replayed.
         /// </summary>
         public string ScheduleFile;
@@ -377,6 +382,7 @@ namespace Microsoft.PSharp.Utilities
             this.ShowFullDataFlowInformation = false;
 
             this.AssemblyToBeAnalyzed = "";
+            this.TestMethodName = "";
             this.ScheduleFile = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;

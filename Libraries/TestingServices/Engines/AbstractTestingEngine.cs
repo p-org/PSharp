@@ -433,6 +433,11 @@ namespace Microsoft.PSharp.TestingServices
         {
             List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test));
 
+            // Filter by test method name
+            testMethods = testMethods
+                .FindAll(mi => string.Format("{0}.{1}", mi.DeclaringType.FullName, mi.Name)
+                .EndsWith(Configuration.TestMethodName));
+
             if (testMethods.Count == 0)
             {
                 IO.Error.ReportAndExit("Cannot detect a P# test method. Use the " +
@@ -442,7 +447,8 @@ namespace Microsoft.PSharp.TestingServices
             {
                 IO.Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{typeof(Test).FullName}'. " +
-                    $"'{testMethods.Count}' test methods were found instead.");
+                    $"'{testMethods.Count}' test methods were found instead. Provide " +
+                    $"/method flag to qualify the test method name you wish to use.");
             }
 
             if (testMethods[0].ReturnType != typeof(void) ||

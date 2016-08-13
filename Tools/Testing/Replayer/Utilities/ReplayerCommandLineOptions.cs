@@ -42,6 +42,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
+            else if (option.ToLower().StartsWith("/method:") && option.Length > 8)
+            {
+                base.Configuration.TestMethodName = option.Substring(8);
+            }
             else if (option.ToLower().StartsWith("/replay:") && option.Length > 8)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(8));

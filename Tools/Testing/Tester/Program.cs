@@ -36,6 +36,10 @@ namespace Microsoft.PSharp
                 configuration.TestingProcessId < 0)
             {
                 IO.PrintLine(". Testing " + configuration.AssemblyToBeAnalyzed);
+                if(configuration.TestMethodName != "")
+                {
+                    IO.PrintLine(". Method {0}", configuration.TestMethodName);
+                }
             }
             
             if (configuration.ParallelBugFindingTasks == 1 ||

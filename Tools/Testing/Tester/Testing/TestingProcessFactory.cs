@@ -66,6 +66,10 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             arguments.Append($"/test:{configuration.AssemblyToBeAnalyzed} ");
+            if(configuration.TestMethodName != "")
+            {
+                arguments.Append($"/method:{configuration.TestMethodName} ");
+            }
             arguments.Append($"/i:{configuration.SchedulingIterations} ");
             arguments.Append($"/timeout:{configuration.Timeout} ");
 
