@@ -760,6 +760,18 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
+                    if (this.Inbox[idx].EventType.IsGenericType)
+                    {
+                        var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
+                        var genericIgnoredTypes = IgnoredEvents.Where(t => t.IsGenericType && t.GetGenericTypeDefinition().Equals(
+                            genericTypeDefinition.GetGenericTypeDefinition()));
+                        if (genericIgnoredTypes.Count() > 0)
+                        {
+                            this.Inbox.RemoveAt(idx);
+                            idx--;
+                            continue;
+                        }
+                    }
                     if (this.IgnoredEvents.Contains(this.Inbox[idx].EventType))
                     {
                         this.Inbox.RemoveAt(idx);
