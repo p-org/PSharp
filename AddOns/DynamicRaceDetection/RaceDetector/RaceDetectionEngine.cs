@@ -77,61 +77,77 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 "ThreadTraces" + Path.DirectorySeparatorChar;
 
             string[] fileEntries = Directory.GetFiles(threadTraceDirectoryPath, "*");
+            int NumberOfIterations = 0;
             foreach (string fileName in fileEntries)
             {
-                //Deserialize thread traces
-                //Open the file written above and read values from it.
-
-                Stream stream = File.Open(fileName, FileMode.Open);
-                BinaryFormatter bformatter = new BinaryFormatter();
-                List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
-
-                for (int i = 0; i < tt.Count; i++)
-                {
-                    this.AllThreadTraces.Add(tt[i]);
-                    //IO.PrintLine(tt[i].MachineId + " " + tt[i].ActionId);
-                }
-                stream.Close();
+                string iterationStart = fileName.Substring(fileName.IndexOf("iteration_") + 10);
+                string iterationNumber = iterationStart.Substring(0, iterationStart.IndexOf('_'));
+                int currentIteration = Int32.Parse(iterationNumber);
+                if (currentIteration > NumberOfIterations)
+                    NumberOfIterations = currentIteration;
             }
 
-            string[] mFileEntries = Directory.GetFiles(runtimeTraceDirectoryPath, "*");
-            this.VcCount = mFileEntries.Count() + 5;
-
-            //TODO: fix this
-            
-            foreach (string fileName in mFileEntries)
+            NumberOfIterations++;
+            for (int iteration = 0; iteration < NumberOfIterations; iteration++)
             {
-                //chain decomposition
-                int tc = Int32.Parse(fileName.Substring(22, fileName.Length - 4 - 22));
-                if (tc > this.VcCount)
-                    this.VcCount = tc;
-            }
-            this.VcCount = this.VcCount + 1;
-            
-
-            foreach (string fileName in mFileEntries)
-            {
-                IO.PrintLine($"... Parsing '{fileName}'");
-
-                MachineActionTrace machineTrace = null;
-                using (FileStream stream = File.Open(fileName, FileMode.Open))
+                string[] tfileEntries = Directory.GetFiles(threadTraceDirectoryPath, ("*_iteration_" + iteration + "*"));
+                foreach (string fileName in tfileEntries)
                 {
-                    DataContractSerializer serializer = new DataContractSerializer(
-                        typeof(MachineActionTrace));
-                    machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
+                    //Deserialize thread traces
+                    //Open the file written above and read values from it.
+
+                    Stream stream = File.Open(fileName, FileMode.Open);
+                    BinaryFormatter bformatter = new BinaryFormatter();
+                    List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
+
+                    for (int i = 0; i < tt.Count; i++)
+                    {
+                        this.AllThreadTraces.Add(tt[i]);
+                        //IO.PrintLine(tt[i].MachineId + " " + tt[i].ActionId);
+                    }
+                    stream.Close();
                 }
 
-                //this.UpdateTasks(machineTrace);
-                this.UpdateGraph(machineTrace);
+                string[] mFileEntries = Directory.GetFiles(runtimeTraceDirectoryPath, ("*_iteration_" + iteration + "*"));
+                this.VcCount = mFileEntries.Count() + 5;
+
+                //TODO: fix this            
+                foreach (string fileName in mFileEntries)
+                {
+                    //chain decomposition
+                    string fileNumberStart = fileName.Substring(fileName.LastIndexOf('_') + 1);
+                    string fileNumber = fileNumberStart.Substring(0, fileNumberStart.IndexOf('.'));
+                    int tc = Int32.Parse(fileNumber);
+                    if (tc > this.VcCount)
+                        this.VcCount = tc;
+                }
+                this.VcCount = this.VcCount + 1;
+
+
+                foreach (string fileName in mFileEntries)
+                {
+                    IO.PrintLine($"... Parsing '{fileName}'");
+
+                    MachineActionTrace machineTrace = null;
+                    using (FileStream stream = File.Open(fileName, FileMode.Open))
+                    {
+                        DataContractSerializer serializer = new DataContractSerializer(
+                            typeof(MachineActionTrace));
+                        machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
+                    }
+
+                    this.UpdateTasks(machineTrace);
+                    this.UpdateGraph(machineTrace);
+                }
+
+                this.UpdateGraphCrossEdges();
+                this.PruneGraph();
+                this.UpdateVectorsT();
+                this.DetectRacesFast();
+
+                this.CGraph.Clear();
+                this.AllThreadTraces.Clear();
             }
-
-            this.UpdateGraphCrossEdges();
-            this.PruneGraph();
-            this.UpdateVectorsT();
-            this.DetectRacesFast();
-
-            this.CGraph.Clear();
-            this.AllThreadTraces.Clear();
         }
 
         /// <summary>
@@ -147,7 +163,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             //    if (info.isTaskMachine)
             //    {
             //        //ThreadTrace matching = null;
-            //        var matching = this.AllThreadTraces.Where(item => item.IsTask && item.TaskId == mt.TaskId);
+            //        var matching = this.AllThreadTraces.Where(item => item.IsTask && item.TaskId == info.TaskId);
 
             //        if (matching.Count() == 0)
             //            continue;
@@ -163,18 +179,18 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             //        catch (Exception ex)
             //        {
             //            IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-            //            IO.PrintLine(ex);
+            //            IO.PrintLine(ex.ToString());
             //            Environment.Exit(Environment.ExitCode);
             //        }
             //        this.CGraph.AddVertex(cn);
 
             //        foreach (var m in matching)
             //        {
-            //            if (m.accesses.Count > 0)
+            //            if (m.Accesses.Count > 0)
             //            {
-            //                foreach (ActionInstr ins in m.accesses)
+            //                foreach (ActionInstr ins in m.Accesses)
             //                {
-            //                    ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, ins.SrcLocation, mt.MachineId));
+            //                    ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, ins.SrcLocation, info.MachineId));
             //                }
             //            }
             //        }
