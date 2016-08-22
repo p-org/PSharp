@@ -32,6 +32,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// An invocation action.
         /// </summary>
         [EnumMember(Value = "InvocationAction")]
-        InvocationAction
+        InvocationAction,
+
+        /// <summary>
+        /// Task machine creation
+        /// </summary>
+        [EnumMember(Value = "TaskMachineCreation")]
+        TaskMachineCreation
     }
 }

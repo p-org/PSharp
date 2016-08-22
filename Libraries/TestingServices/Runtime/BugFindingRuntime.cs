@@ -436,6 +436,12 @@ namespace Microsoft.PSharp.TestingServices
                 userTask);
             taskMachine.SetMachineId(mid);
 
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                // Traces machine actions, if data-race detection is enabled.
+                this.MachineActionTraceMap.Add(mid, new MachineActionTrace(mid, true));
+            }
+
             IO.Log($"<CreateLog> '{mid}' is created.");
 
             Task task = new Task(() =>

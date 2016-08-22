@@ -414,11 +414,11 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Profiler.StopMeasuringExecutionTime();
 
-                if (!this.Configuration.KeepTemporaryFiles &&
-                    this.Assembly != null)
-                {
-                    this.CleanTemporaryFiles();
-                }
+                //if (!this.Configuration.KeepTemporaryFiles &&
+                //    this.Assembly != null)
+                //{
+                //    this.CleanTemporaryFiles();
+                //}
             }
         }
 

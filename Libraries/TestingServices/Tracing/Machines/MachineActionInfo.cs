@@ -78,6 +78,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         public int ActionId { get; private set; }
 
         /// <summary>
+        /// The task Id
+        /// </summary>
+        [DataMember]
+        public int TaskId;
+
+        /// <summary>
+        /// The task machine ID
+        /// </summary>
+        [DataMember]
+        public MachineId TaskMachineId;
+
+        /// <summary>
         /// Previous action info.
         /// </summary>
         [DataMember]
@@ -88,6 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// </summary>
         [DataMember]
         internal MachineActionInfo Next;
+
 
         #endregion
 
@@ -116,6 +129,25 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.EventId = e.GetHashCode();
             actionInfo.SendId = sendId;
 
+            actionInfo.TaskId = -5;
+            actionInfo.Previous = null;
+            actionInfo.Next = null;
+
+            return actionInfo;
+        }
+
+        internal static MachineActionInfo CreateTaskCreationInfo(int index, MachineId mid,
+            int taskId, MachineId taskMachineId)
+        {
+            var actionInfo = new MachineActionInfo();
+
+            actionInfo.Index = index;
+            actionInfo.Type = MachineActionType.TaskMachineCreation;
+
+            actionInfo.MachineId = mid.Value;
+            actionInfo.TaskId = taskId;
+            actionInfo.TaskMachineId = taskMachineId;
+
             actionInfo.Previous = null;
             actionInfo.Next = null;
 
@@ -142,6 +174,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.ActionName = actionName;
             actionInfo.ActionId = actionId;
 
+            actionInfo.TaskId = -5;
             actionInfo.Previous = null;
             actionInfo.Next = null;
 

@@ -77,7 +77,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// Constructor.
         /// </summary>
         /// <param name="mid">MachineId</param>
-        internal MachineActionTrace(MachineId mid)
+        /// <param name="isTaskMachine">bool</param>
+        internal MachineActionTrace(MachineId mid, bool isTaskMachine = false)
         {
             this.MachineId = mid;
             this.ActionInfos = new List<MachineActionInfo>();
@@ -95,6 +96,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             var info = MachineActionInfo.CreateSendActionInfo(this.Count, this.MachineId,
                 targetMachineId, e, this.SendIdCounter);
             this.SendIdCounter++;
+            this.Push(info);
+        }
+
+        /// <summary>
+        /// Adds a task machine creation info.
+        /// </summary>
+        /// <param name="targetMachineId">Task MachineId</param>
+        /// <param name="taskId">int</param>
+        internal void AddTaskMachineCreationInfo(int taskId, MachineId targetMachineId)
+        {
+            var info = MachineActionInfo.CreateTaskCreationInfo(this.Count, this.MachineId,
+                taskId, targetMachineId);
             this.Push(info);
         }
 
