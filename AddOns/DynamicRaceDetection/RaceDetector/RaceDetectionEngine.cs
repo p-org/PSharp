@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
                 foreach (string fileName in mFileEntries)
                 {
-                    IO.PrintLine($"... Parsing '{fileName}'");
+                    //IO.PrintLine($"... Parsing '{fileName}'");
 
                     MachineActionTrace machineTrace = null;
                     using (FileStream stream = File.Open(fileName, FileMode.Open))
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                             typeof(MachineActionTrace));
                         machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
                     }
-
+                    
                     this.UpdateTasks(machineTrace);
                     this.UpdateGraph(machineTrace);
                 }
@@ -148,6 +148,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 this.CGraph.Clear();
                 this.AllThreadTraces.Clear();
             }
+
+            //Directory.Delete(directoryPath, true);
         }
 
         /// <summary>
@@ -156,46 +158,46 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         /// <param name="machineTrace">MachineActionTrace</param>
         void UpdateTasks(MachineActionTrace machineTrace)
         {
-            //int currentMachineVC = 0;
+            int currentMachineVC = 0;
 
-            //foreach (MachineActionInfo info in machineTrace)
-            //{
-            //    if (info.isTaskMachine)
-            //    {
-            //        //ThreadTrace matching = null;
-            //        var matching = this.AllThreadTraces.Where(item => item.IsTask && item.TaskId == info.TaskId);
+            foreach (MachineActionInfo info in machineTrace)
+            {
+                if (info.Type == MachineActionType.TaskMachineCreation)
+                {
+                    //ThreadTrace matching = null;
+                    var matching = this.AllThreadTraces.Where(item => item.IsTask && item.TaskId == info.TaskId);
 
-            //        if (matching.Count() == 0)
-            //            continue;
+                    if (matching.Count() == 0)
+                        continue;
 
-            //        Node cn = new CActBegin(info.MachineId, info.TaskId);
-            //        ((CActBegin)cn).IsStart = true;
-            //        cn.VectorClock = new int[this.VcCount];
-            //        currentMachineVC++;
-            //        try
-            //        {
-            //            cn.VectorClock[info.MachineId] = currentMachineVC;
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-            //            IO.PrintLine(ex.ToString());
-            //            Environment.Exit(Environment.ExitCode);
-            //        }
-            //        this.CGraph.AddVertex(cn);
+                    Node cn = new CActBegin(info.MachineId, info.TaskId);
+                    ((CActBegin)cn).IsStart = true;
+                    cn.VectorClock = new int[this.VcCount];
+                    currentMachineVC++;
+                    try
+                    {
+                        cn.VectorClock[info.MachineId] = currentMachineVC;
+                    }
+                    catch (Exception ex)
+                    {
+                        IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                        IO.PrintLine(ex.ToString());
+                        Environment.Exit(Environment.ExitCode);
+                    }
+                    this.CGraph.AddVertex(cn);
 
-            //        foreach (var m in matching)
-            //        {
-            //            if (m.Accesses.Count > 0)
-            //            {
-            //                foreach (ActionInstr ins in m.Accesses)
-            //                {
-            //                    ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, ins.SrcLocation, info.MachineId));
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
+                    foreach (var m in matching)
+                    {
+                        if (m.Accesses.Count > 0)
+                        {
+                            foreach (ActionInstr ins in m.Accesses)
+                            {
+                                ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, ins.SrcLocation, info.MachineId));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -209,7 +211,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             Node cLatestAction = null;
             foreach (MachineActionInfo info in machineTrace)
             {
-                if (info.Type != MachineActionType.SendAction && (info.ActionId != 0)/* && !info.isTaskMachine*/)
+                if (info.Type != MachineActionType.SendAction && (info.ActionId != 0) && !(info.Type == MachineActionType.TaskMachineCreation))
                 {
                     ThreadTrace matching = null;
 
@@ -702,7 +704,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
         void DetectRacesFast()
         {
-            IO.PrintLine("\nDETECTING RACES FAST");
+            PrintGraph();
+            IO.PrintLine("\nDETECTING RACES");
 
             if (this.CGraph.VertexCount == 0)
             {

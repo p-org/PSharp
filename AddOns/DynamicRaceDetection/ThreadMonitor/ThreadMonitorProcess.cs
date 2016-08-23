@@ -53,7 +53,6 @@ namespace Microsoft.PSharp.Monitoring
         /// </summary>
         public void Start()
         {
-            IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
             this.MonitorAssembly(this.Configuration.AssemblyToBeAnalyzed);
         }
 

@@ -184,6 +184,27 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     "ThreadTraces" + Path.DirectorySeparatorChar;
                 Directory.CreateDirectory(traceDirectoryPath);
 
+                Console.WriteLine("thread id: " + this.ThreadId);
+                foreach (var item in ThreadTrace)
+                {
+                    Console.WriteLine(">>> " + item.MachineId + "; " + item.ActionName + "; " + item.ActionId);
+                    foreach(var acc in item.Accesses)
+                    {
+                        if (acc.IsSend)
+                        {
+                            Console.WriteLine("Send: " + acc.SendId);
+                        }
+                        else if (acc.IsCreate)
+                        {
+                            Console.WriteLine("create: " + acc.CreateMachineId);
+                        }
+                        else
+                        {
+                            Console.WriteLine(acc.IsWrite + " " + acc.SrcLocation);
+                        }
+                    }
+                }
+
                 var name = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
 
                 string path = traceDirectoryPath + name + "_iteration_" +
@@ -376,6 +397,8 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         {
             try
             {
+                if (value == null)
+                    return;
                 MachineId r = (MachineId)value;
                 if (this.IsCreateMachineMethod)
                 {
@@ -419,12 +442,13 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 this.DebugTrace.Add("<ThreadMonitorLog> Call receiver " +
                     $"'{machine.GetType()}' '{machineId}'.");
 
+                Console.WriteLine("Creating trace: " + machineId + " " + IsDoHandlerCalled + " " + IsEntryActionCalled + " " + IsExitActionCalled);
                 this.IsDoHandlerCalled = false;
                 this.IsEntryActionCalled = false;
                 this.IsExitActionCalled = false;
 
                 this.IsAction = true;
-                
+
                 ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForMachine(machineId);
 
                 if (ActionIds.ContainsKey(machineId))

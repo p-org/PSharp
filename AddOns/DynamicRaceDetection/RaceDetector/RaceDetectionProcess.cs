@@ -61,8 +61,6 @@ namespace Microsoft.PSharp
         /// <param name="args">Arguments</param>
         public void Start(string[] args)
         {
-            IO.PrintLine(". Monitoring " + this.Configuration.AssemblyToBeAnalyzed);
-
             StringCollection referencedAssemblies = new StringCollection();
             string input = this.Configuration.AssemblyToBeAnalyzed;
 
