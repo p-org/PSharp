@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// Is event action handler called.
         /// </summary>
         private bool IsDoHandlerCalled;
-        
+
         /// <summary>
         /// Is entry action called.
         /// </summary>
@@ -103,6 +103,11 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// Is the create machine method
         /// </summary>
         private bool IsCreateMachineMethod;
+
+        /// <summary>
+        /// Machine ID of the machine where the action is invoked. 
+        /// </summary>
+        private int machineIdOfAction;
 
         /// <summary>
         /// The action ids.
@@ -184,26 +189,26 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     "ThreadTraces" + Path.DirectorySeparatorChar;
                 Directory.CreateDirectory(traceDirectoryPath);
 
-                Console.WriteLine("thread id: " + this.ThreadId);
-                foreach (var item in ThreadTrace)
-                {
-                    Console.WriteLine(">>> " + item.MachineId + "; " + item.ActionName + "; " + item.ActionId);
-                    foreach(var acc in item.Accesses)
-                    {
-                        if (acc.IsSend)
-                        {
-                            Console.WriteLine("Send: " + acc.SendId);
-                        }
-                        else if (acc.IsCreate)
-                        {
-                            Console.WriteLine("create: " + acc.CreateMachineId);
-                        }
-                        else
-                        {
-                            Console.WriteLine(acc.IsWrite + " " + acc.SrcLocation);
-                        }
-                    }
-                }
+                //Console.WriteLine("thread id: " + this.ThreadId);
+                //foreach (var item in ThreadTrace)
+                //{
+                //    Console.WriteLine(">>> " + item.MachineId + "; " + item.ActionName + "; " + item.ActionId);
+                //    foreach (var acc in item.Accesses)
+                //    {
+                //        if (acc.IsSend)
+                //        {
+                //            Console.WriteLine("Send: " + acc.SendId);
+                //        }
+                //        else if (acc.IsCreate)
+                //        {
+                //            Console.WriteLine("create: " + acc.CreateMachineId);
+                //        }
+                //        else
+                //        {
+                //            Console.WriteLine(acc.IsWrite + " " + acc.SrcLocation);
+                //        }
+                //    }
+                //}
 
                 var name = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
 
@@ -321,6 +326,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 obj.ActionName = method.FullName;
 
                 this.IsAction = false;
+                Console.WriteLine("IsAction set to false");
                 this.RecordRW = true;
                 this.CurrentlyExecutingAction = method.FullName;
             }
@@ -364,6 +370,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnEntry"))
             {
+                Console.WriteLine("IsEntryActionCalled set to true in: " + CallStack.Peek());
                 this.IsEntryActionCalled = true;
             }
 
@@ -428,7 +435,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 }
             }
         }
-
+        
         public override void CallReceiver(object receiver)
         {
             if (this.IsDoHandlerCalled ||
@@ -442,26 +449,13 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 this.DebugTrace.Add("<ThreadMonitorLog> Call receiver " +
                     $"'{machine.GetType()}' '{machineId}'.");
 
-                Console.WriteLine("Creating trace: " + machineId + " " + IsDoHandlerCalled + " " + IsEntryActionCalled + " " + IsExitActionCalled);
                 this.IsDoHandlerCalled = false;
                 this.IsEntryActionCalled = false;
                 this.IsExitActionCalled = false;
 
                 this.IsAction = true;
 
-                ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForMachine(machineId);
-
-                if (ActionIds.ContainsKey(machineId))
-                {
-                    ActionIds[machineId]++;
-                }
-                else
-                {
-                    ActionIds.Add(machineId, 1);
-                }
-
-                obj.ActionId = ActionIds[machineId];
-                this.ThreadTrace.Add(obj);
+                machineIdOfAction = machineId;
             }
         }
 
@@ -472,6 +466,24 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         public override void Callvirt(Method method)
         {
             this.DebugTrace.Add($"<ThreadMonitorLog> Virtual call '{method.FullName}'.");
+
+            if (method.FullName.Contains("Microsoft.PSharp") && method.FullName.Contains("NotifyInvokedAction") &&
+                !this.CallStack.Peek().FullName.Contains(".Main"))
+            {
+                ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForMachine(machineIdOfAction);
+
+                if (ActionIds.ContainsKey(machineIdOfAction))
+                {
+                    ActionIds[machineIdOfAction]++;
+                }
+                else
+                {
+                    ActionIds.Add(machineIdOfAction, 1);
+                }
+
+                obj.ActionId = ActionIds[machineIdOfAction];
+                this.ThreadTrace.Add(obj);
+            }
 
             if (method.FullName.Contains("System.Threading.Tasks.Task.Start"))
             {
@@ -510,6 +522,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 {
                     file = "NONE";
                 }
+
 
                 string method = sf.GetMethod().Name;
                 int lineno = sf.GetFileLineNumber();

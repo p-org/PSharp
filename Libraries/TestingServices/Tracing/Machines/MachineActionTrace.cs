@@ -124,6 +124,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         }
 
         /// <summary>
+        /// Adds machine creation info
+        /// </summary>
+        /// <param name="mid">created Machine ID</param>
+        internal void AddCreateMachineInfo(MachineId mid)
+        {
+            var info = MachineActionInfo.CreateMachineCreationInfo(this.Count, this.MachineId, mid);
+            this.Push(info);
+        }
+
+        /// <summary>
         /// Returns the latest machine action info and
         /// removes it from the trace.
         /// </summary>

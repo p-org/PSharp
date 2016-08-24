@@ -90,6 +90,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         public MachineId TaskMachineId;
 
         /// <summary>
+        /// The created Mahcine ID
+        /// </summary>
+        [DataMember]
+        public MachineId createdMachineId;
+
+        /// <summary>
         /// Previous action info.
         /// </summary>
         [DataMember]
@@ -173,6 +179,31 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.MachineId = mid.Value;
             actionInfo.ActionName = actionName;
             actionInfo.ActionId = actionId;
+
+            actionInfo.TaskId = -5;
+            actionInfo.Previous = null;
+            actionInfo.Next = null;
+
+            return actionInfo;
+        }
+
+
+        /// <summary>
+        /// Creates Machine creation info
+        /// </summary>
+        /// <param name="index">int</param>
+        /// <param name="creator">MachineId</param>
+        /// <param name="mid">MachineId</param>
+        /// <returns>MachineId</returns>
+        internal static MachineActionInfo CreateMachineCreationInfo(int index, MachineId creator, MachineId mid)
+        {
+            var actionInfo = new MachineActionInfo();
+
+            actionInfo.Index = index;
+            actionInfo.Type = MachineActionType.MachineCreationInfo;
+
+            actionInfo.MachineId = creator.Value;
+            actionInfo.createdMachineId = mid;
 
             actionInfo.TaskId = -5;
             actionInfo.Previous = null;

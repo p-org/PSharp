@@ -38,6 +38,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// Task machine creation
         /// </summary>
         [EnumMember(Value = "TaskMachineCreation")]
-        TaskMachineCreation
+        TaskMachineCreation,
+
+        /// <summary>
+        /// Machine creation
+        /// </summary>
+        [EnumMember(Value = "MachineCreationInfo")]
+        MachineCreationInfo
     }
 }
