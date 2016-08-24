@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 //Console.WriteLine("thread id: " + this.ThreadId);
                 //foreach (var item in ThreadTrace)
                 //{
-                //    Console.WriteLine(">>> " + item.MachineId + "; " + item.ActionName + "; " + item.ActionId);
+                //    Console.WriteLine(">>> " + item.MachineId + "; " + item.ActionName + "; " + item.ActionId + "; " + item.TaskId);
                 //    foreach (var acc in item.Accesses)
                 //    {
                 //        if (acc.IsSend)
@@ -202,6 +202,10 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 //        else if (acc.IsCreate)
                 //        {
                 //            Console.WriteLine("create: " + acc.CreateMachineId);
+                //        }
+                //        else if (acc.IsTask)
+                //        {
+                //            Console.WriteLine("task created: " + acc.TaskId);
                 //        }
                 //        else
                 //        {
@@ -326,7 +330,6 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 obj.ActionName = method.FullName;
 
                 this.IsAction = false;
-                Console.WriteLine("IsAction set to false");
                 this.RecordRW = true;
                 this.CurrentlyExecutingAction = method.FullName;
             }

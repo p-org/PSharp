@@ -25,7 +25,7 @@ namespace AsyncAwaitCheck
         void ActiveOnEntry()
         {
             Process();
-            this.Assert(this.Value < 3, "Value is '{0}' (expected less than '3').", this.Value);
+            //this.Assert(this.Value < 3, "Value is '{0}' (expected less than '3').", this.Value);
         }
 
         async void Process()

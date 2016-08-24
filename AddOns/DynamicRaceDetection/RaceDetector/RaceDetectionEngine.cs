@@ -136,17 +136,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
                     }
                     
-                    //this.UpdateTasks(machineTrace);
+                    this.UpdateTasks(machineTrace);
                     this.UpdateGraph(machineTrace);
-
-                    Console.WriteLine("Graph for machine: ");
-                    PrintGraph();
                 }
 
-                this.UpdateGraphCrossEdges();
-                Console.WriteLine("after updating cross edges: ");
-                PrintGraph();
-                
+                this.UpdateGraphCrossEdges();            
                 this.PruneGraph();
 
                 this.UpdateVectorsT();
@@ -711,7 +705,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
         void DetectRacesFast()
         {
-            PrintGraph();
             IO.PrintLine("\nDETECTING RACES");
 
             if (this.CGraph.VertexCount == 0)

@@ -440,11 +440,22 @@ namespace Microsoft.PSharp.TestingServices
                 userTask);
             taskMachine.SetMachineId(mid);
 
-            if (this.Configuration.EnableDataRaceDetection)
+            try
             {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap[GetCurrentMachineId()].AddTaskMachineCreationInfo(userTask.Id, mid);
+                MachineId current = this.GetCurrentMachineId();
+                if (this.Configuration.EnableDataRaceDetection)
+                {
+                    Console.WriteLine("eureka");
+                    // Traces machine actions, if data-race detection is enabled.
+                    this.MachineActionTraceMap.Add(mid, new MachineActionTrace(mid));
+                    this.MachineActionTraceMap[this.GetCurrentMachineId()].AddTaskMachineCreationInfo(userTask.Id, mid);
+                }
             }
+            catch (Exception)
+            {
+
+            }
+            
 
             IO.Log($"<CreateLog> '{mid}' is created.");
 

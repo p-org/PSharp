@@ -657,23 +657,27 @@ namespace Microsoft.PSharp.TestingServices
             foreach (var kvp in runtime.MachineActionTraceMap)
             {
                 IO.Debug($"<RaceTracing> Machine id '{kvp.Key}'");
-                Console.WriteLine("Machine Id: " + kvp.Key);
+                //Console.WriteLine("Machine Id: " + kvp.Key);
                 foreach (var actionTrace in kvp.Value)
                 {
                     if (actionTrace.Type == MachineActionType.InvocationAction)
                     {
                         IO.Debug($"<RaceTracing> Action '{actionTrace.ActionName}' " +
                             $"'{actionTrace.ActionId}'");
-                        Console.WriteLine("Action: " + actionTrace.ActionName + " " + actionTrace.ActionId);
+                        //Console.WriteLine("Action: " + actionTrace.ActionName + " " + actionTrace.ActionId);
                     }
-                    if(actionTrace.Type == MachineActionType.SendAction)
-                    {
-                        Console.WriteLine("SendEvent: " + actionTrace.ActionName + " " + actionTrace.SendId);
-                    }
-                    if(actionTrace.Type == MachineActionType.MachineCreationInfo)
-                    {
-                        Console.WriteLine("Machine creation: " + actionTrace.ActionName + " " + actionTrace.createdMachineId);
-                    }
+                    //if (actionTrace.Type == MachineActionType.SendAction)
+                    //{
+                    //    Console.WriteLine("SendEvent: " + actionTrace.ActionName + " " + actionTrace.SendId);
+                    //}
+                    //if (actionTrace.Type == MachineActionType.MachineCreationInfo)
+                    //{
+                    //    Console.WriteLine("Machine creation: " + actionTrace.ActionName + " " + actionTrace.createdMachineId);
+                    //}
+                    //if(actionTrace.Type == MachineActionType.TaskMachineCreation)
+                    //{
+                    //    Console.WriteLine("Task Machine creation: " + actionTrace.TaskId + " " + actionTrace.TaskMachineId);
+                    //}
                 }
 
                 if (kvp.Value.Count > 0)
