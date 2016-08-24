@@ -756,7 +756,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
         /// <param name="action">Action</param>
-        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action)
+        /// <param name="receivedEvent">Event</param>
+        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
             if (machine is Machine)
             {
@@ -769,7 +770,7 @@ namespace Microsoft.PSharp.TestingServices
                 if (this.Configuration.EnableDataRaceDetection)
                 {
                     // Traces machine actions, if data-race detection is enabled.
-                    this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name);
+                    this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name, receivedEvent);
                 }
             }
             else if (machine is Monitor)

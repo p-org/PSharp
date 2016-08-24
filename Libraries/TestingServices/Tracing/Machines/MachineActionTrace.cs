@@ -115,10 +115,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// Adds an invocation action info.
         /// </summary>
         /// <param name="actionName">Action name</param>
-        internal void AddInvocationActionInfo(string actionName)
+        /// <param name="receivedEvent">Event</param>
+        internal void AddInvocationActionInfo(string actionName, Event receivedEvent)
         {
             var info = MachineActionInfo.CreateInvocationActionInfo(this.Count, this.MachineId,
-                actionName, this.ActionIdCounter);
+                actionName, this.ActionIdCounter, receivedEvent);
             this.ActionIdCounter++;
             this.Push(info);
         }

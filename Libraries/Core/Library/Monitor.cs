@@ -387,7 +387,7 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-            base.Runtime.NotifyInvokedAction(this, action);
+            base.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
 
             try
             {

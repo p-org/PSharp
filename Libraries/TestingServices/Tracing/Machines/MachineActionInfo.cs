@@ -167,9 +167,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <param name="mid">MachineId</param>
         /// <param name="actionName">Action name</param>
         /// <param name="actionId">Action id</param>
+        /// <param name="receivedEvent">Event</param>
         /// <returns>MachineActionInfo</returns>
         internal static MachineActionInfo CreateInvocationActionInfo(int index, MachineId mid,
-            string actionName, int actionId)
+            string actionName, int actionId, Event receivedEvent)
         {
             var actionInfo = new MachineActionInfo();
 
@@ -179,6 +180,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.MachineId = mid.Value;
             actionInfo.ActionName = actionName;
             actionInfo.ActionId = actionId;
+
+            if(receivedEvent != null)
+                actionInfo.EventId = receivedEvent.GetHashCode();
 
             actionInfo.TaskId = -5;
             actionInfo.Previous = null;

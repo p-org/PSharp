@@ -136,12 +136,19 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
                     }
                     
-                    this.UpdateTasks(machineTrace);
+                    //this.UpdateTasks(machineTrace);
                     this.UpdateGraph(machineTrace);
+
+                    Console.WriteLine("Graph for machine: ");
+                    PrintGraph();
                 }
 
                 this.UpdateGraphCrossEdges();
+                Console.WriteLine("after updating cross edges: ");
+                PrintGraph();
+                
                 this.PruneGraph();
+
                 this.UpdateVectorsT();
                 this.DetectRacesFast();
 
@@ -569,7 +576,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 {
                     IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((CActBegin)n).MachineId + " " + ((CActBegin)n).ActionId +
-                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask);
+                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask + " " + ((CActBegin)n).EventId);
                     IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
                     foreach (MemAccess m in ((CActBegin)n).Addresses)
                     {
@@ -579,7 +586,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 else if (n.GetType().ToString().Contains("SendEvent"))
                 {
                     IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
-                        ((SendEvent)n).MachineId + " " + ((SendEvent)n).ToMachine);
+                        ((SendEvent)n).MachineId + " " + ((SendEvent)n).ToMachine + " " + ((SendEvent)n).SendEventId);
                     IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
                 else if (n.GetType().ToString().Contains("CreateMachine"))

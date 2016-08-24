@@ -742,7 +742,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
         /// <param name="action">Action</param>
-        internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action)
+        /// <param name="receivedEvent">Event</param>
+        internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
             // No-op for real execution.
         }

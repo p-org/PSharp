@@ -1018,7 +1018,7 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-            base.Runtime.NotifyInvokedAction(this, action);
+            base.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
 
             try
             {
@@ -1131,7 +1131,7 @@ namespace Microsoft.PSharp
                 // if there is one available.
                 if (entryAction != null)
                 {
-                    base.Runtime.NotifyInvokedAction(this, entryAction);
+                    base.Runtime.NotifyInvokedAction(this, entryAction, ReceivedEvent);
                     entryAction.Invoke(this, null);
                 }
             }
@@ -1195,7 +1195,7 @@ namespace Microsoft.PSharp
                 // if there is one available.
                 if (exitAction != null)
                 {
-                    base.Runtime.NotifyInvokedAction(this, exitAction);
+                    base.Runtime.NotifyInvokedAction(this, exitAction, ReceivedEvent);
                     exitAction.Invoke(this, null);
                 }
 
@@ -1204,7 +1204,7 @@ namespace Microsoft.PSharp
                 if (eventHandlerExitActionName != null)
                 {
                     MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-                    base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction);
+                    base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction, ReceivedEvent);
                     eventHandlerExitAction.Invoke(this, null);
                 }
             }
