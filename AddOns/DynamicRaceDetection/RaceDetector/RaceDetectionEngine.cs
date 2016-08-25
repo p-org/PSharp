@@ -140,8 +140,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 this.PruneGraph();
                 this.UpdateVectorsT();
 
-                PrintGraph();
-
                 this.DetectRacesFast();
 
                 this.CGraph.Clear();
@@ -224,6 +222,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         //TODO: check correctness
                         //In case entry and exit functions not defined.   
                         //IO.PrintLine("Skipping entry/exit actions: " + mt.MachineId + " " + mt.ActionId + " " + mt.ActionName);          
+                        Console.WriteLine("CAUGHT: " + info.MachineId + " " + info.ActionId);
                         continue;
                     }
 

@@ -235,6 +235,9 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             //}
 
             this.ThreadTrace.Clear();
+            ActionIds.Clear();
+            SendIds.Clear();
+            TaskMethods.Clear();
             //this.DebugTrace.Clear();
         }
 

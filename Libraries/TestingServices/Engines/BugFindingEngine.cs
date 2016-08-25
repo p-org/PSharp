@@ -674,7 +674,7 @@ namespace Microsoft.PSharp.TestingServices
                     //{
                     //    Console.WriteLine("Machine creation: " + actionTrace.ActionName + " " + actionTrace.createdMachineId);
                     //}
-                    //if(actionTrace.Type == MachineActionType.TaskMachineCreation)
+                    //if (actionTrace.Type == MachineActionType.TaskMachineCreation)
                     //{
                     //    Console.WriteLine("Task Machine creation: " + actionTrace.TaskId + " " + actionTrace.TaskMachineId);
                     //}
