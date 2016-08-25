@@ -21,6 +21,7 @@ using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Utilities.Safe;
 
 using Microsoft.PSharp.Utilities;
+using System.IO;
 
 namespace Microsoft.PSharp.Monitoring
 {
@@ -36,6 +37,11 @@ namespace Microsoft.PSharp.Monitoring
 
             // Parses the command line options to get the configuration.
             var configuration = new ThreadMonitorCommandLineOptions(args).Parse();
+
+            string directoryPath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed) + 
+                Path.DirectorySeparatorChar + "Output";
+            if(Directory.Exists(directoryPath))
+                Directory.Delete(directoryPath, true);
 
             // Creates and starts a thread monitoring process.
             ThreadMonitorProcess.Create(configuration).Start();

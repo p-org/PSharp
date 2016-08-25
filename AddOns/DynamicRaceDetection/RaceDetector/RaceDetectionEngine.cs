@@ -95,7 +95,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 {
                     //Deserialize thread traces
                     //Open the file written above and read values from it.
-
                     Stream stream = File.Open(fileName, FileMode.Open);
                     BinaryFormatter bformatter = new BinaryFormatter();
                     List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
@@ -103,7 +102,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     for (int i = 0; i < tt.Count; i++)
                     {
                         this.AllThreadTraces.Add(tt[i]);
-                        //IO.PrintLine(tt[i].MachineId + " " + tt[i].ActionId);
                     }
                     stream.Close();
                 }
@@ -121,13 +119,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     if (tc > this.VcCount)
                         this.VcCount = tc;
                 }
-                this.VcCount = this.VcCount + 1;
+                this.VcCount = this.VcCount + 10;
 
 
                 foreach (string fileName in mFileEntries)
                 {
-                    //IO.PrintLine($"... Parsing '{fileName}'");
-
                     MachineActionTrace machineTrace = null;
                     using (FileStream stream = File.Open(fileName, FileMode.Open))
                     {
@@ -135,7 +131,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                             typeof(MachineActionTrace));
                         machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
                     }
-                    
+
                     this.UpdateTasks(machineTrace);
                     this.UpdateGraph(machineTrace);
                 }
@@ -143,6 +139,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 this.UpdateGraphCrossEdges();
                 this.PruneGraph();
                 this.UpdateVectorsT();
+
+                PrintGraph();
 
                 this.DetectRacesFast();
 

@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -88,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Threading
             }
             else
             {
-                this.Runtime.Log("<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
+                IO.Log("<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
                 this.WrappedTasks.Add(task);
                 this.Runtime.TryCreateTaskMachine(task);
             }
