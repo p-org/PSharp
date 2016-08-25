@@ -140,10 +140,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     this.UpdateGraph(machineTrace);
                 }
 
-                this.UpdateGraphCrossEdges();            
+                this.UpdateGraphCrossEdges();
                 this.PruneGraph();
-
                 this.UpdateVectorsT();
+
                 this.DetectRacesFast();
 
                 this.CGraph.Clear();
@@ -167,21 +167,20 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 {
                     //ThreadTrace matching = null;
                     var matching = this.AllThreadTraces.Where(item => item.IsTask && item.TaskId == info.TaskId);
-
                     if (matching.Count() == 0)
                         continue;
 
-                    Node cn = new CActBegin(info.MachineId, info.TaskId);
+                    Node cn = new CActBegin(info.TaskMachineId.GetHashCode(), info.TaskId);
                     ((CActBegin)cn).IsStart = true;
                     cn.VectorClock = new int[this.VcCount];
                     currentMachineVC++;
                     try
                     {
-                        cn.VectorClock[info.MachineId] = currentMachineVC;
+                        cn.VectorClock[info.TaskMachineId.GetHashCode()] = currentMachineVC;
                     }
                     catch (Exception ex)
                     {
-                        IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                        IO.PrintLine("failed: " + this.VcCount + " " + info.TaskMachineId);
                         IO.PrintLine(ex.ToString());
                         Environment.Exit(Environment.ExitCode);
                     }
@@ -193,7 +192,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         {
                             foreach (ActionInstr ins in m.Accesses)
                             {
-                                ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, ins.SrcLocation, info.MachineId));
+                                ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, 
+                                    ins.SrcLocation, info.TaskMachineId.GetHashCode()));
                             }
                         }
                     }
@@ -570,7 +570,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 {
                     IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((CActBegin)n).MachineId + " " + ((CActBegin)n).ActionId +
-                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask + " " + ((CActBegin)n).EventId);
+                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask + " " + ((CActBegin)n).TaskId + " " + ((CActBegin)n).EventId);
                     IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
                     foreach (MemAccess m in ((CActBegin)n).Addresses)
                     {

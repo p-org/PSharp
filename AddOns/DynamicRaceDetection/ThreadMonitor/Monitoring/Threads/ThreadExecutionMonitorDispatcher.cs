@@ -303,7 +303,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             {
                 foreach(Tuple<Method, int> m in TaskMethods)
                 {
-                    //TODO: This is fragile
+                    //TODO: This is fragile (for tasks)
                     if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
                         ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForTask(m.Item2);
