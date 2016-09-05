@@ -148,7 +148,19 @@ state SomeState {
 \end{psharpNoLines}
 
 \noindent
-The declaration \texttt{on Unit goto AnotherState} indicates that when the machine receives the \texttt{Unit} event in \texttt{SomeState}, it must handle the event by exiting the state and transitioning to \texttt{AnotherState}. The declaration \texttt{on Pong do SomeAction} indicates that the \texttt{Pong} event must be handled by invoking the action \texttt{SomeAction}. Each event can be associated with at most one handler in a particular state of a machine. \ps also supports \emph{anonymous} event-handlers. For example, the declaration \texttt{on Pong do} \{ ...\ \} is an anonymous event-handler, which states that the block of statements between the braces must be executed when event \texttt{Pong} is dequeued.
+The declaration \texttt{on Unit goto AnotherState} indicates that when the machine receives the \texttt{Unit} event in \texttt{SomeState}, it must handle \texttt{Unit} by exiting the state and transitioning to \texttt{AnotherState}. The declaration \texttt{on Pong do SomeAction} indicates that the \texttt{Pong} event must be handled by invoking the action \texttt{SomeAction}, and that the machine will remain in \texttt{SomeState}. \ps also supports \emph{anonymous} event-handlers. For example, the declaration \texttt{on Pong do} \{ ...\ \} is an anonymous event-handler, which states that the block of statements between the braces must be executed when event \texttt{Pong} is dequeued. Each event can be associated with at most one handler in a particular state of a machine. If a \ps machine is in a state \texttt{SomeState} and dequeues an event \texttt{SomeEvent}, but no event-handler is declared in \texttt{SomeState} for \texttt{SomeEvent}, then \ps will throw an appropriate exception.
+
+Besides the above event-handling declarations, \ps also provides the capability to \emph{defer} and \emph{ignore} events in a particular state:
+
+\begin{psharpNoLines}
+state SomeState {
+  defer Ping;
+  ignore Unit;
+}
+\end{psharpNoLines}
+
+\noindent
+The declaration \texttt{defer Ping} indicates that the \texttt{Ping} event should not be dequeued while the machine is in the state \texttt{SomeState}. Instead, the machine should skip over \texttt{Ping} (without dropping \texttt{Ping} from the queue) and dequeue the next event that is not being deferred. The declaration \texttt{ignore Unit} indicates that whenever \texttt{Unit} is dequeued while the machine is in \texttt{SomeState}, then the machine should drop \texttt{Unit} without invoking any action.
 
 \ps also supports specifying invariants (i.e.\ assertions) on the local state of a machine. The developer can achieve this by using the \texttt{assert} statement, which accepts as input a predicate that must always hold in that specific program point, e.g.\ \texttt{assert(k == 0)}, which holds if the integer \texttt{k} equals to 0.
 
