@@ -19,6 +19,43 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
+    /// Defines a goto state transition.
+    /// </summary>
+
+    internal sealed class GotoStateTransition : EventActionHandler
+    {
+        /// <summary>
+        /// Target state
+        /// </summary>
+        public Type TargetState;
+
+        /// <summary>
+        /// An optional lambda function,
+        /// which can execute after the default OnExit function of
+        /// the exiting state.
+        /// </summary>
+        public string Lambda;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GotoStateTransition(Type TargetState, string Lambda)
+        {
+            this.TargetState = TargetState;
+            this.Lambda = Lambda;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GotoStateTransition(Type TargetState)
+        {
+            this.TargetState = TargetState;
+            this.Lambda = null;
+        }
+    }
+
+    /// <summary>
     /// Defines a collection of goto state transitions.
     /// </summary>
     internal sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, string>>>

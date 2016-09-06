@@ -68,6 +68,7 @@
     <Compile Include="Library\Attributes\OnEventGotoState.cs" />
     <Compile Include="Library\Attributes\Hot.cs" />
     <Compile Include="Library\Attributes\Start.cs" />
+    <Compile Include="Library\EventHandlers\EventHandler.cs" />
     <Compile Include="Library\EventHandlers\EventWaitHandler.cs" />
     <Compile Include="Library\Events\Default.cs" />
     <Compile Include="Library\Events\EventOriginInfo.cs" />

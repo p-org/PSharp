@@ -19,6 +19,33 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
+    /// Defines an action binding.
+    /// </summary>
+    internal sealed class ActionBinding : EventActionHandler
+    {
+        /// <summary>
+        /// Name of the action
+        /// </summary>
+        public string Name;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ActionBinding(string ActionName)
+        {
+            Name = ActionName;
+        }
+
+    }
+
+    /// <summary>
+    /// Defines a skip action binding (for ignore)
+    /// </summary>
+    internal sealed class IgnoreAction : EventActionHandler
+    {
+    }
+
+    /// <summary>
     /// Defines a collection of action bindings.
     /// </summary>
     internal sealed class ActionBindings : IEnumerable<KeyValuePair<Type, string>>

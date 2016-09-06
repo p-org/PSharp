@@ -18,6 +18,27 @@ using System.Collections.Generic;
 
 namespace Microsoft.PSharp
 {
+
+    /// <summary>
+    /// Defines a push state transition.
+    /// </summary>
+
+    internal sealed class PushStateTransition : EventActionHandler
+    {
+        /// <summary>
+        /// Target state
+        /// </summary>
+        public Type TargetState;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public PushStateTransition(Type TargetState)
+        {
+            this.TargetState = TargetState;
+        }
+    }
+
     /// <summary>
     /// Defines a collection of push state transitions.
     /// </summary>
