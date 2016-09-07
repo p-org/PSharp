@@ -411,8 +411,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            this.StateStack.Pop();
-            this.ActionHandlerStack.Pop();
+            this.DoStatePop();
             
             if (this.CurrentState == null)
             {
@@ -847,8 +846,7 @@ namespace Microsoft.PSharp
                         return;
                     }
 
-                    this.StateStack.Pop();
-                    this.ActionHandlerStack.Pop();
+                    this.DoStatePop();
 
                     if (this.CurrentState == null)
                     {
@@ -950,8 +948,11 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         private bool CanHandleEvent(Type e)
         {
-            if (this.CurrentActionHandlerMap.ContainsKey(e) ||
-                e == typeof(GotoStateEvent))
+            if (e == typeof(GotoStateEvent) ||
+                this.CurrentActionHandlerMap.ContainsKey(e) ||
+                this.GotoTransitions.ContainsKey(e) ||
+                this.PushTransitions.ContainsKey(e) 
+                )
             {
                 return true;
             }
@@ -965,7 +966,9 @@ namespace Microsoft.PSharp
         /// <returns></returns>
         private bool HasDefaultHandler()
         {
-            return this.CurrentActionHandlerMap.ContainsKey(typeof(Default));
+            return this.CurrentActionHandlerMap.ContainsKey(typeof(Default)) ||
+                this.GotoTransitions.ContainsKey(typeof(Default)) ||
+                this.PushTransitions.ContainsKey(typeof(Default));
         }
 
         /// <summary>
@@ -982,16 +985,13 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            this.StateStack.Pop();
-            this.ActionHandlerStack.Pop();
+            this.DoStatePop();
             
             var nextState = StateMap[this.GetType()].First(val
                 => val.GetType().Equals(s));
-            var actionMap = this.ConfigureStateTransitions(nextState);
 
             // The machine transitions to the new state.
-            this.StateStack.Push(nextState);
-            this.ActionHandlerStack.Push(actionMap);
+            this.DoStatePush(nextState);
 
             // The machine performs the on entry action of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -1006,11 +1006,7 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<PushLog> Machine '{base.Id}' pushed.");
 
             var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
-            var actionMap = this.ConfigureStateTransitions(nextState);
-
-            // The machine transitions to the new state.
-            this.StateStack.Push(nextState);
-            this.ActionHandlerStack.Push(actionMap);
+            this.DoStatePush(nextState);
 
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -1074,11 +1070,30 @@ namespace Microsoft.PSharp
         #region state transitioning methods
 
         /// <summary>
-        /// Configures the state transitions of the machine.
+        /// Configures the state transitions of the machine when a state is popped.
+        /// </summary>
+        private void DoStatePop()
+        {
+            this.StateStack.Pop();
+            this.ActionHandlerStack.Pop();
+
+            if (this.StateStack.Count > 0)
+            {
+                this.GotoTransitions = this.StateStack.Peek().GotoTransitions;
+                this.PushTransitions = this.StateStack.Peek().PushTransitions;
+            }
+            else
+            {
+                this.GotoTransitions = null;
+                this.PushTransitions = null;
+            }
+        }
+
+        /// <summary>
+        /// Configures the state transitions of the machine when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        /// <returns>The new state transition map</returns>
-        private Dictionary<Type, EventActionHandler> ConfigureStateTransitions(MachineState state)
+        private void DoStatePush(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
@@ -1112,8 +1127,8 @@ namespace Microsoft.PSharp
                 eventHandlerMap.Remove(eventType);
             }
 
-
-            return eventHandlerMap;
+            this.StateStack.Push(state);
+            this.ActionHandlerStack.Push(eventHandlerMap);
         }
 
         /// <summary>
@@ -1363,9 +1378,8 @@ namespace Microsoft.PSharp
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Machine '{base.Id}' " +
                 "can not declare more than one start states.");
-            
-            this.StateStack.Push(initialStates.Single());
-            this.ActionHandlerStack.Push(this.ConfigureStateTransitions(initialStates.Single()));
+
+            this.DoStatePush(initialStates.Single());
 
             this.AssertStateValidity();
         }
