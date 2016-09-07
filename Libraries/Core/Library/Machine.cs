@@ -192,6 +192,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<EventInfo>();
             this.StateStack = new Stack<MachineState>();
+            this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, MethodInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
@@ -870,27 +871,23 @@ namespace Microsoft.PSharp
                     Type targetState = (e as GotoStateEvent).State;
                     this.GotoState(targetState, null);
                 }
-                // Checks if the event can trigger a goto state transition.
-                else
+                // Checks if the event can trigger an action.
+                else if (this.CurrentActionHandlerMap.ContainsKey(e.GetType()))
                 {
-                    var handler = this.CurrentActionHandlerMap[e.GetType()];
-                    if (handler is GotoStateTransition)
-                    {
-                        var transition = handler as GotoStateTransition;
-                        this.GotoState(transition.TargetState, transition.Lambda);
-                    }
-                    // Checks if the event can trigger a push state transition.
-                    else if (handler is PushStateTransition)
-                    {
-                        Type targetState = (handler as PushStateTransition).TargetState;
-                        this.PushState(targetState);
-                    }
-                    // Checks if the event can trigger an action.
-                    else if (handler is ActionBinding)
-                    {
-                        string actionName = (handler as ActionBinding).Name;
-                        this.Do(actionName);
-                    }
+                    var handler = this.CurrentActionHandlerMap[e.GetType()] as ActionBinding;
+                    this.Do(handler.Name);
+                }
+                // Checks if the event can trigger a goto state transition.
+                else if (this.GotoTransitions.ContainsKey(e.GetType()))
+                {
+                    var transition = this.GotoTransitions[e.GetType()];
+                    this.GotoState(transition.TargetState, transition.Lambda);
+                }
+                // Checks if the event can trigger a push state transition.
+                else if (this.PushTransitions.ContainsKey(e.GetType()))
+                {
+                    Type targetState = this.PushTransitions[e.GetType()].TargetState;
+                    this.PushState(targetState);
                 }
 
                 break;
@@ -1337,20 +1334,20 @@ namespace Microsoft.PSharp
 
                     foreach (var transition in state.GotoTransitions)
                     {
-                        if (transition.Value.Item2 != null &&
-                            !MachineActionMap[machineType].ContainsKey(transition.Value.Item2))
+                        if (transition.Value.Lambda != null &&
+                            !MachineActionMap[machineType].ContainsKey(transition.Value.Lambda))
                         {
-                            MachineActionMap[machineType].Add(transition.Value.Item2,
-                                this.GetActionWithName(transition.Value.Item2));
+                            MachineActionMap[machineType].Add(transition.Value.Lambda,
+                                this.GetActionWithName(transition.Value.Lambda));
                         }
                     }
 
                     foreach (var action in state.ActionBindings)
                     {
-                        if (!MachineActionMap[machineType].ContainsKey(action.Value))
+                        if (!MachineActionMap[machineType].ContainsKey(action.Value.Name))
                         {
-                            MachineActionMap[machineType].Add(action.Value,
-                                this.GetActionWithName(action.Value));
+                            MachineActionMap[machineType].Add(action.Value.Name,
+                                this.GetActionWithName(action.Value.Name));
                         }
                     }
                 }

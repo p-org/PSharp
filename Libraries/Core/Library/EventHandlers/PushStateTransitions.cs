@@ -23,7 +23,7 @@ namespace Microsoft.PSharp
     /// Defines a push state transition.
     /// </summary>
 
-    internal sealed class PushStateTransition : EventActionHandler
+    internal sealed class PushStateTransition 
     {
         /// <summary>
         /// Target state

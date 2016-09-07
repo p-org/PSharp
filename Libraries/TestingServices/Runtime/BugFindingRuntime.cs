@@ -1046,7 +1046,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = machine.GotoTransitions[eventInfo.EventType].Item1.Name;
+                destState = machine.GotoTransitions[eventInfo.EventType].TargetState.Name;
             }
             else
             {
