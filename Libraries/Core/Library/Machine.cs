@@ -1161,6 +1161,8 @@ namespace Microsoft.PSharp
                 if(deferredEvent.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
+                    eventHandlerMap[deferredEvent] = new DeferAction();
+                    break;
                 }
 
                 eventHandlerMap[deferredEvent] = new DeferAction();
@@ -1172,6 +1174,8 @@ namespace Microsoft.PSharp
                 if (actionBinding.Key.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
+                    eventHandlerMap[actionBinding.Key] = actionBinding.Value;
+                    break;
                 }
 
                 eventHandlerMap[actionBinding.Key] = actionBinding.Value;
@@ -1183,6 +1187,8 @@ namespace Microsoft.PSharp
                 if (ignoreEvent.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
+                    eventHandlerMap[ignoreEvent] = new IgnoreAction();
+                    break;
                 }
 
                 eventHandlerMap[ignoreEvent] = new IgnoreAction();
@@ -1194,6 +1200,7 @@ namespace Microsoft.PSharp
                 if(eventType.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
+                    break;
                 }
 
                 eventHandlerMap.Remove(eventType);
