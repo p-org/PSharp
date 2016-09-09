@@ -65,6 +65,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 this.CheckForDuplicateOnEntry(state, compilation);
                 this.CheckForDuplicateOnExit(state, compilation);
                 this.CheckForMultipleSameEventHandlers(state, compilation);
+                this.CheckForCorrectWildcardUse(state, compilation);
 
                 this.CheckForSpecialProperties(state, compilation);
             }
@@ -231,13 +232,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventGotoState") ||
                   model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventPushState") ||
-                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventDoAction") ||
-                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.IgnoreEvents") ||
-                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.DeferEvents")).
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventDoAction")).
                 Where(val => val.ArgumentList != null).
                 Where(val => val.ArgumentList.Arguments.Count > 0).
                 Where(val => val.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax).
                 Select(val => val.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax);
+
+            // Ignore and Defer take a set of arguments
+            var setEventTypes = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.IgnoreEvents") ||
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.DeferEvents")).
+                Where(val => val.ArgumentList != null).
+                Where(val => val.ArgumentList.Arguments.Count > 0).
+                SelectMany(val => val.ArgumentList.Arguments).
+                Where(val => val.Expression is TypeOfExpressionSyntax).
+                Select(val => val.Expression as TypeOfExpressionSyntax);
+
+            eventTypes = eventTypes.Concat(setEventTypes);
 
             var eventHandlers = eventTypes.
                 Where(val => val.Type is IdentifierNameSyntax).
@@ -257,6 +269,142 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                     "' cannot declare more than one handler for event '" + e.Key + "'."));
+            }
+        }
+
+        /// <summary>
+        /// Checks for correct wildcard usage.
+        /// If "defer *" then:
+        ///    no other event should be deferred
+        /// If "ignore *" or "on * do action" then:
+        ///    no other action or ignore should be defined
+        /// If "On * goto" or "On * push" then:
+        ///    no other transition, action or ignore should be defined
+        /// </summary>
+        /// <param name="state">State</param>
+        /// <param name="compilation">Compilation</param>
+        private void CheckForCorrectWildcardUse(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
+        {
+            var model = compilation.GetSemanticModel(state.SyntaxTree);
+
+            var ignoreTypes = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.IgnoreEvents")).
+                Where(val => val.ArgumentList != null).
+                Where(val => val.ArgumentList.Arguments.Count > 0).
+                SelectMany(val => val.ArgumentList.Arguments).
+                Where(val => val.Expression is TypeOfExpressionSyntax).
+                Select(val => val.Expression as TypeOfExpressionSyntax);
+
+            var deferTypes = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.DeferEvents")).
+                Where(val => val.ArgumentList != null).
+                Where(val => val.ArgumentList.Arguments.Count > 0).
+                SelectMany(val => val.ArgumentList.Arguments).
+                Where(val => val.Expression is TypeOfExpressionSyntax).
+                Select(val => val.Expression as TypeOfExpressionSyntax);
+
+            var actionTypes = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventDoAction")).
+                Where(val => val.ArgumentList != null).
+                Where(val => val.ArgumentList.Arguments.Count > 0).
+                Where(val => val.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax).
+                Select(val => val.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax);
+
+            var transitionTypes = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventGotoState") ||
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventPushState")).
+                Where(val => val.ArgumentList != null).
+                Where(val => val.ArgumentList.Arguments.Count > 0).
+                Where(val => val.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax).
+                Select(val => val.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax);
+
+            var ConvertToStringSet = new Func<IEnumerable<TypeOfExpressionSyntax>, HashSet<string>>(ls =>
+            {
+                var eventHandlers = new HashSet<string>(ls.
+                    Where(val => val.Type is IdentifierNameSyntax).
+                    Select(val => val.Type as IdentifierNameSyntax).
+                    Select(val => val.ToFullString()));
+
+                eventHandlers.UnionWith(ls.
+                    Where(val => val.Type is QualifiedNameSyntax).
+                    Select(val => val.Type as QualifiedNameSyntax).
+                    Select(val => val.ToFullString()));
+
+                return eventHandlers;
+            });
+
+            var ignoredEvents = ConvertToStringSet(ignoreTypes);
+            var deferredEvents = ConvertToStringSet(deferTypes);
+            var actionEvents = ConvertToStringSet(actionTypes);
+            var transitionEvents = ConvertToStringSet(transitionTypes);
+
+            var IsWildCard = new Func<string, bool>(s => s == "WilCardEvent" || s == "Microsoft.PSharp.WildCardEvent");
+            var HasWildCard = new Func<HashSet<string>, bool>(set => set.Contains("WildCardEvent") || 
+              set.Contains("Microsoft.PSharp.WildCardEvent"));
+
+            if(HasWildCard(deferredEvents))
+            {
+                foreach (var e in deferredEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot defer other event '" + e + "' when deferring the wildcard event."));
+                }
+            }
+
+            if (HasWildCard(ignoredEvents))
+            {
+                foreach (var e in ignoredEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot ignore other event '" + e + "' when ignoring the wildcard event."));
+                }
+
+                foreach(var e in actionEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot define action on '" + e + "' when ignoring the wildcard event."));
+                }
+            }
+
+            if(HasWildCard(actionEvents))
+            {
+                foreach (var e in ignoredEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot ignore other event '" + e + "' when defining an action on the wildcard event."));
+                }
+
+                foreach (var e in actionEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot define action on '" + e + "' when defining an action on the wildcard event."));
+                }
+            }
+
+            if (HasWildCard(transitionEvents))
+            {
+                foreach (var e in ignoredEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot ignore other event '" + e + "' when defining a transition on the wildcard event."));
+                }
+
+                foreach (var e in actionEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot define action on '" + e + "' when defining a transition on the wildcard event."));
+                }
+
+                foreach (var e in transitionEvents.Where(s => !IsWildCard(s)))
+                {
+                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                        "' cannot define a transition on '" + e + "' when defining a transition on the wildcard event."));
+                }
+
             }
         }
 
