@@ -26,7 +26,7 @@ def testSamples():
     for sample in Samples.psharpAsLibrary:
         print("... Testing '" + sample + "'")
         tool = subprocess.Popen([Options.ToolPath, "/test:" + Options.psharpAsLibraryPath + os.path.sep + sample + ".dll",
-                                 "/i:3"],
+                                 "/i:3", "/max-steps:1000"],
             stdout=subprocess.PIPE, shell=True)
         out, err = tool.communicate()
         print(out)
@@ -38,7 +38,7 @@ def testSamples():
     for sample in Samples.psharpAsLanguage:
         print("... Testing '" + sample + "'")
         tool = subprocess.Popen([Options.ToolPath, "/test:" + Options.psharpAsLanguagePath + os.path.sep + sample + ".dll",
-                                 "/i:3"],
+                                 "/i:3", "/max-steps:1000"],
             stdout=subprocess.PIPE, shell=True)
         out, err = tool.communicate()
         print(out)
