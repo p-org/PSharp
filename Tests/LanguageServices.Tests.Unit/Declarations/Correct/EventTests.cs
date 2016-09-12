@@ -286,5 +286,6 @@ public class e3 : Event
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
+
     }
 }
