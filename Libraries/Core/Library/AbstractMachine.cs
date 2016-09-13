@@ -41,6 +41,21 @@ namespace Microsoft.PSharp
         /// </summary>
         internal int OperationId { get; private set; }
 
+        /// <summary>
+        /// Is the machine executing an OnExit method
+        /// </summary>
+        internal bool InsideOnExit;
+
+        /// <summary>
+        /// Is the machine executing an OnEntry method
+        /// </summary>
+        internal bool InsideOnEntry;
+
+        /// <summary>
+        /// Did the current machine action call Raise/Goto/Pop (RGP)?
+        /// </summary>
+        internal bool CurrentActionCalledRGP;
+
         #endregion
 
         #region generic public and override methods
@@ -51,6 +66,9 @@ namespace Microsoft.PSharp
         public AbstractMachine()
         {
             this.OperationId = 0;
+            this.CurrentActionCalledRGP = false;
+            this.InsideOnEntry = false;
+            this.InsideOnExit = false;
         }
 
         /// <summary>
@@ -128,6 +146,19 @@ namespace Microsoft.PSharp
             return false;
         }
 
+
+        /// <summary>
+        /// Asserts that a Raise/Goto/Pop hasn't already been called.
+        /// Records that RGP has been called
+        /// </summary>
+        internal void AssertSingleRGPperAction()
+        {
+            //Runtime.Assert(!this.InsideOnEntry, "Machine {0} has called raise/goto/pop inside an OnEntry method", this.Id.Name);
+            Runtime.Assert(!this.InsideOnExit, "Machine {0} has called raise/goto/pop inside an OnExit method", this.Id.Name);
+            Runtime.Assert(!this.CurrentActionCalledRGP, "Machine {0} has called multiple raise/goto/pop in the same action", this.Id.Name);
+
+            this.CurrentActionCalledRGP = true;
+        }
         #endregion
     }
 }

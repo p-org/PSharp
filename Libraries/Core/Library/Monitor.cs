@@ -271,6 +271,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
+            this.CurrentActionCalledRGP = false;
+
             // Do not process an ignored event.
             if (this.IgnoredEvents.Contains(e.GetType()))
             {
@@ -429,6 +431,7 @@ namespace Microsoft.PSharp
 
             try
             {
+                this.InsideOnEntry = true;
                 // Invokes the entry action of the new state,
                 // if there is one available.
                 entryAction?.Invoke(this, null);
@@ -451,6 +454,10 @@ namespace Microsoft.PSharp
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
+            finally
+            {
+                this.InsideOnEntry = false;
+            }
         }
 
         /// <summary>
@@ -470,6 +477,7 @@ namespace Microsoft.PSharp
 
             try
             {
+                this.InsideOnExit = true;
                 // Invokes the exit action of the current state,
                 // if there is one available.
                 exitAction?.Invoke(this, null);
@@ -499,6 +507,10 @@ namespace Microsoft.PSharp
 
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
+            }
+            finally
+            {
+                this.InsideOnExit = false;
             }
         }
 

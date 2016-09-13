@@ -820,6 +820,15 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Notifies that a machine called Pop.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal override void NotifyPop(AbstractMachine machine)
+        {
+            machine.AssertSingleRGPperAction();
+        }
+
+        /// <summary>
         /// Notifies that a machine raised an event.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
@@ -828,6 +837,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo,
             bool isStarter)
         {
+            machine.AssertSingleRGPperAction();
+
             if (machine is Machine)
             {
                 this.SetOperationIdForEvent(eventInfo, machine, isStarter);

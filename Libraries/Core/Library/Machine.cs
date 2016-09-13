@@ -395,6 +395,8 @@ namespace Microsoft.PSharp
         /// </summary>
         protected void Pop()
         {
+            this.Runtime.NotifyPop(this);
+
             // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(null);
             if (this.IsHalted)
@@ -801,6 +803,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
+            this.CurrentActionCalledRGP = false;
+
             while (true)
             {
                 if (this.CurrentState == null)
@@ -1127,6 +1131,8 @@ namespace Microsoft.PSharp
 
             try
             {
+                this.InsideOnEntry = true;
+
                 // Invokes the entry action of the new state,
                 // if there is one available.
                 if (entryAction != null)
@@ -1172,6 +1178,10 @@ namespace Microsoft.PSharp
                     this.ReportGenericAssertion(innerException);
                 }
             }
+            finally
+            {
+                this.InsideOnEntry = false;
+            }
         }
 
         /// <summary>
@@ -1191,6 +1201,8 @@ namespace Microsoft.PSharp
 
             try
             {
+                this.InsideOnExit = true;
+
                 // Invokes the exit action of the current state,
                 // if there is one available.
                 if (exitAction != null)
@@ -1244,6 +1256,10 @@ namespace Microsoft.PSharp
                     // Handles generic exception.
                     this.ReportGenericAssertion(innerException);
                 }
+            }
+            finally
+            {
+                this.InsideOnExit = false;
             }
         }
 
