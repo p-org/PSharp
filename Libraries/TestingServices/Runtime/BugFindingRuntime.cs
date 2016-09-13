@@ -312,6 +312,10 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
+            if (creator != null)
+            {
+                creator.AssertNoPendingRGP("CreateMachine");
+            }
 
             MachineId mid = new MachineId(type, friendlyName, this);
 
@@ -399,6 +403,11 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
+            if (creator != null)
+            {
+                creator.AssertNoPendingRGP("CreateRemoteMachine");
+            }
+
             return this.TryCreateMachine(creator, type, friendlyName, e);
         }
 
@@ -482,6 +491,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="isStarter">Is starting a new operation</param>
         internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
+            if (sender != null)
+            {
+                sender.AssertNoPendingRGP("Send");
+            }
+
             EventOriginInfo originInfo = null;
             if (sender != null && sender is Machine)
             {
@@ -594,6 +608,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         internal override void Monitor<T>(AbstractMachine sender, Event e)
         {
+            if (sender != null)
+            {
+                sender.AssertNoPendingRGP("Monitor");
+            }
+
             foreach (var m in this.Monitors)
             {
                 if (m.GetType() == typeof(T))
@@ -613,6 +632,11 @@ namespace Microsoft.PSharp.TestingServices
         internal override bool GetNondeterministicBooleanChoice(
             AbstractMachine machine, int maxValue)
         {
+            if (machine != null)
+            {
+                machine.AssertNoPendingRGP("Random");
+            }
+
             var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(maxValue);
             if (machine != null)
             {
@@ -639,6 +663,11 @@ namespace Microsoft.PSharp.TestingServices
         internal override bool GetFairNondeterministicBooleanChoice(
             AbstractMachine machine, string uniqueId)
         {
+            if (machine != null)
+            {
+                machine.AssertNoPendingRGP("FairRandom");
+            }
+
             var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(2, uniqueId);
             if (machine != null)
             {
@@ -665,6 +694,11 @@ namespace Microsoft.PSharp.TestingServices
         internal override int GetNondeterministicIntegerChoice(
             AbstractMachine machine, int maxValue)
         {
+            if (machine != null)
+            {
+                machine.AssertNoPendingRGP("RandomInteger");
+            }
+
             var choice = this.BugFinder.GetNextNondeterministicIntegerChoice(maxValue);
             if (machine != null)
             {
@@ -825,7 +859,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">AbstractMachine</param>
         internal override void NotifyPop(AbstractMachine machine)
         {
-            machine.AssertSingleRGPperAction();
+            machine.AssertCorrectRGPInvocation();
         }
 
         /// <summary>
@@ -837,7 +871,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo,
             bool isStarter)
         {
-            machine.AssertSingleRGPperAction();
+            machine.AssertCorrectRGPInvocation();
 
             if (machine is Machine)
             {
@@ -865,6 +899,15 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
                     $"event '{eventInfo.EventName}'.");
             }
+        }
+
+        /// <summary>
+        /// Notifies that a machine called Receive
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal override void NotifyReceiveCalled(AbstractMachine machine)
+        {
+            machine.AssertNoPendingRGP("Receive");
         }
 
         /// <summary>

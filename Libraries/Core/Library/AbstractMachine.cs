@@ -151,13 +151,21 @@ namespace Microsoft.PSharp
         /// Asserts that a Raise/Goto/Pop hasn't already been called.
         /// Records that RGP has been called
         /// </summary>
-        internal void AssertSingleRGPperAction()
+        internal void AssertCorrectRGPInvocation()
         {
             //Runtime.Assert(!this.InsideOnEntry, "Machine {0} has called raise/goto/pop inside an OnEntry method", this.Id.Name);
-            Runtime.Assert(!this.InsideOnExit, "Machine {0} has called raise/goto/pop inside an OnExit method", this.Id.Name);
-            Runtime.Assert(!this.CurrentActionCalledRGP, "Machine {0} has called multiple raise/goto/pop in the same action", this.Id.Name);
+            Runtime.Assert(!this.InsideOnExit, "Machine '{0}' has called raise/goto/pop inside an OnExit method.", this.Id.Name);
+            Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' has called multiple raise/goto/pop in the same action.", this.Id.Name);
 
             this.CurrentActionCalledRGP = true;
+        }
+
+        /// <summary>
+        /// Asserts that a Raise/Goto/Pop hasn't already been called.
+        /// </summary>
+        internal void AssertNoPendingRGP(string calledAPI)
+        {
+            Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' cannot call API '{1}' after calling raise/goto/pop in the same action.", this.Id.Name, calledAPI);
         }
         #endregion
     }
