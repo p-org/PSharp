@@ -152,7 +152,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.Verbose = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 3;
-            
+            configuration.SchedulingIterations = 10000;
+
             var engine = TestingEngineFactory.CreateBugFindingEngine(
                 configuration, TestProgram.Execute);
             engine.Run();

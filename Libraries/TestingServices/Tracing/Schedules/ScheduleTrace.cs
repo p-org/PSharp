@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <param name="scheduledMachine">Scheduled machine</param>
         internal void AddSchedulingChoice(AbstractMachine scheduledMachine)
         {
-            var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count, scheduledMachine);
+            var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count, scheduledMachine.Id);
             this.Push(scheduleStep);
         }
 

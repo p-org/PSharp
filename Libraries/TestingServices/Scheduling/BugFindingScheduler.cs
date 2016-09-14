@@ -119,6 +119,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.Stop();
             }
 
+            // Filter away machines that are halted
+            var runningMachines = new List<MachineInfo>(this.MachineInfos.Where(mi => !mi.IsCompleted));
+            this.MachineInfos = new ConcurrentBag<MachineInfo>(runningMachines);
+
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached(false);
 
@@ -269,14 +273,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Returns the enabled machines.
         /// </summary>
         /// <returns>Enabled machines</returns>
-        internal HashSet<AbstractMachine> GetEnabledMachines()
+        internal HashSet<MachineId> GetEnabledMachines()
         {
-            var enabledMachines = new HashSet<AbstractMachine>();
+            var enabledMachines = new HashSet<MachineId>();
             foreach (var machineInfo in this.MachineInfos)
             {
                 if (machineInfo.IsEnabled)
                 {
-                    enabledMachines.Add(machineInfo.Machine);
+                    enabledMachines.Add(machineInfo.Machine.Id);
                 }
             }
 
@@ -389,6 +393,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             IO.Debug($"<ScheduleDebug> Exit task '{machineInfo.Id}' of machine " +
                 $"'{machineInfo.Machine.Id}'.");
+
+            while(!this.TaskMap.TryRemove((int)id, out machineInfo));
         }
 
         /// <summary>

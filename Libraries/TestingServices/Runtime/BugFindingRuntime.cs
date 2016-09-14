@@ -926,7 +926,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.BugTrace.AddHaltStep(machine.Id, null);
             IO.Log($"<HaltLog> Machine '{machine.Id}' halted.");
-            //this.MachineMap.TryRemove(machine.Id.Value, out machine);
+            this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 
         /// <summary>

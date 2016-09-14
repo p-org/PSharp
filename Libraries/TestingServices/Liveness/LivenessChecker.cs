@@ -244,7 +244,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 if (x.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    IO.Debug($"{x.Index} :: {x.Type} :: {x.ScheduledMachine.Id} :: {this.Runtime.StateCache[x].Fingerprint}");
+                    IO.Debug($"{x.Index} :: {x.Type} :: {x.ScheduledMachine} :: {this.Runtime.StateCache[x].Fingerprint}");
                 }
                 else if (x.BooleanChoice != null)
                 {
@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    IO.Debug($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachine.Id}");
+                    IO.Debug($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachine}");
                 }
                 else if (x.Item1.BooleanChoice != null)
                 {
@@ -340,8 +340,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         {
             var result = false;
 
-            var enabledMachines = new HashSet<AbstractMachine>();
-            var scheduledMachines = new HashSet<AbstractMachine>();
+            var enabledMachines = new HashSet<MachineId>();
+            var scheduledMachines = new HashSet<MachineId>();
 
             var schedulingChoiceSteps= cycle.Where(
                 val => val.Item1.Type == ScheduleStepType.SchedulingChoice);
@@ -498,7 +498,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
                 }
 
-                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachine.Id}'.");
+                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachine}'.");
 
                 next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
                     nextStep.ScheduledMachineType) &&

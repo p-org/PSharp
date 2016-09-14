@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// The scheduled machine. Only relevant if this is
         /// a regular schedule step.
         /// </summary>
-        internal AbstractMachine ScheduledMachine;
+        internal MachineId ScheduledMachine;
 
         /// <summary>
         /// The scheduled machine type. Only relevant if this is
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <param name="index">Index</param>
         /// <param name="scheduledMachine">Scheduled machine</param>
         /// <returns>ScheduleStep</returns>
-        internal static ScheduleStep CreateSchedulingChoice(int index, AbstractMachine scheduledMachine)
+        internal static ScheduleStep CreateSchedulingChoice(int index, MachineId scheduledMachine)
         {
             var scheduleStep = new ScheduleStep();
 
@@ -95,8 +95,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Type = ScheduleStepType.SchedulingChoice;
 
             scheduleStep.ScheduledMachine = scheduledMachine;
-            scheduleStep.ScheduledMachineType = scheduledMachine.Id.Type;
-            scheduleStep.ScheduledMachineId = scheduledMachine.Id.Value;
+            scheduleStep.ScheduledMachineType = scheduledMachine.Type;
+            scheduleStep.ScheduledMachineId = scheduledMachine.Value;
 
             scheduleStep.BooleanChoice = null;
             scheduleStep.IntegerChoice = null;
