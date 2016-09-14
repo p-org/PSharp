@@ -145,8 +145,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 this.CGraph.Clear();
                 this.AllThreadTraces.Clear();
             }
-
-            //Directory.Delete(directoryPath, true);
         }
 
         /// <summary>
@@ -476,7 +474,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         SendEvent sendNode = (SendEvent)n;
                         CActBegin beginNode = (CActBegin)n1;
                         if (sendNode.ToMachine == beginNode.MachineId &&
-                            sendNode.SendEventId == beginNode.EventId)
+                            sendNode.SendEventId == beginNode.EventId &&
+                            sendNode.SendEventName.Equals(beginNode.EventName))
                         {
                             this.CGraph.AddEdge(new Edge(sendNode, beginNode));
                             for(int i = 0; i < this.VcCount; i++)
