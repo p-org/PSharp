@@ -51,13 +51,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// The send event.
         /// </summary>
         [DataMember]
-        public string EventName { get; private set; }
+        public string SendEventName { get; private set; }
 
         /// <summary>
         /// The send event.
         /// </summary>
         [DataMember]
         public int EventId { get; private set; }
+
+        /// <summary>
+        /// Received event being handled
+        /// </summary>
+        public string EventName { get; private set; }
 
         /// <summary>
         /// The send id.
@@ -131,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 
             actionInfo.MachineId = mid.Value;
             actionInfo.TargetMachineId = targetMachineId.Value;
-            actionInfo.EventName = e.GetType().FullName;
+            actionInfo.SendEventName = e.GetType().FullName;
             actionInfo.EventId = e.GetHashCode();
             actionInfo.SendId = sendId;
 
