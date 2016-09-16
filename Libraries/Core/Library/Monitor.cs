@@ -431,7 +431,6 @@ namespace Microsoft.PSharp
 
             try
             {
-                this.InsideOnEntry = true;
                 // Invokes the entry action of the new state,
                 // if there is one available.
                 entryAction?.Invoke(this, null);
@@ -453,10 +452,6 @@ namespace Microsoft.PSharp
 
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
-            }
-            finally
-            {
-                this.InsideOnEntry = false;
             }
         }
 
