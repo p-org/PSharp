@@ -34,6 +34,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
     {
         #region fields
 
+        private Profiler Profiler;
+
         /// <summary>
         /// The P# configuration.
         /// </summary>
@@ -60,6 +62,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
             this.AllThreadTraces = new List<ThreadTrace>();
             this.CGraph = new BidirectionalGraph<Node, Edge>();
+            Profiler = new Profiler();
         }
 
         /// <summary>
@@ -75,6 +78,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 "RuntimeTraces" + Path.DirectorySeparatorChar;
             string threadTraceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
                 "ThreadTraces" + Path.DirectorySeparatorChar;
+
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StartMeasuringExecutionTime();
+            }
 
             string[] fileEntries = Directory.GetFiles(threadTraceDirectoryPath, "*");
             int NumberOfIterations = 0;
@@ -137,11 +145,50 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 }
 
                 this.UpdateGraphCrossEdges();
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Graph construction runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
 
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StartMeasuringExecutionTime();
+                }
+                //Console.WriteLine("before pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
                 this.PruneGraph();
-                this.UpdateVectorsT();
+                //Console.WriteLine("after pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Graph prune runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
 
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StartMeasuringExecutionTime();
+                }
+                this.UpdateVectorsT();
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Topological sort runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
+
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StartMeasuringExecutionTime();
+                }
                 this.DetectRacesFast();
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Race detection runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
 
                 this.CGraph.Clear();
                 this.AllThreadTraces.Clear();
@@ -221,7 +268,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         //TODO: check correctness
                         //In case entry and exit functions not defined.   
                         //IO.PrintLine("Skipping entry/exit actions: " + mt.MachineId + " " + mt.ActionId + " " + mt.ActionName);          
-                        Console.WriteLine("CAUGHT: " + info.MachineId + " " + info.ActionId);
                         continue;
                     }
 
