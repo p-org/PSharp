@@ -28,8 +28,6 @@ namespace Microsoft.PSharp
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
-            System.Diagnostics.Debugger.Launch();
-
             // Parses the command line options to get the configuration.
             var configuration = new ReplayerCommandLineOptions(args).Parse();
 
