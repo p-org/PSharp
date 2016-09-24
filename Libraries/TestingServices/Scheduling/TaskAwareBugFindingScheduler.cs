@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached(true);
 
-            foreach (var task in base.MachineInfos.Where(val => val.IsBlocked))
+            foreach (var task in base.TaskMap.Values.Where(val => val.IsBlocked))
             {
                 foreach (var userTask in this.UserTasks.Where(val => val.IsCompleted))
                 {
@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             MachineInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
+            if (!this.Strategy.TryGetNext(out next, this.TaskMap.Values, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
@@ -189,12 +189,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IO.Debug($"<ScheduleDebug> Created task '{machineInfo.Id}' for machine " +
                 $"'{machineInfo.Machine.Id}'.");
 
-            if (base.MachineInfos.Count == 0)
+            if (base.TaskMap.Count == 0)
             {
                 machineInfo.IsActive = true;
             }
 
-            base.MachineInfos.Add(machineInfo);
             base.TaskMap.TryAdd(id, machineInfo);
 
             if (machine is TaskMachine)
@@ -304,7 +303,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             machineInfo.IsEnabled = false;
             machineInfo.IsCompleted = true;
 
-            foreach (var mi in base.MachineInfos.Where(val => val.IsBlocked))
+            foreach (var mi in base.TaskMap.Values.Where(val => val.IsBlocked))
             {
                 if (mi.BlockingWrappedTasks.Contains(machineInfo))
                 {
@@ -324,6 +323,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             IO.Debug($"<ScheduleDebug> Exit task '{machineInfo.Id}' of machine " +
                 $"'{machineInfo.Machine.Id}'.");
+
+            while (!base.TaskMap.TryRemove((int)id, out machineInfo)) ;
         }
 
         #endregion
