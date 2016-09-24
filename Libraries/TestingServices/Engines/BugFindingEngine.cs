@@ -618,7 +618,7 @@ namespace Microsoft.PSharp.TestingServices
                     Append(Environment.NewLine);
             }
 
-            if(base.Configuration.TestMethodName != "")
+            if (!base.Configuration.TestMethodName.Equals(""))
             {
                 stringBuilder.Append("--test-method:" + 
                     base.Configuration.TestMethodName).
