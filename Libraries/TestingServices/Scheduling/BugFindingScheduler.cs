@@ -383,7 +383,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IO.Debug($"<ScheduleDebug> Exit task '{machineInfo.Id}' of machine " +
                 $"'{machineInfo.Machine.Id}'.");
 
-            while (!this.TaskMap.TryRemove((int)id, out machineInfo));
+            this.TaskMap.TryRemove((int)id, out machineInfo);
         }
 
         /// <summary>
