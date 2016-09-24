@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 base.Stop();
             }
 
-            base.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
+            base.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
 
             // Checks the liveness monitors for potential liveness bugs.
             base.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();

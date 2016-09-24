@@ -32,22 +32,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         internal ScheduleStepType Type { get; private set; }
 
         /// <summary>
-        /// The scheduled machine. Only relevant if this is
-        /// a regular schedule step.
-        /// </summary>
-        internal MachineId ScheduledMachine;
-
-        /// <summary>
-        /// The scheduled machine type. Only relevant if this is
-        /// a regular schedule step.
-        /// </summary>
-        internal string ScheduledMachineType;
-
-        /// <summary>
         /// The scheduled machine id. Only relevant if this is
         /// a regular schedule step.
         /// </summary>
-        internal int ScheduledMachineId;
+        internal MachineId ScheduledMachineId;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
@@ -85,44 +73,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// Creates a schedule step.
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="scheduledMachine">Scheduled machine</param>
-        /// <returns>ScheduleStep</returns>
-        internal static ScheduleStep CreateSchedulingChoice(int index, MachineId scheduledMachine)
-        {
-            var scheduleStep = new ScheduleStep();
-
-            scheduleStep.Index = index;
-            scheduleStep.Type = ScheduleStepType.SchedulingChoice;
-
-            scheduleStep.ScheduledMachine = scheduledMachine;
-            scheduleStep.ScheduledMachineType = scheduledMachine.Type;
-            scheduleStep.ScheduledMachineId = scheduledMachine.Value;
-
-            scheduleStep.BooleanChoice = null;
-            scheduleStep.IntegerChoice = null;
-
-            scheduleStep.Previous = null;
-            scheduleStep.Next = null;
-
-            return scheduleStep;
-        }
-
-        /// <summary>
-        /// Creates a schedule step.
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="scheduledMachineType">Scheduled machine type</param>
         /// <param name="scheduledMachineId">Scheduled machine id</param>
         /// <returns>ScheduleStep</returns>
-        internal static ScheduleStep CreateSchedulingChoice(int index, string scheduledMachineType,
-            int scheduledMachineId)
+        internal static ScheduleStep CreateSchedulingChoice(int index, MachineId scheduledMachineId)
         {
             var scheduleStep = new ScheduleStep();
 
             scheduleStep.Index = index;
             scheduleStep.Type = ScheduleStepType.SchedulingChoice;
 
-            scheduleStep.ScheduledMachineType = scheduledMachineType;
             scheduleStep.ScheduledMachineId = scheduledMachineId;
 
             scheduleStep.BooleanChoice = null;

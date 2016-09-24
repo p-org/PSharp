@@ -623,8 +623,8 @@ namespace Microsoft.PSharp.TestingServices
                 ScheduleStep step = runtime.ScheduleTrace[idx];
                 if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    stringBuilder.Append($"{step.ScheduledMachine.Type}" +
-                        $"({step.ScheduledMachine.Value})");
+                    stringBuilder.Append($"{step.ScheduledMachineId.Type}" +
+                        $"({step.ScheduledMachineId.Value})");
                 }
                 else if (step.BooleanChoice != null)
                 {

@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.Stop();
             }
 
-            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
+            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
             
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)

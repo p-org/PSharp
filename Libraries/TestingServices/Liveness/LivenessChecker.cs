@@ -244,7 +244,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 if (x.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    IO.Debug($"{x.Index} :: {x.Type} :: {x.ScheduledMachine} :: {this.Runtime.StateCache[x].Fingerprint}");
+                    IO.Debug($"{x.Index} :: {x.Type} :: {x.ScheduledMachineId} :: {this.Runtime.StateCache[x].Fingerprint}");
                 }
                 else if (x.BooleanChoice != null)
                 {
@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    IO.Debug($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachine}");
+                    IO.Debug($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
                 }
                 else if (x.Item1.BooleanChoice != null)
                 {
@@ -347,7 +347,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 val => val.Item1.Type == ScheduleStepType.SchedulingChoice);
             foreach (var step in schedulingChoiceSteps)
             {
-                scheduledMachines.Add(step.Item1.ScheduledMachine);
+                scheduledMachines.Add(step.Item1.ScheduledMachineId);
                 enabledMachines.UnionWith(step.Item2.EnabledMachines);
             }
 
@@ -498,15 +498,15 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
                 }
 
-                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachine}'.");
+                IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachineId}'.");
 
                 next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
-                    nextStep.ScheduledMachineType) &&
-                    m.Machine.Id.Value == nextStep.ScheduledMachineId);
+                    nextStep.ScheduledMachineId.Type) &&
+                    m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
                 if (next == null)
                 {
                     IO.Debug("<LivenessDebug> Trace is not reproducible: cannot detect machine with type " +
-                        $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
+                        $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.");
                     this.EscapeCycle();
                     return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
                 }
