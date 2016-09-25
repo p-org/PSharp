@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DeferAction.cs">
+// <copyright file="PushStateTransition.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,13 +12,29 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Microsoft.PSharp
 {
-    /// <summary>
-    /// Defines a defer action.
-    /// </summary>
-    internal sealed class DeferAction : EventActionHandler
-    {
 
+    /// <summary>
+    /// Defines a push state transition.
+    /// </summary>
+    internal sealed class PushStateTransition 
+    {
+        /// <summary>
+        /// Target state.
+        /// </summary>
+        public Type TargetState;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public PushStateTransition(Type TargetState)
+        {
+            this.TargetState = TargetState;
+        }
     }
 }

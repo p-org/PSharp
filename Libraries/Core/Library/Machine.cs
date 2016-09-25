@@ -65,12 +65,12 @@ namespace Microsoft.PSharp
         private Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
 
         /// <summary>
-        /// Dictionary containing all the goto state transitions.
+        /// Dictionary containing all the current goto state transitions.
         /// </summary>
         internal Dictionary<Type, GotoStateTransition> GotoTransitions;
 
         /// <summary>
-        /// Dictionary containing all the push state transitions.
+        /// Dictionary containing all the current push state transitions.
         /// </summary>
         internal Dictionary<Type, PushStateTransition> PushTransitions;
 

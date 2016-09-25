@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DeferAction.cs">
+// <copyright file="ActionBinding.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,10 +15,21 @@
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Defines a defer action.
+    /// Defines an action binding.
     /// </summary>
-    internal sealed class DeferAction : EventActionHandler
+    internal sealed class ActionBinding : EventActionHandler
     {
+        /// <summary>
+        /// Name of the action.
+        /// </summary>
+        public string Name;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ActionBinding(string ActionName)
+        {
+            Name = ActionName;
+        }
     }
 }

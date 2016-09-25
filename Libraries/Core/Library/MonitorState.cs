@@ -38,12 +38,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Dictionary containing all the goto state transitions.
         /// </summary>
-        internal GotoStateTransitions GotoTransitions;
+        internal Dictionary<Type, GotoStateTransition> GotoTransitions;
 
         /// <summary>
         /// Dictionary containing all the action bindings.
         /// </summary>
-        internal ActionBindings ActionBindings;
+        internal Dictionary<Type, ActionBinding> ActionBindings;
 
         /// <summary>
         /// Set of ignored event types.
@@ -83,8 +83,8 @@ namespace Microsoft.PSharp
             this.IsHot = false;
             this.IsCold = false;
 
-            this.GotoTransitions = new GotoStateTransitions();
-            this.ActionBindings = new ActionBindings();
+            this.GotoTransitions = new Dictionary<Type, GotoStateTransition>();
+            this.ActionBindings = new Dictionary<Type, ActionBinding>();
 
             this.IgnoredEvents = new HashSet<Type>();
 
@@ -110,17 +110,17 @@ namespace Microsoft.PSharp
             {
                 if (attr.Action == null)
                 {
-                    this.GotoTransitions.Add(attr.Event, attr.State);
+                    this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State));
                 }
                 else
                 {
-                    this.GotoTransitions.Add(attr.Event, attr.State, attr.Action);
+                    this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State, attr.Action));
                 }
             }
 
             foreach (var attr in doAttributes)
             {
-                this.ActionBindings.Add(attr.Event, attr.Action);
+                this.ActionBindings.Add(attr.Event, new ActionBinding(attr.Action));
             }
 
             var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
