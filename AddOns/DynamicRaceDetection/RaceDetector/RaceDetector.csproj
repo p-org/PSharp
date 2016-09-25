@@ -121,8 +121,8 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>"$(FrameworkSDKDIR)\bin\NETFX 4.6 Tools\gacutil" /i D:\MyProjects\Microsoft.ExtendedReflection.dll"
-regsvr32 /s "D:\MyProjects\Microsoft.ExtendedReflection.ClrMonitor.X86.dll"
+    <PostBuildEvent>"$(FrameworkSDKDIR)\bin\NETFX 4.6 Tools\gacutil" /i $(SolutionDir)\ExtendedReflection\Microsoft.ExtendedReflection.dll"
+regsvr32 /s "$(SolutionDir)\ExtendedReflection\Microsoft.ExtendedReflection.ClrMonitor.X86.dll"
 
 </PostBuildEvent>
   </PropertyGroup>

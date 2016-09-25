@@ -41,6 +41,17 @@ namespace Microsoft.PSharp
         /// </summary>
         internal int OperationId { get; private set; }
 
+        /// <summary>
+        /// Checks if the machine is executing an OnExit method.
+        /// </summary>
+        internal bool InsideOnExit;
+
+        /// <summary>
+        /// Checks if the current machine action called
+        /// Raise/Goto/Pop (RGP).
+        /// </summary>
+        internal bool CurrentActionCalledRGP;
+
         #endregion
 
         #region generic public and override methods
@@ -51,6 +62,8 @@ namespace Microsoft.PSharp
         public AbstractMachine()
         {
             this.OperationId = 0;
+            this.InsideOnExit = false;
+            this.CurrentActionCalledRGP = false;
         }
 
         /// <summary>
@@ -126,6 +139,30 @@ namespace Microsoft.PSharp
         internal virtual bool IsOperationPending(int opid)
         {
             return false;
+        }
+
+
+        /// <summary>
+        /// Asserts that a Raise/Goto/Pop hasn't already been called.
+        /// Records that RGP has been called.
+        /// </summary>
+        internal void AssertCorrectRGPInvocation()
+        {
+            this.Runtime.Assert(!this.InsideOnExit, "Machine '{0}' has called raise/goto/pop " +
+                "inside an OnExit method.", this.Id.Name);
+            this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' has called multiple " +
+                "raise/goto/pop in the same action.", this.Id.Name);
+
+            this.CurrentActionCalledRGP = true;
+        }
+
+        /// <summary>
+        /// Asserts that a Raise/Goto/Pop hasn't already been called.
+        /// </summary>
+        internal void AssertNoPendingRGP(string calledAPI)
+        {
+            this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' cannot call API '{1}' " +
+                "after calling raise/goto/pop in the same action.", this.Id.Name, calledAPI);
         }
 
         #endregion

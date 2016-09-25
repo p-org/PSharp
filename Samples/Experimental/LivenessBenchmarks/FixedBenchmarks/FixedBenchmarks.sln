@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chord", "Chord\Chord.csproj", "{F0FF23B3-39AE-4F0B-939B-C8686F2EADCC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplicatingStorage", "ReplicatingStorage\ReplicatingStorage.csproj", "{76084894-BD13-42F0-89F0-F8C1A347E801}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F0FF23B3-39AE-4F0B-939B-C8686F2EADCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0FF23B3-39AE-4F0B-939B-C8686F2EADCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0FF23B3-39AE-4F0B-939B-C8686F2EADCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0FF23B3-39AE-4F0B-939B-C8686F2EADCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76084894-BD13-42F0-89F0-F8C1A347E801}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76084894-BD13-42F0-89F0-F8C1A347E801}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76084894-BD13-42F0-89F0-F8C1A347E801}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76084894-BD13-42F0-89F0-F8C1A347E801}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

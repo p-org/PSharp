@@ -23,25 +23,25 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
     public enum MachineActionType
     {
         /// <summary>
-        /// An event sending action.
+        /// Event sending action.
         /// </summary>
         [EnumMember(Value = "SendAction")]
         SendAction = 0,
 
         /// <summary>
-        /// An invocation action.
+        /// Invocation action.
         /// </summary>
         [EnumMember(Value = "InvocationAction")]
         InvocationAction,
 
         /// <summary>
-        /// Task machine creation
+        /// Task machine creation.
         /// </summary>
         [EnumMember(Value = "TaskMachineCreation")]
         TaskMachineCreation,
 
         /// <summary>
-        /// Machine creation
+        /// Machine creation.
         /// </summary>
         [EnumMember(Value = "MachineCreationInfo")]
         MachineCreationInfo

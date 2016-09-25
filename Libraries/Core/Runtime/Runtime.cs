@@ -759,12 +759,30 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine called Pop.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal virtual void NotifyPop(AbstractMachine machine)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
         /// Notifies that a machine raised an event.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
+        /// Notifies that a machine called Receive.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal virtual void NotifyReceiveCalled(AbstractMachine machine)
         {
             // No-op for real execution.
         }

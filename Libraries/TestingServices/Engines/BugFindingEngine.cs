@@ -618,13 +618,20 @@ namespace Microsoft.PSharp.TestingServices
                     Append(Environment.NewLine);
             }
 
+            if (!base.Configuration.TestMethodName.Equals(""))
+            {
+                stringBuilder.Append("--test-method:" + 
+                    base.Configuration.TestMethodName).
+                    Append(Environment.NewLine);
+            }
+
             for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
                 ScheduleStep step = runtime.ScheduleTrace[idx];
                 if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    stringBuilder.Append($"{step.ScheduledMachine.Id.Type}" +
-                        $"({step.ScheduledMachine.Id.Value})");
+                    stringBuilder.Append($"{step.ScheduledMachineId.Type}" +
+                        $"({step.ScheduledMachineId.Value})");
                 }
                 else if (step.BooleanChoice != null)
                 {
@@ -657,27 +664,14 @@ namespace Microsoft.PSharp.TestingServices
             foreach (var kvp in runtime.MachineActionTraceMap)
             {
                 IO.Debug($"<RaceTracing> Machine id '{kvp.Key}'");
-                //Console.WriteLine("Machine Id: " + kvp.Key);
+
                 foreach (var actionTrace in kvp.Value)
                 {
                     if (actionTrace.Type == MachineActionType.InvocationAction)
                     {
                         IO.Debug($"<RaceTracing> Action '{actionTrace.ActionName}' " +
                             $"'{actionTrace.ActionId}'");
-                        //Console.WriteLine("Action: " + actionTrace.ActionName + " " + actionTrace.ActionId);
                     }
-                    //if (actionTrace.Type == MachineActionType.SendAction)
-                    //{
-                    //    Console.WriteLine("SendEvent: " + actionTrace.ActionName + " " + actionTrace.SendId);
-                    //}
-                    //if (actionTrace.Type == MachineActionType.MachineCreationInfo)
-                    //{
-                    //    Console.WriteLine("Machine creation: " + actionTrace.ActionName + " " + actionTrace.createdMachineId);
-                    //}
-                    //if (actionTrace.Type == MachineActionType.TaskMachineCreation)
-                    //{
-                    //    Console.WriteLine("Task Machine creation: " + actionTrace.TaskId + " " + actionTrace.TaskMachineId);
-                    //}
                 }
 
                 if (kvp.Value.Count > 0)

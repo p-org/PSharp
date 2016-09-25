@@ -51,13 +51,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// The send event.
         /// </summary>
         [DataMember]
-        public string EventName { get; private set; }
+        public string SendEventName { get; private set; }
 
         /// <summary>
         /// The send event.
         /// </summary>
         [DataMember]
         public int EventId { get; private set; }
+
+        /// <summary>
+        /// Received event being handled.
+        /// </summary>
+        public string EventName { get; private set; }
 
         /// <summary>
         /// The send id.
@@ -78,19 +83,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         public int ActionId { get; private set; }
 
         /// <summary>
-        /// The task Id
+        /// The task Id.
         /// </summary>
         [DataMember]
         public int TaskId;
 
         /// <summary>
-        /// The task machine ID
+        /// The task machine Id.
         /// </summary>
         [DataMember]
         public MachineId TaskMachineId;
 
         /// <summary>
-        /// The created Mahcine ID
+        /// The created machine Id.
         /// </summary>
         [DataMember]
         public MachineId createdMachineId;
@@ -131,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 
             actionInfo.MachineId = mid.Value;
             actionInfo.TargetMachineId = targetMachineId.Value;
-            actionInfo.EventName = e.GetType().FullName;
+            actionInfo.SendEventName = e.GetType().FullName;
             actionInfo.EventId = e.GetHashCode();
             actionInfo.SendId = sendId;
 
@@ -142,6 +147,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             return actionInfo;
         }
 
+        /// <summary>
+        /// Creates a task creation info.
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="mid">MachineId</param>
+        /// <param name="taskId">Task id</param>
+        /// <param name="taskMachineId">MachineId</param>
+        /// <returns>MachineActionInfo</returns>
         internal static MachineActionInfo CreateTaskCreationInfo(int index, MachineId mid,
             int taskId, MachineId taskMachineId)
         {
@@ -182,7 +195,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.ActionId = actionId;
 
             if(receivedEvent != null)
+            {
                 actionInfo.EventId = receivedEvent.GetHashCode();
+                actionInfo.EventName = receivedEvent.GetType().FullName;
+            }
 
             actionInfo.TaskId = -5;
             actionInfo.Previous = null;
@@ -193,9 +209,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 
 
         /// <summary>
-        /// Creates Machine creation info
+        /// Creates a machine creation info.
         /// </summary>
-        /// <param name="index">int</param>
+        /// <param name="index">Index</param>
         /// <param name="creator">MachineId</param>
         /// <param name="mid">MachineId</param>
         /// <returns>MachineId</returns>
