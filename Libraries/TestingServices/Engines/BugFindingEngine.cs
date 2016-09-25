@@ -618,6 +618,13 @@ namespace Microsoft.PSharp.TestingServices
                     Append(Environment.NewLine);
             }
 
+            if (!base.Configuration.TestMethodName.Equals(""))
+            {
+                stringBuilder.Append("--test-method:" + 
+                    base.Configuration.TestMethodName).
+                    Append(Environment.NewLine);
+            }
+
             for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
                 ScheduleStep step = runtime.ScheduleTrace[idx];
