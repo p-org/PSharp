@@ -20,7 +20,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -186,11 +185,11 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Error.ReportAndExit(ex.Message);
             }
 
+            this.Initialize();
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
-            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
-            this.Initialize();
+            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));           
         }
 
         /// <summary>
@@ -263,11 +262,17 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         this.Configuration.CacheProgramState = true;
                     }
-                    else if (line.StartsWith("--liveness-temperature-threshold"))
+                    else if (line.StartsWith("--liveness-temperature-threshold:"))
                     {
                         this.Configuration.LivenessTemperatureThreshold =
-                            Int32.Parse(line.Substring(33));
+                            Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
                     }
+                    else if (line.StartsWith("--test-method:"))
+                    {
+                        this.Configuration.TestMethodName =
+                            line.Substring("--test-method:".Length);
+                    }
+
                 }
 
                 ScheduleTrace schedule = new ScheduleTrace(scheduleDump);

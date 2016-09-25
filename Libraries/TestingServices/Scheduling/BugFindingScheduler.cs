@@ -40,11 +40,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         protected ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Collection of machines to schedule.
-        /// </summary>
-        protected ConcurrentBag<MachineInfo> MachineInfos;
-
-        /// <summary>
         /// Map from task ids to machine infos.
         /// </summary>
         protected ConcurrentDictionary<int, MachineInfo> TaskMap;
@@ -96,7 +91,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
-            this.MachineInfos = new ConcurrentBag<MachineInfo>();
             this.TaskMap = new ConcurrentDictionary<int, MachineInfo>();
             this.IsSchedulerRunning = true;
             this.BugFound = false;
@@ -130,14 +124,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             MachineInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
+            if (!this.Strategy.TryGetNext(out next, this.TaskMap.Values, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
                 this.Stop();
             }
 
-            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
+            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
             
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
@@ -269,14 +263,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Returns the enabled machines.
         /// </summary>
         /// <returns>Enabled machines</returns>
-        internal HashSet<AbstractMachine> GetEnabledMachines()
+        internal HashSet<MachineId> GetEnabledMachines()
         {
-            var enabledMachines = new HashSet<AbstractMachine>();
-            foreach (var machineInfo in this.MachineInfos)
+            var enabledMachines = new HashSet<MachineId>();
+            foreach (var machineInfo in this.TaskMap.Values)
             {
                 if (machineInfo.IsEnabled)
                 {
-                    enabledMachines.Add(machineInfo.Machine);
+                    enabledMachines.Add(machineInfo.Machine.Id);
                 }
             }
 
@@ -295,12 +289,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IO.Debug($"<ScheduleDebug> Created task '{machineInfo.Id}' for machine " +
                 $"'{machineInfo.Machine.Id}'.");
 
-            if (this.MachineInfos.Count == 0)
+            if (this.TaskMap.Count == 0)
             {
                 machineInfo.IsActive = true;
             }
 
-            this.MachineInfos.Add(machineInfo);
             this.TaskMap.TryAdd(id, machineInfo);
         }
 
@@ -359,7 +352,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="machine">Machine</param>
         internal void NotifyTaskReceivedEvent(AbstractMachine machine)
         {
-            var machineInfo = this.MachineInfos.First(mi => mi.Machine.Equals(machine) && !mi.IsCompleted);
+            var machineInfo = this.TaskMap.Values.First(mi => mi.Machine.Equals(machine) && !mi.IsCompleted);
             machineInfo.IsWaitingToReceive = false;
 
             IO.Debug($"<ScheduleDebug> Task '{machineInfo.Id}' of machine " +
@@ -389,6 +382,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             IO.Debug($"<ScheduleDebug> Exit task '{machineInfo.Id}' of machine " +
                 $"'{machineInfo.Machine.Id}'.");
+
+            this.TaskMap.TryRemove((int)id, out machineInfo);
         }
 
         /// <summary>
@@ -414,7 +409,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         internal bool HasEnabledTaskForMachine(AbstractMachine machine)
         {
-            var enabledTasks = this.MachineInfos.Where(machineInfo => machineInfo.IsEnabled).ToList();
+            var enabledTasks = this.TaskMap.Values.Where(machineInfo => machineInfo.IsEnabled).ToList();
             return enabledTasks.Any(machineInfo => machineInfo.Machine.Equals(machine));
         }
 
@@ -486,7 +481,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Int</returns>
         protected int NumberOfAvailableMachinesToSchedule()
         {
-            var availableMachines = this.MachineInfos.Where(
+            var availableMachines = this.TaskMap.Values.Where(
                 m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
             return availableMachines.Count;
         }
@@ -529,7 +524,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         protected void KillRemainingMachines()
         {
-            foreach (var machineInfo in this.MachineInfos)
+            foreach (var machineInfo in this.TaskMap.Values)
             {
                 machineInfo.IsActive = true;
                 machineInfo.IsEnabled = false;

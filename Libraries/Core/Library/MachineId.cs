@@ -109,6 +109,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Constructor. This is only used to partially reconstruct
+        /// a machine id from a given machine type and id value.
+        /// </summary>
+        /// <param name="type">Machine type</param>
+        /// <param name="value">Id value</param>
+        internal MachineId(string type, int value)
+        {
+            this.Type = type;
+            this.Value = value;
+        }
+
+        /// <summary>
         /// Resets the machine id counter.
         /// </summary>
         internal static void ResetMachineIDCounter()
