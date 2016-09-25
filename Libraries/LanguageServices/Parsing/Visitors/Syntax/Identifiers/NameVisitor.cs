@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
         /// <summary>
         /// Consumes a qualified event name from the tokenstream.
-        /// QEN = halt || default || QN
+        /// QEN = halt || default || * || QN
         /// </summary>
         /// <param name="replacement">TokenType</param>
         /// <returns>Tokens</returns>
@@ -99,6 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                base.TokenStream.Peek().Type != TokenType.MulOp &&
                 base.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 base.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
@@ -106,12 +107,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>
                 {
                     TokenType.Identifier,
+                    TokenType.MulOp,
                     TokenType.HaltEvent,
                     TokenType.DefaultEvent
                 });
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.HaltEvent ||
+            if (base.TokenStream.Peek().Type == TokenType.MulOp ||
+                base.TokenStream.Peek().Type == TokenType.HaltEvent ||
                 base.TokenStream.Peek().Type == TokenType.DefaultEvent)
             {
                 qualifiedName.Add(base.TokenStream.Peek());
@@ -248,7 +251,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
         /// <summary>
         /// Consumes a generic event name.
-        /// GEN = halt || default || GEN 
+        /// GEN = halt || default || * || GEN 
         /// </summary>
         /// <param name="replacement">TokenType</param>
         /// <returns>Tokens</returns>
@@ -258,6 +261,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                base.TokenStream.Peek().Type != TokenType.MulOp &&
                 base.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 base.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
@@ -265,12 +269,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>
                 {
                     TokenType.Identifier,
+                    TokenType.MulOp,
                     TokenType.HaltEvent,
                     TokenType.DefaultEvent
                 });
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.HaltEvent ||
+            if (base.TokenStream.Peek().Type == TokenType.MulOp || 
+                base.TokenStream.Peek().Type == TokenType.HaltEvent ||
                 base.TokenStream.Peek().Type == TokenType.DefaultEvent)
             {
                 qualifiedName.Add(base.TokenStream.Peek());

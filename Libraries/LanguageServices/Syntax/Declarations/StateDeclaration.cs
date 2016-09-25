@@ -532,6 +532,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     text += "typeof(" + typeof(Default).FullName + ")";
                 }
+                else if (transition.Key.Type == TokenType.MulOp)
+                {
+                    text += "typeof(" + typeof(WildCardEvent).FullName + ")";
+                }
                 else
                 {
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
@@ -578,6 +582,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 else if (transition.Key.Type == TokenType.DefaultEvent)
                 {
                     text += "typeof(" + typeof(Default).FullName + ")";
+                }
+                else if (transition.Key.Type == TokenType.MulOp)
+                {
+                    text += "typeof(" + typeof(WildCardEvent).FullName + ")";
                 }
                 else
                 {
@@ -631,6 +639,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     text += "typeof(" + typeof(Default).FullName + ")";
                 }
+                else if (binding.Key.Type == TokenType.MulOp)
+                {
+                    text += "typeof(" + typeof(WildCardEvent).FullName + ")";
+                }
                 else
                 {
                     text += "typeof(" + binding.Key.TextUnit.Text + ")";
@@ -675,6 +687,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     text += "typeof(" + typeof(Default).FullName + ")";
                 }
+                else if (eventIds[idx].Type == TokenType.MulOp)
+                {
+                    text += "typeof(" + typeof(WildCardEvent).FullName + ")";
+                }
                 else
                 {
                     text += "typeof(" + eventIds[idx].TextUnit.Text + ")";
@@ -714,6 +730,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 else if (eventIds[idx].Type == TokenType.DefaultEvent)
                 {
                     text += "typeof(" + typeof(Default).FullName + ")";
+                }
+                else if (eventIds[idx].Type == TokenType.MulOp)
+                {
+                    text += "typeof(" + typeof(WildCardEvent).FullName + ")";
                 }
                 else
                 {

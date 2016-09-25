@@ -55,12 +55,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Dictionary containing all the current goto state transitions.
         /// </summary>
-        private GotoStateTransitions GotoTransitions;
+        internal Dictionary<Type, GotoStateTransition> GotoTransitions;
 
         /// <summary>
         /// Dictionary containing all the current action bindings.
         /// </summary>
-        private ActionBindings ActionBindings;
+        internal Dictionary<Type, ActionBinding> ActionBindings;
 
         /// <summary>
         /// Map from action names to actions.
@@ -309,13 +309,13 @@ namespace Microsoft.PSharp
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
                     var transition = this.GotoTransitions[e.GetType()];
-                    this.GotoState(transition.Item1, transition.Item2);
+                    this.GotoState(transition.TargetState, transition.Lambda);
                 }
                 // Checks if the event can trigger an action.
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    string actionName = this.ActionBindings[e.GetType()];
-                    this.Do(actionName);
+                    var handler = this.ActionBindings[e.GetType()];
+                    this.Do(handler.Name);
                 }
 
                 break;
@@ -630,20 +630,20 @@ namespace Microsoft.PSharp
 
                     foreach (var transition in state.GotoTransitions)
                     {
-                        if (transition.Value.Item2 != null &&
-                            !MonitorActionMap[monitorType].ContainsKey(transition.Value.Item2))
+                        if (transition.Value.Lambda != null &&
+                            !MonitorActionMap[monitorType].ContainsKey(transition.Value.Lambda))
                         {
-                            MonitorActionMap[monitorType].Add(transition.Value.Item2,
-                                this.GetActionWithName(transition.Value.Item2));
+                            MonitorActionMap[monitorType].Add(transition.Value.Lambda,
+                                this.GetActionWithName(transition.Value.Lambda));
                         }
                     }
 
                     foreach (var action in state.ActionBindings)
                     {
-                        if (!MonitorActionMap[monitorType].ContainsKey(action.Value))
+                        if (!MonitorActionMap[monitorType].ContainsKey(action.Value.Name))
                         {
-                            MonitorActionMap[monitorType].Add(action.Value,
-                                this.GetActionWithName(action.Value));
+                            MonitorActionMap[monitorType].Add(action.Value.Name,
+                                this.GetActionWithName(action.Value.Name));
                         }
                     }
                 }

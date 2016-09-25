@@ -45,6 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                base.TokenStream.Peek().Type != TokenType.MulOp &&
                 base.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 base.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {

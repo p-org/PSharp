@@ -375,6 +375,31 @@ on e do;
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestOnEventDoActionDeclarationWithIncorrectWildcardUse()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e.* do Bar
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclarationWithGenericError1()
         {
             var test = @"

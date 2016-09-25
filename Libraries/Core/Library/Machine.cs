@@ -58,34 +58,26 @@ namespace Microsoft.PSharp
         private Stack<MachineState> StateStack;
 
         /// <summary>
+        /// A stack of maps that determine event handling action for
+        /// each event type. These maps do not keep transition handlers.
+        /// This stack has always the same height as StateStack.
+        /// </summary>
+        private Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
+
+        /// <summary>
         /// Dictionary containing all the current goto state transitions.
         /// </summary>
-        internal GotoStateTransitions GotoTransitions;
+        internal Dictionary<Type, GotoStateTransition> GotoTransitions;
 
         /// <summary>
         /// Dictionary containing all the current push state transitions.
         /// </summary>
-        internal PushStateTransitions PushTransitions;
-
-        /// <summary>
-        /// Dictionary containing all the current action bindings.
-        /// </summary>
-        internal ActionBindings ActionBindings;
+        internal Dictionary<Type, PushStateTransition> PushTransitions;
 
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
         private Dictionary<string, MethodInfo> ActionMap;
-
-        /// <summary>
-        /// Set of currently ignored event types.
-        /// </summary>
-        internal HashSet<Type> IgnoredEvents;
-
-        /// <summary>
-        /// Set of currently deferred event types.
-        /// </summary>
-        internal HashSet<Type> DeferredEvents;
 
         /// <summary>
         /// Is machine running.
@@ -151,6 +143,22 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Gets the current action handler map.
+        /// </summary>
+        private Dictionary<Type, EventActionHandler> CurrentActionHandlerMap
+        {
+            get
+            {
+                if (this.ActionHandlerStack.Count == 0)
+                {
+                    return null;
+                }
+
+                return this.ActionHandlerStack.Peek();
+            }
+        }
+
+        /// <summary>
         /// Gets the current state name.
         /// </summary>
         internal string CurrentStateName
@@ -190,6 +198,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<EventInfo>();
             this.StateStack = new Stack<MachineState>();
+            this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, MethodInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
@@ -416,8 +425,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            this.StateStack.Pop();
-            
+            this.DoStatePop();
+
             if (this.CurrentState == null)
             {
                 base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped.");
@@ -426,7 +435,6 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                     $"and reentered state '{this.CurrentStateName}'.");
-                this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
 
@@ -770,7 +778,7 @@ namespace Microsoft.PSharp
                 this.RaisedEvent = null;
 
                 // Checks if the raised event is ignored.
-                if (this.IgnoredEvents.Contains(nextEventInfo.EventType))
+                if (this.IsIgnored(nextEventInfo.EventType))
                 {
                     nextEventInfo = null;
                 }
@@ -778,15 +786,18 @@ namespace Microsoft.PSharp
             // If there is no raised event, then dequeue.
             else if (this.Inbox.Count > 0)
             {
-                // Iterate through the events in the inbox.
+                // Iterates through the events in the inbox.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
-                    // Remove an ignored event.
+                    // Removes an ignored event.
                     if (this.Inbox[idx].EventType.IsGenericType)
                     {
                         var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
-                        var genericIgnoredTypes = IgnoredEvents.Where(t => t.IsGenericType && t.GetGenericTypeDefinition().Equals(
-                            genericTypeDefinition.GetGenericTypeDefinition()));
+                        var genericIgnoredTypes = this.CurrentActionHandlerMap
+                            .Where(tup => tup.Value is IgnoreAction)
+                            .Select(tup => tup.Key)
+                            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition().Equals(
+                                genericTypeDefinition.GetGenericTypeDefinition()));
                         if (genericIgnoredTypes.Count() > 0)
                         {
                             this.Inbox.RemoveAt(idx);
@@ -794,17 +805,16 @@ namespace Microsoft.PSharp
                             continue;
                         }
                     }
-                    if (this.IgnoredEvents.Contains(this.Inbox[idx].EventType))
+
+                    if (this.IsIgnored(this.Inbox[idx].EventType))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
                         continue;
                     }
 
-                    // Dequeue the first event that is not handled by the state,
-                    // or is not deferred.
-                    if (!this.CanHandleEvent(this.Inbox[idx].EventType) ||
-                        !this.DeferredEvents.Contains(this.Inbox[idx].EventType))
+                    // Dequeues the first event that is not deferred.
+                    if (!this.IsDeferred(this.Inbox[idx].EventType))
                     {
                         nextEventInfo = this.Inbox[idx];
                         this.Inbox.RemoveAt(idx);
@@ -839,41 +849,13 @@ namespace Microsoft.PSharp
                             this.CleanUpResources();
                             base.Runtime.NotifyHalted(this);
                         }
-                        
+
                         return;
                     }
 
                     // If the event cannot be handled then report an error and exit.
                     this.Assert(false, $"Machine '{base.Id}' received event " +
                         $"'{e.GetType().FullName}' that cannot be handled.");
-                }
-
-                // If current state cannot handle the event then pop the state.
-                if (!this.CanHandleEvent(e.GetType()))
-                {
-                    // The machine performs the on exit action of the current state.
-                    this.ExecuteCurrentStateOnExit(null);
-                    if (this.IsHalted)
-                    {
-                        return;
-                    }
-
-                    this.StateStack.Pop();
-
-                    if (this.CurrentState == null)
-                    {
-                        base.Runtime.Log($"<PopLog> Machine '{base.Id}' " +
-                            $"popped with unhandled event '{e.GetType().FullName}'.");
-                    }
-                    else
-                    {
-                        base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
-                            $"with unhandled event '{e.GetType().FullName}' and " +
-                            $"reentered state '{this.CurrentStateName}.");
-                        this.ConfigureStateTransitions(this.StateStack.Peek());
-                    }
-                    
-                    continue;
                 }
 
                 // Checks if the event is a goto state event.
@@ -886,19 +868,62 @@ namespace Microsoft.PSharp
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
                     var transition = this.GotoTransitions[e.GetType()];
-                    this.GotoState(transition.Item1, transition.Item2);
+                    this.GotoState(transition.TargetState, transition.Lambda);
+                }
+                else if (this.GotoTransitions.ContainsKey(typeof(WildCardEvent)))
+                {
+                    var transition = this.GotoTransitions[typeof(WildCardEvent)];
+                    this.GotoState(transition.TargetState, transition.Lambda);
                 }
                 // Checks if the event can trigger a push state transition.
                 else if (this.PushTransitions.ContainsKey(e.GetType()))
                 {
-                    Type targetState = this.PushTransitions[e.GetType()];
+                    Type targetState = this.PushTransitions[e.GetType()].TargetState;
+                    this.PushState(targetState);
+                }
+                else if (this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
+                {
+                    Type targetState = this.PushTransitions[typeof(WildCardEvent)].TargetState;
                     this.PushState(targetState);
                 }
                 // Checks if the event can trigger an action.
-                else if (this.ActionBindings.ContainsKey(e.GetType()))
+                else if (this.CurrentActionHandlerMap.ContainsKey(e.GetType()) &&
+                    this.CurrentActionHandlerMap[e.GetType()] is ActionBinding)
                 {
-                    string actionName = this.ActionBindings[e.GetType()];
-                    this.Do(actionName);
+                    var handler = this.CurrentActionHandlerMap[e.GetType()] as ActionBinding;
+                    this.Do(handler.Name);
+                }
+                else if (this.CurrentActionHandlerMap.ContainsKey(typeof(WildCardEvent))
+                    && this.CurrentActionHandlerMap[typeof(WildCardEvent)] is ActionBinding)
+                {
+                    var handler = this.CurrentActionHandlerMap[typeof(WildCardEvent)] as ActionBinding;
+                    this.Do(handler.Name);
+                }
+                // If the current state cannot handle the event.
+                else
+                {
+                    // The machine performs the on exit action of the current state.
+                    this.ExecuteCurrentStateOnExit(null);
+                    if (this.IsHalted)
+                    {
+                        return;
+                    }
+
+                    this.DoStatePop();
+
+                    if (this.CurrentState == null)
+                    {
+                        base.Runtime.Log($"<PopLog> Machine '{base.Id}' " +
+                            $"popped with unhandled event '{e.GetType().FullName}'.");
+                    }
+                    else
+                    {
+                        base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
+                            $"with unhandled event '{e.GetType().FullName}' and " +
+                            $"reentered state '{this.CurrentStateName}.");
+                    }
+
+                    continue;
                 }
 
                 break;
@@ -953,19 +978,27 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine can handle the specified event type. An event
-        /// can be handled if it is deferred, or leads to a transition or
-        /// action binding.
+        /// Checks if the machine ignores the specified event.
         /// </summary>
         /// <param name="e">Event type</param>
         /// <returns>Boolean</returns>
-        private bool CanHandleEvent(Type e)
+        private bool IsIgnored(Type e)
         {
-            if (this.DeferredEvents.Contains(e) ||
-                this.GotoTransitions.ContainsKey(e) ||
-                this.PushTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e) ||
-                e == typeof(GotoStateEvent))
+            // If a transition is defined, then the event is not ignored.
+            if (this.GotoTransitions.ContainsKey(e) || this.PushTransitions.ContainsKey(e) ||
+                this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
+                this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
+            {
+                return false;
+            }
+
+            if (this.CurrentActionHandlerMap.ContainsKey(e))
+            {
+                return this.CurrentActionHandlerMap[e] is IgnoreAction;
+            }
+
+            if (this.CurrentActionHandlerMap.ContainsKey(typeof(WildCardEvent)) &&
+                this.CurrentActionHandlerMap[typeof(WildCardEvent)] is IgnoreAction)
             {
                 return true;
             }
@@ -974,19 +1007,44 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine has a default handler.
+        /// Checks if the machine defers the specified event.
         /// </summary>
-        /// <returns></returns>
-        private bool HasDefaultHandler()
+        /// <param name="e">Event type</param>
+        /// <returns>Boolean</returns>
+        private bool IsDeferred(Type e)
         {
-            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
-                this.PushTransitions.ContainsKey(typeof(Default)) ||
-                this.ActionBindings.ContainsKey(typeof(Default)))
+            // if transition is defined, then no
+            if (this.GotoTransitions.ContainsKey(e) || this.PushTransitions.ContainsKey(e) ||
+                this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
+                this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
+            {
+                return false;
+            }
+
+            if (this.CurrentActionHandlerMap.ContainsKey(e))
+            {
+                return this.CurrentActionHandlerMap[e] is DeferAction;
+            }
+
+            if (this.CurrentActionHandlerMap.ContainsKey(typeof(WildCardEvent)) &&
+                this.CurrentActionHandlerMap[typeof(WildCardEvent)] is DeferAction)
             {
                 return true;
             }
 
             return false;
+        }
+
+
+        /// <summary>
+        /// Checks if the machine has a default handler.
+        /// </summary>
+        /// <returns></returns>
+        private bool HasDefaultHandler()
+        {
+            return this.CurrentActionHandlerMap.ContainsKey(typeof(Default)) ||
+                this.GotoTransitions.ContainsKey(typeof(Default)) ||
+                this.PushTransitions.ContainsKey(typeof(Default));
         }
 
         /// <summary>
@@ -1003,14 +1061,13 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            this.StateStack.Pop();
+            this.DoStatePop();
             
             var nextState = StateMap[this.GetType()].First(val
                 => val.GetType().Equals(s));
-            this.ConfigureStateTransitions(nextState);
 
             // The machine transitions to the new state.
-            this.StateStack.Push(nextState);
+            this.DoStatePush(nextState);
 
             // The machine performs the on entry action of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -1025,10 +1082,7 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<PushLog> Machine '{base.Id}' pushed.");
 
             var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
-            this.ConfigureStateTransitions(nextState);
-
-            // The machine transitions to the new state.
-            this.StateStack.Push(nextState);
+            this.DoStatePush(nextState);
 
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -1092,47 +1146,94 @@ namespace Microsoft.PSharp
         #region state transitioning methods
 
         /// <summary>
-        /// Configures the state transitions of the machine.
+        /// Configures the state transitions of the machine
+        /// when a state is popped.
         /// </summary>
-        /// <param name="state">State</param>
-        private void ConfigureStateTransitions(MachineState state)
+        private void DoStatePop()
+        {
+            this.StateStack.Pop();
+            this.ActionHandlerStack.Pop();
+
+            if (this.StateStack.Count > 0)
+            {
+                this.GotoTransitions = this.StateStack.Peek().GotoTransitions;
+                this.PushTransitions = this.StateStack.Peek().PushTransitions;
+            }
+            else
+            {
+                this.GotoTransitions = null;
+                this.PushTransitions = null;
+            }
+        }
+
+        /// <summary>
+        /// Configures the state transitions of the machine
+        /// when a state is pushed on to the stack.
+        /// </summary>
+        /// <param name="state">State that is to be pushed on to the top of the stack</param>
+        private void DoStatePush(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
-            this.ActionBindings = state.ActionBindings;
-            this.IgnoredEvents = state.IgnoredEvents;
-            this.DeferredEvents = state.DeferredEvents;
 
-            // If the state stack is non-empty, update the data structures
-            // with the following logic.
-            if (this.StateStack.Count > 0)
+            // Gets existing map for actions.
+            var eventHandlerMap = this.CurrentActionHandlerMap == null ?
+                new Dictionary<Type, EventActionHandler>() :
+                new Dictionary<Type, EventActionHandler>(this.CurrentActionHandlerMap);
+
+            // Updates the map with defer annotations.
+            foreach (var deferredEvent in state.DeferredEvents)
             {
-                var lowerState = this.StateStack.Peek();
-
-                foreach (var e in lowerState.DeferredEvents)
+                if (deferredEvent.Equals(typeof(WildCardEvent)))
                 {
-                    if (!this.CanHandleEvent(e))
-                    {
-                        this.DeferredEvents.Add(e);
-                    }
+                    eventHandlerMap.Clear();
+                    eventHandlerMap[deferredEvent] = new DeferAction();
+                    break;
                 }
 
-                foreach (var e in lowerState.IgnoredEvents)
-                {
-                    if (!this.CanHandleEvent(e))
-                    {
-                        this.IgnoredEvents.Add(e);
-                    }
-                }
-
-                foreach (var action in lowerState.ActionBindings)
-                {
-                    if (!this.CanHandleEvent(action.Key))
-                    {
-                        this.ActionBindings.Add(action.Key, action.Value);
-                    }
-                }
+                eventHandlerMap[deferredEvent] = new DeferAction();
             }
+
+            // Updates the map with actions.
+            foreach (var actionBinding in state.ActionBindings)
+            {
+                if (actionBinding.Key.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    eventHandlerMap[actionBinding.Key] = actionBinding.Value;
+                    break;
+                }
+
+                eventHandlerMap[actionBinding.Key] = actionBinding.Value;
+            }
+
+            // Updates the map with ignores.
+            foreach (var ignoreEvent in state.IgnoredEvents)
+            {
+                if (ignoreEvent.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    eventHandlerMap[ignoreEvent] = new IgnoreAction();
+                    break;
+                }
+
+                eventHandlerMap[ignoreEvent] = new IgnoreAction();
+            }
+
+            // Removes the ones on which transitions are defined.
+            foreach (var eventType in this.GotoTransitions.Keys.Union(this.PushTransitions.Keys))
+            {
+                if (eventType.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    break;
+                }
+
+                eventHandlerMap.Remove(eventType);
+            }
+
+            this.StateStack.Push(state);
+            this.ActionHandlerStack.Push(eventHandlerMap);
         }
 
         /// <summary>
@@ -1359,20 +1460,20 @@ namespace Microsoft.PSharp
 
                     foreach (var transition in state.GotoTransitions)
                     {
-                        if (transition.Value.Item2 != null &&
-                            !MachineActionMap[machineType].ContainsKey(transition.Value.Item2))
+                        if (transition.Value.Lambda != null &&
+                            !MachineActionMap[machineType].ContainsKey(transition.Value.Lambda))
                         {
-                            MachineActionMap[machineType].Add(transition.Value.Item2,
-                                this.GetActionWithName(transition.Value.Item2));
+                            MachineActionMap[machineType].Add(transition.Value.Lambda,
+                                this.GetActionWithName(transition.Value.Lambda));
                         }
                     }
 
                     foreach (var action in state.ActionBindings)
                     {
-                        if (!MachineActionMap[machineType].ContainsKey(action.Value))
+                        if (!MachineActionMap[machineType].ContainsKey(action.Value.Name))
                         {
-                            MachineActionMap[machineType].Add(action.Value,
-                                this.GetActionWithName(action.Value));
+                            MachineActionMap[machineType].Add(action.Value.Name,
+                                this.GetActionWithName(action.Value.Name));
                         }
                     }
                 }
@@ -1388,9 +1489,8 @@ namespace Microsoft.PSharp
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Machine '{base.Id}' " +
                 "can not declare more than one start states.");
-            
-            this.ConfigureStateTransitions(initialStates.Single());
-            this.StateStack.Push(initialStates.Single());
+
+            this.DoStatePush(initialStates.Single());
 
             this.AssertStateValidity();
         }

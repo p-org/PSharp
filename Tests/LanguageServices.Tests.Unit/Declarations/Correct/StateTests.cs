@@ -1216,5 +1216,89 @@ class S : MachineState
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestWildcardEventDefer()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+defer *;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[DeferEvents(typeof(Microsoft.PSharp.WildCardEvent))]
+class S : MachineState
+{
+}
+}
+}";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestWildcardEventAction()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on *,e1.e2 goto S2;
+on * push S2;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(Microsoft.PSharp.WildCardEvent), typeof(S2))]
+[OnEventGotoState(typeof(e1.e2), typeof(S2))]
+[OnEventPushState(typeof(Microsoft.PSharp.WildCardEvent), typeof(S2))]
+class S : MachineState
+{
+}
+}
+}";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
     }
 }

@@ -77,10 +77,12 @@
     <Compile Include="Feature1SMLevelDecls\DynamicError\MaxInstances1FailTest.cs" />
     <Compile Include="Feature2Stmts\Correct\GotoStateTest.cs" />
     <Compile Include="Feature2Stmts\Correct\CurrentStateTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\PushStateTest.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />
     <Compile Include="Feature2Stmts\Correct\ReceiveEventTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\WildCardEventTest.cs" />
     <Compile Include="Feature2Stmts\DynamicError\GotoStateExitFailTest.cs" />
     <Compile Include="Feature2Stmts\DynamicError\GotoStateFailTest.cs" />
     <Compile Include="Feature2Stmts\DynamicError\GotoStateMultipleInActionFailTest.cs" />

@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.LanguageServices
                 {
                     rewritingPasses.Enqueue(nextPass);
 
-                    if(snapshot.Any(item => item.SequenceEqual(rewritingPasses)))
+                    if (snapshot.Any(item => item.SequenceEqual(rewritingPasses)))
                     {
                         IO.Error.ReportAndExit("Possible cycle in the rewriting " +
                             "pass dependencies, or dependency missing.");
