@@ -451,7 +451,8 @@ namespace Microsoft.PSharp.TestingServices
                 userTask);
             taskMachine.SetMachineId(mid);
 
-            if (Task.CurrentId != null && TaskMap.ContainsKey((int)Task.CurrentId) && this.Configuration.EnableDataRaceDetection)
+            if (Task.CurrentId != null && TaskMap.ContainsKey((int)Task.CurrentId) &&
+                this.Configuration.EnableDataRaceDetection)
             {
                 // Traces machine actions, if data-race detection is enabled.
                 this.MachineActionTraceMap.Add(mid, new MachineActionTrace(mid));
