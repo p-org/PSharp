@@ -129,6 +129,12 @@ namespace Microsoft.PSharp
         private Event EventViaReceiveStatement;
 
         /// <summary>
+        /// Program counter used for state-caching. Distinguishes
+        /// scheduling from non-deterministic choices.
+        /// </summary>
+        private int ProgramCounter;
+
+        /// <summary>
         /// Gets the current state.
         /// </summary>
         protected internal Type CurrentState
@@ -431,6 +437,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected bool Random()
         {
+            this.ProgramCounter++;
             return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
         }
 
@@ -444,6 +451,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected bool Random(int maxValue)
         {
+            ProgramCounter++;
             return base.Runtime.GetNondeterministicBooleanChoice(this, maxValue);
         }
 
@@ -454,6 +462,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected bool FairRandom()
         {
+            ProgramCounter++;
             return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
         }
 
@@ -466,6 +475,7 @@ namespace Microsoft.PSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool FairRandom(int uniqueId)
         {
+            ProgramCounter++;
             var havocId = base.Id.Name + "_" + this.CurrentStateName + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicBooleanChoice(this, havocId);
         }
@@ -479,6 +489,7 @@ namespace Microsoft.PSharp
         /// <returns>Integer</returns>
         protected int RandomInteger(int maxValue)
         {
+            ProgramCounter++;
             return base.Runtime.GetNondeterministicIntegerChoice(this, maxValue);
         }
 
@@ -593,6 +604,7 @@ namespace Microsoft.PSharp
                 lock (this.Inbox)
                 {
                     dequeued = this.GetNextEvent(out nextEventInfo);
+                    ProgramCounter = 0;
 
                     // Check if next event to process is null.
                     if (nextEventInfo == null)
@@ -717,6 +729,8 @@ namespace Microsoft.PSharp
                 hash = hash + 31 * base.Id.Value.GetHashCode();
                 hash = hash + 31 * this.IsRunning.GetHashCode();
                 hash = hash + 31 * this.IsHalted.GetHashCode();
+
+                hash = hash + 31 * this.ProgramCounter;
 
                 foreach (var state in this.StateStack)
                 {
