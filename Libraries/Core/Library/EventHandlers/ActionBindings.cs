@@ -24,7 +24,7 @@ namespace Microsoft.PSharp
     internal sealed class ActionBinding : EventActionHandler
     {
         /// <summary>
-        /// Name of the action
+        /// Name of the action.
         /// </summary>
         public string Name;
 
@@ -39,10 +39,11 @@ namespace Microsoft.PSharp
     }
 
     /// <summary>
-    /// Defines a skip action binding (for ignore)
+    /// Defines a skip action binding (for ignore).
     /// </summary>
     internal sealed class IgnoreAction : EventActionHandler
     {
+
     }
 
     /// <summary>

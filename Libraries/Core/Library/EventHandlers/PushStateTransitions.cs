@@ -22,11 +22,10 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Defines a push state transition.
     /// </summary>
-
     internal sealed class PushStateTransition 
     {
         /// <summary>
-        /// Target state
+        /// Target state.
         /// </summary>
         public Type TargetState;
 

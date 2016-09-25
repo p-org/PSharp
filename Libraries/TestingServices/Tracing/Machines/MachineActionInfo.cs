@@ -194,7 +194,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.ActionName = actionName;
             actionInfo.ActionId = actionId;
 
-            if(receivedEvent != null)
+            if (receivedEvent != null)
             {
                 actionInfo.EventId = receivedEvent.GetHashCode();
                 actionInfo.EventName = receivedEvent.GetType().FullName;

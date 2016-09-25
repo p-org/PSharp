@@ -21,18 +21,16 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Defines a goto state transition.
     /// </summary>
-
     internal sealed class GotoStateTransition 
     {
         /// <summary>
-        /// Target state
+        /// Target state.
         /// </summary>
         public Type TargetState;
 
         /// <summary>
-        /// An optional lambda function,
-        /// which can execute after the default OnExit function of
-        /// the exiting state.
+        /// An optional lambda function, which can execute after
+        /// the default OnExit function of the exiting state.
         /// </summary>
         public string Lambda;
 

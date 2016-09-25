@@ -60,7 +60,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// A stack of maps that determine event handling action for
         /// each event type. These maps do not keep transition handlers.
-        /// This stack has the same height as StateStack always
+        /// This stack has always the same height as StateStack.
         /// </summary>
         private Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
 
@@ -143,9 +143,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Gets the current action handler map
+        /// Gets the current action handler map.
         /// </summary>
-        internal Dictionary<Type, EventActionHandler> CurrentActionHandlerMap
+        private Dictionary<Type, EventActionHandler> CurrentActionHandlerMap
         {
             get
             {
@@ -778,7 +778,7 @@ namespace Microsoft.PSharp
                 this.RaisedEvent = null;
 
                 // Checks if the raised event is ignored.
-                if (IsIgnored(nextEventInfo.EventType))
+                if (this.IsIgnored(nextEventInfo.EventType))
                 {
                     nextEventInfo = null;
                 }
@@ -786,10 +786,10 @@ namespace Microsoft.PSharp
             // If there is no raised event, then dequeue.
             else if (this.Inbox.Count > 0)
             {
-                // Iterate through the events in the inbox.
+                // Iterates through the events in the inbox.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
-                    // Remove an ignored event.
+                    // Removes an ignored event.
                     if (this.Inbox[idx].EventType.IsGenericType)
                     {
                         var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
@@ -805,15 +805,16 @@ namespace Microsoft.PSharp
                             continue;
                         }
                     }
-                    if (IsIgnored(this.Inbox[idx].EventType))
+
+                    if (this.IsIgnored(this.Inbox[idx].EventType))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
                         continue;
                     }
 
-                    // Dequeue the first event that is not deferred.
-                    if (!IsDeferred(this.Inbox[idx].EventType))
+                    // Dequeues the first event that is not deferred.
+                    if (!this.IsDeferred(this.Inbox[idx].EventType))
                     {
                         nextEventInfo = this.Inbox[idx];
                         this.Inbox.RemoveAt(idx);
@@ -898,10 +899,9 @@ namespace Microsoft.PSharp
                     var handler = this.CurrentActionHandlerMap[typeof(WildCardEvent)] as ActionBinding;
                     this.Do(handler.Name);
                 }
+                // If the current state cannot handle the event.
                 else
                 {
-                    // If current state cannot handle the event
-
                     // The machine performs the on exit action of the current state.
                     this.ExecuteCurrentStateOnExit(null);
                     if (this.IsHalted)
@@ -978,13 +978,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine ignores event e
+        /// Checks if the machine ignores the specified event.
         /// </summary>
         /// <param name="e">Event type</param>
         /// <returns>Boolean</returns>
         private bool IsIgnored(Type e)
         {
-            // if transition is defined, then no
+            // If a transition is defined, then the event is not ignored.
             if (this.GotoTransitions.ContainsKey(e) || this.PushTransitions.ContainsKey(e) ||
                 this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
                 this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
@@ -1007,7 +1007,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine defers event e
+        /// Checks if the machine defers the specified event.
         /// </summary>
         /// <param name="e">Event type</param>
         /// <returns>Boolean</returns>
@@ -1146,7 +1146,8 @@ namespace Microsoft.PSharp
         #region state transitioning methods
 
         /// <summary>
-        /// Configures the state transitions of the machine when a state is popped.
+        /// Configures the state transitions of the machine
+        /// when a state is popped.
         /// </summary>
         private void DoStatePop()
         {
@@ -1166,7 +1167,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Configures the state transitions of the machine when a state is pushed on to the stack.
+        /// Configures the state transitions of the machine
+        /// when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
         private void DoStatePush(MachineState state)
@@ -1174,15 +1176,15 @@ namespace Microsoft.PSharp
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
 
-            // Get existing map for actions
+            // Gets existing map for actions.
             var eventHandlerMap = this.CurrentActionHandlerMap == null ?
                 new Dictionary<Type, EventActionHandler>() :
                 new Dictionary<Type, EventActionHandler>(this.CurrentActionHandlerMap);
 
-            // update the map with defer annotations
+            // Updates the map with defer annotations.
             foreach (var deferredEvent in state.DeferredEvents)
             {
-                if(deferredEvent.Equals(typeof(WildCardEvent)))
+                if (deferredEvent.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
                     eventHandlerMap[deferredEvent] = new DeferAction();
@@ -1192,7 +1194,7 @@ namespace Microsoft.PSharp
                 eventHandlerMap[deferredEvent] = new DeferAction();
             }
 
-            // update the map with actions
+            // Updates the map with actions.
             foreach (var actionBinding in state.ActionBindings)
             {
                 if (actionBinding.Key.Equals(typeof(WildCardEvent)))
@@ -1205,7 +1207,7 @@ namespace Microsoft.PSharp
                 eventHandlerMap[actionBinding.Key] = actionBinding.Value;
             }
 
-            // update the map with ignores
+            // Updates the map with ignores.
             foreach (var ignoreEvent in state.IgnoredEvents)
             {
                 if (ignoreEvent.Equals(typeof(WildCardEvent)))
@@ -1218,10 +1220,10 @@ namespace Microsoft.PSharp
                 eventHandlerMap[ignoreEvent] = new IgnoreAction();
             }
 
-            // remove the ones on which transitions are defined
+            // Removes the ones on which transitions are defined.
             foreach (var eventType in this.GotoTransitions.Keys.Union(this.PushTransitions.Keys))
             {
-                if(eventType.Equals(typeof(WildCardEvent)))
+                if (eventType.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
                     break;

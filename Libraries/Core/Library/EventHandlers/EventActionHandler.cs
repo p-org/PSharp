@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineEventHandler.cs">
+// <copyright file="EventActionHandler.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,16 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// An abstract event handler
+    /// An abstract event handler.
     /// </summary>
     internal abstract class EventActionHandler
-    { }
+    {
 
+    }
 }

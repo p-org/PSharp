@@ -7,9 +7,9 @@ using Microsoft.PSharp;
 
 // This sample outlines a generic way of implementing a Receive statement
 // that does not block its calling thread: it is called ReceiveAsync in the
-// code below. The only restriction is that ReceiveAsync be the 
-// last statement of its calling action. ReceiveAsync takes a delegate that
-// is called after the receive is successful.
+// code below. The only restriction is that ReceiveAsync must be the last
+// statement of its calling action. ReceiveAsync takes a delegate that is
+// called after the receive is successful.
 
 namespace AsyncReceive
 {
@@ -73,14 +73,14 @@ namespace AsyncReceive
             });
         }
 
-        // Code below is generic (i.e., doesn't care about what machine A is trying to do)
+        // Code below is generic (i.e., doesn't care about what machine A is trying to do).
 
-        // Defer all, except the event that we want
+        // Defer all, except the event that we want.
         [OnEventDoAction(typeof(E1), nameof(Received))]
         [DeferEvents(typeof(WildCardEvent))]
         class ReceiveE1State : MachineState { }
 
-        // Defer all, except the event that we want
+        // Defer all, except the event that we want.
         [OnEventDoAction(typeof(E2), nameof(Received))]
         [DeferEvents(typeof(WildCardEvent))]
         class ReceiveE2State : MachineState { }
@@ -99,7 +99,7 @@ namespace AsyncReceive
                 pendingEvent = null;
                 HasRaised = false;
 
-                // This may do a raise
+                // This may do a raise.
                 act(ev);
 
                 if(!HasRaised)

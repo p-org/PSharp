@@ -17,7 +17,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The halt event.
+    /// The wild card event.
     /// </summary>
     [DataContract]
     public sealed class WildCardEvent : Event

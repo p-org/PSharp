@@ -12,18 +12,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace Microsoft.PSharp
 {
 
     /// <summary>
-    /// Defines a defer action 
+    /// Defines a defer action.
     /// </summary>
     internal sealed class DeferAction : EventActionHandler
     {
-    }
 
+    }
 }
