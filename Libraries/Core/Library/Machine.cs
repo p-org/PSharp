@@ -337,6 +337,8 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Type[] eventTypes)
         {
+            base.Runtime.NotifyReceiveCalled(this);
+
             lock (this.Inbox)
             {
                 foreach (var type in eventTypes)
@@ -361,6 +363,8 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(Type eventType, Func<Event, bool> predicate)
         {
+            base.Runtime.NotifyReceiveCalled(this);
+
             lock (this.Inbox)
             {
                 this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
@@ -381,6 +385,8 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
+            base.Runtime.NotifyReceiveCalled(this);
+
             lock (this.Inbox)
             {
                 foreach (var e in events)
@@ -401,6 +407,8 @@ namespace Microsoft.PSharp
         /// </summary>
         protected void Pop()
         {
+            base.Runtime.NotifyPop(this);
+
             // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(null);
             if (this.IsHalted)
@@ -815,6 +823,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
+            base.CurrentActionCalledRGP = false;
+
             while (true)
             {
                 if (this.CurrentState == null)
@@ -1205,6 +1215,8 @@ namespace Microsoft.PSharp
 
             try
             {
+                base.InsideOnExit = true;
+
                 // Invokes the exit action of the current state,
                 // if there is one available.
                 if (exitAction != null)
@@ -1258,6 +1270,10 @@ namespace Microsoft.PSharp
                     // Handles generic exception.
                     this.ReportGenericAssertion(innerException);
                 }
+            }
+            finally
+            {
+                base.InsideOnExit = false;
             }
         }
 
