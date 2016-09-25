@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chord", "Chord\Chord.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplicatingStorage", "ReplicatingStorage\ReplicatingStorage.csproj", "{2899D1E9-DB93-41C7-A96A-CB62430C711F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft", "Raft\Raft.csproj", "{CA60D43F-C348-4C79-9E4B-29364FFEFA78}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2899D1E9-DB93-41C7-A96A-CB62430C711F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2899D1E9-DB93-41C7-A96A-CB62430C711F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2899D1E9-DB93-41C7-A96A-CB62430C711F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA60D43F-C348-4C79-9E4B-29364FFEFA78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA60D43F-C348-4C79-9E4B-29364FFEFA78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA60D43F-C348-4C79-9E4B-29364FFEFA78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA60D43F-C348-4C79-9E4B-29364FFEFA78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

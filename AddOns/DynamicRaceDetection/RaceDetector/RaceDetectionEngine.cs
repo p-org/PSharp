@@ -34,6 +34,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
     {
         #region fields
 
+        private Profiler Profiler;
+
         /// <summary>
         /// The P# configuration.
         /// </summary>
@@ -60,6 +62,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
             this.AllThreadTraces = new List<ThreadTrace>();
             this.CGraph = new BidirectionalGraph<Node, Edge>();
+            Profiler = new Profiler();
         }
 
         /// <summary>
@@ -75,6 +78,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 "RuntimeTraces" + Path.DirectorySeparatorChar;
             string threadTraceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
                 "ThreadTraces" + Path.DirectorySeparatorChar;
+
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StartMeasuringExecutionTime();
+            }
 
             string[] fileEntries = Directory.GetFiles(threadTraceDirectoryPath, "*");
             int NumberOfIterations = 0;
@@ -137,16 +145,54 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 }
 
                 this.UpdateGraphCrossEdges();
-                this.PruneGraph();
-                this.UpdateVectorsT();
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Graph construction runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
 
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StartMeasuringExecutionTime();
+                }
+                //Console.WriteLine("before pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
+                this.PruneGraph();
+                //Console.WriteLine("after pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Graph prune runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
+
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StartMeasuringExecutionTime();
+                }
+                this.UpdateVectorsT();
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Topological sort runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
+
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StartMeasuringExecutionTime();
+                }
                 this.DetectRacesFast();
+                if (this.Configuration.EnableProfiling)
+                {
+                    this.Profiler.StopMeasuringExecutionTime();
+                    IO.PrintLine("... Race detection runtime: '" +
+                        this.Profiler.Results() + "' seconds.");
+                }
 
                 this.CGraph.Clear();
                 this.AllThreadTraces.Clear();
             }
-
-            //Directory.Delete(directoryPath, true);
         }
 
         /// <summary>
@@ -222,7 +268,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                         //TODO: check correctness
                         //In case entry and exit functions not defined.   
                         //IO.PrintLine("Skipping entry/exit actions: " + mt.MachineId + " " + mt.ActionId + " " + mt.ActionName);          
-                        Console.WriteLine("CAUGHT: " + info.MachineId + " " + info.ActionId);
                         continue;
                     }
 
@@ -298,7 +343,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                                 item.SendId == ins.SendId).Single();
    
                             cn1 = new SendEvent(machineSend.MachineId, machineSend.SendId,
-                                machineSend.TargetMachineId, machineSend.EventName, machineSend.EventId);
+                                machineSend.TargetMachineId, machineSend.SendEventName, machineSend.EventId);
                             cn1.VectorClock = new int[this.VcCount];
                             currentMachineVC++;
 
@@ -535,11 +580,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 return;
             }
                 
-            BidirectionalGraph<Node, Edge> topoGraph = this.CGraph.Clone(); 
-
+            BidirectionalGraph<Node, Edge> topoGraph = this.CGraph.Clone();
+            
             while (topoGraph.VertexCount > 0)
             {
                 Node current = topoGraph.Vertices.Where(item => topoGraph.InDegree(item) == 0).First();
+
                 IEnumerable<Edge> outEdges = topoGraph.Edges.Where(item => item.Source.Equals(current));
                 foreach (Edge outEdge in outEdges)
                 {
@@ -558,26 +604,27 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         /// <summary>
         /// Prints the graph.
         /// </summary>
-        void PrintGraph()
+        void PrintGraph(BidirectionalGraph<Node, Edge> graph)
         {
             IO.PrintLine("Printing compressed graph");
-            foreach (Node n in this.CGraph.Vertices)
+            foreach (Node n in graph.Vertices)
             {
                 if (n.GetType().ToString().Contains("CActBegin"))
                 {
                     IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((CActBegin)n).MachineId + " " + ((CActBegin)n).ActionId +
-                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask + " " + ((CActBegin)n).TaskId + " " + ((CActBegin)n).EventId);
+                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask + " " + ((CActBegin)n).TaskId + " " + ((CActBegin)n).EventId
+                        + " " + ((CActBegin)n).EventName);
                     IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
                     foreach (MemAccess m in ((CActBegin)n).Addresses)
                     {
-                        IO.PrintLine(m.IsWrite + " " + m.Location + " " + m.ObjHandle + " " + m.Offset);
+                        IO.PrintLine(m.IsWrite + " " + m.Location + " " + m.ObjHandle + " " + m.Offset + " " + m.SrcLocation);
                     }
                 }
                 else if (n.GetType().ToString().Contains("SendEvent"))
                 {
                     IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
-                        ((SendEvent)n).MachineId + " " + ((SendEvent)n).ToMachine + " " + ((SendEvent)n).SendEventId);
+                        ((SendEvent)n).MachineId + " " + ((SendEvent)n).ToMachine + " " + ((SendEvent)n).SendEventId + " " + ((SendEvent)n).SendEventName);
                     IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
                 else if (n.GetType().ToString().Contains("CreateMachine"))
@@ -596,7 +643,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
             IO.PrintLine();
 
-            foreach (Edge e in this.CGraph.Edges)
+            foreach (Edge e in graph.Edges)
             {
                 IO.PrintLine(e.Source.GetHashCode() + " ---> " + e.Target.GetHashCode());
             }

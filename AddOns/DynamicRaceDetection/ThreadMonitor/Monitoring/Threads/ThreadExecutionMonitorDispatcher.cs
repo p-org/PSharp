@@ -361,8 +361,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         {
             this.DebugTrace.Add($"<ThreadMonitorLog> Method call '{method.FullName}'.");
 
-            if ((method.FullName.Contains("Microsoft.PSharp.Machine.CreateMachine") ||
-                method.FullName.Contains("Microsoft.PSharp.PSharpRuntime.CreateMachine")) &&
+            if ((method.FullName.Contains("Microsoft.PSharp.Machine.CreateMachine")) &&
                 !this.CallStack.Peek().FullName.Contains(".Main"))
             {
                 this.IsCreateMachineMethod = true;
@@ -376,7 +375,6 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnEntry"))
             {
-                Console.WriteLine("IsEntryActionCalled set to true in: " + CallStack.Peek());
                 this.IsEntryActionCalled = true;
             }
 
@@ -385,8 +383,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 this.IsExitActionCalled = true;
             }
 
-            else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send") ||
-                method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
+            else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send")) &&
                 !this.CallStack.Peek().FullName.Contains(".Main"))
             {
                 this.DebugTrace.Add($"<ThreadMonitorLog> Send '{method.FullName}'.");
@@ -473,8 +470,32 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         {
             this.DebugTrace.Add($"<ThreadMonitorLog> Virtual call '{method.FullName}'.");
 
-            if (method.FullName.Contains("Microsoft.PSharp") && method.FullName.Contains("NotifyInvokedAction") &&
+            if ((method.FullName.Contains("Microsoft.PSharp.PSharpRuntime.CreateMachine")) &&
                 !this.CallStack.Peek().FullName.Contains(".Main"))
+            {
+                this.IsCreateMachineMethod = true;
+                this.DebugTrace.Add($"<ThreadMonitorLog> Call '{method}' '{this.IsCreateMachineMethod}'.");
+            }
+            else if ((method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
+                !this.CallStack.Peek().FullName.Contains(".Main"))
+            {
+                this.DebugTrace.Add($"<ThreadMonitorLog> Send '{method.FullName}'.");
+                ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
+
+                if (SendIds.ContainsKey(this.CurrentMachineId))
+                {
+                    SendIds[this.CurrentMachineId]++;
+                }
+                else
+                {
+                    SendIds.Add(this.CurrentMachineId, 1);
+                }
+
+                obj.Accesses.Add(new ActionInstr(SendIds[this.CurrentMachineId]));
+            }
+
+            if (method.FullName.Contains("Microsoft.PSharp") && method.FullName.Contains("NotifyInvokedAction") &&
+                !this.CallStack.Peek().FullName.Contains(".Main") && !this.CallStack.Peek().FullName.Contains("Monitor.Do"))
             {
                 ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForMachine(machineIdOfAction);
 
