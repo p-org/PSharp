@@ -337,7 +337,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Type[] eventTypes)
         {
-            this.Runtime.NotifyReceiveCalled(this);
+            base.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
             {
@@ -363,7 +363,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.Runtime.NotifyReceiveCalled(this);
+            base.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
             {
@@ -385,7 +385,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            this.Runtime.NotifyReceiveCalled(this);
+            base.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
             {
@@ -407,7 +407,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected void Pop()
         {
-            this.Runtime.NotifyPop(this);
+            base.Runtime.NotifyPop(this);
 
             // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(null);
@@ -823,7 +823,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
-            this.CurrentActionCalledRGP = false;
+            base.CurrentActionCalledRGP = false;
 
             while (true)
             {
@@ -1215,7 +1215,7 @@ namespace Microsoft.PSharp
 
             try
             {
-                this.InsideOnExit = true;
+                base.InsideOnExit = true;
 
                 // Invokes the exit action of the current state,
                 // if there is one available.
@@ -1273,7 +1273,7 @@ namespace Microsoft.PSharp
             }
             finally
             {
-                this.InsideOnExit = false;
+                base.InsideOnExit = false;
             }
         }
 

@@ -42,12 +42,13 @@ namespace Microsoft.PSharp
         internal int OperationId { get; private set; }
 
         /// <summary>
-        /// Is the machine executing an OnExit method
+        /// Checks if the machine is executing an OnExit method.
         /// </summary>
         internal bool InsideOnExit;
 
         /// <summary>
-        /// Did the current machine action call Raise/Goto/Pop (RGP)?
+        /// Checks if the current machine action called
+        /// Raise/Goto/Pop (RGP).
         /// </summary>
         internal bool CurrentActionCalledRGP;
 
@@ -61,8 +62,8 @@ namespace Microsoft.PSharp
         public AbstractMachine()
         {
             this.OperationId = 0;
-            this.CurrentActionCalledRGP = false;
             this.InsideOnExit = false;
+            this.CurrentActionCalledRGP = false;
         }
 
         /// <summary>
@@ -143,12 +144,14 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Asserts that a Raise/Goto/Pop hasn't already been called.
-        /// Records that RGP has been called
+        /// Records that RGP has been called.
         /// </summary>
         internal void AssertCorrectRGPInvocation()
         {
-            Runtime.Assert(!this.InsideOnExit, "Machine '{0}' has called raise/goto/pop inside an OnExit method.", this.Id.Name);
-            Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' has called multiple raise/goto/pop in the same action.", this.Id.Name);
+            this.Runtime.Assert(!this.InsideOnExit, "Machine '{0}' has called raise/goto/pop " +
+                "inside an OnExit method.", this.Id.Name);
+            this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' has called multiple " +
+                "raise/goto/pop in the same action.", this.Id.Name);
 
             this.CurrentActionCalledRGP = true;
         }
@@ -158,8 +161,10 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void AssertNoPendingRGP(string calledAPI)
         {
-            Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' cannot call API '{1}' after calling raise/goto/pop in the same action.", this.Id.Name, calledAPI);
+            this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' cannot call API '{1}' " +
+                "after calling raise/goto/pop in the same action.", this.Id.Name, calledAPI);
         }
+
         #endregion
     }
 }

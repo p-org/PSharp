@@ -312,6 +312,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
+
             if (creator != null)
             {
                 creator.AssertNoPendingRGP("CreateMachine");
@@ -403,6 +404,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
+
             if (creator != null)
             {
                 creator.AssertNoPendingRGP("CreateRemoteMachine");
@@ -902,7 +904,7 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that a machine called Receive
+        /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
         internal override void NotifyReceiveCalled(AbstractMachine machine)

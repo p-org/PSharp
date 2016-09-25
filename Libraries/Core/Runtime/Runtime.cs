@@ -779,7 +779,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine called Receive
+        /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyReceiveCalled(AbstractMachine machine)
