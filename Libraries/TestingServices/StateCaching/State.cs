@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// The enabled machines. Only relevant if this is a scheduling
         /// trace step.
         /// </summary>
-        internal HashSet<AbstractMachine> EnabledMachines;
+        internal HashSet<MachineId> EnabledMachines;
 
         #endregion
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <param name="fingerprint">Fingerprint</param>
         /// <param name="enabledMachines">Enabled machines</param>
         /// <param name="monitorStatus">Monitor status</param>
-        internal State(Fingerprint fingerprint, HashSet<AbstractMachine> enabledMachines,
+        internal State(Fingerprint fingerprint, HashSet<MachineId> enabledMachines,
             Dictionary<Monitor, MonitorStatus> monitorStatus)
         {
             this.Fingerprint = fingerprint;
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             IO.PrintLine($"Fingerprint: {this.Fingerprint}");
             foreach (var m in this.EnabledMachines)
             {
-                IO.PrintLine($"  Enabled machine: {m.Id}");
+                IO.PrintLine($"  Enabled machine: {m}");
             }
 
             foreach (var m in this.MonitorStatus)

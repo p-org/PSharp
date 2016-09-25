@@ -106,12 +106,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
-                nextStep.ScheduledMachineType) &&
-                m.Machine.Id.Value == nextStep.ScheduledMachineId);
+                nextStep.ScheduledMachineId.Type) &&
+                m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
             if (next == null)
             {
                 IO.Error.ReportAndExit("Trace is not reproducible: cannot detect machine with type " +
-                    $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
+                    $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.");
             }
 
             this.ExploredSteps++;
