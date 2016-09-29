@@ -335,7 +335,7 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
-                base.Id, this.GetType().Name, this.CurrentState.Name));
+                base.Id, this.GetType().Name, Machine.GetQualifiedStateName(this.CurrentState)));
             base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent, isStarter);
         }
 
@@ -624,7 +624,7 @@ namespace Microsoft.PSharp
                                 $"'{this.CurrentStateName}'.");
 
                             nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
-                                base.Id, this.GetType().Name, this.CurrentState.Name));
+                                base.Id, this.GetType().Name, Machine.GetQualifiedStateName(this.CurrentState)));
                             defaultHandling = true;
                         }
                         else
@@ -1574,7 +1574,7 @@ namespace Microsoft.PSharp
             var allStates = new HashSet<string>();
             foreach (var state in StateMap[this.GetType()])
             {
-                allStates.Add(state.GetType().Name);
+                allStates.Add(GetQualifiedStateName(state.GetType()));
             }
 
             return allStates;
@@ -1595,30 +1595,49 @@ namespace Microsoft.PSharp
             {
                 foreach (var binding in state.ActionBindings)
                 {
-                    pairs.Add(Tuple.Create(state.GetType().Name, binding.Key.Name));
+                    pairs.Add(Tuple.Create(GetQualifiedStateName(state.GetType()), binding.Key.Name));
                 }
 
                 foreach (var transition in state.GotoTransitions)
                 {
-                    pairs.Add(Tuple.Create(state.GetType().Name, transition.Key.Name));
+                    pairs.Add(Tuple.Create(GetQualifiedStateName(state.GetType()), transition.Key.Name));
                 }
 
                 foreach (var pushtransition in state.PushTransitions)
                 {
-                    pairs.Add(Tuple.Create(state.GetType().Name, pushtransition.Key.Name));
+                    pairs.Add(Tuple.Create(GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
                 }
             }
 
             return pairs;
         }
 
-        #endregion
-        
-        #region error checking
-
         /// <summary>
-        /// Check machine for state related errors.
+        /// Returns the qualified (MachineGroup) name of a MachineState
         /// </summary>
+        /// <param name="state">State</param>
+        /// <returns>Qualified state name</returns>
+        internal static string GetQualifiedStateName(Type state)
+        {
+            var name = state.Name;
+
+            while(state.DeclaringType != null)
+            {
+                if (!state.DeclaringType.IsSubclassOf(typeof(StateGroup))) break;
+                name = string.Format("{0}.{1}", state.DeclaringType.Name, name);
+                state = state.DeclaringType;
+            }
+
+            return name;
+        }
+
+        #endregion
+
+            #region error checking
+
+            /// <summary>
+            /// Check machine for state related errors.
+            /// </summary>
         private void AssertStateValidity()
         {
             this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{base.Id}' " +

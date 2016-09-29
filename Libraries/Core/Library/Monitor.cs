@@ -168,7 +168,7 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
             EventInfo raisedEvent = new EventInfo(e, new EventOriginInfo(
-                base.Id, this.GetType().Name, this.CurrentState.Name));
+                base.Id, this.GetType().Name, Machine.GetQualifiedStateName(this.CurrentState)));
             base.Runtime.NotifyRaisedEvent(this, raisedEvent, false);
             this.HandleEvent(e);
         }

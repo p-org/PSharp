@@ -604,7 +604,7 @@ namespace Microsoft.PSharp
             {
                 originInfo = new EventOriginInfo(sender.Id,
                     (sender as Machine).GetType().Name,
-                    (sender as Machine).CurrentState.Name);
+                    Machine.GetQualifiedStateName((sender as Machine).CurrentState));
             }
 
             EventInfo eventInfo = new EventInfo(e, originInfo);

@@ -504,7 +504,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 originInfo = new EventOriginInfo(sender.Id,
                     (sender as Machine).GetType().Name,
-                    (sender as Machine).CurrentState.Name);
+                    Machine.GetQualifiedStateName((sender as Machine).CurrentState));
             }
             else
             {
@@ -1052,7 +1052,7 @@ namespace Microsoft.PSharp.TestingServices
             string originState = eventInfo.OriginInfo.SenderStateName;
             string edgeLabel = eventInfo.EventType.Name;
             string destMachine = machine.GetType().Name;
-            string destState = machine.CurrentState.Name;
+            string destState = Machine.GetQualifiedStateName(machine.CurrentState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1090,7 +1090,7 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportCodeCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
-            string originState = machine.CurrentState.Name;
+            string originState = Machine.GetQualifiedStateName(machine.CurrentState);
             string destMachine = machine.GetType().Name;
 
             string edgeLabel = "";
@@ -1098,12 +1098,13 @@ namespace Microsoft.PSharp.TestingServices
             if (eventInfo.Event is GotoStateEvent)
             {
                 edgeLabel = "goto";
-                destState = (eventInfo.Event as GotoStateEvent).State.Name;
+                destState = Machine.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
             }
             else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = machine.GotoTransitions[eventInfo.EventType].TargetState.Name;
+                destState = Machine.GetQualifiedStateName(
+                    machine.GotoTransitions[eventInfo.EventType].TargetState);
             }
             else
             {
