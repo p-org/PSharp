@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            configuration.SchedulingIterations = 60;
+            configuration.SchedulingIterations = 600;
 
             var engine = TestingEngineFactory.CreateBugFindingEngine(
                 configuration, TestProgram.Execute);
