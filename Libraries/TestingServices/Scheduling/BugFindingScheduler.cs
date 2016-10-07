@@ -77,7 +77,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             get; private set;
         }
-
         #endregion
 
         #region internal methods

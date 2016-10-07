@@ -1,0 +1,28 @@
+//// Program Lk_Machine_p_LinkModel.4ml
+model Lk_Machine_p_LinkModel of PLink at "D:\\P\\P\\Bld\\Drops\\Debug\\x64\\Binaries\\PLink.4ml"
+{
+  p_compiler____EventDecl__0x0 is EventDecl("Lk_Machine_WaitResp", NIL, NIL),
+  p_compiler____EventDecl__0x1 is EventDecl("Lk_Machine_SetResp", NIL, NIL),
+  p_compiler____MachineSends__0x2 is MachineSends("Lk_Machine", "Lk_Machine_WaitResp"),
+  p_compiler____MachineReceives__0x3 is MachineReceives("Lk_Machine", "Lk_Machine_WaitResp"),
+  p_compiler____MachineCreatesM__0x4 is MachineCreatesM("Lk_Machine", "Lk_Machine"),
+  p_compiler____FunImpDecl__0x5 is FunImpDecl("Unblock", NIL, NIL, NIL),
+  p_compiler____EventDecl__0x6 is EventDecl("Lk_Machine_AtomicTestSet_Resp", NIL, NIL),
+  p_compiler____MachineReceives__0x7 is MachineReceives("Lk_Machine", "Lk_Machine_AtomicTestSet_Resp"),
+  p_compiler____MachineSends__0x8 is MachineSends("Lk_Machine", "Lk_Machine_SetReq"),
+  p_compiler____MachineReceives__0x9 is MachineReceives("Lk_Machine", "Lk_Machine_SetReq"),
+  p_compiler____MachineSends__0xa is MachineSends("Lk_Machine", "Lk_Machine_SetResp"),
+  p_compiler____MachineReceives__0xb is MachineReceives("Lk_Machine", "Lk_Machine_SetResp"),
+  p_compiler____MachineSends__0xc is MachineSends("Lk_Machine", "Lk_Machine_Waiting"),
+  p_compiler____MachineReceives__0xd is MachineReceives("Lk_Machine", "Lk_Machine_Waiting"),
+  p_compiler____MachineSends__0xe is MachineSends("Lk_Machine", "Lk_Machine_AtomicTestSet_Resp"),
+  p_compiler____MachineSends__0xf is MachineSends("Lk_Machine", "Lk_Machine_AtomicTestSet"),
+  p_compiler____MachineReceives__0x10 is MachineReceives("Lk_Machine", "Lk_Machine_AtomicTestSet"),
+  p_compiler____EventSet__0x11 is EventSet("P_GEND_EVENTSET_", NIL),
+  p_compiler____EventSet__0x12 is EventSet("P_GEND_EVENTSET_Lk_Machine_AtomicTestSetLk_Machine_SetReqLk_Machine_Waiting", EventNameList("Lk_Machine_AtomicTestSet", EventNameList("Lk_Machine_SetReq", EventNameList("Lk_Machine_Waiting", NIL)))),
+  p_compiler____EventDecl__0x13 is EventDecl("Lk_Machine_AtomicTestSet", NIL, BaseType(MACHINE)),
+  p_compiler____EventDecl__0x14 is EventDecl("Lk_Machine_Waiting", NIL, TupType(BaseType(MACHINE), TupType(BaseType(BOOL), NIL))),
+  p_compiler____EventDecl__0x15 is EventDecl("Lk_Machine_SetReq", NIL, TupType(BaseType(MACHINE), TupType(BaseType(BOOL), NIL))),
+  p_compiler____MachineDecl__0x16 is MachineDecl("Lk_Machine", BaseType(NULL), NIL).
+}
+

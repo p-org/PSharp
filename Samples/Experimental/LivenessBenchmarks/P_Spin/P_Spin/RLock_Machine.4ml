@@ -1,0 +1,21 @@
+//// Program RLock_Machine_p_LinkModel.4ml
+model RLock_Machine_p_LinkModel of PLink at "D:\\P\\P\\Bld\\Drops\\Debug\\x64\\Binaries\\PLink.4ml"
+{
+  p_compiler____EventDecl__0x0 is EventDecl("RLock_Machine_SetResp", NIL, NIL),
+  p_compiler____MachineSends__0x1 is MachineSends("RLock_Machine", "RLock_Machine_SetResp"),
+  p_compiler____MachineReceives__0x2 is MachineReceives("RLock_Machine", "RLock_Machine_SetResp"),
+  p_compiler____MachineSends__0x3 is MachineSends("RLock_Machine", "RLock_Machine_ValueResp"),
+  p_compiler____MachineReceives__0x4 is MachineReceives("RLock_Machine", "RLock_Machine_ValueResp"),
+  p_compiler____MachineSends__0x5 is MachineSends("RLock_Machine", "RLock_Machine_SetReq"),
+  p_compiler____MachineReceives__0x6 is MachineReceives("RLock_Machine", "RLock_Machine_SetReq"),
+  p_compiler____MachineSends__0x7 is MachineSends("RLock_Machine", "RLock_Machine_ValueReq"),
+  p_compiler____MachineReceives__0x8 is MachineReceives("RLock_Machine", "RLock_Machine_ValueReq"),
+  p_compiler____MachineCreatesM__0x9 is MachineCreatesM("RLock_Machine", "RLock_Machine"),
+  p_compiler____EventSet__0xa is EventSet("P_GEND_EVENTSET_", NIL),
+  p_compiler____EventSet__0xb is EventSet("P_GEND_EVENTSET_RLock_Machine_SetReqRLock_Machine_ValueReq", EventNameList("RLock_Machine_SetReq", EventNameList("RLock_Machine_ValueReq", NIL))),
+  p_compiler____EventDecl__0xc is EventDecl("RLock_Machine_ValueReq", NIL, BaseType(MACHINE)),
+  p_compiler____EventDecl__0xd is EventDecl("RLock_Machine_ValueResp", NIL, BaseType(BOOL)),
+  p_compiler____EventDecl__0xe is EventDecl("RLock_Machine_SetReq", NIL, TupType(BaseType(MACHINE), TupType(BaseType(BOOL), NIL))),
+  p_compiler____MachineDecl__0xf is MachineDecl("RLock_Machine", BaseType(NULL), NIL).
+}
+
