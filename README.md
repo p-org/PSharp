@@ -1,6 +1,6 @@
 P#
 ====================
-A toolkit for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software, such as web-services and distributed systems.
+A language and toolkit for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software, such as web-services and distributed systems.
 
 ## Features
 The P# framework provides:
