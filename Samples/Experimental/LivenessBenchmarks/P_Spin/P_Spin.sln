@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P_Spin", "P_Spin\P_Spin.csproj", "{3D343207-91BD-476F-9721-EEAA3081DADA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chord", "Chord\Chord.csproj", "{B6DDC35B-B290-459F-8E77-3F0FC09C274C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft", "Raft\Raft.csproj", "{3F1A83A6-93BD-443F-B1F7-CEFA56257B9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repro", "Repro\Repro.csproj", "{EED1D1C5-562F-427F-B7D1-8213C377D874}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{3F1A83A6-93BD-443F-B1F7-CEFA56257B9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F1A83A6-93BD-443F-B1F7-CEFA56257B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F1A83A6-93BD-443F-B1F7-CEFA56257B9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EED1D1C5-562F-427F-B7D1-8213C377D874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EED1D1C5-562F-427F-B7D1-8213C377D874}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EED1D1C5-562F-427F-B7D1-8213C377D874}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EED1D1C5-562F-427F-B7D1-8213C377D874}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
