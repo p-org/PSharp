@@ -1,4 +1,4 @@
-﻿event ConfigureEvent : machine;
+﻿event Client_ConfigureEvent : machine;
 event Client_Request : (machine, int);
 event Response;
 event LocalEvent;
@@ -16,7 +16,7 @@ machine Client
 			LatestCommand = -1;
             Counter = 0;
 		}
-		on ConfigureEvent do (cluster : machine)
+		on Client_ConfigureEvent do (cluster : machine)
 		{
 			Cluster = cluster;
             raise LocalEvent;

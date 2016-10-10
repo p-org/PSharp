@@ -1,9 +1,10 @@
-﻿event NotifyLeaderUpdate : (machine, int);
-event RedirectRequest : event;
-event ShutDown;
+﻿#include "Server.p"
+
+event NotifyLeaderUpdate : (machine, int);
+event RedirectRequest : (machine, int);
 event Local;
 
-machine ClusterManager
+machine Main
 {
 	var Servers : seq[machine];
 	var NumberOfServers : int;
@@ -16,15 +17,17 @@ machine ClusterManager
 		entry
 		{
 			var index : int;
+			var serv : machine;
 
 			NumberOfServers = 5;
 			LeaderTerm = 0;
 			Servers = default(seq[machine]);
-
+			
 			index = 0;
-			while(index < NumberOfServers)
+			while (index < NumberOfServers)
 			{
-				Servers[index] = new Server();
+				serv = new Server();
+				Servers += (index, serv);
 				index = index + 1;
 			}
 			Client = new Client();
@@ -48,12 +51,12 @@ machine ClusterManager
 
             raise Local;
 		}
-		on Local goto Unavailable
+		on Local goto Unavailable;
 	}
 
 	state Unavailable
 	{
-		on NotifyLeaderUpdate do (payload : event)
+		on NotifyLeaderUpdate do (payload : (machine, int))
 		{
 			UpdateLeader(payload);
             raise Local;
@@ -75,17 +78,17 @@ machine ClusterManager
 
 	state Available
 	{
-		on Client_Request do (payload : machine, int)
+		on Client_Request do (payload : (machine, int))
 		{
-			send Leader, Client_Request, paylaod.0, payload.1;
+			send Leader, Client_Request, payload.0, payload.1;
 		}
-		on RedirectRequest do (payload : event)
+		on RedirectRequest do (payload : (machine, int))
 		{
-			send this, payload;
+			send this, RedirectRequest, payload.0, payload.1;
 		}
-		on NotifyLeaderUpdate do (payload : event)
+		on NotifyLeaderUpdate do (payload : (machine, int))
 		{
-			UpdateLeader(payload)
+			UpdateLeader(payload);
 		}
 		on ShutDown do 
 		{
@@ -101,7 +104,7 @@ machine ClusterManager
 		on Local goto Unavailable;
 	}
 
-	fun UpdateLeader(var request : NotifyLeaderUpdate)
+	fun UpdateLeader(request : (machine, int))
     {
         if (LeaderTerm < request.1)
         {

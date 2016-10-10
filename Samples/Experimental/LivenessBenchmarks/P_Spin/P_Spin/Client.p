@@ -123,15 +123,15 @@ event NotifyClientProgress;
 
 spec Liveness observes NotifyClientProgress, NotifyClientSleep 
 {
-	start state Init
+	/*start state Init
 	{
 		entry
 		{
 			goto Progressing;
 		}
-	}
+	}*/
 
-	cold state Progressing
+	start cold state Progressing
 	{
 		on NotifyClientSleep goto Suspended;
 	}

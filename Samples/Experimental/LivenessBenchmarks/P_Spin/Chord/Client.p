@@ -108,15 +108,15 @@ machine Client
 
 spec Liveness observes NotifyClientRequest, NotifyClientResponse 
 {
-	start state Init
+	/*start state Init
 	{
 		entry
 		{
 			goto Responded;
 		}
-	}
+	}*/
 
-	cold state Responded
+	start cold state Responded
 	{
 		on NotifyClientRequest goto Requested;
 	}

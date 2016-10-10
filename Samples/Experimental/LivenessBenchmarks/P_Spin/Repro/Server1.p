@@ -70,15 +70,7 @@ machine Main
 
 spec Liveness observes SearchStarted, SearchFinished
 {
-	start state Init
-	{
-		entry
-		{
-			goto Searched;
-		}
-	}
-
-	cold state Searched
+	start cold state Searched
 	{
 		on SearchStarted goto Searching;
 	}

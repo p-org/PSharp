@@ -1,4 +1,8 @@
-﻿event ConfigureEvent : (int, seq[machine], machine);
+﻿#include "ElectionTimer.p"
+#include "PeriodicTimer.p"
+#include "Client.p"
+
+event Server_ConfigureEvent : (int, seq[machine], machine);
 event VoteRequest : (int, machine, int, int);
 event VoteResponse : (int, bool);
 event AppendEntriesRequest : (int, machine, int, int, seq[Log], int, machine);
@@ -7,6 +11,10 @@ event BecomeFollower;
 event BecomeCandidate;
 event BecomeLeader;
 event ShutDown;
+
+event LivenessMonitor_NotifyLeaderElected;
+
+type Log = (Term : int, Command : int);
 
 machine Server
 {
@@ -24,7 +32,8 @@ machine Server
 	var NextIndex : map[machine, int];
 	var MatchIndex : map[machine, int];
 	var VotesReceived : int;
-	var LastClientRequest : Client_Request;
+	var LastClientRequestMachine : machine;
+	var LastClientRequestInt : int;
 
 	start state Init 
 	{
@@ -42,18 +51,23 @@ machine Server
 
             NextIndex = default(map[machine, int]);
             MatchIndex = default(map[machine, int]);
+
+			LastClientRequestMachine = null;
+			LastClientRequestInt = -1;
+
+			Servers = default(seq[machine]);
 		}
-		on ConfigureEvent do (payload : ((int, seq[machine], machine)))
+		on Server_ConfigureEvent do (payload : (int, seq[machine], machine))
 		{
 			ServerId = payload.0;
             Servers = payload.1;
             ClusterManager = payload.2;
 
             ElectionTimer = new ElectionTimer();
-            Send ElectionTimer, ElectionTimer_ConfigureEvent, this;
+            send ElectionTimer, ElectionTimer_ConfigureEvent, this;
 
             PeriodicTimer = new PeriodicTimer();
-            Send PeriodicTimer, PeriodicTimer_ConfigureEvent, this;
+            send PeriodicTimer, PeriodicTimer_ConfigureEvent, this;
 
             raise BecomeFollower;
 		}
@@ -78,18 +92,18 @@ machine Server
             }
             else
             {
-                send ClusterManager, ClusterManager_RedirectRequest, payload.0, payload.1;
+                send ClusterManager, RedirectRequest, payload.0, payload.1;
             }
 		}
 		on ElectionTimer_Timeout do
 		{
-			this.Raise(new BecomeCandidate());
+			raise BecomeCandidate;
 		}
 		on VoteRequest do (request : (int, machine, int, int))
 		{
             if (request.0 > CurrentTerm)
             {
-                CurrentTerm = request.Term;
+                CurrentTerm = request.0;
                 VotedFor = null;
             }
 
@@ -144,7 +158,7 @@ machine Server
             send ElectionTimer, ElectionTimer_StartTimer;
             BroadcastVoteRequests();
 		}
-		on Client_Request do 
+		on Client_Request do (payload : (machine, int))
 		{
 			if (LeaderId != null)
             {
@@ -152,7 +166,7 @@ machine Server
             }
             else
             {
-                send ClusterManager, ClusterManager_RedirectRequest, payload.0, payload.1;
+                send ClusterManager, RedirectRequest, payload.0, payload.1;
             }
 		}
 		on VoteRequest do (request : (int, machine, int, int))
@@ -219,22 +233,28 @@ machine Server
 		{
 			raise BecomeCandidate;
 		}
-		on PeriodicTimer.Timeout do 
+		on PeriodicTimer_Timeout do 
 		{
 			var index : int;
 			var lastLogIndex : int;
-			var lastLogTerm : int
+			var lastLogTerm : int;
 
 			index = 0;
 			while (index < sizeof(Servers))
 			{	
 				if (index == ServerId)
-                    continue;
+				{
+					
+				}
+				
+				else
+				{
+					lastLogIndex = sizeof(Logs);
+					lastLogTerm = GetLogTermForIndex(lastLogIndex);
 
-				lastLogIndex = sizeof(Logs);
-                lastLogTerm = GetLogTermForIndex(lastLogIndex);
-
-                send Servers[index], VoteRequest, CurrentTerm, this, lastLogIndex, lastLogTerm;
+					send Servers[index], VoteRequest, CurrentTerm, this, lastLogIndex, lastLogTerm;
+				}
+				
 				index = index  + 1;
 			}
 		}
@@ -259,9 +279,8 @@ machine Server
 			var index : int;
 			var LogList : seq[Log];
 
-			announce SafetyMonitor_NotifyLeaderElected, CurrentTerm;
             announce LivenessMonitor_NotifyLeaderElected;
-            send ClusterManager, ClusterManager_NotifyLeaderUpdate, this, CurrentTerm;
+            send ClusterManager, NotifyLeaderUpdate, this, CurrentTerm;
 
             logIndex = sizeof(Logs);
             logTerm = GetLogTermForIndex(logIndex);
@@ -272,10 +291,16 @@ machine Server
 			index = 0;
 			while (index < sizeof(Servers))
 			{
-				if (idx == ServerId)
-                    continue;
-                NextIndex += (Servers[index], (logIndex + 1));
-                MatchIndex + (Servers[index], 0);
+				if (index == ServerId)
+				{
+
+				}
+				else
+				{
+					NextIndex += (Servers[index], (logIndex + 1));
+					MatchIndex += (Servers[index], 0);
+				}
+
 				index = index + 1;
 			}
 
@@ -283,10 +308,13 @@ machine Server
 			while (index < sizeof(Servers))
 			{
 				if (index == ServerId)
-                    continue;
-
-				LogList = default(seq[Log]);
-                send(Servers[index], AppendEntriesRequest, CurrentTerm, this, logIndex, logTerm, LogList, CommitIndex, null));
+				{
+				}
+				else
+				{
+					LogList = default(seq[Log]);
+					send Servers[index], AppendEntriesRequest, CurrentTerm, this, logIndex, logTerm, LogList, CommitIndex, null;
+				}
 				index = index + 1;
 			}
 		}
@@ -294,10 +322,11 @@ machine Server
 		{
             var log : Log;
 
-			LastClientRequest = payload;
+			LastClientRequestMachine = payload.0;
+			LastClientRequestInt = payload.1;
 			log = default(Log);
-			log.CurrentTerm = CurrentTerm;
-			log.Command = LastClientRequest.1);
+			log.Term = CurrentTerm;
+			log.Command = LastClientRequestInt;
             Logs += (sizeof(Logs), log);
 
             BroadcastLastClientRequest();
@@ -353,7 +382,7 @@ machine Server
 
             if (request.0 > CurrentTerm)
             {
-                CurrentTerm = request.Term;
+                CurrentTerm = request.0;
                 VotedFor = null;
 
                 RedirectLastClientRequestToClusterManager();
@@ -380,9 +409,10 @@ machine Server
                     }
 
                     VotesReceived = 0;
-                    LastClientRequest = null;
+                    LastClientRequestMachine = null;
+					LastClientRequestInt = -1;
 
-                    send request.3, Client_Response;
+                    send request.3, Response;
                 }
             }
             else
@@ -393,7 +423,7 @@ machine Server
                 }
 
 				logs = default(seq[Log]);
-				index = NextIndex[request.2] - 1
+				index = NextIndex[request.2] - 1;
 				while (index <= (sizeof(Logs) - NextIndex[request.2] - 1))
 				{
 					logs += (sizeof(logs), Logs[index]);
@@ -434,169 +464,168 @@ machine Server
 		while (index < sizeof(Servers))
 		{
             if (index == ServerId)
-                continue;
-
-            server = Servers[index];
-            if (lastLogIndex < NextIndex[server])
-                continue;
-
-			cIndex = NextIndex[server] - 1;
-			logs = default(seq[Log]);
-			while (cIndex <= sizeof(Logs) - NextIndex[server] - 1)
-			{	
-				logs += (sizeof(logs), Logs[cIndex]);
-				cIndex = cIndex + 1;
+			{
 			}
-            prevLogIndex = NextIndex[server] - 1;
-            prevLogTerm = GetLogTermForIndex(prevLogIndex);
-
-            send server, AppendEntriesRequest, CurrentTerm, this, prevLogIndex, prevLogTerm, logs, CommitIndex, this.LastClientRequest.0));
+			else
+			{
+				server = Servers[index];
+				if (lastLogIndex < NextIndex[server])
+				{
+				}
+				else
+				{
+					cIndex = NextIndex[server] - 1;
+					logs = default(seq[Log]);
+					while (cIndex <= sizeof(Logs) - NextIndex[server] - 1)
+					{	
+						logs += (sizeof(logs), Logs[cIndex]);
+						cIndex = cIndex + 1;
+					}
+					prevLogIndex = NextIndex[server] - 1;
+					prevLogTerm = GetLogTermForIndex(prevLogIndex);
+	
+					send server, AppendEntriesRequest, CurrentTerm, this, prevLogIndex, prevLogTerm, logs, CommitIndex, LastClientRequestMachine;
+				}
+			}
+            
 			index = index + 1;
         }
     }
-}
 
-namespace Raft
-{
-    /// <summary>
-    /// A server in Raft can be one of the following three roles:
-    /// follower, candidate or leader.
-    /// </summary>
-    internal class Server : Machine
+	fun Vote(request : (int, machine, int, int))
     {
+        var lastLogIndex : int;
+		var lastLogTerm : int;
+
+		lastLogTerm = GetLogTermForIndex(lastLogIndex);
+		lastLogIndex = sizeof(Logs);
         
-
-        #endregion
-
-        #region general methods
-
-        /// <summary>
-        /// Processes the given vote request.
-        /// </summary>
-        /// <param name="request">VoteRequest</param>
-        void Vote(VoteRequest request)
+        if (request.0 < CurrentTerm ||
+            (VotedFor != null && VotedFor != request.1) ||
+            lastLogIndex > request.2 ||
+            lastLogTerm > request.3)
         {
-            var lastLogIndex = this.Logs.Count;
-            var lastLogTerm = this.GetLogTermForIndex(lastLogIndex);
-
-            if (request.Term < this.CurrentTerm ||
-                (this.VotedFor != null && this.VotedFor != request.CandidateId) ||
-                lastLogIndex > request.LastLogIndex ||
-                lastLogTerm > request.LastLogTerm)
-            {
-                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
-                    " | log " + this.Logs.Count + " | vote false\n");
-                this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, false));
-            }
-            else
-            {
-                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
-                    " | log " + this.Logs.Count + " | vote true\n");
-
-                this.VotedFor = request.CandidateId;
-                this.LeaderId = null;
-
-                this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, true));
-            }
+            send request.1, VoteResponse, CurrentTerm, false;
         }
-
-        /// <summary>
-        /// Processes the given append entries request.
-        /// </summary>
-        /// <param name="request">AppendEntriesRequest</param>
-        void AppendEntries(AppendEntriesRequest request)
+        else
         {
-            if (request.Term < this.CurrentTerm)
-            {
-                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-                    this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (< term)\n");
+            VotedFor = request.1;
+            LeaderId = null;
 
-                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
-                    this.Id, request.ReceiverEndpoint));
-            }
-            else
-            {
-                if (request.PrevLogIndex > 0 &&
-                    (this.Logs.Count < request.PrevLogIndex ||
-                    this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
-                {
-                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-                        this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (not in log)\n");
-
-                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
-                        false, this.Id, request.ReceiverEndpoint));
-                }
-                else
-                {
-                    if (request.Entries.Count > 0)
-                    {
-                        var currentIndex = request.PrevLogIndex + 1;
-                        foreach (var entry in request.Entries)
-                        {
-                            if (this.Logs.Count < currentIndex)
-                            {
-                                this.Logs.Add(entry);
-                            }
-                            else if (this.Logs[currentIndex - 1].Term != entry.Term)
-                            {
-                                this.Logs.RemoveRange(currentIndex - 1, this.Logs.Count - (currentIndex - 1));
-                                this.Logs.Add(entry);
-                            }
-
-                            currentIndex++;
-                        }
-                    }
-
-                    if (request.LeaderCommit > this.CommitIndex &&
-                        this.Logs.Count < request.LeaderCommit)
-                    {
-                        this.CommitIndex = this.Logs.Count;
-                    }
-                    else if (request.LeaderCommit > this.CommitIndex)
-                    {
-                        this.CommitIndex = request.LeaderCommit;
-                    }
-
-                    if (this.CommitIndex > this.LastApplied)
-                    {
-                        this.LastApplied++;
-                    }
-
-                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-                        this.Logs.Count + " | entries received " + request.Entries.Count + " | last applied " +
-                        this.LastApplied + " | append true\n");
-
-                    this.LeaderId = request.LeaderId;
-                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
-                        true, this.Id, request.ReceiverEndpoint));
-                }
-            }
+            send request.1, VoteResponse, CurrentTerm, true;
         }
-
-        void RedirectLastClientRequestToClusterManager()
-        {
-            if (this.LastClientRequest != null)
-            {
-                this.Send(this.ClusterManager, this.LastClientRequest);
-            }
-        }
-
-        /// <summary>
-        /// Returns the log term for the given log index.
-        /// </summary>
-        /// <param name="logIndex">Index</param>
-        /// <returns>Term</returns>
-        int GetLogTermForIndex(int logIndex)
-        {
-            var logTerm = 0;
-            if (logIndex > 0)
-            {
-                logTerm = this.Logs[logIndex - 1].Term;
-            }
-
-            return logTerm;
-        }
-
-        #endregion
     }
+
+	fun AppendEntries(request : (int, machine, int, int, seq[Log], int, machine))
+    {
+		var currentIndex  : int;
+		var index : int;
+		var rIndex : int;
+		var entryVal : Log;
+
+        if (request.0 < CurrentTerm)
+        {
+           send request.1, AppendEntriesResponse, CurrentTerm, false, this, request.6;
+        }
+        else
+        {
+			print "Caught: {0}", request.2;
+            if (request.2 > 0 && (sizeof(Logs) < request.2 ||
+                (request.2 > 0 && request.2 < sizeof(Logs) && Logs[request.2 - 1].Term != request.3)))
+            {
+					send request.1, AppendEntriesResponse, CurrentTerm, false, this, request.6;
+            }
+            else
+            {
+                if (sizeof(request.4) > 0)
+                {
+					currentIndex = request.2 + 1;
+					
+					index = 0;
+					while (index < sizeof(request.4))
+					{	
+						entryVal = request.4[index];
+						if (sizeof(Logs) < currentIndex)
+                        {
+                            Logs += (sizeof(Logs), entryVal);
+                        }
+                        else if (Logs[currentIndex - 1].Term != entryVal.Term)
+                        {
+							rIndex = currentIndex - 1;
+							while (rIndex < (sizeof(Logs) - (currentIndex - 1)))
+							{
+								Logs -= rIndex;
+								rIndex = rIndex + 1;
+							}
+                            Logs += (sizeof(Logs), entryVal);
+                        }
+                        currentIndex = currentIndex + 1;
+						index = index + 1;
+					}
+                }
+                if (request.5 > CommitIndex && sizeof(Logs) < request.5)
+                {
+                    CommitIndex = sizeof(Logs);
+                }
+                else if (request.5 > CommitIndex)
+                {
+                    CommitIndex = request.5;
+                }
+
+                if (CommitIndex > LastApplied)
+                {
+                    LastApplied = LastApplied + 1;
+                }
+
+				LeaderId = request.1;
+                send request.1, AppendEntriesResponse, CurrentTerm, true, this, request.6;
+            }
+        }
+    }
+
+	fun RedirectLastClientRequestToClusterManager()
+    {
+        if (LastClientRequestMachine != null)
+        {
+            send ClusterManager, Client_Request, LastClientRequestMachine, LastClientRequestInt;
+        }
+    }
+
+	fun GetLogTermForIndex(logIndex : int) : int
+    {
+        var logTerm : int;
+		logTerm = 0;
+        if (logIndex > 0)
+        {
+            logTerm = Logs[logIndex - 1].Term;
+        }
+
+        return logTerm;
+    }
+
+	fun BroadcastVoteRequests()
+	{
+		var index : int;
+		var lastLogIndex : int;
+		var lastLogTerm : int;
+
+		index = 0;
+		while (index < sizeof(Servers))
+		{	
+			if (index == ServerId)
+			{
+					
+			}
+				
+			else
+			{
+				lastLogIndex = sizeof(Logs);
+				lastLogTerm = GetLogTermForIndex(lastLogIndex);
+
+				send Servers[index], VoteRequest, CurrentTerm, this, lastLogIndex, lastLogTerm;
+			}
+				
+			index = index  + 1;
+		}
+	}
 }

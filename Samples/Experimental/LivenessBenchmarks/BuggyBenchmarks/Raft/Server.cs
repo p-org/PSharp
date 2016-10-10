@@ -469,7 +469,6 @@ namespace Raft
 
         void LeaderOnInit()
         {
-            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.CurrentTerm));
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyLeaderElected());
             this.Send(this.ClusterManager, new ClusterManager.NotifyLeaderUpdate(this.Id, this.CurrentTerm));
 
