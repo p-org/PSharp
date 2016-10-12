@@ -10,7 +10,7 @@ machine Main
 	var NumberOfServers : int;
 	var Leader : machine;
 	var LeaderTerm : int;
-	var Client : machine;
+	/*var Client : machine;*/
 
 	start state Init 
 	{
@@ -30,7 +30,7 @@ machine Main
 				Servers += (index, serv);
 				index = index + 1;
 			}
-			Client = new Client();
+			/*Client = new Client();*/
 			raise Local;
 		}
 		on Local goto Configuring;
@@ -47,7 +47,7 @@ machine Main
 				send Servers[index], Server_ConfigureEvent, index, Servers, this;
 				index = index + 1;
 			}
-            send Client, Client_ConfigureEvent, this;
+            /*send Client, Client_ConfigureEvent, this;*/
 
             raise Local;
 		}
@@ -73,15 +73,17 @@ machine Main
             raise halt;
 		}
 		on Local goto Available;
-		defer Client_Request;
+		//defer Client_Request;
 	}
 
 	state Available
 	{
+		/*
 		on Client_Request do (payload : (machine, int))
 		{
 			send Leader, Client_Request, payload.0, payload.1;
 		}
+		*/
 		on RedirectRequest do (payload : (machine, int))
 		{
 			send this, RedirectRequest, payload.0, payload.1;

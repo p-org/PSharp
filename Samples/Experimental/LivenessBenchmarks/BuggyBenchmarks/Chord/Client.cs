@@ -65,8 +65,7 @@ namespace Chord
         {
             if (this.QueryCounter < 5)
             {
-                //if (this.Random())
-                if(true)
+                if (this.Random())
                 {
                     var key = this.GetNextQueryKey();
                     IO.Log($"<ChordLog> Client is searching for successor of key '{key}'");
@@ -103,8 +102,7 @@ namespace Chord
                 }
             }
 
-            //return this.Keys[keyIndex];
-            return 17;
+            return this.Keys[keyIndex];
         }
 
         [OnEventGotoState(typeof(Local), typeof(Querying))]

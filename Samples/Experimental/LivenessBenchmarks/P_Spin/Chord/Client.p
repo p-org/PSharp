@@ -35,12 +35,10 @@ machine Client
 		entry
 		{
 			var key : int;
-			var temp : bool;
 
-			temp = true;
 			if (QueryCounter < 5)
             {
-                if (temp == true)
+                if ($)
                 {
                     key = GetNextQueryKey();
                     send ClusterManager, FindSuccessor, this, key;
@@ -101,8 +99,7 @@ machine Client
 				index = index + 1;
 			}
 		}
-		//return Keys[keyIndex];
-		return 17;
+		return Keys[keyIndex];
 	}
 }
 

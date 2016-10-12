@@ -1,12 +1,12 @@
 ﻿#include "ElectionTimer.p"
 #include "PeriodicTimer.p"
-#include "Client.p"
+//#include "Client.p"
 
 event Server_ConfigureEvent : (int, seq[machine], machine);
 event VoteRequest : (int, machine, int, int);
 event VoteResponse : (int, bool);
-event AppendEntriesRequest : (int, machine, int, int, seq[Log], int, machine);
-event AppendEntriesResponse : (int, bool, machine, machine);
+/*event AppendEntriesRequest : (int, machine, int, int, seq[Log], int, machine);
+event AppendEntriesResponse : (int, bool, machine, machine);*/
 event BecomeFollower;
 event BecomeCandidate;
 event BecomeLeader;
@@ -72,7 +72,7 @@ machine Server
             raise BecomeFollower;
 		}
 		on BecomeFollower goto Follower;
-		defer VoteRequest, AppendEntriesRequest;
+		defer VoteRequest/*, AppendEntriesRequest*/;
 	}
 
 	state Follower
@@ -84,6 +84,7 @@ machine Server
 
             send ElectionTimer, ElectionTimer_StartTimer;
 		}
+		/*
 		on Client_Request do (payload : (machine, int))
 		{
 			if (LeaderId != null)
@@ -95,6 +96,7 @@ machine Server
                 send ClusterManager, RedirectRequest, payload.0, payload.1;
             }
 		}
+		*/
 		on ElectionTimer_Timeout do
 		{
 			raise BecomeCandidate;
@@ -117,6 +119,7 @@ machine Server
                 VotedFor = null;
             }
 		}
+		/*
 		on AppendEntriesRequest do (request : (int, machine, int, int, seq[Log], int, machine))
 		{
             if (request.0 > CurrentTerm)
@@ -135,6 +138,7 @@ machine Server
                 VotedFor = null;
             }
 		}
+		*/
 		on ShutDown do 
 		{
 			send ElectionTimer, halt;
@@ -158,6 +162,7 @@ machine Server
             send ElectionTimer, ElectionTimer_StartTimer;
             BroadcastVoteRequests();
 		}
+		/*
 		on Client_Request do (payload : (machine, int))
 		{
 			if (LeaderId != null)
@@ -169,6 +174,7 @@ machine Server
                 send ClusterManager, RedirectRequest, payload.0, payload.1;
             }
 		}
+		*/
 		on VoteRequest do (request : (int, machine, int, int))
 		{
             if (request.0 > CurrentTerm)
@@ -206,6 +212,7 @@ machine Server
                 }
             }
 		}
+		/*
 		on AppendEntriesRequest do (request : (int, machine, int, int, seq[Log], int, machine))
 		{
             if (request.0 > CurrentTerm)
@@ -229,6 +236,7 @@ machine Server
                 raise BecomeFollower;
             }
 		}
+		*/
 		on ElectionTimer_Timeout do 
 		{
 			raise BecomeCandidate;
@@ -304,6 +312,7 @@ machine Server
 				index = index + 1;
 			}
 
+			/*
 			index = 0;
 			while (index < sizeof(Servers))
 			{
@@ -317,7 +326,9 @@ machine Server
 				}
 				index = index + 1;
 			}
+			*/
 		}
+		/*
 		on Client_Request do (payload : (machine, int))
 		{
             var log : Log;
@@ -331,6 +342,7 @@ machine Server
 
             BroadcastLastClientRequest();
 		}
+		*/
 		on VoteRequest do (request : (int, machine, int, int))
 		{
             if (request.0 > CurrentTerm)
@@ -338,7 +350,7 @@ machine Server
                 CurrentTerm = request.0;
                 VotedFor = null;
 
-                RedirectLastClientRequestToClusterManager();
+                /*RedirectLastClientRequestToClusterManager();*/
                 Vote(request);
 
                 raise BecomeFollower;
@@ -355,10 +367,11 @@ machine Server
                 CurrentTerm = request.0;
                 VotedFor = null;
 
-                RedirectLastClientRequestToClusterManager();
+                /*RedirectLastClientRequestToClusterManager();*/
                 raise BecomeFollower;
             }
 		}
+		/*
 		on AppendEntriesRequest do (request : (int, machine, int, int, seq[Log], int, machine))
 		{
             if (request.0 > CurrentTerm)
@@ -436,6 +449,7 @@ machine Server
                 send request.2, AppendEntriesRequest, CurrentTerm, this, prevLogIndex, prevLogTerm, logs, CommitIndex, request.3;
             }
 		}
+		*/
 		on ShutDown do 
 		{
 			send ElectionTimer, halt;
@@ -447,6 +461,7 @@ machine Server
 		ignore ElectionTimer_Timeout, PeriodicTimer_Timeout;
 	}
 
+	/*
 	fun BroadcastLastClientRequest()
     {
         var lastLogIndex : int;
@@ -491,6 +506,7 @@ machine Server
 			index = index + 1;
         }
     }
+	*/
 
 	fun Vote(request : (int, machine, int, int))
     {
@@ -516,6 +532,7 @@ machine Server
         }
     }
 
+	/*
 	fun AppendEntries(request : (int, machine, int, int, seq[Log], int, machine))
     {
 		var currentIndex  : int;
@@ -582,7 +599,9 @@ machine Server
             }
         }
     }
+	*/
 
+	/*
 	fun RedirectLastClientRequestToClusterManager()
     {
         if (LastClientRequestMachine != null)
@@ -590,6 +609,7 @@ machine Server
             send ClusterManager, Client_Request, LastClientRequestMachine, LastClientRequestInt;
         }
     }
+	*/
 
 	fun GetLogTermForIndex(logIndex : int) : int
     {
@@ -629,3 +649,16 @@ machine Server
 		}
 	}
 }
+
+spec Liveness observes LivenessMonitor_NotifyLeaderElected
+{
+	start hot state LeaderNotElected
+	{
+		on LivenessMonitor_NotifyLeaderElected goto LeaderElected;
+	}
+
+	cold state LeaderElected
+	{
+	}
+}
+

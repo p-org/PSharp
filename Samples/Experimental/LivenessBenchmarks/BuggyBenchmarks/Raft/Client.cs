@@ -1,106 +1,106 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.PSharp;
+﻿//using System;
+//using System.Collections.Generic;
+//using Microsoft.PSharp;
 
-namespace Raft
-{
-    internal class Client : Machine
-    {
-        #region events
+//namespace Raft
+//{
+//    internal class Client : Machine
+//    {
+//        #region events
 
-        /// <summary>
-        /// Used to configure the client.
-        /// </summary>
-        public class ConfigureEvent : Event
-        {
-            public MachineId Cluster;
+//        /// <summary>
+//        /// Used to configure the client.
+//        /// </summary>
+//        public class ConfigureEvent : Event
+//        {
+//            public MachineId Cluster;
 
-            public ConfigureEvent(MachineId cluster)
-                : base()
-            {
-                this.Cluster = cluster;
-            }
-        }
+//            public ConfigureEvent(MachineId cluster)
+//                : base()
+//            {
+//                this.Cluster = cluster;
+//            }
+//        }
 
-        /// <summary>
-        /// Used for a client request.
-        /// </summary>
-        internal class Request : Event
-        {
-            public MachineId Client;
-            public int Command;
+//        /// <summary>
+//        /// Used for a client request.
+//        /// </summary>
+//        internal class Request : Event
+//        {
+//            public MachineId Client;
+//            public int Command;
 
-            public Request(MachineId client, int command)
-                : base()
-            {
-                this.Client = client;
-                this.Command = command;
-            }
-        }
+//            public Request(MachineId client, int command)
+//                : base()
+//            {
+//                this.Client = client;
+//                this.Command = command;
+//            }
+//        }
 
-        internal class Response : Event { }
+//        internal class Response : Event { }
 
-        private class LocalEvent : Event { }
+//        private class LocalEvent : Event { }
 
-        #endregion
+//        #endregion
 
-        #region fields
+//        #region fields
 
-        MachineId Cluster;
+//        MachineId Cluster;
 
-        int LatestCommand;
-        int Counter;
+//        int LatestCommand;
+//        int Counter;
 
-        #endregion
+//        #endregion
 
-        #region states
+//        #region states
 
-        [Start]
-        [OnEntry(nameof(InitOnEntry))]
-        [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
-        class Init : MachineState { }
+//        [Start]
+//        [OnEntry(nameof(InitOnEntry))]
+//        [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
+//        [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
+//        class Init : MachineState { }
 
-        void InitOnEntry()
-        {
-            this.LatestCommand = -1;
-            this.Counter = 0;
-        }
+//        void InitOnEntry()
+//        {
+//            this.LatestCommand = -1;
+//            this.Counter = 0;
+//        }
 
-        void Configure()
-        {
-            this.Cluster = (this.ReceivedEvent as ConfigureEvent).Cluster;
-            this.Raise(new LocalEvent());
-        }
+//        void Configure()
+//        {
+//            this.Cluster = (this.ReceivedEvent as ConfigureEvent).Cluster;
+//            this.Raise(new LocalEvent());
+//        }
 
-        [OnEntry(nameof(PumpRequestOnEntry))]
-        [OnEventDoAction(typeof(Response), nameof(ProcessResponse))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
-        class PumpRequest : MachineState { }
+//        [OnEntry(nameof(PumpRequestOnEntry))]
+//        [OnEventDoAction(typeof(Response), nameof(ProcessResponse))]
+//        [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
+//        class PumpRequest : MachineState { }
 
-        void PumpRequestOnEntry()
-        {
-            this.LatestCommand = new Random().Next(100);
-            this.Counter++;
+//        void PumpRequestOnEntry()
+//        {
+//            this.LatestCommand = new Random().Next(100);
+//            this.Counter++;
 
-            Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
+//            Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
 
-            this.Send(this.Cluster, new Request(this.Id, this.LatestCommand), true);
-        }
+//            this.Send(this.Cluster, new Request(this.Id, this.LatestCommand), true);
+//        }
 
-        void ProcessResponse()
-        {
-            if (this.Counter == 3)
-            {
-                this.Send(this.Cluster, new ClusterManager.ShutDown());
-                this.Raise(new Halt());
-            }
-            else
-            {
-                this.Raise(new LocalEvent());
-            }
-        }
+//        void ProcessResponse()
+//        {
+//            if (this.Counter == 3)
+//            {
+//                this.Send(this.Cluster, new ClusterManager.ShutDown());
+//                this.Raise(new Halt());
+//            }
+//            else
+//            {
+//                this.Raise(new LocalEvent());
+//            }
+//        }
 
-        #endregion
-    }
-}
+//        #endregion
+//    }
+//}

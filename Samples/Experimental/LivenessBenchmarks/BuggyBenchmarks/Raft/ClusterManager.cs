@@ -68,7 +68,7 @@ namespace Raft
                 this.Servers[idx] = this.CreateMachine(typeof(Server));
             }
 
-            this.Client = this.CreateMachine(typeof(Client));
+            //this.Client = this.CreateMachine(typeof(Client));
 
             this.Raise(new LocalEvent());
         }
@@ -84,7 +84,7 @@ namespace Raft
                 this.Send(this.Servers[idx], new Server.ConfigureEvent(idx, this.Servers, this.Id));
             }
 
-            this.Send(this.Client, new Client.ConfigureEvent(this.Id));
+            //this.Send(this.Client, new Client.ConfigureEvent(this.Id));
 
             this.Raise(new LocalEvent());
         }
@@ -94,11 +94,11 @@ namespace Raft
             [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(BecomeAvailable))]
             [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Available))]
-            [DeferEvents(typeof(Client.Request))]
+            //[DeferEvents(typeof(Client.Request))]
             public class Unavailable : MachineState { }
 
 
-            [OnEventDoAction(typeof(Client.Request), nameof(SendClientRequestToLeader))]
+            //[OnEventDoAction(typeof(Client.Request), nameof(SendClientRequestToLeader))]
             [OnEventDoAction(typeof(RedirectRequest), nameof(RedirectClientRequest))]
             [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(RefreshLeader))]
             [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
