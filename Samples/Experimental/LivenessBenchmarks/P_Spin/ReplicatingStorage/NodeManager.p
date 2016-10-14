@@ -24,8 +24,8 @@ machine NodeManager
             StorageNodeMap = default(map[int, bool]);
             DataMap = default(map[int, int]);
 
-            RepairTimer = new RepairTimer();
-            send RepairTimer, RepairTimer_ConfigureEvent, this;
+            /*RepairTimer = new RepairTimer();
+            send RepairTimer, RepairTimer_ConfigureEvent, this;*/
 		}
 		on NodeManager_ConfigureEvent do (payload : (machine, int))
 		{
@@ -150,6 +150,7 @@ machine NodeManager
             }
 
             DataMap[nodeId] = data;
+			send this, RepairTimer_Timeout;
 		}
 		on NotifyFailure do (Node : machine)
 		{
@@ -168,6 +169,8 @@ machine NodeManager
 				}
 				index = index + 1;
 			}
+
+			send this, SyncReport, nodeId, DataMap[nodeId];
 
             StorageNodeMap -= nodeId;
             DataMap -= nodeId;

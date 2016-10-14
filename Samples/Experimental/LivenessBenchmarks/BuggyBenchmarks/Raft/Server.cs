@@ -70,51 +70,51 @@ namespace Raft
         /// Initiated by leaders to replicate log entries and
         /// to provide a form of heartbeat.
         /// </summary>
-        //public class AppendEntriesRequest : Event
-        //{
-        //    public int Term; // leader's term
-        //    public MachineId LeaderId; // so follower can redirect clients
-        //    public int PrevLogIndex; // index of log entry immediately preceding new ones 
-        //    public int PrevLogTerm; // term of PrevLogIndex entry
-        //    public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
-        //    public int LeaderCommit; // leader’s CommitIndex
+        public class AppendEntriesRequest : Event
+        {
+            public int Term; // leader's term
+            public MachineId LeaderId; // so follower can redirect clients
+            public int PrevLogIndex; // index of log entry immediately preceding new ones 
+            public int PrevLogTerm; // term of PrevLogIndex entry
+            public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
+            public int LeaderCommit; // leader’s CommitIndex
 
-        //    public MachineId ReceiverEndpoint; // client
+            public MachineId ReceiverEndpoint; // client
 
-        //    public AppendEntriesRequest(int term, MachineId leaderId, int prevLogIndex,
-        //        int prevLogTerm, List<Log> entries, int leaderCommit, MachineId client)
-        //        : base()
-        //    {
-        //        this.Term = term;
-        //        this.LeaderId = leaderId;
-        //        this.PrevLogIndex = prevLogIndex;
-        //        this.PrevLogTerm = prevLogTerm;
-        //        this.Entries = entries;
-        //        this.LeaderCommit = leaderCommit;
-        //        this.ReceiverEndpoint = client;
-        //    }
-        //}
+            public AppendEntriesRequest(int term, MachineId leaderId, int prevLogIndex,
+                int prevLogTerm, List<Log> entries, int leaderCommit, MachineId client)
+                : base()
+            {
+                this.Term = term;
+                this.LeaderId = leaderId;
+                this.PrevLogIndex = prevLogIndex;
+                this.PrevLogTerm = prevLogTerm;
+                this.Entries = entries;
+                this.LeaderCommit = leaderCommit;
+                this.ReceiverEndpoint = client;
+            }
+        }
 
         /// <summary>
         /// Response to an append entries request.
         /// </summary>
-        //public class AppendEntriesResponse : Event
-        //{
-        //    public int Term; // current Term, for leader to update itself 
-        //    public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm 
+        public class AppendEntriesResponse : Event
+        {
+            public int Term; // current Term, for leader to update itself 
+            public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm 
 
-        //    public MachineId Server;
-        //    public MachineId ReceiverEndpoint; // client
+            public MachineId Server;
+            public MachineId ReceiverEndpoint; // client
 
-        //    public AppendEntriesResponse(int term, bool success, MachineId server, MachineId client)
-        //        : base()
-        //    {
-        //        this.Term = term;
-        //        this.Success = success;
-        //        this.Server = server;
-        //        this.ReceiverEndpoint = client;
-        //    }
-        //}
+            public AppendEntriesResponse(int term, bool success, MachineId server, MachineId client)
+                : base()
+            {
+                this.Term = term;
+                this.Success = success;
+                this.Server = server;
+                this.ReceiverEndpoint = client;
+            }
+        }
 
         // Events for transitioning a server between roles.
         private class BecomeFollower : Event { }
@@ -205,7 +205,7 @@ namespace Raft
         /// <summary>
         /// The latest client request.
         /// </summary>
-        //Client.Request LastClientRequest;
+        Client.Request LastClientRequest;
 
         #endregion
 
@@ -254,11 +254,11 @@ namespace Raft
         #region follower
 
         [OnEntry(nameof(FollowerOnInit))]
-        //[OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
+        [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
         [OnEventDoAction(typeof(VoteRequest), nameof(VoteAsFollower))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsFollower))]
-        //[OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsFollower))]
-        //[OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsFollower))]
+        [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsFollower))]
+        [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsFollower))]
         [OnEventDoAction(typeof(ElectionTimer.Timeout), nameof(StartLeaderElection))]
         [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
@@ -313,38 +313,38 @@ namespace Raft
             }
         }
 
-        //void AppendEntriesAsFollower()
-        //{
-        //    var request = this.ReceivedEvent as AppendEntriesRequest;
-        //    if (request.Term > this.CurrentTerm)
-        //    {
-        //        this.CurrentTerm = request.Term;
-        //        this.VotedFor = null;
-        //    }
+        void AppendEntriesAsFollower()
+        {
+            var request = this.ReceivedEvent as AppendEntriesRequest;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
+            }
 
-        //    this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
-        //}
+            this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
+        }
 
-        //void RespondAppendEntriesAsFollower()
-        //{
-        //    var request = this.ReceivedEvent as AppendEntriesResponse;
-        //    if (request.Term > this.CurrentTerm)
-        //    {
-        //        this.CurrentTerm = request.Term;
-        //        this.VotedFor = null;
-        //    }
-        //}
+        void RespondAppendEntriesAsFollower()
+        {
+            var request = this.ReceivedEvent as AppendEntriesResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
+            }
+        }
 
         #endregion
 
         #region candidate
 
         [OnEntry(nameof(CandidateOnInit))]
-        //[OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
+        [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
         [OnEventDoAction(typeof(VoteRequest), nameof(VoteAsCandidate))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsCandidate))]
-        //[OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsCandidate))]
-        //[OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsCandidate))]
+        [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsCandidate))]
+        [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsCandidate))]
         [OnEventDoAction(typeof(ElectionTimer.Timeout), nameof(StartLeaderElection))]
         [OnEventDoAction(typeof(PeriodicTimer.Timeout), nameof(BroadcastVoteRequests))]
         [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
@@ -425,43 +425,43 @@ namespace Raft
             }
         }
 
-        //void AppendEntriesAsCandidate()
-        //{
-        //    var request = this.ReceivedEvent as AppendEntriesRequest;
-        //    if (request.Term > this.CurrentTerm)
-        //    {
-        //        this.CurrentTerm = request.Term;
-        //        this.VotedFor = null;
-        //        this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
-        //        this.Raise(new BecomeFollower());
-        //    }
-        //    else
-        //    {
-        //        this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
-        //    }
-        //}
+        void AppendEntriesAsCandidate()
+        {
+            var request = this.ReceivedEvent as AppendEntriesRequest;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
+                this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
+                this.Raise(new BecomeFollower());
+            }
+            else
+            {
+                this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
+            }
+        }
 
-        //void RespondAppendEntriesAsCandidate()
-        //{
-        //    var request = this.ReceivedEvent as AppendEntriesResponse;
-        //    if (request.Term > this.CurrentTerm)
-        //    {
-        //        this.CurrentTerm = request.Term;
-        //        this.VotedFor = null;
-        //        this.Raise(new BecomeFollower());
-        //    }
-        //}
+        void RespondAppendEntriesAsCandidate()
+        {
+            var request = this.ReceivedEvent as AppendEntriesResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
+                this.Raise(new BecomeFollower());
+            }
+        }
 
         #endregion
 
         #region leader
 
         [OnEntry(nameof(LeaderOnInit))]
-        //[OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
+        [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
         [OnEventDoAction(typeof(VoteRequest), nameof(VoteAsLeader))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsLeader))]
-        //[OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsLeader))]
-        //[OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
+        [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsLeader))]
+        [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
         [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
         [IgnoreEvents(typeof(ElectionTimer.Timeout), typeof(PeriodicTimer.Timeout))]
@@ -485,52 +485,52 @@ namespace Raft
                 this.MatchIndex.Add(this.Servers[idx], 0);
             }
 
-            //for (int idx = 0; idx < this.Servers.Length; idx++)
-            //{
-            //    if (idx == this.ServerId)
-            //        continue;
-            //    this.Send(this.Servers[idx], new AppendEntriesRequest(this.CurrentTerm, this.Id,
-            //        logIndex, logTerm, new List<Log>(), this.CommitIndex, null));
-            //}
+            for (int idx = 0; idx < this.Servers.Length; idx++)
+            {
+                if (idx == this.ServerId)
+                    continue;
+                this.Send(this.Servers[idx], new AppendEntriesRequest(this.CurrentTerm, this.Id,
+                    logIndex, logTerm, new List<Log>(), this.CommitIndex, null));
+            }
         }
 
-        //void ProcessClientRequest()
-        //{
-        //    this.LastClientRequest = this.ReceivedEvent as Client.Request;
+        void ProcessClientRequest()
+        {
+            this.LastClientRequest = this.ReceivedEvent as Client.Request;
 
-        //    var log = new Log(this.CurrentTerm, this.LastClientRequest.Command);
-        //    this.Logs.Add(log);
+            var log = new Log(this.CurrentTerm, this.LastClientRequest.Command);
+            this.Logs.Add(log);
 
-        //    this.BroadcastLastClientRequest();
-        //}
+            this.BroadcastLastClientRequest();
+        }
 
-        //void BroadcastLastClientRequest()
-        //{
-        //    Console.WriteLine("\n [Leader] " + this.ServerId + " sends append requests | term " +
-        //        this.CurrentTerm + " | log " + this.Logs.Count + "\n");
+        void BroadcastLastClientRequest()
+        {
+            Console.WriteLine("\n [Leader] " + this.ServerId + " sends append requests | term " +
+                this.CurrentTerm + " | log " + this.Logs.Count + "\n");
 
-        //    var lastLogIndex = this.Logs.Count;
+            var lastLogIndex = this.Logs.Count;
 
-        //    this.VotesReceived = 1;
-        //    for (int idx = 0; idx < this.Servers.Length; idx++)
-        //    {
-        //        if (idx == this.ServerId)
-        //            continue;
+            this.VotesReceived = 1;
+            for (int idx = 0; idx < this.Servers.Length; idx++)
+            {
+                if (idx == this.ServerId)
+                    continue;
 
-        //        var server = this.Servers[idx];
-        //        if (lastLogIndex < this.NextIndex[server])
-        //            continue;
+                var server = this.Servers[idx];
+                if (lastLogIndex < this.NextIndex[server])
+                    continue;
 
-        //        var logs = this.Logs.GetRange(this.NextIndex[server] - 1,
-        //            this.Logs.Count - (this.NextIndex[server] - 1));
+                var logs = this.Logs.GetRange(this.NextIndex[server] - 1,
+                    this.Logs.Count - (this.NextIndex[server] - 1));
 
-        //        var prevLogIndex = this.NextIndex[server] - 1;
-        //        var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
+                var prevLogIndex = this.NextIndex[server] - 1;
+                var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
 
-        //        this.Send(server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
-        //            prevLogTerm, logs, this.CommitIndex, this.LastClientRequest.Client));
-        //    }
-        //}
+                this.Send(server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
+                    prevLogTerm, logs, this.CommitIndex, this.LastClientRequest.Client));
+            }
+        }
 
         void VoteAsLeader()
         {
@@ -541,7 +541,7 @@ namespace Raft
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
 
-                //this.RedirectLastClientRequestToClusterManager();
+                this.RedirectLastClientRequestToClusterManager();
                 this.Vote(this.ReceivedEvent as VoteRequest);
 
                 this.Raise(new BecomeFollower());
@@ -560,91 +560,91 @@ namespace Raft
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
 
-                //this.RedirectLastClientRequestToClusterManager();
+                this.RedirectLastClientRequestToClusterManager();
                 this.Raise(new BecomeFollower());
             }
         }
 
-        //void AppendEntriesAsLeader()
-        //{
-        //    var request = this.ReceivedEvent as AppendEntriesRequest;
-        //    if (request.Term > this.CurrentTerm)
-        //    {
-        //        this.CurrentTerm = request.Term;
-        //        this.VotedFor = null;
+        void AppendEntriesAsLeader()
+        {
+            var request = this.ReceivedEvent as AppendEntriesRequest;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
 
-        //        this.RedirectLastClientRequestToClusterManager();
-        //        this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
+                this.RedirectLastClientRequestToClusterManager();
+                this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
 
-        //        this.Raise(new BecomeFollower());
-        //    }
-        //}
+                this.Raise(new BecomeFollower());
+            }
+        }
 
-        //void RespondAppendEntriesAsLeader()
-        //{
-        //    var request = this.ReceivedEvent as AppendEntriesResponse;
-        //    if (request.Term > this.CurrentTerm)
-        //    {
-        //        this.CurrentTerm = request.Term;
-        //        this.VotedFor = null;
+        void RespondAppendEntriesAsLeader()
+        {
+            var request = this.ReceivedEvent as AppendEntriesResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
 
-        //        this.RedirectLastClientRequestToClusterManager();
-        //        this.Raise(new BecomeFollower());
-        //    }
-        //    else if (request.Term != this.CurrentTerm)
-        //    {
-        //        return;
-        //    }
+                this.RedirectLastClientRequestToClusterManager();
+                this.Raise(new BecomeFollower());
+            }
+            else if (request.Term != this.CurrentTerm)
+            {
+                return;
+            }
 
-        //    if (request.Success)
-        //    {
-        //        this.NextIndex[request.Server] = this.Logs.Count + 1;
-        //        this.MatchIndex[request.Server] = this.Logs.Count;
+            if (request.Success)
+            {
+                this.NextIndex[request.Server] = this.Logs.Count + 1;
+                this.MatchIndex[request.Server] = this.Logs.Count;
 
-        //        this.VotesReceived++;
-        //        if (request.ReceiverEndpoint != null &&
-        //            this.VotesReceived >= (this.Servers.Length / 2) + 1)
-        //        {
-        //            Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
-        //                " | append votes " + this.VotesReceived + " | append success\n");
+                this.VotesReceived++;
+                if (request.ReceiverEndpoint != null &&
+                    this.VotesReceived >= (this.Servers.Length / 2) + 1)
+                {
+                    Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                        " | append votes " + this.VotesReceived + " | append success\n");
 
-        //            var commitIndex = this.MatchIndex[request.Server];
-        //            if (commitIndex > this.CommitIndex &&
-        //                this.Logs[commitIndex - 1].Term == this.CurrentTerm)
-        //            {
-        //                this.CommitIndex = commitIndex;
+                    var commitIndex = this.MatchIndex[request.Server];
+                    if (commitIndex > this.CommitIndex &&
+                        this.Logs[commitIndex - 1].Term == this.CurrentTerm)
+                    {
+                        this.CommitIndex = commitIndex;
 
-        //                Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
-        //                    " | log " + this.Logs.Count + " | command " + this.Logs[commitIndex - 1].Command + "\n");
-        //            }
+                        Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                            " | log " + this.Logs.Count + " | command " + this.Logs[commitIndex - 1].Command + "\n");
+                    }
 
-        //            this.VotesReceived = 0;
-        //            this.LastClientRequest = null;
+                    this.VotesReceived = 0;
+                    this.LastClientRequest = null;
 
-        //            this.Send(request.ReceiverEndpoint, new Client.Response());
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (this.NextIndex[request.Server] > 1)
-        //        {
-        //            this.NextIndex[request.Server] = this.NextIndex[request.Server] - 1;
-        //        }
+                    this.Send(request.ReceiverEndpoint, new Client.Response());
+                }
+            }
+            else
+            {
+                if (this.NextIndex[request.Server] > 1)
+                {
+                    this.NextIndex[request.Server] = this.NextIndex[request.Server] - 1;
+                }
 
-        //        var logs = this.Logs.GetRange(this.NextIndex[request.Server] - 1,
-        //            this.Logs.Count - (this.NextIndex[request.Server] - 1));
+                var logs = this.Logs.GetRange(this.NextIndex[request.Server] - 1,
+                    this.Logs.Count - (this.NextIndex[request.Server] - 1));
 
-        //        var prevLogIndex = this.NextIndex[request.Server] - 1;
-        //        var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
+                var prevLogIndex = this.NextIndex[request.Server] - 1;
+                var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
 
-        //        Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-        //            this.Logs.Count + " | append votes " + this.VotesReceived +
-        //            " | append fail (next idx = " + this.NextIndex[request.Server] + ")\n");
+                Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                    this.Logs.Count + " | append votes " + this.VotesReceived +
+                    " | append fail (next idx = " + this.NextIndex[request.Server] + ")\n");
 
-        //        this.Send(request.Server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
-        //            prevLogTerm, logs, this.CommitIndex, request.ReceiverEndpoint));
-        //    }
-        //}
+                this.Send(request.Server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
+                    prevLogTerm, logs, this.CommitIndex, request.ReceiverEndpoint));
+            }
+        }
 
         #endregion
 
@@ -684,82 +684,82 @@ namespace Raft
         /// Processes the given append entries request.
         /// </summary>
         /// <param name="request">AppendEntriesRequest</param>
-        //void AppendEntries(AppendEntriesRequest request)
-        //{
-        //    if (request.Term < this.CurrentTerm)
-        //    {
-        //        Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-        //            this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (< term)\n");
+        void AppendEntries(AppendEntriesRequest request)
+        {
+            if (request.Term < this.CurrentTerm)
+            {
+                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                    this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (< term)\n");
 
-        //        this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
-        //            this.Id, request.ReceiverEndpoint));
-        //    }
-        //    else
-        //    {
-        //        if (request.PrevLogIndex > 0 &&
-        //            (this.Logs.Count < request.PrevLogIndex ||
-        //            this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
-        //        {
-        //            Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-        //                this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (not in log)\n");
+                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
+                    this.Id, request.ReceiverEndpoint));
+            }
+            else
+            {
+                if (request.PrevLogIndex > 0 &&
+                    (this.Logs.Count < request.PrevLogIndex ||
+                    this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
+                {
+                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                        this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (not in log)\n");
 
-        //            this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
-        //                false, this.Id, request.ReceiverEndpoint));
-        //        }
-        //        else
-        //        {
-        //            if (request.Entries.Count > 0)
-        //            {
-        //                var currentIndex = request.PrevLogIndex + 1;
-        //                foreach (var entry in request.Entries)
-        //                {
-        //                    if (this.Logs.Count < currentIndex)
-        //                    {
-        //                        this.Logs.Add(entry);
-        //                    }
-        //                    else if (this.Logs[currentIndex - 1].Term != entry.Term)
-        //                    {
-        //                        this.Logs.RemoveRange(currentIndex - 1, this.Logs.Count - (currentIndex - 1));
-        //                        this.Logs.Add(entry);
-        //                    }
+                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
+                        false, this.Id, request.ReceiverEndpoint));
+                }
+                else
+                {
+                    if (request.Entries.Count > 0)
+                    {
+                        var currentIndex = request.PrevLogIndex + 1;
+                        foreach (var entry in request.Entries)
+                        {
+                            if (this.Logs.Count < currentIndex)
+                            {
+                                this.Logs.Add(entry);
+                            }
+                            else if (this.Logs[currentIndex - 1].Term != entry.Term)
+                            {
+                                this.Logs.RemoveRange(currentIndex - 1, this.Logs.Count - (currentIndex - 1));
+                                this.Logs.Add(entry);
+                            }
 
-        //                    currentIndex++;
-        //                }
-        //            }
+                            currentIndex++;
+                        }
+                    }
 
-        //            if (request.LeaderCommit > this.CommitIndex &&
-        //                this.Logs.Count < request.LeaderCommit)
-        //            {
-        //                this.CommitIndex = this.Logs.Count;
-        //            }
-        //            else if (request.LeaderCommit > this.CommitIndex)
-        //            {
-        //                this.CommitIndex = request.LeaderCommit;
-        //            }
+                    if (request.LeaderCommit > this.CommitIndex &&
+                        this.Logs.Count < request.LeaderCommit)
+                    {
+                        this.CommitIndex = this.Logs.Count;
+                    }
+                    else if (request.LeaderCommit > this.CommitIndex)
+                    {
+                        this.CommitIndex = request.LeaderCommit;
+                    }
 
-        //            if (this.CommitIndex > this.LastApplied)
-        //            {
-        //                this.LastApplied++;
-        //            }
+                    if (this.CommitIndex > this.LastApplied)
+                    {
+                        this.LastApplied++;
+                    }
 
-        //            Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-        //                this.Logs.Count + " | entries received " + request.Entries.Count + " | last applied " +
-        //                this.LastApplied + " | append true\n");
+                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                        this.Logs.Count + " | entries received " + request.Entries.Count + " | last applied " +
+                        this.LastApplied + " | append true\n");
 
-        //            this.LeaderId = request.LeaderId;
-        //            this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
-        //                true, this.Id, request.ReceiverEndpoint));
-        //        }
-        //    }
-        //}
+                    this.LeaderId = request.LeaderId;
+                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
+                        true, this.Id, request.ReceiverEndpoint));
+                }
+            }
+        }
 
-        //void RedirectLastClientRequestToClusterManager()
-        //{
-        //    if (this.LastClientRequest != null)
-        //    {
-        //        this.Send(this.ClusterManager, this.LastClientRequest);
-        //    }
-        //}
+        void RedirectLastClientRequestToClusterManager()
+        {
+            if (this.LastClientRequest != null)
+            {
+                this.Send(this.ClusterManager, this.LastClientRequest);
+            }
+        }
 
         /// <summary>
         /// Returns the log term for the given log index.

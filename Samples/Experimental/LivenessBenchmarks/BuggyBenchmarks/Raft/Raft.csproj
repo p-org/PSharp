@@ -50,7 +50,6 @@
     <Compile Include="LivenessMonitor.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Server.cs" />
-    <Compile Include="SafetyMonitor.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="ClusterManager.cs" />
     <Compile Include="Client.cs" />

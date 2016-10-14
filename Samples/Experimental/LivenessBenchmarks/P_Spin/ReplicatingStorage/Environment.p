@@ -59,6 +59,8 @@ machine Main
             {
                 FailureTimer = new FailureTimer();
                 send FailureTimer, FailureTimer_ConfigureEvent, this;
+
+				raise FailureTimer_Timeout;
             }
 		}
 		on FailureTimer_Timeout do
