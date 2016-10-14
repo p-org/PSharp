@@ -95,7 +95,7 @@ machine Main
 				w += (sizeof(w), Keys[tIndex]);
 				tIndex = tIndex + 1;
 			}
-            Client = new Client(this, z);
+            Client = new Client(this, w);
 
             raise Local;
 		}	
