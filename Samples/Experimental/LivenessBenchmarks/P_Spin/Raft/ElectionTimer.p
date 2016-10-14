@@ -38,6 +38,10 @@ machine ElectionTimer
 
 	state Inactive
 	{
+		entry
+		{	
+			send this, ElectionTimer_StartTimer;
+		}
 		on ElectionTimer_StartTimer goto Active;
 		ignore ElectionTimer_CancelTimer, ElectionTimer_TickEvent;
 	}
