@@ -66,6 +66,7 @@ machine StorageNode
 		}
 		on FaultInject do 
 		{
+			print "Node has failed";
 			announce LivenessMonitor_NotifyNodeFail, NodeId;
             send SyncTimer, halt;
             raise halt;
@@ -79,7 +80,7 @@ spec Liveness observes LivenessMonitor_ConfigureEvent, LivenessMonitor_NotifyNod
 	var DataMap : map[int, int];
 	var NumberOfReplicas : int;
 
-	start state Init
+	/*start state Init
 	{
 		entry
 		{
@@ -91,10 +92,19 @@ spec Liveness observes LivenessMonitor_ConfigureEvent, LivenessMonitor_NotifyNod
             raise LocalEvent;
 		}
 		on LocalEvent goto Repaired;
-	}
+	}*/
 
-	cold state Repaired
+	start cold state Repaired
 	{
+		entry
+		{
+			DataMap = default(map[int, int]);
+		}
+		on LivenessMonitor_ConfigureEvent do (numberOfReplicas : int)
+		{
+			NumberOfReplicas = numberOfReplicas;
+		}
+		
 		on LivenessMonitor_NotifyNodeCreated do (NodeId : int)
 		{
 			var nodeId : int;
@@ -104,6 +114,7 @@ spec Liveness observes LivenessMonitor_ConfigureEvent, LivenessMonitor_NotifyNod
 		on LivenessMonitor_NotifyNodeFail do (NodeId : int)
 		{
 			var nodeId : int;
+
 			nodeId = NodeId;
 			DataMap -= nodeId;
             raise LocalEvent;
@@ -133,7 +144,6 @@ spec Liveness observes LivenessMonitor_ConfigureEvent, LivenessMonitor_NotifyNod
 			var nodeId : int;
 			nodeId = NodeId;
 			DataMap -= nodeId;
-            raise LocalEvent;
 		}
 		on LivenessMonitor_NotifyNodeUpdate do (payload : (int, int))
 		{

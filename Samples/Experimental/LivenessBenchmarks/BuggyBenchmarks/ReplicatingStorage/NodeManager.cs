@@ -97,8 +97,8 @@ namespace ReplicatingStorage
             this.StorageNodeMap = new Dictionary<int, bool>();
             this.DataMap = new Dictionary<int, int>();
 
-            this.RepairTimer = this.CreateMachine(typeof(RepairTimer));
-            this.Send(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));
+            /*this.RepairTimer = this.CreateMachine(typeof(RepairTimer));
+            this.Send(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));*/
         }
 
         void Configure()
@@ -189,18 +189,21 @@ namespace ReplicatingStorage
             }
 
             this.DataMap[nodeId] = data;
+            Send(Id, new RepairTimer.Timeout());
         }
 
         void ProcessFailure()
         {
             var node = (this.ReceivedEvent as NotifyFailure).Node;
             var nodeId = this.StorageNodes.IndexOf(node);
+            Send(Id, new StorageNode.SyncReport(nodeId, DataMap[nodeId]));
             this.StorageNodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
 
             Console.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
 
             this.CreateNewNode();
+
         }
 
         #endregion
