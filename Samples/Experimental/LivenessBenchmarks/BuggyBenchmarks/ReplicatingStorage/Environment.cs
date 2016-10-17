@@ -90,8 +90,6 @@ namespace ReplicatingStorage
             {
                 this.FailureTimer = this.CreateMachine(typeof(FailureTimer));
                 this.Send(this.FailureTimer, new FailureTimer.ConfigureEvent(this.Id));
-
-                Raise(new FailureTimer.Timeout());
             }
         }
 

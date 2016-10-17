@@ -59,8 +59,6 @@ machine Main
             {
                 FailureTimer = new FailureTimer();
                 send FailureTimer, FailureTimer_ConfigureEvent, this;
-
-				raise FailureTimer_Timeout;
             }
 		}
 		on FailureTimer_Timeout do
@@ -72,11 +70,14 @@ machine Main
 
 			if (NumberOfFaults == 0 || sizeof(AliveNodes) == 0)
             {
+				print "failure timeout returning";
+				assert false;
                 return;
             }
 
 			index = 0;
 			flag = false;
+			nodeId = 0;
 			while(index < sizeof(AliveNodes) && flag == false)
 			{
 				if($)
@@ -89,6 +90,8 @@ machine Main
 
 			node = AliveNodes[nodeId];
 
+			print "sending fault";
+			assert false;
             send node, FaultInject;
             send NodeManager, NotifyFailure, node;
             AliveNodes -= nodeId;
