@@ -70,8 +70,6 @@ machine Main
 
 			if (NumberOfFaults == 0 || sizeof(AliveNodes) == 0)
             {
-				print "failure timeout returning";
-				assert false;
                 return;
             }
 
@@ -90,8 +88,6 @@ machine Main
 
 			node = AliveNodes[nodeId];
 
-			print "sending fault";
-			assert false;
             send node, FaultInject;
             send NodeManager, NotifyFailure, node;
             AliveNodes -= nodeId;
