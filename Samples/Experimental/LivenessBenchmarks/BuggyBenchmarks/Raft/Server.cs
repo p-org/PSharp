@@ -215,7 +215,7 @@ namespace Raft
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
-        [DeferEvents(typeof(VoteRequest)/*, typeof(AppendEntriesRequest)*/)]
+        [DeferEvents(typeof(VoteRequest), typeof(AppendEntriesRequest))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -469,7 +469,7 @@ namespace Raft
 
         void LeaderOnInit()
         {
-            //this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyLeaderElected());
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyLeaderElected());
             this.Send(this.ClusterManager, new ClusterManager.NotifyLeaderUpdate(this.Id, this.CurrentTerm));
 
             var logIndex = this.Logs.Count;

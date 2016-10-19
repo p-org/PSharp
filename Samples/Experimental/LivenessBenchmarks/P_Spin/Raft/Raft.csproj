@@ -47,6 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Client.p" />
+    <None Include="PeriodicTimer.p" />
     <None Include="RaftClusterManager.p" />
     <None Include="ElectionTimer.p" />
     <None Include="Server.p" />

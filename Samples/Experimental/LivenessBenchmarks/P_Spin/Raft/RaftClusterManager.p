@@ -1,9 +1,12 @@
 ﻿#include "Server.p"
 #include "ElectionTimer.p"
+#include "PeriodicTimer.p"
+#include "Client.p"
 
 event NotifyLeaderUpdate : (machine, int);
 event ShutDown;
 event LocalEvent;
+event RedirectRequest : (machine, int);
 
 machine Main
 {
@@ -11,6 +14,7 @@ machine Main
 	var NumberOfServers : int;
 	var Leader : machine;
 	var LeaderTerm : int;
+	var Client : machine;
 
 	start state init
 	{
@@ -30,6 +34,7 @@ machine Main
 				Servers += (index, serv);
 				index = index + 1;
 			}    
+			Client = new Client();
             raise LocalEvent;
 		}
 		on LocalEvent goto Configuring;
@@ -47,7 +52,7 @@ machine Main
 				send Servers[index], ConfigureEvent, index, Servers, this;				
 				index = index + 1;
 			}
-
+			send Client, Client_ConfigureEvent, this;
             raise LocalEvent;
 		}
 		on LocalEvent goto Unavailable;
@@ -73,6 +78,7 @@ machine Main
             raise halt;
 		}
 		on LocalEvent goto Available;
+		defer Request;
 	}
 
 	state Available
@@ -92,6 +98,14 @@ machine Main
 				index = index + 1;
 			}
             raise halt;
+		}
+		on Request do (payload : (machine, int))
+		{
+			send Leader, Request, payload.0, payload.1;
+		}
+		on RedirectRequest do (payload : (machine, int))
+		{
+			send this, Request, payload.0, payload.1;
 		}
 		on LocalEvent goto Unavailable;
 	}

@@ -13,6 +13,7 @@ machine ElectionTimer
 		on ElectionTimer_ConfigureEvent do (target : machine)
 		{
 			Target = target;
+			raise ElectionTimer_StartTimer;
 		}
 		on ElectionTimer_StartTimer goto Active;
 	}
@@ -30,7 +31,8 @@ machine ElectionTimer
                 send Target, ElectionTimer_Timeout;
             }
 
-            raise ElectionTimer_CancelTimer;
+            //raise ElectionTimer_CancelTimer;
+			send this, ElectionTimer_TickEvent;
 		}
 		on ElectionTimer_CancelTimer goto Inactive;
 		ignore ElectionTimer_StartTimer;
@@ -38,10 +40,6 @@ machine ElectionTimer
 
 	state Inactive
 	{
-		entry
-		{	
-			send this, ElectionTimer_StartTimer;
-		}
 		on ElectionTimer_StartTimer goto Active;
 		ignore ElectionTimer_CancelTimer, ElectionTimer_TickEvent;
 	}
