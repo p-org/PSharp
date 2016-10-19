@@ -158,7 +158,7 @@ machine NodeManager
 			var index : int;
 
 			node = Node;
-
+			nodeId = -1;
 			index = 0;
 			while (index < sizeof(StorageNodes))
 			{
@@ -169,8 +169,15 @@ machine NodeManager
 				index = index + 1;
 			}
 
-            StorageNodeMap -= nodeId;
-			DataMap -= nodeId;
+			if(nodeId >= 0 && nodeId < sizeof(StorageNodeMap))
+			{
+				StorageNodeMap -= nodeId;
+			}
+
+			if(nodeId >= 0 && nodeId < sizeof(DataMap))
+			{
+				DataMap -= nodeId;
+			}
 
             CreateNewNode();
 			

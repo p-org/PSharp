@@ -66,8 +66,6 @@ machine StorageNode
 		}
 		on FaultInject do 
 		{
-			print "Node has failed";
-			assert false;
 			announce LivenessMonitor_NotifyNodeFail, NodeId;
             send SyncTimer, halt;
             raise halt;
