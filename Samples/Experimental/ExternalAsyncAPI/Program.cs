@@ -51,9 +51,9 @@ namespace ExternalAsyncAPI
             var value = (this.ReceivedEvent as Request).value;
             var sender = (this.ReceivedEvent as Request).Id;
           
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                var r = External.Ext(value).Result;
+                var r = await External.Ext(value);
                 sender.Runtime.SendEvent(sender, new Response(r, this.Id));
             });
         }
