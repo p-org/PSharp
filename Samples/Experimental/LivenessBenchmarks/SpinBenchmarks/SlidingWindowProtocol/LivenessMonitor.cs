@@ -10,19 +10,71 @@ namespace SlidingWindowProtocol
     class LivenessMonitor : Monitor
     {
         #region events
-        public class NotifyRedMessageSent : Event { }
-        public class NotifyRedMessageReceived : Event { }
+        public class NotifyMessageSent : Event
+        {
+            public int FrameSent;
+
+            public NotifyMessageSent(int frameSent)
+            {
+                this.FrameSent = frameSent;
+            }
+        }
+        public class NotifyMessageReceived : Event
+        {
+            public int FrameReceived;
+
+            public NotifyMessageReceived(int frameReceived)
+            {
+                this.FrameReceived = frameReceived;
+            }
+        }
+        public class Local : Event { }
+        #endregion
+
+        #region fields
+        List<int> SentMesages;
         #endregion
 
         #region states
         [Start]
+        [OnEntry(nameof(InitOnEntry))]
+        [OnEventGotoState(typeof(Local), typeof(MessageReceived))]
+        class Init : MonitorState { }
+
         [Cold]
-        [OnEventGotoState(typeof(NotifyRedMessageSent), typeof(RedMessageSent))]
-        class RedMessageReceived : MonitorState { }
+        [OnEventDoAction(typeof(NotifyMessageSent), nameof(OnMessageSent))]
+        [OnEventGotoState(typeof(NotifyMessageReceived), typeof(MessageReceived))]
+        [OnEventGotoState(typeof(Local), typeof(MessageSent))]
+        class MessageReceived : MonitorState { }
 
         [Hot]
-        [OnEventGotoState(typeof(NotifyRedMessageReceived), typeof(RedMessageReceived))]
-        class RedMessageSent : MonitorState { }
+        [OnEventDoAction(typeof(NotifyMessageSent), nameof(OnMessageSent))]
+        [OnEventDoAction(typeof(NotifyMessageReceived), nameof(OnMessageReceived))]
+        [OnEventGotoState(typeof(Local), typeof(MessageReceived))]
+        class MessageSent : MonitorState { }
+        #endregion
+
+        #region actions
+        void InitOnEntry()
+        {
+            SentMesages = new List<int>();
+            Raise(new Local());
+        }
+
+        void OnMessageSent()
+        {
+            SentMesages.Add((ReceivedEvent as NotifyMessageSent).FrameSent);
+            Raise(new Local());
+        }
+
+        void OnMessageReceived()
+        {
+            SentMesages.Remove((ReceivedEvent as NotifyMessageReceived).FrameReceived);
+            if(SentMesages.Count == 0)
+            {
+                Raise(new Local());
+            }
+        }
         #endregion
     }
 }

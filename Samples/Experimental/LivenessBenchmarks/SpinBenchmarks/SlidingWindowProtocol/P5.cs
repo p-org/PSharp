@@ -37,15 +37,7 @@ namespace SlidingWindowProtocol
                 this.FrameExp = frameExp;
             }
         }
-        public class ColoredMessage : Event
-        {
-            public mtype ColoredMsg;
-
-            public ColoredMessage(mtype coloredMsg)
-            {
-                this.ColoredMsg = coloredMsg;
-            }
-        }
+        
         public class StartSliding : Event { }
         #endregion
 
@@ -66,8 +58,6 @@ namespace SlidingWindowProtocol
         [OnEntry(nameof(OnInitEntry))]
         [OnEventDoAction(typeof(SetInputOutput), nameof(OnSetInputOutput))]
         [OnEventGotoState(typeof(StartSliding), typeof(SlidingWindow))]
-        [OnEventDoAction(typeof(SourceMachine.ColoredMessage), nameof(OnColoredMsgFromSrc))]
-        [OnEventDoAction(typeof(ColoredMessage), nameof(OnColoredMsgFrmProcess))]
         class Init : MachineState { }
 
         [OnEntry(nameof(OnSlideWindow))]
@@ -93,6 +83,7 @@ namespace SlidingWindowProtocol
                 {
                     nbuf++;
                     Send(OutputMachineId, new Message(NextFrame, (FrameExp + Globals.MaxSeq)%(Globals.MaxSeq + 1)));
+                    this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyMessageSent(NextFrame));
                     NextFrame = (NextFrame + 1) % (Globals.MaxSeq + 1);
                 }
                 else
@@ -107,6 +98,7 @@ namespace SlidingWindowProtocol
                         if(r == this.FrameExp)
                         {
                             Console.WriteLine("[MSG] accept: " + r);
+                            this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyMessageReceived(s));
                             FrameExp = (FrameExp + 1) % (Globals.MaxSeq + 1);
                         }
                         else
@@ -138,6 +130,7 @@ namespace SlidingWindowProtocol
                             if(i <= nbuf)
                             {
                                 Send(OutputMachineId, new Message(NextFrame, (FrameExp + Globals.MaxSeq)%(Globals.MaxSeq + 1)));
+                                this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyMessageSent(NextFrame));
                                 NextFrame = (NextFrame + 1) % (Globals.MaxSeq + 1);
                                 i++;
                             }
@@ -159,23 +152,6 @@ namespace SlidingWindowProtocol
             Raise(new StartSliding());
         }
 
-        void OnColoredMsgFromSrc()
-        {
-            var e = ReceivedEvent as SourceMachine.ColoredMessage;
-            Send(OutputMachineId, new ColoredMessage(e.ColoredMsg));
-            if(e.ColoredMsg == mtype.red)
-            {
-                this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyRedMessageSent());
-            }
-        }
-
-        void OnColoredMsgFrmProcess()
-        {
-            if ((ReceivedEvent as ColoredMessage).ColoredMsg == mtype.red)
-            {
-                this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyRedMessageReceived());
-            }
-        }
         #endregion
     }
 }

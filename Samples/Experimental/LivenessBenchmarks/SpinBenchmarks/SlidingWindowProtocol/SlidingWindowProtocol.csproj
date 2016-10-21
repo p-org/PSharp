@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\..\PSharp\Binaries\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\Binaries\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,7 +50,6 @@
     <Compile Include="Environment.cs" />
     <Compile Include="LivenessMonitor.cs" />
     <Compile Include="P5.cs" />
-    <Compile Include="SourceMachine.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
