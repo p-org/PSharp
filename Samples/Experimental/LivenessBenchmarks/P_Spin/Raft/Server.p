@@ -318,7 +318,7 @@ machine Server
                     else
 					{
 						tIndex = NextIndex[server] - 1;
-						while (tIndex <= (sizeof(Logs) - (NextIndex[server] - 1)))
+						while (tIndex > 0 && tIndex <= (sizeof(Logs) - (NextIndex[server] - 1)))
 						{
 							logs += (sizeof(logs), Logs[index]);
 							tIndex = tIndex + 1;
@@ -326,7 +326,7 @@ machine Server
 
 						prevLogIndex = NextIndex[server] - 1;
 						prevLogTerm = GetLogTermForIndex(prevLogIndex);
-
+						
                         send server, AppendEntriesRequest, CurrentTerm, this, prevLogIndex, prevLogTerm, logs, CommitIndex, LastClientRequest.0;
 					
 					}
@@ -473,6 +473,7 @@ machine Server
 		var index : int;
 		var entryVal : Log;
 		var tIndex : int;
+		var tLog : Log;
 
         if (Term < CurrentTerm)
         {
@@ -480,16 +481,18 @@ machine Server
         }
         else
         {
-            if (PrevLogIndex > 0 && (sizeof(Logs) < PrevLogIndex || Logs[PrevLogIndex - 1].Term != PrevLogTerm))
+            if (PrevLogIndex > 0)
             {
-                send rLeaderId, AppendEntriesResponse, CurrentTerm, false, this, ReceiverEndpoint;
-            }
-            else
-            {
-                if (sizeof(Entries) > 0)
+				if((sizeof(Logs) < PrevLogIndex) || (Logs[PrevLogIndex - 1].Term != PrevLogTerm))
+				{
+					send rLeaderId, AppendEntriesResponse, CurrentTerm, false, this, ReceiverEndpoint;
+				}
+				else
+				{
+					if (sizeof(Entries) > 0)
                 {
                     currentIndex = PrevLogIndex + 1;
-					/*
+					
 					index = 0;
 					while (sizeof(Entries) > 0 && index < sizeof(Entries))
 					{
@@ -514,7 +517,7 @@ machine Server
 
                         currentIndex = currentIndex + 1;
 						index = index + 1;
-					}*/
+					}
                 }
 
                 if (LeaderCommit > CommitIndex && sizeof(Logs) < LeaderCommit)
@@ -533,6 +536,7 @@ machine Server
 				
 				LeaderId = rLeaderId;
                 send LeaderId, AppendEntriesResponse, CurrentTerm, true, this, ReceiverEndpoint;
+				}  
             }
         }
     }
