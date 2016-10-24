@@ -263,6 +263,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool DynamicEventQueuePrioritization;
 
+        /// <summary>
+        /// Enable monitors (safety) with production runtime
+        /// </summary>
+        public bool EnableMonitorsInProduction;
+
         #endregion
 
         #region data race detection options
@@ -409,7 +414,9 @@ namespace Microsoft.PSharp.Utilities
             this.EnableCycleReplayingStrategy = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
-            
+
+            this.EnableMonitorsInProduction = false;
+
             this.EnableDataRaceDetection = false;
 
             this.ReportCodeCoverage = false;

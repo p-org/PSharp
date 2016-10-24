@@ -40,11 +40,6 @@ namespace Microsoft.PSharp.TestingServices
         #region fields
 
         /// <summary>
-        /// List of monitors in the program.
-        /// </summary>
-        private List<Monitor> Monitors;
-
-        /// <summary>
         /// The P# program schedule trace.
         /// </summary>
         internal ScheduleTrace ScheduleTrace;
@@ -112,8 +107,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.RootTaskId = Task.CurrentId;
             
-            this.Monitors = new List<Monitor>();
-
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
                 this.TaskScheduler = new TaskWrapperScheduler(this, this.MachineTasks);

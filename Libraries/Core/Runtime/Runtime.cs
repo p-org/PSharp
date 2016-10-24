@@ -39,6 +39,11 @@ namespace Microsoft.PSharp
         internal Configuration Configuration;
 
         /// <summary>
+        /// List of monitors in the program.
+        /// </summary>
+        protected List<Monitor> Monitors;
+
+        /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
         protected ConcurrentDictionary<int, Machine> MachineMap;
@@ -290,7 +295,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         public virtual void InvokeMonitor<T>(Event e)
         {
-            // No-op for real execution.
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Cannot monitor a null event.");
+            this.Monitor<T>(null, e);
         }
 
         /// <summary>
@@ -469,6 +476,7 @@ namespace Microsoft.PSharp
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
+            this.Monitors = new List<Monitor>();
         }
 
         #endregion
@@ -578,7 +586,26 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the monitor</param>
         internal virtual void TryCreateMonitor(Type type)
         {
-            // No-op for real execution.
+            if(!Configuration.EnableMonitorsInProduction)
+            {
+                // No-op for real execution.
+                return;
+            }
+
+            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
+                "is not a subclass of Monitor.\n");
+
+            MachineId mid = new MachineId(type, null, this);
+            Object monitor = Activator.CreateInstance(type);
+            (monitor as Monitor).SetMachineId(mid);
+            (monitor as Monitor).InitializeStateInformation();
+
+            lock (this.Monitors)
+            {
+                this.Monitors.Add(monitor as Monitor);
+            }
+
+            (monitor as Monitor).GotoStartState();
         }
 
         /// <summary>
@@ -668,7 +695,33 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal virtual void Monitor<T>(AbstractMachine sender, Event e)
         {
-            // No-op for real execution.
+            if (!Configuration.EnableMonitorsInProduction)
+            {
+                // no-op for real execution
+                return;
+            }
+
+            Monitor monitor = null;
+
+            lock (this.Monitors)
+            {
+                foreach (var m in this.Monitors)
+                {
+                    if (m.GetType() == typeof(T))
+                    {
+                        monitor = m;
+                        break;
+                    }
+                }
+            }
+
+            if (monitor != null)
+            {
+                lock (monitor)
+                {
+                    monitor.MonitorEvent(e);
+                }
+            }
         }
 
         /// <summary>
