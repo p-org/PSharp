@@ -40,11 +40,6 @@ namespace Microsoft.PSharp.TestingServices
         #region fields
 
         /// <summary>
-        /// List of monitors in the program.
-        /// </summary>
-        private List<Monitor> Monitors;
-
-        /// <summary>
         /// The P# program schedule trace.
         /// </summary>
         internal ScheduleTrace ScheduleTrace;
@@ -112,8 +107,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.RootTaskId = Task.CurrentId;
             
-            this.Monitors = new List<Monitor>();
-
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
                 this.TaskScheduler = new TaskWrapperScheduler(this, this.MachineTasks);
@@ -431,7 +424,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.BugTrace.AddCreateMonitorStep(mid);
 
-            this.Monitors.Add(monitor as Monitor);
+            base.Monitors.Add(monitor as Monitor);
             this.LivenessChecker.RegisterMonitor(monitor as Monitor);
 
             (monitor as Monitor).GotoStartState();
@@ -616,7 +609,7 @@ namespace Microsoft.PSharp.TestingServices
                 sender.AssertNoPendingRGP("Monitor");
             }
 
-            foreach (var m in this.Monitors)
+            foreach (var m in base.Monitors)
             {
                 if (m.GetType() == typeof(T))
                 {
@@ -1026,7 +1019,7 @@ namespace Microsoft.PSharp.TestingServices
                     hash = hash + 31 * machine.GetCachedState();
                 }
 
-                foreach (var monitor in this.Monitors)
+                foreach (var monitor in base.Monitors)
                 {
                     hash = hash + 31 * monitor.GetCachedState();
                 }
@@ -1385,7 +1378,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public void Dispose()
         {
-            this.Monitors.Clear();
+            base.Monitors.Clear();
             this.MachineActionTraceMap.Clear();
 
             this.LivenessChecker = null;
