@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.Utilities
         public bool DynamicEventQueuePrioritization;
 
         /// <summary>
-        /// Enable monitors (safety) with production runtime
+        /// Enable monitors (safety) with production runtime.
         /// </summary>
         public bool EnableMonitorsInProduction;
 

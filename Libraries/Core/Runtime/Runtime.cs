@@ -586,7 +586,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the monitor</param>
         internal virtual void TryCreateMonitor(Type type)
         {
-            if(!Configuration.EnableMonitorsInProduction)
+            if(!this.Configuration.EnableMonitorsInProduction)
             {
                 // No-op for real execution.
                 return;
@@ -695,7 +695,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal virtual void Monitor<T>(AbstractMachine sender, Event e)
         {
-            if (!Configuration.EnableMonitorsInProduction)
+            if (!this.Configuration.EnableMonitorsInProduction)
             {
                 // no-op for real execution
                 return;
