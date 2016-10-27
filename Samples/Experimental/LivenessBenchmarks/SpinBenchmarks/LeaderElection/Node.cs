@@ -128,7 +128,7 @@ namespace LeaderElection
                         }
                         else
                         {
-                            this.Assert(receivedNr == 3);
+                            this.Assert(receivedNr == 5);
                             know_winner = true;
                             Console.WriteLine($"[LOG ({this.Id.Name})] Sent winner, {receivedNr} to {OutputMachineId.Name}");
                             Send(OutputMachineId, new Message(mtype.winner, receivedNr));
