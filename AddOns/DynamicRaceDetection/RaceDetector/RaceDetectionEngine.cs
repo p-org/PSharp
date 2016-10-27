@@ -847,8 +847,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
                         if (m.ObjHandle == n.ObjHandle && m.Offset == n.Offset)
                         {
-                            IO.PrintLine("RACE: " + m.SrcLocation + ";" + m.IsWrite + " AND " +
-                                n.SrcLocation + ";" + n.IsWrite);
+                            IO.PrintLine("RACE: " + m.SrcLocation + ";" + (m.IsWrite ? "write" : "read") + " AND " +
+                                n.SrcLocation + ";" + (n.IsWrite ? "write" : "read"));
                             reportedRaces.Add(new Tuple<string, string>(m.SrcLocation + ";" + m.IsWrite,
                                 n.SrcLocation + ";" + n.IsWrite));
                         }

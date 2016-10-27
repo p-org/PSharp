@@ -410,7 +410,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 if (value == null)
                     return;
                 MachineId r = (MachineId)value;
-                if (this.IsCreateMachineMethod)
+                if (this.IsCreateMachineMethod && CallStack.Peek().FullName.Contains("InitializeStateInformation"))
                 {
                     this.IsCreateMachineMethod = false;
 
