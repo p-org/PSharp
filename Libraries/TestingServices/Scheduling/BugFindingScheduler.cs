@@ -267,7 +267,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var enabledMachines = new HashSet<MachineId>();
             foreach (var machineInfo in this.TaskMap.Values)
             {
-                if (machineInfo.IsEnabled)
+                if (machineInfo.IsEnabled && !machineInfo.IsWaitingToReceive)
                 {
                     enabledMachines.Add(machineInfo.Machine.Id);
                 }
