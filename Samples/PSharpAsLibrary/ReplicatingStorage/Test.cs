@@ -3,6 +3,23 @@ using Microsoft.PSharp;
 
 namespace ReplicatingStorage
 {
+    public class ChessTest
+    {
+        public static bool Run()
+        {
+            var config = Microsoft.PSharp.Utilities.Configuration.Create();
+            config.EnableMonitorsInProduction = true;
+
+            var runtime = PSharpRuntime.Create(config);
+            runtime.RegisterMonitor(typeof(LivenessMonitor));
+
+            Test.Execute(runtime);
+
+            runtime.Wait();
+            return true;
+        }
+    }
+
     /// <summary>
     /// How to run:
     /// 

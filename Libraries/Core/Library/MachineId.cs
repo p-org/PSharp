@@ -95,7 +95,7 @@ namespace Microsoft.PSharp
 
             this.Type = type.FullName;
             this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
-            
+
             this.Value = Interlocked.Increment(ref IdCounter);
 
             if (this.FriendlyName != null && this.FriendlyName.Length > 0)

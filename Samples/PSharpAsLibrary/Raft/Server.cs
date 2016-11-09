@@ -370,7 +370,7 @@ namespace Raft
         void BroadcastVoteRequests()
         {
             // BUG: duplicate votes from same follower
-            this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimer());
+            //this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimer());
 
             for (int idx = 0; idx < this.Servers.Length; idx++)
             {

@@ -4,6 +4,19 @@ using Microsoft.PSharp;
 
 namespace Swordfish
 {
+
+    public class ChessTest
+    {
+        public static bool Run()
+        {
+            var runtime = PSharpRuntime.Create();
+            Test.Execute(runtime);
+
+            runtime.Wait();
+            return true;
+        }
+    }
+
     public class Test
     {
         static void Main(string[] args)

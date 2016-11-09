@@ -4,6 +4,24 @@ using Microsoft.PSharp;
 
 namespace ChainReplication
 {
+    public class ChessTest
+    {
+        public static bool Run()
+        {
+            var config = Microsoft.PSharp.Utilities.Configuration.Create();
+            config.EnableMonitorsInProduction = true;
+
+            var runtime = PSharpRuntime.Create(config);
+            runtime.RegisterMonitor(typeof(InvariantMonitor));
+            runtime.RegisterMonitor(typeof(ServerResponseSeqMonitor));
+
+            Test.Execute(runtime);
+
+            runtime.Wait();
+            return true;
+        }
+    }
+
     public class Test
     {
         static void Main(string[] args)

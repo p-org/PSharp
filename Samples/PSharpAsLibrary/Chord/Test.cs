@@ -4,6 +4,18 @@ using Microsoft.PSharp;
 
 namespace Chord
 {
+    public class ChessTest
+    {
+        public static bool Run()
+        {
+            var runtime = PSharpRuntime.Create();
+            Test.Execute(runtime);
+
+            runtime.Wait();
+            return true;
+        }
+    }
+
     /// <summary>
     /// How to run:
     /// 

@@ -40,7 +40,8 @@ namespace Raft
         void ProcessLeaderElected()
         {
             var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
-
+            
+            if (this.TermsWithLeader.Contains(term)) throw new Exception();
             this.Assert(!this.TermsWithLeader.Contains(term), "Detected more than one leader in term " + term);
             this.TermsWithLeader.Add(term);
         }
