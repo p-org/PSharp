@@ -16,6 +16,7 @@ namespace MachineInheritance
         public class A : MachineState { }
 
         [OnEntry(nameof(EnterB))]
+        [OnEventDoAction(typeof(E), nameof(ActionB))]
         public class B : MachineState { }
 
         public virtual void EnterA()
@@ -28,6 +29,7 @@ namespace MachineInheritance
             Console.WriteLine("Entered B");
         }
 
+        public abstract void ActionB();
     }
 
     class DerivedMachine : BaseMachine
@@ -53,6 +55,11 @@ namespace MachineInheritance
             Console.WriteLine("Entered Derived-B");
             base.EnterB();
         }
+
+        public override void ActionB()
+        {
+            Goto(typeof(Init));
+        }
     }
 
 
@@ -62,6 +69,7 @@ namespace MachineInheritance
         {
             var runtime = PSharpRuntime.Create();
             var d = runtime.CreateMachine(typeof(DerivedMachine));
+            runtime.SendEvent(d, new E());
             runtime.SendEvent(d, new E());
             runtime.SendEvent(d, new E());
             Console.ReadLine();
