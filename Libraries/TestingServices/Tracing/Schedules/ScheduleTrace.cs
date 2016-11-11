@@ -105,6 +105,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         {
             var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count, scheduledMachineId);
             this.Push(scheduleStep);
+            System.Console.WriteLine("<AddSchedulingChoice> {0} ", scheduleStep.Index);
         }
 
         /// <summary>
@@ -116,6 +117,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             var scheduleStep = ScheduleStep.CreateNondeterministicBooleanChoice(
                 this.Count, choice);
             this.Push(scheduleStep);
+            System.Console.WriteLine("<AddNondeterministicBooleanChoice> {0} ", scheduleStep.Index);
         }
 
         /// <summary>
@@ -128,6 +130,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             var scheduleStep = ScheduleStep.CreateFairNondeterministicBooleanChoice(
                 this.Count, uniqueId, choice);
             this.Push(scheduleStep);
+            System.Console.WriteLine("<AddFairNondeterministicBooleanChoice> {0} ", scheduleStep.Index);
         }
 
         /// <summary>

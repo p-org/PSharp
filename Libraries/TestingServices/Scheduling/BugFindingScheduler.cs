@@ -131,7 +131,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
-            
+            next.Machine.ProgramCounter = 0;
+
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
@@ -160,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     next.IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
-
+                
                 lock (machineInfo)
                 {
                     if (machineInfo.IsCompleted)
@@ -213,6 +214,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
+
+            foreach(var m in TaskMap.Values)
+            {
+                if (m.IsActive)
+                {
+                    m.Machine.ProgramCounter++;
+                    break;
+                }
+            }
             
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
@@ -222,7 +232,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
-
+            
             return choice;
         }
 

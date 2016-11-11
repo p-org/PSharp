@@ -52,6 +52,12 @@ namespace Microsoft.PSharp
         /// </summary>
         internal bool CurrentActionCalledRGP;
 
+        /// <summary>
+        /// Program counter used for state-caching. Distinguishes
+        /// scheduling from non-deterministic choices.
+        /// </summary>
+        internal int ProgramCounter;
+
         #endregion
 
         #region generic public and override methods
