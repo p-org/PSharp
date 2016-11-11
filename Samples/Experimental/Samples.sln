@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalAsyncAPI", "Externa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorInProduction", "MonitorInProduction\MonitorInProduction.csproj", "{05643E14-B851-4F49-968F-89781775EF18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineInheritance", "MachineInheritance\MachineInheritance.csproj", "{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{05643E14-B851-4F49-968F-89781775EF18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05643E14-B851-4F49-968F-89781775EF18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05643E14-B851-4F49-968F-89781775EF18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,5 +78,6 @@ Global
 		{C4B06BAF-1BE7-4E1D-BF2F-1AC6774B3CA7} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{E80D3AA7-1C6C-4AA4-BAF0-BABD6CBBC6C6} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{05643E14-B851-4F49-968F-89781775EF18} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
+		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 	EndGlobalSection
 EndGlobal
