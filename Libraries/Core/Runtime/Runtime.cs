@@ -184,6 +184,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the id of the currently executing machine. Returns null if none.
         /// <returns>MachineId</returns>
+        /// </summary>
         public virtual MachineId GetCurrentMachineId()
         {
             if(Task.CurrentId == null || !this.TaskMap.ContainsKey((int) Task.CurrentId))
