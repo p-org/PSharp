@@ -182,16 +182,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Gets the id of the currently executing machine. Asserts that it exists.
-        /// </summary>
+        /// Gets the id of the currently executing machine. Returns null if none.
         /// <returns>MachineId</returns>
+        /// </summary>
         public virtual MachineId GetCurrentMachineId()
         {
-            this.Assert(Task.CurrentId != null, "The current task " +
-                "does not correspond to a machine.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-               "The current task does not correspond to a machine.",
-               (int)Task.CurrentId);
+            if(Task.CurrentId == null || !this.TaskMap.ContainsKey((int) Task.CurrentId))
+            {
+                return null;
+            }
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             return machine.Id;
         }

@@ -15,6 +15,7 @@
 using System;
 
 using Microsoft.PSharp.Utilities;
+using System.IO;
 
 namespace Microsoft.PSharp
 {
@@ -30,6 +31,11 @@ namespace Microsoft.PSharp
 
             // Parses the command line options to get the configuration.
             var configuration = new RaceDetectorCommandLineOptions(args).Parse();
+
+            string directoryPath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed) +
+                Path.DirectorySeparatorChar + "Output";
+            if (Directory.Exists(directoryPath))
+                Directory.Delete(directoryPath, true);
 
             // Creates and starts a dynamic race detection process.
             RaceDetectionProcess.Create(configuration).Start(args);

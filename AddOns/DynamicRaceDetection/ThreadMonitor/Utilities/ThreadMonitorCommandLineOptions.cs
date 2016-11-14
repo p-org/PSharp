@@ -42,6 +42,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
+            else if (option.ToLower().StartsWith("/method:") && option.Length > 8)
+            {
+                base.Configuration.TestMethodName = option.Substring(8);
+            }
             else if (option.ToLower().StartsWith("/sch:"))
             {
                 string scheduler = option.ToLower().Substring(5);
@@ -292,7 +296,6 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void ShowHelp()
         {
-
         }
 
         /// <summary>

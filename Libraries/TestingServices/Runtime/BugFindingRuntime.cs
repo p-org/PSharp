@@ -449,7 +449,9 @@ namespace Microsoft.PSharp.TestingServices
             {
                 // Traces machine actions, if data-race detection is enabled.
                 this.MachineActionTraceMap.Add(mid, new MachineActionTrace(mid));
-                this.MachineActionTraceMap[this.GetCurrentMachineId()].AddTaskMachineCreationInfo(userTask.Id, mid);
+                var currentMachineId = this.GetCurrentMachineId();
+                this.Assert(currentMachineId != null, "Unable to find current machine Id");
+                this.MachineActionTraceMap[currentMachineId].AddTaskMachineCreationInfo(userTask.Id, mid);
             }
 
             IO.Log($"<CreateLog> '{mid}' is created.");

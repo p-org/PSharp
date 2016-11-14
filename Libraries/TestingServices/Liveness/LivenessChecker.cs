@@ -141,7 +141,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                         IO.Debug("<LivenessDebug> Trace is not reproducible: monitor " +
                             $"{coldMonitor.Id} transitioned to a cold state.");
                     }
-                    Console.WriteLine("xxxxxxxx Escaped due to cold state");
                     this.EscapeCycle();
                     return;
                 }
@@ -166,7 +165,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     foreach (var monitor in this.HotMonitors)
                     {
                         string message = IO.Format("Monitor '{0}' detected infinite execution that " +
-                            "violates a liveness property. Cyle length : {1}", monitor.GetType().Name, PotentialCycle.Count);
+                            "violates a liveness property.", monitor.GetType().Name);
                         this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
                     }
 
@@ -221,7 +220,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 return;
             }
-            Console.WriteLine("******* Potential cycle **********");
             do
             {
                 var scheduleStep = this.Runtime.ScheduleTrace.Pop();
@@ -301,27 +299,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.HotMonitors.Count > 0)
             {
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
-                //this.Runtime.Configuration.LivenessTemperatureThreshold = PotentialCycle.Count * 100;
-                Console.WriteLine("FAIR CYCLE FOUND!!");
-                Console.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
-                foreach (var x in this.PotentialCycle)
-                {
-                    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
-                    {
-                        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
-                    }
-                    else if (x.Item1.BooleanChoice != null)
-                    {
-                        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
-                    }
-                }
-                Console.WriteLine("Root: " + rt.Index + " " + rt.Type);
-                Console.WriteLine("<LivenessDebug> ----------------------------------.");
-                //PotentialCycle.Clear();
                 this.Runtime.BugFinder.SwitchSchedulingStrategy(this);
             }
             else
@@ -538,7 +515,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 if (nextStep.Type != ScheduleStepType.SchedulingChoice)
                 {
                     IO.Debug("<LivenessDebug> Trace is not reproducible: next step is not a scheduling choice.");
-                    Console.WriteLine("xxxxxxxxxxx Escaping - can't replay: " + nextStep.Type + " " + nextStep.Index);
                     this.EscapeCycle();
                     return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
                 }
@@ -587,7 +563,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 {
                     IO.Debug("<LivenessDebug> Trace is not reproducible: next step is " +
                         "not a nondeterministic boolean choice.");
-                    Console.WriteLine("xxxxxxxxxxx Escaping - boolean choice: " + nextStep.Type + " " + nextStep.Index);
                     this.EscapeCycle();
                     return this.BugFindingSchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
                 }

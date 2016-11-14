@@ -38,11 +38,6 @@ namespace Microsoft.PSharp.Monitoring
             // Parses the command line options to get the configuration.
             var configuration = new ThreadMonitorCommandLineOptions(args).Parse();
 
-            string directoryPath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed) + 
-                Path.DirectorySeparatorChar + "Output";
-            if(Directory.Exists(directoryPath))
-                Directory.Delete(directoryPath, true);
-
             // Creates and starts a thread monitoring process.
             ThreadMonitorProcess.Create(configuration).Start();
 
