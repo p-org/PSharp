@@ -21,6 +21,7 @@ using Microsoft.ExtendedReflection.Monitoring;
 
 using Microsoft.PSharp.DynamicRaceDetection;
 using Microsoft.PSharp.Utilities;
+using System.IO;
 
 namespace Microsoft.PSharp
 {
@@ -129,7 +130,12 @@ namespace Microsoft.PSharp
                 IO.PrintLine("... Access monitoring runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
-
+            string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
+                Path.DirectorySeparatorChar + "Output";
+            if (!Directory.Exists(directoryPath))
+            {
+                Environment.Exit(1);
+            }
             // Starts profiling the race detection.
             if (this.Configuration.EnableProfiling)
             {
