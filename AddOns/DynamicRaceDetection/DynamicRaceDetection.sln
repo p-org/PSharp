@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceDetector", "RaceDetector\RaceDetector.csproj", "{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PSharp", "PSharp", "{6A075B14-5CA9-4B66-997B-CFE8E626104E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingServices", "..\..\Libraries\TestingServices\TestingServices.csproj", "{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinalRaceDetector", "FinalRaceDetector\FinalRaceDetector.csproj", "{6A607487-5DD9-4513-A0A5-2749E6E43EC3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,18 @@ Global
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|Any CPU
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|x64.Build.0 = VsixCustomTool|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Debug|x64.Build.0 = Debug|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Release|x64.ActiveCfg = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.Release|x64.Build.0 = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|x64.ActiveCfg = Release|Any CPU
+		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

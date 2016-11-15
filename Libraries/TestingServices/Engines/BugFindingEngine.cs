@@ -408,6 +408,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     runtime.Dispose();
+                    new FinalRaceDetector.RaceDetectionEngine(this.Configuration).Start();
                 }
                 
                 try

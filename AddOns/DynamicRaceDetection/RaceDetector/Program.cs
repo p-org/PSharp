@@ -39,8 +39,7 @@ namespace Microsoft.PSharp
 
             // Creates and starts a dynamic race detection process.
             RaceDetectionProcess.Create(configuration).Start(args);
-
-            IO.PrintLine(". Done");
+            
         }
 
         /// <summary>

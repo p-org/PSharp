@@ -40,8 +40,7 @@ namespace Microsoft.PSharp.Monitoring
 
             // Creates and starts a thread monitoring process.
             ThreadMonitorProcess.Create(configuration).Start();
-
-            IO.PrintLine(". Done");
+            
         }
 
         /// <summary>

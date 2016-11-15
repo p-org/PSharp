@@ -142,7 +142,7 @@ namespace Microsoft.PSharp
                 this.Profiler.StartMeasuringExecutionTime();
             }
 
-            new RaceDetectionEngine(this.Configuration).Start();
+            //new RaceDetectionEngine(this.Configuration).Start();
 
             // Stops profiling the race detection.
             if (this.Configuration.EnableProfiling)
