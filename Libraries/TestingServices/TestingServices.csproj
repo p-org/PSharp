@@ -50,9 +50,6 @@
     <DocumentationFile>..\..\Binaries\Microsoft.PSharp.TestingServices.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FinalRaceDetector">
-      <HintPath>..\..\AddOns\DynamicRaceDetection\FinalRaceDetector\bin\Debug\FinalRaceDetector.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
