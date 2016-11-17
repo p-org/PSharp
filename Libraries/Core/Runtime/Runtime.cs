@@ -702,7 +702,7 @@ namespace Microsoft.PSharp
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {
-                // no-op for real execution
+                // No-op for real execution.
                 return;
             }
 
@@ -805,7 +805,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyEnteredState(AbstractMachine machine)
         {
-            // No-op for real execution, except logging
+            // No-op for real execution, except logging.
             if (this.Configuration.Verbose <= 1)
             {
                 return;
@@ -844,7 +844,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyExitedState(AbstractMachine machine)
         {
-            // No-op for real execution, except logging
+            // No-op for real execution, except logging.
             if (this.Configuration.Verbose <= 1)
             {
                 return;
@@ -887,7 +887,7 @@ namespace Microsoft.PSharp
         /// <param name="receivedEvent">Event</param>
         internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
-            // No-op for real execution except logging
+            // No-op for real execution except logging.
             if(this.Configuration.Verbose <= 1)
             {
                 return;
@@ -917,7 +917,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            // No-op for real execution except logging
+            // No-op for real execution except logging.
             this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
         }
@@ -939,7 +939,7 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
         {
-            // No-op for real execution except logging
+            // No-op for real execution except logging.
             if(this.Configuration.Verbose <= 1)
             {
                 return;
