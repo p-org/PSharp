@@ -69,5 +69,17 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             this.MachineTarget = machineTarget;
             this.StateTarget = stateTarget;
         }
+
+        /// <summary>
+        /// Pretty print
+        /// </summary>
+        public override string ToString()
+        {
+            if(MachineOrigin == MachineTarget)
+            {
+                return string.Format("{0}: {1} --{2}--> {3}", MachineOrigin, StateOrigin, EdgeLabel, StateTarget);
+            }
+            return string.Format("({0}, {1}) --{2}--> ({3}, {4})", MachineOrigin, StateOrigin, EdgeLabel, MachineTarget, StateTarget);
+        }
     }
 }

@@ -53,6 +53,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Tests.Unit", "Tests\Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingServices.Tests.Unit", "Tests\TestingServices.Tests.Unit\TestingServices.Tests.Unit.csproj", "{FD33B00B-47B9-48FE-9D35-633A0736D0E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MergeCoverageReport", "Tools\Testing\MergeCoverageReport\MergeCoverageReport.csproj", "{00B4E016-7218-48B5-81F6-975544EFA374}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,6 +170,12 @@ Global
 		{FD33B00B-47B9-48FE-9D35-633A0736D0E6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FD33B00B-47B9-48FE-9D35-633A0736D0E6}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
 		{FD33B00B-47B9-48FE-9D35-633A0736D0E6}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{00B4E016-7218-48B5-81F6-975544EFA374}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00B4E016-7218-48B5-81F6-975544EFA374}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00B4E016-7218-48B5-81F6-975544EFA374}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00B4E016-7218-48B5-81F6-975544EFA374}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00B4E016-7218-48B5-81F6-975544EFA374}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{00B4E016-7218-48B5-81F6-975544EFA374}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -194,5 +202,6 @@ Global
 		{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC} = {C1659EFB-75FE-4428-845C-E7A4B451C970}
 		{D388CB45-F077-4278-B174-796A8C9BF927} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 		{FD33B00B-47B9-48FE-9D35-633A0736D0E6} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
+		{00B4E016-7218-48B5-81F6-975544EFA374} = {C1659EFB-75FE-4428-845C-E7A4B451C970}
 	EndGlobalSection
 EndGlobal

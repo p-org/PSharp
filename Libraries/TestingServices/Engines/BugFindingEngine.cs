@@ -161,12 +161,23 @@ namespace Microsoft.PSharp.TestingServices
 
                 IO.Error.PrintLine($"... Writing {graphFilePath}");
                 codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
-
+                
                 string[] coverageFiles = Directory.GetFiles(directoryPath, name + "_*.coverage.txt");
                 string coverageFilePath = directoryPath + name + "_" + coverageFiles.Length + ".coverage.txt";
 
                 IO.Error.PrintLine($"... Writing {coverageFilePath}");
                 codeCoverageReporter.EmitCoverageReport(coverageFilePath);
+
+                string[] serFiles = Directory.GetFiles(directoryPath, name + "_*.sci");
+                string serFilePath = directoryPath + name + "_" + serFiles.Length + ".sci";
+
+                IO.Error.PrintLine($"... Writing {serFilePath}");
+                using (var fs = new FileStream(serFilePath, FileMode.Create))
+                {
+                    var ser = new DataContractSerializer(typeof(CoverageInfo));
+                    ser.WriteObject(fs, base.TestReport.CoverageInfo);
+                }
+
             }
         }
 
