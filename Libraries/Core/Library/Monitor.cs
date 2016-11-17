@@ -113,6 +113,20 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Gets the current state name with temperature.
+        /// </summary>
+        internal string CurrentStateNameWithTemperature
+        {
+            get
+            {
+                return CurrentStateName + 
+                    (IsInHotState() ? "[hot]" :
+                    IsInColdState() ? "[cold]" :
+                    "");
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
