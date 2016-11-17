@@ -24,19 +24,19 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// P# merge coverage reports
+    /// P# coverage report merger.
     /// </summary>
     class Program
     {
         #region fields
 
         /// <summary>
-        /// Input coverage info
+        /// Input coverage info.
         /// </summary>
         static List<CoverageInfo> InputFiles;
 
         /// <summary>
-        /// Output file prefix
+        /// Output file prefix.
         /// </summary>
         static string OutputFilePrefix;
 
@@ -82,7 +82,7 @@ namespace Microsoft.PSharp
 
 
         /// <summary>
-        /// Parse arguments
+        /// Parses the arguments.
         /// </summary>
         /// <param name="args"></param>
         static bool ParseArgs(string[] args)
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp
 
                     try
                     {
-                        using (var fs = new System.IO.FileStream(arg, System.IO.FileMode.Open))
+                        using (var fs = new FileStream(arg, FileMode.Open))
                         {
                             using (var reader = XmlDictionaryReader.CreateTextReader(fs, new XmlDictionaryReaderQuotas()))
                             {
