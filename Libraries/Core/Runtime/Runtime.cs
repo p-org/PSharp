@@ -625,15 +625,7 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            EventOriginInfo originInfo = null;
-            if (sender != null && sender is Machine)
-            {
-                originInfo = new EventOriginInfo(sender.Id,
-                    (sender as Machine).GetType().Name,
-                    Machine.GetQualifiedStateName((sender as Machine).CurrentState));
-            }
-
-            EventInfo eventInfo = new EventInfo(e, originInfo);
+            EventInfo eventInfo = new EventInfo(e, null);
 
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
