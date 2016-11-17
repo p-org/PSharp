@@ -136,14 +136,32 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                     writer.WriteEndElement();
                 }
             }
-            
+
+            var parallelEdgeCounter = new Dictionary<Tuple<string, string>, int>();
             // Iterates transitions.
             foreach (var transition in this.CoverageInfo.Transitions)
             {
+                var source = this.GetStateId(transition.MachineOrigin, transition.StateOrigin);
+                var target = this.GetStateId(transition.MachineTarget, transition.StateTarget);
+                var counter = 0;
+                if (parallelEdgeCounter.ContainsKey(Tuple.Create(source, target)))
+                {
+                    counter = parallelEdgeCounter[Tuple.Create(source, target)];
+                    parallelEdgeCounter[Tuple.Create(source, target)] = counter + 1;
+                }
+                else
+                {
+                    parallelEdgeCounter[Tuple.Create(source, target)] = 1;
+                }
+
                 writer.WriteStartElement("Link");
-                writer.WriteAttributeString("Source", this.GetStateId(transition.MachineOrigin, transition.StateOrigin));
-                writer.WriteAttributeString("Target", this.GetStateId(transition.MachineTarget, transition.StateTarget));
+                writer.WriteAttributeString("Source", source);
+                writer.WriteAttributeString("Target", target);
                 writer.WriteAttributeString("Label", transition.EdgeLabel);
+                if(counter != 0)
+                {
+                    writer.WriteAttributeString("Index", counter.ToString());
+                }
                 writer.WriteEndElement();
             }
 
