@@ -533,7 +533,9 @@ namespace Microsoft.PSharp
             
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid}' was already created.");
-            
+
+            this.Log($"<CreateLog> Machine '{mid}' is created.");
+
             Task task = new Task(() =>
             {
                 try
@@ -604,6 +606,8 @@ namespace Microsoft.PSharp
                 this.Monitors.Add(monitor as Monitor);
             }
 
+            this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+
             (monitor as Monitor).GotoStartState();
         }
 
@@ -632,7 +636,17 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-            
+
+            if (sender != null)
+            {
+                this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
+                    $"'{eventInfo.EventName}' to '{mid}'.");
+            }
+            else
+            {
+                this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
+            }
+
             bool runHandler = false;
             machine.Enqueue(eventInfo, ref runHandler);
 
@@ -733,6 +747,16 @@ namespace Microsoft.PSharp
                 result = true;
             }
 
+            if (machine != null)
+            {
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                    $"nondeterministically chose '{result}'.");
+            }
+            else
+            {
+                this.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
+            }
+
             return result;
         }
 
@@ -760,7 +784,19 @@ namespace Microsoft.PSharp
             AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
-            return random.Next(maxValue);
+            var result = random.Next(maxValue);
+
+            if (machine != null)
+            {
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                    $"nondeterministically chose '{result}'.");
+            }
+            else
+            {
+                this.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -769,7 +805,37 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyEnteredState(AbstractMachine machine)
         {
-            // No-op for real execution.
+            // No-op for real execution, except logging
+            if (this.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            if (machine is Machine)
+            {
+                string machineState = (machine as Machine).CurrentStateName;
+
+                this.Log($"<StateLog> Machine '{machine.Id}' enters " +
+                    $"state '{machineState}'.");
+            }
+            else if (machine is Monitor)
+            {
+                string liveness = "";
+                string monitorState = (machine as Monitor).CurrentStateNameWithTemperature;
+
+                if ((machine as Monitor).IsInHotState())
+                {
+                    liveness = "'hot' ";
+                }
+                else if ((machine as Monitor).IsInColdState())
+                {
+                    liveness = "'cold' ";
+                }
+
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                    $"enters {liveness}state '{monitorState}'.");
+            }
+
         }
 
         /// <summary>
@@ -778,7 +844,39 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyExitedState(AbstractMachine machine)
         {
-            // No-op for real execution.
+            // No-op for real execution, except logging
+            if (this.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            if (machine is Machine)
+            {
+                string machineState = (machine as Machine).CurrentStateName;
+
+                this.Log($"<StateLog> Machine '{machine.Id}' exits " +
+                    $"state '{machineState}'.");
+            }
+            else if (machine is Monitor)
+            {
+                string liveness = "";
+                string monitorState = (machine as Monitor).CurrentStateName;
+
+                if ((machine as Monitor).IsInHotState())
+                {
+                    liveness = "'hot' ";
+                    monitorState += "[hot]";
+                }
+                else if ((machine as Monitor).IsInColdState())
+                {
+                    liveness = "'cold' ";
+                    monitorState += "[cold]";
+                }
+
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                    $"exits {liveness}state '{monitorState}'.");
+            }
+
         }
 
         /// <summary>
@@ -789,7 +887,27 @@ namespace Microsoft.PSharp
         /// <param name="receivedEvent">Event</param>
         internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
-            // No-op for real execution.
+            // No-op for real execution except logging
+            if(this.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            if (machine is Machine)
+            {
+                string machineState = (machine as Machine).CurrentStateName;
+
+                this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
+                    $"'{action.Name}' in state '{machineState}'.");
+            }
+            else if (machine is Monitor)
+            {
+                string monitorState = (machine as Monitor).CurrentStateName;
+
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
+                    $"action '{action.Name}' in state '{monitorState}'.");
+            }
+
         }
 
         /// <summary>
@@ -799,7 +917,9 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            // No-op for real execution.
+            // No-op for real execution except logging
+            this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
+                $"event '{eventInfo.EventName}'.");
         }
 
         /// <summary>
@@ -819,7 +939,26 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
         {
-            // No-op for real execution.
+            // No-op for real execution except logging
+            if(this.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            if (machine is Machine)
+            {
+                string machineState = (machine as Machine).CurrentStateName;
+                this.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
+                    $"event '{eventInfo.EventName}'.");
+            }
+            else if (machine is Monitor)
+            {
+                string monitorState = (machine as Monitor).CurrentStateName;
+
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
+                    $"event '{eventInfo.EventName}'.");
+            }
+
         }
 
         /// <summary>
@@ -849,6 +988,9 @@ namespace Microsoft.PSharp
         /// <param name="events">Events</param>
         internal virtual void NotifyWaitEvents(Machine machine, string events)
         {
+            this.Log($"<ReceiveLog> Machine '{machine.Id}' " +
+                $"is waiting on events:{events}.");
+
             lock (machine)
             {
                 while (machine.IsWaitingToReceive)
@@ -865,6 +1007,9 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
+            this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
+                $"event '{eventInfo.EventName}' and unblocked.");
+
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);
@@ -878,6 +1023,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         internal virtual void NotifyHalted(Machine machine)
         {
+            this.Log($"<HaltLog> Machine '{machine.Id}' halted.");
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 

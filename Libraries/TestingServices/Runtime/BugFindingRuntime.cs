@@ -726,24 +726,23 @@ namespace Microsoft.PSharp.TestingServices
 
                 IO.Log($"<StateLog> Machine '{machine.Id}' enters " +
                     $"state '{machineState}'.");
+
             }
             else if (machine is Monitor)
             {
+                string monitorState = (machine as Monitor).CurrentStateNameWithTemperature;
+                this.BugTrace.AddGotoStateStep(machine.Id, monitorState);
+
                 string liveness = "";
-                string monitorState = (machine as Monitor).CurrentStateName;
 
                 if ((machine as Monitor).IsInHotState())
                 {
                     liveness = "'hot' ";
-                    monitorState += "[hot]";
                 }
                 else if ((machine as Monitor).IsInColdState())
                 {
                     liveness = "'cold' ";
-                    monitorState += "[cold]";
                 }
-
-                this.BugTrace.AddGotoStateStep(machine.Id, monitorState);
 
                 IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"enters {liveness}state '{monitorState}'.");
