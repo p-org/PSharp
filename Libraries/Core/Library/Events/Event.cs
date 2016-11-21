@@ -41,7 +41,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region protected methods
+        #region constructors
 
         /// <summary>
         /// Constructor.
