@@ -28,6 +28,7 @@ using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 using Microsoft.PSharp.Monitoring.CallsOnly;
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
+using ThreadTraces;
 
 namespace Microsoft.PSharp.Monitoring.AllCallbacks
 {
@@ -268,7 +269,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     // TODO: This is fragile (for tasks)
                     if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
-                        ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForTask(m.Item2);
+                        ThreadTrace obj = ThreadTraces.ThreadTrace.CreateTraceForTask(m.Item2);
                         obj.Accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
                         this.ThreadTrace.Add(obj);
                     }
@@ -309,7 +310,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     //TODO: This is fragile (for tasks)
                     if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
-                        ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForTask(m.Item2);
+                        ThreadTrace obj = ThreadTraces.ThreadTrace.CreateTraceForTask(m.Item2);
                         obj.Accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
                         this.ThreadTrace.Add(obj);
                     }
@@ -497,7 +498,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             if (method.FullName.Contains("Microsoft.PSharp") && method.FullName.Contains("NotifyInvokedAction") &&
                 !this.CallStack.Peek().FullName.Contains(".Main") && !this.CallStack.Peek().FullName.Contains("Monitor.Do"))
             {
-                ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForMachine(machineIdOfAction);
+                ThreadTrace obj = ThreadTraces.ThreadTrace.CreateTraceForMachine(machineIdOfAction);
 
                 if (ActionIds.ContainsKey(machineIdOfAction))
                 {

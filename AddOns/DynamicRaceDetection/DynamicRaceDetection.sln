@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingServices", "..\..\Li
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinalRaceDetector", "FinalRaceDetector\FinalRaceDetector.csproj", "{6A607487-5DD9-4513-A0A5-2749E6E43EC3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadTraces", "ThreadTraces\ThreadTraces.csproj", "{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,18 @@ Global
 		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
 		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|x64.ActiveCfg = Release|Any CPU
 		{6A607487-5DD9-4513-A0A5-2749E6E43EC3}.VsixCustomTool|x64.Build.0 = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Debug|x64.Build.0 = Debug|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Release|x64.ActiveCfg = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.Release|x64.Build.0 = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.VsixCustomTool|x64.ActiveCfg = Release|Any CPU
+		{BBB7B491-AF4E-484E-A2E2-A0CB46390C7B}.VsixCustomTool|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

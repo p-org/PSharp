@@ -277,6 +277,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool EnableDataRaceDetection;
 
+        /// <summary>
+        /// Callback for detecting races.
+        /// </summary>
+        public Action raceDetectionCallback;
+
         #endregion
 
         #region code coverage options

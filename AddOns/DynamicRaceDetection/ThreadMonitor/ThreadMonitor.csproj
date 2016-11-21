@@ -92,8 +92,6 @@
     <Compile Include="Monitoring\Threads\ThreadMonitorCollection.cs" />
     <Compile Include="Monitoring\Threads\ThreadMonitorFactory.cs" />
     <Compile Include="Monitoring\Threads\ThreadMonitorManager.cs" />
-    <Compile Include="Library\ActionInstr.cs" />
-    <Compile Include="Monitoring\Threads\ThreadTrace.cs" />
     <Compile Include="Utilities\ThreadMonitorCommandLineOptions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -108,6 +106,14 @@
     <ProjectReference Include="..\..\..\Libraries\TestingServices\TestingServices.csproj">
       <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
       <Name>TestingServices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FinalRaceDetector\FinalRaceDetector.csproj">
+      <Project>{6a607487-5dd9-4513-a0a5-2749e6e43ec3}</Project>
+      <Name>FinalRaceDetector</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ThreadTraces\ThreadTraces.csproj">
+      <Project>{bbb7b491-af4e-484e-a2e2-a0cb46390c7b}</Project>
+      <Name>ThreadTraces</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

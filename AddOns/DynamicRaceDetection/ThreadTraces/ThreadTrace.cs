@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.PSharp.Monitoring
+namespace ThreadTraces
 {
     [Serializable]
     public class ThreadTrace

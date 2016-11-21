@@ -1,5 +1,4 @@
-﻿using Microsoft.PSharp.Monitoring;
-using Microsoft.PSharp.TestingServices.Tracing.Machines;
+﻿using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.Utilities;
 using QuickGraph;
 using System;
@@ -10,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
+using ThreadTraces;
 
 namespace FinalRaceDetector
 {

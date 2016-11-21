@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.PSharp.Monitoring
+namespace ThreadTraces
 {
     [Serializable]
     public class ActionInstr
