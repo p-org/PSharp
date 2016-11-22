@@ -282,6 +282,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public Action raceDetectionCallback;
 
+        /// <summary>
+        /// true if race is found.
+        /// </summary>
+        public bool raceFound;
+        
         #endregion
 
         #region code coverage options

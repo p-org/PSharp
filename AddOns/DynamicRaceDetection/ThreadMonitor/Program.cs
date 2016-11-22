@@ -37,10 +37,8 @@ namespace Microsoft.PSharp.Monitoring
 
             // Parses the command line options to get the configuration.
             var configuration = new ThreadMonitorCommandLineOptions(args).Parse();
-            configuration.raceDetectionCallback = new Action(() => new FinalRaceDetector.RaceDetectionEngine(configuration).Start());
             // Creates and starts a thread monitoring process.
             ThreadMonitorProcess.Create(configuration).Start();
-            
         }
 
         /// <summary>

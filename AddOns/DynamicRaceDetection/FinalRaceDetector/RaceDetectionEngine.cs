@@ -51,7 +51,7 @@ namespace FinalRaceDetector
         /// <summary>
         /// Starts the engine.
         /// </summary>
-        public void Start()
+        public bool Start()
         {
             IO.PrintLine(". Searching for data races");
 
@@ -78,104 +78,101 @@ namespace FinalRaceDetector
                     NumberOfIterations = currentIteration;
             }
 
-            //NumberOfIterations++;
-            //for (int iteration = 0; iteration < NumberOfIterations; iteration++)
-            //{
-                string[] tfileEntries = Directory.GetFiles(threadTraceDirectoryPath, ("*_iteration_" + NumberOfIterations + "*"));
-                foreach (string fileName in tfileEntries)
-                {
-                    //Deserialize thread traces
-                    //Open the file written above and read values from it.
-                    Stream stream = File.Open(fileName, FileMode.Open);
-                    BinaryFormatter bformatter = new BinaryFormatter();
-                    List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
+            string[] tfileEntries = Directory.GetFiles(threadTraceDirectoryPath, ("*_iteration_" + NumberOfIterations + "*"));
+            foreach (string fileName in tfileEntries)
+            {
+                //Deserialize thread traces
+                //Open the file written above and read values from it.
+                Stream stream = File.Open(fileName, FileMode.Open);
+                BinaryFormatter bformatter = new BinaryFormatter();
+                List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
 
-                    for (int i = 0; i < tt.Count; i++)
-                    {
-                        this.AllThreadTraces.Add(tt[i]);
-                    }
-                    stream.Close();
+                for (int i = 0; i < tt.Count; i++)
+                {
+                    this.AllThreadTraces.Add(tt[i]);
+                }
+                stream.Close();
+            }
+
+            string[] mFileEntries = Directory.GetFiles(runtimeTraceDirectoryPath, ("*_iteration_" + NumberOfIterations + "*"));
+            this.VcCount = mFileEntries.Count() + 5;
+
+            //TODO: fix this            
+            foreach (string fileName in mFileEntries)
+            {
+                //chain decomposition
+                string fileNumberStart = fileName.Substring(fileName.LastIndexOf('_') + 1);
+                string fileNumber = fileNumberStart.Substring(0, fileNumberStart.IndexOf('.'));
+                int tc = Int32.Parse(fileNumber);
+                if (tc > this.VcCount)
+                    this.VcCount = tc;
+            }
+            this.VcCount = this.VcCount + 10;
+
+
+            foreach (string fileName in mFileEntries)
+            {
+                MachineActionTrace machineTrace = null;
+                using (FileStream stream = File.Open(fileName, FileMode.Open))
+                {
+                    DataContractSerializer serializer = new DataContractSerializer(
+                        typeof(MachineActionTrace));
+                    machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
                 }
 
-                string[] mFileEntries = Directory.GetFiles(runtimeTraceDirectoryPath, ("*_iteration_" + NumberOfIterations + "*"));
-                this.VcCount = mFileEntries.Count() + 5;
+                this.UpdateTasks(machineTrace);
+                this.UpdateGraph(machineTrace);
+            }
 
-                //TODO: fix this            
-                foreach (string fileName in mFileEntries)
-                {
-                    //chain decomposition
-                    string fileNumberStart = fileName.Substring(fileName.LastIndexOf('_') + 1);
-                    string fileNumber = fileNumberStart.Substring(0, fileNumberStart.IndexOf('.'));
-                    int tc = Int32.Parse(fileNumber);
-                    if (tc > this.VcCount)
-                        this.VcCount = tc;
-                }
-                this.VcCount = this.VcCount + 10;
+            this.UpdateGraphCrossEdges();
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+                IO.PrintLine("... Graph construction runtime: '" +
+                    this.Profiler.Results() + "' seconds.");
+            }
 
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StartMeasuringExecutionTime();
+            }
+            //Console.WriteLine("before pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
+            this.PruneGraph();
+            //Console.WriteLine("after pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+                IO.PrintLine("... Graph prune runtime: '" +
+                    this.Profiler.Results() + "' seconds.");
+            }
 
-                foreach (string fileName in mFileEntries)
-                {
-                    MachineActionTrace machineTrace = null;
-                    using (FileStream stream = File.Open(fileName, FileMode.Open))
-                    {
-                        DataContractSerializer serializer = new DataContractSerializer(
-                            typeof(MachineActionTrace));
-                        machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
-                    }
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StartMeasuringExecutionTime();
+            }
+            this.UpdateVectorsT();
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+                IO.PrintLine("... Topological sort runtime: '" +
+                    this.Profiler.Results() + "' seconds.");
+            }
 
-                    this.UpdateTasks(machineTrace);
-                    this.UpdateGraph(machineTrace);
-                }
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StartMeasuringExecutionTime();
+            }
+            bool foundBug = this.DetectRacesFast();
+            if (this.Configuration.EnableProfiling)
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+                IO.PrintLine("... Race detection runtime: '" +
+                    this.Profiler.Results() + "' seconds.");
+            }
 
-                this.UpdateGraphCrossEdges();
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StopMeasuringExecutionTime();
-                    IO.PrintLine("... Graph construction runtime: '" +
-                        this.Profiler.Results() + "' seconds.");
-                }
-
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StartMeasuringExecutionTime();
-                }
-                //Console.WriteLine("before pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
-                this.PruneGraph();
-                //Console.WriteLine("after pruning: nodes = " + CGraph.VertexCount + "; edges = " + CGraph.EdgeCount);
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StopMeasuringExecutionTime();
-                    IO.PrintLine("... Graph prune runtime: '" +
-                        this.Profiler.Results() + "' seconds.");
-                }
-
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StartMeasuringExecutionTime();
-                }
-                this.UpdateVectorsT();
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StopMeasuringExecutionTime();
-                    IO.PrintLine("... Topological sort runtime: '" +
-                        this.Profiler.Results() + "' seconds.");
-                }
-
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StartMeasuringExecutionTime();
-                }
-                this.DetectRacesFast();
-                if (this.Configuration.EnableProfiling)
-                {
-                    this.Profiler.StopMeasuringExecutionTime();
-                    IO.PrintLine("... Race detection runtime: '" +
-                        this.Profiler.Results() + "' seconds.");
-                }
-
-                this.CGraph.Clear();
-                this.AllThreadTraces.Clear();
-            //}
+            this.CGraph.Clear();
+            this.AllThreadTraces.Clear();
+            return foundBug;
         }
 
         /// <summary>
@@ -730,13 +727,13 @@ namespace FinalRaceDetector
             }
         }
 
-        void DetectRacesFast()
+        bool DetectRacesFast()
         {
             IO.PrintLine("\nDETECTING RACES");
 
             if (this.CGraph.VertexCount == 0)
             {
-                return;
+                return false;
             }
 
             List<Tuple<CActBegin, CActBegin>> checkRaces = new List<Tuple<CActBegin, CActBegin>>();
@@ -835,10 +832,12 @@ namespace FinalRaceDetector
                             reportedRaces.Add(new Tuple<string, string>(m.SrcLocation + ";" + m.IsWrite,
                                 n.SrcLocation + ";" + n.IsWrite));
                             IO.PrintLine();
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         bool cExistsPath(Node n1, Node n2)

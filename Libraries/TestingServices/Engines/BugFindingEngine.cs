@@ -352,6 +352,13 @@ namespace Microsoft.PSharp.TestingServices
                     // iteration starts.
                     this.CleanUpRuntime();
 
+                    base.Configuration.raceDetectionCallback?.Invoke();
+                    if (base.Configuration.raceFound)
+                    {
+                        string message = IO.Format("Found a race");
+                        runtime.BugFinder.NotifyAssertionFailure(message, false);
+                    }
+
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property
                     // violations have been found.
@@ -417,9 +424,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         maxIterations++;
                     }
-
                     runtime.Dispose();
-                    base.Configuration.raceDetectionCallback?.Invoke();
                 }
                 
                 try

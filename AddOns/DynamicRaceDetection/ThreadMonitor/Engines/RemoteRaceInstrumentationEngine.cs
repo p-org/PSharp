@@ -66,6 +66,18 @@ namespace Microsoft.PSharp.Monitoring
             this.TryLoadReferencedAssemblies(new[] { assembly });
             
             testingEngine.Run();
+
+            IO.Error.PrintLine(testingEngine.Report());
+            if (testingEngine.TestReport.NumOfFoundBugs > 0 ||
+                configuration.PrintTrace)
+            {
+                testingEngine.TryEmitTraces();
+            }
+
+            if (configuration.ReportCodeCoverage)
+            {
+                testingEngine.TryEmitCoverageReport();
+            }
         }
 
         public override object InitializeLifetimeService()

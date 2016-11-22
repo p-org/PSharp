@@ -33,7 +33,11 @@ namespace Microsoft.PSharp
             var configuration = new RaceDetectorCommandLineOptions(args).Parse();
 
             string directoryPath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed) +
-                Path.DirectorySeparatorChar + "Output";
+                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar + "RuntimeTraces";
+            if (Directory.Exists(directoryPath))
+                Directory.Delete(directoryPath, true);
+            directoryPath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed) +
+                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar + "ThreadTraces";
             if (Directory.Exists(directoryPath))
                 Directory.Delete(directoryPath, true);
 
