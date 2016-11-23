@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         /// <summary>
-        /// P# semantics test: testing for ignore of a raised event
+        /// P# semantics test: testing for ignore of a raised event.
         /// </summary>
         [TestMethod]
         public void TestIgnoreRaisedEventHandled()

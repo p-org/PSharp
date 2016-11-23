@@ -777,6 +777,7 @@ namespace Microsoft.PSharp
                     nextEventInfo = null;
                 }
             }
+
             // If there is no raised event, then dequeue.
             if (nextEventInfo == null && this.Inbox.Count > 0)
             {
