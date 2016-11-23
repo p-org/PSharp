@@ -135,6 +135,30 @@ namespace Microsoft.PSharp.Utilities
             }
 
             /// <summary>
+            /// Reports a generic error to the user.
+            /// </summary>
+            /// <param name="s">String</param>
+            public static void Report(string s)
+            {
+                IO.Error.Print(ConsoleColor.Red, "Error: ");
+                IO.Error.Print(ConsoleColor.Yellow, s);
+                IO.Error.PrintLine();
+            }
+
+            /// <summary>
+            /// Reports a generic error to the user.
+            /// </summary>
+            /// <param name="s">String</param>
+            /// <param name="args">Parameters</param>
+            public static void Report(string s, params object[] args)
+            {
+                string message = IO.Format(s, args);
+                IO.Error.Print(ConsoleColor.Red, "Error: ");
+                IO.Error.Print(ConsoleColor.Yellow, message);
+                IO.Error.PrintLine();
+            }
+
+            /// <summary>
             /// Reports a generic error to the user and exits.
             /// </summary>
             /// <param name="s">String</param>
