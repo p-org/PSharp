@@ -777,8 +777,9 @@ namespace Microsoft.PSharp
                     nextEventInfo = null;
                 }
             }
+
             // If there is no raised event, then dequeue.
-            else if (this.Inbox.Count > 0)
+            if (nextEventInfo == null && this.Inbox.Count > 0)
             {
                 // Iterates through the events in the inbox.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
