@@ -201,6 +201,50 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             return decls;
         }
 
+        /// <summary>
+        /// Sanity checking:
+        /// -- no duplicate states and groups
+        /// </summary>
+        internal void CheckDeclaration()
+        {
+            var statesSeen = new Dictionary<string, StateDeclaration>();
+            foreach (var decl in this.StateDeclarations)
+            {
+                if (statesSeen.ContainsKey(decl.Identifier.Text))
+                {
+                    throw new RewritingException(
+                        $"Multiple declarations of the state '{decl.Identifier.Text}'" + Environment.NewLine +
+                        $"File: {Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
+                        $"Lines: {statesSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}"
+                        );
+                }
+                else
+                {
+                    statesSeen.Add(decl.Identifier.Text, decl);
+                }
+            }
+
+            var groupsSeen = new Dictionary<string, StateGroupDeclaration>();
+            foreach (var decl in this.StateGroupDeclarations)
+            {
+                if (groupsSeen.ContainsKey(decl.Identifier.Text))
+                {
+                    throw new RewritingException(
+                        $"Multiple declarations of the state group '{decl.Identifier.Text}'" + Environment.NewLine +
+                        $"File: {Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
+                        $"Lines: {groupsSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}"
+                        );
+
+                }
+                else
+                {
+                    groupsSeen.Add(decl.Identifier.Text, decl);
+                }
+            }
+
+            this.StateGroupDeclarations.ForEach(g => g.CheckDeclaration());
+        }
+
         #endregion
 
         #region private methods

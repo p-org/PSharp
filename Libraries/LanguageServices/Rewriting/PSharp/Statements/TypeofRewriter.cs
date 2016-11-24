@@ -120,15 +120,29 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var key = Tuple.Create(methoddecl.Identifier.ValueText, classdecl.Identifier.ValueText,
                 namespacedecl.Name.ToString());
 
-            var rewrittenMethod = this.RewrittenQualifiedMethods.SingleOrDefault(
+            var rewrittenMethods = this.RewrittenQualifiedMethods.Where(
                 val => val.Name.Equals(methoddecl.Identifier.ValueText) &&
                 val.MachineName.Equals(classdecl.Identifier.ValueText) &&
-                val.NamespaceName.Equals(namespacedecl.Name.ToString()));
-            if (rewrittenMethod == null)
+                val.NamespaceName.Equals(namespacedecl.Name.ToString())).ToList();
+            
+            // must be unique    
+            if (rewrittenMethods.Count == 0)
             {
                 return node;
             }
-            
+
+            if (rewrittenMethods.Count > 1)
+            {
+                throw new Parsing.RewritingException(
+                    string.Format("Multiple definitions of the same method {0} in namespace {1}, machine {2}",
+                      methoddecl.Identifier.ValueText,
+                      namespacedecl.Name.ToString(),
+                      classdecl.Identifier.ValueText)
+                      );
+            }
+
+            var rewrittenMethod = rewrittenMethods.First();
+
             this.CurrentAllQualifiedStateNames = rewrittenMethod.MachineQualifiedStateNames;
             this.CurrentQualifiedStateName = rewrittenMethod.QualifiedStateName;
 

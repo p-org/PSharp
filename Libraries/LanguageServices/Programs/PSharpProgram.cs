@@ -63,6 +63,9 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public override void Rewrite()
         {
+            // sanity checking of the P# program
+            BasicTypeChecking();
+
             var text = "";
 
             foreach (var node in this.UsingDeclarations)
@@ -177,6 +180,20 @@ namespace Microsoft.PSharp.LanguageServices
             return qualifiedMethods;
         }
 
+        /// <summary>
+        /// Do basic type checking of the P# program
+        /// </summary>
+        /// <returns>QualifiedMethods</returns>
+        private void BasicTypeChecking()
+        {
+            foreach (var nspace in NamespaceDeclarations)
+            {
+                foreach (var machine in nspace.MachineDeclarations)
+                {
+                    machine.CheckDeclaration();
+                }
+            }
+        }
         #endregion
     }
 }
