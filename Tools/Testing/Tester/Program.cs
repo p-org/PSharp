@@ -32,6 +32,12 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
+            if (configuration.RandomSchedulingSeed == null)
+            {
+                configuration.RandomSchedulingSeed = DateTime.Now.Millisecond;
+                IO.PrintLine(". Using random seed " + configuration.RandomSchedulingSeed);
+            }
+
             if (configuration.ParallelBugFindingTasks == 1 ||
                 configuration.TestingProcessId < 0)
             {

@@ -95,6 +95,11 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/sch:{configuration.SchedulingStrategy} ");
             }
 
+            if (configuration.RandomSchedulingSeed != null)
+            {
+                arguments.Append($"/sch-seed:{configuration.RandomSchedulingSeed} ");
+            }
+
             if (configuration.ReportCodeCoverage)
             {
                 arguments.Append($"/coverage-report ");

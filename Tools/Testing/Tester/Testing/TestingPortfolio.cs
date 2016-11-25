@@ -40,6 +40,11 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.SchedulingStrategy = SchedulingStrategy.PCT;
                 configuration.PrioritySwitchBound = configuration.TestingProcessId;
             }
+
+            if (configuration.RandomSchedulingSeed != null)
+            {
+                configuration.RandomSchedulingSeed = configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId);
+            }
         }
 
         #endregion
