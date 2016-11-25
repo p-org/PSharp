@@ -28,8 +28,7 @@ namespace Microsoft.PSharp.TestingServices
         /// testing process.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        internal static void ConfigureStrategyForCurrentProcess(
-            Configuration configuration)
+        internal static void ConfigureStrategyForCurrentProcess(Configuration configuration)
         {
             if (configuration.TestingProcessId % 2 == 0)
             {

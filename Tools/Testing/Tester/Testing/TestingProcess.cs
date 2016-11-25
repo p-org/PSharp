@@ -152,6 +152,11 @@ namespace Microsoft.PSharp.TestingServices
                 TestingPortfolio.ConfigureStrategyForCurrentProcess(configuration);
             }
 
+            if (configuration.RandomSchedulingSeed != null)
+            {
+                configuration.RandomSchedulingSeed = configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId);
+            }
+
             this.Configuration = configuration;
             this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(
                 this.Configuration);
@@ -175,12 +180,8 @@ namespace Microsoft.PSharp.TestingServices
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcess), binding, address);
 
-            if (this.Configuration.EnableDebugging)
-            {
-                ServiceDebugBehavior debug = this.NotificationService.Description.
-                    Behaviors.Find<ServiceDebugBehavior>();
-                debug.IncludeExceptionDetailInFaults = true;
-            }
+            ServiceDebugBehavior debug = this.NotificationService.Description.Behaviors.Find<ServiceDebugBehavior>();
+            debug.IncludeExceptionDetailInFaults = true;
 
             try
             {

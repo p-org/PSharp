@@ -245,14 +245,25 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Task</returns>
         private Task CreateBugFindingTask()
         {
+            string options = "";
+            if (base.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.PrioritizedOperationBounding ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
+            {
+                options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
+            }
+
             if (base.Configuration.TestingProcessId >= 0)
             {
                 IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} is " +
-                    $"using '{base.Configuration.SchedulingStrategy}' strategy.");
+                    $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
             }
             else
             {
-                IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy.");
+                IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
             }
 
             Task task = new Task(() =>
