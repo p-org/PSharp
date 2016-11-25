@@ -64,8 +64,6 @@ state S2 {
             }
 
             Assert.IsTrue(exception_hit);
-
         }
-
     }
 }

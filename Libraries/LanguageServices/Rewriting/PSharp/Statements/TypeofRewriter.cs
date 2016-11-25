@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 val.MachineName.Equals(classdecl.Identifier.ValueText) &&
                 val.NamespaceName.Equals(namespacedecl.Name.ToString())).ToList();
             
-            // must be unique    
+            // Must be unique. 
             if (rewrittenMethods.Count == 0)
             {
                 return node;

@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public override void Rewrite()
         {
-            // sanity checking of the P# program
+            // Perform sanity checking on the P# program.
             BasicTypeChecking();
 
             var text = "";
@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
-        /// Do basic type checking of the P# program
+        /// Perform basic type checking of the P# program.
         /// </summary>
         /// <returns>QualifiedMethods</returns>
         private void BasicTypeChecking()
