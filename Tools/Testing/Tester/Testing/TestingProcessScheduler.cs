@@ -151,8 +151,13 @@ namespace Microsoft.PSharp.TestingServices
         IList<TestReport> ITestingProcessScheduler.GetGlobalTestData(int processId)
         {
             var globalTestReport = new List<TestReport>();
-            globalTestReport.AddRange(this.TestReports.Where(
-                val => val.Key != processId).Select(val => val.Value));
+
+            lock (this.SchedulerLock)
+            {
+                globalTestReport.AddRange(this.TestReports.Where(
+                    val => val.Key != processId).Select(val => val.Value));
+            }
+
             return globalTestReport;
         }
 
@@ -287,13 +292,9 @@ namespace Microsoft.PSharp.TestingServices
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcessScheduler), binding, address);
 
-            if (this.Configuration.EnableDebugging)
-            {
-                ServiceDebugBehavior debug = this.NotificationService.Description.
-                    Behaviors.Find<ServiceDebugBehavior>();
-                debug.IncludeExceptionDetailInFaults = true;
-            }
-            
+            ServiceDebugBehavior debug = this.NotificationService.Description.Behaviors.Find<ServiceDebugBehavior>();
+            debug.IncludeExceptionDetailInFaults = true;
+
             try
             {
                 this.NotificationService.Open();
