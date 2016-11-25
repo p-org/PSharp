@@ -152,6 +152,11 @@ namespace Microsoft.PSharp.TestingServices
                 TestingPortfolio.ConfigureStrategyForCurrentProcess(configuration);
             }
 
+            if (configuration.RandomSchedulingSeed != null)
+            {
+                configuration.RandomSchedulingSeed = configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId);
+            }
+
             this.Configuration = configuration;
             this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(
                 this.Configuration);

@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp.Utilities
 {
     public sealed class TesterCommandLineOptions : BaseCommandLineOptions
@@ -388,6 +390,11 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.LivenessTemperatureThreshold =
                         base.Configuration.MaxFairSchedulingSteps / 2;
                 }
+            }
+
+            if (base.Configuration.RandomSchedulingSeed == null)
+            {
+                base.Configuration.RandomSchedulingSeed = DateTime.Now.Millisecond;
             }
         }
 
