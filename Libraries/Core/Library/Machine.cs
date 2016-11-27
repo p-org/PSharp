@@ -165,7 +165,7 @@ namespace Microsoft.PSharp
             get
             {
                 return $"{this.CurrentState.DeclaringType}." +
-                    $"{this.CurrentState.Name}";
+                    $"{Machine.GetQualifiedStateName(this.CurrentState)}";
             }
         }
 
