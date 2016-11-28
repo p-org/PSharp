@@ -412,8 +412,9 @@ namespace Microsoft.PSharp.TestingServices
                     IO.Error.ReportAndExit($"{aex.InnerException.Message}");
                 }
 
-                IO.Error.ReportAndExit("Exception thrown during testing. Please use " +
-                    "/debug to print more information, and contact the developer team.");
+                IO.Error.ReportAndExit("Exception thrown during testing outside the context of a " +
+                    "machine, possibly in a test method. Please use " +
+                    "/debug /v:2 to print more information.");
             }
             finally
             {
