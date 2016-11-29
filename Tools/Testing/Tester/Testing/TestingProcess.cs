@@ -152,7 +152,7 @@ namespace Microsoft.PSharp.TestingServices
                 TestingPortfolio.ConfigureStrategyForCurrentProcess(configuration);
             }
 
-            if (configuration.RandomSchedulingSeed != null)
+            if (configuration.RandomSchedulingSeed != null && configuration.TestingProcessId >= 0)
             {
                 configuration.RandomSchedulingSeed = configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId);
             }
