@@ -944,6 +944,10 @@ namespace Microsoft.PSharp
                     {
                         this.EventViaReceiveStatement = this.Inbox[idx].Event;
                         this.EventWaitHandlers.Clear();
+
+                        base.Runtime.Log($"<ReceiveLog> Machine '{base.Id}' dequeued " +
+                            $"event '{this.Inbox[idx].EventName}' via a Receive.");
+
                         this.Inbox.RemoveAt(idx);
                         break;
                     }
