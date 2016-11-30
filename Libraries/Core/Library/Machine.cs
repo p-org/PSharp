@@ -436,6 +436,10 @@ namespace Microsoft.PSharp
                 base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                     $"and reentered state '{this.CurrentStateName}'.");
             }
+
+            // watch out for an extra pop
+            this.Assert(this.CurrentState != null, 
+                $"Machine '{base.Id}' popped with no matching push.");
         }
 
         /// <summary>
