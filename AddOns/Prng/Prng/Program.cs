@@ -12,7 +12,13 @@ namespace Prng
 
         static void Main(string[] args)
         {
+            if (args.Any(s => s == "/break"))
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+
             Run(new RandomWrapper());
+            Run(new AesGenerator());
         }
 
         static void Run(IGenerator gen)
