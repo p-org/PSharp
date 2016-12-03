@@ -1,4 +1,6 @@
-﻿event Client_ConfigureEvent : machine;
+﻿#include "RaftClusterManager.p"
+
+event Client_ConfigureEvent : machine;
 event Request : (machine, int);
 event Response;
 
@@ -58,5 +60,18 @@ machine Client
             }
 		}
 		on LocalEvent goto PumpRequest;
+	}
+}
+
+spec Liveness observes NotifyLeaderElected
+{
+	start hot state LeaderNotElected
+	{
+		on NotifyLeaderElected goto LeaderElected;
+	}	
+
+	cold state LeaderElected
+	{	
+		on NotifyLeaderElected goto LeaderElected; 
 	}
 }
