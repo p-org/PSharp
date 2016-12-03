@@ -47,7 +47,103 @@ namespace Prng
         }
     }
 
-    class AesGenerator : IGenerator
+    // a copy of:
+    // https://referencesource.microsoft.com/#mscorlib/system/random.cs,bb77e610694e64ca
+    class MyRandom : IGenerator
+    {
+        //
+        // Private Constants 
+        //
+        private const int MBIG = Int32.MaxValue;
+        private const int MSEED = 161803398;
+        private const int MZ = 0;
+
+
+        //
+        // Member Variables
+        //
+        private int inext;
+        private int inextp;
+        private int[] SeedArray = new int[56];
+
+
+
+        public string Name()
+        {
+            return "MyRandom";
+        }
+
+        public MyRandom() : this(Environment.TickCount)
+        {
+            
+        }
+
+        public MyRandom(int seed)
+        {
+            int ii;
+            int mj, mk;
+
+            //Initialize our Seed array.
+            //This algorithm comes from Numerical Recipes in C (2nd Ed.)
+            int subtraction = (seed == Int32.MinValue) ? Int32.MaxValue : Math.Abs(seed);
+            mj = MSEED - subtraction;
+            SeedArray[55] = mj;
+            mk = 1;
+            for (int i = 1; i < 55; i++)
+            {  //Apparently the range [1..55] is special (Knuth) and so we're wasting the 0'th position.
+                ii = (21 * i) % 55;
+                SeedArray[ii] = mk;
+                mk = mj - mk;
+                if (mk < 0) mk += MBIG;
+                mj = SeedArray[ii];
+            }
+            for (int k = 1; k < 5; k++)
+            {
+                for (int i = 1; i < 56; i++)
+                {
+                    SeedArray[i] -= SeedArray[1 + (i + 30) % 55];
+                    if (SeedArray[i] < 0) SeedArray[i] += MBIG;
+                }
+            }
+            inext = 0;
+            inextp = 21;
+            seed = 1;
+        }
+
+        private int InternalSample()
+        {
+            int retVal;
+            int locINext = inext;
+            int locINextp = inextp;
+
+            if (++locINext >= 56) locINext = 1;
+            if (++locINextp >= 56) locINextp = 1;
+
+            retVal = SeedArray[locINext] - SeedArray[locINextp];
+
+            if (retVal == MBIG) retVal--;
+            if (retVal < 0) retVal += MBIG;
+
+            SeedArray[locINext] = retVal;
+
+            inext = locINext;
+            inextp = locINextp;
+
+            return retVal;
+        }
+
+        public int Next()
+        {
+            return InternalSample();
+        }
+
+        public int Next(int low, int high)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+class AesGenerator : IGenerator
     {
         AesManaged rnd;
         ICryptoTransform trans;

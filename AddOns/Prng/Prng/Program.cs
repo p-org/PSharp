@@ -49,38 +49,30 @@ namespace Prng
             {
                 Run(new RandomWrapper());
                 Run(new AesGenerator());
+                Run(new MyRandom());
+
             } else if(seed2 == 0 && !dump)
             {
                 Run(new RandomWrapper(seed1));
                 Run(new AesGenerator(seed1));
+                Run(new MyRandom(seed1));
             }
             else if(seed2 == 0 && dump)
             {
                 var g1 = new RandomWrapper(seed1);
                 var g2 = new AesGenerator(seed1);
+                var g3 = new MyRandom(seed1);
 
-                var dist1 = GetDistribution(g1);
-                var dist2 = GetDistribution(g2);
+                Dump(g1, seed1);
+                Dump(g2, seed1);
+                Dump(g3, seed1);
 
-                var file1 = string.Format("out_{0}_{1}.txt", g1.Name(), seed1);
-                using (var fs = new System.IO.StreamWriter(file1))
-                {
-                    dist1.ForEach(v => fs.WriteLine("{0}", v));
-                }
-
-                var file2 = string.Format("out_{0}_{1}.txt", g2.Name(), seed1);
-                using (var fs = new System.IO.StreamWriter(file2))
-                {
-                    dist2.ForEach(v => fs.WriteLine("{0}", v));
-                }
-
-                Console.WriteLine("Written {0}", file1);
-                Console.WriteLine("Written {0}", file2);
             }
             else if(seed1 != 0 && seed2 != 0)
             {
                 Compare(new RandomWrapper(seed1), new RandomWrapper(seed2));
                 Compare(new AesGenerator(seed1), new AesGenerator(seed2));
+                Compare(new MyRandom(seed1), new MyRandom(seed2));
             } 
         }
 
@@ -96,6 +88,19 @@ namespace Prng
 
             Console.WriteLine("======= {0} ========", gen.Name());
             TestRandomness(dist);
+        }
+
+        static void Dump(IGenerator gen, int seed)
+        {
+            var file = string.Format("out_{0}_{1}.txt", gen.Name(), seed);
+            var dist = GetDistribution(gen);
+
+            using (var fs = new System.IO.StreamWriter(file))
+            {
+                dist.ForEach(v => fs.WriteLine("{0}", v));
+            }
+
+            Console.WriteLine("Written {0}", file);
         }
 
         static void TestRandomness(List<int> dist)
