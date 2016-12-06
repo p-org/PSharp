@@ -80,7 +80,7 @@ namespace Raft
 
         void PumpRequestOnEntry()
         {
-            this.LatestCommand = new Random().Next(100);
+            this.LatestCommand = this.RandomInteger(100); //new Random().Next(100);
             this.Counter++;
 
             Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
