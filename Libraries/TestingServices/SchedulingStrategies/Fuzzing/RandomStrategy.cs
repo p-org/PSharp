@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Randomizer.
         /// </summary>
-        private Random Random;
+        private IRandomNumberGenerator Random;
 
         /// <summary>
         /// The number of explored steps.
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new Random(this.Seed);
+            this.Random = new RandomWrapper(this.Seed);
             this.ExploredSteps = 0;
         }
 
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             this.ExploredSteps = 0;
-            this.Random = new Random(this.Seed);
+            this.Random = new RandomWrapper(this.Seed);
         }
 
         /// <summary>

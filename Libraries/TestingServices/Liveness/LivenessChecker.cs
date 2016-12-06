@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <summary>
         /// Randomizer.
         /// </summary>
-        private Random Random;
+        private IRandomNumberGenerator Random;
 
         #endregion
 
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.BugFindingSchedulingStrategy = bugFindingSchedulingStrategy;
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new Random(this.Seed);
+            this.Random = new RandomWrapper(this.Seed);
         }
 
         /// <summary>

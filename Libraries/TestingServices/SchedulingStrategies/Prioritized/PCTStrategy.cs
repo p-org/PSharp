@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Randomizer.
         /// </summary>
-        private Random Random;
+        private IRandomNumberGenerator Random;
 
         /// <summary>
         /// List of prioritized machines.
@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.ExploredSteps = 0;
             this.BugDepth = depth;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new Random(this.Seed);
+            this.Random = new RandomWrapper(this.Seed);
             this.PrioritizedMachines = new List<MachineId>();
             this.PriorityChangePoints = new SortedSet<int>();
         }
@@ -223,7 +223,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
-            this.Random = new Random(this.Seed);
+            this.Random = new RandomWrapper(this.Seed);
             this.PrioritizedMachines.Clear();
             this.PriorityChangePoints.Clear();
         }
