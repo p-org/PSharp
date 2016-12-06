@@ -116,7 +116,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             MachineInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, this.TaskMap.Values, machineInfo))
+            var choices = this.TaskMap.Values.OrderBy(mi => mi.Machine.Id.Value);
+            if (!this.Strategy.TryGetNext(out next, choices, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
