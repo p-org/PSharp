@@ -366,8 +366,8 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineTasks.Add(task);
             base.TaskMap.TryAdd(task.Id, machine);
 
-            this.BugFinder.NotifyCreateMachine(machine);
             this.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+            this.BugFinder.NotifyCreateMachine(machine);
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
@@ -466,8 +466,8 @@ namespace Microsoft.PSharp.TestingServices
 
             this.MachineTasks.Add(task);
 
-            this.BugFinder.NotifyCreateMachine(taskMachine);
             this.BugFinder.NotifyNewTaskCreated(task.Id, taskMachine);
+            this.BugFinder.NotifyCreateMachine(taskMachine);
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
@@ -544,13 +544,12 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.BugFinder.NotifySend(sender, e, machine);
-
             bool runNewHandler = false;
             machine.Enqueue(eventInfo, ref runNewHandler);
             
             if (!runNewHandler)
             {
+                this.BugFinder.NotifySend(sender, e, machine);
                 this.BugFinder.Schedule();
                 return;
             }
@@ -575,6 +574,7 @@ namespace Microsoft.PSharp.TestingServices
             base.TaskMap.TryAdd(task.Id, machine);
 
             this.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+            this.BugFinder.NotifySend(sender, e, machine);
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {

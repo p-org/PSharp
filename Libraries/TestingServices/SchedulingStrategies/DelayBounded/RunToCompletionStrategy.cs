@@ -109,6 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.IntegerChoices = new List<int>();
             this.BooleanChoicesIndex = 0;
             this.IntegerChoicesIndex = 0;
+            this.MachineQueue = new List<int>();
         }
 
         /// <summary>
@@ -280,6 +281,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
+            this.MachineQueue = new List<int>();
+
             var remainingSteps = this.ExploredSteps -
                 (this.Delays.Count > 0 ? this.Delays.Last() : 0);
 
@@ -314,6 +317,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.RemainingDelays.Clear();
             this.BooleanChoices.Clear();
             this.IntegerChoices.Clear();
+            this.MachineQueue = new List<int>();
         }
 
         /// <summary>
