@@ -57,6 +57,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         RandomDelayBounding,
         /// <summary>
+        /// Run-to-Completion scheduler with delays.
+        /// </summary>
+        RunToCompletion,
+        /// <summary>
         /// Prioritized scheduling.
         /// </summary>
         PCT,

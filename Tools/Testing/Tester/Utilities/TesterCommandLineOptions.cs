@@ -123,6 +123,19 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
                     base.Configuration.DelayBound = i;
                 }
+                else if (scheduler.StartsWith("rtc"))
+                {
+                    int i = 0;
+                    if (scheduler.Equals("rtc") ||
+                        !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
+                    {
+                        IO.Error.ReportAndExit("Please give a valid delay " +
+                            "bound '/sch:rct:[bound]', where [bound] >= 0.");
+                    }
+
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletion;
+                    base.Configuration.DelayBound = i;
+                }
                 else if (scheduler.ToLower().Equals("rob"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomOperationBounding;
@@ -337,6 +350,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletion &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&

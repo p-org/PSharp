@@ -307,6 +307,11 @@ namespace Microsoft.PSharp.TestingServices
                 this.Strategy = new RandomDelayBoundingStrategy(this.Configuration,
                     this.Configuration.DelayBound);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletion)
+            {
+                this.Strategy = new RunToCompletionStrategy(this.Configuration,
+                    this.Configuration.DelayBound);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {
                 this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.PrioritySwitchBound);

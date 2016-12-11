@@ -397,6 +397,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Notify send of a message
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Event payload</param>
+        /// <param name="target">Target</param>
+        internal virtual void NotifySend(AbstractMachine sender, Event e, AbstractMachine target)
+        {
+            var senderInfo = sender == null ? null : 
+                this.TaskMap.Values.First(mi => mi.Machine.Equals(sender) && !mi.IsCompleted);
+            var targetInfo = this.TaskMap.Values.First(mi => mi.Machine.Equals(target) && !mi.IsCompleted);
+            this.Strategy.OnSend(senderInfo, e, targetInfo);
+        }
+
+        /// <summary>
+        /// Notify creation of a machine
+        /// </summary>
+        /// <param name="fresh">Sender</param>
+        internal virtual void NotifyCreateMachine(AbstractMachine fresh)
+        {
+            var freshInfo = this.TaskMap.Values.First(mi => mi.Machine.Equals(fresh) && !mi.IsCompleted);
+            this.Strategy.OnCreateMachine(freshInfo);
+        }
+
+        /// <summary>
         /// Wait for the task to start.
         /// </summary>
         /// <param name="id">TaskId</param>
