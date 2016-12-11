@@ -422,6 +422,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             return "";
         }
 
+        /// <summary>
+        /// Informs the scheduler of a send operation
+        /// </summary>
+        /// <param name="source">Source machine (if any)</param>
+        /// <param name="payload">Event sent</param>
+        /// <param name="destination">Target machine</param>
+        public void OnSend(MachineInfo source, Event payload, MachineInfo destination)
+        {
+            // no-op
+        }
+
+
+        /// <summary>
+        /// Informs the scheduler of a CreateMachine operation
+        /// </summary>
+        /// <param name="created">The machine created</param>
+        public void OnCreateMachine(MachineInfo created)
+        {
+            // no-op
+        }
+
         #endregion
 
         #region private methods

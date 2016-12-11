@@ -31,6 +31,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current);
 
         /// <summary>
+        /// Informs the scheduler of a send operation
+        /// </summary>
+        /// <param name="source">Source machine (if any)</param>
+        /// <param name="payload">Event sent</param>
+        /// <param name="destination">Target machine</param>
+        void OnSend(MachineInfo source, Event payload, MachineInfo destination);
+
+        /// <summary>
+        /// Informs the scheduler of a CreateMachine operation
+        /// </summary>
+        /// <param name="created">The machine created</param>
+        void OnCreateMachine(MachineInfo created);
+
+        /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
