@@ -294,7 +294,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 this.Delays = new List<int>();
                 this.BooleanChoices.Clear();
+                this.BooleanChoicesIndex = 0;
                 this.IntegerChoices.Clear();
+                this.IntegerChoicesIndex = 0;
                 this.RemainingDelays.Clear();
             }
             else
@@ -302,6 +304,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 var nextDelay = this.Random.Next(remainingSteps);
                 this.Delays.Add(nextDelay);
                 this.RemainingDelays = new List<int>(this.Delays);
+                this.BooleanChoicesIndex = 0;
+                this.IntegerChoicesIndex = 0;
             }
             this.ExploredSteps = 0;
         }
@@ -317,6 +321,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.RemainingDelays.Clear();
             this.BooleanChoices.Clear();
             this.IntegerChoices.Clear();
+            this.BooleanChoicesIndex = 0;
+            this.IntegerChoicesIndex = 0;
             this.MachineQueue = new List<int>();
         }
 
