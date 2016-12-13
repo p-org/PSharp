@@ -29,6 +29,7 @@ using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -87,6 +88,26 @@ namespace Microsoft.PSharp.TestingServices
         internal CoverageInfo CoverageInfo;
 
         /// <summary>
+        /// Has the user has requested the current iteration to be recorded
+        /// </summary>
+        internal bool RecordThisExecution;
+
+        /// <summary>
+        /// Caller name who invoked RecordExecution
+        /// </summary>
+        internal string RecordThisExecutionMemberName;
+
+        /// <summary>
+        /// Line number of invoked RecordExecution
+        /// </summary>
+        internal int RecordThisExecutionLineNumber;
+
+        /// <summary>
+        /// Source file of invoked RecordExecution
+        /// </summary>
+        internal string RecordThisExecutionSourceFile;
+
+        /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
         private int OperationIdCounter;
@@ -106,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
-            
+
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
                 this.TaskScheduler = new TaskWrapperScheduler(this, this.MachineTasks);
@@ -125,6 +146,8 @@ namespace Microsoft.PSharp.TestingServices
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this, strategy);
             this.CoverageInfo = coverageInfo;
+
+            this.RecordThisExecution = false;
 
             this.OperationIdCounter = 0;
         }
@@ -261,6 +284,29 @@ namespace Microsoft.PSharp.TestingServices
                 this.BugFinder.NotifyAssertionFailure(message);
             }
         }
+
+        /// <summary>
+        /// If the predicate holds, then the current execution is recorded
+        /// during testing.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="file">File name</param>
+        /// <param name="line">Line number</param>
+        /// <param name="member">Caller name</param>
+        public override void RecordExecution(bool predicate,
+            [CallerMemberName] string member = "",
+            [CallerFilePath] string file = "",
+            [CallerLineNumber] int line = 0)
+        {
+            if(predicate)
+            {
+                this.RecordThisExecution = true;
+                this.RecordThisExecutionLineNumber = line;
+                this.RecordThisExecutionMemberName = member;
+                this.RecordThisExecutionSourceFile = file;
+            }
+        }
+
 
         /// <summary>
         /// Checks if the assertion holds, and if not it reports

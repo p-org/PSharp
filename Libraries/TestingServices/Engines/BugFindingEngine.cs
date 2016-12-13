@@ -427,6 +427,16 @@ namespace Microsoft.PSharp.TestingServices
                         this.BugTrace = runtime.BugTrace;
                         this.ConstructReproducableTrace(runtime);
                     }
+                    else if (sw != null && runtime.RecordThisExecution)
+                    {
+                        this.ReadableTrace = sw.ToString();
+                        this.ReadableTrace += this.CreateReport("<StrategyLog>");
+                        this.BugTrace = runtime.BugTrace;
+                        this.ConstructReproducableTrace(runtime);
+                        IO.PrintLine($"..... Iteration #{i + 1} triggered RecordExecution in " +
+                            $"method {runtime.RecordThisExecutionMemberName}, {runtime.RecordThisExecutionSourceFile}({runtime.RecordThisExecutionLineNumber})");
+                        this.TryEmitTraces();
+                    }
 
                     // Increases iterations if there is a specified timeout
                     // and the default iteration given.

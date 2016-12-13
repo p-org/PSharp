@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp
 {
@@ -375,6 +376,23 @@ namespace Microsoft.PSharp
                 Environment.Exit(1);
             }
         }
+
+        /// <summary>
+        /// If the predicate holds, then the current execution is recorded
+        /// during testing.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="file">File name</param>
+        /// <param name="line">Line number</param>
+        /// <param name="member">Caller name</param>
+        public virtual void RecordExecution(bool predicate,
+            [CallerMemberName] string member = "",
+            [CallerFilePath] string file = "",
+            [CallerLineNumber] int line = 0)
+        {
+            // no-op in production
+        }
+
 
         /// <summary>
         /// Logs the specified text.
