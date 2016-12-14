@@ -87,7 +87,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the current state.
         /// </summary>
-        protected Type CurrentState
+        protected internal Type CurrentState
         {
             get
             {
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
             EventInfo raisedEvent = new EventInfo(e, new EventOriginInfo(
-                base.Id, this.GetType().Name, Machine.GetQualifiedStateName(this.CurrentState)));
+                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
             base.Runtime.NotifyRaisedEvent(this, raisedEvent, false);
             this.HandleEvent(e);
         }
@@ -786,6 +786,56 @@ namespace Microsoft.PSharp
                 $"in monitor '{this.GetType().Name}', '{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        #endregion
+
+        #region code coverage methods
+
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        internal override HashSet<string> GetAllStates()
+        {
+            this.Assert(StateMap.ContainsKey(this.GetType()),
+                $"Monitor '{base.Id}' hasn't populated its states yet.");
+
+            var allStates = new HashSet<string>();
+            foreach (var state in StateMap[this.GetType()])
+            {
+                allStates.Add(StateGroup.GetQualifiedStateName(state.GetType()));
+            }
+
+            return allStates;
+        }
+
+        /// <summary>
+        /// Returns the set of all (states, registered event) pairs in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        {
+            this.Assert(StateMap.ContainsKey(this.GetType()),
+                $"Monitor '{base.Id}' hasn't populated its states yet.");
+
+            var pairs = new HashSet<Tuple<string, string>>();
+            foreach (var state in StateMap[this.GetType()])
+            {
+                foreach (var binding in state.ActionBindings)
+                {
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                }
+
+                foreach (var transition in state.GotoTransitions)
+                {
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                }
+            }
+
+            return pairs;
         }
 
         #endregion

@@ -69,6 +69,31 @@ namespace Microsoft.PSharp.TestingServices.Threading
         }
 
         #endregion
+
+        #region code coverage methods
+
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        internal override HashSet<string> GetAllStates()
+        {
+            return new HashSet<string> { "init" };
+        }
+
+        /// <summary>
+        /// Returns the set of all (states, registered event) pairs in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        {
+            return new HashSet<Tuple<string, string>>();
+        }
+
+        #endregion
+
     }
 
     /// <summary>
