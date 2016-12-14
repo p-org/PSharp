@@ -416,7 +416,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected void Pop()
         {
-            base.Runtime.NotifyPop(this);
+            base.Runtime.NotifyPop(this, this.CurrentState, this.StateStack.ElementAtOrDefault(1)?.GetType());
 
             // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(null);

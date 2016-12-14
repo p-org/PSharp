@@ -860,10 +860,17 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Notifies that a machine called Pop.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyPop(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        /// <param name="fromState">Top of the stack state</param>
+        /// <param name="toState">Next to top state of the stack</param>
+        internal override void NotifyPop(Machine machine, Type fromState, Type toState)
         {
             machine.AssertCorrectRGPInvocation();
+
+            if(this.Configuration.ReportCodeCoverage)
+            {
+                this.ReportCodeCoverageOfPopTransition(machine, fromState, toState);
+            }
         }
 
         /// <summary>
@@ -1133,6 +1140,12 @@ namespace Microsoft.PSharp.TestingServices
                 destState = StateGroup.GetQualifiedStateName(
                     machine.GotoTransitions[eventInfo.EventType].TargetState);
             }
+            else if(machine.PushTransitions.ContainsKey(eventInfo.EventType))
+            {
+                edgeLabel = eventInfo.EventType.Name;
+                destState = StateGroup.GetQualifiedStateName(
+                    machine.PushTransitions[eventInfo.EventType].TargetState);
+            }
             else
             {
                 return;
@@ -1141,6 +1154,24 @@ namespace Microsoft.PSharp.TestingServices
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
 
+
+        /// <summary>
+        /// Reports code coverage for a pop transition.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="fromState">Top of the stack state</param>
+        /// <param name="toState">Next to top state of the stack</param>
+        private void ReportCodeCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
+        {
+            string originMachine = machine.GetType().Name;
+            string originState = StateGroup.GetQualifiedStateName(fromState);
+            string destMachine = machine.GetType().Name;            
+            string edgeLabel = "pop";
+            string destState = StateGroup.GetQualifiedStateName(toState);
+
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+        
         /// <summary>
         /// Reports code coverage for the specified state transition.
         /// </summary>

@@ -925,8 +925,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine called Pop.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal virtual void NotifyPop(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        /// <param name="fromState">Top of the stack state</param>
+        /// <param name="toState">Next to top state of the stack</param>
+        internal virtual void NotifyPop(Machine machine, Type fromState, Type toState)
         {
             // No-op for real execution.
         }
