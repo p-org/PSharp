@@ -17,6 +17,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +30,6 @@ using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -88,24 +88,10 @@ namespace Microsoft.PSharp.TestingServices
         internal CoverageInfo CoverageInfo;
 
         /// <summary>
-        /// Has the user has requested the current iteration to be recorded
+        /// List of execution records. These are captured
+        /// whenever the user calls 'RecordExecution'.
         /// </summary>
-        internal bool RecordThisExecution;
-
-        /// <summary>
-        /// Caller name who invoked RecordExecution
-        /// </summary>
-        internal string RecordThisExecutionMemberName;
-
-        /// <summary>
-        /// Line number of invoked RecordExecution
-        /// </summary>
-        internal int RecordThisExecutionLineNumber;
-
-        /// <summary>
-        /// Source file of invoked RecordExecution
-        /// </summary>
-        internal string RecordThisExecutionSourceFile;
+        internal List<ExecutionRecord> ExecutionRecords;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -145,9 +131,9 @@ namespace Microsoft.PSharp.TestingServices
 
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this, strategy);
-            this.CoverageInfo = coverageInfo;
 
-            this.RecordThisExecution = false;
+            this.CoverageInfo = coverageInfo;
+            this.ExecutionRecords = new List<ExecutionRecord>();
 
             this.OperationIdCounter = 0;
         }
@@ -290,20 +276,18 @@ namespace Microsoft.PSharp.TestingServices
         /// during testing.
         /// </summary>
         /// <param name="predicate">Predicate</param>
+        /// <param name="member">Caller name</param>
         /// <param name="file">File name</param>
         /// <param name="line">Line number</param>
-        /// <param name="member">Caller name</param>
         public override void RecordExecution(bool predicate,
             [CallerMemberName] string member = "",
             [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0)
         {
-            if(predicate)
+            if (this.Configuration.EnableExecutionRecording && predicate)
             {
-                this.RecordThisExecution = true;
-                this.RecordThisExecutionLineNumber = line;
-                this.RecordThisExecutionMemberName = member;
-                this.RecordThisExecutionSourceFile = file;
+                ExecutionRecord record = new ExecutionRecord(member, file, line);
+                this.ExecutionRecords.Add(record);
             }
         }
 

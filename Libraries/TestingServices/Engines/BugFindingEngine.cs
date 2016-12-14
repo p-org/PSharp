@@ -427,14 +427,19 @@ namespace Microsoft.PSharp.TestingServices
                         this.BugTrace = runtime.BugTrace;
                         this.ConstructReproducableTrace(runtime);
                     }
-                    else if (sw != null && runtime.RecordThisExecution)
+                    else if (sw != null && runtime.ExecutionRecords.Count > 0)
                     {
                         this.ReadableTrace = sw.ToString();
                         this.ReadableTrace += this.CreateReport("<StrategyLog>");
                         this.BugTrace = runtime.BugTrace;
                         this.ConstructReproducableTrace(runtime);
-                        IO.PrintLine($"..... Iteration #{i + 1} triggered RecordExecution in " +
-                            $"method {runtime.RecordThisExecutionMemberName}, {runtime.RecordThisExecutionSourceFile}({runtime.RecordThisExecutionLineNumber})");
+
+                        foreach (ExecutionRecord record in runtime.ExecutionRecords)
+                        {
+                            IO.PrintLine($"..... Iteration #{i + 1} triggered RecordExecution in " +
+                                $"method {record.MemberName}, {record.SourceFile}({record.LineNumber})");
+                        }
+
                         this.TryEmitTraces();
                     }
 

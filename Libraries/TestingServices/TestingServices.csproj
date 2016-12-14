@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Statistics\Coverage\RecordExecutionInfo.cs" />
     <Compile Include="Statistics\TestReport.cs" />
     <Compile Include="Statistics\Coverage\CoverageInfo.cs" />
     <Compile Include="Statistics\Coverage\CodeCoverageReporter.cs" />

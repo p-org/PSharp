@@ -296,6 +296,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool ReportCodeCoverage;
 
+        /// <summary>
+        /// Enables execution recording.
+        /// </summary>
+        public bool EnableExecutionRecording;
+
         #endregion
 
         #region remote manager options
@@ -430,6 +435,7 @@ namespace Microsoft.PSharp.Utilities
             this.EnableDataRaceDetection = false;
 
             this.ReportCodeCoverage = false;
+            this.EnableExecutionRecording = false;
 
             this.ContainerId = 0;
             this.NumberOfContainers = 1;

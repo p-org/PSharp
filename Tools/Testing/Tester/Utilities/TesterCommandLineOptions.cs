@@ -205,6 +205,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ReportCodeCoverage = true;
             }
+            else if (option.ToLower().Equals("/record-executions"))
+            {
+                base.Configuration.EnableExecutionRecording = true;
+            }
             else if (option.ToLower().Equals("/detect-races"))
             {
                 base.Configuration.EnableDataRaceDetection = true;
@@ -422,9 +426,14 @@ namespace Microsoft.PSharp.Utilities
             help += "\n ---------------------------";
             help += "\n  /i:[x]\t\t Number of schedules to explore for bugs";
             help += "\n  /parallel:[x]\t\t Number of parallel testing tasks ('1' by default)";
-            help += "\n  /coverage-report\t Print code coverage statistics";
             help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /max-steps:[x]\t Max scheduling steps to be explored (disabled by default)";
+
+            help += "\n\n ---------------------------";
+            help += "\n Testing code coverage options:";
+            help += "\n ---------------------------";
+            help += "\n  /coverage-report\t Print code coverage statistics";
+            help += "\n  /record-executions\t Enable use of 'RecordExecution' runtime method calls";
 
             help += "\n\n ---------------------";
             help += "\n Experimental options:";

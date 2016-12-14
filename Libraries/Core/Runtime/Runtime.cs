@@ -18,12 +18,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp
 {
@@ -382,15 +382,15 @@ namespace Microsoft.PSharp
         /// during testing.
         /// </summary>
         /// <param name="predicate">Predicate</param>
+        /// <param name="member">Caller name</param>
         /// <param name="file">File name</param>
         /// <param name="line">Line number</param>
-        /// <param name="member">Caller name</param>
         public virtual void RecordExecution(bool predicate,
             [CallerMemberName] string member = "",
             [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0)
         {
-            // no-op in production
+            // No-op in production.
         }
 
 
@@ -607,7 +607,7 @@ namespace Microsoft.PSharp
         {
             if(!this.Configuration.EnableMonitorsInProduction)
             {
-                // No-op for real execution.
+                // No-op in production.
                 return;
             }
 
@@ -635,7 +635,7 @@ namespace Microsoft.PSharp
         /// <param name="userTask">Task</param>
         internal virtual void TryCreateTaskMachine(Task userTask)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -720,7 +720,7 @@ namespace Microsoft.PSharp
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {
-                // No-op for real execution.
+                // No-op in production.
                 return;
             }
 
@@ -946,7 +946,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyPop(AbstractMachine machine)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -985,7 +985,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyReceiveCalled(AbstractMachine machine)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -995,7 +995,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -1050,7 +1050,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal virtual void NotifyDefaultHandlerFired()
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         #endregion
