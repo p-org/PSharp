@@ -105,6 +105,11 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/coverage-report ");
             }
 
+            if (configuration.EnableExecutionRecording)
+            {
+                arguments.Append($"/record-executions ");
+            }
+
             arguments.Append($"/parallel:{configuration.ParallelBugFindingTasks} ");
             arguments.Append($"/testing-scheduler-process-id:{Process.GetCurrentProcess().Id} ");
             arguments.Append($"/testing-process-id:{id}");
