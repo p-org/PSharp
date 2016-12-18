@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.PSharp
@@ -170,6 +171,24 @@ namespace Microsoft.PSharp
             this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' cannot call API '{1}' " +
                 "after calling raise/goto/pop in the same action.", this.Id.Name, calledAPI);
         }
+
+        #endregion
+
+        #region Code Coverage Methods
+
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        internal abstract HashSet<string> GetAllStates();
+
+        /// <summary>
+        /// Returns the set of all (states, registered event) pairs in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        internal abstract HashSet<Tuple<string, string>> GetAllStateEventPairs();
 
         #endregion
     }

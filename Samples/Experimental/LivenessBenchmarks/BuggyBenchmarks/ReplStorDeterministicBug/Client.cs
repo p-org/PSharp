@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace Raft
+namespace ReplStorDeterministicBug
 {
     internal class Client : Machine
     {
         #region events
-        
+
         /// <summary>
         /// Used to configure the client.
         /// </summary>
         public class ConfigureEvent : Event
         {
-            public MachineId Cluster;
+            public MachineId NodeManager;
 
-            public ConfigureEvent(MachineId cluster)
+            public ConfigureEvent(MachineId manager)
                 : base()
             {
-                this.Cluster = cluster;
+                this.NodeManager = manager;
             }
         }
 
@@ -30,15 +30,13 @@ namespace Raft
             public MachineId Client;
             public int Command;
 
-            public Request(MachineId client, int command)
+            public Request(MachineId client, int cmd)
                 : base()
             {
                 this.Client = client;
-                this.Command = command;
+                this.Command = cmd;
             }
         }
-
-        internal class Response : Event { }
 
         private class LocalEvent : Event { }
 
@@ -46,10 +44,9 @@ namespace Raft
 
         #region fields
 
-        MachineId Cluster;
-        
-        int LatestCommand;
-        int Counter;
+        private MachineId NodeManager;
+
+        private int Counter;
 
         #endregion
 
@@ -63,36 +60,30 @@ namespace Raft
 
         void InitOnEntry()
         {
-            this.LatestCommand = -1;
             this.Counter = 0;
         }
 
         void Configure()
         {
-            this.Cluster = (this.ReceivedEvent as ConfigureEvent).Cluster;
+            this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
             this.Raise(new LocalEvent());
         }
 
         [OnEntry(nameof(PumpRequestOnEntry))]
-        [OnEventDoAction(typeof(Response), nameof(ProcessResponse))]
         [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         class PumpRequest : MachineState { }
 
         void PumpRequestOnEntry()
         {
-            this.LatestCommand = this.RandomInteger(100); //new Random().Next(100);
+            int command = this.RandomInteger(100) + 1;
             this.Counter++;
 
-            Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
+            Console.WriteLine("\n [Client] new request {0}.\n", command);
 
-            this.Send(this.Cluster, new Request(this.Id, this.LatestCommand), true);
-        }
+            this.Send(this.NodeManager, new Request(this.Id, command), true);
 
-        void ProcessResponse()
-        {
-            if (this.Counter == 3)
+            if (this.Counter == 1)
             {
-                this.Send(this.Cluster, new ClusterManager.ShutDown());
                 this.Raise(new Halt());
             }
             else

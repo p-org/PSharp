@@ -165,7 +165,7 @@ namespace Microsoft.PSharp
             get
             {
                 return $"{this.CurrentState.DeclaringType}." +
-                    $"{Machine.GetQualifiedStateName(this.CurrentState)}";
+                    $"{StateGroup.GetQualifiedStateName(this.CurrentState)}";
             }
         }
 
@@ -335,7 +335,7 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
-                base.Id, this.GetType().Name, Machine.GetQualifiedStateName(this.CurrentState)));
+                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
             base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent, isStarter);
         }
 
@@ -416,7 +416,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected void Pop()
         {
-            base.Runtime.NotifyPop(this);
+            base.Runtime.NotifyPop(this, this.CurrentState, this.StateStack.ElementAtOrDefault(1)?.GetType());
 
             // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(null);
@@ -622,7 +622,7 @@ namespace Microsoft.PSharp
                                 $"'{this.CurrentStateName}'.");
 
                             nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
-                                base.Id, this.GetType().Name, Machine.GetQualifiedStateName(this.CurrentState)));
+                                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
                             defaultHandling = true;
                         }
                         else
@@ -1588,7 +1588,7 @@ namespace Microsoft.PSharp
         /// (for code coverage).
         /// </summary>
         /// <returns>Set of all states in the machine</returns>
-        internal HashSet<string> GetAllStates()
+        internal override HashSet<string> GetAllStates()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()),
                 $"Machine '{base.Id}' hasn't populated its states yet.");
@@ -1596,7 +1596,7 @@ namespace Microsoft.PSharp
             var allStates = new HashSet<string>();
             foreach (var state in StateMap[this.GetType()])
             {
-                allStates.Add(GetQualifiedStateName(state.GetType()));
+                allStates.Add(StateGroup.GetQualifiedStateName(state.GetType()));
             }
 
             return allStates;
@@ -1607,7 +1607,7 @@ namespace Microsoft.PSharp
         /// (for code coverage).
         /// </summary>
         /// <returns>Set of all (states, registered event) pairs in the machine</returns>
-        internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()),
                 $"Machine '{base.Id}' hasn't populated its states yet.");
@@ -1617,40 +1617,21 @@ namespace Microsoft.PSharp
             {
                 foreach (var binding in state.ActionBindings)
                 {
-                    pairs.Add(Tuple.Create(GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), binding.Key.Name));
                 }
 
                 foreach (var transition in state.GotoTransitions)
                 {
-                    pairs.Add(Tuple.Create(GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), transition.Key.Name));
                 }
 
                 foreach (var pushtransition in state.PushTransitions)
                 {
-                    pairs.Add(Tuple.Create(GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
                 }
             }
 
             return pairs;
-        }
-
-        /// <summary>
-        /// Returns the qualified (MachineGroup) name of a MachineState
-        /// </summary>
-        /// <param name="state">State</param>
-        /// <returns>Qualified state name</returns>
-        internal static string GetQualifiedStateName(Type state)
-        {
-            var name = state.Name;
-
-            while(state.DeclaringType != null)
-            {
-                if (!state.DeclaringType.IsSubclassOf(typeof(StateGroup))) break;
-                name = string.Format("{0}.{1}", state.DeclaringType.Name, name);
-                state = state.DeclaringType;
-            }
-
-            return name;
         }
 
         #endregion

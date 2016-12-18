@@ -422,6 +422,7 @@ namespace Microsoft.PSharp.TestingServices
 
             IO.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
+            this.ReportCodeCoverageOfMachine(monitor as Monitor);
             this.BugTrace.AddCreateMonitorStep(mid);
 
             base.Monitors.Add(monitor as Monitor);
@@ -499,7 +500,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 originInfo = new EventOriginInfo(sender.Id,
                     (sender as Machine).GetType().Name,
-                    Machine.GetQualifiedStateName((sender as Machine).CurrentState));
+                    StateGroup.GetQualifiedStateName((sender as Machine).CurrentState));
             }
             else
             {
@@ -615,6 +616,12 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (m.GetType() == typeof(T))
                 {
+                    if(this.Configuration.ReportCodeCoverage)
+                    {
+                        this.ReportCodeCoverageOfMonitorEvent(sender, m, e);
+                        this.ReportCodeCoverageOfMonitorTransition(m, e);
+                    }
+
                     m.MonitorEvent(e);
                 }
             }
@@ -853,10 +860,17 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Notifies that a machine called Pop.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyPop(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        /// <param name="fromState">Top of the stack state</param>
+        /// <param name="toState">Next to top state of the stack</param>
+        internal override void NotifyPop(Machine machine, Type fromState, Type toState)
         {
             machine.AssertCorrectRGPInvocation();
+
+            if(this.Configuration.ReportCodeCoverage)
+            {
+                this.ReportCodeCoverageOfPopTransition(machine, fromState, toState);
+            }
         }
 
         /// <summary>
@@ -895,6 +909,11 @@ namespace Microsoft.PSharp.TestingServices
 
                 IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
                     $"event '{eventInfo.EventName}'.");
+
+                if (this.Configuration.ReportCodeCoverage)
+                {
+                    this.ReportCodeCoverageOfMonitorTransition(machine as Monitor, eventInfo.Event);
+                }
             }
         }
 
@@ -1046,7 +1065,28 @@ namespace Microsoft.PSharp.TestingServices
             string originState = eventInfo.OriginInfo.SenderStateName;
             string edgeLabel = eventInfo.EventType.Name;
             string destMachine = machine.GetType().Name;
-            string destState = Machine.GetQualifiedStateName(machine.CurrentState);
+            string destState = StateGroup.GetQualifiedStateName(machine.CurrentState);
+
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+
+        /// <summary>
+        /// Reports code coverage for the specified monitor event.
+        /// </summary>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="e">Event</param>
+        private void ReportCodeCoverageOfMonitorEvent(AbstractMachine sender, Monitor monitor, Event e)
+        {
+            string originMachine = (sender == null) ? "Env" : sender.GetType().Name;
+            string originState = (sender == null) ? "Env" :
+                (sender is Machine) ? StateGroup.GetQualifiedStateName((sender as Machine).CurrentState) :
+                (sender is Monitor) ? StateGroup.GetQualifiedStateName((sender as Monitor).CurrentState) :
+                "Env";
+
+            string edgeLabel = e.GetType().Name;
+            string destMachine = monitor.GetType().Name;
+            string destState = StateGroup.GetQualifiedStateName(monitor.CurrentState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1055,7 +1095,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Reports code coverage for the specified machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void ReportCodeCoverageOfMachine(Machine machine)
+        private void ReportCodeCoverageOfMachine(AbstractMachine machine)
         {
             var machineName = machine.GetType().Name;
 
@@ -1084,7 +1124,7 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportCodeCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
-            string originState = Machine.GetQualifiedStateName(machine.CurrentState);
+            string originState = StateGroup.GetQualifiedStateName(machine.CurrentState);
             string destMachine = machine.GetType().Name;
 
             string edgeLabel = "";
@@ -1092,13 +1132,69 @@ namespace Microsoft.PSharp.TestingServices
             if (eventInfo.Event is GotoStateEvent)
             {
                 edgeLabel = "goto";
-                destState = Machine.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
+                destState = StateGroup.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
             }
             else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = Machine.GetQualifiedStateName(
+                destState = StateGroup.GetQualifiedStateName(
                     machine.GotoTransitions[eventInfo.EventType].TargetState);
+            }
+            else if(machine.PushTransitions.ContainsKey(eventInfo.EventType))
+            {
+                edgeLabel = eventInfo.EventType.Name;
+                destState = StateGroup.GetQualifiedStateName(
+                    machine.PushTransitions[eventInfo.EventType].TargetState);
+            }
+            else
+            {
+                return;
+            }
+
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+
+
+        /// <summary>
+        /// Reports code coverage for a pop transition.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="fromState">Top of the stack state</param>
+        /// <param name="toState">Next to top state of the stack</param>
+        private void ReportCodeCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
+        {
+            string originMachine = machine.GetType().Name;
+            string originState = StateGroup.GetQualifiedStateName(fromState);
+            string destMachine = machine.GetType().Name;            
+            string edgeLabel = "pop";
+            string destState = StateGroup.GetQualifiedStateName(toState);
+
+            this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+        
+        /// <summary>
+        /// Reports code coverage for the specified state transition.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="e">Event</param>
+        private void ReportCodeCoverageOfMonitorTransition(Monitor monitor, Event e)
+        {
+            string originMachine = monitor.GetType().Name;
+            string originState = StateGroup.GetQualifiedStateName(monitor.CurrentState);
+            string destMachine = originMachine;
+
+            string edgeLabel = "";
+            string destState = "";
+            if (e is GotoStateEvent)
+            {
+                edgeLabel = "goto";
+                destState = StateGroup.GetQualifiedStateName((e as GotoStateEvent).State);
+            }
+            else if (monitor.GotoTransitions.ContainsKey(e.GetType()))
+            {
+                edgeLabel = e.GetType().Name;
+                destState = StateGroup.GetQualifiedStateName(
+                    monitor.GotoTransitions[e.GetType()].TargetState);
             }
             else
             {
