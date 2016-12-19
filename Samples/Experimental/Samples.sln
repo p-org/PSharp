@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorInProduction", "Moni
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineInheritance", "MachineInheritance\MachineInheritance.csproj", "{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorInheritance", "MonitorInheritance\MonitorInheritance.csproj", "{19379049-7DC7-4C3F-9BB5-03C8029F760C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,10 @@ Global
 		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19379049-7DC7-4C3F-9BB5-03C8029F760C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19379049-7DC7-4C3F-9BB5-03C8029F760C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19379049-7DC7-4C3F-9BB5-03C8029F760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19379049-7DC7-4C3F-9BB5-03C8029F760C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,5 +85,6 @@ Global
 		{E80D3AA7-1C6C-4AA4-BAF0-BABD6CBBC6C6} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{05643E14-B851-4F49-968F-89781775EF18} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{9D33F222-0A9F-4CD5-A022-3D71803FEF9B} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
+		{19379049-7DC7-4C3F-9BB5-03C8029F760C} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 	EndGlobalSection
 EndGlobal
