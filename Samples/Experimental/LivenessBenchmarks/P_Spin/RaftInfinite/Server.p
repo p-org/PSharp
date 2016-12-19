@@ -124,7 +124,7 @@ machine Server
             if (payload.1)
             {
                 VotesReceived = VotesReceived + 1;
-                if (VotesReceived >= 2)
+                if (VotesReceived >= ((sizeof(Servers) / 2) + 1))
                 {
                     VotesReceived = 0;
                     raise BecomeLeader;
@@ -189,7 +189,7 @@ machine Server
 		var idx : int;
 
 		idx = 0;
-		while (idx < 3)
+		while (idx < sizeof(Servers))
 		{
 			if (idx == ServerId){}
             send Servers[idx], VoteRequest, CurrentTerm, this;

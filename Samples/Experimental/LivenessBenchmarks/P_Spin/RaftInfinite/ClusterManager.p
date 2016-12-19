@@ -17,7 +17,7 @@ machine Main
 			var idx : int;
 			var serv : machine;
 
-			NumberOfServers = 3;
+			NumberOfServers = 5;
             LeaderTerm = 0;
 			Servers = default(seq[machine]);
 
