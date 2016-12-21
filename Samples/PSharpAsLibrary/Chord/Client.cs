@@ -50,7 +50,7 @@ namespace Chord
 
             // LIVENESS BUG: can never detect the key, and keeps looping without
             // exiting the process. Enable to introduce the bug.
-            //this.Keys.Add(17);
+            this.Keys.Add(17);
 
             this.QueryCounter = 0;
 

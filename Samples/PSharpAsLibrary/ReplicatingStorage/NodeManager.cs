@@ -178,10 +178,10 @@ namespace ReplicatingStorage
 
             // LIVENESS BUG: can fail to ever repair again as it thinks there
             // are enough replicas. Enable to introduce a bug fix.
-            if (!this.StorageNodeMap.ContainsKey(nodeId))
-            {
-                return;
-            }
+            //if (!this.StorageNodeMap.ContainsKey(nodeId))
+            //{
+            //    return;
+            //}
 
             if (!this.DataMap.ContainsKey(nodeId))
             {
