@@ -7,7 +7,7 @@ namespace Scheduler.Tests
 {
     public static class Util
     {
-        public static bool debugOutput = true;
+        public static bool debugOutput = false;
         public static HashSet<Process> SpawnedProcesses = new HashSet<Process>();
 
         public static List<string> run(string dir, string cmd, string args)

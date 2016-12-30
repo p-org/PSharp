@@ -25,6 +25,8 @@ namespace Scheduler.Tests
         public static string ProjectPrefix = "";
         public static string PrevResultsFile = null;
 
+        public static StreamWriter Outfile = null;
+
         static string[] Projects = {
             "ChainReplication", "Chameneos", "Chord", "FailureDetector",
             "German", "LeaderElection", "MultiPaxos", "Raft", "ReplicatingStorage",
@@ -37,7 +39,7 @@ namespace Scheduler.Tests
             Tuple.Create("Random2", "/sch:random /sch-seed:51"),
             Tuple.Create("ProbabilisticRandom5", "/sch:probabilistic:5 /sch-seed:50"),
             Tuple.Create("ProbabilisticRandom10", "/sch:probabilistic:10 /sch-seed:50"),
-            Tuple.Create("DFS", "/shh:dfs /sch-seed:50"),
+            Tuple.Create("DFS", "/sch:dfs /sch-seed:50"),
             Tuple.Create("IDDFS", "/sch:iddfs /sch-seed:50"),
             Tuple.Create("DelayBounding2", "/sch:db:2 /sch-seed:50"),
             Tuple.Create("DelayBounding10", "/sch:db:10 /sch-seed:50"),
@@ -94,10 +96,12 @@ namespace Scheduler.Tests
             }
 
             SchedulerTestResults PrevResults = null;
+            var PreviouslyDone =new HashSet<Tuple<string, string>>();
 
             if (PrevResultsFile != null)
             {
-                 PrevResults = SchedulerTestResults.DeSerialize(PrevResultsFile);
+                PrevResults = SchedulerTestResults.DeSerialize(PrevResultsFile);
+                PrevResults.TestResults.Iter(tr => PreviouslyDone.Add(Tuple.Create(tr.ProjectName, tr.SchedulerName)));
             }
 
             if (args.Any(s => s == "/compile"))
@@ -117,9 +121,12 @@ namespace Scheduler.Tests
                 if (!project.StartsWith(ProjectPrefix))
                     continue;
 
-                foreach(var sch in Schedulers)
+                foreach (var sch in Schedulers)
                 {
                     if (!sch.Item1.StartsWith(SchedulerPrefix))
+                        continue;
+
+                    if (PreviouslyDone.Contains(Tuple.Create(project, sch.Item1)))
                         continue;
 
                     var wi = new WorkItem();
@@ -143,8 +150,12 @@ namespace Scheduler.Tests
                 threads.Add(new Thread(new ThreadStart(w.Run)));
             }
 
+            Outfile = new StreamWriter("out.txt");
+
             threads.ForEach(t => t.Start());
             threads.ForEach(t => t.Join());
+
+            Outfile.Close();
 
             var results = new SchedulerTestResults();
             results.TestResults = Worker.TestResults.ToArray();
@@ -194,6 +205,9 @@ namespace Scheduler.Tests
             var nbugs = new Dictionary<string, int>();
             schedulers.Iter(s => nbugs.Add(s, 0));
 
+            var nbugsProjects = new Dictionary<string, HashSet<string>>();
+            schedulers.Iter(s => nbugsProjects.Add(s, new HashSet<string>()));
+
             var coverage = new Dictionary<string, double>();
             schedulers.Iter(s => coverage.Add(s, 0));
 
@@ -203,15 +217,17 @@ namespace Scheduler.Tests
             foreach(var tr in results.TestResults)
             {
                 nbugs[tr.SchedulerName] += tr.nbugs;
+                if (tr.nbugs > 0) nbugsProjects[tr.SchedulerName].Add(tr.ProjectName);
+
                 iterations[tr.SchedulerName] += tr.iterations;
                 coverage[tr.SchedulerName] += GetCoverage(tr.sciFileName);
             }
 
-            Console.WriteLine("Scheduler\tBugs\tIters\tCoverage");
+            Console.WriteLine("Scheduler\tHits\tBugs\tIters\tCoverage");
 
             foreach (var s in schedulers)
             {
-                Console.WriteLine("{0}\t{1}\t{2}\t{3}%", s, nbugs[s], iterations[s], (coverage[s] / projects.Count).ToString("F2"));
+                Console.WriteLine("{0}\t{1}\t{2}\t{3}%", s, nbugsProjects[s].Count, nbugs[s], iterations[s], (coverage[s] / projects.Count).ToString("F2"));
             }
 
             // TODO: Find the best two combination
@@ -433,21 +449,31 @@ namespace Scheduler.Tests
 
                 var output = Util.run(Path.Combine(Environment.CurrentDirectory, dir),
                     Path.Combine(Program.PSharpBinaries, Program.PSharpTester),
-                    string.Format("/test:{0}.dll /timeout:10 /explore /max-steps:500 /coverage-report {1}", wi.Project, wi.SchedulerArgs));
+                    string.Format("/test:{0}.dll /timeout:600 /explore /max-steps:500 /coverage-report {1}", wi.Project, wi.SchedulerArgs));
 
                 var result = TestResult.Parse(output);
                 result.maxSteps = 500;
                 result.ProjectName = wi.Project;
                 result.SchedulerName = wi.SchedulerName;
                 result.Args = wi.SchedulerArgs;
-                result.timeout = 10;
+                result.timeout = 600;
 
-                // copy over the file
-                var nFileName = Path.Combine(output_dir, $"{result.SchedulerName}_{result.ProjectName}.sci");
-                File.Copy(result.sciFileName, nFileName, true);
-                result.sciFileName = nFileName;
-
-                TestResults.Add(result);
+                if (result.sciFileName == "" || !File.Exists(result.sciFileName))
+                {
+                    Console.WriteLine("ERROR running {0} and {1}", wi.Project, wi.SchedulerName);
+                    Program.Outfile.WriteLine("Command failed: {0}", string.Format("/test:{0}.dll /timeout:600 /explore /max-steps:500 /coverage-report {1}", wi.Project, wi.SchedulerArgs));
+                    Program.Outfile.WriteLine("Dir: {0}", dir);
+                    output.Iter(s => Program.Outfile.WriteLine("{0}", s));
+                    //throw new Exception("Error");
+                }
+                else
+                {
+                    // copy over the file
+                    var nFileName = Path.Combine(output_dir, $"{result.SchedulerName}_{result.ProjectName}.sci");
+                    File.Copy(result.sciFileName, nFileName, true);
+                    result.sciFileName = nFileName;
+                    TestResults.Add(result);
+                }
             }
 
 
