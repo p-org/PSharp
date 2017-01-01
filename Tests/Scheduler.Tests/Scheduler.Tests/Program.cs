@@ -230,7 +230,42 @@ namespace Scheduler.Tests
                 Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}%", s, nbugsProjects[s].Count, nbugs[s], iterations[s], (coverage[s] / projects.Count).ToString("F2"));
             }
 
-            // TODO: Find the best two combination
+            Console.WriteLine("Best two combination");
+
+            var schedulerToProjectToCoverage = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var tr in results.TestResults)
+            {
+                if (!schedulerToProjectToCoverage.ContainsKey(tr.SchedulerName))
+                {
+                    schedulerToProjectToCoverage.Add(tr.SchedulerName, new Dictionary<string, string>());
+                }
+
+                schedulerToProjectToCoverage[tr.SchedulerName][tr.ProjectName] = tr.sciFileName;
+            }
+
+
+            // Find the best two combination
+            foreach(var s1 in schedulers)
+            {
+                foreach(var s2 in schedulers)
+                {
+                    if (s1 == s2) continue;
+                    if (nbugsProjects[s1].Count + nbugsProjects[s2].Count == 0) continue;
+
+                    var hits = new HashSet<string>(nbugsProjects[s1]);
+                    hits.UnionWith(nbugsProjects[s2]);
+
+                    var c = 0.0;
+                    foreach(var tup in schedulerToProjectToCoverage[s1])
+                    {
+                        c += GetCoverage(tup.Value, schedulerToProjectToCoverage[s2][tup.Key]);
+                    }
+
+                    Console.WriteLine("{0}+{1}\t{2}\t{3}\t{4}\t{5}%", s1, s2, hits.Count, nbugs[s1] + nbugs[s2], iterations[s1] + iterations[s2], (c / projects.Count).ToString("F2"));
+                }
+            }
+
+
         }
 
         static double GetCoverage(params string[] sciFiles)
