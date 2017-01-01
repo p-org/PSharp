@@ -227,7 +227,7 @@ namespace Scheduler.Tests
 
             foreach (var s in schedulers)
             {
-                Console.WriteLine("{0}\t{1}\t{2}\t{3}%", s, nbugsProjects[s].Count, nbugs[s], iterations[s], (coverage[s] / projects.Count).ToString("F2"));
+                Console.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}%", s, nbugsProjects[s].Count, nbugs[s], iterations[s], (coverage[s] / projects.Count).ToString("F2"));
             }
 
             // TODO: Find the best two combination
