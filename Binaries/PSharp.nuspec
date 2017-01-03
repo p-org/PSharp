@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Package</id>
+    <version>1.0.0</version>
+    <authors>Pantazis Deligiannis, Akash Lal, Shaz Qadeer</authors>
+    <owners>shazqadeer</owners>
+    <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/p-org/PSharp</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Package description</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>Tag1 Tag2</tags>
+    <dependencies>
+      <dependency id="SampleDependency" version="1.0" />
+    </dependencies>
+  </metadata>
+</package>
