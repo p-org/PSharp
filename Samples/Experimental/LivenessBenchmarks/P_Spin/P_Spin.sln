@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplicatingStorage", "Repli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftInfinite", "RaftInfinite\RaftInfinite.csproj", "{D5EF8BF5-6F92-4812-B8FB-A1DECEF7C52E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtraEvents", "ExtraEvents\ExtraEvents.csproj", "{D0D54D3A-81CD-4B05-A905-D3077676107E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleExtraEvents", "SimpleExtraEvents\SimpleExtraEvents.csproj", "{7B656853-D014-45D4-8A2B-86521F2A249A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{D5EF8BF5-6F92-4812-B8FB-A1DECEF7C52E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5EF8BF5-6F92-4812-B8FB-A1DECEF7C52E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5EF8BF5-6F92-4812-B8FB-A1DECEF7C52E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0D54D3A-81CD-4B05-A905-D3077676107E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0D54D3A-81CD-4B05-A905-D3077676107E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0D54D3A-81CD-4B05-A905-D3077676107E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0D54D3A-81CD-4B05-A905-D3077676107E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B656853-D014-45D4-8A2B-86521F2A249A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B656853-D014-45D4-8A2B-86521F2A249A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B656853-D014-45D4-8A2B-86521F2A249A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B656853-D014-45D4-8A2B-86521F2A249A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
