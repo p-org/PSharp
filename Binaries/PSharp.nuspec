@@ -1,19 +1,16 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Package</id>
+    <id>Microsoft.PSharp</id>
     <version>1.0.0</version>
     <authors>Pantazis Deligiannis, Akash Lal, Shaz Qadeer</authors>
-    <owners>shazqadeer</owners>
+    <owners>pdeligia, Akash.Lal, shazqadeer</owners>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Package description</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
-    <copyright>Copyright 2017</copyright>
-    <tags>Tag1 Tag2</tags>
-    <dependencies>
-      <dependency id="SampleDependency" version="1.0" />
-    </dependencies>
+    <description>Tools for PSharp programming framework</description>
+    <releaseNotes>This release contains the PSharp compiler and testing tools.</releaseNotes>
+    <copyright>Copyright ©2017 Microsoft Corporation</copyright>
+    <tags>asynchrony testing .NET programming actors state-machines</tags>
   </metadata>
 </package>

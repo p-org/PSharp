@@ -125,4 +125,46 @@ namespace Microsoft.PSharp
             return true;
         }
     }
+
+    public class RewriterAsSeparateProcess : ITask
+    {
+        public IBuildEngine BuildEngine { get; set; }
+        public ITaskHost HostObject { get; set; }
+
+        public ITaskItem[] InputFiles { get; set; }
+
+        [Output]
+        public ITaskItem[] OutputFiles { get; set; }
+
+        public bool Execute()
+        {
+            for (int i = 0; i < InputFiles.Length; i++)
+            {
+                string errors;
+                var process = new System.Diagnostics.Process();
+                var processStartInfo = new System.Diagnostics.ProcessStartInfo(this.GetType().Assembly.Location, InputFiles[i].ItemSpec);
+                processStartInfo.CreateNoWindow = true;
+                processStartInfo.UseShellExecute = false;
+                processStartInfo.RedirectStandardOutput = true;
+                process.StartInfo = processStartInfo;
+                process.Start();
+                var outp = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                if (outp != null)
+                {
+                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
+                }
+                else
+                {
+                    // replace Program.psharp with the actual file name
+                    errors = outp.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
+                    // print a compiler error with log
+                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec,
+                        string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
+                }
+            }
+
+            return true;
+        }
+    }
 }
