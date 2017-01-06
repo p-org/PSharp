@@ -171,10 +171,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void OpenNotificationListener()
         {
-            Uri address = new Uri("http://localhost:8080/psharp/testing/process/" +
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/process/" +
                 this.Configuration.TestingProcessId + "/");
 
-            BasicHttpBinding binding = new BasicHttpBinding();
+            NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
@@ -229,9 +229,9 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void SendTestReport()
         {
-            Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/");
 
-            BasicHttpBinding binding = new BasicHttpBinding();
+            NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
@@ -270,9 +270,9 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void NotifyBugFound()
         {
-            Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/");
 
-            BasicHttpBinding binding = new BasicHttpBinding();
+            NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
