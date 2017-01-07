@@ -103,15 +103,12 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         if (testingProcess.Key != processId)
                         {
-                            if (this.Configuration.ReportCodeCoverage)
-                            {
-                                this.StopTestingProcess(testingProcess.Key);
+                            this.StopTestingProcess(testingProcess.Key);
 
-                                TestReport testReport = this.GetTestReport(testingProcess.Key);
-                                if (testReport != null)
-                                {
-                                    this.TestReports.TryAdd(testingProcess.Key, testReport);
-                                }
+                            TestReport testReport = this.GetTestReport(testingProcess.Key);
+                            if (testReport != null)
+                            {
+                                this.TestReports.TryAdd(testingProcess.Key, testReport);
                             }
 
                             try
