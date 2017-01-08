@@ -205,6 +205,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ReportCodeCoverage = true;
             }
+            else if (option.ToLower().Equals("/coverage-debug"))
+            {
+                base.Configuration.ReportCodeCoverage = true;
+                base.Configuration.DebugCodeCoverage = true;
+            }
             else if (option.ToLower().Equals("/detect-races"))
             {
                 base.Configuration.EnableDataRaceDetection = true;

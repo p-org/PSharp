@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         TestReport TestReport { get; }
 
+        /// <summary>
+        /// Name of the P# program being tested.
+        /// </summary>
+        string ProgramName { get; }
+
         #endregion
 
         #region methods
@@ -47,12 +52,16 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
-        void TryEmitTraces();
+        /// <param name="directory">Directory name</param>
+        /// <param name="file">File name</param>
+        void TryEmitTraces(string directory, string file);
 
         /// <summary>
         /// Tries to emit the testing coverage report, if any.
         /// </summary>
-        void TryEmitCoverageReport();
+        /// <param name="directory">Directory name</param>
+        /// <param name="file">File name</param>
+        void TryEmitCoverageReport(string directory, string file);
 
         /// <summary>
         /// Registers a callback to invoke at the end

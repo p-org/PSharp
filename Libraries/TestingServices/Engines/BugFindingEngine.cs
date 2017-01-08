@@ -99,30 +99,20 @@ namespace Microsoft.PSharp.TestingServices
             this.Execute(task);
             return this;
         }
-        
+
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
-        public override void TryEmitTraces()
+        /// <param name="directory">Directory name</param>
+        /// <param name="file">File name</param>
+        public override void TryEmitTraces(string directory, string file)
         {
-            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            if (base.Configuration.TestingProcessId >= 0)
-            {
-                name += "_" + base.Configuration.TestingProcessId;
-            }
-            else
-            {
-                name += "_0";
-            }
-
-            string directoryPath = base.GetOutputDirectory();
-
             // Emits the human readable trace, if it exists.
             if (!this.ReadableTrace.Equals(""))
             {
-                string[] readableTraces = Directory.GetFiles(directoryPath, name + "_*.txt").
+                string[] readableTraces = Directory.GetFiles(directory, file + "_*.txt").
                     Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
-                string readableTracePath = directoryPath + name + "_" + readableTraces.Length + ".txt";
+                string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
 
                 IO.Error.PrintLine($"... Writing {readableTracePath}");
                 File.WriteAllText(readableTracePath, this.ReadableTrace);
@@ -131,8 +121,8 @@ namespace Microsoft.PSharp.TestingServices
             // Emits the bug trace, if it exists.
             if (this.BugTrace != null)
             {
-                string[] bugTraces = Directory.GetFiles(directoryPath, name + "_*.pstrace");
-                string bugTracePath = directoryPath + name + "_" + bugTraces.Length + ".pstrace";
+                string[] bugTraces = Directory.GetFiles(directory, file + "_*.pstrace");
+                string bugTracePath = directory + file + "_" + bugTraces.Length + ".pstrace";
 
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
@@ -145,8 +135,8 @@ namespace Microsoft.PSharp.TestingServices
             // Emits the reproducable trace, if it exists.
             if (!this.ReproducableTrace.Equals(""))
             {
-                string[] reproTraces = Directory.GetFiles(directoryPath, name + "_*.schedule");
-                string reproTracePath = directoryPath + name + "_" + reproTraces.Length + ".schedule";
+                string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
+                string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
 
                 IO.Error.PrintLine($"... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
@@ -156,38 +146,28 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to emit the testing coverage report, if any.
         /// </summary>
-        public override void TryEmitCoverageReport()
+        /// <param name="directory">Directory name</param>
+        /// <param name="file">File name</param>
+        public override void TryEmitCoverageReport(string directory, string file)
         {
             if (base.Configuration.ReportCodeCoverage)
             {
-                string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-                if (base.Configuration.TestingProcessId >= 0)
-                {
-                    name += "_" + base.Configuration.TestingProcessId;
-                }
-                else
-                {
-                    name += "_0";
-                }
-
-                string directoryPath = base.GetOutputDirectory();
-
                 var codeCoverageReporter = new CodeCoverageReporter(base.TestReport.CoverageInfo);
 
-                string[] graphFiles = Directory.GetFiles(directoryPath, name + "_*.dgml");
-                string graphFilePath = directoryPath + name + "_" + graphFiles.Length + ".dgml";
+                string[] graphFiles = Directory.GetFiles(directory, file + "_*.dgml");
+                string graphFilePath = directory + file + "_" + graphFiles.Length + ".dgml";
 
                 IO.Error.PrintLine($"... Writing {graphFilePath}");
                 codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
                 
-                string[] coverageFiles = Directory.GetFiles(directoryPath, name + "_*.coverage.txt");
-                string coverageFilePath = directoryPath + name + "_" + coverageFiles.Length + ".coverage.txt";
+                string[] coverageFiles = Directory.GetFiles(directory, file + "_*.coverage.txt");
+                string coverageFilePath = directory + file + "_" + coverageFiles.Length + ".coverage.txt";
 
                 IO.Error.PrintLine($"... Writing {coverageFilePath}");
                 codeCoverageReporter.EmitCoverageReport(coverageFilePath);
 
-                string[] serFiles = Directory.GetFiles(directoryPath, name + "_*.sci");
-                string serFilePath = directoryPath + name + "_" + serFiles.Length + ".sci";
+                string[] serFiles = Directory.GetFiles(directory, file + "_*.sci");
+                string serFilePath = directory + file + "_" + serFiles.Length + ".sci";
 
                 IO.Error.PrintLine($"... Writing {serFilePath}");
                 using (var fs = new FileStream(serFilePath, FileMode.Create))
@@ -195,7 +175,6 @@ namespace Microsoft.PSharp.TestingServices
                     var ser = new DataContractSerializer(typeof(CoverageInfo));
                     ser.WriteObject(fs, base.TestReport.CoverageInfo);
                 }
-
             }
         }
 

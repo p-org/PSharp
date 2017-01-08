@@ -103,6 +103,10 @@ namespace Microsoft.PSharp.TestingServices
             if (configuration.ReportCodeCoverage)
             {
                 arguments.Append($"/coverage-report ");
+                if (configuration.DebugCodeCoverage)
+                {
+                    arguments.Append($"/coverage-debug ");
+                }
             }
 
             arguments.Append($"/parallel:{configuration.ParallelBugFindingTasks} ");

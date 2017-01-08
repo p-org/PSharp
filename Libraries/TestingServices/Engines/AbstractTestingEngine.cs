@@ -109,6 +109,22 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public TestReport TestReport { get; set; }
 
+        /// <summary>
+        /// Name of the P# program being tested.
+        /// </summary>
+        public string ProgramName
+        {
+            get
+            {
+                if (this.Assembly == null)
+                {
+                    return "";
+                }
+
+                return this.Assembly.Location;
+            }
+        }
+
         #endregion
 
         #region public API
@@ -126,11 +142,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource.Cancel();
         }
-        
+
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
-        public virtual void TryEmitTraces()
+        /// <param name="directory">Directory name</param>
+        /// <param name="file">File name</param>
+        public virtual void TryEmitTraces(string directory, string file)
         {
             // No-op, must be implemented in subclass.
         }
@@ -138,7 +156,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to emit the testing coverage report, if any.
         /// </summary>
-        public virtual void TryEmitCoverageReport()
+        /// <param name="directory">Directory name</param>
+        /// <param name="file">File name</param>
+        public virtual void TryEmitCoverageReport(string directory, string file)
         {
             // No-op, must be implemented in subclass.
         }
@@ -544,7 +564,7 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Returns the output directory.
+        /// Returns (and creates if it does not exist) the output directory.
         /// </summary>
         /// <returns>Path</returns>
         protected string GetOutputDirectory()

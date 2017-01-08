@@ -296,6 +296,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool ReportCodeCoverage;
 
+        /// <summary>
+        /// Enables code coverage debugging.
+        /// </summary>
+        public bool DebugCodeCoverage;
+
         #endregion
 
         #region remote manager options
@@ -430,6 +435,7 @@ namespace Microsoft.PSharp.Utilities
             this.EnableDataRaceDetection = false;
 
             this.ReportCodeCoverage = false;
+            this.DebugCodeCoverage = false;
 
             this.ContainerId = 0;
             this.NumberOfContainers = 1;

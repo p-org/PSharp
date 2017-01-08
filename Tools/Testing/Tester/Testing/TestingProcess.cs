@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
@@ -63,6 +64,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>TestReport</returns>
         TestReport ITestingProcess.GetTestReport()
         {
+            if (this.Configuration.DebugCodeCoverage)
+            {
+                this.EmitCoverageReport(isDebug: true);
+            }
+            
             return this.TestingEngine.TestReport;
         }
 
@@ -113,13 +119,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.SendTestReport();
                 if (this.TestingScheduler.ShouldEmitTestReport(this.Configuration.TestingProcessId))
                 {
-                    IList<TestReport> globalTestReport = this.TestingScheduler.GetGlobalTestData(
-                        this.Configuration.TestingProcessId);
-                    foreach (var testReport in globalTestReport)
-                    {
-                        this.TestingEngine.TestReport.Merge(testReport);
-                    }
-
                     this.EmitTestReport();
                 }
 
@@ -247,21 +246,87 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Emits the test report.
+        /// Emits the test report. If the P# tester runs in parallel it also
+        /// merges the reports from all testing processes.
         /// </summary>
         private void EmitTestReport()
         {
+            if (this.Configuration.DebugCodeCoverage)
+            {
+                this.EmitCoverageReport(isDebug: true);
+            }
+
+            if (this.Configuration.ParallelBugFindingTasks > 1)
+            {
+                IList<TestReport> globalTestReport = this.TestingScheduler.GetGlobalTestData(
+                        this.Configuration.TestingProcessId);
+                foreach (var testReport in globalTestReport)
+                {
+                    this.TestingEngine.TestReport.Merge(testReport);
+                }
+            }
+
             IO.Error.PrintLine(this.TestingEngine.Report());
+
             if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
                 this.Configuration.PrintTrace)
             {
-                this.TestingEngine.TryEmitTraces();
+                this.EmitTraces();
             }
 
             if (this.Configuration.ReportCodeCoverage)
             {
-                this.TestingEngine.TryEmitCoverageReport();
+                this.EmitCoverageReport();
             }
+        }
+
+        /// <summary>
+        /// Emits the testing traces.
+        /// </summary>
+        private void EmitTraces()
+        {
+            string file = Path.GetFileNameWithoutExtension(this.TestingEngine.ProgramName);
+            if (this.Configuration.TestingProcessId >= 0)
+            {
+                file += "_" + this.Configuration.TestingProcessId;
+            }
+            else
+            {
+                file += "_0";
+            }
+
+            string directory = this.GetOutputDirectory();
+
+            this.TestingEngine.TryEmitTraces(directory, file);
+        }
+
+        /// <summary>
+        /// Emits the code coverage report.
+        /// </summary>
+        /// <param name="isDebug">Is a debug report</param>
+        private void EmitCoverageReport(bool isDebug = false)
+        {
+            string file = Path.GetFileNameWithoutExtension(this.TestingEngine.ProgramName);
+            if (this.Configuration.TestingProcessId >= 0)
+            {
+                file += "_" + this.Configuration.TestingProcessId;
+            }
+            else
+            {
+                file += "_0";
+            }
+
+            string directory = "";
+            if (isDebug)
+            {
+                directory = this.GetOutputDirectory("CoverageDebug");
+            }
+            else
+            {
+                directory = this.GetOutputDirectory();
+            }
+
+            this.TestingEngine.TryEmitCoverageReport(directory, file);
         }
 
         /// <summary>
@@ -312,6 +377,24 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Environment.Exit(1);
             }
+        }
+
+        /// <summary>
+        /// Returns (and creates if it does not exist) the output
+        /// directory with an optional suffix.
+        /// </summary>
+        /// <returns>Path</returns>
+        private string GetOutputDirectory(string suffix = "")
+        {
+            string directoryPath = Path.GetDirectoryName(this.TestingEngine.ProgramName) +
+                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+            if (suffix.Length > 0)
+            {
+                directoryPath += suffix + Path.DirectorySeparatorChar;
+            }
+
+            Directory.CreateDirectory(directoryPath);
+            return directoryPath;
         }
 
         #endregion
