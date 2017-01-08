@@ -100,6 +100,11 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/sch-seed:{configuration.RandomSchedulingSeed} ");
             }
 
+            if (configuration.PerformFullExploration)
+            {
+                arguments.Append($"/explore ");
+            }
+
             if (configuration.ReportCodeCoverage)
             {
                 arguments.Append($"/coverage-report ");

@@ -266,7 +266,6 @@ namespace Microsoft.PSharp.TestingServices
 
             configuration.Verbose = 1;
             configuration.PrintTrace = false;
-            configuration.PerformFullExploration = false;
             configuration.EnableDataRaceDetection = false;
 
             this.Configuration = configuration;
