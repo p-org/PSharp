@@ -589,7 +589,7 @@ namespace Microsoft.PSharp
         {
             if(!this.Configuration.EnableMonitorsInProduction)
             {
-                // No-op for real execution.
+                // No-op in production.
                 return;
             }
 
@@ -617,7 +617,7 @@ namespace Microsoft.PSharp
         /// <param name="userTask">Task</param>
         internal virtual void TryCreateTaskMachine(Task userTask)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -702,7 +702,7 @@ namespace Microsoft.PSharp
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {
-                // No-op for real execution.
+                // No-op in production.
                 return;
             }
 
@@ -805,7 +805,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyEnteredState(AbstractMachine machine)
         {
-            // No-op for real execution, except logging.
+            // No-op in production, except for logging.
             if (this.Configuration.Verbose <= 1)
             {
                 return;
@@ -844,7 +844,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyExitedState(AbstractMachine machine)
         {
-            // No-op for real execution, except logging.
+            // No-op in production, except for logging.
             if (this.Configuration.Verbose <= 1)
             {
                 return;
@@ -887,8 +887,8 @@ namespace Microsoft.PSharp
         /// <param name="receivedEvent">Event</param>
         internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
-            // No-op for real execution except logging.
-            if(this.Configuration.Verbose <= 1)
+            // No-op in production, except for logging.
+            if (this.Configuration.Verbose <= 1)
             {
                 return;
             }
@@ -917,7 +917,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            // No-op for real execution except logging.
+            // No-op in production, except for logging.
             this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
         }
@@ -930,7 +930,7 @@ namespace Microsoft.PSharp
         /// <param name="toState">Next to top state of the stack</param>
         internal virtual void NotifyPop(Machine machine, Type fromState, Type toState)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -941,8 +941,8 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
         {
-            // No-op for real execution except logging.
-            if(this.Configuration.Verbose <= 1)
+            // No-op in production, except for logging.
+            if (this.Configuration.Verbose <= 1)
             {
                 return;
             }
@@ -969,7 +969,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         internal virtual void NotifyReceiveCalled(AbstractMachine machine)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -979,7 +979,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         /// <summary>
@@ -1034,7 +1034,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal virtual void NotifyDefaultHandlerFired()
         {
-            // No-op for real execution.
+            // No-op in production.
         }
 
         #endregion
