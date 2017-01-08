@@ -93,12 +93,11 @@ namespace Microsoft.PSharp.TestingServices
         {
             lock (this.SchedulerLock)
             {
-                if (this.BugFoundByProcess < 0)
+                if (!this.Configuration.PerformFullExploration && this.BugFoundByProcess < 0)
                 {
-                    IO.PrintLine($"... Testing task '{processId}' " +
-                        "found a bug.");
-
+                    IO.PrintLine($"... Testing task '{processId}' " + "found a bug.");
                     this.BugFoundByProcess = processId;
+
                     foreach (var testingProcess in this.TestingProcesses)
                     {
                         if (testingProcess.Key != processId)

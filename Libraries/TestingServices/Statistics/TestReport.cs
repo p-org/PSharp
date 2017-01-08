@@ -137,6 +137,8 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CoverageInfo.Merge(testReport.CoverageInfo);
 
+            this.NumOfFoundBugs += testReport.NumOfFoundBugs;
+
             this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
             this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
 

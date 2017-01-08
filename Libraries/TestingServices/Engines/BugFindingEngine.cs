@@ -389,8 +389,15 @@ namespace Microsoft.PSharp.TestingServices
 
                         if (base.Configuration.PerformFullExploration)
                         {
-                            IO.PrintLine($"..... Iteration #{i + 1} triggered " +
-                                $"bug #{base.TestReport.NumOfFoundBugs}");
+                            if (base.Configuration.TestingProcessId >= 0)
+                            {
+                                IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                                    $"[task-{this.Configuration.TestingProcessId}]");
+                            }
+                            else
+                            {
+                                IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs}");
+                            }
                         }
                     }
                     else
