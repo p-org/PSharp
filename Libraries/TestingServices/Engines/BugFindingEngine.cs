@@ -106,6 +106,15 @@ namespace Microsoft.PSharp.TestingServices
         public override void TryEmitTraces()
         {
             string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            if (base.Configuration.TestingProcessId >= 0)
+            {
+                name += "_" + base.Configuration.TestingProcessId;
+            }
+            else
+            {
+                name += "_0";
+            }
+
             string directoryPath = base.GetOutputDirectory();
 
             // Emits the human readable trace, if it exists.
@@ -152,6 +161,15 @@ namespace Microsoft.PSharp.TestingServices
             if (base.Configuration.ReportCodeCoverage)
             {
                 string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+                if (base.Configuration.TestingProcessId >= 0)
+                {
+                    name += "_" + base.Configuration.TestingProcessId;
+                }
+                else
+                {
+                    name += "_0";
+                }
+
                 string directoryPath = base.GetOutputDirectory();
 
                 var codeCoverageReporter = new CodeCoverageReporter(base.TestReport.CoverageInfo);
@@ -687,8 +705,18 @@ namespace Microsoft.PSharp.TestingServices
         private void EmitRaceInstrumentationTraces(PSharpBugFindingRuntime runtime, int iteration)
         {
             string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            if (base.Configuration.TestingProcessId >= 0)
+            {
+                name += "_" + base.Configuration.TestingProcessId;
+            }
+            else
+            {
+                name += "_0";
+            }
+
             string directoryPath = base.GetRuntimeTracesDirectory();
-            
+
+
             foreach (var kvp in runtime.MachineActionTraceMap)
             {
                 IO.Debug($"<RaceTracing> Machine id '{kvp.Key}'");
