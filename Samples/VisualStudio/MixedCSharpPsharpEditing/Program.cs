@@ -35,6 +35,7 @@ namespace MixedProgramming
             // "evt" is visible to IntelliSense
             // (after building once)
             this.Send(Bid, new evt("hello", "world"));
+            this.Raise(new evt("just a", "raise"));
         }
     }
 
