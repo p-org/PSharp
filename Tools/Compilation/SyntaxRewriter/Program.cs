@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
         {
             if (args.Length != 1)
             {
-                IO.PrintLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
+                IO.PrintLine("Usage: PSharpSyntaxRewriter.exe file.[psharp|cs]");
                 return;
             }
 
@@ -52,7 +52,11 @@ namespace Microsoft.PSharp
 
             // Translate and print on console
             string errors = "";
-            var output = Translate(input_string, out errors);
+
+            var output = args[0].EndsWith(".psharp") ?
+                Translate(input_string, out errors) :
+                Rewrite(input_string, out errors);
+
             IO.PrintLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
@@ -75,6 +79,40 @@ namespace Microsoft.PSharp
                 RewritingEngine.Create(context).Run();
 
                 var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+                return syntaxTree.ToString();
+            }
+            catch (ParsingException ex)
+            {
+                errors = ex.Message;
+                return null;
+            }
+            catch (RewritingException ex)
+            {
+                errors = ex.Message;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Performs C# rewriting.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns>Text</returns>
+        public static string Rewrite(string text, out string errors)
+        {
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+            errors = null;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(text, "cs");
+
+            try
+            {
+                ParsingEngine.Create(context).Run();
+                RewritingEngine.Create(context).Run();
+
+                var syntaxTree = context.GetProjects()[0].CSharpPrograms[0].GetSyntaxTree();
 
                 return syntaxTree.ToString();
             }
