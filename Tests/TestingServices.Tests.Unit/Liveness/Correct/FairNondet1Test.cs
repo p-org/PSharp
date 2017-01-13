@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
-                if (this.FairRandom(0))
+                if (this.FairRandom())
                 {
                     this.Send(this.Id, new Done());
                 }

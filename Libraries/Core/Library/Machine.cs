@@ -20,9 +20,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp
 {
@@ -469,22 +471,17 @@ namespace Microsoft.PSharp
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
+        /// <param name="callerMemberName">CallerMemberName</param>
+        /// <param name="callerFilePath">CallerFilePath</param>
+        /// <param name="callerLineNumber">CallerLineNumber</param>
         /// <returns>Boolean</returns>
-        protected bool FairRandom()
+        protected bool FairRandom(
+            [CallerMemberName] string callerMemberName = "",
+            [CallerFilePath] string callerFilePath = "",
+            [CallerLineNumber] int callerLineNumber = 0)
         {
-            return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be controlled
-        /// during analysis or testing.
-        /// </summary>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected bool FairRandom(int uniqueId)
-        {
-            var havocId = base.Id.Name + "_" + this.CurrentStateName + "_" + uniqueId;
+            var havocId = string.Format("{0}_{1}_{2}_{3}_{4}", base.Id.Name, this.CurrentStateName,
+                callerMemberName, callerFilePath, callerLineNumber);
             return base.Runtime.GetFairNondeterministicBooleanChoice(this, havocId);
         }
 
