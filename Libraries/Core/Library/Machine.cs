@@ -313,8 +313,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns from the execution context, and transitions
-        /// the machine to the specified state.
+        /// Transitions the machine to the specified state
+        /// at the end of the current action.
         /// </summary>
         /// <param name="s">Type of the state</param>
         protected void Goto(Type s)
@@ -328,7 +328,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Raises an event internally and returns from the execution context.
+        /// Raises an event internally at the end of the current action.
         /// </summary>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
@@ -414,7 +414,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Pops the current state from the state stack.
+        /// Pops the current state from the state stack
+        /// at the end of the current action.
         /// </summary>
         protected void Pop()
         {
