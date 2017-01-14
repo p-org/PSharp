@@ -101,7 +101,10 @@ namespace German
 			    I = 0;
 			    S = SharerList.Count;
 			    if (S == 0)
+				{
 				    raise(grant);
+					return;
+			    }
 			    while (I < S)
 			    {
 				    send(SharerList[I], invalidate);
