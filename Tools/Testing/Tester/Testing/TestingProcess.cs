@@ -121,6 +121,10 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     this.EmitTestReport();
                 }
+                else if (this.Configuration.DebugCodeCoverage)
+                {
+                    this.EmitCoverageReport(isDebug: true);
+                }
 
                 this.CloseNotificationListener();
             }
