@@ -70,7 +70,7 @@ class S2 : MachineState
 }
 protected void psharp_S1_on_entry_action()
 {
-{ this.Goto(typeof(S2));return; }
+this.Goto(typeof(S2));
 }
 }
 }";
@@ -129,7 +129,7 @@ class S2 : MachineState
 }
 protected void psharp_S1_on_entry_action()
 {
-{ this.Goto(typeof(S2));return; }
+this.Goto(typeof(S2));
 }
 }
 }";

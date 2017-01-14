@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
-            var text = "{ this.Pop();return; }";
+            var text = "this.Pop();";
 
             var rewritten = SyntaxFactory.ParseStatement(text);
             rewritten = rewritten.WithTriviaFrom(node);
