@@ -84,9 +84,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             invocation = invocation.WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(arguments)));
             
-            var text = "{ " +
-                node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Goto"))).ToString() +
-                "return; }";
+            var text = node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Goto"))).ToString();
             var rewritten = SyntaxFactory.ParseStatement(text);
             rewritten = rewritten.WithTriviaFrom(node);
 

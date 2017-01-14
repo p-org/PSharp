@@ -81,9 +81,9 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteStatements()
         {
-            new RaiseRewriter(this).Rewrite();
-            new GotoStateRewriter(this).Rewrite();
-            new PopRewriter(this).Rewrite();
+            //new RaiseRewriter(this).Rewrite();
+            //new GotoStateRewriter(this).Rewrite();
+            //new PopRewriter(this).Rewrite();
         }
 
         /// <summary>

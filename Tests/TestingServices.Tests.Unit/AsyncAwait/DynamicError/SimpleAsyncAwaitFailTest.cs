@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var configuration = Configuration.Create();
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 2;
+            configuration.SchedulingIterations = 10;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.ScheduleIntraMachineConcurrency = true;
 

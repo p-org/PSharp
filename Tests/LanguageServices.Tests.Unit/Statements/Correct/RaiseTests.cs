@@ -81,7 +81,7 @@ class S2 : MachineState
 }
 protected void psharp_S1_on_entry_action()
 {
-{ this.Raise(new e1());return; }
+this.Raise(new e1());
 }
 }
 }";
@@ -156,7 +156,7 @@ class S2 : MachineState
 }
 protected void psharp_S1_on_entry_action()
 {
-{ this.Raise(new e1());return; }
+this.Raise(new e1());
 }
 }
 }";

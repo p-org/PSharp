@@ -654,7 +654,7 @@ public class S1 : MachineState
 }
 }
 }
-protected void psharp_G1_G2_S1_on_entry_action(){ { this.Goto(typeof(G1.G2.S1));return; } }
+protected void psharp_G1_G2_S1_on_entry_action(){ this.Goto(typeof(G1.G2.S1)); }
 }
 }";
 
@@ -708,7 +708,7 @@ public class S1 : MachineState
 }
 }
 }
-protected void psharp_G1_G2_G3_S1_on_entry_action(){ { this.Goto(typeof(G1.G2.G3.S1));return; } }
+protected void psharp_G1_G2_G3_S1_on_entry_action(){ this.Goto(typeof(G1.G2.G3.S1)); }
 }
 }";
 
@@ -762,8 +762,8 @@ public class S1 : MachineState
 {
 }
 }
-protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
-protected void psharp_G2_S1_on_entry_action(){ { this.Goto(typeof(G2.S1));return; } }
+protected void psharp_G1_S1_on_entry_action(){ this.Goto(typeof(G1.S1)); }
+protected void psharp_G2_S1_on_entry_action(){ this.Goto(typeof(G2.S1)); }
 }
 }";
 
@@ -832,11 +832,11 @@ public class S3 : MachineState
 {
 }
 }
-protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.S2));return; } }
-protected void psharp_G1_S2_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
-protected void psharp_G2_S1_on_entry_action(){ { this.Goto(typeof(G2.S2));return; } }
-protected void psharp_G2_S2_on_entry_action(){ { this.Goto(typeof(G2.S1));return; } }
-protected void psharp_G2_S3_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
+protected void psharp_G1_S1_on_entry_action(){ this.Goto(typeof(G1.S2)); }
+protected void psharp_G1_S2_on_entry_action(){ this.Goto(typeof(G1.S1)); }
+protected void psharp_G2_S1_on_entry_action(){ this.Goto(typeof(G2.S2)); }
+protected void psharp_G2_S2_on_entry_action(){ this.Goto(typeof(G2.S1)); }
+protected void psharp_G2_S3_on_entry_action(){ this.Goto(typeof(G1.S1)); }
 }
 }";
 
@@ -895,9 +895,9 @@ public class S1 : MachineState
 {
 }
 }
-protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));return; } }
-protected void psharp_G1_G3_S2_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
-protected void psharp_G1_G3_S3_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));return; } }
+protected void psharp_G1_S1_on_entry_action(){ this.Goto(typeof(G1.G3.S2)); }
+protected void psharp_G1_G3_S2_on_entry_action(){ this.Goto(typeof(G1.S1)); }
+protected void psharp_G1_G3_S3_on_entry_action(){ this.Goto(typeof(G1.G3.S2)); }
 }
 }
 ";
@@ -1439,7 +1439,7 @@ public class S1 : MonitorState
 }
 }
 }
-protected void psharp_G1_G2_S1_on_entry_action(){ { this.Goto(typeof(G1.G2.S1));return; } }
+protected void psharp_G1_G2_S1_on_entry_action(){ this.Goto(typeof(G1.G2.S1)); }
 }
 }";
 
@@ -1493,7 +1493,7 @@ public class S1 : MonitorState
 }
 }
 }
-protected void psharp_G1_G2_G3_S1_on_entry_action(){ { this.Goto(typeof(G1.G2.G3.S1));return; } }
+protected void psharp_G1_G2_G3_S1_on_entry_action(){ this.Goto(typeof(G1.G2.G3.S1)); }
 }
 }";
 
@@ -1547,8 +1547,8 @@ public class S1 : MonitorState
 {
 }
 }
-protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
-protected void psharp_G2_S1_on_entry_action(){ { this.Goto(typeof(G2.S1));return; } }
+protected void psharp_G1_S1_on_entry_action(){ this.Goto(typeof(G1.S1)); }
+protected void psharp_G2_S1_on_entry_action(){ this.Goto(typeof(G2.S1)); }
 }
 }";
 
@@ -1617,11 +1617,11 @@ public class S3 : MonitorState
 {
 }
 }
-protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.S2));return; } }
-protected void psharp_G1_S2_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
-protected void psharp_G2_S1_on_entry_action(){ { this.Goto(typeof(G2.S2));return; } }
-protected void psharp_G2_S2_on_entry_action(){ { this.Goto(typeof(G2.S1));return; } }
-protected void psharp_G2_S3_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
+protected void psharp_G1_S1_on_entry_action(){ this.Goto(typeof(G1.S2)); }
+protected void psharp_G1_S2_on_entry_action(){ this.Goto(typeof(G1.S1)); }
+protected void psharp_G2_S1_on_entry_action(){ this.Goto(typeof(G2.S2)); }
+protected void psharp_G2_S2_on_entry_action(){ this.Goto(typeof(G2.S1)); }
+protected void psharp_G2_S3_on_entry_action(){ this.Goto(typeof(G1.S1)); }
 }
 }";
 
@@ -1680,9 +1680,9 @@ public class S1 : MonitorState
 {
 }
 }
-protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));return; } }
-protected void psharp_G1_G3_S2_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
-protected void psharp_G1_G3_S3_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));return; } }
+protected void psharp_G1_S1_on_entry_action(){ this.Goto(typeof(G1.G3.S2)); }
+protected void psharp_G1_G3_S2_on_entry_action(){ this.Goto(typeof(G1.S1)); }
+protected void psharp_G1_G3_S3_on_entry_action(){ this.Goto(typeof(G1.G3.S2)); }
 }
 }
 ";
