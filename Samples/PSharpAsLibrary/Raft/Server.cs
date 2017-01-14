@@ -409,6 +409,7 @@ namespace Raft
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
                 this.Raise(new BecomeFollower());
+                return;
             }
             else if (request.Term != this.CurrentTerm)
             {
@@ -593,6 +594,7 @@ namespace Raft
                 
                 this.RedirectLastClientRequestToClusterManager();
                 this.Raise(new BecomeFollower());
+                return;
             }
             else if (request.Term != this.CurrentTerm)
             {
