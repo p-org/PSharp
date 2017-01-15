@@ -123,7 +123,14 @@ entry {
 \noindent
 The above action contains the three most important \ps statements. The \texttt{create} statement is used to create a new instance of the \texttt{Client} machine. A reference to this instance is stored in the \texttt{client} field. Next, the \texttt{send} statement is used to send an event (in this case the events \texttt{Config} and \texttt{Ping}) to a target machine (in this case the machine whose address is stored in the field \texttt{client}).
 
-When an event is being send, it is enqueued in the event queue of the target machine, which can then dequeue the received event, and handle it asynchronously from the sender machine. Finally, the \texttt{raise} statement is used to send an event to the caller machine (i.e. to itself). When a machine raises an event, the raised event is not enqueued as in the case of \texttt{send}; instead, the machine terminates execution of the enclosing code block and handles the event immediately. In \ps, events (e.g.\ \texttt{Ping}, \texttt{Unit} and \texttt{Config} in the above example) can be declared as follows:
+When an event is being send, it is enqueued in the event queue of the target
+machine, which can then dequeue the received event, and handle it asynchronously
+from the sender machine. Finally, the \texttt{raise} statement is used to send
+an event to the caller machine (i.e. to itself). Like calling a \texttt{send}, 
+when a machine raises an event, it still continues execution of of the enclosing
+code block. However, when the current machine action finishes, instead of
+dequeuing from the inbox, the machine immediately handles the raised event. 
+In \ps, events (e.g.\ \texttt{Ping}, \texttt{Unit} and \texttt{Config} in the above example) can be declared as follows:
 
 \begin{psharpNoLines}
 event Ping;
@@ -241,7 +248,13 @@ namespace PingPong {
 \noindent
 In the above example, the program starts by creating an instance of the \texttt{Server} machine (line 61). The implicit constructor of each \ps machine initializes the internal to the \ps runtime data of the machine, including the event queue, a set of available states, and a map from events to event-handlers per state.
 
-After the \texttt{Server} machine has initialized, the \ps runtime executes the \texttt{entry} action of the initial (\texttt{Init}) state of \texttt{Server}, which first creates an instance of the \texttt{Client} machine (line 15), then sends the event \texttt{Config} to the \texttt{Client} machine (line 17), with the \texttt{this} reference as a payload, and then raises the event \texttt{Unit} (line 18). As mentioned earlier, when a machine calls \texttt{raise}, it exits the currently executing action, and immediately handles the raised event (bypassing the queue). In this case, the \texttt{Server} machine handles \texttt{Unit} by transitioning to the \texttt{Active} state (line 21).
+After the \texttt{Server} machine has initialized, the \ps runtime executes the
+\texttt{entry} action of the initial (\texttt{Init}) state of \texttt{Server},
+which first creates an instance of the \texttt{Client} machine (line 15), then
+sends the event \texttt{Config} to the \texttt{Client} machine (line 17), with
+the \texttt{this} reference as a payload, and then raises the event
+\texttt{Unit} (line 18). As mentioned earlier, when a machine calls
+\texttt{raise}, it bypasses the queue and first handles the raised event. In this case, the \texttt{Server} machine handles \texttt{Unit} by transitioning to the \texttt{Active} state (line 21).
 
 \texttt{Client} starts executing (asynchronously) when it is created by \texttt{Server}. The \texttt{Client} machine stores the received payload (which is a reference to the \texttt{Server} machine) in the \texttt{server} field (line 42), and then raises \texttt{Unit} to transition to the \texttt{Active} state. In the new state, \texttt{Client} calls the \texttt{SendPing} method to send a \texttt{Ping} event to \texttt{Server} (line 55). In turn, the \texttt{Server} machine dequeues \texttt{Ping} and handles it by sending a \texttt{Pong} event to \texttt{Client} (line 27), which subsequently responds by sending a new \texttt{Ping} event to \texttt{Server}. This asynchronous exchange of \texttt{Ping} and \texttt{Pong} events continues indefinitely.
 
@@ -347,7 +360,8 @@ The programmer can use \ps as a library by importing the \texttt{Microsoft.PShar
 
 A state transition can be declared using the \texttt{[OnEventGotoState(...)]} attribute, where the first argument of the attribute is the type of the received event and the second argument is the type of the target state. An optional third argument, is a string that denotes the name of the method to be executed after exiting the state and before entering the new state. Likewise, an action handler can be declared using the \texttt{[OnEventDoAction(...)]} attribute, where the first argument of the attribute is the type of the received event and the second argument is the name of the action to be executed. All \ps statements (e.g. \texttt{send} and \texttt{raise}) are exposed as method calls of the \texttt{Machine} and \texttt{MachineState} classes.
 
-Note that even when using \ps as a \cs library, the program has to still be compiled using the \ps compiler as the compiler performs some important static checking to find \ps syntax-related errors and rewriting (e.g.\ a \texttt{return} statement is instrumented after a \texttt{raise}).
+%TODO: Come back to this later when we have C# rewriting
+%Note that even when using \ps as a \cs library, the program has to still be compiled using the \ps compiler as the compiler performs some important static checking to find \ps syntax-related errors and rewriting (e.g.\ a \texttt{return} statement is instrumented after a \texttt{raise}).
 
 % Advanced features of P#
 \section{Advanced features of \ps}
