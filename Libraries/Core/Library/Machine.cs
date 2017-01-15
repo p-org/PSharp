@@ -24,7 +24,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp
 {
