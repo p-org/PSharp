@@ -119,6 +119,7 @@
     <None Include="PSharp.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="PSharp.WithCompiler.targets" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6">
