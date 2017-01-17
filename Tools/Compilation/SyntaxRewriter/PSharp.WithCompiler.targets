@@ -1,0 +1,32 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<ItemGroup>
+  <AvailableItemName Include="PSharp" />
+</ItemGroup>
+<PropertyGroup>
+  <PSharpTargetType>test</PSharpTargetType>
+  <PSharpTargetType Condition="'$(Configuration)'=='Release' And '$(TargetExt)' == '.exe'">exe</PSharpTargetType>
+  <PSharpTargetType Condition="'$(Configuration)'=='Release' And '$(TargetExt)' == '.dll'">lib</PSharpTargetType>
+</PropertyGroup>
+<PropertyGroup>
+  <PostBuildEvent>$(PSharpBinaries)\PSharpCompiler.exe /s:$(SolutionPath) /p:$(ProjectName) /o:$(TargetDir) /t:$(PSharpTargetType)</PostBuildEvent>
+</PropertyGroup>
+
+<PropertyGroup>
+  <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateToolOutput</CoreCompileDependsOn>
+</PropertyGroup>
+
+<UsingTask TaskName="Microsoft.PSharp.Rewriter" AssemblyFile="$(PSharpBinaries)\PSharpSyntaxRewriter.exe" />
+
+<Target Name="GenerateToolOutput">
+
+  <Rewriter
+      InputFiles="@(PSharp)"
+      OutputFiles="@(PSharp->'$(IntermediateOutputPath)%(FileName)%(Extension).cs')">
+
+    <Output TaskParameter="OutputFiles" ItemName="Compile" />
+
+  </Rewriter>
+</Target>
+
+</Project>
+
