@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Microsoft.PSharp</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>Pantazis Deligiannis, Akash Lal, Shaz Qadeer</authors>
     <owners>pdeligia, Akash.Lal, shazqadeer</owners>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
