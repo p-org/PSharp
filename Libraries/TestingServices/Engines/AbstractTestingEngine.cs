@@ -331,6 +331,12 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.PrioritySwitchBound);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT)
+            {
+                var strategy1 = new PCTStrategy(this.Configuration, this.Configuration.PrioritySwitchBound);
+                var strategy2 = new RandomStrategy(this.Configuration);
+                this.Strategy = new ComboStrategy(this.Configuration, strategy1, strategy2);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding)
             {
                 this.Strategy = new RandomOperationBoundingStrategy(this.Configuration);

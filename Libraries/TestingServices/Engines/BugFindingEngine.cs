@@ -249,6 +249,7 @@ namespace Microsoft.PSharp.TestingServices
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PrioritizedOperationBounding ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
                 options = $" (seed:{base.Configuration.RandomSchedulingSeed})";

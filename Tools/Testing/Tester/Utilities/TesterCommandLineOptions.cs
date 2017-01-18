@@ -89,6 +89,19 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.PCT;
                     base.Configuration.PrioritySwitchBound = i;
                 }
+                else if (scheduler.StartsWith("fairpct"))
+                {
+                    int i = 0;
+                    if (scheduler.Equals("fairpct") ||
+                        !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
+                    {
+                        IO.Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '/sch:fairpct:[bound]', where [bound] >= 0.");
+                    }
+
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
+                    base.Configuration.PrioritySwitchBound = i;
+                }
                 else if (scheduler.ToLower().Equals("dfs"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.DFS;
@@ -343,6 +356,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)

@@ -61,6 +61,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         PCT,
         /// <summary>
+        /// Prioritized scheduling with Random tail.
+        /// </summary>
+        FairPCT,
+        /// <summary>
         /// Random operation-bounding scheduling.
         /// </summary>
         RandomOperationBounding,
