@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Utilities
                 {
                     int i = 0;
                     if (scheduler.Equals("fairpct") ||
-                        !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
+                        !int.TryParse(scheduler.Substring("fairpct:".Length), out i) && i >= 0)
                     {
                         IO.Error.ReportAndExit("Please give a valid number of priority " +
                             "switch bound '/sch:fairpct:[bound]', where [bound] >= 0.");
