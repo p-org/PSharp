@@ -23,7 +23,15 @@ machine Main
                 announce NotifyDone;
             }
 		}
-		on Local do Process;
+		on Local do 
+		{
+			send this, Local;
+            announce NotifyMessage;
+            if($)
+            {
+                announce NotifyDone;
+            }
+		}
 	}
 }
 
@@ -42,6 +50,6 @@ spec LivenessMonitor observes NotifyMessage, NotifyDone
 
 	cold state ColdState
 	{
-		NotifyMessage goto HotState;
+		on NotifyMessage goto HotState;
 	}
 }
