@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtraEvents", "ExtraEvents\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleExtraEvents", "SimpleExtraEvents\SimpleExtraEvents.csproj", "{7B656853-D014-45D4-8A2B-86521F2A249A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoundedRaft", "BoundedRaft\BoundedRaft.csproj", "{53F40434-F6BA-4D76-A3D2-4AF24E88F6B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{7B656853-D014-45D4-8A2B-86521F2A249A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B656853-D014-45D4-8A2B-86521F2A249A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B656853-D014-45D4-8A2B-86521F2A249A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53F40434-F6BA-4D76-A3D2-4AF24E88F6B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53F40434-F6BA-4D76-A3D2-4AF24E88F6B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53F40434-F6BA-4D76-A3D2-4AF24E88F6B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53F40434-F6BA-4D76-A3D2-4AF24E88F6B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
