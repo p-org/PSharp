@@ -267,8 +267,8 @@ machine Server
 				if (index == ServerId){}
 				else
 				{
-					NextIndex += (Servers[index], logIndex + 1);
-					MatchIndex += (Servers[index], 0);
+					NextIndex[Servers[index]] = logIndex + 1;
+					MatchIndex[Servers[index]] = 0;
 				}
 				index = index + 1;
 			}

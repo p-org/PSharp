@@ -63,15 +63,31 @@ machine Client
 	}
 }
 
-spec Liveness observes NotifyLeaderElected
+spec Liveness observes NotifyLeaderElected, ConfigureEvent
 {
-	start hot state LeaderNotElected
+  var count : int;
+  start state Init {
+    on ConfigureEvent do {
+      count = count + 1;
+      if(count == 5)
+      {
+        goto LeaderNotElected;
+      }
+    }
+  }
+
+	hot state LeaderNotElected
 	{
+    entry {
+      //assert(false);
+    }
+    ignore ElectionTimer_Timeout;
 		on NotifyLeaderElected goto LeaderElected;
 	}	
 
 	cold state LeaderElected
 	{	
+    ignore ElectionTimer_Timeout;
 		on NotifyLeaderElected goto LeaderElected; 
 	}
 }
