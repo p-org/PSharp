@@ -362,8 +362,8 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 IO.Error.ReportAndExit("Please give a valid scheduling strategy " +
-                        "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
-                        "experimental strategies also exist, but are not listed here).");
+                        "'/sch:[x]', where [x] is 'random' or 'pct' (other experimental " +
+                        "strategies also exist, but are not listed here).");
             }
 
             if (base.Configuration.MaxFairSchedulingSteps < base.Configuration.MaxUnfairSchedulingSteps)

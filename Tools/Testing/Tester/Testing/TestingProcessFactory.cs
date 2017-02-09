@@ -84,7 +84,8 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/max-steps:{configuration.MaxUnfairSchedulingSteps} ");
             }
 
-            if (configuration.SchedulingStrategy == SchedulingStrategy.PCT)
+            if (configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
+                configuration.SchedulingStrategy == SchedulingStrategy.FairPCT)
             {
                 arguments.Append($"/sch:{configuration.SchedulingStrategy}:" +
                     $"{configuration.PrioritySwitchBound} ");
