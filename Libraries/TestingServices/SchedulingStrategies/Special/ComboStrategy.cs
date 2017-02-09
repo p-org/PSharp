@@ -12,9 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.PSharp.Utilities;
 
@@ -39,14 +37,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private int SafetyPrefixDepth;
 
         /// <summary>
-        /// Strategy 1
+        /// The prefix strategy.
         /// </summary>
-        private ISchedulingStrategy Strategy1;
+        private ISchedulingStrategy PrefixStrategy;
 
         /// <summary>
-        /// Strategy 2
+        /// The suffix strategy.
         /// </summary>
-        private ISchedulingStrategy Strategy2;
+        private ISchedulingStrategy SuffixStrategy;
 
         #endregion
 
@@ -56,15 +54,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="Strategy1">Strategy 1</param>
-        /// <param name="Strategy2">Strategy 2</param>
-        public ComboStrategy(Configuration configuration, ISchedulingStrategy Strategy1, ISchedulingStrategy Strategy2)
+        /// <param name="prefixStrategy">Prefix strategy </param>
+        /// <param name="suffixStrategy">Suffix strategy</param>
+        public ComboStrategy(Configuration configuration, ISchedulingStrategy prefixStrategy, ISchedulingStrategy suffixStrategy)
         {
             this.Configuration = configuration;
             this.SafetyPrefixDepth = this.Configuration.SafetyPrefixBound == 0 ? this.Configuration.MaxUnfairSchedulingSteps
                 : this.Configuration.SafetyPrefixBound;
-            this.Strategy1 = Strategy1;
-            this.Strategy2 = Strategy2;
+            this.PrefixStrategy = prefixStrategy;
+            this.SuffixStrategy = suffixStrategy;
         }
 
         /// <summary>
@@ -76,13 +74,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
-            if (this.Strategy1.GetExploredSteps() > this.SafetyPrefixDepth)
+            if (this.PrefixStrategy.GetExploredSteps() > this.SafetyPrefixDepth)
             {
-                return this.Strategy2.TryGetNext(out next, choices, current);
+                return this.SuffixStrategy.TryGetNext(out next, choices, current);
             }
             else
             {
-                return this.Strategy1.TryGetNext(out next, choices, current);
+                return this.PrefixStrategy.TryGetNext(out next, choices, current);
             }
         }
 
@@ -94,13 +92,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            if (this.Strategy1.GetExploredSteps() > this.SafetyPrefixDepth)
+            if (this.PrefixStrategy.GetExploredSteps() > this.SafetyPrefixDepth)
             {
-                return this.Strategy2.GetNextBooleanChoice(maxValue, out next);
+                return this.SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
             }
             else
             {
-                return this.Strategy1.GetNextBooleanChoice(maxValue, out next);
+                return this.PrefixStrategy.GetNextBooleanChoice(maxValue, out next);
             }
         }
 
@@ -112,13 +110,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            if (this.Strategy1.GetExploredSteps() > this.SafetyPrefixDepth)
+            if (this.PrefixStrategy.GetExploredSteps() > this.SafetyPrefixDepth)
             {
-                return this.Strategy2.GetNextIntegerChoice(maxValue, out next);
+                return this.SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
             }
             else
             {
-                return this.Strategy1.GetNextIntegerChoice(maxValue, out next);
+                return this.PrefixStrategy.GetNextIntegerChoice(maxValue, out next);
             }
         }
 
@@ -128,13 +126,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Explored steps</returns>
         public int GetExploredSteps()
         {
-            if (this.Strategy1.GetExploredSteps() > this.SafetyPrefixDepth)
+            if (this.PrefixStrategy.GetExploredSteps() > this.SafetyPrefixDepth)
             {
-                return this.Strategy2.GetExploredSteps() + this.SafetyPrefixDepth;
+                return this.SuffixStrategy.GetExploredSteps() + this.SafetyPrefixDepth;
             }
             else
             {
-                return this.Strategy1.GetExploredSteps();
+                return this.PrefixStrategy.GetExploredSteps();
             }
         }
 
@@ -145,7 +143,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            return this.Strategy2.HasReachedMaxSchedulingSteps();
+            return this.SuffixStrategy.HasReachedMaxSchedulingSteps();
         }
 
         /// <summary>
@@ -154,7 +152,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasFinished()
         {
-            return this.Strategy2.HasFinished() && this.Strategy1.HasFinished();
+            return this.SuffixStrategy.HasFinished() && this.PrefixStrategy.HasFinished();
         }
 
         /// <summary>
@@ -163,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
-            return this.Strategy2.IsFair();
+            return this.SuffixStrategy.IsFair();
         }
 
         /// <summary>
@@ -171,8 +169,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
-            this.Strategy1.ConfigureNextIteration();
-            this.Strategy2.ConfigureNextIteration();
+            this.PrefixStrategy.ConfigureNextIteration();
+            this.SuffixStrategy.ConfigureNextIteration();
         }
 
         /// <summary>
@@ -180,8 +178,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.Strategy1.Reset();
-            this.Strategy2.Reset();
+            this.PrefixStrategy.Reset();
+            this.SuffixStrategy.Reset();
         }
 
         /// <summary>
@@ -190,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return string.Format("Combo[{0},{1}]", Strategy1.GetDescription(), Strategy2.GetDescription());
+            return string.Format("Combo[{0},{1}]", PrefixStrategy.GetDescription(), SuffixStrategy.GetDescription());
         }
 
         #endregion
