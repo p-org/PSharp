@@ -154,16 +154,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Tries to emit the testing coverage report, if any.
-        /// </summary>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
-        public virtual void TryEmitCoverageReport(string directory, string file)
-        {
-            // No-op, must be implemented in subclass.
-        }
-
-        /// <summary>
         /// Registers a callback to invoke at the end
         /// of each iteration. The callback takes as
         /// a parameter an integer representing the
@@ -252,7 +242,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource = new CancellationTokenSource();
 
-            this.TestReport = new TestReport();
+            this.TestReport = new TestReport(this.ProgramName);
             this.PrintGuard = 1;
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)
@@ -403,15 +393,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (this.CancellationTokenSource.IsCancellationRequested)
                 {
-                    if (this.Configuration.TestingProcessId >= 0)
-                    {
-                        IO.Error.PrintLine("... Task " +
-                            $"{this.Configuration.TestingProcessId} timed out.");
-                    }
-                    else
-                    {
-                        IO.Error.PrintLine("... Timed out.");
-                    }
+                    IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} timed out.");
                 }
             }
             catch (AggregateException aex)

@@ -29,6 +29,12 @@ namespace Microsoft.PSharp.TestingServices
         #region properties
 
         /// <summary>
+        /// Name of the program being tested.
+        /// </summary>
+        [DataMember]
+        public string ProgramName { get; internal set; }
+
+        /// <summary>
         /// Information regarding code coverage.
         /// </summary>
         [DataMember]
@@ -107,8 +113,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructor.
         /// </summary>
-        public TestReport()
+        /// <param name="programName">Name of the program being tested</param>
+        public TestReport(string programName)
         {
+            this.ProgramName = programName;
+
             this.CoverageInfo = new CoverageInfo();
 
             this.NumOfExploredFairSchedules = 0;
@@ -133,8 +142,15 @@ namespace Microsoft.PSharp.TestingServices
         /// test report. This is not thread-safe.
         /// </summary>
         /// <param name="testReport">TestReport</param>
-        public void Merge(TestReport testReport)
+        /// <returns>True if merged successfully</returns>
+        public bool Merge(TestReport testReport)
         {
+            if (!this.ProgramName.Equals(testReport.ProgramName))
+            {
+                // Only merge test reports that have the same program name.
+                return false;
+            }
+
             this.CoverageInfo.Merge(testReport.CoverageInfo);
 
             this.NumOfFoundBugs += testReport.NumOfFoundBugs;
@@ -159,6 +175,104 @@ namespace Microsoft.PSharp.TestingServices
             this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
             this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
             this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the testing report as a string, given a configuration and an optional prefix.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="prefix">Prefix</param>
+        /// <returns>Textrt</returns>
+        public string GetText(Configuration configuration, string prefix = "")
+        {
+            StringBuilder report = new StringBuilder();
+
+            report.AppendFormat("{0} Testing statistics:", prefix);
+
+            report.AppendLine();
+            report.AppendFormat("{0} Found {1} bug{2}.",
+                prefix.Equals("...") ? "....." : prefix, this.NumOfFoundBugs,
+                this.NumOfFoundBugs == 1 ? "" : "s");
+
+            report.AppendLine();
+            report.AppendFormat("{0} Scheduling statistics:", prefix);
+
+            int totalExploredSchedules = this.NumOfExploredFairSchedules +
+                this.NumOfExploredUnfairSchedules;
+
+            report.AppendLine();
+            report.AppendFormat("{0} Explored {1} schedule{2}: {3} fair and {4} unfair.",
+                prefix.Equals("...") ? "....." : prefix,
+                totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s",
+                this.NumOfExploredFairSchedules,
+                this.NumOfExploredUnfairSchedules);
+
+            if (totalExploredSchedules > 0 &&
+                this.NumOfFoundBugs > 0)
+            {
+                report.AppendLine();
+                report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
+                    prefix.Equals("...") ? "....." : prefix,
+                    ((double)this.NumOfFoundBugs / totalExploredSchedules) * 100);
+            }
+
+            if (this.NumOfExploredFairSchedules > 0)
+            {
+                if (this.TotalExploredFairSteps > 0)
+                {
+                    int averageExploredFairSteps = this.TotalExploredFairSteps /
+                        this.NumOfExploredFairSchedules;
+
+                    report.AppendLine();
+                    report.AppendFormat("{0} Number of scheduling points in fair terminating schedules: " +
+                        "{1} (min), {2} (avg), {3} (max).",
+                        prefix.Equals("...") ? "....." : prefix,
+                        this.MinExploredFairSteps < 0 ? 0 : this.MinExploredFairSteps,
+                        averageExploredFairSteps,
+                        this.MaxExploredFairSteps < 0 ? 0 : this.MaxExploredFairSteps);
+                }
+
+                if (configuration.MaxUnfairSchedulingSteps > 0 &&
+                    this.MaxUnfairStepsHitInFairTests > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Exceeded the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        configuration.MaxUnfairSchedulingSteps,
+                        ((double)this.MaxUnfairStepsHitInFairTests /
+                        (double)this.NumOfExploredFairSchedules) * 100);
+                }
+
+                if (configuration.UserExplicitlySetMaxFairSchedulingSteps &&
+                    configuration.MaxFairSchedulingSteps > 0 &&
+                    this.MaxFairStepsHitInFairTests > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        configuration.MaxFairSchedulingSteps,
+                        ((double)this.MaxFairStepsHitInFairTests /
+                        (double)this.NumOfExploredFairSchedules) * 100);
+                }
+            }
+
+            if (this.NumOfExploredUnfairSchedules > 0)
+            {
+                if (configuration.MaxUnfairSchedulingSteps > 0 &&
+                    this.MaxUnfairStepsHitInUnfairTests > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the unfair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        configuration.MaxUnfairSchedulingSteps,
+                        ((double)this.MaxUnfairStepsHitInUnfairTests /
+                        (double)this.NumOfExploredUnfairSchedules) * 100);
+                }
+            }
+
+            return report.ToString();
         }
 
         #endregion

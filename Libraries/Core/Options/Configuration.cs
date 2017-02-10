@@ -182,7 +182,17 @@ namespace Microsoft.PSharp.Utilities
         /// Number of parallel bug-finding tasks.
         /// By default it is 1 task.
         /// </summary>
-        public int ParallelBugFindingTasks;
+        public uint ParallelBugFindingTasks;
+
+        /// <summary>
+        /// Runs this process as a parallel bug-finding task.
+        /// </summary>
+        public bool RunAsParallelBugFindingTask;
+
+        /// <summary>
+        /// The testing scheduler unique endpoint.
+        /// </summary>
+        internal string TestingSchedulerEndPoint;
 
         /// <summary>
         /// The testing scheduler process id.
@@ -192,7 +202,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// The unique testing process id.
         /// </summary>
-        public int TestingProcessId;
+        public uint TestingProcessId;
 
         /// <summary>
         /// If true, then the P# tester will consider an execution
@@ -414,8 +424,10 @@ namespace Microsoft.PSharp.Utilities
             this.MaxUnfairSchedulingSteps = 0;
             this.UserExplicitlySetMaxFairSchedulingSteps = false;
             this.ParallelBugFindingTasks = 1;
+            this.RunAsParallelBugFindingTask = false;
+            this.TestingSchedulerEndPoint = Guid.NewGuid().ToString();
             this.TestingSchedulerProcessId = -1;
-            this.TestingProcessId = -1;
+            this.TestingProcessId = 0;
             this.ConsiderDepthBoundHitAsBug = false;
             this.PrioritySwitchBound = 0;
             this.DelayBound = 0;

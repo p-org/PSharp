@@ -57,13 +57,6 @@ namespace Microsoft.PSharp.TestingServices
         void TryEmitTraces(string directory, string file);
 
         /// <summary>
-        /// Tries to emit the testing coverage report, if any.
-        /// </summary>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
-        void TryEmitCoverageReport(string directory, string file);
-
-        /// <summary>
         /// Registers a callback to invoke at the end
         /// of each iteration. The callback takes as
         /// a parameter an integer representing the
