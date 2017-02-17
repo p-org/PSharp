@@ -325,7 +325,7 @@ namespace PSharpBatchTester
             // so the shared access signature becomes valid immediately
             SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy
             {
-                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(ContainerExpiryHours),
+                SharedAccessExpiryTime = (ContainerExpiryHours < 0)?DateTime.MaxValue.ToUniversalTime():DateTime.UtcNow.AddHours(ContainerExpiryHours),
                 Permissions = SharedAccessBlobPermissions.Read
             };
 
@@ -381,7 +381,7 @@ namespace PSharpBatchTester
             // so the shared access signature becomes valid immediately
             SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy
             {
-                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(ContainerExpiryHours),
+                SharedAccessExpiryTime = (ContainerExpiryHours < 0)?DateTime.MaxValue.ToUniversalTime():DateTime.UtcNow.AddHours(ContainerExpiryHours),
                 Permissions = permissions
             };
 

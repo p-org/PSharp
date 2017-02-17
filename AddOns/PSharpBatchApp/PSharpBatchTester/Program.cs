@@ -122,7 +122,7 @@ namespace PSharpBatchTester
             await batchOperations.MonitorTasks
                 (
                     jobId: JobId,
-                    timeout: TimeSpan.FromHours(1)
+                    timeout: TimeSpan.FromHours(config.TaskWaitHours)
                 );
 
             await blobOperations.DownloadOutputFiles(config.OutputFolderPath);

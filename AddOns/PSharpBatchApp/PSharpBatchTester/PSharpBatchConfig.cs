@@ -40,6 +40,9 @@ namespace PSharpBatchTester
         //Output
         public string OutputFolderPath;
 
+        //Task Wait Time
+        public int TaskWaitHours;
+
 
         public void XMLSerialize(Stream writeStream)
         {

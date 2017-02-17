@@ -55,10 +55,26 @@ namespace PSharpBatchTester
         public async Task<bool> CheckIfPoolExists(string poolId)
         {
             //Check if pool exists
-            var pool = await batchClient.PoolOperations.GetPoolAsync(poolId);
-            if (null != pool)
+            try
             {
-                return true;
+                var pool = await batchClient.PoolOperations.GetPoolAsync(poolId);
+                if (null != pool)
+                {
+                    return true;
+                }
+            }
+            catch (BatchException be)
+            {
+                // Swallow the specific error code PoolExists since that is expected if the pool already exists
+                if (be.RequestInformation?.BatchError != null && be.RequestInformation.BatchError.Code == BatchErrorCodeStrings.PoolNotFound)
+                {
+                    //Pool exists
+                    return false;
+                }
+                else
+                {
+                    throw; // Any other exception is unexpected
+                }
             }
             return false;
         }
