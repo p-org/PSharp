@@ -123,14 +123,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>rmdir $(TargetDir)\Binaries /s /q
-rmdir $(TargetDir)\TaskApplication /s /q
-rmdir $(TargetDir)\PSharpBatchJobManager /s /q</PreBuildEvent>
+    <PreBuildEvent>rmdir $(TargetDir)\PSharpBatchJobManager /s /q</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /E/y "$(ProjectDir)\Binaries" "$(TargetDir)\Binaries\*"
-xcopy /E/y "$(ProjectDir)\TaskApplication" "$(TargetDir)\TaskApplication\*"
-xcopy /E/y "$(ProjectDir)\PSharpBatchJobManager" "$(TargetDir)\PSharpBatchJobManager\*"</PostBuildEvent>
+    <PostBuildEvent>xcopy /E/y "$(ProjectDir)\PSharpBatchJobManager" "$(TargetDir)\PSharpBatchJobManager\*"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

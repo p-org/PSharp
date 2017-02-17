@@ -15,7 +15,7 @@ namespace PSharpBatchTester
         public static string InputContainerNameFormat = "input{0}{1}"; //{0}:PoolID. {1}:JobID
         public static string OutputContainerNameFormat = "output{0}{1}"; //{0}:PoolID. {1}:JobID
         public static string JobManagerContainerNameFormat = "jobmanager{0}{1}"; //{0}:PoolID. {1}:JobID
-        public static int BlobContainerSasExpiryHours = 10;
+        //public static int BlobContainerSasExpiryHours = 10;
 
 
         //Batch Constats : includes Pools, Nodes, Jobs and Tasks

@@ -12,20 +12,6 @@ namespace PSharpBatchTester
 {
     class Program
     {
-        #region commented
-        //To be converted to a config
-        // Batch account credentials
-        //private const string BatchAccountName = "psharpadg";
-        //private const string BatchAccountKey = "oqI+hNh3GWv+zdF/Z7c/xPmv/HHkDP56IT6zO94mEbs031MwOGhyYbYaqFPBEiv6lzHY4fFJnwArBP/2Da1s1g==";
-        //private const string BatchAccountUrl = "https://psharpadg.westus.batch.azure.com";
-        // Storage account credentials
-        //private const string StorageAccountName = "psharpadg";
-        //private const string StorageAccountKey = "mNYcMt9vcDJt6ACsVNgsG4y6xS1k1Jry0Mtl9q4JfneCdvSptwEZy3vwQOSon/TbPOPgRUTGK52VW14IJmT+UQ==";
-
-        //Job and pool details
-        //private const string PoolId = "PSharpBatchPool";
-        //private const string JobDefaultId = "PSharpBatchJob";
-        #endregion commented
 
         private static string JobId;
 
@@ -73,7 +59,7 @@ namespace PSharpBatchTester
             BatchOperations batchOperations = new BatchOperations(config.BatchAccountName, config.BatchAccountKey, config.BatchAccountUrl);
 
             //Creating BlobOperations
-            BlobOperations blobOperations = new BlobOperations(config.StorageAccountName, config.StorageAccountKey);
+            BlobOperations blobOperations = new BlobOperations(config.StorageAccountName, config.StorageAccountKey, config.BlobContainerSasExpiryHours);
 
 
             //Pool operations
@@ -159,34 +145,6 @@ namespace PSharpBatchTester
                 await blobOperations.DeleteOutputContainer();
             }
         }
-
-        #region randomcode
-        //public static void randomCode()
-        //{
-        //    //////test code
-        //    //PSharpBatchConfig config = new PSharpBatchConfig
-        //    //{
-        //    //    BatchAccountKey = "psharpadg",
-        //    //    BatchAccountName = "oqI+hNh3GWv+zdF/Z7c/xPmv/HHkDP56IT6zO94mEbs031MwOGhyYbYaqFPBEiv6lzHY4fFJnwArBP/2Da1s1g==",
-        //    //    BatchAccountUrl = "https://psharpadg.westus.batch.azure.com",
-        //    //    BlobContainerSasExpiryHours = 2,
-        //    //    JobDefaultId = "PSharpBatchJob",
-        //    //    MaxIterationPerTask = 1000,
-        //    //    PoolId = "PSharpBatchPool",
-        //    //    PSharpBinariesFolderPath = @"C:\Users\t-prvai\Desktop\TFS\priyan\PSharpBatch\PSharpBatchTester\Binaries",
-        //    //    StorageAccountKey = "mNYcMt9vcDJt6ACsVNgsG4y6xS1k1Jry0Mtl9q4JfneCdvSptwEZy3vwQOSon/TbPOPgRUTGK52VW14IJmT+UQ==",
-        //    //    StorageAccountName = "psharpadg",
-        //    //    TestApplicationPath = @"C:\Users\t-prvai\Desktop\TFS\priyan\PSharpBatch\PSharpBatchTester\TaskApplication\RaceTest.exe",
-        //    //    TotalIterations = 2225,
-        //    //    NumberOfNodesInPool = 3,
-        //    //    TaskDefaultId = "PSharpTask"
-        //    //};
-        //    //using (FileStream fs = new FileStream("PSharpBatch.config", FileMode.Create))
-        //    //{
-        //    //    config.XMLSerialize(fs);
-        //    //    fs.Close();
-        //    //}
-        //}
-        #endregion
+        
     }
 }

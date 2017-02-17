@@ -31,10 +31,14 @@ namespace PSharpBatchTester
         string outputContainerName;
         string jobManagerContainerName;
 
-        public BlobOperations(string StorageAccountName, string StorageAccountKey)
+        //Other constants
+        int ContainerExpiryHours;
+
+        public BlobOperations(string StorageAccountName, string StorageAccountKey, int ContainerExpiryHours)
         {
             this.StorageAccountName = StorageAccountName;
             this.StorageAccountKey = StorageAccountKey;
+            this.ContainerExpiryHours = ContainerExpiryHours;
             Connect();
         }
 
@@ -321,7 +325,7 @@ namespace PSharpBatchTester
             // so the shared access signature becomes valid immediately
             SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy
             {
-                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(Constants.BlobContainerSasExpiryHours),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(ContainerExpiryHours),
                 Permissions = SharedAccessBlobPermissions.Read
             };
 
@@ -377,7 +381,7 @@ namespace PSharpBatchTester
             // so the shared access signature becomes valid immediately
             SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy
             {
-                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(Constants.BlobContainerSasExpiryHours),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(ContainerExpiryHours),
                 Permissions = permissions
             };
 
