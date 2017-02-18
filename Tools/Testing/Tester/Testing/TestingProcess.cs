@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>TestReport</returns>
         TestReport ITestingProcess.GetTestReport()
         {
-            return this.TestingEngine.TestReport;
+            return this.TestingEngine.TestReport.Clone();
         }
 
         /// <summary>
@@ -256,7 +256,7 @@ namespace Microsoft.PSharp.TestingServices
                     CreateChannel(binding, endpoint);
             }
 
-            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport,
+            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport.Clone(),
                 this.Configuration.TestingProcessId);
         }
 

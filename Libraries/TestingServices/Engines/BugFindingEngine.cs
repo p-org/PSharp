@@ -253,8 +253,7 @@ namespace Microsoft.PSharp.TestingServices
                         IO.PrintLine($"..... Iteration #{i + 1}");
                     }
 
-                    var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                        base.Strategy, base.TestReport.CoverageInfo);
+                    var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
 
                     StringWriter sw = null;
                     if (base.Configuration.RedirectTestConsoleOutput &&
@@ -334,27 +333,17 @@ namespace Microsoft.PSharp.TestingServices
                         runtime.LivenessChecker.CheckLivenessAtTermination();
                     }
 
+                    this.GatherIterationStatistics(runtime);
+
                     if (base.HasRedirectedConsoleOutput)
                     {
                         base.ResetOutput();
                     }
-                    
-                    this.GatherIterationStatistics(runtime);
 
-                    if (runtime.BugFinder.BugFound)
+                    if (base.Configuration.PerformFullExploration && runtime.BugFinder.BugFound)
                     {
-                        base.TestReport.NumOfFoundBugs++;
-                        base.TestReport.BugReport = runtime.BugFinder.BugReport;
-
-                        if (base.Configuration.PerformFullExploration)
-                        {
-                            IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
-                                $"[task-{this.Configuration.TestingProcessId}]");
-                        }
-                    }
-                    else
-                    {
-                        base.TestReport.BugReport = "";
+                        IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                            $"[task-{this.Configuration.TestingProcessId}]");
                     }
 
                     if (base.Strategy.HasFinished())
@@ -418,50 +407,14 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Gathers the exploration strategy statistics for
-        /// the current iteration.
+        /// the latest testing iteration.
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
         private void GatherIterationStatistics(PSharpBugFindingRuntime runtime)
         {
-            if (base.Strategy.IsFair())
-            {
-                base.TestReport.NumOfExploredFairSchedules++;
-
-                if (base.Strategy.HasReachedMaxSchedulingSteps())
-                {
-                    base.TestReport.MaxFairStepsHitInFairTests++;
-                }
-
-                if (runtime.BugFinder.ExploredSteps >= base.Configuration.MaxUnfairSchedulingSteps)
-                {
-                    base.TestReport.MaxUnfairStepsHitInFairTests++;
-                }
-
-                if (!base.Strategy.HasReachedMaxSchedulingSteps())
-                {
-                    base.TestReport.TotalExploredFairSteps += runtime.BugFinder.ExploredSteps;
-
-                    if (base.TestReport.MinExploredFairSteps < 0 ||
-                        base.TestReport.MinExploredFairSteps > runtime.BugFinder.ExploredSteps)
-                    {
-                        base.TestReport.MinExploredFairSteps = runtime.BugFinder.ExploredSteps;
-                    }
-
-                    if (base.TestReport.MaxExploredFairSteps < runtime.BugFinder.ExploredSteps)
-                    {
-                        base.TestReport.MaxExploredFairSteps = runtime.BugFinder.ExploredSteps;
-                    }
-                }
-            }
-            else
-            {
-                base.TestReport.NumOfExploredUnfairSchedules++;
-
-                if (base.Strategy.HasReachedMaxSchedulingSteps())
-                {
-                    base.TestReport.MaxUnfairStepsHitInUnfairTests++;
-                }
-            }
+            TestReport report = runtime.BugFinder.GetReport();
+            report.CoverageInfo.Merge(runtime.CoverageInfo);
+            this.TestReport.Merge(report);
         }
 
         /// <summary>

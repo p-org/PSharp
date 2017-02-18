@@ -106,6 +106,11 @@ namespace Microsoft.PSharp.TestingServices
         [DataMember]
         public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
+        /// <summary>
+        /// Lock for the test report.
+        /// </summary>
+        private object Lock;
+
         #endregion
 
         #region constructors
@@ -131,6 +136,8 @@ namespace Microsoft.PSharp.TestingServices
             this.MaxFairStepsHitInFairTests = 0;
             this.MaxUnfairStepsHitInFairTests = 0;
             this.MaxUnfairStepsHitInUnfairTests = 0;
+
+            this.Lock = new object();
         }
 
         #endregion
@@ -139,7 +146,7 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Merges the information from the specified
-        /// test report. This is not thread-safe.
+        /// test report.
         /// </summary>
         /// <param name="testReport">TestReport</param>
         /// <returns>True if merged successfully</returns>
@@ -151,30 +158,33 @@ namespace Microsoft.PSharp.TestingServices
                 return false;
             }
 
-            this.CoverageInfo.Merge(testReport.CoverageInfo);
-
-            this.NumOfFoundBugs += testReport.NumOfFoundBugs;
-
-            this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
-            this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
-
-            if (testReport.MinExploredFairSteps >= 0 &&
-                (this.MinExploredFairSteps < 0 ||
-                this.MinExploredFairSteps > testReport.MinExploredFairSteps))
+            lock (this.Lock)
             {
-                this.MinExploredFairSteps = testReport.MinExploredFairSteps;
+                this.CoverageInfo.Merge(testReport.CoverageInfo);
+
+                this.NumOfFoundBugs += testReport.NumOfFoundBugs;
+
+                this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
+                this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
+
+                if (testReport.MinExploredFairSteps >= 0 &&
+                    (this.MinExploredFairSteps < 0 ||
+                    this.MinExploredFairSteps > testReport.MinExploredFairSteps))
+                {
+                    this.MinExploredFairSteps = testReport.MinExploredFairSteps;
+                }
+
+                if (this.MaxExploredFairSteps < testReport.MaxExploredFairSteps)
+                {
+                    this.MaxExploredFairSteps = testReport.MaxExploredFairSteps;
+                }
+
+                this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
+
+                this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
+                this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
+                this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
             }
-
-            if (this.MaxExploredFairSteps < testReport.MaxExploredFairSteps)
-            {
-                this.MaxExploredFairSteps = testReport.MaxExploredFairSteps;
-            }
-
-            this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
-
-            this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
-            this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
-            this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
 
             return true;
         }
@@ -273,6 +283,24 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return report.ToString();
+        }
+
+        /// <summary>
+        /// Clones the test report.
+        /// </summary>
+        /// <returns>TestReport</returns>
+        internal TestReport Clone()
+        {
+            var serializer = new DataContractSerializer(typeof(TestReport), null, int.MaxValue, false, true, null);
+            using (var ms = new System.IO.MemoryStream())
+            {
+                lock (this.Lock)
+                {
+                    serializer.WriteObject(ms, this);
+                    ms.Position = 0;
+                    return (TestReport)serializer.ReadObject(ms);
+                }
+            }
         }
 
         #endregion
