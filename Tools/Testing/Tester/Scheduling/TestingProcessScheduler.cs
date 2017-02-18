@@ -202,11 +202,11 @@ namespace Microsoft.PSharp.TestingServices
 
 			this.Profiler.StopMeasuringExecutionTime();
 
-            // Merges and emits the test report.
-            this.EmitTestReport();
-
             // Closes the remote notification listener.
             this.CloseNotificationListener();
+
+            // Merges and emits the test report.
+            this.EmitTestReport();
         }
 
         #endregion
@@ -423,7 +423,7 @@ namespace Microsoft.PSharp.TestingServices
             else
             {
                 IO.Debug($"... Unable to merge test report from task '{processId}'. " +
-                    " Test report is already merged.");
+                    " Report is already merged.");
             }
         }
 
