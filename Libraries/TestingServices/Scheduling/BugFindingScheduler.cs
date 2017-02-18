@@ -493,11 +493,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.BugFound)
             {
                 report.NumOfFoundBugs++;
-                report.BugReport = this.BugReport;
-            }
-            else
-            {
-                report.BugReport = "";
+                report.BugReports.Add(this.BugReport);
             }
 
             if (this.Strategy.IsFair())

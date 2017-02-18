@@ -57,7 +57,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.PopFailTest+Program(1)' popped with no matching push.";
-            Assert.AreEqual(bugReport, engine.TestReport.BugReport);
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
     }
 }

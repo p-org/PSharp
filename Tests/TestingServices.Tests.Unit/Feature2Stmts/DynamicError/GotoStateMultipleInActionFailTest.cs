@@ -105,9 +105,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-            Assert.AreEqual("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
-                "has called multiple raise/goto/pop in the same action.",
-                engine.TestReport.BugReport);
+
+            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
+                "has called multiple raise/goto/pop in the same action.";
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
 
         [TestMethod]
@@ -121,10 +123,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 configuration, TestProgram.Execute2);
             engine.Run();
 
-            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-            Assert.AreEqual("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
-                "has called multiple raise/goto/pop in the same action.",
-                engine.TestReport.BugReport);
+            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
+                "has called multiple raise/goto/pop in the same action.";
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
 
         [TestMethod]
@@ -139,9 +141,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-            Assert.AreEqual("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
-                "cannot call API 'Send' after calling raise/goto/pop in the same action.",
-                engine.TestReport.BugReport);
+
+            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
+                "cannot call API 'Send' after calling raise/goto/pop in the same action.";
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
 
         [TestMethod]
@@ -156,9 +160,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-            Assert.AreEqual("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
-                "has called raise/goto/pop inside an OnExit method.",
-                engine.TestReport.BugReport);
+
+            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program(1)' " +
+                "has called raise/goto/pop inside an OnExit method.";
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
 
     }

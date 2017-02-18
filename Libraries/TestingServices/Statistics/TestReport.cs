@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -59,10 +60,10 @@ namespace Microsoft.PSharp.TestingServices
         public int NumOfFoundBugs { get; internal set; }
 
         /// <summary>
-        /// The latest bug report, if any.
+        /// List of unique bug reports.
         /// </summary>
         [DataMember]
-        public string BugReport { get; internal set; }
+        public HashSet<string> BugReports { get; internal set; }
 
         /// <summary>
         /// The min explored scheduling steps in average,
@@ -128,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices
             this.NumOfExploredFairSchedules = 0;
             this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
-            this.BugReport = "";
+            this.BugReports = new HashSet<string>();
 
             this.MinExploredFairSteps = -1;
             this.MaxExploredFairSteps = -1;
@@ -163,6 +164,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.CoverageInfo.Merge(testReport.CoverageInfo);
 
                 this.NumOfFoundBugs += testReport.NumOfFoundBugs;
+
+                this.BugReports.UnionWith(testReport.BugReports);
 
                 this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
                 this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
