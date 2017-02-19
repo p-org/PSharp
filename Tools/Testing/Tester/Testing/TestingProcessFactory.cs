@@ -90,6 +90,10 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/sch:{configuration.SchedulingStrategy}:" +
                     $"{configuration.PrioritySwitchBound} ");
             }
+            else if (configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
+            {
+                arguments.Append($"/sch:probabilistic:{configuration.CoinFlipBound} ");
+            }
             else if (configuration.SchedulingStrategy == SchedulingStrategy.Random ||
                 configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
