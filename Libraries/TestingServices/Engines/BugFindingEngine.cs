@@ -318,8 +318,9 @@ namespace Microsoft.PSharp.TestingServices
                     // iteration starts.
                     this.CleanUpRuntime();
 
-                    base.Configuration.raceDetectionCallback?.Invoke();
-                    if (base.Configuration.raceFound)
+                    // TODO: Clean this up.
+                    base.Configuration.RaceDetectionCallback?.Invoke();
+                    if (base.Configuration.RaceFound)
                     {
                         string message = IO.Format("Found a race");
                         runtime.BugFinder.NotifyAssertionFailure(message, false);
