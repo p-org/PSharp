@@ -16,11 +16,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 
-using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -46,22 +44,23 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Map from testing process ids to testing processes.
         /// </summary>
-        private Dictionary<int, Process> TestingProcesses;
+        private Dictionary<uint, Process> TestingProcesses;
 
         /// <summary>
         /// Map from testing process ids to testing process channels.
         /// </summary>
-        private Dictionary<int, ITestingProcess> TestingProcessChannels;
+        private Dictionary<uint, ITestingProcess> TestingProcessChannels;
 
         /// <summary>
         /// The test reports per process.
         /// </summary>
-        private ConcurrentDictionary<int, TestReport> TestReports;
+        private ConcurrentDictionary<uint, TestReport> TestReports;
 
         /// <summary>
-        /// Number of terminated testing processes.
+        /// The global test report, which contains merged information
+        /// from the test report of each testing process.
         /// </summary>
-        private int NumOfTerminatedTestingProcesses;
+        private TestReport GlobalTestReport;
 
         /// <summary>
         /// The testing profiler.
@@ -75,9 +74,37 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// The process id of the process that
-        /// discovered a bug, else -1.
+        /// discovered a bug, else null.
         /// </summary>
-        private int BugFoundByProcess;
+        private uint? BugFoundByProcess;
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        private TestingProcessScheduler(Configuration configuration)
+        {
+            this.TestingProcesses = new Dictionary<uint, Process>();
+            this.TestingProcessChannels = new Dictionary<uint, ITestingProcess>();
+            this.TestReports = new ConcurrentDictionary<uint, TestReport>();
+            this.GlobalTestReport = new TestReport(configuration);
+            this.Profiler = new Profiler();
+            this.SchedulerLock = new object();
+            this.BugFoundByProcess = null;
+
+            if (configuration.ParallelBugFindingTasks > 1)
+            {
+                configuration.Verbose = 1;
+                configuration.PrintTrace = false;
+                configuration.EnableDataRaceDetection = false;
+            }
+
+            this.Configuration = configuration;
+        }
 
         #endregion
 
@@ -89,13 +116,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>Boolean value</returns>
-        void ITestingProcessScheduler.NotifyBugFound(int processId)
+        void ITestingProcessScheduler.NotifyBugFound(uint processId)
         {
             lock (this.SchedulerLock)
             {
-                if (!this.Configuration.PerformFullExploration && this.BugFoundByProcess < 0)
+                if (!this.Configuration.PerformFullExploration && this.BugFoundByProcess == null)
                 {
-                    IO.PrintLine($"... Testing task '{processId}' " + "found a bug.");
+                    IO.PrintLine($"... Task {processId} found a bug.");
                     this.BugFoundByProcess = processId;
 
                     foreach (var testingProcess in this.TestingProcesses)
@@ -107,7 +134,7 @@ namespace Microsoft.PSharp.TestingServices
                             TestReport testReport = this.GetTestReport(testingProcess.Key);
                             if (testReport != null)
                             {
-                                this.TestReports.TryAdd(testingProcess.Key, testReport);
+                                this.MergeTestReport(testReport, testingProcess.Key);
                             }
 
                             try
@@ -127,58 +154,15 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Sets the test data from the specified process.
+        /// Sets the test report from the specified process.
         /// </summary>
         /// <param name="testReport">TestReport</param>
         /// <param name="processId">Unique process id</param>
-        void ITestingProcessScheduler.SetTestData(TestReport testReport, int processId)
+        void ITestingProcessScheduler.SetTestReport(TestReport testReport, uint processId)
         {
             lock (this.SchedulerLock)
             {
-                this.TestReports.TryAdd(processId, testReport);
-            }
-        }
-
-        /// <summary>
-        /// Gets the global test data for the specified process.
-        /// </summary>
-        /// <param name="processId">Unique process id</param>
-        /// <returns>List of CoverageInfo</returns>
-        IList<TestReport> ITestingProcessScheduler.GetGlobalTestData(int processId)
-        {
-            var globalTestReport = new List<TestReport>();
-
-            lock (this.SchedulerLock)
-            {
-                globalTestReport.AddRange(this.TestReports.Where(
-                    val => val.Key != processId).Select(val => val.Value));
-            }
-
-            return globalTestReport;
-        }
-
-        /// <summary>
-        /// Checks if the specified process should emit the test report.
-        /// </summary>
-        /// <param name="processId">Unique process id</param>
-        /// <returns>Boolean value</returns>
-        bool ITestingProcessScheduler.ShouldEmitTestReport(int processId)
-        {
-            lock (this.SchedulerLock)
-            {
-                this.NumOfTerminatedTestingProcesses++;
-
-                if (this.BugFoundByProcess == processId)
-                {
-                    return true;
-                }
-
-                if (this.NumOfTerminatedTestingProcesses == this.TestingProcesses.Count)
-                {
-                    return true;
-                }
-
-                return false;
+                this.MergeTestReport(testReport, processId);
             }
         }
 
@@ -202,29 +186,61 @@ namespace Microsoft.PSharp.TestingServices
         internal void Run()
         {
             // Opens the remote notification listener.
-            // Requires administrator access.
             this.OpenNotificationListener();
 
-            // Creates the user specified number of testing processes.
-            for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
+			this.Profiler.StartMeasuringExecutionTime();
+
+			if (this.Configuration.ParallelBugFindingTasks > 1)
+			{
+                this.CreateParallelTestingProcesses();
+                this.RunParallelTestingProcesses();
+            }
+			else
+			{
+                this.CreateAndRunInMemoryTestingProcess();
+            }
+
+			this.Profiler.StopMeasuringExecutionTime();
+
+            // Closes the remote notification listener.
+            this.CloseNotificationListener();
+
+            // Merges and emits the test report.
+            this.EmitTestReport();
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Creates the user specified number of parallel testing processes.
+        /// </summary>
+        private void CreateParallelTestingProcesses()
+        {
+            for (uint testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
                 this.TestingProcesses.Add(testId, TestingProcessFactory.Create(testId, this.Configuration));
                 this.TestingProcessChannels.Add(testId, this.CreateTestingProcessChannel(testId));
             }
 
             IO.PrintLine($"... Created '{this.Configuration.ParallelBugFindingTasks}' " +
-                "parallel testing tasks.");
+                "testing tasks.");
+        }
 
-            this.Profiler.StartMeasuringExecutionTime();
-
+        /// <summary>
+        /// Runs the parallel testing processes.
+        /// </summary>
+        private void RunParallelTestingProcesses()
+        {
             // Starts the testing processes.
-            for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
+            for (uint testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
                 this.TestingProcesses[testId].Start();
             }
 
             // Waits the testing processes to exit.
-            for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
+            for (uint testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
                 try
                 {
@@ -236,50 +252,43 @@ namespace Microsoft.PSharp.TestingServices
                         "terminate. Task has already terminated.");
                 }
             }
-
-            this.Profiler.StopMeasuringExecutionTime();
-
-            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
-
-            // Closes the remote notification listener.
-            this.CloseNotificationListener();
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Creates and runs an in-memory testing process.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        private TestingProcessScheduler(Configuration configuration)
+        private void CreateAndRunInMemoryTestingProcess()
         {
-            this.TestingProcesses = new Dictionary<int, Process>();
-            this.TestingProcessChannels = new Dictionary<int, ITestingProcess>();
-            this.TestReports = new ConcurrentDictionary<int, TestReport>();
-            this.NumOfTerminatedTestingProcesses = 0;
-            this.Profiler = new Profiler();
-            this.SchedulerLock = new object();
-            this.BugFoundByProcess = -1;
+            TestingProcess testingProcess = TestingProcess.Create(this.Configuration);
+            this.TestingProcessChannels.Add(0, testingProcess);
 
-            configuration.Verbose = 1;
-            configuration.PrintTrace = false;
-            configuration.EnableDataRaceDetection = false;
+            IO.PrintLine($"... Created '1' testing task.");
 
-            this.Configuration = configuration;
+            // Starts the testing process.
+            testingProcess.Start();
+
+            // Get and merge the test report.
+            TestReport testReport = this.GetTestReport(0);
+            if (testReport != null)
+            {
+                this.MergeTestReport(testReport, 0);
+            }
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Opens the remote notification listener.
+        /// Opens the remote notification listener. If there are
+        /// less than two parallel testing processes, then this
+        /// operation does nothing.
         /// </summary>
         private void OpenNotificationListener()
         {
-            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/");
+            if (this.Configuration.ParallelBugFindingTasks < 2)
+            {
+                return;
+            }
+
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/" +
+                $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
@@ -303,11 +312,14 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Closes the remote notification listener.
+        /// Closes the remote notification listener. If there are
+        /// less than two parallel testing processes, then this
+        /// operation does nothing.
         /// </summary>
         private void CloseNotificationListener()
         {
-            if (this.NotificationService.State == CommunicationState.Opened)
+            if (this.Configuration.ParallelBugFindingTasks > 1 &&
+                this.NotificationService.State == CommunicationState.Opened)
             {
                 try
                 {
@@ -336,9 +348,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>ITestingProcess</returns>
-        private ITestingProcess CreateTestingProcessChannel(int processId)
+        private ITestingProcess CreateTestingProcessChannel(uint processId)
         {
-            Uri address = new Uri("net.pipe://localhost/psharp/testing/process/" + processId + "/");
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/process/" +
+                $"{processId}/{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
@@ -352,7 +365,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Stops the testing process.
         /// </summary>
         /// <param name="processId">Unique process id</param>
-        private void StopTestingProcess(int processId)
+        private void StopTestingProcess(uint processId)
         {
             try
             {
@@ -371,7 +384,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="processId">Unique process id</param>
         /// <returns>TestReport</returns>
-        private TestReport GetTestReport(int processId)
+        private TestReport GetTestReport(uint processId)
         {
             TestReport testReport = null;
 
@@ -387,6 +400,64 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return testReport;
+        }
+
+        /// <summary>
+        /// Merges the test report from the specified process.
+        /// </summary>
+        /// <param name="testReport">TestReport</param>
+        /// <param name="processId">Unique process id</param>
+        private void MergeTestReport(TestReport testReport, uint processId)
+        {
+            if (this.TestReports.TryAdd(processId, testReport))
+            {
+                // Merges the test report into the global report.
+                IO.Debug($"... Merging task {processId} test report.");
+                this.GlobalTestReport.Merge(testReport);
+            }
+            else
+            {
+                IO.Debug($"... Unable to merge test report from task '{processId}'. " +
+                    " Report is already merged.");
+            }
+        }
+
+        /// <summary>
+        /// Emits the test report.
+        /// </summary>
+        private void EmitTestReport()
+        {
+            var testReports = new List<TestReport>(this.TestReports.Values);
+            foreach (var process in this.TestingProcesses)
+            {
+                if (!this.TestReports.ContainsKey(process.Key))
+                {
+                    IO.Error.PrintLine($"... Task {process.Key} failed due to an internal error.");
+                }
+            }
+
+            if (this.TestReports.Count == 0)
+            {
+                return;
+            }
+
+            if (this.Configuration.ReportCodeCoverage)
+            {
+                IO.Error.PrintLine($"... Emitting coverage reports:");
+                Reporter.EmitTestingCoverageReport(this.GlobalTestReport);
+            }
+
+            if (this.Configuration.DebugCodeCoverage)
+            {
+                IO.Error.PrintLine($"... Emitting debug coverage reports:");
+                foreach (var report in this.TestReports)
+                {
+                    Reporter.EmitTestingCoverageReport(report.Value, report.Key, isDebug: true);
+                }
+            }
+
+            IO.Error.PrintLine(this.GlobalTestReport.GetText(this.Configuration, "..."));
+            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         #endregion

@@ -138,8 +138,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = new Task(() =>
             {
-                var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                    base.Strategy, base.TestReport.CoverageInfo);
+                var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
 
                 StringWriter sw = null;
                 if (base.Configuration.RedirectTestConsoleOutput &&
@@ -212,19 +211,13 @@ namespace Microsoft.PSharp.TestingServices
                     runtime.LivenessChecker.CheckLivenessAtTermination();
                 }
 
+                TestReport report = runtime.BugFinder.GetReport();
+                report.CoverageInfo.Merge(runtime.CoverageInfo);
+                this.TestReport.Merge(report);
+
                 if (base.HasRedirectedConsoleOutput)
                 {
                     base.ResetOutput();
-                }
-
-                if (runtime.BugFinder.BugFound)
-                {
-                    base.TestReport.NumOfFoundBugs++;
-                    base.TestReport.BugReport = runtime.BugFinder.BugReport;
-                }
-                else
-                {
-                    base.TestReport.BugReport = "";
                 }
             }, base.CancellationTokenSource.Token);
 

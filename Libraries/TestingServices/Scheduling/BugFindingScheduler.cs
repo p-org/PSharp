@@ -77,6 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             get; private set;
         }
+
         #endregion
 
         #region internal methods
@@ -479,6 +480,63 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.IsSchedulerRunning = false;
             this.KillRemainingMachines();
             throw new OperationCanceledException();
+        }
+
+        /// <summary>
+        /// Returns a test report with the scheduling statistics.
+        /// </summary>
+        /// <returns>TestReport</returns>
+        internal TestReport GetReport()
+        {
+            TestReport report = new TestReport(this.Runtime.Configuration);
+
+            if (this.BugFound)
+            {
+                report.NumOfFoundBugs++;
+                report.BugReports.Add(this.BugReport);
+            }
+
+            if (this.Strategy.IsFair())
+            {
+                report.NumOfExploredFairSchedules++;
+
+                if (this.Strategy.HasReachedMaxSchedulingSteps())
+                {
+                    report.MaxFairStepsHitInFairTests++;
+                }
+
+                if (this.ExploredSteps >= report.Configuration.MaxUnfairSchedulingSteps)
+                {
+                    report.MaxUnfairStepsHitInFairTests++;
+                }
+
+                if (!this.Strategy.HasReachedMaxSchedulingSteps())
+                {
+                    report.TotalExploredFairSteps += this.ExploredSteps;
+
+                    if (report.MinExploredFairSteps < 0 ||
+                        report.MinExploredFairSteps > this.ExploredSteps)
+                    {
+                        report.MinExploredFairSteps = this.ExploredSteps;
+                    }
+
+                    if (report.MaxExploredFairSteps < this.ExploredSteps)
+                    {
+                        report.MaxExploredFairSteps = this.ExploredSteps;
+                    }
+                }
+            }
+            else
+            {
+                report.NumOfExploredUnfairSchedules++;
+
+                if (this.Strategy.HasReachedMaxSchedulingSteps())
+                {
+                    report.MaxUnfairStepsHitInUnfairTests++;
+                }
+            }
+
+            return report;
         }
 
         #endregion

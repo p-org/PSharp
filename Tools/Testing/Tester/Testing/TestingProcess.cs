@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -64,12 +63,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>TestReport</returns>
         TestReport ITestingProcess.GetTestReport()
         {
-            if (this.Configuration.DebugCodeCoverage)
-            {
-                this.EmitCoverageReport(isDebug: true);
-            }
-            
-            return this.TestingEngine.TestReport;
+            return this.TestingEngine.TestReport.Clone();
         }
 
         /// <summary>
@@ -99,39 +93,45 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Start()
         {
+            // Opens the remote notification listener.
+            this.OpenNotificationListener();
+
             Timer timer = null;
-            if (this.Configuration.ParallelBugFindingTasks > 1)
+            if (this.Configuration.RunAsParallelBugFindingTask)
             {
-                this.OpenNotificationListener();
                 timer = this.CreateParentStatusMonitorTimer();
                 timer.Start();
             }
             
             this.TestingEngine.Run();
             
-            if (this.Configuration.ParallelBugFindingTasks > 1)
+            if (this.Configuration.RunAsParallelBugFindingTask)
             {
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
                 {
                     this.NotifyBugFound();
                 }
-                
+
                 this.SendTestReport();
-                if (this.TestingScheduler.ShouldEmitTestReport(this.Configuration.TestingProcessId))
+            }
+
+            if (!this.Configuration.PerformFullExploration)
+            {
+                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 &&
+                    !this.Configuration.RunAsParallelBugFindingTask)
                 {
-                    this.EmitTestReport();
-                }
-                else if (this.Configuration.DebugCodeCoverage)
-                {
-                    this.EmitCoverageReport(isDebug: true);
+                    IO.PrintLine($"... Task {this.Configuration.TestingProcessId} found a bug.");
                 }
 
-                this.CloseNotificationListener();
+                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
+                    this.Configuration.PrintTrace)
+                {
+                    this.EmitTraces();
+                }
             }
-            else
-            {
-                this.EmitTestReport();
-            }
+
+            // Closes the remote notification listener.
+            this.CloseNotificationListener();
 
             if (timer != null)
             {
@@ -149,15 +149,14 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         private TestingProcess(Configuration configuration)
         {
-            if (configuration.ParallelBugFindingTasks > 1 &&
-                configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
+            if (configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
                 TestingPortfolio.ConfigureStrategyForCurrentProcess(configuration);
             }
 
-            if (configuration.RandomSchedulingSeed != null && configuration.TestingProcessId >= 0)
+            if (configuration.RandomSchedulingSeed != null)
             {
-                configuration.RandomSchedulingSeed = configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId);
+                configuration.RandomSchedulingSeed = (int)(configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId));
             }
 
             this.Configuration = configuration;
@@ -170,12 +169,20 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
-        /// Opens the remote notification listener.
+        /// Opens the remote notification listener. If this is
+        /// not a parallel testing process, then this operation
+        /// does nothing.
         /// </summary>
         private void OpenNotificationListener()
         {
+            if (!this.Configuration.RunAsParallelBugFindingTask)
+            {
+                return;
+            }
+
             Uri address = new Uri("net.pipe://localhost/psharp/testing/process/" +
-                this.Configuration.TestingProcessId + "/");
+                $"{this.Configuration.TestingProcessId}/" +
+                $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
@@ -199,11 +206,14 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Closes the remote notification listener.
+        /// Closes the remote notification listener. If this is
+        /// not a parallel testing process, then this operation
+        /// does nothing.
         /// </summary>
         private void CloseNotificationListener()
         {
-            if (this.NotificationService.State == CommunicationState.Opened)
+            if (this.Configuration.RunAsParallelBugFindingTask &&
+                this.NotificationService.State == CommunicationState.Opened)
             {
                 try
                 {
@@ -232,7 +242,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void SendTestReport()
         {
-            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/");
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/" +
+                $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
@@ -245,43 +256,8 @@ namespace Microsoft.PSharp.TestingServices
                     CreateChannel(binding, endpoint);
             }
 
-            this.TestingScheduler.SetTestData(this.TestingEngine.TestReport,
+            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport.Clone(),
                 this.Configuration.TestingProcessId);
-        }
-
-        /// <summary>
-        /// Emits the test report. If the P# tester runs in parallel it also
-        /// merges the reports from all testing processes.
-        /// </summary>
-        private void EmitTestReport()
-        {
-            if (this.Configuration.DebugCodeCoverage)
-            {
-                this.EmitCoverageReport(isDebug: true);
-            }
-
-            if (this.Configuration.ParallelBugFindingTasks > 1)
-            {
-                IList<TestReport> globalTestReport = this.TestingScheduler.GetGlobalTestData(
-                        this.Configuration.TestingProcessId);
-                foreach (var testReport in globalTestReport)
-                {
-                    this.TestingEngine.TestReport.Merge(testReport);
-                }
-            }
-
-            IO.Error.PrintLine(this.TestingEngine.Report());
-
-            if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
-                this.Configuration.PrintTrace)
-            {
-                this.EmitTraces();
-            }
-
-            if (this.Configuration.ReportCodeCoverage)
-            {
-                this.EmitCoverageReport();
-            }
         }
 
         /// <summary>
@@ -289,48 +265,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void EmitTraces()
         {
-            string file = Path.GetFileNameWithoutExtension(this.TestingEngine.ProgramName);
-            if (this.Configuration.TestingProcessId >= 0)
-            {
-                file += "_" + this.Configuration.TestingProcessId;
-            }
-            else
-            {
-                file += "_0";
-            }
+            string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
+            file += "_" + this.Configuration.TestingProcessId;
 
-            string directory = this.GetOutputDirectory();
+            string directory = Reporter.GetOutputDirectory(this.Configuration.AssemblyToBeAnalyzed);
 
+            IO.Error.PrintLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
             this.TestingEngine.TryEmitTraces(directory, file);
-        }
-
-        /// <summary>
-        /// Emits the code coverage report.
-        /// </summary>
-        /// <param name="isDebug">Is a debug report</param>
-        private void EmitCoverageReport(bool isDebug = false)
-        {
-            string file = Path.GetFileNameWithoutExtension(this.TestingEngine.ProgramName);
-            if (this.Configuration.TestingProcessId >= 0)
-            {
-                file += "_" + this.Configuration.TestingProcessId;
-            }
-            else
-            {
-                file += "_0";
-            }
-
-            string directory = "";
-            if (isDebug)
-            {
-                directory = this.GetOutputDirectory("CoverageDebug");
-            }
-            else
-            {
-                directory = this.GetOutputDirectory();
-            }
-
-            this.TestingEngine.TryEmitCoverageReport(directory, file);
         }
 
         /// <summary>
@@ -339,7 +280,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void NotifyBugFound()
         {
-            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/");
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/" +
+                $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
             binding.MaxReceivedMessageSize = Int32.MaxValue;
@@ -381,24 +323,6 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Environment.Exit(1);
             }
-        }
-
-        /// <summary>
-        /// Returns (and creates if it does not exist) the output
-        /// directory with an optional suffix.
-        /// </summary>
-        /// <returns>Path</returns>
-        private string GetOutputDirectory(string suffix = "")
-        {
-            string directoryPath = Path.GetDirectoryName(this.TestingEngine.ProgramName) +
-                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
-            if (suffix.Length > 0)
-            {
-                directoryPath += suffix + Path.DirectorySeparatorChar;
-            }
-
-            Directory.CreateDirectory(directoryPath);
-            return directoryPath;
         }
 
         #endregion

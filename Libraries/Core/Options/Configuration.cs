@@ -14,12 +14,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// The P# project configurations.
     /// </summary>
+    [DataContract]
     [Serializable]
     public class Configuration
     {
@@ -28,31 +30,37 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// The path to the solution file.
         /// </summary>
+        [DataMember]
         public string SolutionFilePath;
 
         /// <summary>
         /// The output path.
         /// </summary>
+        [DataMember]
         public string OutputFilePath;
 
         /// <summary>
         /// The name of the project to analyze.
         /// </summary>
+        [DataMember]
         public string ProjectName;
 
         /// <summary>
         /// Timeout in seconds.
         /// </summary>
+        [DataMember]
         public int Timeout;
 
         /// <summary>
         /// Pause on assertion failure.
         /// </summary>
+        [DataMember]
         internal bool PauseOnAssertionFailure;
 
         /// <summary>
         /// True if interoperation is enabled.
         /// </summary>
+        [DataMember]
         public bool InteroperationEnabled;
 
         #endregion
@@ -111,37 +119,44 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// The assembly to be analyzed for bugs.
         /// </summary>
+        [DataMember]
         public string AssemblyToBeAnalyzed;
 
         /// <summary>
         /// Test method to be used.
         /// </summary>
+        [DataMember]
         public string TestMethodName;
 
         /// <summary>
         /// The schedule file to be replayed.
         /// </summary>
+        [DataMember]
         public string ScheduleFile;
 
         /// <summary>
         /// Scheduling strategy to use with the P# tester.
         /// </summary>
+        [DataMember]
         public SchedulingStrategy SchedulingStrategy;
 
         /// <summary>
         /// Number of scheduling iterations.
         /// </summary>
+        [DataMember]
         public int SchedulingIterations;
 
         /// <summary>
         /// Seed for random scheduling strategies.
         /// </summary>
+        [DataMember]
         public int? RandomSchedulingSeed;
 
         /// <summary>
         /// If true, the P# tester performs a full exploration,
         /// and does not stop when it finds a bug.
         /// </summary>
+        [DataMember]
         public bool PerformFullExploration;
 
         /// <summary>
@@ -149,6 +164,7 @@ namespace Microsoft.PSharp.Utilities
         /// for fair schedulers.
         /// By default there is no bound.
         /// </summary>
+        [DataMember]
         public int MaxFairSchedulingSteps;
 
         /// <summary>
@@ -156,6 +172,7 @@ namespace Microsoft.PSharp.Utilities
         /// for unfair schedulers.
         /// By default there is no bound.
         /// </summary>
+        [DataMember]
         public int MaxUnfairSchedulingSteps;
 
         /// <summary>
@@ -176,79 +193,105 @@ namespace Microsoft.PSharp.Utilities
         /// True if the user has explicitly set the
         /// fair scheduling steps bound.
         /// </summary>
+        [DataMember]
         public bool UserExplicitlySetMaxFairSchedulingSteps;
 
         /// <summary>
         /// Number of parallel bug-finding tasks.
         /// By default it is 1 task.
         /// </summary>
-        public int ParallelBugFindingTasks;
+        [DataMember]
+        public uint ParallelBugFindingTasks;
+
+        /// <summary>
+        /// Runs this process as a parallel bug-finding task.
+        /// </summary>
+        [DataMember]
+        public bool RunAsParallelBugFindingTask;
+
+        /// <summary>
+        /// The testing scheduler unique endpoint.
+        /// </summary>
+        [DataMember]
+        internal string TestingSchedulerEndPoint;
 
         /// <summary>
         /// The testing scheduler process id.
         /// </summary>
+        [DataMember]
         internal int TestingSchedulerProcessId;
 
         /// <summary>
         /// The unique testing process id.
         /// </summary>
-        public int TestingProcessId;
+        [DataMember]
+        public uint TestingProcessId;
 
         /// <summary>
         /// If true, then the P# tester will consider an execution
         /// that hits the depth bound as buggy.
         /// </summary>
+        [DataMember]
         public bool ConsiderDepthBoundHitAsBug;
 
         /// <summary>
         /// The priority switch bound. By default it is 2.
         /// Used by priority-based schedulers.
         /// </summary>
+        [DataMember]
         public int PrioritySwitchBound;
 
         /// <summary>
         /// Delay bound. By default it is 2.
         /// Used by delay-bounding schedulers.
         /// </summary>
+        [DataMember]
         public int DelayBound;
 
         /// <summary>
         /// Coin-flip bound. By default it is 2.
         /// </summary>
+        [DataMember]
         public int CoinFlipBound;
 
         /// <summary>
         /// Safety prefix bound. By default it is 0.
         /// </summary>
+        [DataMember]
         public int SafetyPrefixBound;
 
         /// <summary>
         /// Attaches the debugger during trace replay.
         /// </summary>
+        [DataMember]
         public bool AttachDebugger;
 
         /// <summary>
         /// If true, then the P# tester will try to schedule
         /// any intra-machine concurrency.
         /// </summary>
+        [DataMember]
         public bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
         /// The liveness temperature threshold. If it is 0
         /// then it is disabled.
         /// </summary>
+        [DataMember]
         public int LivenessTemperatureThreshold;
 
         /// <summary>
         /// If true, then the P# tester will perform state-caching
         /// when checking liveness properties.
         /// </summary>
+        [DataMember]
         public bool CacheProgramState;
 
         /// <summary>
         /// Enables the cycle-replaying strategy when using
         /// state-caching for liveness checking.
         /// </summary>
+        [DataMember]
         public bool EnableCycleReplayingStrategy;
 
         /// <summary>
@@ -266,6 +309,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Enable monitors (safety) with production runtime.
         /// </summary>
+        [DataMember]
         public bool EnableMonitorsInProduction;
 
         #endregion
@@ -275,18 +319,21 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Enables data-race detection during testing.
         /// </summary>
+        [DataMember]
         public bool EnableDataRaceDetection;
 
         /// <summary>
         /// Callback for detecting races.
+        /// TODO: Does not belong here.
         /// </summary>
-        public Action raceDetectionCallback;
+        public Action RaceDetectionCallback;
 
         /// <summary>
-        /// true if race is found.
+        /// True if a race is found.
+        /// TODO: Does not belong here.
         /// </summary>
-        public bool raceFound;
-        
+        public bool RaceFound;
+
         #endregion
 
         #region code coverage options
@@ -294,6 +341,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Enables code coverage reporting of a P# program.
         /// </summary>
+        [DataMember]
         public bool ReportCodeCoverage;
 
         /// <summary>
@@ -308,67 +356,79 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// The unique container id.
         /// </summary>
+        [DataMember]
         public int ContainerId;
 
         /// <summary>
         /// Number of containers.
         /// </summary>
+        [DataMember]
         public int NumberOfContainers;
 
         /// <summary>
         /// The path to the P# application to run remotely.
         /// </summary>
+        [DataMember]
         public string RemoteApplicationFilePath;
 
         #endregion
 
         #region diagnostics options
-        
+
         /// <summary>
         /// Verbosity level.
         /// </summary>
+        [DataMember]
         public int Verbose;
 
         /// <summary>
         /// Shows warnings.
         /// </summary>
+        [DataMember]
         public bool ShowWarnings;
 
         /// <summary>
         /// Enables debugging.
         /// </summary>
+        [DataMember]
         public bool EnableDebugging;
 
         /// <summary>
         /// Enables profiling.
         /// </summary>
+        [DataMember]
         public bool EnableProfiling;
 
         /// <summary>
         /// Keeps the temporary files.
         /// </summary>
+        [DataMember]
         public bool KeepTemporaryFiles;
 
         /// <summary>
         /// Redirects the testing console output.
         /// </summary>
+        [DataMember]
         internal bool RedirectTestConsoleOutput;
 
         /// <summary>
         /// If true, then the P# tester will print the trace
         /// to a file, even if a bug is not found.
         /// </summary>
+        [DataMember]
         public bool PrintTrace;
 
         /// <summary>
         /// If true, then the P# tester will not output the
         /// error trace to a file.
         /// </summary>
+        [DataMember]
         internal bool SuppressTrace;
 
         /// <summary>
         /// If true, then P# will throw any internal exceptions.
         /// </summary>
+        [DataMember]
         internal bool ThrowInternalExceptions;
 
         #endregion
@@ -414,8 +474,10 @@ namespace Microsoft.PSharp.Utilities
             this.MaxUnfairSchedulingSteps = 0;
             this.UserExplicitlySetMaxFairSchedulingSteps = false;
             this.ParallelBugFindingTasks = 1;
+            this.RunAsParallelBugFindingTask = false;
+            this.TestingSchedulerEndPoint = Guid.NewGuid().ToString();
             this.TestingSchedulerProcessId = -1;
-            this.TestingProcessId = -1;
+            this.TestingProcessId = 0;
             this.ConsiderDepthBoundHitAsBug = false;
             this.PrioritySwitchBound = 0;
             this.DelayBound = 0;

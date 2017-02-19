@@ -99,10 +99,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        /// <param name="coverageInfo">CoverageInfo</param>
         /// </summary>
-        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy,
-            CoverageInfo coverageInfo)
+        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
@@ -124,7 +122,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this, strategy);
-            this.CoverageInfo = coverageInfo;
+            this.CoverageInfo = new CoverageInfo();
 
             this.OperationIdCounter = 0;
         }

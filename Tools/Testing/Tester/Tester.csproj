@@ -58,19 +58,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Remote\ITestingProcess.cs" />
-    <Compile Include="Remote\ITestingProcessScheduler.cs" />
-    <Compile Include="Remote\KnownTypesProvider.cs" />
+    <Compile Include="Interfaces\ITestingProcess.cs" />
+    <Compile Include="Interfaces\ITestingProcessScheduler.cs" />
+    <Compile Include="Interfaces\KnownTypesProvider.cs" />
     <Compile Include="Testing\TestingPortfolio.cs" />
     <Compile Include="Testing\TestingProcess.cs" />
     <Compile Include="Testing\TestingProcessFactory.cs" />
     <Compile Include="Utilities\TesterCommandLineOptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Testing\TestingProcessScheduler.cs" />
+    <Compile Include="Scheduling\TestingProcessScheduler.cs" />
+    <Compile Include="Utilities\Reporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">

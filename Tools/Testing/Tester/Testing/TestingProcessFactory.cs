@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="id">Unique process id</param>
         /// <param name="configuration">Configuration</param>
         /// <returns>Process</returns>
-        public static Process Create(int id, Configuration configuration)
+        public static Process Create(uint id, Configuration configuration)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo(
                 Assembly.GetExecutingAssembly().Location,
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="id">Unique process id</param>
         /// <param name="configuration">Configuration</param>
         /// <returns>Arguments</returns>
-        private static string CreateArgumentsFromConfiguration(int id, Configuration configuration)
+        private static string CreateArgumentsFromConfiguration(uint id, Configuration configuration)
         {
             StringBuilder arguments = new StringBuilder();
 
@@ -90,6 +90,10 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/sch:{configuration.SchedulingStrategy}:" +
                     $"{configuration.PrioritySwitchBound} ");
             }
+            else if (configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
+            {
+                arguments.Append($"/sch:probabilistic:{configuration.CoinFlipBound} ");
+            }
             else if (configuration.SchedulingStrategy == SchedulingStrategy.Random ||
                 configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
@@ -109,13 +113,10 @@ namespace Microsoft.PSharp.TestingServices
             if (configuration.ReportCodeCoverage)
             {
                 arguments.Append($"/coverage-report ");
-                if (configuration.DebugCodeCoverage)
-                {
-                    arguments.Append($"/coverage-debug ");
-                }
             }
 
-            arguments.Append($"/parallel:{configuration.ParallelBugFindingTasks} ");
+            arguments.Append($"/run-as-parallel-testing-task ");
+            arguments.Append($"/testing-scheduler-endpoint:{configuration.TestingSchedulerEndPoint} ");
             arguments.Append($"/testing-scheduler-process-id:{Process.GetCurrentProcess().Id} ");
             arguments.Append($"/testing-process-id:{id}");
 

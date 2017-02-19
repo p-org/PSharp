@@ -128,7 +128,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             var bugReport = "Assertion failure.";
-            Assert.AreEqual(bugReport, engine.TestReport.BugReport);
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
     }
 }

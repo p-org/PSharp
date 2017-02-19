@@ -32,18 +32,7 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            if (configuration.ParallelBugFindingTasks == 1 ||
-                configuration.TestingProcessId < 0)
-            {
-                IO.PrintLine(". Testing " + configuration.AssemblyToBeAnalyzed);
-                if (configuration.TestMethodName != "")
-                {
-                    IO.PrintLine(". Method {0}", configuration.TestMethodName);
-                }
-            }
-            
-            if (configuration.ParallelBugFindingTasks == 1 ||
-                configuration.TestingProcessId >= 0)
+            if (configuration.RunAsParallelBugFindingTask)
             {
                 // Creates and runs a testing process.
                 TestingProcess testingProcess = TestingProcess.Create(configuration);
@@ -51,14 +40,15 @@ namespace Microsoft.PSharp
             }
             else
             {
-                // Creates and runs the testing process scheduler, if there
-                // are more than one user specified parallel tasks.
-                TestingProcessScheduler.Create(configuration).Run();
-            }
+                IO.PrintLine(". Testing " + configuration.AssemblyToBeAnalyzed);
+                if (configuration.TestMethodName != "")
+                {
+                    IO.PrintLine("... Method {0}", configuration.TestMethodName);
+                }
 
-            if (configuration.ParallelBugFindingTasks == 1 ||
-                configuration.TestingProcessId < 0)
-            {
+                // Creates and runs the testing process scheduler.
+                TestingProcessScheduler.Create(configuration).Run();
+
                 IO.PrintLine(". Done");
             }
         }

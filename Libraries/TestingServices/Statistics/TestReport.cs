@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -27,6 +28,12 @@ namespace Microsoft.PSharp.TestingServices
     public class TestReport
     {
         #region properties
+
+        /// <summary>
+        /// Configuration of the program-under-test.
+        /// </summary>
+        [DataMember]
+        public Configuration Configuration { get; private set; }
 
         /// <summary>
         /// Information regarding code coverage.
@@ -53,10 +60,10 @@ namespace Microsoft.PSharp.TestingServices
         public int NumOfFoundBugs { get; internal set; }
 
         /// <summary>
-        /// The latest bug report, if any.
+        /// List of unique bug reports.
         /// </summary>
         [DataMember]
-        public string BugReport { get; internal set; }
+        public HashSet<string> BugReports { get; internal set; }
 
         /// <summary>
         /// The min explored scheduling steps in average,
@@ -100,6 +107,11 @@ namespace Microsoft.PSharp.TestingServices
         [DataMember]
         public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
+        /// <summary>
+        /// Lock for the test report.
+        /// </summary>
+        private object Lock;
+
         #endregion
 
         #region constructors
@@ -107,14 +119,17 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructor.
         /// </summary>
-        public TestReport()
+        /// <param name="configuration">Configuration</param>
+        public TestReport(Configuration configuration)
         {
+            this.Configuration = configuration;
+
             this.CoverageInfo = new CoverageInfo();
 
             this.NumOfExploredFairSchedules = 0;
             this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
-            this.BugReport = "";
+            this.BugReports = new HashSet<string>();
 
             this.MinExploredFairSteps = -1;
             this.MaxExploredFairSteps = -1;
@@ -122,6 +137,8 @@ namespace Microsoft.PSharp.TestingServices
             this.MaxFairStepsHitInFairTests = 0;
             this.MaxUnfairStepsHitInFairTests = 0;
             this.MaxUnfairStepsHitInUnfairTests = 0;
+
+            this.Lock = new object();
         }
 
         #endregion
@@ -130,35 +147,163 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Merges the information from the specified
-        /// test report. This is not thread-safe.
+        /// test report.
         /// </summary>
         /// <param name="testReport">TestReport</param>
-        public void Merge(TestReport testReport)
+        /// <returns>True if merged successfully</returns>
+        public bool Merge(TestReport testReport)
         {
-            this.CoverageInfo.Merge(testReport.CoverageInfo);
-
-            this.NumOfFoundBugs += testReport.NumOfFoundBugs;
-
-            this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
-            this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
-
-            if (testReport.MinExploredFairSteps >= 0 &&
-                (this.MinExploredFairSteps < 0 ||
-                this.MinExploredFairSteps > testReport.MinExploredFairSteps))
+            if (!this.Configuration.AssemblyToBeAnalyzed.Equals(testReport.Configuration.AssemblyToBeAnalyzed))
             {
-                this.MinExploredFairSteps = testReport.MinExploredFairSteps;
+                // Only merge test reports that have the same program name.
+                return false;
             }
 
-            if (this.MaxExploredFairSteps < testReport.MaxExploredFairSteps)
+            lock (this.Lock)
             {
-                this.MaxExploredFairSteps = testReport.MaxExploredFairSteps;
+                this.CoverageInfo.Merge(testReport.CoverageInfo);
+
+                this.NumOfFoundBugs += testReport.NumOfFoundBugs;
+
+                this.BugReports.UnionWith(testReport.BugReports);
+
+                this.NumOfExploredFairSchedules += testReport.NumOfExploredFairSchedules;
+                this.NumOfExploredUnfairSchedules += testReport.NumOfExploredUnfairSchedules;
+
+                if (testReport.MinExploredFairSteps >= 0 &&
+                    (this.MinExploredFairSteps < 0 ||
+                    this.MinExploredFairSteps > testReport.MinExploredFairSteps))
+                {
+                    this.MinExploredFairSteps = testReport.MinExploredFairSteps;
+                }
+
+                if (this.MaxExploredFairSteps < testReport.MaxExploredFairSteps)
+                {
+                    this.MaxExploredFairSteps = testReport.MaxExploredFairSteps;
+                }
+
+                this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
+
+                this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
+                this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
+                this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
             }
 
-            this.TotalExploredFairSteps += testReport.TotalExploredFairSteps;
+            return true;
+        }
 
-            this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
-            this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
-            this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
+        /// <summary>
+        /// Returns the testing report as a string, given a configuration and an optional prefix.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="prefix">Prefix</param>
+        /// <returns>Textrt</returns>
+        public string GetText(Configuration configuration, string prefix = "")
+        {
+            StringBuilder report = new StringBuilder();
+
+            report.AppendFormat("{0} Testing statistics:", prefix);
+
+            report.AppendLine();
+            report.AppendFormat("{0} Found {1} bug{2}.",
+                prefix.Equals("...") ? "....." : prefix, this.NumOfFoundBugs,
+                this.NumOfFoundBugs == 1 ? "" : "s");
+
+            report.AppendLine();
+            report.AppendFormat("{0} Scheduling statistics:", prefix);
+
+            int totalExploredSchedules = this.NumOfExploredFairSchedules +
+                this.NumOfExploredUnfairSchedules;
+
+            report.AppendLine();
+            report.AppendFormat("{0} Explored {1} schedule{2}: {3} fair and {4} unfair.",
+                prefix.Equals("...") ? "....." : prefix,
+                totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s",
+                this.NumOfExploredFairSchedules,
+                this.NumOfExploredUnfairSchedules);
+
+            if (totalExploredSchedules > 0 &&
+                this.NumOfFoundBugs > 0)
+            {
+                report.AppendLine();
+                report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
+                    prefix.Equals("...") ? "....." : prefix,
+                    ((double)this.NumOfFoundBugs / totalExploredSchedules) * 100);
+            }
+
+            if (this.NumOfExploredFairSchedules > 0)
+            {
+                if (this.TotalExploredFairSteps > 0)
+                {
+                    int averageExploredFairSteps = this.TotalExploredFairSteps /
+                        this.NumOfExploredFairSchedules;
+
+                    report.AppendLine();
+                    report.AppendFormat("{0} Number of scheduling points in fair terminating schedules: " +
+                        "{1} (min), {2} (avg), {3} (max).",
+                        prefix.Equals("...") ? "....." : prefix,
+                        this.MinExploredFairSteps < 0 ? 0 : this.MinExploredFairSteps,
+                        averageExploredFairSteps,
+                        this.MaxExploredFairSteps < 0 ? 0 : this.MaxExploredFairSteps);
+                }
+
+                if (configuration.MaxUnfairSchedulingSteps > 0 &&
+                    this.MaxUnfairStepsHitInFairTests > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Exceeded the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        configuration.MaxUnfairSchedulingSteps,
+                        ((double)this.MaxUnfairStepsHitInFairTests /
+                        (double)this.NumOfExploredFairSchedules) * 100);
+                }
+
+                if (configuration.UserExplicitlySetMaxFairSchedulingSteps &&
+                    configuration.MaxFairSchedulingSteps > 0 &&
+                    this.MaxFairStepsHitInFairTests > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        configuration.MaxFairSchedulingSteps,
+                        ((double)this.MaxFairStepsHitInFairTests /
+                        (double)this.NumOfExploredFairSchedules) * 100);
+                }
+            }
+
+            if (this.NumOfExploredUnfairSchedules > 0)
+            {
+                if (configuration.MaxUnfairSchedulingSteps > 0 &&
+                    this.MaxUnfairStepsHitInUnfairTests > 0)
+                {
+                    report.AppendLine();
+                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the unfair schedules.",
+                        prefix.Equals("...") ? "....." : prefix,
+                        configuration.MaxUnfairSchedulingSteps,
+                        ((double)this.MaxUnfairStepsHitInUnfairTests /
+                        (double)this.NumOfExploredUnfairSchedules) * 100);
+                }
+            }
+
+            return report.ToString();
+        }
+
+        /// <summary>
+        /// Clones the test report.
+        /// </summary>
+        /// <returns>TestReport</returns>
+        internal TestReport Clone()
+        {
+            var serializer = new DataContractSerializer(typeof(TestReport), null, int.MaxValue, false, true, null);
+            using (var ms = new System.IO.MemoryStream())
+            {
+                lock (this.Lock)
+                {
+                    serializer.WriteObject(ms, this);
+                    ms.Position = 0;
+                    return (TestReport)serializer.ReadObject(ms);
+                }
+            }
         }
 
         #endregion

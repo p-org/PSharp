@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
                 this.Configuration.MaxUnfairSchedulingSteps);
-
+            
             if (bound == 0)
             {
                 return false;

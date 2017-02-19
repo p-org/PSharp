@@ -179,8 +179,8 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().StartsWith("/parallel:") && option.Length > 10)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(10), out i) && i > 1)
+                uint i = 0;
+                if (!uint.TryParse(option.Substring(10), out i) || i <= 1)
                 {
                     IO.Error.ReportAndExit("Please give a valid number of " +
                         "parallel tasks '/parallel:[x]', where [x] > 1.");
@@ -188,21 +188,36 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ParallelBugFindingTasks = i;
             }
+            else if (option.ToLower().StartsWith("/run-as-parallel-testing-task"))
+            {
+                base.Configuration.RunAsParallelBugFindingTask = true;
+            }
+            else if (option.ToLower().StartsWith("/testing-scheduler-endpoint:") && option.Length > 28)
+            {
+                string endpoint = option.Substring(28);
+                if (endpoint.Length != 36)
+                {
+                    IO.Error.ReportAndExit("Please give a valid testing scheduler endpoint " +
+                        "'/testing-scheduler-endpoint:[x]', where [x] is a unique GUID.");
+                }
+
+                base.Configuration.TestingSchedulerEndPoint = endpoint;
+            }
             else if (option.ToLower().StartsWith("/testing-scheduler-process-id:") && option.Length > 30)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(30), out i) && i >= 0)
                 {
                     IO.Error.ReportAndExit("Please give a valid testing scheduler " +
-                        "process id '/testing-process-scheduler-id:[x]', where [x] >= 0.");
+                        "process id '/testing-scheduler-process-id:[x]', where [x] >= 0.");
                 }
 
                 base.Configuration.TestingSchedulerProcessId = i;
             }
             else if (option.ToLower().StartsWith("/testing-process-id:") && option.Length > 20)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(20), out i) && i >= 0)
+                uint i = 0;
+                if (!uint.TryParse(option.Substring(20), out i) && i >= 0)
                 {
                     IO.Error.ReportAndExit("Please give a valid testing " +
                         "process id '/testing-process-id:[x]', where [x] >= 0.");

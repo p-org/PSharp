@@ -90,7 +90,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             engine.Run();
 
             var bugReport = "Value is '3' (expected less than '3').";
-            Assert.AreEqual(bugReport, engine.TestReport.BugReport);
+            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
+            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.TestingServices
             else
             {
                 configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
-                configuration.PrioritySwitchBound = configuration.TestingProcessId;
+                configuration.PrioritySwitchBound = (int)configuration.TestingProcessId;
             }
         }
 
