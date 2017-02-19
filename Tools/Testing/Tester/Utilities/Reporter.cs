@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="isDebug">Is a debug report</param>
         internal static void EmitTestingCoverageReport(TestReport report, uint? processId = null, bool isDebug = false)
         {
-            string file = Path.GetFileNameWithoutExtension(report.ProgramName);
+            string file = Path.GetFileNameWithoutExtension(report.Configuration.AssemblyToBeAnalyzed);
             if (isDebug && processId != null)
             {
                 file += "_" + processId;
@@ -44,11 +44,11 @@ namespace Microsoft.PSharp.TestingServices
             string directory = "";
             if (isDebug)
             {
-                directory = GetOutputDirectory(report.ProgramName, "CoverageDebug");
+                directory = GetOutputDirectory(report.Configuration.AssemblyToBeAnalyzed, "CoverageDebug");
             }
             else
             {
-                directory = GetOutputDirectory(report.ProgramName);
+                directory = GetOutputDirectory(report.Configuration.AssemblyToBeAnalyzed);
             }
 
             EmitTestingCoverageOutputFiles(report, directory, file);

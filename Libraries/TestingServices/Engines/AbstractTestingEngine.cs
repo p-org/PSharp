@@ -109,22 +109,6 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public TestReport TestReport { get; set; }
 
-        /// <summary>
-        /// Name of the P# program being tested.
-        /// </summary>
-        public string ProgramName
-        {
-            get
-            {
-                if (this.Assembly == null)
-                {
-                    return "";
-                }
-
-                return this.Assembly.Location;
-            }
-        }
-
         #endregion
 
         #region public API
@@ -242,7 +226,8 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.CancellationTokenSource = new CancellationTokenSource();
 
-            this.TestReport = new TestReport(this.ProgramName);
+            this.TestReport = new TestReport(this.Configuration);
+
             this.PrintGuard = 1;
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)

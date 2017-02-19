@@ -265,10 +265,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void EmitTraces()
         {
-            string file = Path.GetFileNameWithoutExtension(this.TestingEngine.ProgramName);
+            string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
             file += "_" + this.Configuration.TestingProcessId;
 
-            string directory = Reporter.GetOutputDirectory(this.TestingEngine.ProgramName);
+            string directory = Reporter.GetOutputDirectory(this.Configuration.AssemblyToBeAnalyzed);
 
             IO.Error.PrintLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
             this.TestingEngine.TryEmitTraces(directory, file);

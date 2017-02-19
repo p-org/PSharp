@@ -30,10 +30,10 @@ namespace Microsoft.PSharp.TestingServices
         #region properties
 
         /// <summary>
-        /// Name of the program being tested.
+        /// Configuration of the program-under-test.
         /// </summary>
         [DataMember]
-        public string ProgramName { get; internal set; }
+        public Configuration Configuration { get; private set; }
 
         /// <summary>
         /// Information regarding code coverage.
@@ -119,10 +119,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="programName">Name of the program being tested</param>
-        public TestReport(string programName)
+        /// <param name="configuration">Configuration</param>
+        public TestReport(Configuration configuration)
         {
-            this.ProgramName = programName;
+            this.Configuration = configuration;
 
             this.CoverageInfo = new CoverageInfo();
 
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>True if merged successfully</returns>
         public bool Merge(TestReport testReport)
         {
-            if (!this.ProgramName.Equals(testReport.ProgramName))
+            if (!this.Configuration.AssemblyToBeAnalyzed.Equals(testReport.Configuration.AssemblyToBeAnalyzed))
             {
                 // Only merge test reports that have the same program name.
                 return false;

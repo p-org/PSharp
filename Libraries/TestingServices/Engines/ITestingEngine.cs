@@ -29,11 +29,6 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         TestReport TestReport { get; }
 
-        /// <summary>
-        /// Name of the P# program being tested.
-        /// </summary>
-        string ProgramName { get; }
-
         #endregion
 
         #region methods

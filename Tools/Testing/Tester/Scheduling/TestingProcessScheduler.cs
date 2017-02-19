@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.TestingServices
             this.TestingProcesses = new Dictionary<uint, Process>();
             this.TestingProcessChannels = new Dictionary<uint, ITestingProcess>();
             this.TestReports = new ConcurrentDictionary<uint, TestReport>();
-            this.GlobalTestReport = new TestReport("");
+            this.GlobalTestReport = new TestReport(configuration);
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
             this.BugFoundByProcess = null;
@@ -411,11 +411,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.TestReports.TryAdd(processId, testReport))
             {
-                if (this.GlobalTestReport.ProgramName.Length == 0)
-                {
-                    this.GlobalTestReport.ProgramName = testReport.ProgramName;
-                }
-
                 // Merges the test report into the global report.
                 IO.Debug($"... Merging task {processId} test report.");
                 this.GlobalTestReport.Merge(testReport);

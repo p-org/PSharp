@@ -488,7 +488,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>TestReport</returns>
         internal TestReport GetReport()
         {
-            TestReport report = new TestReport(this.Runtime.Configuration.AssemblyToBeAnalyzed);
+            TestReport report = new TestReport(this.Runtime.Configuration);
 
             if (this.BugFound)
             {
@@ -505,7 +505,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     report.MaxFairStepsHitInFairTests++;
                 }
 
-                if (this.ExploredSteps >= this.Runtime.Configuration.MaxUnfairSchedulingSteps)
+                if (this.ExploredSteps >= report.Configuration.MaxUnfairSchedulingSteps)
                 {
                     report.MaxUnfairStepsHitInFairTests++;
                 }
