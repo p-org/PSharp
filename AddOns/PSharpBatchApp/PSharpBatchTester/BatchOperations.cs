@@ -208,19 +208,13 @@ namespace PSharpBatchTester
         /// <param name="iterations"></param>
         /// <param name="maxIterationsPerTask"></param>
         /// <returns></returns>
-        public async Task<List<CloudTask>> AddTaskWithIterations(string jobId, string taskIDPrefix, List<ResourceFile> inputFiles, string testFileName, int iterations, int maxIterationsPerTask)
+        public async Task<List<CloudTask>> AddTaskWithIterations(string jobId, string taskIDPrefix, List<ResourceFile> inputFiles, string testFileName, int NumberOfTasks, int IterationsPerTask, string commandFlags)
         {
             //Creating tasks with iterations
-            int numTasks = (int)iterations / maxIterationsPerTask;
             List<string> taskCommands = new List<string>();
-            for (int i = 0; i < numTasks; i++)
+            for (int i = 0; i < NumberOfTasks; i++)
             {
-                var command = string.Format(Constants.PSharpTaskCommandFormat, testFileName, maxIterationsPerTask);
-                taskCommands.Add(command);
-            }
-            if (iterations % maxIterationsPerTask != 0)
-            {
-                var command = string.Format(Constants.PSharpTaskCommandFormat, testFileName, iterations % maxIterationsPerTask);
+                var command = string.Format(Constants.PSharpTaskCommandFormatWithFlags, testFileName, IterationsPerTask, commandFlags);
                 taskCommands.Add(command);
             }
 

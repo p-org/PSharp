@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace PSharpBatchTester
 {
@@ -23,8 +24,6 @@ namespace PSharpBatchTester
         public string JobDefaultId;
 
         //Task Details
-        public int MaxIterationPerTask;
-        public int TotalIterations;
         public string TaskDefaultId;
 
         //Storage Constants
@@ -35,7 +34,6 @@ namespace PSharpBatchTester
 
         //File Details
         public string PSharpBinariesFolderPath;
-        public string TestApplicationPath;
 
         //Output
         public string OutputFolderPath;
@@ -43,6 +41,24 @@ namespace PSharpBatchTester
         //Task Wait Time
         public int TaskWaitHours;
 
+        //PSharpTesting
+        public string PSharpTestCommand;
+
+        //Flags in command
+        [XmlIgnore]
+        public string CommandFlags;
+
+        //Number of Tasks
+        [XmlIgnore]
+        public int NumberOfTasks;
+
+        //Iterations per Task
+        [XmlIgnore]
+        public int IterationsPerTask;
+
+        //Task Application Path
+        [XmlIgnore]
+        public string TestApplicationPath;
 
         public void XMLSerialize(Stream writeStream)
         {

@@ -37,6 +37,9 @@ namespace PSharpBatchTester
                     configStream.Close();
                 }
 
+                PSharpOperations.ParseConfig(config);
+
+
                 //We call the async main so we can await on many async calls
                 MainAsync().Wait();
             }
@@ -113,8 +116,9 @@ namespace PSharpBatchTester
                     taskIDPrefix: config.TaskDefaultId,
                     inputFiles: inputFiles,
                     testFileName: testApplicationName,
-                    iterations: config.TotalIterations,
-                    maxIterationsPerTask : config.MaxIterationPerTask
+                    NumberOfTasks: config.NumberOfTasks,
+                    IterationsPerTask : config.IterationsPerTask,
+                    commandFlags : config.CommandFlags
                 );
 
 
