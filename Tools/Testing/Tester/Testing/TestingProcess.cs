@@ -104,11 +104,15 @@ namespace Microsoft.PSharp.TestingServices
             }
             
             this.TestingEngine.Run();
-            
+
             if (this.Configuration.RunAsParallelBugFindingTask)
             {
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
                 {
+                    // A bug was found, set the exit code to a non-zero error code for general processing.
+                    // See https://msdn.microsoft.com/en-gb/library/windows/desktop/ms681381(v=vs.85).aspx
+                    Environment.ExitCode = 13804;
+
                     this.NotifyBugFound();
                 }
 
