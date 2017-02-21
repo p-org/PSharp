@@ -47,6 +47,7 @@ namespace PSharpBatchTester
             {
                 Console.WriteLine();
                 Console.WriteLine(ae.StackTrace);
+                Console.WriteLine(ae.Message);
                 Console.WriteLine();
             }
 

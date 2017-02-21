@@ -71,5 +71,34 @@ namespace PSharpBatchTester
             System.Xml.Serialization.XmlSerializer xmlSerializer = new System.Xml.Serialization.XmlSerializer(typeof(PSharpBatchConfig));
             return xmlSerializer.Deserialize(readStream) as PSharpBatchConfig;
         }
+
+        public bool Validate()
+        {
+            //Validate all the properties
+            if (string.IsNullOrEmpty(this.BatchAccountName) || string.IsNullOrEmpty(this.BatchAccountKey) 
+                || string.IsNullOrEmpty(this.BatchAccountUrl) || string.IsNullOrEmpty(this.StorageAccountName) 
+                || string.IsNullOrEmpty(this.StorageAccountKey))
+            {
+                return false;
+            }
+
+            if(string.IsNullOrEmpty(this.PoolId) || string.IsNullOrEmpty(this.JobDefaultId) 
+                || string.IsNullOrEmpty(this.TaskDefaultId))
+            {
+                return false;
+            }
+            
+            if(BlobContainerSasExpiryHours<1 || this.NumberOfNodesInPool < 2 || this.TaskWaitHours<1)
+            {
+                return false;
+            }
+            
+            if(string.IsNullOrEmpty(this.PSharpBinariesFolderPath) || string.IsNullOrEmpty(this.OutputFolderPath) || string.IsNullOrEmpty(PSharpTestCommand))
+            {
+                return false;
+            }
+            
+            return true;
+        }
     }
 }
