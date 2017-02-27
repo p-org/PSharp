@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Azure.Batch;
+using Microsoft.Azure.Batch.Auth;
+using Microsoft.Azure.Batch.Common;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using PSharpBatchTestCommon;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -58,7 +63,6 @@ namespace PSharpBatchTester
 
         private static async Task MainAsync()
         {
-
             //Creating BatchOperations
             BatchOperations batchOperations = new BatchOperations(config.BatchAccountName, config.BatchAccountKey, config.BatchAccountUrl);
 
@@ -80,13 +84,13 @@ namespace PSharpBatchTester
                        numberOfNodes: config.NumberOfNodesInPool,
                        OSFamily: "5",
                        VirtualMachineSize: "small",
-                       NodeStartCommand: Constants.PSharpDefaultNodeStartCommand
+                       NodeStartCommand: PSharpBatchTestCommon.Constants.PSharpDefaultNodeStartCommand
                     );
             }
 
             //Job Details
             string jobManagerFilePath = /*typeof(PSharpBatchJobManager.Program).Assembly.Location;*/  @".\PSharpBatchJobManager\PSharpBatchJobManager.exe";   // Data files for Job Manager Task
-            string jobTimeStamp = Constants.GetTimeStamp();
+            string jobTimeStamp = PSharpBatchTestCommon.Constants.GetTimeStamp();
             JobId = config.JobDefaultId + jobTimeStamp;
 
             //Task Details

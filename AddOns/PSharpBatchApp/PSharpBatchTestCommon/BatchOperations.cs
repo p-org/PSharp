@@ -9,9 +9,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PSharpBatchTester
+namespace PSharpBatchTestCommon
 {
-    class BatchOperations
+    public class BatchOperations
     {
 
         // Batch account credentials

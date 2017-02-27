@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace PSharpBatchTester
+namespace PSharpBatchTestCommon
 {
     public class PSharpBatchConfig
     {
@@ -59,6 +59,25 @@ namespace PSharpBatchTester
         //Task Application Path
         [XmlIgnore]
         public string TestApplicationPath;
+
+        public void SaveAsXML(string path)
+        {
+            using(FileStream fileStream = new FileStream(path, FileMode.Create))
+            {
+                this.XMLSerialize(fileStream);
+                fileStream.Close();
+            }
+        }
+
+        public static PSharpBatchConfig LoadFromXML(string path)
+        {
+            PSharpBatchConfig config = null;
+            using(FileStream fileStream = new FileStream(path, FileMode.Open))
+            {
+                config = XMLDeserialize(fileStream);
+            }
+            return config;
+        }
 
         public void XMLSerialize(Stream writeStream)
         {

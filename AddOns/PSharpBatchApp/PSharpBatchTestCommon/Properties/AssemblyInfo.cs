@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PSharpBatchTester")]
+[assembly: AssemblyTitle("PSharpBatchTestCommon")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PSharpBatchTester")]
+[assembly: AssemblyProduct("PSharpBatchTestCommon")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("979b2c26-4684-437b-a427-44de1ebcdb5a")]
+[assembly: Guid("6f6ef040-aeb3-4dfa-8648-93246f6c5160")]
 
 // Version information for an assembly consists of the following four values:
 //

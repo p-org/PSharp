@@ -9,10 +9,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PSharpBatchTester
+namespace PSharpBatchTestCommon
 {
 
-    class BlobOperations
+    public class BlobOperations
     {
 
         // Storage account credentials

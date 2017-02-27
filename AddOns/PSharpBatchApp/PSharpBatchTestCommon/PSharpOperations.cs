@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PSharpBatchTester
+namespace PSharpBatchTestCommon
 {
-    class PSharpOperations
+    public class PSharpOperations
     {
         public static void ParseConfig(PSharpBatchConfig config)
         {

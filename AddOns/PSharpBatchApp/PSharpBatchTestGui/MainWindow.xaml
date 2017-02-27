@@ -1,0 +1,197 @@
+﻿<Window x:Class="PSharpBatchTestGui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PSharpBatchTestGui"
+        mc:Ignorable="d"
+        Title="MainWindow" MinHeight="600" Width="800">
+    <Window.Resources>
+        <SolidColorBrush x:Key="brushWatermarkBackground" Color="White" />
+        <SolidColorBrush x:Key="brushWatermarkForeground" Color="LightSteelBlue" />
+        <SolidColorBrush x:Key="brushWatermarkBorder" Color="Indigo" />
+        <local:TextInputToVisibilityConverter x:Key="TextInputToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <Style x:Key="EntryFieldStyle" TargetType="Grid" >
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="20,0" />
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Load Config File" Click="LoadConfigMenuItem_Click"/>
+                <MenuItem Header="Save as Config"/>
+            </MenuItem>
+        </Menu>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="8*"/>
+                <RowDefinition Height="4*"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer Grid.Row="0">
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <GroupBox Grid.Row="0" HorizontalAlignment="Stretch" Margin="10,10,0,0"
+                  VerticalAlignment="Top" >
+                        <GroupBox.Header>
+                            Batch Account Details
+                        </GroupBox.Header>
+                        <Grid Margin="2 2 2 5" Name="BatchDetailsGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="BANGrid" >
+                                <TextBlock Text="Batch account name" FontSize="15"/>
+                                <TextBox FontSize="15" Name="BatchAccountNameTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Batch Account Name" AutomationProperties.HelpText="Enter Batch account name"/>
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="1" Name="BAKGrid">
+                                <TextBlock Text="Batch account key" FontSize="15"/>
+                                <TextBox FontSize="15" Name="BatchAccountKeyTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Batch account key" AutomationProperties.HelpText="Enter the batch account key" />
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="2" Name="BAUGrid" >
+                                <TextBlock Text="Batch account URL" FontSize="15"/>
+                                <TextBox FontSize="15" Name="BatchAccountUrlTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Batch account url" AutomationProperties.HelpText="Enter the batch account url"/>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Grid.Row="1" HorizontalAlignment="Stretch" Margin="10,10,0,0"
+                  VerticalAlignment="Top" >
+                        <GroupBox.Header>
+                            Storage Account Details
+                        </GroupBox.Header>
+                        <Grid Name="StorageDetailsGrid" Margin="2 2 2 5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="SANGrid"  >
+                                <TextBlock Text="Storage account name" FontSize="15"/>
+                                <TextBox FontSize="15" Name="StorageAccountNameTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Storage Account Name" AutomationProperties.HelpText="Enter Storage account name"/>
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="1" Name="SAKGrid" >
+                                <TextBlock Text="Storage account key" FontSize="15" />
+                                <TextBox FontSize="15" Name="StorageAccountKeyTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Storage account key" AutomationProperties.HelpText="Enter the Storage account key" />
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="2" Name="SASExpiryHoursGrid"  >
+                                <TextBlock Text="Blob SAS expiry time in hours" FontSize="15" />
+                                <TextBox FontSize="15" Name="SASExpiryHoursTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="SAS Expiry time" AutomationProperties.HelpText="Blol SAS expiry time in hours" 
+                                 PreviewTextInput="NumNodesTextbox_PreviewTextInput"/>
+                            </StackPanel>
+                            <CheckBox FontSize="15" Margin="10" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1" Name="DeleteBlobAfterComplete">Delete Job Blobs after Complete</CheckBox>
+                            
+                        </Grid>
+                    </GroupBox>
+
+                    <GroupBox Grid.Row="2" HorizontalAlignment="Stretch" Margin="10,10,0,0"
+                  VerticalAlignment="Top" >
+                        <GroupBox.Header>
+                            Pool Details
+                        </GroupBox.Header>
+                        <Grid Name="PoolDetailsGrid" Margin="2 2 2 5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="PoolIDGrid" >
+                                <TextBlock Text="Pool ID" FontSize="15" />
+                                <TextBox FontSize="15" Name="PoolIDTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Pool ID" AutomationProperties.HelpText="Enter the ID of the pool" />
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="1" Name="NumNodesGrid" >
+                                <TextBlock Text="Number of nodes in pool" FontSize="15" />
+                                <TextBox FontSize="15" Name="NumNodesTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Number of nodes in pool" AutomationProperties.HelpText="Number of nodes in the pool" 
+                                 PreviewTextInput="NumNodesTextbox_PreviewTextInput"/>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
+                    <GroupBox Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,10,0,0"
+                  VerticalAlignment="Top" >
+                        <GroupBox.Header>
+                            Job and Task Details
+                        </GroupBox.Header>
+                        <Grid Name="JobDetailsGrid" Margin="2 2 2 5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="JobIDGrid"  >
+                                <TextBlock Text="Prefix for Job ID" FontSize="15" />
+                                <TextBox FontSize="15" Name="JobIDTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Job Id Prefix" AutomationProperties.HelpText="Enter the prefix for Job ID" />
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="1" Name="TaskIDGrid" >
+                                <TextBlock Text="Prefix for task id" FontSize="15" />
+                                <TextBox FontSize="15" Name="TaskIDTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Task Id prefix" AutomationProperties.HelpText="Enter the prefix for task id" />
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="2" Name="TaskWaitHoursGrid"  >
+                                <TextBlock Text="Wait hours for tasks to complete" FontSize="15" />
+                                <TextBox FontSize="15" Name="TaskWaitHoursTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Task wait hours" AutomationProperties.HelpText="Wait hours for tasks to complete" 
+                                 PreviewTextInput="NumNodesTextbox_PreviewTextInput" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Grid.Row="4" HorizontalAlignment="Stretch" Margin="10,10,0,0"
+                  VerticalAlignment="Top" >
+                        <GroupBox.Header>
+                            Path Details
+                        </GroupBox.Header>
+                        <Grid Name="PathDetailsGrid" Margin="2 2 2 5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="PSharpBinariesGrid" >
+                                <TextBlock Text="Path to PSharp Binaries Folder" FontSize="15" />
+                                <TextBox FontSize="15" Name="PSharpBinariesTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="PSharp Binaies path" AutomationProperties.HelpText="Path to PSharp Binaries Folder" />
+                            </StackPanel>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="1" Name="OutputPathGrid" >
+                                <TextBlock Text="Path to output folder" FontSize="15" />
+                                <TextBox FontSize="15" Name="OutputPathTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="output folder path" AutomationProperties.HelpText="Path to output folder" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Grid.Row="5" HorizontalAlignment="Stretch" Margin="10,10,0,0"
+                        VerticalAlignment="Top" >
+                        <GroupBox.Header>
+                            Test Command
+                        </GroupBox.Header>
+                        <Grid Name="TestDetailsGrid" Margin="2 2 2 5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="PSharpTestCommandGrid" >
+                                <TextBlock Text="Psharp Test Command" FontSize="15" />
+                                <TextBox FontSize="15" Name="PSharpTestCommandTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Psharp Test Command" AutomationProperties.HelpText="Psharp Test Command" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Running the code -->
+                    <StackPanel Grid.Row="6" Margin="10" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Background="Red" Foreground="White" MinWidth="100" MinHeight="30" Margin="10" Name="Clear" Click="Clear_Click">Clear</Button>
+                        <Button Background="Green" Foreground="White" MinWidth="100" MinHeight="30" Margin="10" Name="RunButton" Click="RunButton_Click">Run</Button>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>
