@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PSharpBatchTestGui"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="600" Width="800">
+        Title="MainWindow" MinHeight="600" MinWidth="750" Width="800">
     <Window.Resources>
         <SolidColorBrush x:Key="brushWatermarkBackground" Color="White" />
         <SolidColorBrush x:Key="brushWatermarkForeground" Color="LightSteelBlue" />
@@ -18,11 +18,16 @@
             <Setter Property="Margin" Value="20,0" />
         </Style>
     </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="local:CustomCommands.LoadConfig" Executed="LoadConfigCommandBinding_Executed" />
+        <CommandBinding Command="local:CustomCommands.SaveConfig" Executed="SaveConfigCommandBinding_Executed" />
+    </Window.CommandBindings>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
-                <MenuItem Header="Load Config File" Click="LoadConfigMenuItem_Click"/>
-                <MenuItem Header="Save as Config"/>
+                <MenuItem Command="local:CustomCommands.LoadConfig"/>
+                <MenuItem Command="local:CustomCommands.SaveConfig"/>
             </MenuItem>
         </Menu>
         <Grid>
@@ -92,10 +97,10 @@
                             <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="2" Name="SASExpiryHoursGrid"  >
                                 <TextBlock Text="Blob SAS expiry time in hours" FontSize="15" />
                                 <TextBox FontSize="15" Name="SASExpiryHoursTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="SAS Expiry time" AutomationProperties.HelpText="Blol SAS expiry time in hours" 
-                                 PreviewTextInput="NumNodesTextbox_PreviewTextInput"/>
+                                 PreviewTextInput="NumberTextbox_PreviewTextInput" DataObject.Pasting="NumberTextbox_Pasting" />
                             </StackPanel>
-                            <CheckBox FontSize="15" Margin="10" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1" Name="DeleteBlobAfterComplete">Delete Job Blobs after Complete</CheckBox>
-                            
+                            <CheckBox VerticalContentAlignment="Center" FontSize="15" Margin="10" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1" Name="DeleteBlobAfterCompleteCheckbox">Delete Job Blobs after Complete</CheckBox>
+
                         </Grid>
                     </GroupBox>
 
@@ -117,7 +122,7 @@
                             <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="1" Name="NumNodesGrid" >
                                 <TextBlock Text="Number of nodes in pool" FontSize="15" />
                                 <TextBox FontSize="15" Name="NumNodesTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Number of nodes in pool" AutomationProperties.HelpText="Number of nodes in the pool" 
-                                 PreviewTextInput="NumNodesTextbox_PreviewTextInput"/>
+                                 PreviewTextInput="NumberTextbox_PreviewTextInput" DataObject.Pasting="NumberTextbox_Pasting"/>
                             </StackPanel>
                         </Grid>
                     </GroupBox>
@@ -133,6 +138,10 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="0" Name="JobIDGrid"  >
                                 <TextBlock Text="Prefix for Job ID" FontSize="15" />
                                 <TextBox FontSize="15" Name="JobIDTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Job Id Prefix" AutomationProperties.HelpText="Enter the prefix for Job ID" />
@@ -144,8 +153,9 @@
                             <StackPanel Margin="4 0 4 0" Orientation="Vertical" Grid.Column="2" Name="TaskWaitHoursGrid"  >
                                 <TextBlock Text="Wait hours for tasks to complete" FontSize="15" />
                                 <TextBox FontSize="15" Name="TaskWaitHoursTextbox" Background="Transparent" BorderBrush="{StaticResource brushWatermarkBorder}" AutomationProperties.Name="Task wait hours" AutomationProperties.HelpText="Wait hours for tasks to complete" 
-                                 PreviewTextInput="NumNodesTextbox_PreviewTextInput" />
+                                 PreviewTextInput="NumberTextbox_PreviewTextInput" DataObject.Pasting="NumberTextbox_Pasting"/>
                             </StackPanel>
+                            <CheckBox VerticalContentAlignment="Center" FontSize="15" Margin="10" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1" Name="DeleteJobAfterCompleteCheckbox">Delete Job after Complete</CheckBox>
                         </Grid>
                     </GroupBox>
                     <GroupBox Grid.Row="4" HorizontalAlignment="Stretch" Margin="10,10,0,0"
@@ -192,6 +202,17 @@
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
+            <Grid Grid.Row="1" Margin="0 10 0 0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Margin="5">Output</TextBlock>
+                <TextBox Grid.Row="1" IsReadOnly="True" Margin="10" TextWrapping="Wrap" Name="LogTextBox"/>
+            </Grid>
+            <!--<ScrollViewer Grid.Row="1">
+                
+            </ScrollViewer>-->
         </Grid>
     </DockPanel>
 </Window>
