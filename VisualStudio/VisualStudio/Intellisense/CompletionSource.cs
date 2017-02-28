@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.VisualStudio
 
         void ICompletionSource.AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
-            return;
+            return; // TODO short-circuited for now
 
             var keywords = Keywords.Get();
 

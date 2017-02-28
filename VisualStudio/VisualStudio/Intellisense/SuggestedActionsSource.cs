@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.VisualStudio
 
         private bool IsDisposed;
 
-        public event EventHandler<EventArgs> SuggestedActionsChanged;
+        public event EventHandler<EventArgs> SuggestedActionsChanged;   // TODO unused
 
         public SuggestedActionsSource(SuggestedActionsSourceProvider suggestedActionsSourceProvider,
             ITextView textView, ITextBuffer textBuffer)
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.VisualStudio
         {
             return Task.Factory.StartNew(() =>
             {
-                return false;
+                return false;   // TODO short-circuited for now
 
                 TextExtent extent;
                 if (!this.TryGetWordUnderCaret(out extent))
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.VisualStudio
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(ISuggestedActionCategorySet requestedActionCategories,
             SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return Enumerable.Empty<SuggestedActionSet>();
+            return Enumerable.Empty<SuggestedActionSet>();  // TODO short-circuited for now 
 
             TextExtent extent;
             if (!this.TryGetWordUnderCaret(out extent) || !extent.IsSignificant)

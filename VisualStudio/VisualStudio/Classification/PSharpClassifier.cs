@@ -200,6 +200,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Protected:
                 case TokenType.Internal:
                 case TokenType.Public:
+                case TokenType.Partial:
                 case TokenType.Abstract:
                 case TokenType.Virtual:
                 case TokenType.Override:
@@ -211,6 +212,11 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Monitor:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
+
+                case TokenType.StateGroupDecl:
+                case TokenType.StateGroupIdentifier:
+                case TokenType.StateGroupLeftCurlyBracket:
+                case TokenType.StateGroupRightCurlyBracket:
 
                 case TokenType.StartState:
 
@@ -256,8 +262,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.CreateMachine:
                 case TokenType.CreateRemoteMachine:
                 case TokenType.SendEvent:
-                case TokenType.ToMachine:
                 case TokenType.RaiseEvent:
+                case TokenType.Jump:
                 case TokenType.Assert:
                 case TokenType.Assume:
                 case TokenType.Trigger:
@@ -271,10 +277,20 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Var:
                 case TokenType.Void:
                 case TokenType.Object:
+                case TokenType.String:
+                case TokenType.Sbyte:
+                case TokenType.Byte:
+                case TokenType.Short:
+                case TokenType.Ushort:
                 case TokenType.Int:
+                case TokenType.Uint:
+                case TokenType.Long:
+                case TokenType.Ulong:
+                case TokenType.Char:
+                case TokenType.Bool:
+                case TokenType.Decimal:
                 case TokenType.Float:
                 case TokenType.Double:
-                case TokenType.Bool:
                     classification = "PSharp.Keyword";
                     break;
 

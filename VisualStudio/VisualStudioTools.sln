@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "..\Libraries\Core\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageServices", "..\Libraries\LanguageServices\LanguageServices.csproj", "{06CCBE95-2E41-4188-BB97-AEE702C1BD25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriter", "..\Tools\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriter", "..\Tools\Compilation\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
