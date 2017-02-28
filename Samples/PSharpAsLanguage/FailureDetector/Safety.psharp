@@ -21,13 +21,13 @@ namespace FailureDetector
 				}
 
 				this.Pending[(trigger as MPing).client] = this.Pending[(trigger as MPing).client] + 1;
-				assert(this.Pending[(trigger as MPing).client] <= 3, "1");
+				assert(this.Pending[(trigger as MPing).client] <= 3, "MPing: client count must be <= 3");
 			}
 
 			on MPong do
 			{
-			    assert(this.Pending.ContainsKey((trigger as MPong).node), "2");
-				assert(this.Pending[(trigger as MPong).node] > 0, "3");
+			    assert(this.Pending.ContainsKey((trigger as MPong).node), "MPong: trigger must be pending");
+				assert(this.Pending[(trigger as MPong).node] > 0, "MPong: client count must be > zero");
 				this.Pending[(trigger as MPong).node] = this.Pending[(trigger as MPong).node] - 1;
 			}
         }

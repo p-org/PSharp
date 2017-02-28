@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Raft</RootNamespace>
     <AssemblyName>Raft</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -47,15 +47,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Client.psharp" />
-    <Compile Include="ClusterManager.psharp" />
-    <Compile Include="ElectionTimer.psharp" />
-    <Compile Include="Events.psharp" />
-    <Compile Include="PeriodicTimer.psharp" />
-    <Compile Include="SafetyMonitor.psharp" />
-    <Compile Include="Server.psharp" />
+    <PSharp Include="Client.psharp" />
+    <PSharp Include="ClusterManager.psharp" />
+    <PSharp Include="ElectionTimer.psharp" />
+    <PSharp Include="Events.psharp" />
+    <PSharp Include="PeriodicTimer.psharp" />
+    <PSharp Include="SafetyMonitor.psharp" />
+    <PSharp Include="Server.psharp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(PSharpBinaries)\PSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

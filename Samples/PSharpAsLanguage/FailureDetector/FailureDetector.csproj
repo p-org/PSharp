@@ -40,19 +40,20 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Timer.psharp" />
-    <Compile Include="Events.psharp" />
-    <Compile Include="FailureDetector.psharp" />
+    <PSharp Include="Timer.psharp" />
+    <PSharp Include="Events.psharp" />
+    <PSharp Include="FailureDetector.psharp" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Node.psharp" />
-    <Compile Include="Safety.psharp" />
-    <Compile Include="Driver.psharp" />
+    <PSharp Include="Node.psharp" />
+    <PSharp Include="Safety.psharp" />
+    <PSharp Include="Driver.psharp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(PSharpBinaries)\PSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

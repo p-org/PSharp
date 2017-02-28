@@ -18,6 +18,10 @@ namespace FailureDetector
 	event UnregisterClient (client: machine);
 	event RoundDone;
 	event TimerCancelled;
+	
+	// "Monitor Ping/Pong" to manage the per-client "history"
+	//		MPing increments the client ping count and MPong decrements it.
+	//      A safety violation is reported if the pingcount is < 0 or > 3; these indicate unmatched updates
 	event MPing (client: machine);
 	event MPong (node: machine);
 

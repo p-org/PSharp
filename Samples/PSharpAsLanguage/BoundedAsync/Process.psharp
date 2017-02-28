@@ -27,7 +27,7 @@ namespace BoundedAsync
         {
             entry
             {
-                this.CountMessage.Count = this.CountMessage.Count + 1;
+                this.CountMessage.Increment();
 
                 Console.WriteLine("Process: Count: {0}", this.CountMessage.Count);
 

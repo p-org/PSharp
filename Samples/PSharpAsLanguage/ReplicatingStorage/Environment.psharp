@@ -9,7 +9,7 @@ namespace ReplicatingStorage
     machine Environment
     {
 		MachineId NodeManager;
-        int NumberOfReplicas;
+        int NumberOfReplicas;	// Note: commented out below
 		List<machine> AliveNodes;
         int NumberOfFaults;
 		machine Client;

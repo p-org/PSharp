@@ -8,11 +8,16 @@ namespace BoundedAsync
 
     internal struct CountMessage
     {
-        public int Count;
+        public int Count { get; private set; }
 
         public CountMessage(int count)
         {
             this.Count = count;
+        }
+
+        public void Increment()
+        {
+            ++this.Count;
         }
     }
 
