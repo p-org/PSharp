@@ -64,7 +64,7 @@ namespace PSharpBatchTestGui
         public void LoadConfig()
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "CONFIG|*.config";
+            fileDialog.Filter = UIConstants.FileExtensionFilter;
             fileDialog.ShowDialog();
             var path = fileDialog.FileName;
             if (string.IsNullOrEmpty(path)) { return; }
@@ -226,7 +226,7 @@ namespace PSharpBatchTestGui
         public void SaveConfig()
         {
             SaveFileDialog fileDialog = new SaveFileDialog();
-            fileDialog.Filter = "Config|*.config";
+            fileDialog.Filter = UIConstants.FileExtensionFilter;
             fileDialog.AddExtension = true;
             fileDialog.ShowDialog();
             var path = fileDialog.FileName;
@@ -237,7 +237,7 @@ namespace PSharpBatchTestGui
             }
             if (!ExtractConfig())
             {
-                MessageBox.Show("Could not save file due to incorrect parameters");
+                MessageBox.Show(UIConstants.IncorrectParameterDuringSave);
                 return;
             }
             //Save this config file
@@ -272,7 +272,7 @@ namespace PSharpBatchTestGui
             var isExtractSuccess = ExtractConfig();
             if (!isExtractSuccess || null == config || !config.Validate())
             {
-                MessageBox.Show("Invalid Parameters");
+                MessageBox.Show(UIConstants.IncorrectParameterDuringRun);
             }
 
             DeleteBlobAfterComplete = DeleteBlobAfterCompleteCheckbox.IsChecked ?? false;
@@ -352,7 +352,7 @@ namespace PSharpBatchTestGui
                 //Checking num nodes
                 if (config.NumberOfNodesInPool > 10)
                 {
-                    MessageBoxResult result = MessageBox.Show("Do you really want to create " + config.NumberOfNodesInPool + " Nodes in pool?", "Confirmation Dialog", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    MessageBoxResult result = MessageBox.Show(string.Format(UIConstants.NodeCreationConfirmationFormat, config.NumberOfNodesInPool), UIConstants.NodeCreationConfirmationDialogHeading, MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     if(!(result == MessageBoxResult.Yes))
                     {
                         return;
