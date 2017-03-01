@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{6F835BCA-788A-4C38-933B-DBE71F40797F}"
 EndProject
@@ -14,6 +14,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageServices", "..\Libraries\LanguageServices\LanguageServices.csproj", "{06CCBE95-2E41-4188-BB97-AEE702C1BD25}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriter", "..\Tools\Compilation\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibraryProjectTemplate", "ClassLibraryProjectTemplate\ClassLibraryProjectTemplate.csproj", "{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleAppProjectTemplate", "ConsoleAppProjectTemplate\ConsoleAppProjectTemplate.csproj", "{62BDF3F2-E676-46F7-A7E2-E0F430949331}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachineFileItemTemplate", "MachineFileItemTemplate\MachineFileItemTemplate.csproj", "{F01738B6-A612-472C-8976-C12FD908FFC4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +61,24 @@ Global
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Release|x64.ActiveCfg = Release|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Release|x64.Build.0 = Release|Any CPU
+		{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}.Release|x64.ActiveCfg = Release|Any CPU
+		{62BDF3F2-E676-46F7-A7E2-E0F430949331}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62BDF3F2-E676-46F7-A7E2-E0F430949331}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62BDF3F2-E676-46F7-A7E2-E0F430949331}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{62BDF3F2-E676-46F7-A7E2-E0F430949331}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62BDF3F2-E676-46F7-A7E2-E0F430949331}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62BDF3F2-E676-46F7-A7E2-E0F430949331}.Release|x64.ActiveCfg = Release|Any CPU
+		{F01738B6-A612-472C-8976-C12FD908FFC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F01738B6-A612-472C-8976-C12FD908FFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F01738B6-A612-472C-8976-C12FD908FFC4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F01738B6-A612-472C-8976-C12FD908FFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F01738B6-A612-472C-8976-C12FD908FFC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F01738B6-A612-472C-8976-C12FD908FFC4}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

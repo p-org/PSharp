@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>PSharp Console Application</Name>
+    <Description>Creates a console application using the P# language extensions to C#.</Description>
+    <Icon>ConsoleAppProjectTemplate.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.6</RequiredFrameworkVersion>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>f01a4074-a695-4523-963d-ef4853e529c8</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>PSharpConsoleApp</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Program.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Machine1.psharp" OpenInEditor="true">Machine1.psharp</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

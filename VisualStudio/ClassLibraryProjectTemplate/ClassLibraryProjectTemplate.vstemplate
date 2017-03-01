@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>PSharp Class Library</Name>
+    <Description>Creates a class library using the P# language extensions to C#.</Description>
+    <Icon>ClassLibraryProjectTemplate.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.6</RequiredFrameworkVersion>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>1f247501-d3d0-4df3-9140-44720efeda0c</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>PSharpClassLibrary</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true">Class1.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Machine1.psharp" OpenInEditor="true">Machine1.psharp</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

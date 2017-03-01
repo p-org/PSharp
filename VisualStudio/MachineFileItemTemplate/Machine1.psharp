@@ -1,0 +1,20 @@
+﻿using System;
+
+namespace $rootnamespace$
+{
+    machine $safeitemname$
+    {
+        // TODO Add machine fields
+        start state Init
+		{
+			entry
+			{
+                // TODO Add C# code
+			}
+
+            // TODO Add event handlers
+        }
+
+        // TODO Add additional states
+    }
+}

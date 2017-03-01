@@ -9,12 +9,13 @@
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="14.0" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.6" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" d:TargetPath="ProjectTemplates\PSharpConsoleApplication.zip" />
-    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" d:TargetPath="ItemTemplates\Machine.zip" />
     <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" Path="|LanguageServices|" AssemblyName="|LanguageServices;AssemblyName|" d:ProjectName="LanguageServices" />
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="Project" d:TargetPath="|MachineFileItemTemplate;TemplateProjectOutputGroup|" Path="ItemTemplates" d:VsixSubPath="ItemTemplates" />
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:TargetPath="|ClassLibraryProjectTemplate;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:TargetPath="|ConsoleAppProjectTemplate;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
   </Assets>
 </PackageManifest>

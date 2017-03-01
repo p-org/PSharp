@@ -111,14 +111,6 @@
     <Compile Include="Tagging\PSharpTokenTagProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ItemTemplates\Machine.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ProjectTemplates\PSharpConsoleApplication.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -143,6 +135,33 @@
     <ProjectReference Include="..\..\Libraries\LanguageServices\LanguageServices.csproj">
       <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>LanguageServices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\Compilation\SyntaxRewriter\SyntaxRewriter.csproj">
+      <Project>{09842F43-E27A-4DFC-8DE6-61DDACB788CD}</Project>
+      <Name>SyntaxRewriter</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\ClassLibraryProjectTemplate\ClassLibraryProjectTemplate.csproj">
+      <Project>{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}</Project>
+      <Name>ClassLibraryProjectTemplate</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\ConsoleAppProjectTemplate\ConsoleAppProjectTemplate.csproj">
+      <Project>{62BDF3F2-E676-46F7-A7E2-E0F430949331}</Project>
+      <Name>ConsoleAppProjectTemplate</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\MachineFileItemTemplate\MachineFileItemTemplate.csproj">
+      <Project>{F01738B6-A612-472C-8976-C12FD908FFC4}</Project>
+      <Name>MachineFileItemTemplate</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
