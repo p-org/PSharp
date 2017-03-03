@@ -28,14 +28,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
+        /// The access modifier.
+        /// </summary>
+        internal readonly AccessModifier AccessModifier;
+
+        /// <summary>
         /// The event keyword.
         /// </summary>
         internal Token EventKeyword;
-
-        /// <summary>
-        /// The access modifier.
-        /// </summary>
-        internal AccessModifier AccessModifier;
 
         /// <summary>
         /// The identifier token.
@@ -100,9 +100,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        internal EventDeclaration(IPSharpProgram program)
+        /// <param name="modSet">Modifier set</param>
+        internal EventDeclaration(IPSharpProgram program, ModifierSet modSet)
             : base(program)
         {
+            this.AccessModifier = modSet.AccessModifier;
             this.GenericType = new List<Token>();
             this.PayloadTypes = new List<Token>();
             this.PayloadIdentifiers = new List<Token>();

@@ -41,16 +41,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="program">Program</param>
         /// <param name="parentNode">Node</param>
         /// <param name="isMonitor">Is a monitor</param>
-        /// <param name="isPartial">Is partial</param>
-        /// <param name="accMod">Access modifier</param>
-        /// <param name="inhMod">Inheritance modifier</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor,
-            bool isPartial, AccessModifier accMod, InheritanceModifier inhMod)
+        /// <param name="modSet">Modifier set</param>
+        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor, ModifierSet modSet)
         {
-            var node = new MachineDeclaration(base.TokenStream.Program,
-                parentNode, isMonitor, isPartial);
-            node.AccessModifier = accMod;
-            node.InheritanceModifier = inhMod;
+            if (isMonitor)
+            {
+                this.CheckMonitorModifierSet(modSet);
+            }
+            else
+            {
+                this.CheckMachineModifierSet(modSet);
+            }
+
+            var node = new MachineDeclaration(base.TokenStream.Program, parentNode, isMonitor, modSet);
             node.MachineKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -201,6 +204,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.StartState:
                     case TokenType.HotState:
                     case TokenType.ColdState:
+                    case TokenType.EventDecl:
                     case TokenType.StateDecl:
                     case TokenType.StateGroupDecl:
                     case TokenType.Void:
@@ -275,15 +279,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="parentNode">Node</param>
         private void VisitMachineLevelDeclaration(MachineDeclaration parentNode)
         {
-            AccessModifier am = AccessModifier.None;
-            InheritanceModifier im = InheritanceModifier.None;
-            bool isStart = false;
-            bool isHot = false;
-            bool isCold = false;
-            bool isAsync = false;
-            bool isPartial = false;
+            ModifierSet modSet = ModifierSet.CreateDefault();
 
             while (!base.TokenStream.Done &&
+                base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
                 base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
@@ -305,115 +304,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                if (am != AccessModifier.None &&
-                    (base.TokenStream.Peek().Type == TokenType.Public ||
-                    base.TokenStream.Peek().Type == TokenType.Private ||
-                    base.TokenStream.Peek().Type == TokenType.Protected ||
-                    base.TokenStream.Peek().Type == TokenType.Internal))
-                {
-                    throw new ParsingException("More than one protection modifier.",
-                        new List<TokenType>());
-                }
-                else if (im != InheritanceModifier.None &&
-                    base.TokenStream.Peek().Type == TokenType.Abstract)
-                {
-                    throw new ParsingException("Duplicate abstract modifier.",
-                        new List<TokenType>());
-                }
-                else if (isStart &&
-                    base.TokenStream.Peek().Type == TokenType.StartState)
-                {
-                    throw new ParsingException("Duplicate start state modifier.",
-                        new List<TokenType>());
-                }
-                else if (isHot &&
-                    base.TokenStream.Peek().Type == TokenType.HotState)
-                {
-                    throw new ParsingException("Duplicate hot state modifier.",
-                        new List<TokenType>());
-                }
-                else if (isCold &&
-                    base.TokenStream.Peek().Type == TokenType.ColdState)
-                {
-                    throw new ParsingException("Duplicate cold state modifier.",
-                        new List<TokenType>());
-                }
-                else if ((isCold &&
-                    base.TokenStream.Peek().Type == TokenType.HotState) ||
-                    (isHot &&
-                    base.TokenStream.Peek().Type == TokenType.ColdState))
-                {
-                    throw new ParsingException("State cannot be both hot and cold.",
-                        new List<TokenType>());
-                }
-                else if (isAsync &&
-                    base.TokenStream.Peek().Type == TokenType.Async)
-                {
-                    throw new ParsingException("Duplicate async method modifier.",
-                        new List<TokenType>());
-                }
-                else if (isPartial &&
-                    base.TokenStream.Peek().Type == TokenType.Partial)
-                {
-                    throw new ParsingException("Duplicate partial method modifier.",
-                        new List<TokenType>());
-                }
-
-                if (base.TokenStream.Peek().Type == TokenType.Public)
-                {
-                    am = AccessModifier.Public;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Private)
-                {
-                    am = AccessModifier.Private;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Protected)
-                {
-                    am = AccessModifier.Protected;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Internal)
-                {
-                    am = AccessModifier.Internal;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Abstract)
-                {
-                    im = InheritanceModifier.Abstract;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Virtual)
-                {
-                    im = InheritanceModifier.Virtual;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Override)
-                {
-                    im = InheritanceModifier.Override;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.StartState)
-                {
-                    isStart = true;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.HotState)
-                {
-                    isHot = true;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.ColdState)
-                {
-                    isCold = true;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Async)
-                {
-                    isAsync = true;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Partial)
-                {
-                    isPartial = true;
-                }
+                new ModifierVisitor(base.TokenStream).Visit(modSet);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.StateDecl &&
+                (base.TokenStream.Peek().Type != TokenType.EventDecl &&
+                base.TokenStream.Peek().Type != TokenType.StateDecl &&
                 base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
@@ -434,9 +333,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected state, group or method declaration.",
+                throw new ParsingException("Expected event, state, group or method declaration.",
                     new List<TokenType>
                 {
+                    TokenType.EventDecl,
                     TokenType.StateDecl,
                     TokenType.StateGroupDecl,
                     TokenType.MachineDecl,
@@ -460,122 +360,57 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.StateDecl)
+            if (base.TokenStream.Peek().Type == TokenType.EventDecl)
             {
-                if (am == AccessModifier.Public)
-                {
-                    throw new ParsingException("A state cannot be public.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Internal)
-                {
-                    throw new ParsingException("A state cannot be internal.",
-                        new List<TokenType>());
-                }
-
-                if (im == InheritanceModifier.Abstract)
-                {
-                    throw new ParsingException("A state cannot be abstract.",
-                        new List<TokenType>());
-                }
-                else if (im == InheritanceModifier.Virtual)
-                {
-                    throw new ParsingException("A state cannot be virtual.",
-                        new List<TokenType>());
-                }
-                else if (im == InheritanceModifier.Override)
-                {
-                    throw new ParsingException("A state cannot be overriden.",
-                        new List<TokenType>());
-                }
-
-                if (isAsync)
-                {
-                    throw new ParsingException("A state cannot be async.",
-                        new List<TokenType>());
-                }
-
-                if (isPartial)
-                {
-                    throw new ParsingException("A state cannot be partial.",
-                        new List<TokenType>());
-                }
-
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, isStart, isHot, isCold, am);
+                new EventDeclarationVisitor(base.TokenStream).Visit(parentNode.Namespace, parentNode, modSet);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.StateDecl)
+            {
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
             }
             else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
             {
-                if (am == AccessModifier.Public)
-                {
-                    throw new ParsingException("A state group cannot be public.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Internal)
-                {
-                    throw new ParsingException("A state group cannot be internal.",
-                        new List<TokenType>());
-                }
-
-                if (im == InheritanceModifier.Abstract)
-                {
-                    throw new ParsingException("A state group cannot be abstract.",
-                        new List<TokenType>());
-                }
-                else if (im == InheritanceModifier.Virtual)
-                {
-                    throw new ParsingException("A state group cannot be virtual.",
-                        new List<TokenType>());
-                }
-                else if (im == InheritanceModifier.Override)
-                {
-                    throw new ParsingException("A state group cannot be overriden.",
-                        new List<TokenType>());
-                }
-
-                if (isAsync)
-                {
-                    throw new ParsingException("A state group cannot be async.",
-                        new List<TokenType>());
-                }
-
-                if (isPartial)
-                {
-                    throw new ParsingException("A state group cannot be partial.",
-                        new List<TokenType>());
-                }
-
-                if (isStart)
-                {
-                    throw new ParsingException("A state group cannot be marked start.",
-                        new List<TokenType>());
-                }
-                else if (isHot)
-                {
-                    throw new ParsingException("A state group cannot be hot.",
-                        new List<TokenType>());
-                }
-                else if (isCold)
-                {
-                    throw new ParsingException("A state group cannot be cold.",
-                        new List<TokenType>());
-                }
-
-                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, am);
+                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
             }
             else
             {
-                if (am == AccessModifier.Public)
-                {
-                    throw new ParsingException("A field or method cannot be public.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Internal)
-                {
-                    throw new ParsingException("A field or method cannot be internal.",
-                        new List<TokenType>());
-                }
+                new MachineMemberDeclarationVisitor(base.TokenStream).Visit(parentNode, modSet);
+            }
+        }
 
-                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, am, im, isAsync, isPartial);
+        /// <summary>
+        /// Checks the modifier set for errors.
+        /// </summary>
+        /// <param name="modSet">ModifierSet</param>
+        private void CheckMachineModifierSet(ModifierSet modSet)
+        {
+            if (modSet.AccessModifier == AccessModifier.Private)
+            {
+                throw new ParsingException("A machine cannot be private.",
+                    new List<TokenType>());
+            }
+            else if (modSet.AccessModifier == AccessModifier.Protected)
+            {
+                throw new ParsingException("A machine cannot be protected.",
+                    new List<TokenType>());
+            }
+        }
+
+        /// <summary>
+        /// Checks the modifier set for errors.
+        /// </summary>
+        /// <param name="modSet">ModifierSet</param>
+        private void CheckMonitorModifierSet(ModifierSet modSet)
+        {
+            if (modSet.AccessModifier == AccessModifier.Private)
+            {
+                throw new ParsingException("A monitor cannot be private.",
+                    new List<TokenType>());
+            }
+            else if (modSet.AccessModifier == AccessModifier.Protected)
+            {
+                throw new ParsingException("A monitor cannot be protected.",
+                    new List<TokenType>());
             }
         }
     }

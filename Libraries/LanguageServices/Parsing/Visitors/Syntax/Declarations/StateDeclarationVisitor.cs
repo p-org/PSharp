@@ -37,18 +37,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Node</param>
-        /// <param name="groupNode">Parent state group</param>
-        /// <param name="isStart">Is start state</param>
-        /// <param name="isHot">Is start state</param>
-        /// <param name="isCold">Is start state</param>
-        /// <param name="accMod">Access modifier</param>
-        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode,
-            bool isStart, bool isHot, bool isCold, AccessModifier accMod)
+        /// <param name="parentNode">Containing machine</param>
+        /// <param name="groupNode">Containing group</param>
+        /// <param name="modSet">Modifier set</param>
+        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, ModifierSet modSet)
         {
-            var node = new StateDeclaration(base.TokenStream.Program, parentNode,
-                groupNode, isStart, isHot, isCold);
-            node.AccessModifier = accMod;
+            this.CheckMachineStateModifierSet(modSet);
+
+            var node = new StateDeclaration(base.TokenStream.Program, parentNode, groupNode, modSet);
             node.StateKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -286,6 +282,52 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         TokenType.IgnoreEvent
                     });
                 }
+            }
+        }
+
+        /// <summary>
+        /// Checks the modifier set for errors.
+        /// </summary>
+        /// <param name="modSet">ModifierSet</param>
+        private void CheckMachineStateModifierSet(ModifierSet modSet)
+        {
+            if (modSet.AccessModifier == AccessModifier.Public)
+            {
+                throw new ParsingException("A machine state cannot be public.",
+                    new List<TokenType>());
+            }
+            else if (modSet.AccessModifier == AccessModifier.Internal)
+            {
+                throw new ParsingException("A machine state cannot be internal.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
+            {
+                throw new ParsingException("A machine state cannot be abstract.",
+                    new List<TokenType>());
+            }
+            else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
+            {
+                throw new ParsingException("A machine state cannot be virtual.",
+                    new List<TokenType>());
+            }
+            else if (modSet.InheritanceModifier == InheritanceModifier.Override)
+            {
+                throw new ParsingException("A machine state cannot be overriden.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.IsAsync)
+            {
+                throw new ParsingException("A machine state cannot be async.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.IsPartial)
+            {
+                throw new ParsingException("A machine state cannot be partial.",
+                    new List<TokenType>());
             }
         }
     }

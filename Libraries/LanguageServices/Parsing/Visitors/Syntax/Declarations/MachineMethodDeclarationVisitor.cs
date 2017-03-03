@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MethodDeclarationVisitor.cs">
+// <copyright file="MachineMethodDeclarationVisitor.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,15 +20,15 @@ using Microsoft.PSharp.LanguageServices.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
-    /// The P# method declaration parsing visitor.
+    /// The P# machine method declaration parsing visitor.
     /// </summary>
-    internal sealed class MethodDeclarationVisitor : BaseTokenVisitor
+    internal sealed class MachineMethodDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        internal MethodDeclarationVisitor(TokenStream tokenStream)
+        internal MachineMethodDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,20 +40,18 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="parentNode">Node</param>
         /// <param name="typeIdentifier">Type identifier</param>
         /// <param name="identifier">Identifier</param>
-        /// <param name="accMod">Access modifier</param>
-        /// <param name="inhMod">Inheritance modifier</param>
-        /// <param name="isAsync">Is async</param>
-        /// <param name="isPartial">Is partial</param>
-        internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier,
-            AccessModifier accMod, InheritanceModifier inhMod, bool isAsync, bool isPartial)
+        /// <param name="modSet">Modifier set</param>
+        internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier, ModifierSet modSet)
         {
+            this.CheckMachineMethodModifierSet(modSet);
+
             var node = new MethodDeclaration(base.TokenStream.Program, parentNode);
-            node.AccessModifier = accMod;
-            node.InheritanceModifier = inhMod;
+            node.AccessModifier = modSet.AccessModifier;
+            node.InheritanceModifier = modSet.InheritanceModifier;
             node.TypeIdentifier = typeIdentifier;
             node.Identifier = identifier;
-            node.IsAsync = isAsync;
-            node.IsPartial = isPartial;
+            node.IsAsync = modSet.IsAsync;
+            node.IsPartial = modSet.IsPartial;
 
             node.LeftParenthesisToken = base.TokenStream.Peek();
 
@@ -100,6 +98,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             parentNode.MethodDeclarations.Add(node);
+        }
+
+        /// <summary>
+        /// Checks the modifier set for errors.
+        /// </summary>
+        /// <param name="modSet">ModifierSet</param>
+        private void CheckMachineMethodModifierSet(ModifierSet modSet)
+        {
+            if (modSet.AccessModifier == AccessModifier.Public)
+            {
+                throw new ParsingException("A machine method cannot be public.",
+                    new List<TokenType>());
+            }
+            else if (modSet.AccessModifier == AccessModifier.Internal)
+            {
+                throw new ParsingException("A machine method cannot be internal.",
+                    new List<TokenType>());
+            }
         }
     }
 }

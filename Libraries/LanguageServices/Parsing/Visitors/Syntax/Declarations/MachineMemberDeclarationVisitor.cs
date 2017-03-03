@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FieldOrMethodDeclarationVisitor.cs">
+// <copyright file="MachineMemberDeclarationVisitor.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,15 +20,15 @@ using Microsoft.PSharp.LanguageServices.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
-    /// The P# field or method declaration parsing visitor.
+    /// The P# machine member declaration parsing visitor.
     /// </summary>
-    internal sealed class FieldOrMethodDeclarationVisitor : BaseTokenVisitor
+    internal sealed class MachineMemberDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        internal FieldOrMethodDeclarationVisitor(TokenStream tokenStream)
+        internal MachineMemberDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,12 +38,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="accMod">Access modifier</param>
-        /// <param name="inhMod">Inheritance modifier</param>
-        /// <param name="isAsync">Is async</param>
-        /// <param name="isPartial">Is partial</param>
-        internal void Visit(MachineDeclaration parentNode, AccessModifier accMod,
-            InheritanceModifier inhMod, bool isAsync, bool isPartial)
+        /// <param name="modSet">Modifier set</param>
+        internal void Visit(MachineDeclaration parentNode, ModifierSet modSet)
         {
             TextUnit textUnit = null;
             new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
@@ -78,46 +74,65 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
-                new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
-                    identifierToken, accMod, inhMod, isAsync, isPartial);
+                new MachineMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
+                    identifierToken, modSet);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
             {
-                if (inhMod == InheritanceModifier.Abstract)
-                {
-                    throw new ParsingException("A field cannot be abstract.",
-                        new List<TokenType>());
-                }
-                else if (inhMod == InheritanceModifier.Virtual)
-                {
-                    throw new ParsingException("A field cannot be virtual.",
-                        new List<TokenType>());
-                }
-                else if (inhMod == InheritanceModifier.Override)
-                {
-                    throw new ParsingException("A field cannot be overriden.",
-                        new List<TokenType>());
-                }
+                this.CheckMachineFieldModifierSet(modSet);
 
-                if (isAsync)
-                {
-                    throw new ParsingException("A field cannot be async.",
-                        new List<TokenType>());
-                }
-
-                if (isPartial)
-                {
-                    throw new ParsingException("A field cannot be partial.",
-                        new List<TokenType>());
-                }
-
-                var node = new FieldDeclaration(base.TokenStream.Program, parentNode);
-                node.AccessModifier = accMod;
+                var node = new FieldDeclaration(base.TokenStream.Program, parentNode, modSet);
                 node.TypeIdentifier = typeIdentifier;
                 node.Identifier = identifierToken;
                 node.SemicolonToken = base.TokenStream.Peek();
 
                 parentNode.FieldDeclarations.Add(node);
+            }
+        }
+
+        /// <summary>
+        /// Checks the modifier set for errors.
+        /// </summary>
+        /// <param name="modSet">ModifierSet</param>
+        private void CheckMachineFieldModifierSet(ModifierSet modSet)
+        {
+            if (modSet.AccessModifier == AccessModifier.Public)
+            {
+                throw new ParsingException("A machine field cannot be public.",
+                    new List<TokenType>());
+            }
+            else if (modSet.AccessModifier == AccessModifier.Internal)
+            {
+                throw new ParsingException("A machine field cannot be internal.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
+            {
+                throw new ParsingException("A machine field cannot be abstract.",
+                    new List<TokenType>());
+            }
+            else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
+            {
+                throw new ParsingException("A machine field cannot be virtual.",
+                    new List<TokenType>());
+            }
+            else if (modSet.InheritanceModifier == InheritanceModifier.Override)
+            {
+                throw new ParsingException("A machine field cannot be overriden.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.IsAsync)
+            {
+                throw new ParsingException("A machine field cannot be async.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.IsPartial)
+            {
+                throw new ParsingException("A machine field cannot be partial.",
+                    new List<TokenType>());
             }
         }
     }

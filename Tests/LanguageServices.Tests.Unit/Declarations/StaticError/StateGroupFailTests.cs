@@ -459,7 +459,7 @@ start group G { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A state group cannot be marked start.",
+            Assert.AreEqual("A machine state group cannot be marked start.",
                 parser.GetParsingErrorLog());
         }
 
@@ -481,7 +481,7 @@ cold group G { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A state group cannot be cold.",
+            Assert.AreEqual("A machine state group cannot be cold.",
                 parser.GetParsingErrorLog());
         }
 
@@ -503,7 +503,7 @@ hot group G { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A state group cannot be hot.",
+            Assert.AreEqual("A machine state group cannot be hot.",
                 parser.GetParsingErrorLog());
         }
 
@@ -915,7 +915,7 @@ start group G { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A state group cannot be marked start.",
+            Assert.AreEqual("A machine state group cannot be marked start.",
                 parser.GetParsingErrorLog());
         }
 
@@ -937,7 +937,7 @@ cold group G { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A state group cannot be cold.",
+            Assert.AreEqual("A machine state group cannot be cold.",
                 parser.GetParsingErrorLog());
         }
 
@@ -959,7 +959,7 @@ hot group G { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A state group cannot be hot.",
+            Assert.AreEqual("A machine state group cannot be hot.",
                 parser.GetParsingErrorLog());
         }
 
