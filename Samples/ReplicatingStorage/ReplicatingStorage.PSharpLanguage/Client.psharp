@@ -1,0 +1,51 @@
+﻿using System;
+
+namespace ReplicatingStorage.PSharpLanguage
+{
+    machine Client
+    {
+		machine NodeManager;
+        int Counter;
+
+		start state Init
+		{
+			entry
+			{
+				this.Counter = 0;
+			}
+
+			on CConfigureEvent do Configure;
+			on LocalEvent goto PumpRequest;
+		}
+
+		void Configure()
+        {
+            this.NodeManager = (trigger as CConfigureEvent).NodeManager;
+            raise(LocalEvent);
+        }
+
+		state PumpRequest
+		{
+			entry
+			{
+				var command = new Random().Next(100);
+				this.Counter++;
+
+				Console.WriteLine("\n [Client] new request {0}.\n", command);
+
+				send(this.NodeManager, Request, this.Id, command);
+
+				if (this.Counter == 1)
+				{
+					raise(Halt);
+				}
+				else
+				{
+					raise(LocalEvent);
+				}
+			}
+
+			on LocalEvent goto PumpRequest;
+		}
+    }
+}

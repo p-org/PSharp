@@ -1,0 +1,116 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Raft.PSharpLanguage
+{
+    machine ClusterManager
+    {
+		List<machine> Servers;
+        int NumberOfServers;
+        machine Leader;
+        int LeaderTerm;
+        machine Client;
+
+		start state Init
+		{
+			entry
+			{
+				this.NumberOfServers = 5;
+				this.LeaderTerm = 0;
+
+				this.Servers = new List<machine>();
+
+				for (int idx = 0; idx < this.NumberOfServers; idx++)
+				{
+					this.Servers.Insert(idx, create(Server));
+				}
+
+				this.Client = create(Client);
+				raise(LocalEvent);
+			}
+
+			on LocalEvent goto Configuring;
+		}
+
+		state Configuring
+		{
+			entry
+			{
+				for (int idx = 0; idx < this.NumberOfServers; idx++)
+				{
+					send(this.Servers[idx], SConfigureEvent, idx, this.Servers, this.Id);
+				}
+
+				send(this.Client, CConfigureEvent, this.Id);
+				raise(LocalEvent);
+			}
+
+			on LocalEvent goto Unavailable;
+		}
+
+		state Unavailable
+		{
+			on NotifyLeaderUpdate do BecomeAvailable;
+			on ShutDown do ShuttingDown;
+			on LocalEvent goto Available;
+			defer Request;
+		}
+
+		void BecomeAvailable()
+		{
+			this.UpdateLeader(trigger as NotifyLeaderUpdate);
+            raise(LocalEvent);
+		}
+
+		void UpdateLeader(NotifyLeaderUpdate request)
+        {
+            if (this.LeaderTerm < request.Term)
+            {
+                this.Leader = request.Leader;
+                this.LeaderTerm = request.Term;
+            }
+        }
+
+		void ShuttingDown()
+		{
+			for (int idx = 0; idx < this.NumberOfServers; idx++)
+            {
+                send(this.Servers[idx], ShutDown);
+            }
+
+            raise(Halt);
+		}
+
+		state Available
+		{
+			on Request do SendClientRequestToLeader;
+			on RedirectRequest do RedirectClientRequest;
+			on NotifyLeaderUpdate do RefreshLeader;
+			on ShutDown do ShuttingDown;
+			on LocalEvent goto Unavailable;
+		}
+
+		void SendClientRequestToLeader()
+		{
+			send(this.Leader, Request, (trigger as Request).Client, (trigger as Request).Command);
+		}
+
+		void RedirectClientRequest()
+		{
+			send(this.Id, Request, (trigger as RedirectRequest).Req.Client, (trigger as RedirectRequest).Req.Command);
+		}
+
+		void RefreshLeader()
+        {
+            this.UpdateLeader(trigger as NotifyLeaderUpdate);
+        }
+
+		void BecomeUnavailable()
+        {
+
+        }
+    }
+}

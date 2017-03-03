@@ -1,0 +1,44 @@
+﻿namespace MultiPaxos.PSharpLanguage
+{
+    machine Timer
+    {
+	    machine Target;
+		int TimeoutValue;
+
+		start state Init
+        {
+            on local goto Loop;
+			on timerConfig do Configure;
+        }
+
+		void Configure()
+        {
+            Target = (trigger as timerConfig).target;
+			TimeoutValue = (trigger as timerConfig).timeout;
+			raise(local);
+        }
+
+		state Loop
+		{
+		    ignore cancelTimer;
+			on startTimer goto TimerStarted;
+		}
+
+		state TimerStarted
+		{
+		    ignore startTimer;
+
+		    entry
+			{
+			    if (*)
+				{
+				    //send(Target, timeout);
+				    raise(local);
+			    }
+			}
+
+			on local goto Loop;
+			on cancelTimer goto Loop;
+		}
+    }
+}

@@ -1,0 +1,37 @@
+﻿using System.Collections.Generic;
+
+namespace MultiPaxos.PSharpLanguage
+{
+    machine GodMachine
+    {
+	    List<machine> PaxosNodes;
+
+		start state Init
+		{
+		    entry
+			{
+			    PaxosNodes = new List<machine>();
+
+				var temp = create(PaxosNode);
+				send(temp, nodeConfig, 1);
+				PaxosNodes.Add(temp);
+
+				temp = create(PaxosNode);
+				send(temp, nodeConfig, 2);
+				PaxosNodes.Add(temp);
+
+				temp = create(PaxosNode);
+				send(temp, nodeConfig, 3);
+				PaxosNodes.Add(temp);
+
+				foreach (var node in PaxosNodes)
+				{
+				    send(node, allNodes, PaxosNodes);
+				}
+
+				var client = create(Client);
+				send(client, clientConfig, PaxosNodes);
+			}
+		}
+    }
+}
