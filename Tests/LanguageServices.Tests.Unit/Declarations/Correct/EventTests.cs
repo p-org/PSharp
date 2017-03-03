@@ -287,5 +287,77 @@ public class e3 : Event
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
+        [TestMethod, Timeout(10000)]
+        public void TestEventInMachineDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+public event e1<T>;
+internal event e2;
+public event e3<T, K> (m:K, n:T);
+internal event e4 (m:string);
+start state S { }
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+public class e1<T> : Event
+{
+ public e1()
+  : base()
+ { }
+}
+internal class e2 : Event
+{
+ public e2()
+  : base()
+ { }
+}
+public class e3<T,K> : Event
+{
+ public K m;
+ public T n;
+ public e3(K m, T n)
+  : base()
+ {
+  this.m = m;
+  this.n = n;
+ }
+}
+internal class e4 : Event
+{
+ public string m;
+ public e4(string m)
+  : base()
+ {
+  this.m = m;
+ }
+}
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
     }
 }

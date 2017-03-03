@@ -118,5 +118,77 @@ event e<;
             Assert.AreEqual("Invalid generic expression.",
                 parser.GetParsingErrorLog());
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestNonPublicOrInternalEventDeclarationInMachine()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+event e;
+}
+{
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("An event declared in the scope of a machine must be public or internal.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestProtectedEventDeclarationInMachine()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+protected event e;
+}
+{
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("An event cannot be protected.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestPrivateEventDeclarationInMachine()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+private event e;
+}
+{
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("An event cannot be private.",
+                parser.GetParsingErrorLog());
+        }
     }
 }

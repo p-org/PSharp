@@ -37,13 +37,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="parentNode">Node</param>
-        /// <param name="accMod">Access modifier</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, AccessModifier accMod)
+        /// <param name="namespaceNode">Containing namespace</param>
+        /// <param name="machineNode">Containing machine</param>
+        /// <param name="modSet">Modifier set</param>
+        internal void Visit(NamespaceDeclaration namespaceNode, MachineDeclaration machineNode, ModifierSet modSet)
         {
-            var node = new EventDeclaration(base.TokenStream.Program);
-            node.AccessModifier = accMod;
+            this.CheckEventModifierSet(modSet, (machineNode != null));
+
+            var node = new EventDeclaration(base.TokenStream.Program, modSet);
             node.EventKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -350,7 +351,53 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             node.SemicolonToken = base.TokenStream.Peek();
-            parentNode.EventDeclarations.Add(node);
+
+            // Insert into (immediately) containing namespace or machine declaration.
+            if (machineNode != null)
+            {
+                machineNode.EventDeclarations.Add(node);
+            }
+            else
+            {
+                namespaceNode.EventDeclarations.Add(node);
+            }
+        }
+
+        /// <summary>
+        /// Checks the modifier set for errors.
+        /// </summary>
+        /// <param name="modSet">ModifierSet</param>
+        /// <param name="isInMachine">Is declared inside a machine</param>
+        private void CheckEventModifierSet(ModifierSet modSet, bool isInMachine)
+        {
+            if (isInMachine && modSet.AccessModifier == AccessModifier.None)
+            {
+                throw new ParsingException("An event declared in the scope of a machine must be public or internal.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.AccessModifier == AccessModifier.Private)
+            {
+                throw new ParsingException("An event cannot be private.",
+                    new List<TokenType>());
+            }
+            else if (modSet.AccessModifier == AccessModifier.Protected)
+            {
+                throw new ParsingException("An event cannot be protected.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
+            {
+                throw new ParsingException("An event cannot be abstract.",
+                    new List<TokenType>());
+            }
+
+            if (modSet.IsPartial)
+            {
+                throw new ParsingException("An event cannot be declared as partial.",
+                    new List<TokenType>());
+            }
         }
     }
 }

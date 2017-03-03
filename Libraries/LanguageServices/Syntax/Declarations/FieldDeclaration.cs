@@ -13,8 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
@@ -36,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// The access modifier.
         /// </summary>
-        internal AccessModifier AccessModifier;
+        internal readonly AccessModifier AccessModifier;
 
         /// <summary>
         /// The type identifier.
@@ -62,10 +60,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
-        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode)
+        /// <param name="modSet">Modifier set</param>
+        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode, ModifierSet modSet)
             : base(program)
         {
             this.Machine = machineNode;
+            this.AccessModifier = modSet.AccessModifier;
         }
 
         /// <summary>

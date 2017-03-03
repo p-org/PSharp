@@ -39,24 +39,24 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal readonly bool IsMonitor;
 
         /// <summary>
+        /// The access modifier.
+        /// </summary>
+        internal readonly AccessModifier AccessModifier;
+
+        /// <summary>
+        /// The inheritance modifier.
+        /// </summary>
+        internal readonly InheritanceModifier InheritanceModifier;
+
+        /// <summary>
         /// True if the machine is partial.
         /// </summary>
-        internal bool IsPartial;
+        internal readonly bool IsPartial;
 
         /// <summary>
         /// The machine keyword.
         /// </summary>
         internal Token MachineKeyword;
-
-        /// <summary>
-        /// The access modifier.
-        /// </summary>
-        internal AccessModifier AccessModifier;
-
-        /// <summary>
-        /// The inheritance modifier.
-        /// </summary>
-        internal InheritanceModifier InheritanceModifier;
 
         /// <summary>
         /// The identifier token.
@@ -77,6 +77,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// The left curly bracket token.
         /// </summary>
         internal Token LeftCurlyBracketToken;
+
+        /// <summary>
+        /// List of event declarations.
+        /// </summary>
+        internal List<EventDeclaration> EventDeclarations;
 
         /// <summary>
         /// List of field declarations.
@@ -118,15 +123,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="namespaceNode">NamespaceDeclaration</param>
         /// <param name="isMonitor">Is a monitor</param>
-        /// <param name="isPartial">Is partial</param>
+        /// <param name="modSet">Modifier set</param>
         internal MachineDeclaration(IPSharpProgram program, NamespaceDeclaration namespaceNode,
-            bool isMonitor, bool isPartial)
+            bool isMonitor, ModifierSet modSet)
             : base(program)
         {
             this.Namespace = namespaceNode;
             this.IsMonitor = isMonitor;
-            this.IsPartial = isPartial;
+            this.AccessModifier = modSet.AccessModifier;
+            this.InheritanceModifier = modSet.InheritanceModifier;
+            this.IsPartial = modSet.IsPartial;
             this.BaseNameTokens = new List<Token>();
+            this.EventDeclarations = new List<EventDeclaration>();
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
             this.StateGroupDeclarations = new List<StateGroupDeclaration>();
@@ -141,6 +149,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite()
         {
             string text = "";
+
+            foreach (var node in this.EventDeclarations)
+            {
+                node.Rewrite();
+            }
 
             foreach (var node in this.FieldDeclarations)
             {
@@ -296,6 +309,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+
+            foreach (var node in this.EventDeclarations)
+            {
+                text += node.TextUnit.Text;
+            }
 
             foreach (var node in this.FieldDeclarations)
             {

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FieldFailTests.cs">
+// <copyright file="MethodFailTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,16 +20,16 @@ using Microsoft.PSharp.LanguageServices.Parsing;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class FieldFailTests
+    public class MethodFailTests
     {
         [TestMethod, Timeout(10000)]
-        public void TestPublicFieldDeclaration()
+        public void TestPublicMethodDeclaration()
         {
             var test = @"
 namespace Foo {
 machine M {
-public int k;
 start state S { }
+public void Foo() { }
 }
 }";
 
@@ -41,18 +41,18 @@ start state S { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A machine field cannot be public.",
+            Assert.AreEqual("A machine method cannot be public.",
                 parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestInternalFieldDeclaration()
+        public void TestInternalMethodDeclaration()
         {
             var test = @"
 namespace Foo {
 machine M {
-internal int k;
 start state S { }
+internal void Foo() { }
 }
 }";
 
@@ -64,18 +64,18 @@ start state S { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("A machine field cannot be internal.",
+            Assert.AreEqual("A machine method cannot be internal.",
                 parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestIntFieldDeclarationWithoutSemicolon()
+        public void TestMethodDeclarationWithoutBrackets()
         {
             var test = @"
 namespace Foo {
 machine M {
-int k
 start state S { }
+void Foo()
 }
 }";
 
@@ -87,53 +87,7 @@ start state S { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Expected \"(\" or \";\".",
-                parser.GetParsingErrorLog());
-        }
-
-        [TestMethod, Timeout(10000)]
-        public void TestMachineFieldDeclarationWithoutSemicolon()
-        {
-            var test = @"
-namespace Foo {
-machine M {
-machine N
-start state S { }
-}
-}";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \"(\" or \";\".",
-                parser.GetParsingErrorLog());
-        }
-
-        [TestMethod, Timeout(10000)]
-        public void TestPrivateMachineFieldDeclarationWithoutSemicolon()
-        {
-            var test = @"
-namespace Foo {
-machine M {
-private machine N
-start state S { }
-}
-}";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \"(\" or \";\".",
+            Assert.AreEqual("Expected \"{\" or \";\".",
                 parser.GetParsingErrorLog());
         }
     }

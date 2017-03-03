@@ -39,6 +39,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal readonly StateGroupDeclaration Group;
 
         /// <summary>
+        /// The access modifier.
+        /// </summary>
+        internal readonly AccessModifier AccessModifier;
+
+        /// <summary>
         /// True if the state is the start state.
         /// </summary>
         internal readonly bool IsStart;
@@ -57,11 +62,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// The state keyword.
         /// </summary>
         internal Token StateKeyword;
-
-        /// <summary>
-        /// The access modifier.
-        /// </summary>
-        internal AccessModifier AccessModifier;
 
         /// <summary>
         /// The identifier token.
@@ -144,18 +144,17 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="groupNode">StateGroupDeclaration</param>
-        /// <param name="isStart">Is start state</param>
-        /// <param name="isHot">Is hot state</param>
-        /// <param name="isCold">Is cold state</param>
+        /// <param name="modSet">Modifier set</param>
         internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
-            StateGroupDeclaration groupNode, bool isStart, bool isHot, bool isCold)
+            StateGroupDeclaration groupNode, ModifierSet modSet)
             : base(program)
         {
             this.Machine = machineNode;
             this.Group = groupNode;
-            this.IsStart = isStart;
-            this.IsHot = isHot;
-            this.IsCold = isCold;
+            this.AccessModifier = modSet.AccessModifier;
+            this.IsStart = modSet.IsStart;
+            this.IsHot = modSet.IsHot;
+            this.IsCold = modSet.IsCold;
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
