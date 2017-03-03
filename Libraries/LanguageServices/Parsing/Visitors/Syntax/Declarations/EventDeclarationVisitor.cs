@@ -370,18 +370,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="isInMachine">Is declared inside a machine</param>
         private void CheckEventModifierSet(ModifierSet modSet, bool isInMachine)
         {
-            if (isInMachine && modSet.AccessModifier == AccessModifier.None)
+            if (!isInMachine && (modSet.AccessModifier == AccessModifier.Private ||
+                modSet.AccessModifier == AccessModifier.None))
             {
-                throw new ParsingException("An event declared in the scope of a machine must be public or internal.",
+                throw new ParsingException("An event declared in the scope of a namespace must be public or internal.",
                     new List<TokenType>());
             }
 
-            if (modSet.AccessModifier == AccessModifier.Private)
-            {
-                throw new ParsingException("An event cannot be private.",
-                    new List<TokenType>());
-            }
-            else if (modSet.AccessModifier == AccessModifier.Protected)
+            if (modSet.AccessModifier == AccessModifier.Protected)
             {
                 throw new ParsingException("An event cannot be protected.",
                     new List<TokenType>());

@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = @"
 namespace Foo {
-event e1;
+public event e1;
 
 machine M {
 machine Target;
@@ -58,7 +58,7 @@ create(M);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public e1()
   : base()
@@ -89,7 +89,7 @@ this.CreateMachine(typeof(M));
         {
             var test = @"
 namespace Foo {
-event e1;
+public event e1;
 
 machine M {
 machine Target;
@@ -117,7 +117,7 @@ create(M, ""NamedMachine"");
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public e1()
   : base()
@@ -148,7 +148,7 @@ this.CreateMachine(typeof(M),""NamedMachine"");
         {
             var test = @"
 namespace Foo {
-event e1 (k:int);
+public event e1 (k:int);
 
 machine M {
 machine Target;
@@ -176,7 +176,7 @@ create(M, e1, 10);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public int k;
  public e1(int k)
@@ -210,7 +210,7 @@ this.CreateMachine(typeof(M),new e1(10));
         {
             var test = @"
 namespace Foo {
-event e1 (k:int, s:string);
+public event e1 (k:int, s:string);
 
 machine M {
 machine Target;
@@ -239,7 +239,7 @@ create(M, e1, 10, s);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public int k;
  public string s;
@@ -276,7 +276,7 @@ this.CreateMachine(typeof(M),new e1(10, s));
         {
             var test = @"
 namespace Foo {
-event e1 (k:int);
+public event e1 (k:int);
 
 machine M {
 machine Target;
@@ -304,7 +304,7 @@ create(M, ""NamedMachine"", e1, 10);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public int k;
  public e1(int k)
@@ -338,7 +338,7 @@ this.CreateMachine(typeof(M),""NamedMachine"",new e1(10));
         {
             var test = @"
 namespace Foo {
-event e1 (k:int, s:string);
+public event e1 (k:int, s:string);
 
 machine M {
 machine Target;
@@ -367,7 +367,7 @@ create(M, ""NamedMachine"", e1, 10, s);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public int k;
  public string s;

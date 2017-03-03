@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = @"
 namespace Foo {
-event e1;
+public event e1;
 
 machine M {
 start state S1
@@ -61,7 +61,7 @@ state S2
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public e1()
   : base()

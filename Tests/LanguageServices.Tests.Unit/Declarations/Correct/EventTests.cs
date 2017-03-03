@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = @"
 namespace Foo {
-event e1;
+public event e1;
 internal event e2;
 public event e3;
 }";
@@ -49,7 +49,7 @@ public event e3;
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public e1()
   : base()
@@ -78,7 +78,7 @@ public class e3 : Event
         {
             var test = @"
 namespace Foo {
-event e1<T>;
+public event e1<T>;
 internal event e2;
 public event e3;
 }";
@@ -97,7 +97,7 @@ public event e3;
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1<T> : Event
+public class e1<T> : Event
 {
  public e1()
   : base()
@@ -126,7 +126,7 @@ public class e3 : Event
         {
             var test = @"
 namespace Foo {
-event e1<T, K>;
+internal event e1<T, K>;
 internal event e2;
 public event e3;
 }";
@@ -145,7 +145,7 @@ public event e3;
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1<T,K> : Event
+internal class e1<T,K> : Event
 {
  public e1()
   : base()
@@ -174,7 +174,7 @@ public class e3 : Event
         {
             var test = @"
 namespace Foo {
-event e1 (m:string, n:int);
+internal event e1 (m:string, n:int);
 internal event e2 (m:string);
 public event e3 (n:int);
 }";
@@ -193,7 +193,7 @@ public event e3 (n:int);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+internal class e1 : Event
 {
  public string m;
  public int n;
@@ -233,7 +233,7 @@ public class e3 : Event
         {
             var test = @"
 namespace Foo {
-event e1<T, K> (m:K, n:T);
+internal event e1<T, K> (m:K, n:T);
 internal event e2 (m:string);
 public event e3 (n:int);
 }";
@@ -252,7 +252,7 @@ public event e3 (n:int);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1<T,K> : Event
+internal class e1<T,K> : Event
 {
  public K m;
  public T n;

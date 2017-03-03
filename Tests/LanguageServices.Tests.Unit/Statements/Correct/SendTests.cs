@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = @"
 namespace Foo {
-event e1;
+public event e1;
 
 machine M {
 machine Target;
@@ -58,7 +58,7 @@ send(this.Target, e1);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public e1()
   : base()
@@ -89,7 +89,7 @@ this.Send(this.Target,new e1());
         {
             var test = @"
 namespace Foo {
-event e1 (k:int);
+public event e1 (k:int);
 
 machine M {
 machine Target;
@@ -117,7 +117,7 @@ send(this.Target, e1, 10);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public int k;
  public e1(int k)
@@ -151,7 +151,7 @@ this.Send(this.Target,new e1(10));
         {
             var test = @"
 namespace Foo {
-event e1 (k:int, s:string);
+public event e1 (k:int, s:string);
 
 machine M {
 machine Target;
@@ -180,7 +180,7 @@ send(this.Target, e1, 10, s);
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+public class e1 : Event
 {
  public int k;
  public string s;
