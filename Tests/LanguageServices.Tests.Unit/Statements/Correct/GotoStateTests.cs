@@ -43,40 +43,30 @@ state S2
 }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-[Microsoft.PSharp.Start]
-[OnEntry(nameof(psharp_S1_on_entry_action))]
-class S1 : MachineState
-{
-}
-class S2 : MachineState
-{
-}
-protected void psharp_S1_on_entry_action()
-{
-this.Goto(typeof(S2));
-}
-}
-}";
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S1_on_entry_action))]
+        class S1 : MachineState
+        {
+        }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        class S2 : MachineState
+        {
+        }
+
+        protected void psharp_S1_on_entry_action()
+        {
+            this.Goto(typeof(S2));
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -102,17 +92,6 @@ this.Goto(typeof(S2));
 }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].CSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
 namespace Foo
@@ -133,9 +112,61 @@ this.Goto(typeof(S2));
 }
 }
 }";
+            // Note: original formatting is preserved for CSharp rewriting.
+            LanguageTestUtilities.AssertRewritten(expected, test, LanguageTestUtilities.ProgramExtension.CSharp);
+        }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace(Environment.NewLine, string.Empty));
+        [TestMethod, Timeout(10000)]
+        public void TestGotoStateStatementWithPSharpAPI2()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S1_on_entry_action))]
+        class S1 : MachineState
+        {
+        }
+
+        class S2 : MachineState
+        {
+        }
+
+        protected void psharp_S1_on_entry_action()
+        {
+            this.Goto(typeof(S2));
+        }
+    }
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S1_on_entry_action))]
+        class S1 : MachineState
+        {
+        }
+
+        class S2 : MachineState
+        {
+        }
+
+        protected void psharp_S1_on_entry_action()
+        {
+            this.Goto(typeof(S2));
+        }
+    }
+}";
+            // Note: original formatting is preserved for CSharp rewriting.
+            LanguageTestUtilities.AssertRewritten(expected, test, LanguageTestUtilities.ProgramExtension.CSharp);
         }
     }
 }

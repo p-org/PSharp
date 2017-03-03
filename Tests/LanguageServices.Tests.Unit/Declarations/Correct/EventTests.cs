@@ -34,43 +34,37 @@ event e1;
 internal event e2;
 public event e3;
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-public class e1 : Event
-{
- public e1()
-  : base()
- { }
-}
-internal class e2 : Event
-{
- public e2()
-  : base()
- { }
-}
-public class e3 : Event
-{
- public e3()
-  : base()
- { }
-}
-}";
+    public class e1 : Event
+    {
+        public e1()
+            : base()
+        {
+        }
+    }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+    internal class e2 : Event
+    {
+        public e2()
+            : base()
+        {
+        }
+    }
+
+    public class e3 : Event
+    {
+        public e3()
+            : base()
+        {
+        }
+    }
+}
+";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -82,43 +76,37 @@ event e1<T>;
 internal event e2;
 public event e3;
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-public class e1<T> : Event
-{
- public e1()
-  : base()
- { }
-}
-internal class e2 : Event
-{
- public e2()
-  : base()
- { }
-}
-public class e3 : Event
-{
- public e3()
-  : base()
- { }
-}
-}";
+    public class e1<T> : Event
+    {
+        public e1()
+            : base()
+        {
+        }
+    }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+    internal class e2 : Event
+    {
+        public e2()
+            : base()
+        {
+        }
+    }
+
+    public class e3 : Event
+    {
+        public e3()
+            : base()
+        {
+        }
+    }
+}
+";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -130,102 +118,89 @@ internal event e1<T, K>;
 internal event e2;
 public event e3;
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-internal class e1<T,K> : Event
-{
- public e1()
-  : base()
- { }
-}
-internal class e2 : Event
-{
- public e2()
-  : base()
- { }
-}
-public class e3 : Event
-{
- public e3()
-  : base()
- { }
-}
-}";
+    internal class e1<T,K> : Event
+    {
+        public e1()
+            : base()
+        {
+        }
+    }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+    internal class e2 : Event
+    {
+        public e2()
+            : base()
+        {
+        }
+    }
+
+    public class e3 : Event
+    {
+        public e3()
+            : base()
+        {
+        }
+    }
+}
+";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
         public void TestEventDeclarationWithPayload()
         {
-            var test = @"
-namespace Foo {
+            var test = @"namespace Foo {
 internal event e1 (m:string, n:int);
 internal event e2 (m:string);
 public event e3 (n:int);
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-internal class e1 : Event
-{
- public string m;
- public int n;
- public e1(string m, int n)
-  : base()
- {
-  this.m = m;
-  this.n = n;
- }
-}
-internal class e2 : Event
-{
- public string m;
- public e2(string m)
-  : base()
- {
-  this.m = m;
- }
-}
-public class e3 : Event
-{
- public int n;
- public e3(int n)
-  : base()
- {
-  this.n = n;
- }
-}
-}";
+    internal class e1 : Event
+    {
+        public string m;
+        public int n;
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        public e1(string m, int n)
+            : base()
+        {
+            this.m = m;
+            this.n = n;
+        }
+    }
+
+    internal class e2 : Event
+    {
+        public string m;
+
+        public e2(string m)
+            : base()
+        {
+            this.m = m;
+        }
+    }
+
+    public class e3 : Event
+    {
+        public int n;
+
+        public e3(int n)
+            : base()
+        {
+            this.n = n;
+        }
+    }
+}
+";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -237,54 +212,47 @@ internal event e1<T, K> (m:K, n:T);
 internal event e2 (m:string);
 public event e3 (n:int);
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-internal class e1<T,K> : Event
-{
- public K m;
- public T n;
- public e1(K m, T n)
-  : base()
- {
-  this.m = m;
-  this.n = n;
- }
-}
-internal class e2 : Event
-{
- public string m;
- public e2(string m)
-  : base()
- {
-  this.m = m;
- }
-}
-public class e3 : Event
-{
- public int n;
- public e3(int n)
-  : base()
- {
-  this.n = n;
- }
-}
-}";
+    internal class e1<T,K> : Event
+    {
+        public K m;
+        public T n;
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        public e1(K m, T n)
+            : base()
+        {
+            this.m = m;
+            this.n = n;
+        }
+    }
+
+    internal class e2 : Event
+    {
+        public string m;
+
+        public e2(string m)
+            : base()
+        {
+            this.m = m;
+        }
+    }
+
+    public class e3 : Event
+    {
+        public int n;
+
+        public e3(int n)
+            : base()
+        {
+            this.n = n;
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -300,64 +268,60 @@ internal event e4 (m:string);
 start state S { }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-public class e1<T> : Event
-{
- public e1()
-  : base()
- { }
-}
-internal class e2 : Event
-{
- public e2()
-  : base()
- { }
-}
-public class e3<T,K> : Event
-{
- public K m;
- public T n;
- public e3(K m, T n)
-  : base()
- {
-  this.m = m;
-  this.n = n;
- }
-}
-internal class e4 : Event
-{
- public string m;
- public e4(string m)
-  : base()
- {
-  this.m = m;
- }
-}
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
-}";
+    class M : Machine
+    {
+        public class e1<T> : Event
+        {
+            public e1()
+                : base()
+            {
+            }
+        }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        internal class e2 : Event
+        {
+            public e2()
+                : base()
+            {
+            }
+        }
+
+        public class e3<T,K> : Event
+        {
+            public K m;
+            public T n;
+
+            public e3(K m, T n)
+                : base()
+            {
+                this.m = m;
+                this.n = n;
+            }
+        }
+
+        internal class e4 : Event
+        {
+            public string m;
+
+            public e4(string m)
+                : base()
+            {
+                this.m = m;
+            }
+        }
+
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
     }
 }

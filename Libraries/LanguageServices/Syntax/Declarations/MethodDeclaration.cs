@@ -108,13 +108,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             string text = "";
-
             try
             {
-                text = this.GetRewrittenMethodDeclaration();
+                text = this.GetRewrittenMethodDeclaration(indentLevel);
             }
             catch (Exception ex)
             {
@@ -136,9 +135,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten method declaration.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenMethodDeclaration()
+        private string GetRewrittenMethodDeclaration(int indentLevel)
         {
-            string text = "";
+            var indent = GetIndent(indentLevel);
+            string text = indent;
             
             if (this.AccessModifier == AccessModifier.Protected)
             {
@@ -193,15 +193,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             if (this.StatementBlock != null)
             {
-                this.StatementBlock.Rewrite();
-                text += StatementBlock.TextUnit.Text;
+                this.StatementBlock.Rewrite(indentLevel);
+                text += "\n" + StatementBlock.TextUnit.Text;
             }
             else
             {
                 text += this.SemicolonToken.TextUnit.Text;
             }
 
-            text += "\n\n";
+            text += "\n";
 
             return text;
         }

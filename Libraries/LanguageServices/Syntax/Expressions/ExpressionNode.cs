@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             if (this.StmtTokens.Count == 0)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
             this.RewriteNextToken();
             
-            var text = "";
+            var text = GetIndent(indentLevel);
 
             foreach (var token in this.RewrittenStmtTokens)
             {

@@ -35,34 +35,49 @@ start state S { }
 void Bar() { }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-void Bar(){ }
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
 
-}
+        void Bar()
+        { }
+    }
 }";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        [TestMethod, Timeout(10000)]
+        public void TestVoidMethodDeclaration2()
+        {
+            var test = @"
+namespace Foo {
+machine M { start state S { } void Bar() { } }
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+
+        void Bar()
+        { }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
     }
 }

@@ -121,6 +121,7 @@
     <Compile Include="Declarations\StaticError\MethodFailTests.cs" />
     <Compile Include="Declarations\StaticError\RewritingFailTests.cs" />
     <Compile Include="Declarations\StaticError\StateGroupFailTests.cs" />
+    <Compile Include="LanguageTestUtilities.cs" />
     <Compile Include="Statements\Correct\CreateTests.cs" />
     <Compile Include="Statements\Correct\SendTests.cs" />
     <Compile Include="Statements\Correct\GotoStateTests.cs" />

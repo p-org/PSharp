@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 using Microsoft.PSharp.Utilities;
+using System.Linq;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -67,17 +68,21 @@ namespace Microsoft.PSharp.LanguageServices
             BasicTypeChecking();
 
             var text = "";
+            const int indentLevel = 0;
 
             foreach (var node in this.UsingDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel);
                 text += node.TextUnit.Text;
             }
 
+            var newLine = "";
             foreach (var node in this.NamespaceDeclarations)
             {
-                node.Rewrite();
+                text += newLine;
+                node.Rewrite(indentLevel);
                 text += node.TextUnit.Text;
+                newLine = "\n";
             }
 
             base.UpdateSyntaxTree(text);
@@ -142,13 +147,17 @@ namespace Microsoft.PSharp.LanguageServices
         private void InsertLibraries()
         {
             var list = new List<UsingDirectiveSyntax>();
+            var otherUsings = base.GetSyntaxTree().GetCompilationUnitRoot().Usings;
             var psharpLib = base.CreateLibrary("Microsoft.PSharp");
             
             list.Add(psharpLib);
-            list.AddRange(base.GetSyntaxTree().GetCompilationUnitRoot().Usings);
+            list.AddRange(otherUsings);
 
-            var root = base.GetSyntaxTree().GetCompilationUnitRoot().
-                WithUsings(SyntaxFactory.List(list));
+            // Add an additional newline to the last 'using' to separate from the namespace.
+            list[list.Count - 1] = list.Last().WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n\n")));
+
+            var root = base.GetSyntaxTree().GetCompilationUnitRoot()
+                .WithUsings(SyntaxFactory.List(list));
             base.UpdateSyntaxTree(root.SyntaxTree.ToString());
         }
 
