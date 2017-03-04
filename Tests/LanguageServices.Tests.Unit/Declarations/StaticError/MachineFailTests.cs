@@ -181,5 +181,45 @@ start state S3 { }
             Assert.AreEqual("A machine can declare only a single start state.",
                 parser.GetParsingErrorLog());
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestPrivateMachineDeclaration()
+        {
+            var test = @"
+namespace Foo {
+private machine M { }
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A machine cannot be declared as private.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestProtectedMachineDeclaration()
+        {
+            var test = @"
+namespace Foo {
+protected machine M { }
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A machine cannot be declared as protected.",
+                parser.GetParsingErrorLog());
+        }
     }
 }

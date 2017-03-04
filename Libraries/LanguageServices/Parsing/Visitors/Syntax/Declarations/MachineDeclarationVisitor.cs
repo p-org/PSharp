@@ -386,12 +386,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("A machine cannot be private.",
+                throw new ParsingException("A machine cannot be declared as private.",
                     new List<TokenType>());
             }
             else if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("A machine cannot be protected.",
+                throw new ParsingException("A machine cannot be declared as protected.",
                     new List<TokenType>());
             }
         }
@@ -404,12 +404,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("A monitor cannot be private.",
+                throw new ParsingException("A monitor cannot be declared as private.",
                     new List<TokenType>());
             }
             else if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("A monitor cannot be protected.",
+                throw new ParsingException("A monitor cannot be declared as protected.",
                     new List<TokenType>());
             }
         }

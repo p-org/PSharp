@@ -28,6 +28,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
+        /// The machine parent node.
+        /// </summary>
+        internal readonly MachineDeclaration Machine;
+
+        /// <summary>
         /// The access modifier.
         /// </summary>
         internal readonly AccessModifier AccessModifier;
@@ -100,10 +105,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
+        /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="modSet">Modifier set</param>
-        internal EventDeclaration(IPSharpProgram program, ModifierSet modSet)
+        internal EventDeclaration(IPSharpProgram program, MachineDeclaration machineNode, ModifierSet modSet)
             : base(program)
         {
+            this.Machine = machineNode;
             this.AccessModifier = modSet.AccessModifier;
             this.GenericType = new List<Token>();
             this.PayloadTypes = new List<Token>();
@@ -152,7 +159,20 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "[System.Runtime.Serialization.DataContract]\n";
             }
 
-            if (this.AccessModifier == AccessModifier.Public)
+            if (this.AccessModifier == AccessModifier.None)
+            {
+                // The event was declared in the scope of a machine.
+                if (this.Machine != null)
+                {
+                    text += "private ";
+                }
+                // The event was declared in the scope of a namespace.
+                else
+                {
+                    text += "public ";
+                }
+            }
+            else if (this.AccessModifier == AccessModifier.Public)
             {
                 text += "public ";
             }

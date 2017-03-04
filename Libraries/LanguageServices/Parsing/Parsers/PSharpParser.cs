@@ -299,6 +299,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case TokenType.Monitor:
                 case TokenType.Internal:
                 case TokenType.Public:
+                case TokenType.Private:
+                case TokenType.Protected:
                 case TokenType.Partial:
                 case TokenType.Abstract:
                 case TokenType.Virtual:
@@ -318,11 +320,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     fixpoint = true;
                     base.TokenStream.Index++;
                     break;
-
-                case TokenType.Private:
-                case TokenType.Protected:
-                    throw new ParsingException("Event and machine declarations must be internal or public.",
-                        new List<TokenType>());
 
                 default:
                     throw new ParsingException("Unexpected token.",

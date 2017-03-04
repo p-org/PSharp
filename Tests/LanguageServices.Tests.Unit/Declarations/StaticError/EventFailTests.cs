@@ -38,7 +38,7 @@ protected event e;
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Event and machine declarations must be internal or public.",
+            Assert.AreEqual("An event cannot be declared as protected.",
                 parser.GetParsingErrorLog());
         }
 
@@ -58,28 +58,8 @@ private event e;
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Event and machine declarations must be internal or public.");
-        }
-
-        [TestMethod, Timeout(10000)]
-        public void TestNoPublicOrInternalEventDeclaration()
-        {
-            var test = @"
-namespace Foo {
-event e;
-}";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "An event declared in the scope of a namespace must be public or internal.");
+            Assert.AreEqual("An event declared in the scope of a namespace cannot be private.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(10000)]
@@ -183,7 +163,7 @@ protected event e;
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("An event cannot be protected.",
+            Assert.AreEqual("An event cannot be declared as protected.",
                 parser.GetParsingErrorLog());
         }
     }

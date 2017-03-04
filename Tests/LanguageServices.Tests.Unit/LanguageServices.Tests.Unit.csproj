@@ -117,6 +117,7 @@
   <ItemGroup>
     <Compile Include="Declarations\Correct\FieldTests.cs" />
     <Compile Include="Declarations\Correct\StateGroupTests.cs" />
+    <Compile Include="Declarations\StaticError\MonitorFailTests.cs" />
     <Compile Include="Declarations\StaticError\MethodFailTests.cs" />
     <Compile Include="Declarations\StaticError\RewritingFailTests.cs" />
     <Compile Include="Declarations\StaticError\StateGroupFailTests.cs" />

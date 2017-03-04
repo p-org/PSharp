@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = @"
 namespace Foo {
-public event e1;
+event e1;
 internal event e2;
 public event e3;
 }";
@@ -78,7 +78,7 @@ public class e3 : Event
         {
             var test = @"
 namespace Foo {
-public event e1<T>;
+event e1<T>;
 internal event e2;
 public event e3;
 }";
