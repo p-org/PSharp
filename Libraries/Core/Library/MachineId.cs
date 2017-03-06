@@ -79,7 +79,7 @@ namespace Microsoft.PSharp
         /// </summary>
         static MachineId()
         {
-            IdCounter = 0;
+            IdCounter = 1;
         }
 
         /// <summary>
@@ -97,6 +97,9 @@ namespace Microsoft.PSharp
             this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
             
             this.Value = Interlocked.Increment(ref IdCounter);
+
+            // check for overflow
+            Runtime.Assert(this.Value != 0, "MachineId counter overflow detected");
 
             if (this.FriendlyName != null && this.FriendlyName.Length > 0)
             {
