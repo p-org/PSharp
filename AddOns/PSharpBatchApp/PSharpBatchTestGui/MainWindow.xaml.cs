@@ -92,6 +92,8 @@ namespace PSharpBatchTestGui
             StorageAccountNameTextbox.Text = config.StorageAccountName;
             TaskIDTextbox.Text = config.TaskDefaultId;
             TaskWaitHoursTextbox.Text = config.TaskWaitHours.ToString();
+            DeleteJobAfterCompleteCheckbox.IsChecked = config.DeleteJobAfterDone;
+            DeleteBlobAfterCompleteCheckbox.IsChecked = config.DeleteContainerAfterDone;
         }
 
         /// <summary>
@@ -118,7 +120,9 @@ namespace PSharpBatchTestGui
                     StorageAccountKey = StorageAccountKeyTextbox.Text,
                     StorageAccountName = StorageAccountNameTextbox.Text,
                     TaskDefaultId = TaskIDTextbox.Text,
-                    TaskWaitHours = int.Parse(TaskWaitHoursTextbox.Text)
+                    TaskWaitHours = int.Parse(TaskWaitHoursTextbox.Text),
+                    DeleteJobAfterDone = DeleteJobAfterCompleteCheckbox.IsChecked ?? false,
+                    DeleteContainerAfterDone = DeleteBlobAfterCompleteCheckbox.IsChecked ?? false
                 };
 
                 PSharpBatchTestCommon.PSharpOperations.ParseConfig(config);
@@ -217,6 +221,8 @@ namespace PSharpBatchTestGui
             TaskIDTextbox.Text = string.Empty;
             TaskWaitHoursTextbox.Text = string.Empty;
             LogTextBox.Text = string.Empty;
+            DeleteBlobAfterCompleteCheckbox.IsChecked = false;
+            DeleteJobAfterCompleteCheckbox.IsChecked = false;
         }
 
         /// <summary>

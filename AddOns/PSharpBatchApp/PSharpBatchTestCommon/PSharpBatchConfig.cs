@@ -44,6 +44,12 @@ namespace PSharpBatchTestCommon
         //PSharpTesting
         public string PSharpTestCommand;
 
+        //Delete job
+        public bool DeleteJobAfterDone;
+
+        //Delete containers
+        public bool DeleteContainerAfterDone;
+
         //Flags in command
         [XmlIgnore]
         public string CommandFlags;

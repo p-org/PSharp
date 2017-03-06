@@ -145,16 +145,16 @@ namespace PSharpBatchTester
 
             //All task completed
             Console.WriteLine();
-            Console.Write("Delete job? [yes] no: ");
-            string response = Console.ReadLine().ToLower();
-            if (response == "y" || response == "yes")
+            //Console.Write("Delete job? [yes] no: ");
+            //string response = Console.ReadLine().ToLower();
+            if (/*response == "y" || response == "yes"*/ config.DeleteJobAfterDone)
             {
                 await batchOperations.DeleteJobAsync(JobId);
             }
             Console.WriteLine();
-            Console.Write("Delete Containers? [yes] no: ");
-            response = Console.ReadLine().ToLower();
-            if (response == "y" || response == "yes")
+            //Console.Write("Delete Containers? [yes] no: ");
+            //response = Console.ReadLine().ToLower();
+            if (/*response == "y" || response == "yes"*/config.DeleteContainerAfterDone)
             {
                 await blobOperations.DeleteInputContainer();
                 await blobOperations.DeleteJobManagerContainer();
