@@ -53,6 +53,11 @@ namespace PSharpBatchTester
                 Console.WriteLine();
                 Console.WriteLine(ae.StackTrace);
                 Console.WriteLine(ae.Message);
+                if(ae.InnerException != null)   
+                {
+                    Console.WriteLine(ae.InnerException.StackTrace);
+                    Console.WriteLine(ae.InnerException.Message);
+                }
                 Console.WriteLine();
             }
 
@@ -88,8 +93,10 @@ namespace PSharpBatchTester
                     );
             }
 
+            string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
             //Job Details
-            string jobManagerFilePath = /*typeof(PSharpBatchJobManager.Program).Assembly.Location;*/  @".\PSharpBatchJobManager\PSharpBatchJobManager.exe";   // Data files for Job Manager Task
+            string jobManagerFilePath = /*typeof(PSharpBatchJobManager.Program).Assembly.Location;*/ Path.Combine(executingDirectory, @".\PSharpBatchJobManager\PSharpBatchJobManager.exe");   // Data files for Job Manager Task
             string jobTimeStamp = PSharpBatchTestCommon.Constants.GetTimeStamp();
             JobId = config.JobDefaultId + jobTimeStamp;
 
