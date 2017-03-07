@@ -221,6 +221,32 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
+
+            if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
+            {
+                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
+                    line);
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.TokenStream.Done ||
+                    base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
+                {
+                    throw new ParsingException("Expected \"]\".",
+                        new List<TokenType>
+                        {
+                            TokenType.RightSquareBracket
+                        });
+                }
+
+                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
+                    line);
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+            }
         }
     }
 }
