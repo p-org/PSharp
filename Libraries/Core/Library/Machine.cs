@@ -789,12 +789,19 @@ namespace Microsoft.PSharp
                     if (this.Inbox[idx].EventType.IsGenericType)
                     {
                         var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
-                        var genericIgnoredTypes = this.CurrentActionHandlerMap
-                            .Where(tup => tup.Value is IgnoreAction)
-                            .Select(tup => tup.Key)
-                            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition().Equals(
-                                genericTypeDefinition.GetGenericTypeDefinition()));
-                        if (genericIgnoredTypes.Count() > 0)
+                        var ignored = false;
+                        foreach (var tup in this.CurrentActionHandlerMap)
+                        {
+                            if (!(tup.Value is IgnoreAction)) continue;
+                            if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
+                                genericTypeDefinition.GetGenericTypeDefinition()))
+                            {
+                                ignored = true;
+                                break;
+                            }
+                        }
+
+                        if (ignored)
                         {
                             this.Inbox.RemoveAt(idx);
                             idx--;
