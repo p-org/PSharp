@@ -30,15 +30,27 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         internal static void ConfigureStrategyForCurrentProcess(Configuration configuration)
         {
-            if (configuration.TestingProcessId % 2 == 0)
+            // Random, PCT[1], ProbabilisticRandom[5], PCT[5], ProbabilisticRandom[10], PCT[10], etc.
+            if (configuration.TestingProcessId == 0)
             {
                 configuration.SchedulingStrategy = SchedulingStrategy.Random;
             }
-            else
+            else if (configuration.TestingProcessId % 2 == 0)
+            {
+                configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRandom;
+                configuration.CoinFlipBound = 5 * (int)(configuration.TestingProcessId / 2);
+            }
+            else if(configuration.TestingProcessId == 1)
             {
                 configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
-                configuration.PrioritySwitchBound = (int)configuration.TestingProcessId;
+                configuration.PrioritySwitchBound = 1; 
             }
+            else 
+            {
+                configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
+                configuration.PrioritySwitchBound = 5 * (int)((configuration.TestingProcessId + 1)/ 2);
+            }
+
         }
 
         #endregion
