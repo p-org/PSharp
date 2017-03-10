@@ -130,13 +130,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (textUnit == null)
                 {
-                    textUnit = new TextUnit(base.TokenStream.Peek().TextUnit.Text,
-                        line);
+                    textUnit = new TextUnit(base.TokenStream.Peek().TextUnit.Text, line);
                 }
                 else
                 {
-                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                        line);
+                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
                 }
 
                 base.TokenStream.Index++;
@@ -145,8 +143,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                    line);
+                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -198,8 +195,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             Peek().TextUnit.Line), TokenType.MachineDecl));
                     }
 
-                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                        line);
+                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
 
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -215,8 +211,30 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     });
                 }
 
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                    line);
+                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
+            {
+                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.TokenStream.Done ||
+                    base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
+                {
+                    throw new ParsingException("Expected \"]\".",
+                        new List<TokenType>
+                        {
+                            TokenType.RightSquareBracket
+                        });
+                }
+
+                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();

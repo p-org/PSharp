@@ -65,6 +65,45 @@ class S : MachineState
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestListFieldDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+List<int> k;
+start state S { }
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+List<int> k;
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestMachineFieldDeclaration()
         {
             var test = @"
@@ -104,12 +143,14 @@ class S : MachineState
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestListFieldDeclaration()
+        public void TestMachineArrayFieldDeclaration()
         {
             var test = @"
 namespace Foo {
 machine M {
-List<int> k;
+machine[] MachineArray;
+List<machine> MachineList; 
+List<machine[]> MachineArrayList; 
 start state S { }
 }
 }";
@@ -130,7 +171,9 @@ namespace Foo
 {
 class M : Machine
 {
-List<int> k;
+MachineId[] MachineArray;
+List<MachineId> MachineList;
+List<MachineId[]> MachineArrayList;
 [Microsoft.PSharp.Start]
 class S : MachineState
 {
