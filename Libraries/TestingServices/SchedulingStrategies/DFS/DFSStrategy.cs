@@ -438,14 +438,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private class SChoice
         {
-            internal int Id;
+            internal ulong Id;
             internal bool IsDone;
 
             /// <summary>
             /// Constructor.
             /// </summary>
             /// <param name="id">Id</param>
-            internal SChoice(int id)
+            internal SChoice(ulong id)
             {
                 this.Id = id;
                 this.IsDone = false;

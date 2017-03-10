@@ -39,13 +39,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// The machine id.
         /// </summary>
         [DataMember]
-        public int MachineId { get; private set; }
+        public ulong MachineId { get; private set; }
 
         /// <summary>
         /// The send target machine id.
         /// </summary>
         [DataMember]
-        public int TargetMachineId { get; private set; }
+        public ulong TargetMachineId { get; private set; }
 
         /// <summary>
         /// The send event.

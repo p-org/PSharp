@@ -46,7 +46,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<int, Machine> MachineMap;
+        protected ConcurrentDictionary<ulong, Machine> MachineMap;
 
         /// <summary>
         /// Map from task ids to machines.
@@ -472,7 +472,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
-            this.MachineMap = new ConcurrentDictionary<int, Machine>();
+            this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
             this.Monitors = new List<Monitor>();
