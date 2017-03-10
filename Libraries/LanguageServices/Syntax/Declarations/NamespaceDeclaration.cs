@@ -89,34 +89,38 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
+            var indent = GetIndent(indentLevel); // indent here will likely always be 0
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
             
             foreach (var node in this.MachineDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
-            
-            var text = this.GetRewrittenNamespaceDeclaration();
+
+            var newLine = "";
+            var text = indent + this.GetRewrittenNamespaceDeclaration(ref newLine);
 
             var realMachines = this.MachineDeclarations.FindAll(m => !m.IsMonitor);
             var monitors = this.MachineDeclarations.FindAll(m => m.IsMonitor);
 
             foreach (var node in realMachines)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
 
             foreach (var node in monitors)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
 
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
         }
@@ -129,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten namespace declaration.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenNamespaceDeclaration()
+        private string GetRewrittenNamespaceDeclaration(ref string newLine)
         {
             var text = this.NamespaceKeyword.TextUnit.Text;
 
@@ -144,9 +148,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.EventDeclarations)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
-
             return text;
         }
 

@@ -30,17 +30,7 @@ namespace Foo {
 machine M {
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine must declare at least one state.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine must declare at least one state.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -50,17 +40,7 @@ machine M {
 namespace Foo {
 machine{}
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected machine identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected machine identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -74,17 +54,7 @@ start state S { }
 {
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Unexpected token.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -96,17 +66,7 @@ machine M {
 state S { }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine must declare a start state.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine must declare a start state.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -119,17 +79,7 @@ state S { }
                 "state S2 { }" +
                 "}" +
                 "}";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine must declare a start state.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine must declare a start state.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -144,17 +94,7 @@ state S2 {}
 state S3 { }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine must declare a start state.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine must declare a start state.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -169,17 +109,7 @@ start state S2 { }
 start state S3 { }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine can declare only a single start state.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine can declare only a single start state.", test);
         }
 
         [TestMethod, Timeout(10000)]

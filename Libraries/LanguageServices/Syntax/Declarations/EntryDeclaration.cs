@@ -62,13 +62,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
-            this.StatementBlock.Rewrite();
+            this.StatementBlock.Rewrite(indentLevel);
 
-            string text = "protected void psharp_" + this.State.GetFullyQualifiedName() +
+            string text = GetIndent(indentLevel) + "protected void psharp_" + this.State.GetFullyQualifiedName() +
                 "_on_entry_action()";
-            text += StatementBlock.TextUnit.Text;
+            text += "\n" + StatementBlock.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
         }

@@ -29,17 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 namespace Foo {
 protected event e;
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("An event cannot be declared as protected.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("An event cannot be declared as protected.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -49,34 +39,14 @@ protected event e;
 namespace Foo {
 private event e;
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("An event declared in the scope of a namespace cannot be private.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("An event declared in the scope of a namespace cannot be private.", test);
         }
 
         [TestMethod, Timeout(10000)]
         public void TestEventDeclarationWithoutNamespace()
         {
             var test = "event e;";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Must be declared inside a namespace.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Must be declared inside a namespace.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -86,17 +56,7 @@ private event e;
 namespace Foo {
 public event e>;
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \"(\" or \";\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -106,17 +66,7 @@ public event e>;
 namespace Foo {
 public event e<;
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -130,17 +80,7 @@ abstract event e;
 {
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Unexpected token 'abstract'.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token 'abstract'.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -154,17 +94,7 @@ protected event e;
 {
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("An event cannot be declared as protected.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("An event cannot be declared as protected.", test);
         }
     }
 }

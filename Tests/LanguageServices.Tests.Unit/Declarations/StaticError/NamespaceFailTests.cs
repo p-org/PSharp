@@ -26,34 +26,14 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         public void TestUnexpectedTokenWithoutNamespace()
         {
             var test = "private";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Unexpected token.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
         [TestMethod, Timeout(10000)]
         public void TestNamespaceDeclarationWithoutIdentifier()
         {
             var test = "namespace { }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected namespace identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected namespace identifier.", test);
         }
     }
 }

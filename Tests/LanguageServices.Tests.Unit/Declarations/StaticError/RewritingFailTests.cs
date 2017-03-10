@@ -42,17 +42,10 @@ state S2 {
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
             var exception_hit = false;
-
             try
             {
-                RewritingEngine.Create(context).Run();
+                LanguageTestUtilities.RunRewriter(test);
             }
             catch (RewritingException ex)
             {
@@ -60,10 +53,10 @@ state S2 {
                 Assert.AreEqual(ex.Message.Replace(Environment.NewLine, string.Empty), 
                     "Multiple declarations of the state 'S2'" + 
                     "File: Program.psharp" +
-                    "Lines: 6 and 9");
+                    "Lines: 5 and 8");
             }
 
-            Assert.IsTrue(exception_hit);
+            Assert.IsTrue(exception_hit, "expected exception was not hit");
         }
     }
 }

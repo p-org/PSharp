@@ -43,45 +43,36 @@ send(this.Target, e1);
 }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-public class e1 : Event
-{
- public e1()
-  : base()
- { }
-}
+    public class e1 : Event
+    {
+        public e1()
+            : base()
+        {
+        }
+    }
 
-class M : Machine
-{
-MachineId Target;
-[Microsoft.PSharp.Start]
-[OnEntry(nameof(psharp_S_on_entry_action))]
-class S : MachineState
-{
-}
-protected void psharp_S_on_entry_action()
-{
-this.Send(this.Target,new e1());
-}
-}
+    class M : Machine
+    {
+        MachineId Target;
+
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S_on_entry_action))]
+        class S : MachineState
+        {
+        }
+
+        protected void psharp_S_on_entry_action()
+        {
+            this.Send(this.Target,new e1());
+        }
+    }
 }";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -102,48 +93,39 @@ send(this.Target, e1, 10);
 }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-public class e1 : Event
-{
- public int k;
- public e1(int k)
-  : base()
- {
-  this.k = k;
- }
-}
+    public class e1 : Event
+    {
+        public int k;
 
-class M : Machine
-{
-MachineId Target;
-[Microsoft.PSharp.Start]
-[OnEntry(nameof(psharp_S_on_entry_action))]
-class S : MachineState
-{
-}
-protected void psharp_S_on_entry_action()
-{
-this.Send(this.Target,new e1(10));
-}
-}
+        public e1(int k)
+            : base()
+        {
+            this.k = k;
+        }
+    }
+
+    class M : Machine
+    {
+        MachineId Target;
+
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S_on_entry_action))]
+        class S : MachineState
+        {
+        }
+
+        protected void psharp_S_on_entry_action()
+        {
+            this.Send(this.Target,new e1(10));
+        }
+    }
 }";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -165,51 +147,42 @@ send(this.Target, e1, 10, s);
 }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-public class e1 : Event
-{
- public int k;
- public string s;
- public e1(int k, string s)
-  : base()
- {
-  this.k = k;
-  this.s = s;
- }
-}
+    public class e1 : Event
+    {
+        public int k;
+        public string s;
 
-class M : Machine
-{
-MachineId Target;
-[Microsoft.PSharp.Start]
-[OnEntry(nameof(psharp_S_on_entry_action))]
-class S : MachineState
-{
-}
-protected void psharp_S_on_entry_action()
-{
-string s = ""hello"";
-this.Send(this.Target,new e1(10, s));
-}
-}
+        public e1(int k, string s)
+            : base()
+        {
+            this.k = k;
+            this.s = s;
+        }
+    }
+
+    class M : Machine
+    {
+        MachineId Target;
+
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S_on_entry_action))]
+        class S : MachineState
+        {
+        }
+
+        protected void psharp_S_on_entry_action()
+        {
+            string s = ""hello"";
+            this.Send(this.Target,new e1(10, s));
+        }
+    }
 }";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
     }
 }

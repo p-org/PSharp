@@ -35,17 +35,7 @@ entry{}
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Duplicate entry declaration.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Duplicate entry declaration.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -61,17 +51,7 @@ exit {}
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Duplicate exit declaration.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Duplicate exit declaration.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -86,17 +66,7 @@ entry Bar {}
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \"{\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -111,17 +81,7 @@ on goto S2
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected event identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -136,17 +96,7 @@ on e, goto S2
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected event identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -161,17 +111,7 @@ on e goto S2
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \";\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -186,17 +126,7 @@ on e goto;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected state identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected state identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -211,17 +141,7 @@ on <> goto S2;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected event identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -236,17 +156,7 @@ on e> goto S2;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -261,17 +171,7 @@ on e<List<int>>> goto S2;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -286,17 +186,7 @@ on do Bar
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected event identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -311,17 +201,7 @@ on e, do Bar
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected event identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -336,17 +216,7 @@ on e do Bar
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \";\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -361,17 +231,7 @@ on e do;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected action identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected action identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -386,17 +246,7 @@ on e.* do Bar
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -411,17 +261,7 @@ on <> do Bar;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected event identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -436,17 +276,7 @@ on e> do Bar;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -461,17 +291,7 @@ on e<List<int>>> do Bar;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -486,17 +306,7 @@ on e;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \"do\", \"goto\" or \"push\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"do\", \"goto\" or \"push\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -511,17 +321,7 @@ ignore e1 e2;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \",\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -536,17 +336,7 @@ defer e1 e2;
 }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \",\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -561,16 +351,7 @@ on Foo.halt goto S2;
 }
 }
 }";
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -585,16 +366,7 @@ on Foo.default goto S2;
 }
 }
 }";
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected identifier.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -609,16 +381,7 @@ on halt<int> goto S2;
 }
 }
 }";
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -633,16 +396,7 @@ on default<int> goto S2;
 }
 }
 }";
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Invalid generic expression.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -657,16 +411,7 @@ on e<<int> goto S2;
 }
 }
 }";
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Unexpected token inside a generic name.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token inside a generic name.", test);
         }
     }
 }

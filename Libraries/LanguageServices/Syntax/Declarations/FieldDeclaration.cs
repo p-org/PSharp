@@ -72,13 +72,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             string text = "";
 
             try
             {
-                text = this.GetRewrittenFieldDeclaration();
+                text = GetIndent(indentLevel) + this.GetRewrittenFieldDeclaration();
             }
             catch (Exception ex)
             {

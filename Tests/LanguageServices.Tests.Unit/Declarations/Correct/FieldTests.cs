@@ -35,33 +35,22 @@ int k;
 start state S { }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-int k;
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
-}";
+    class M : Machine
+    {
+        int k;
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -75,32 +64,22 @@ start state S { }
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-List<int> k;
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
-}";
+    class M : Machine
+    {
+        List<int> k;
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -113,33 +92,22 @@ machine N;
 start state S { }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-MachineId N;
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
-}";
+    class M : Machine
+    {
+        MachineId N;
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -154,35 +122,24 @@ List<machine[]> MachineArrayList;
 start state S { }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-MachineId[] MachineArray;
-List<MachineId> MachineList;
-List<MachineId[]> MachineArrayList;
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
-}";
+    class M : Machine
+    {
+        MachineId[] MachineArray;
+        List<MachineId> MachineList;
+        List<MachineId[]> MachineArrayList;
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
     }
 }

@@ -34,32 +34,20 @@ machine M {
 start state S { }
 }
 }";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
 }";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+            LanguageTestUtilities.AssertRewritten(expected, test);
         }
     }
 }

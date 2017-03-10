@@ -60,9 +60,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
-            var text = this.GetRewrittenUsingDeclaration();
+            var text = GetIndent(indentLevel) + this.GetRewrittenUsingDeclaration();
             base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
         }
 

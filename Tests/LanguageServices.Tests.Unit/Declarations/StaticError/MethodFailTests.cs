@@ -32,17 +32,7 @@ start state S { }
 public void Foo() { }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine method cannot be public.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine method cannot be public.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -55,17 +45,7 @@ start state S { }
 internal void Foo() { }
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("A machine method cannot be internal.",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("A machine method cannot be internal.", test);
         }
 
         [TestMethod, Timeout(10000)]
@@ -78,17 +58,7 @@ start state S { }
 void Foo()
 }
 }";
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Expected \"{\" or \";\".",
-                parser.GetParsingErrorLog());
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"{\" or \";\".", test);
         }
     }
 }
