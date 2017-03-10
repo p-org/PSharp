@@ -1,0 +1,18 @@
+﻿namespace PingPong.CustomLogging
+{
+    internal machine Server
+    {
+		internal event Pong;
+
+        start state Active
+        {
+            on Client.Ping do SendPong;
+        }
+
+        void SendPong()
+        {
+			var client = (trigger as Client.Ping).client;
+			send(client, Pong);
+        }
+    }
+}

@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Raft.PSharpLanguage
+{
+    #region events
+
+	internal event NotifyLeaderUpdate (Leader: machine, Term: int);
+	internal event RedirectRequest (Req: Request);
+	internal event ShutDown;
+	internal event LocalEvent;
+	internal event CConfigureEvent (Cluster: machine);
+	internal event Request (Client: machine, Command: int);
+	internal event Response;
+	internal event NotifyLeaderElected (Term: int);
+	internal event SConfigureEvent (Id: int, Servers: List<machine>, ClusterManager: machine);
+	internal event VoteRequest(Term: int, CandidateId: machine, LastLogIndex: int, LastLogTerm: int);
+	internal event VoteResponse (Term: int, VoteGranted: bool);
+	internal event AppendEntriesRequest (Term: int, LeaderId: machine, PrevLogIndex: int, PrevLogTerm: int, Entries: List<Log>, LeaderCommit: int, ReceiverEndpoint: machine);
+	internal event AppendEntriesResponse (Term: int, Success: bool, Server: machine, ReceiverEndpoint: machine);
+	internal event BecomeFollower;
+	internal event BecomeCandidate;
+	internal event BecomeLeader;
+	internal event EConfigureEvent (Target: machine);
+	internal event EStartTimer;
+    internal event ECancelTimer;
+    internal event ETimeout;
+    internal event ETickEvent;
+	internal event PConfigureEvent (Target: machine);
+	internal event PStartTimer;
+    internal event PCancelTimer;
+    internal event PTimeout;
+    internal event PTickEvent;
+
+	#endregion
+}

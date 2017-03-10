@@ -1,0 +1,16 @@
+﻿namespace PingPong.CustomLogging
+{
+    internal machine NetworkEnvironment
+    {
+        start state Init
+        {
+            entry
+            {
+				// Assigns a user-defined name to this server machine.
+				var server = create(Server, "TheUltimateServerMachine");
+				// Assigns a user-defined name to this client machine.
+				create(Client, "TheUltimateClientMachine", Client.Config, server);
+            }
+        }
+    }
+}

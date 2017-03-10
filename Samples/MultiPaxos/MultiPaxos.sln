@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{B8FF079A-CF0F-4407-B23B-6A7A5C91D691}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiPaxos.PSharpLanguage", "MultiPaxos.PSharpLanguage\MultiPaxos.PSharpLanguage.csproj", "{09823B80-83E7-4340-B4E5-EAC95D28BCD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiPaxos.PSharpLibrary", "MultiPaxos.PSharpLibrary\MultiPaxos.PSharpLibrary.csproj", "{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{09823B80-83E7-4340-B4E5-EAC95D28BCD0} = {B8FF079A-CF0F-4407-B23B-6A7A5C91D691}
+		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50} = {B8FF079A-CF0F-4407-B23B-6A7A5C91D691}
+	EndGlobalSection
+EndGlobal
