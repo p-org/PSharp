@@ -66,16 +66,18 @@ start state S { }
 
             var expected = @"
 using Microsoft.PSharp;
+
 namespace Foo
 {
-class M : Machine
-{
-List<int> k;
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
+    class M : Machine
+    {
+        List<int> k;
+
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
 }";
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
@@ -125,16 +127,17 @@ using Microsoft.PSharp;
 
 namespace Foo
 {
-class M : Machine
-{
-MachineId[] MachineArray;
-List<MachineId> MachineList;
-List<MachineId[]> MachineArrayList;
-[Microsoft.PSharp.Start]
-class S : MachineState
-{
-}
-}
+    class M : Machine
+    {
+        MachineId[] MachineArray;
+        List<MachineId> MachineList;
+        List<MachineId[]> MachineArrayList;
+
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
 }";
             LanguageTestUtilities.AssertRewritten(expected, test);
         }

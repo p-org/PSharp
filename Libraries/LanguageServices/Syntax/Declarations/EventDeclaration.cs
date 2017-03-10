@@ -154,6 +154,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var indent0 = GetIndent(indentLevel);
             var indent1 = GetIndent(indentLevel + 1);
             var indent2 = GetIndent(indentLevel + 2);
+
             string text = "";
 
             if ((this.Program as AbstractPSharpProgram).GetProject().CompilationContext.

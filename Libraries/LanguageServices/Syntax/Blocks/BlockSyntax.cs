@@ -15,11 +15,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Microsoft.CodeAnalysis;
-
 using Microsoft.PSharp.LanguageServices.Parsing;
-using System.Text;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -56,7 +55,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token CloseBraceToken;
 
         #endregion
-
 
         #region internal API
 

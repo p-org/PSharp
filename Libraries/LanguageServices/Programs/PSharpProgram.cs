@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 using Microsoft.PSharp.Utilities;
-using System.Linq;
 
 namespace Microsoft.PSharp.LanguageServices
 {
