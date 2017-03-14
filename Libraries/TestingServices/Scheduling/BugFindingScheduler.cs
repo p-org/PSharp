@@ -25,37 +25,33 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class implementing the basic P# bug-finding scheduler.
     /// </summary>
-    internal class BugFindingScheduler
+    internal sealed class BugFindingScheduler
     {
         #region fields
 
         /// <summary>
         /// The P# runtime.
         /// </summary>
-        protected PSharpBugFindingRuntime Runtime;
+        private PSharpBugFindingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for bug-finding.
         /// </summary>
-        protected ISchedulingStrategy Strategy;
+        private ISchedulingStrategy Strategy;
 
         /// <summary>
         /// Map from task ids to machine infos.
         /// </summary>
-        protected ConcurrentDictionary<int, MachineInfo> TaskMap;
+        private ConcurrentDictionary<int, MachineInfo> TaskMap;
 
         /// <summary>
         /// Checks if the scheduler is running.
         /// </summary>
-        protected bool IsSchedulerRunning;
+        private bool IsSchedulerRunning;
 
-        /// <summary>
-        /// True if a bug was found.
-        /// </summary>
-        internal bool BugFound
-        {
-            get; private set;
-        }
+        #endregion
+
+        #region properties
 
         /// <summary>
         /// Number of explored steps.
@@ -68,15 +64,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Checks if the schedule has been fully explored.
         /// </summary>
-        protected internal bool HasFullyExploredSchedule { get; protected set; }
+        internal bool HasFullyExploredSchedule { get; private set; }
+
+        /// <summary>
+        /// True if a bug was found.
+        /// </summary>
+        internal bool BugFound { get; private set; }
 
         /// <summary>
         /// Bug report.
         /// </summary>
-        internal string BugReport
-        {
-            get; private set;
-        }
+        internal string BugReport { get; private set; }
 
         #endregion
 
@@ -100,7 +98,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Schedules the next machine to execute.
         /// </summary>
-        internal virtual void Schedule()
+        internal void Schedule()
         {
             int? id = Task.CurrentId;
             if (id == null || id == this.Runtime.RootTaskId)
@@ -152,7 +150,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 string message = IO.Format("Livelock detected. Machine " +
                     $"'{next.Machine.Id}' is waiting for an event, " +
                     "but no other machine is enabled.");
-                this.Runtime.BugFinder.NotifyAssertionFailure(message, true);
+                this.Runtime.Scheduler.NotifyAssertionFailure(message, true);
             }
 
             if (machineInfo != next)
@@ -293,7 +291,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal virtual void NotifyNewTaskCreated(int id, AbstractMachine machine)
+        internal void NotifyNewTaskCreated(int id, AbstractMachine machine)
         {
             var machineInfo = new MachineInfo(id, machine);
 
@@ -311,7 +309,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that the task has started.
         /// </summary>
-        internal virtual void NotifyTaskStarted()
+        internal void NotifyTaskStarted()
         {
             int? id = Task.CurrentId;
             if (id == null)
@@ -373,7 +371,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that the task has completed.
         /// </summary>
-        internal virtual void NotifyTaskCompleted()
+        internal void NotifyTaskCompleted()
         {
             int? id = Task.CurrentId;
             if (id == null)
@@ -541,13 +539,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         #endregion
 
-        #region protected methods
+        #region private methods
 
         /// <summary>
         /// Returns the number of available machines to schedule.
         /// </summary>
         /// <returns>Int</returns>
-        protected int NumberOfAvailableMachinesToSchedule()
+        private int NumberOfAvailableMachinesToSchedule()
         {
             var availableMachines = this.TaskMap.Values.Where(
                 m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
@@ -560,7 +558,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// machines.
         /// </summary>
         /// <param name="isSchedulingDecision">Is a machine scheduling decision</param>
-        protected void CheckIfSchedulingStepsBoundIsReached(bool isSchedulingDecision)
+        private void CheckIfSchedulingStepsBoundIsReached(bool isSchedulingDecision)
         {
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
@@ -576,7 +574,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
-                    this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
+                    this.Runtime.Scheduler.NotifyAssertionFailure(msg, true);
                 }
                 else
                 {
@@ -590,7 +588,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Kills any remaining machines at the end of the schedule.
         /// </summary>
-        protected void KillRemainingMachines()
+        private void KillRemainingMachines()
         {
             foreach (var machineInfo in this.TaskMap.Values)
             {

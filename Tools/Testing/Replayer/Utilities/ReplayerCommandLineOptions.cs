@@ -66,10 +66,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.PrintTrace = true;
             }
-            else if (option.ToLower().Equals("/tpl"))
-            {
-                base.Configuration.ScheduleIntraMachineConcurrency = true;
-            }
             else if (option.ToLower().Equals("/state-caching"))
             {
                 base.Configuration.CacheProgramState = true;
@@ -130,11 +126,6 @@ namespace Microsoft.PSharp.Utilities
             help += "\n ------------------";
             help += "\n  /replay:[x]\t Schedule to replay";
             help += "\n  /break:[x]\t Attach debugger and break at bug";
-
-            help += "\n\n ---------------------";
-            help += "\n Experimental options:";
-            help += "\n ---------------------";
-            help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
 
             help += "\n";
 

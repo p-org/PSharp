@@ -206,12 +206,12 @@ namespace Microsoft.PSharp.TestingServices
                 // Checks for any liveness property violations. Requires
                 // that the program has terminated and no safety property
                 // violations have been found.
-                if (!runtime.BugFinder.BugFound)
+                if (!runtime.Scheduler.BugFound)
                 {
                     runtime.LivenessChecker.CheckLivenessAtTermination();
                 }
 
-                TestReport report = runtime.BugFinder.GetReport();
+                TestReport report = runtime.Scheduler.GetReport();
                 report.CoverageInfo.Merge(runtime.CoverageInfo);
                 this.TestReport.Merge(report);
 
