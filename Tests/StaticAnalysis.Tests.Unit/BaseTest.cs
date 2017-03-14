@@ -48,7 +48,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
             return context;
         }
 
-        #region Successful tests
+        #region successful tests
+
         private void TestComplete()
         {
             IO.StopWritingToMemory();
@@ -74,9 +75,11 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
                 TestComplete();
             }
         }
-        #endregion Successful tests
 
-        #region Failed tests
+        #endregion
+
+        #region failed tests
+
         protected void AssertFailed(string test, int numExpectedErrors, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
@@ -117,9 +120,11 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
                 TestComplete();
             }
         }
-        #endregion Failed tests
 
-        #region Warning tests
+        #endregion
+
+        #region warning tests
+
         protected void AssertWarning(string test, int numExpectedWarnings, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
@@ -141,9 +146,11 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
         {
             AssertFailedAndWarning(configuration, test, 0, numExpectedWarnings, expectedOutput, isPSharpProgram);
         }
-        #endregion Warning tests
 
-        #region Failed with warning tests
+        #endregion
+
+        #region failed with warning tests
+
         protected void AssertFailedAndWarning(string test, int numExpectedErrors, int numExpectedWarnings, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
@@ -188,6 +195,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
                 TestComplete();
             }
         }
-        #endregion Failed with warning tests
+
+        #endregion
     }
 }
