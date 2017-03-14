@@ -71,32 +71,12 @@ class M : Machine
 }
 }";
             
-            var configuration = base.GetConfiguration();
-
-            IO.StartWritingToMemory();
-            ErrorReporter.ShowWarnings = true;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-            
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '0' errors and '1' warning.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' calls a " +
-                "method with unavailable source code, which might be a source of errors.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
-
-            ErrorReporter.ShowWarnings = false;
-            IO.StopWritingToMemory();
+            var warning = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' calls a " +
+                "method with unavailable source code, which might be a source of errors." +
+                "   at 'System.Console.WriteLine(letter.Text)' in Program.cs:line 39" +
+                "   --- Source of giving up ownership ---" +
+                "   at 'this.Send(this.Target, new eUnit(letter));' in Program.cs:line 38";
+            base.AssertWarning(test, 1, warning, isPSharpProgram: false);
         }
     }
 }

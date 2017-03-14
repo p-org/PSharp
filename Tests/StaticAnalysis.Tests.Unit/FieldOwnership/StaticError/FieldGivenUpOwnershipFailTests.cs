@@ -75,28 +75,9 @@ class M : Machine
             var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '1' error.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns " +
                 "'letter' to field 'Foo.M.Letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
-
-            IO.StopWritingToMemory();
+            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [TestMethod, Timeout(10000)]
@@ -160,28 +141,9 @@ class M : Machine
             var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '1' error.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
-
-            IO.StopWritingToMemory();
+            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [TestMethod, Timeout(10000)]
@@ -235,22 +197,7 @@ class M : Machine
             
             var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '3' errors.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            IO.StopWritingToMemory();
+            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
 
         [TestMethod, Timeout(10000)]
@@ -303,25 +250,9 @@ class M : Machine
  }
 }
 }";
-            
             var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '3' errors.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            IO.StopWritingToMemory();
+            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
     }
 }

@@ -24,19 +24,13 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     internal static class LanguageTestUtilities
     {
-        internal enum ProgramExtension
+        internal static void AssertRewritten(string expectedResult, string test, bool isPSharpProgram = true)
         {
-            PSharp,
-            CSharp
-        }
-
-        internal static void AssertRewritten(string expectedResult, string test, ProgramExtension extension = ProgramExtension.PSharp)
-        {
-            CompilationContext context = RunRewriter(test, extension);
+            CompilationContext context = RunRewriter(test, isPSharpProgram);
             expectedResult = expectedResult.TrimStart();    // The tests create expectedResults with a leading crlf
 
             var project = context.GetProjects()[0];
-            var syntaxTree = extension == ProgramExtension.PSharp
+            var syntaxTree = isPSharpProgram
                     ? project.PSharpPrograms[0].GetSyntaxTree()
                     : project.CSharpPrograms[0].GetSyntaxTree();
             var actualResult = syntaxTree.ToString();
@@ -73,14 +67,13 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             }
         }
 
-        internal static CompilationContext RunRewriter(string test, ProgramExtension extension = ProgramExtension.PSharp)
+        internal static CompilationContext RunRewriter(string test, bool isPSharpProgram = true)
         {
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
             // There is some inconsistency around whether the rewriting process strips leading newlines, so make sure there are none.
-            var context = CompilationContext.Create(configuration).LoadSolution(test.Trim(),
-                                                                                extension == ProgramExtension.PSharp ? "psharp" : "cs");
+            var context = CompilationContext.Create(configuration).LoadSolution(test.Trim(), isPSharpProgram ? "psharp" : "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

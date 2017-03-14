@@ -46,32 +46,9 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            ErrorReporter.ShowWarnings = true;
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '0' errors and '1' warning.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            Console.WriteLine(IO.GetOutput());
-
             var error = "Warning: Field 'int Num' of machine 'Foo.M' is declared as " +
                 "'public'.   at 'public int Num;' in Program.cs:line 7";
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-                IO.GetOutput().Replace(Environment.NewLine, string.Empty));
-
-            IO.StopWritingToMemory();
+            base.AssertWarning(test, 1, error, isPSharpProgram: false);
         }
 
         [TestMethod, Timeout(10000)]
@@ -95,30 +72,9 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            ErrorReporter.ShowWarnings = true;
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "Static analysis detected '0' errors and '1' warning.";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
             var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' is " +
                 "declared as 'public'.   at 'FirstOnEntryAction' in Program.cs:line 13";
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-                IO.GetOutput().Replace(Environment.NewLine, string.Empty));
-
-            IO.StopWritingToMemory();
+            base.AssertWarning(test, 1, error, isPSharpProgram: false);
         }
     }
 }

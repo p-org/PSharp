@@ -140,7 +140,7 @@ this.Raise(new e1());
 }
 }
 }";
-            LanguageTestUtilities.AssertRewritten(expected, test, LanguageTestUtilities.ProgramExtension.CSharp);
+            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram:false);
         }
     }
 }
