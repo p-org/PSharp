@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class Monitor : AbstractMachine
     {
-        #region fields
+        #region static fields
 
         /// <summary>
         /// Map from monitor types to a set of all
@@ -46,6 +46,10 @@ namespace Microsoft.PSharp
         /// available actions.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap;
+
+        #endregion
+
+        #region fields
 
         /// <summary>
         /// The monitor state.

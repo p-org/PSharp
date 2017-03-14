@@ -32,7 +32,7 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class Machine : AbstractMachine
     {
-        #region fields
+        #region static fields
 
         /// <summary>
         /// Is the machine state cached yet?
@@ -56,6 +56,10 @@ namespace Microsoft.PSharp
         /// available actions.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
+
+        #endregion
+
+        #region fields
 
         /// <summary>
         /// A stack of machine states. The state on the top of
@@ -125,6 +129,10 @@ namespace Microsoft.PSharp
         /// Event obtained using the receive statement.
         /// </summary>
         private Event EventViaReceiveStatement;
+
+        #endregion
+
+        #region properties
 
         /// <summary>
         /// Gets the current state.
