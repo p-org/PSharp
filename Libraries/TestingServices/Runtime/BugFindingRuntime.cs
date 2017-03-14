@@ -293,22 +293,13 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             MachineId mid = new MachineId(type, friendlyName, this);
-
-            var isMachineNewlyConstructed = false;
-            if (!MachineConstructorMap.ContainsKey(type))
-            {
-                Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
-                    Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
-                MachineConstructorMap[type] = constructor;
-                isMachineNewlyConstructed = true;
-            }
-
-            Machine machine = MachineConstructorMap[type]();
+            var isMachineTypeCached = MachineFactory.IsCached(type);
+            Machine machine = MachineFactory.Create(type);
 
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
 
-            if (this.Configuration.ReportCodeCoverage && isMachineNewlyConstructed)
+            if (this.Configuration.ReportCodeCoverage && !isMachineTypeCached)
             {
                 this.ReportCodeCoverageOfMachine(machine);
             }

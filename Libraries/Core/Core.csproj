@@ -55,6 +55,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Library\MachineFactory.cs" />
     <Compile Include="Runtime\Exceptions\RuntimeException.cs" />
     <Compile Include="Runtime\Exceptions\ExecutionCanceledException.cs" />
     <Compile Include="Runtime\Exceptions\LoggingException.cs" />

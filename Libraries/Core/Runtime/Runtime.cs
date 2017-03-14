@@ -53,11 +53,6 @@ namespace Microsoft.PSharp
         protected ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
-        /// Map from machine types to constructors.
-        /// </summary>
-        protected static ConcurrentDictionary<Type, Func<Machine>> MachineConstructorMap;
-
-        /// <summary>
         /// Collection of machine tasks.
         /// </summary>
         protected ConcurrentBag<Task> MachineTasks;
@@ -66,18 +61,6 @@ namespace Microsoft.PSharp
         /// Network provider for remote communication.
         /// </summary>
         internal INetworkProvider NetworkProvider;
-
-        #endregion
-
-        #region constructors
-
-        /// <summary>
-        /// Static constructor.
-        /// </summary>
-        static PSharpRuntime()
-        {
-            MachineConstructorMap = new ConcurrentDictionary<Type, Func<Machine>>();
-        }
 
         #endregion
 
@@ -510,23 +493,13 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateMachine(Machine creator, Type type,
-            string friendlyName, Event e)
+        internal virtual MachineId TryCreateMachine(Machine creator, Type type, string friendlyName, Event e)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)),
-                $"Type '{type.Name}' is not a machine.");
-            
+            this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' is not a machine.");
+
             MachineId mid = new MachineId(type, friendlyName, this);
-            
-            if (!MachineConstructorMap.ContainsKey(type))
-            {
-                Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
-                    Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
-                MachineConstructorMap[type] = constructor;
-            }
-            
-            Machine machine = MachineConstructorMap[type]();
-            
+            Machine machine = MachineFactory.Create(type);
+
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
             
