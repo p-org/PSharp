@@ -1639,12 +1639,12 @@ namespace Microsoft.PSharp
         }
 
         #endregion
+        
+        #region error checking
 
-            #region error checking
-
-            /// <summary>
-            /// Check machine for state related errors.
-            /// </summary>
+        /// <summary>
+        /// Check machine for state related errors.
+        /// </summary>
         private void AssertStateValidity()
         {
             this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{base.Id}' " +
