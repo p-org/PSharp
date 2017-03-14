@@ -8,8 +8,6 @@ The P# framework provides:
 - A **systematic testing engine** that can capture and control all specified nondeterminism in the system, systematically explore the actual executable code to discover bugs, and report bug traces. A P# bug trace provides a global order of all communication events, and thus is easier to debug.
 - Support for **replaying** bug traces, and **debugging** them using the Visual Studio debugger.
 
-Although P# primarily targets .NET, it has also experimental support for systematically testing native C++ code.
-
 ## Getting started
 The best way to build and start using P# is to read our [wiki](https://github.com/p-org/PSharp/wiki).
 
