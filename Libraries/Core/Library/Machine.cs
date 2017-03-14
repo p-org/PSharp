@@ -521,18 +521,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region internal methods
-
-        /// <summary>
-        /// Transitions to the start state, and executes the
-        /// entry action, if there is any.
-        /// </summary>
-        /// <param name="e">Event</param>
-        internal void GotoStartState(Event e)
-        {
-            this.ReceivedEvent = e;
-            this.ExecuteCurrentStateOnEntry();
-        }
+        #region inbox accessing
 
         /// <summary>
         /// Enqueues the event wrapper.
@@ -587,171 +576,6 @@ namespace Microsoft.PSharp
                 }
             }
         }
-
-        /// <summary>
-        /// Runs the event handler. The handler terminates if there
-        /// is no next event to process or if the machine is halted.
-        /// </summary>
-        internal void RunEventHandler()
-        {
-            if (this.IsHalted)
-            {
-                return;
-            }
-
-            EventInfo nextEventInfo = null;
-
-            while (!this.IsHalted)
-            {
-                var defaultHandling = false;
-                var dequeued = false;
-                lock (this.Inbox)
-                {
-                    dequeued = this.GetNextEvent(out nextEventInfo);
-
-                    // Check if next event to process is null.
-                    if (nextEventInfo == null)
-                    {
-                        if (this.HasDefaultHandler())
-                        {
-                            base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' " +
-                                "is executing the default handler in state " +
-                                $"'{this.CurrentStateName}'.");
-
-                            nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
-                                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-                            defaultHandling = true;
-                        }
-                        else
-                        {
-                            this.IsRunning = false;
-                            break;
-                        }
-                    }
-                }
-
-                // Notifies the runtime for a new event to handle. This is only used
-                // during bug-finding and operation bounding, because the runtime has
-                // to schedule a machine when a new operation is dequeued.
-                if (dequeued)
-                {
-                    base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
-                }
-                else
-                {
-                    base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
-                }
-
-                // Assigns the received event.
-                this.ReceivedEvent = nextEventInfo.Event;
-
-                // Handles next event.
-                this.HandleEvent(nextEventInfo.Event);
-
-                // If the default event was handled, then notify the runtime.
-                // This is only used during bug-finding, because the runtime
-                // has to schedule a machine between default handlers.
-                if (defaultHandling)
-                {
-                    base.Runtime.NotifyDefaultHandlerFired();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sets the operation priority of the queue to the specified operation id.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        internal void SetQueueOperationPriority(int opid)
-        {
-            lock (this.Inbox)
-            {
-                // Iterate through the events in the inbox, and give priority
-                // to the first event with the specified operation id.
-                for (int idx = 0; idx < this.Inbox.Count; idx++)
-                {
-                    if (idx == 0 && this.Inbox[idx].OperationId == opid)
-                    {
-                        break;
-                    }
-                    else if (this.Inbox[idx].OperationId == opid)
-                    {
-                        var prioritizedEvent = this.Inbox[idx];
-
-                        var sameSenderConflict = false;
-                        for (int prev = 0; prev < idx; prev++)
-                        {
-                            if (this.Inbox[prev].OriginInfo.SenderMachineId.Equals(
-                                prioritizedEvent.OriginInfo.SenderMachineId))
-                            {
-                                sameSenderConflict = true;
-                            }
-                        }
-
-                        if (!sameSenderConflict)
-                        {
-                            this.Inbox.RemoveAt(idx);
-                            this.Inbox.Insert(0, prioritizedEvent);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the specified operation id is pending
-        /// execution by the machine.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        /// <returns>Boolean</returns>
-        internal override bool IsOperationPending(int opid)
-        {
-            foreach (var e in this.Inbox)
-            {
-                if (e.OperationId == opid)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns the cached state of this machine.
-        /// </summary>
-        /// <returns>Hash value</returns>
-        internal int GetCachedState()
-        {
-            unchecked
-            {
-                var hash = 19;
-
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * base.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
-                hash = hash + 31 * this.IsHalted.GetHashCode();
-
-                hash = hash + 31 * this.ProgramCounter;
-                
-                foreach (var state in this.StateStack)
-                {
-                    hash = hash * 31 + state.GetType().GetHashCode();
-                }
-
-                foreach (var e in this.Inbox)
-                {
-                    hash = hash * 31 + e.EventType.GetHashCode();
-                }
-
-                return hash;
-            }
-        }
-
-        #endregion
-
-        #region event handling methods
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,
@@ -828,6 +652,80 @@ namespace Microsoft.PSharp
             }
 
             return dequeued;
+        }
+
+        #endregion
+
+        #region event handling
+
+        /// <summary>
+        /// Runs the event handler. The handler terminates if there
+        /// is no next event to process or if the machine is halted.
+        /// </summary>
+        internal void RunEventHandler()
+        {
+            if (this.IsHalted)
+            {
+                return;
+            }
+
+            EventInfo nextEventInfo = null;
+
+            while (!this.IsHalted)
+            {
+                var defaultHandling = false;
+                var dequeued = false;
+                lock (this.Inbox)
+                {
+                    dequeued = this.GetNextEvent(out nextEventInfo);
+
+                    // Check if next event to process is null.
+                    if (nextEventInfo == null)
+                    {
+                        if (this.HasDefaultHandler())
+                        {
+                            base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' " +
+                                "is executing the default handler in state " +
+                                $"'{this.CurrentStateName}'.");
+
+                            nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
+                                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+                            defaultHandling = true;
+                        }
+                        else
+                        {
+                            this.IsRunning = false;
+                            break;
+                        }
+                    }
+                }
+
+                // Notifies the runtime for a new event to handle. This is only used
+                // during bug-finding and operation bounding, because the runtime has
+                // to schedule a machine when a new operation is dequeued.
+                if (dequeued)
+                {
+                    base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                }
+                else
+                {
+                    base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
+                }
+
+                // Assigns the received event.
+                this.ReceivedEvent = nextEventInfo.Event;
+
+                // Handles next event.
+                this.HandleEvent(nextEventInfo.Event);
+
+                // If the default event was handled, then notify the runtime.
+                // This is only used during bug-finding, because the runtime
+                // has to schedule a machine between default handlers.
+                if (defaultHandling)
+                {
+                    base.Runtime.NotifyDefaultHandlerFired();
+                }
+            }
         }
 
         /// <summary>
@@ -930,6 +828,257 @@ namespace Microsoft.PSharp
                 }
 
                 break;
+            }
+        }
+
+        /// <summary>
+        /// Invokes an action.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        private void Do(string actionName)
+        {
+            MethodInfo action = this.ActionMap[actionName];
+            base.Runtime.NotifyInvokedAction(this, action, this.ReceivedEvent);
+            this.ExecuteAction(action);
+        }
+
+        /// <summary>
+        /// Executes the on entry function of the current state.
+        /// </summary>
+        private void ExecuteCurrentStateOnEntry()
+        {
+            base.Runtime.NotifyEnteredState(this);
+
+            MethodInfo entryAction = null;
+            if (this.StateStack.Peek().EntryAction != null)
+            {
+                entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
+            }
+
+            // Invokes the entry action of the new state,
+            // if there is one available.
+            if (entryAction != null)
+            {
+                base.Runtime.NotifyInvokedAction(this, entryAction, this.ReceivedEvent);
+                this.ExecuteAction(entryAction);
+            }
+        }
+
+        /// <summary>
+        /// Executes the on exit function of the current state.
+        /// </summary>
+        /// <param name="eventHandlerExitActionName">Action name</param>
+        private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
+        {
+            base.Runtime.NotifyExitedState(this);
+
+            MethodInfo exitAction = null;
+            if (this.StateStack.Peek().ExitAction != null)
+            {
+                exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
+            }
+
+            base.IsInsideOnExit = true;
+
+            // Invokes the exit action of the current state,
+            // if there is one available.
+            if (exitAction != null)
+            {
+                base.Runtime.NotifyInvokedAction(this, exitAction, this.ReceivedEvent);
+                this.ExecuteAction(exitAction);
+            }
+
+            // Invokes the exit action of the event handler,
+            // if there is one available.
+            if (eventHandlerExitActionName != null)
+            {
+                MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction, this.ReceivedEvent);
+                this.ExecuteAction(eventHandlerExitAction);
+            }
+
+            base.IsInsideOnExit = false;
+        }
+
+        /// <summary>
+		/// Executes the specified action.
+		/// </summary>
+		/// <param name="action">MethodInfo</param>
+		[DebuggerStepThrough]
+        private void ExecuteAction(MethodInfo action)
+        {
+            try
+            {
+                action.Invoke(this, null);
+            }
+            catch (Exception ex)
+            {
+                this.IsHalted = true;
+
+                Exception innerException = ex;
+                while (innerException is TargetInvocationException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is ExecutionCanceledException)
+                {
+                    IO.Debug("<Exception> ExecutionCanceledException was " +
+                        $"thrown from Machine '{base.Id}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                        $"thrown from Machine '{base.Id}'.");
+                }
+                else
+                {
+                    if (Debugger.IsAttached ||
+                        base.Runtime.Configuration.ThrowInternalExceptions)
+                    {
+                        throw innerException;
+                    }
+
+                    // Handles generic exception.
+                    this.ReportGenericAssertion(innerException, action.Name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs a goto transition to the specified state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        /// <param name="onExitActionName">Action name</param>
+        private void GotoState(Type s, string onExitActionName)
+        {
+            // The machine performs the on exit action of the current state.
+            this.ExecuteCurrentStateOnExit(onExitActionName);
+            if (this.IsHalted)
+            {
+                return;
+            }
+
+            this.DoStatePop();
+
+            var nextState = StateMap[this.GetType()].First(val
+                => val.GetType().Equals(s));
+
+            // The machine transitions to the new state.
+            this.DoStatePush(nextState);
+
+            // The machine performs the on entry action of the new state.
+            this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
+        /// Performs a push transition to the specified state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        private void PushState(Type s)
+        {
+            base.Runtime.Log($"<PushLog> Machine '{base.Id}' pushed.");
+
+            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            this.DoStatePush(nextState);
+
+            // The machine performs the on entry statements of the new state.
+            this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
+        /// Configures the state transitions of the machine
+        /// when a state is pushed on to the stack.
+        /// </summary>
+        /// <param name="state">State that is to be pushed on to the top of the stack</param>
+        private void DoStatePush(MachineState state)
+        {
+            this.GotoTransitions = state.GotoTransitions;
+            this.PushTransitions = state.PushTransitions;
+
+            // Gets existing map for actions.
+            var eventHandlerMap = this.CurrentActionHandlerMap == null ?
+                new Dictionary<Type, EventActionHandler>() :
+                new Dictionary<Type, EventActionHandler>(this.CurrentActionHandlerMap);
+
+            // Updates the map with defer annotations.
+            foreach (var deferredEvent in state.DeferredEvents)
+            {
+                if (deferredEvent.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    eventHandlerMap[deferredEvent] = new DeferAction();
+                    break;
+                }
+
+                eventHandlerMap[deferredEvent] = new DeferAction();
+            }
+
+            // Updates the map with actions.
+            foreach (var actionBinding in state.ActionBindings)
+            {
+                if (actionBinding.Key.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    eventHandlerMap[actionBinding.Key] = actionBinding.Value;
+                    break;
+                }
+
+                eventHandlerMap[actionBinding.Key] = actionBinding.Value;
+            }
+
+            // Updates the map with ignores.
+            foreach (var ignoreEvent in state.IgnoredEvents)
+            {
+                if (ignoreEvent.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    eventHandlerMap[ignoreEvent] = new IgnoreAction();
+                    break;
+                }
+
+                eventHandlerMap[ignoreEvent] = new IgnoreAction();
+            }
+
+            // Removes the ones on which transitions are defined.
+            foreach (var eventType in this.GotoTransitions.Keys.Union(this.PushTransitions.Keys))
+            {
+                if (eventType.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    break;
+                }
+
+                eventHandlerMap.Remove(eventType);
+            }
+
+            this.StateStack.Push(state);
+            this.ActionHandlerStack.Push(eventHandlerMap);
+        }
+
+        /// <summary>
+        /// Configures the state transitions of the machine
+        /// when a state is popped.
+        /// </summary>
+        private void DoStatePop()
+        {
+            this.StateStack.Pop();
+            this.ActionHandlerStack.Pop();
+
+            if (this.StateStack.Count > 0)
+            {
+                this.GotoTransitions = this.StateStack.Peek().GotoTransitions;
+                this.PushTransitions = this.StateStack.Peek().PushTransitions;
+            }
+            else
+            {
+                this.GotoTransitions = null;
+                this.PushTransitions = null;
             }
         }
 
@@ -1054,335 +1203,19 @@ namespace Microsoft.PSharp
                 this.PushTransitions.ContainsKey(typeof(Default));
         }
 
-        /// <summary>
-        /// Performs a goto transition to the specified state.
-        /// </summary>
-        /// <param name="s">Type of the state</param>
-        /// <param name="onExitActionName">Action name</param>
-        private void GotoState(Type s, string onExitActionName)
-        {
-            // The machine performs the on exit action of the current state.
-            this.ExecuteCurrentStateOnExit(onExitActionName);
-            if (this.IsHalted)
-            {
-                return;
-            }
-
-            this.DoStatePop();
-            
-            var nextState = StateMap[this.GetType()].First(val
-                => val.GetType().Equals(s));
-
-            // The machine transitions to the new state.
-            this.DoStatePush(nextState);
-
-            // The machine performs the on entry action of the new state.
-            this.ExecuteCurrentStateOnEntry();
-        }
-
-        /// <summary>
-        /// Performs a push transition to the specified state.
-        /// </summary>
-        /// <param name="s">Type of the state</param>
-        private void PushState(Type s)
-        {
-            base.Runtime.Log($"<PushLog> Machine '{base.Id}' pushed.");
-
-            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
-            this.DoStatePush(nextState);
-
-            // The machine performs the on entry statements of the new state.
-            this.ExecuteCurrentStateOnEntry();
-        }
-
-        /// <summary>
-        /// Invokes an action.
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        [DebuggerStepThrough]
-        private void Do(string actionName)
-        {
-            MethodInfo action = this.ActionMap[actionName];
-            base.Runtime.NotifyInvokedAction(this, action, this.ReceivedEvent);
-
-            try
-            {
-                action.Invoke(this, null);
-            }
-            catch (Exception ex)
-            {
-                this.IsHalted = true;
-
-                Exception innerException = ex;
-                while (innerException is TargetInvocationException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is AggregateException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is ExecutionCanceledException)
-                {
-                    IO.Debug("<Exception> ExecutionCanceledException was " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else if (innerException is TaskSchedulerException)
-                {
-                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else
-                {
-                    if (Debugger.IsAttached ||
-                        base.Runtime.Configuration.ThrowInternalExceptions)
-                    {
-                        throw innerException;
-                    }
-                    
-                    // Handles generic exception.
-                    this.ReportGenericAssertion(innerException);
-                }
-            }
-        }
-
         #endregion
 
-        #region state transitioning methods
+        #region initialization
 
         /// <summary>
-        /// Configures the state transitions of the machine
-        /// when a state is popped.
+        /// Transitions to the start state, and executes the
+        /// entry action, if there is any.
         /// </summary>
-        private void DoStatePop()
+        /// <param name="e">Event</param>
+        internal void GotoStartState(Event e)
         {
-            this.StateStack.Pop();
-            this.ActionHandlerStack.Pop();
-
-            if (this.StateStack.Count > 0)
-            {
-                this.GotoTransitions = this.StateStack.Peek().GotoTransitions;
-                this.PushTransitions = this.StateStack.Peek().PushTransitions;
-            }
-            else
-            {
-                this.GotoTransitions = null;
-                this.PushTransitions = null;
-            }
-        }
-
-        /// <summary>
-        /// Configures the state transitions of the machine
-        /// when a state is pushed on to the stack.
-        /// </summary>
-        /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        private void DoStatePush(MachineState state)
-        {
-            this.GotoTransitions = state.GotoTransitions;
-            this.PushTransitions = state.PushTransitions;
-
-            // Gets existing map for actions.
-            var eventHandlerMap = this.CurrentActionHandlerMap == null ?
-                new Dictionary<Type, EventActionHandler>() :
-                new Dictionary<Type, EventActionHandler>(this.CurrentActionHandlerMap);
-
-            // Updates the map with defer annotations.
-            foreach (var deferredEvent in state.DeferredEvents)
-            {
-                if (deferredEvent.Equals(typeof(WildCardEvent)))
-                {
-                    eventHandlerMap.Clear();
-                    eventHandlerMap[deferredEvent] = new DeferAction();
-                    break;
-                }
-
-                eventHandlerMap[deferredEvent] = new DeferAction();
-            }
-
-            // Updates the map with actions.
-            foreach (var actionBinding in state.ActionBindings)
-            {
-                if (actionBinding.Key.Equals(typeof(WildCardEvent)))
-                {
-                    eventHandlerMap.Clear();
-                    eventHandlerMap[actionBinding.Key] = actionBinding.Value;
-                    break;
-                }
-
-                eventHandlerMap[actionBinding.Key] = actionBinding.Value;
-            }
-
-            // Updates the map with ignores.
-            foreach (var ignoreEvent in state.IgnoredEvents)
-            {
-                if (ignoreEvent.Equals(typeof(WildCardEvent)))
-                {
-                    eventHandlerMap.Clear();
-                    eventHandlerMap[ignoreEvent] = new IgnoreAction();
-                    break;
-                }
-
-                eventHandlerMap[ignoreEvent] = new IgnoreAction();
-            }
-
-            // Removes the ones on which transitions are defined.
-            foreach (var eventType in this.GotoTransitions.Keys.Union(this.PushTransitions.Keys))
-            {
-                if (eventType.Equals(typeof(WildCardEvent)))
-                {
-                    eventHandlerMap.Clear();
-                    break;
-                }
-
-                eventHandlerMap.Remove(eventType);
-            }
-
-            this.StateStack.Push(state);
-            this.ActionHandlerStack.Push(eventHandlerMap);
-        }
-
-        /// <summary>
-        /// Executes the on entry function of the current state.
-        /// </summary>
-        [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnEntry()
-        {
-            base.Runtime.NotifyEnteredState(this);
-            
-            MethodInfo entryAction = null;
-            if (this.StateStack.Peek().EntryAction != null)
-            {
-                entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
-            }
-
-            try
-            {
-                // Invokes the entry action of the new state,
-                // if there is one available.
-                if (entryAction != null)
-                {
-                    base.Runtime.NotifyInvokedAction(this, entryAction, this.ReceivedEvent);
-                    entryAction.Invoke(this, null);
-                }
-            }
-            catch (Exception ex)
-            {
-                this.IsHalted = true;
-
-                Exception innerException = ex;
-                while (innerException is TargetInvocationException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is AggregateException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is ExecutionCanceledException)
-                {
-                    IO.Debug("<Exception> ExecutionCanceledException was " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else if (innerException is TaskSchedulerException)
-                {
-                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else
-                {
-                    if (Debugger.IsAttached ||
-                        base.Runtime.Configuration.ThrowInternalExceptions)
-                    {
-                        throw innerException;
-                    }
-
-                    // Handles generic exception.
-                    this.ReportGenericAssertion(innerException);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Executes the on exit function of the current state.
-        /// </summary>
-        /// <param name="eventHandlerExitActionName">Action name</param>
-        [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
-        {
-            base.Runtime.NotifyExitedState(this);
-
-            MethodInfo exitAction = null;
-            if (this.StateStack.Peek().ExitAction != null)
-            {
-                exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
-            }
-
-            try
-            {
-                base.InsideOnExit = true;
-
-                // Invokes the exit action of the current state,
-                // if there is one available.
-                if (exitAction != null)
-                {
-                    base.Runtime.NotifyInvokedAction(this, exitAction, this.ReceivedEvent);
-                    exitAction.Invoke(this, null);
-                }
-
-                // Invokes the exit action of the event handler,
-                // if there is one available.
-                if (eventHandlerExitActionName != null)
-                {
-                    MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-                    base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction, this.ReceivedEvent);
-                    eventHandlerExitAction.Invoke(this, null);
-                }
-            }
-            catch (Exception ex)
-            {
-                this.IsHalted = true;
-
-                Exception innerException = ex;
-                while (innerException is TargetInvocationException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is AggregateException)
-                {
-                    innerException = innerException.InnerException;
-                }
-
-                if (innerException is ExecutionCanceledException)
-                {
-                    IO.Debug("<Exception> ExecutionCanceledException was " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else if (innerException is TaskSchedulerException)
-                {
-                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id}'.");
-                }
-                else
-                {
-                    if (Debugger.IsAttached ||
-                        base.Runtime.Configuration.ThrowInternalExceptions)
-                    {
-                        throw innerException;
-                    }
-
-                    // Handles generic exception.
-                    this.ReportGenericAssertion(innerException);
-                }
-            }
-            finally
-            {
-                base.InsideOnExit = false;
-            }
+            this.ReceivedEvent = e;
+            this.ExecuteCurrentStateOnEntry();
         }
 
         /// <summary>
@@ -1521,6 +1354,101 @@ namespace Microsoft.PSharp
             this.AssertStateValidity();
         }
 
+        #endregion
+
+        #region utilities
+
+        /// <summary>
+        /// Sets the operation priority of the queue to the specified operation id.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        internal void SetQueueOperationPriority(int opid)
+        {
+            lock (this.Inbox)
+            {
+                // Iterate through the events in the inbox, and give priority
+                // to the first event with the specified operation id.
+                for (int idx = 0; idx < this.Inbox.Count; idx++)
+                {
+                    if (idx == 0 && this.Inbox[idx].OperationId == opid)
+                    {
+                        break;
+                    }
+                    else if (this.Inbox[idx].OperationId == opid)
+                    {
+                        var prioritizedEvent = this.Inbox[idx];
+
+                        var sameSenderConflict = false;
+                        for (int prev = 0; prev < idx; prev++)
+                        {
+                            if (this.Inbox[prev].OriginInfo.SenderMachineId.Equals(
+                                prioritizedEvent.OriginInfo.SenderMachineId))
+                            {
+                                sameSenderConflict = true;
+                            }
+                        }
+
+                        if (!sameSenderConflict)
+                        {
+                            this.Inbox.RemoveAt(idx);
+                            this.Inbox.Insert(0, prioritizedEvent);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the specified operation id is pending
+        /// execution by the machine.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        /// <returns>Boolean</returns>
+        internal override bool IsOperationPending(int opid)
+        {
+            foreach (var e in this.Inbox)
+            {
+                if (e.OperationId == opid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        /// <returns>Hash value</returns>
+        internal int GetCachedState()
+        {
+            unchecked
+            {
+                var hash = 19;
+
+                hash = hash + 31 * this.GetType().GetHashCode();
+                hash = hash + 31 * base.Id.Value.GetHashCode();
+                hash = hash + 31 * this.IsRunning.GetHashCode();
+                hash = hash + 31 * this.IsHalted.GetHashCode();
+
+                hash = hash + 31 * this.ProgramCounter;
+
+                foreach (var state in this.StateStack)
+                {
+                    hash = hash * 31 + state.GetType().GetHashCode();
+                }
+
+                foreach (var e in this.Inbox)
+                {
+                    hash = hash * 31 + e.EventType.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         /// <summary>
         /// Processes a type, looking for machine states.
         /// </summary>
@@ -1654,14 +1582,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Reports the generic assertion and raises a generic
-        /// runtime assertion error.
+        /// Reports the generic assertion and raises a runtime error.
         /// </summary>
         /// <param name="ex">Exception</param>
-        private void ReportGenericAssertion(Exception ex)
+		/// <param name="actionName">Action name</param>
+        private void ReportGenericAssertion(Exception ex, string actionName)
         {
+            string state = "<unknown>";
+            if (this.CurrentState != null)
+            {
+                state = this.CurrentStateName;
+            }
+
             this.Assert(false, $"Exception '{ex.GetType()}' was thrown " +
-                $"in machine '{base.Id}', '{ex.Source}':\n" +
+                $"in machine '{base.Id}', state '{state}', action '{actionName}', " +
+                $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
         }

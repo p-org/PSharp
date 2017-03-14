@@ -211,16 +211,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region internal methods
-
-        /// <summary>
-        /// Transitions to the start state, and executes the
-        /// entry action, if there is any.
-        /// </summary>
-        internal void GotoStartState()
-        {
-            this.ExecuteCurrentStateOnEntry();
-        }
+        #region monitoring
 
         /// <summary>
         /// Notifies the monitor to handle the received event.
@@ -233,51 +224,9 @@ namespace Microsoft.PSharp
             this.HandleEvent(e);
         }
 
-        /// <summary>
-        /// Returns true if the monitor is in a hot state.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        internal bool IsInHotState()
-        {
-            return this.State.IsHot;
-        }
-
-        /// <summary>
-        /// Returns true if the monitor is in a hot state. Also outputs
-        /// the name of the current state.
-        /// </summary>
-        /// <param name="stateName">State name</param>
-        /// <returns>Boolean</returns>
-        internal bool IsInHotState(out string stateName)
-        {
-            stateName = this.CurrentStateName;
-            return this.State.IsHot;
-        }
-
-        /// <summary>
-        /// Returns true if the monitor is in a cold state.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        internal bool IsInColdState()
-        {
-            return this.State.IsCold;
-        }
-
-        /// <summary>
-        /// Returns true if the monitor is in a cold state. Also outputs
-        /// the name of the current state.
-        /// </summary>
-        /// <param name="stateName">State name</param>
-        /// <returns>Boolean</returns>
-        internal bool IsInColdState(out string stateName)
-        {
-            stateName = this.CurrentStateName;
-            return this.State.IsCold;
-        }
-
         #endregion
 
-        #region event handling methods
+        #region event handling
 
         /// <summary>
         /// Handles the given event.
@@ -337,6 +286,131 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Invokes an action.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        [DebuggerStepThrough]
+        private void Do(string actionName)
+        {
+            MethodInfo action = this.ActionMap[actionName];
+            base.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
+            this.ExecuteAction(action);
+        }
+
+        /// <summary>
+        /// Executes the on entry function of the current state.
+        /// </summary>
+        [DebuggerStepThrough]
+        private void ExecuteCurrentStateOnEntry()
+        {
+            base.Runtime.NotifyEnteredState(this);
+
+            MethodInfo entryAction = null;
+            if (this.State.EntryAction != null)
+            {
+                entryAction = this.ActionMap[this.State.EntryAction];
+            }
+
+            // Invokes the entry action of the new state,
+            // if there is one available.
+            if (entryAction != null)
+            {
+                this.ExecuteAction(entryAction);
+            }
+        }
+
+        /// <summary>
+        /// Executes the on exit function of the current state.
+        /// </summary>
+        /// <param name="eventHandlerExitActionName">Action name</param>
+        [DebuggerStepThrough]
+        private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
+        {
+            base.Runtime.NotifyExitedState(this);
+
+            MethodInfo exitAction = null;
+            if (this.State.ExitAction != null)
+            {
+                exitAction = this.ActionMap[this.State.ExitAction];
+            }
+
+            base.IsInsideOnExit = true;
+
+			// Invokes the exit action of the current state,
+			// if there is one available.
+			if (exitAction != null)
+			{
+				this.ExecuteAction(exitAction);
+			}
+
+			// Invokes the exit action of the event handler,
+			// if there is one available.
+			if (eventHandlerExitActionName != null)
+			{
+				MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+				this.ExecuteAction(eventHandlerExitAction);
+			}
+
+            base.IsInsideOnExit = false;
+        }
+
+        /// <summary>
+		/// Executes the specified action.
+		/// </summary>
+		/// <param name="action">MethodInfo</param>
+		[DebuggerStepThrough]
+        private void ExecuteAction(MethodInfo action)
+        {
+            try
+            {
+                action.Invoke(this, null);
+            }
+            catch (ExecutionCanceledException ex)
+            {
+                throw ex;
+            }
+            catch (TaskSchedulerException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                if (Debugger.IsAttached)
+                {
+                    throw ex;
+                }
+
+                // Handles generic exception.
+                this.ReportGenericAssertion(ex, action.Name);
+            }
+        }
+
+        /// <summary>
+        /// Performs a goto transition to the given state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        /// <param name="onExitActionName">Action name</param>
+        private void GotoState(Type s, string onExitActionName)
+        {
+            // The monitor performs the on exit statements of the current state.
+            this.ExecuteCurrentStateOnExit(onExitActionName);
+
+            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            this.ConfigureStateTransitions(nextState);
+
+            // The monitor transitions to the new state.
+            this.State = nextState;
+
+            if (nextState.IsCold)
+            {
+                this.LivenessTemperature = 0;
+            }
+
+            // The monitor performs the on entry statements of the new state.
+            this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
         /// Checks if the state can handle the given event type. An event
         /// can be handled if it is deferred, or leads to a transition or
         /// action binding.
@@ -370,158 +444,68 @@ namespace Microsoft.PSharp
             return false;
         }
 
-        /// <summary>
-        /// Performs a goto transition to the given state.
-        /// </summary>
-        /// <param name="s">Type of the state</param>
-        /// <param name="onExitActionName">Action name</param>
-        private void GotoState(Type s, string onExitActionName)
-        {
-            // The monitor performs the on exit statements of the current state.
-            this.ExecuteCurrentStateOnExit(onExitActionName);
+        #endregion
 
-            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
-            this.ConfigureStateTransitions(nextState);
-            
-            // The monitor transitions to the new state.
-            this.State = nextState;
-
-            if (nextState.IsCold)
-            {
-                this.LivenessTemperature = 0;
-            }
-
-            // The monitor performs the on entry statements of the new state.
-            this.ExecuteCurrentStateOnEntry();
-        }
+        #region liveness checking
 
         /// <summary>
-        /// Invokes an action.
+        /// Checks the liveness temperature of the monitor and report
+        /// a potential liveness bug if the temperature passes the
+        /// specified threshold. Only works in a liveness monitor.
         /// </summary>
-        /// <param name="actionName">Action name</param>
-        [DebuggerStepThrough]
-        private void Do(string actionName)
+        internal void CheckLivenessTemperature()
         {
-            MethodInfo action = this.ActionMap[actionName];
-            base.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
-
-            try
+            if (this.State.IsHot &&
+                base.Runtime.Configuration.LivenessTemperatureThreshold > 0)
             {
-                action.Invoke(this, null);
-            }
-            catch (ExecutionCanceledException ex)
-            {
-                throw ex;
-            }
-            catch (TaskSchedulerException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                if (Debugger.IsAttached)
-                {
-                    throw ex;
-                }
-
-                // Handles generic exception.
-                this.ReportGenericAssertion(ex);
+                this.LivenessTemperature++;
+                base.Runtime.Assert(this.LivenessTemperature <= base.Runtime.
+                    Configuration.LivenessTemperatureThreshold,
+                    $"Monitor '{this.GetType().Name}' detected potential liveness " +
+                    $"bug in hot state '{this.CurrentStateName}'.");
             }
         }
 
         /// <summary>
-        /// Executes the on entry function of the current state.
+        /// Returns true if the monitor is in a hot state.
         /// </summary>
-        [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnEntry()
+        /// <returns>Boolean</returns>
+        internal bool IsInHotState()
         {
-            base.Runtime.NotifyEnteredState(this);
-
-            MethodInfo entryAction = null;
-            if (this.State.EntryAction != null)
-            {
-                entryAction = this.ActionMap[this.State.EntryAction];
-            }
-
-            try
-            {
-                // Invokes the entry action of the new state,
-                // if there is one available.
-                entryAction?.Invoke(this, null);
-            }
-            catch (ExecutionCanceledException ex)
-            {
-                throw ex;
-            }
-            catch (TaskSchedulerException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                if (Debugger.IsAttached)
-                {
-                    throw ex;
-                }
-
-                // Handles generic exception.
-                this.ReportGenericAssertion(ex);
-            }
+            return this.State.IsHot;
         }
 
         /// <summary>
-        /// Executes the on exit function of the current state.
+        /// Returns true if the monitor is in a hot state. Also outputs
+        /// the name of the current state.
         /// </summary>
-        /// <param name="eventHandlerExitActionName">Action name</param>
-        [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
+        /// <param name="stateName">State name</param>
+        /// <returns>Boolean</returns>
+        internal bool IsInHotState(out string stateName)
         {
-            base.Runtime.NotifyExitedState(this);
+            stateName = this.CurrentStateName;
+            return this.State.IsHot;
+        }
 
-            MethodInfo exitAction = null;
-            if (this.State.ExitAction != null)
-            {
-                exitAction = this.ActionMap[this.State.ExitAction];
-            }
+        /// <summary>
+        /// Returns true if the monitor is in a cold state.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        internal bool IsInColdState()
+        {
+            return this.State.IsCold;
+        }
 
-            try
-            {
-                base.InsideOnExit = true;
-
-                // Invokes the exit action of the current state,
-                // if there is one available.
-                exitAction?.Invoke(this, null);
-
-                // Invokes the exit action of the event handler,
-                // if there is one available.
-                if (eventHandlerExitActionName != null)
-                {
-                    MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-                    eventHandlerExitAction.Invoke(this, null);
-                }
-            }
-            catch (ExecutionCanceledException ex)
-            {
-                throw ex;
-            }
-            catch (TaskSchedulerException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                if (Debugger.IsAttached)
-                {
-                    throw ex;
-                }
-
-                // Handles generic exception.
-                this.ReportGenericAssertion(ex);
-            }
-            finally
-            {
-                base.InsideOnExit = false;
-            }
+        /// <summary>
+        /// Returns true if the monitor is in a cold state. Also outputs
+        /// the name of the current state.
+        /// </summary>
+        /// <param name="stateName">State name</param>
+        /// <returns>Boolean</returns>
+        internal bool IsInColdState(out string stateName)
+        {
+            stateName = this.CurrentStateName;
+            return this.State.IsCold;
         }
 
         #endregion
@@ -568,17 +552,15 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region state transitioning methods
+        #region initialization
 
         /// <summary>
-        /// Configures the state transitions of the monitor.
+        /// Transitions to the start state, and executes the
+        /// entry action, if there is any.
         /// </summary>
-        /// <param name="state">State</param>
-        private void ConfigureStateTransitions(MonitorState state)
+        internal void GotoStartState()
         {
-            this.GotoTransitions = state.GotoTransitions;
-            this.ActionBindings = state.ActionBindings;
-            this.IgnoredEvents = state.IgnoredEvents;
+            this.ExecuteCurrentStateOnEntry();
         }
 
         /// <summary>
@@ -681,24 +663,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks the liveness temperature of the monitor and report
-        /// a potential liveness bug if the temperature passes the
-        /// specified threshold. Only works in a liveness monitor.
-        /// </summary>
-        internal void CheckLivenessTemperature()
-        {
-            if (this.State.IsHot &&
-                base.Runtime.Configuration.LivenessTemperatureThreshold > 0)
-            {
-                this.LivenessTemperature++;
-                base.Runtime.Assert(this.LivenessTemperature <= base.Runtime.
-                    Configuration.LivenessTemperatureThreshold,
-                    $"Monitor '{this.GetType().Name}' detected potential liveness " +
-                    $"bug in hot state '{this.CurrentStateName}'.");
-            }
-        }
-
-        /// <summary>
         /// Processes a type, looking for monitor states.
         /// </summary>
         /// <param name="type">Type</param>
@@ -730,6 +694,21 @@ namespace Microsoft.PSharp
                 }
             }
         }
+
+        /// <summary>
+        /// Configures the state transitions of the monitor.
+        /// </summary>
+        /// <param name="state">State</param>
+        private void ConfigureStateTransitions(MonitorState state)
+        {
+            this.GotoTransitions = state.GotoTransitions;
+            this.ActionBindings = state.ActionBindings;
+            this.IgnoredEvents = state.IgnoredEvents;
+        }
+
+        #endregion
+
+        #region utilities
 
         /// <summary>
         /// Returns the action with the specified name.
@@ -776,14 +755,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Reports the generic assertion and raises a generic
-        /// runtime assertion error.
+        /// Reports the generic assertion and raises a runtime error.
         /// </summary>
         /// <param name="ex">Exception</param>
-        private void ReportGenericAssertion(Exception ex)
+		/// <param name="actionName">Action name</param>
+        private void ReportGenericAssertion(Exception ex, string actionName)
         {
+            string state = "<unknown>";
+            if (this.CurrentState != null)
+            {
+                state = this.CurrentStateName;
+            }
+
             this.Assert(false, $"Exception '{ex.GetType()}' was thrown " +
-                $"in monitor '{this.GetType().Name}', '{ex.Source}':\n" +
+                $"in monitor '{base.Id}', state '{state}', action '{actionName}', " +
+                $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
         }
