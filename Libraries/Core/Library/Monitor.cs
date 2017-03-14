@@ -409,7 +409,7 @@ namespace Microsoft.PSharp
             {
                 action.Invoke(this, null);
             }
-            catch (OperationCanceledException ex)
+            catch (ExecutionCanceledException ex)
             {
                 throw ex;
             }
@@ -449,7 +449,7 @@ namespace Microsoft.PSharp
                 // if there is one available.
                 entryAction?.Invoke(this, null);
             }
-            catch (OperationCanceledException ex)
+            catch (ExecutionCanceledException ex)
             {
                 throw ex;
             }
@@ -500,7 +500,7 @@ namespace Microsoft.PSharp
                     eventHandlerExitAction.Invoke(this, null);
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (ExecutionCanceledException ex)
             {
                 throw ex;
             }

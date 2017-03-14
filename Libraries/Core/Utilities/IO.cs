@@ -438,7 +438,7 @@ namespace Microsoft.PSharp.Utilities
         {
             if (!IO.WriteToInstalledLogger)
             {
-                throw new PSharpIOException("Custom logger not installed.");
+                throw new LoggingException("Custom logger not installed.");
             }
 
             return IO.Logger.ToString();
@@ -451,8 +451,7 @@ namespace Microsoft.PSharp.Utilities
         {
             if (IO.WriteToInstalledLogger)
             {
-                throw new PSharpIOException("Remove the previous logger " +
-                    "before installing a new one.");
+                throw new LoggingException("Remove the previous logger before installing a new one.");
             }
 
             IO.WriteToInstalledLogger = true;

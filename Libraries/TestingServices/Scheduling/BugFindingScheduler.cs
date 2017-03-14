@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                     if (!machineInfo.IsEnabled)
                     {
-                        throw new OperationCanceledException();
+                        throw new ExecutionCanceledException();
                     }
                 }
             }
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                throw new ExecutionCanceledException();
             }
 
             if (uniqueId == null)
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                throw new ExecutionCanceledException();
             }
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
@@ -339,7 +339,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (!machineInfo.IsEnabled)
                 {
-                    throw new OperationCanceledException();
+                    throw new ExecutionCanceledException();
                 }
             }
         }
@@ -479,7 +479,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.IsSchedulerRunning = false;
             this.KillRemainingMachines();
-            throw new OperationCanceledException();
+            throw new ExecutionCanceledException();
         }
 
         /// <summary>
@@ -582,7 +582,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     IO.Debug($"<ScheduleDebug> {msg}");
                     this.KillRemainingMachines();
-                    throw new OperationCanceledException();
+                    throw new ExecutionCanceledException();
                 }
             }
         }

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpIOException.cs">
+// <copyright file="RuntimeException.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,18 +12,27 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Implements the P# IO exception.
+    /// An exception that is thrown by the P# runtime.
     /// </summary>
-    internal sealed class PSharpIOException : PSharpException
+    internal class RuntimeException : Exception
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the exception.
         /// </summary>
-        /// <param name="message">Message</param>
-        public PSharpIOException(string message)
+        public RuntimeException()
+        {
+
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the exception.
+        /// </summary>
+        public RuntimeException(string message)
             : base(message)
         {
 

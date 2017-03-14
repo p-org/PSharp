@@ -55,7 +55,9 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Exceptions\PSharpIOException.cs" />
+    <Compile Include="Runtime\Exceptions\RuntimeException.cs" />
+    <Compile Include="Runtime\Exceptions\ExecutionCanceledException.cs" />
+    <Compile Include="Runtime\Exceptions\LoggingException.cs" />
     <Compile Include="Library\Attributes\Cold.cs" />
     <Compile Include="Library\Attributes\IgnoreEvents.cs" />
     <Compile Include="Library\Attributes\EntryPoint.cs" />
@@ -79,7 +81,6 @@
     <Compile Include="Library\Events\Event.cs" />
     <Compile Include="Library\Events\GotoStateEvent.cs" />
     <Compile Include="Library\Events\Halt.cs" />
-    <Compile Include="Exceptions\PSharpException.cs" />
     <Compile Include="Library\StateGroup.cs" />
     <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
     <Compile Include="Options\OptimizationTarget.cs" />
