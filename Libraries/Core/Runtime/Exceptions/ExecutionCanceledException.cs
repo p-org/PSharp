@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpException.cs">
+// <copyright file="ExecutionCanceledException.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,16 +17,15 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Implements the base P# exception.
+    /// The exception that is thrown in a P# machine upon cancellation
+    /// of execution by the P# runtime.
     /// </summary>
-    internal class PSharpException : Exception
+    internal sealed class ExecutionCanceledException : RuntimeException
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the exception.
         /// </summary>
-        /// <param name="message">Message</param>
-        public PSharpException(string message)
-            : base(message)
+        public ExecutionCanceledException()
         {
 
         }

@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 if (this.CompilationContext.Configuration.ThrowInternalExceptions)
                 {
-                    throw new PSharpException(message);
+                    throw new Exception(message);
                 }
 
                 IO.Error.ReportAndExit(message);

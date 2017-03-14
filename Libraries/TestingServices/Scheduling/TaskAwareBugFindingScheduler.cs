@@ -172,7 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                     if (!machineInfo.IsEnabled)
                     {
-                        throw new OperationCanceledException();
+                        throw new ExecutionCanceledException();
                     }
                 }
             }
@@ -240,7 +240,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (!machineInfo.IsEnabled)
                 {
-                    throw new OperationCanceledException();
+                    throw new ExecutionCanceledException();
                 }
             }
         }
