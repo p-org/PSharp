@@ -535,30 +535,7 @@ namespace Microsoft.PSharp
 
             this.Log($"<CreateLog> Machine '{mid}' is created.");
 
-            Task task = new Task(() =>
-            {
-                try
-                {
-                    machine.GotoStartState(e);
-                    machine.RunEventHandler();
-                }
-                catch (Exception)
-                {
-                    if (this.Configuration.ThrowInternalExceptions)
-                    {
-                        throw;
-                    }
-                }
-                finally
-                {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
-                }
-            });
-            
-            this.MachineTasks.Add(task);
-            this.TaskMap.TryAdd(task.Id, machine);
-            
-            task.Start();
+            this.RunMachineEventHandler(machine, e, true);
 
             return mid;
         }
@@ -637,37 +614,12 @@ namespace Microsoft.PSharp
                 this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
-            bool runHandler = false;
-            machine.Enqueue(eventInfo, ref runHandler);
-
-            if (!runHandler)
+            bool runNewHandler = false;
+            machine.Enqueue(eventInfo, ref runNewHandler);
+            if (runNewHandler)
             {
-                return;
+                this.RunMachineEventHandler(machine);
             }
-
-            Task task = new Task(() =>
-            {
-                try
-                {
-                    machine.RunEventHandler();
-                }
-                catch (Exception)
-                {
-                    if (this.Configuration.ThrowInternalExceptions)
-                    {
-                        throw;
-                    }
-                }
-                finally
-                {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
-                }
-            });
-            
-            this.MachineTasks.Add(task);
-            this.TaskMap.TryAdd(task.Id, machine);
-            
-            task.Start();
         }
 
         /// <summary>
@@ -1025,6 +977,49 @@ namespace Microsoft.PSharp
         internal virtual void NotifyDefaultHandlerFired()
         {
             // No-op in production.
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+		/// Runs a new asynchronous machine event handler.
+		/// This is a fire and forget invocation.
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <param name="e">Event</param>
+		/// <param name="isFresh">Is a new machine</param>
+		private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
+        {
+            Task task = new Task(() =>
+            {
+                try
+                {
+                    if (isFresh)
+                    {
+                        machine.GotoStartState(e);
+                    }
+
+                    machine.RunEventHandler();
+                }
+                catch (Exception ex)
+                {
+                    if (this.Configuration.ThrowInternalExceptions)
+                    {
+                        throw ex;
+                    }
+                }
+                finally
+                {
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                }
+            });
+
+            this.MachineTasks.Add(task);
+            this.TaskMap.TryAdd(task.Id, machine);
+
+            task.Start();
         }
 
         #endregion

@@ -329,29 +329,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            Task task = new Task(() =>
-            {
-                try
-                {
-                    this.Scheduler.NotifyTaskStarted();
-                    machine.GotoStartState(e);
-                    machine.RunEventHandler();
-                    this.Scheduler.NotifyTaskCompleted();
-                }
-                finally
-                {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
-                }
-            });
-
-            this.MachineTasks.Add(task);
-            base.TaskMap.TryAdd(task.Id, machine);
-
-            this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
-
-            task.Start();
-
-            this.Scheduler.WaitForTaskToStart(task.Id);
+            this.RunMachineEventHandler(machine, e, true);
             this.Scheduler.Schedule();
 
             return mid;
@@ -469,37 +447,11 @@ namespace Microsoft.PSharp.TestingServices
 
             bool runNewHandler = false;
             machine.Enqueue(eventInfo, ref runNewHandler);
-            
-            if (!runNewHandler)
+            if (runNewHandler)
             {
-                this.Scheduler.Schedule();
-                return;
+                this.RunMachineEventHandler(machine);
             }
 
-            machine.SetOperationId(eventInfo.OperationId);
-
-            Task task = new Task(() =>
-            {
-                try
-                {
-                    this.Scheduler.NotifyTaskStarted();
-                    machine.RunEventHandler();
-                    this.Scheduler.NotifyTaskCompleted();
-                }
-                finally
-                {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
-                }
-            });
-            
-            this.MachineTasks.Add(task);
-            base.TaskMap.TryAdd(task.Id, machine);
-
-            this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
-
-            task.Start();
-
-            this.Scheduler.WaitForTaskToStart(task.Id);
             this.Scheduler.Schedule();
         }
 
@@ -955,6 +907,50 @@ namespace Microsoft.PSharp.TestingServices
         #endregion
 
         #region private methods
+
+        /// <summary>
+		/// Runs a new asynchronous machine event handler.
+		/// This is a fire and forget invocation.
+		/// </summary>
+		/// <param name="machine">Machine</param>
+		/// <param name="e">Event</param>
+		/// <param name="isFresh">Is a new machine</param>
+		private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
+        {
+            Task task = new Task(() =>
+            {
+                try
+                {
+                    this.Scheduler.NotifyTaskStarted();
+
+                    if (isFresh)
+                    {
+                        machine.GotoStartState(e);
+                    }
+                    
+                    machine.RunEventHandler();
+
+                    this.Scheduler.NotifyTaskCompleted();
+                }
+                finally
+                {
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                }
+            });
+
+            this.MachineTasks.Add(task);
+            base.TaskMap.TryAdd(task.Id, machine);
+
+            this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
+
+            task.Start();
+
+            this.Scheduler.WaitForTaskToStart(task.Id);
+        }
+
+        #endregion
+
+        #region code coverage
 
         /// <summary>
         /// Reports code coverage for the specified received event.
