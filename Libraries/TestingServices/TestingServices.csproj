@@ -84,7 +84,6 @@
     <Compile Include="SchedulingStrategies\OperationBounded\OperationBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\ReplayStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
-    <Compile Include="Scheduling\TaskAwareBugFindingScheduler.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />
     <Compile Include="Scheduling\MachineInfo.cs" />
     <Compile Include="StateCaching\Fingerprint.cs" />
@@ -99,8 +98,6 @@
     <Compile Include="Engines\AbstractTestingEngine.cs" />
     <Compile Include="Engines\BugFindingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Threading\TaskMachine.cs" />
-    <Compile Include="Threading\TaskWrapperScheduler.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

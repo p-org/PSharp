@@ -323,13 +323,13 @@ namespace Microsoft.PSharp.TestingServices
                     if (base.Configuration.RaceFound)
                     {
                         string message = IO.Format("Found a race");
-                        runtime.BugFinder.NotifyAssertionFailure(message, false);
+                        runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
 
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property
                     // violations have been found.
-                    if (!runtime.BugFinder.BugFound)
+                    if (!runtime.Scheduler.BugFound)
                     {
                         runtime.LivenessChecker.CheckLivenessAtTermination();
                     }
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.TestingServices
                         base.ResetOutput();
                     }
 
-                    if (base.Configuration.PerformFullExploration && runtime.BugFinder.BugFound)
+                    if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
                     {
                         IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
                             $"[task-{this.Configuration.TestingProcessId}]");
@@ -413,7 +413,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="runtime">PSharpBugFindingRuntime</param>
         private void GatherIterationStatistics(PSharpBugFindingRuntime runtime)
         {
-            TestReport report = runtime.BugFinder.GetReport();
+            TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
             this.TestReport.Merge(report);
         }

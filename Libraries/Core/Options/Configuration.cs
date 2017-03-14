@@ -267,13 +267,6 @@ namespace Microsoft.PSharp.Utilities
         public bool AttachDebugger;
 
         /// <summary>
-        /// If true, then the P# tester will try to schedule
-        /// any intra-machine concurrency.
-        /// </summary>
-        [DataMember]
-        public bool ScheduleIntraMachineConcurrency;
-
-        /// <summary>
         /// The liveness temperature threshold. If it is 0
         /// then it is disabled.
         /// </summary>
@@ -485,7 +478,6 @@ namespace Microsoft.PSharp.Utilities
             this.SafetyPrefixBound = 0;
 
             this.AttachDebugger = false;
-            this.ScheduleIntraMachineConcurrency = false;
             this.LivenessTemperatureThreshold = 0;
             this.CacheProgramState = false;
             this.EnableCycleReplayingStrategy = false;

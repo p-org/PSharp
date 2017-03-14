@@ -166,10 +166,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         string message = IO.Format("Monitor '{0}' detected infinite execution that " +
                             "violates a liveness property.", monitor.GetType().Name);
-                        this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
+                        this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
 
-                    this.Runtime.BugFinder.Stop();
+                    this.Runtime.Scheduler.Stop();
                 }
             }
             else if (!this.Runtime.Configuration.CacheProgramState &&
@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         internal void CheckLivenessAtTermination()
         {
             // Checks if the program has naturally terminated.
-            if (!this.Runtime.BugFinder.HasFullyExploredSchedule)
+            if (!this.Runtime.Scheduler.HasFullyExploredSchedule)
             {
                 return;
             }
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     string message = IO.Format("Monitor '{0}' detected liveness bug " +
                         "in hot state '{1}' at the end of program execution.",
                         monitor.GetType().Name, stateName);
-                    this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
+                    this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
                 }
             }
         }
@@ -299,7 +299,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.HotMonitors.Count > 0)
             {
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
-                this.Runtime.BugFinder.SwitchSchedulingStrategy(this);
+                this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
             }
             else
             {
@@ -479,7 +479,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
 
-            this.Runtime.BugFinder.SwitchSchedulingStrategy(
+            this.Runtime.Scheduler.SwitchSchedulingStrategy(
                 this.BugFindingSchedulingStrategy);
         }
 

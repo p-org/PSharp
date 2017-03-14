@@ -612,15 +612,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new task machine.
-        /// </summary>
-        /// <param name="userTask">Task</param>
-        internal virtual void TryCreateTaskMachine(Task userTask)
-        {
-            // No-op in production.
-        }
-
-        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="sender">Sender machine</param>

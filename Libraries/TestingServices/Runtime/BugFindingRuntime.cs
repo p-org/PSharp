@@ -24,7 +24,6 @@ using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
-using Microsoft.PSharp.TestingServices.Threading;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -56,19 +55,14 @@ namespace Microsoft.PSharp.TestingServices
         internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
 
         /// <summary>
-        /// The P# task scheduler.
-        /// </summary>
-        internal TaskScheduler TaskScheduler;
-
-        /// <summary>
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
 
         /// <summary>
-        /// The P# bugfinding scheduler.
+        /// The bug-finding scheduler.
         /// </summary>
-        internal BugFindingScheduler BugFinder;
+        internal BugFindingScheduler Scheduler;
 
         /// <summary>
         /// The P# program state cache.
@@ -104,24 +98,14 @@ namespace Microsoft.PSharp.TestingServices
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
-            
-            if (this.Configuration.ScheduleIntraMachineConcurrency)
-            {
-                this.TaskScheduler = new TaskWrapperScheduler(this, this.MachineTasks);
-                TaskMachineExtensions.TaskScheduler = this.TaskScheduler as TaskWrapperScheduler;
-                this.BugFinder = new TaskAwareBugFindingScheduler(this, strategy);
-            }
-            else
-            {
-                this.BugFinder = new BugFindingScheduler(this, strategy);
-            }
 
             this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
             this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
 
-            this.StateCache = new StateCache(this);
+            this.Scheduler = new BugFindingScheduler(this, strategy);
             this.LivenessChecker = new LivenessChecker(this, strategy);
+            this.StateCache = new StateCache(this);
             this.CoverageInfo = new CoverageInfo();
 
             this.OperationIdCounter = 0;
@@ -256,7 +240,7 @@ namespace Microsoft.PSharp.TestingServices
             if (!predicate)
             {
                 string message = "Assertion failure.";
-                this.BugFinder.NotifyAssertionFailure(message);
+                this.Scheduler.NotifyAssertionFailure(message);
             }
         }
 
@@ -272,7 +256,7 @@ namespace Microsoft.PSharp.TestingServices
             if (!predicate)
             {
                 string message = IO.Format(s, args);
-                this.BugFinder.NotifyAssertionFailure(message);
+                this.Scheduler.NotifyAssertionFailure(message);
             }
         }
 
@@ -350,10 +334,10 @@ namespace Microsoft.PSharp.TestingServices
             {
                 try
                 {
-                    this.BugFinder.NotifyTaskStarted();
+                    this.Scheduler.NotifyTaskStarted();
                     machine.GotoStartState(e);
                     machine.RunEventHandler();
-                    this.BugFinder.NotifyTaskCompleted();
+                    this.Scheduler.NotifyTaskCompleted();
                 }
                 finally
                 {
@@ -364,19 +348,12 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineTasks.Add(task);
             base.TaskMap.TryAdd(task.Id, machine);
 
-            this.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+            this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
 
-            if (this.Configuration.ScheduleIntraMachineConcurrency)
-            {
-                task.Start(this.TaskScheduler);
-            }
-            else
-            {
-                task.Start();
-            }
+            task.Start();
 
-            this.BugFinder.WaitForTaskToStart(task.Id);
-            this.BugFinder.Schedule();
+            this.Scheduler.WaitForTaskToStart(task.Id);
+            this.Scheduler.Schedule();
 
             return mid;
         }
@@ -427,56 +404,6 @@ namespace Microsoft.PSharp.TestingServices
             this.LivenessChecker.RegisterMonitor(monitor as Monitor);
 
             (monitor as Monitor).GotoStartState();
-        }
-
-        /// <summary>
-        /// Tries to create a new task machine.
-        /// </summary>
-        /// <param name="userTask">Task</param>
-        internal override void TryCreateTaskMachine(Task userTask)
-        {
-            this.Assert(this.TaskScheduler is TaskWrapperScheduler, "Unable to wrap the " +
-                "task in a machine, because the task wrapper scheduler is not enabled.\n");
-
-            MachineId mid = new MachineId(typeof(TaskMachine), null, this);
-            TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler,
-                userTask);
-            taskMachine.SetMachineId(mid);
-
-            if (Task.CurrentId != null && TaskMap.ContainsKey((int)Task.CurrentId) &&
-                this.Configuration.EnableDataRaceDetection)
-            {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap.Add(mid, new MachineActionTrace(mid));
-                var currentMachineId = this.GetCurrentMachineId();
-                this.Assert(currentMachineId != null, "Unable to find current machine Id");
-                this.MachineActionTraceMap[currentMachineId].AddTaskMachineCreationInfo(userTask.Id, mid);
-            }
-
-            IO.Log($"<CreateLog> '{mid}' is created.");
-
-            Task task = new Task(() =>
-            {
-                this.BugFinder.NotifyTaskStarted();
-                taskMachine.Run();
-                this.BugFinder.NotifyTaskCompleted();
-            });
-
-            this.MachineTasks.Add(task);
-
-            this.BugFinder.NotifyNewTaskCreated(task.Id, taskMachine);
-
-            if (this.Configuration.ScheduleIntraMachineConcurrency)
-            {
-                task.Start(this.TaskScheduler);
-            }
-            else
-            {
-                task.Start();
-            }
-
-            this.BugFinder.WaitForTaskToStart(task.Id);
-            this.BugFinder.Schedule();
         }
 
         /// <summary>
@@ -546,7 +473,7 @@ namespace Microsoft.PSharp.TestingServices
             
             if (!runNewHandler)
             {
-                this.BugFinder.Schedule();
+                this.Scheduler.Schedule();
                 return;
             }
 
@@ -556,9 +483,9 @@ namespace Microsoft.PSharp.TestingServices
             {
                 try
                 {
-                    this.BugFinder.NotifyTaskStarted();
+                    this.Scheduler.NotifyTaskStarted();
                     machine.RunEventHandler();
-                    this.BugFinder.NotifyTaskCompleted();
+                    this.Scheduler.NotifyTaskCompleted();
                 }
                 finally
                 {
@@ -569,19 +496,12 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineTasks.Add(task);
             base.TaskMap.TryAdd(task.Id, machine);
 
-            this.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+            this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
 
-            if (this.Configuration.ScheduleIntraMachineConcurrency)
-            {
-                task.Start(this.TaskScheduler);
-            }
-            else
-            {
-                task.Start();
-            }
+            task.Start();
 
-            this.BugFinder.WaitForTaskToStart(task.Id);
-            this.BugFinder.Schedule();
+            this.Scheduler.WaitForTaskToStart(task.Id);
+            this.Scheduler.Schedule();
         }
 
         /// <summary>
@@ -640,7 +560,7 @@ namespace Microsoft.PSharp.TestingServices
                 machine.AssertNoPendingRGP("Random");
             }
 
-            var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(maxValue);
+            var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
@@ -671,7 +591,7 @@ namespace Microsoft.PSharp.TestingServices
                 machine.AssertNoPendingRGP("FairRandom");
             }
 
-            var choice = this.BugFinder.GetNextNondeterministicBooleanChoice(2, uniqueId);
+            var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
@@ -702,7 +622,7 @@ namespace Microsoft.PSharp.TestingServices
                 machine.AssertNoPendingRGP("RandomInteger");
             }
 
-            var choice = this.BugFinder.GetNextNondeterministicIntegerChoice(maxValue);
+            var choice = this.Scheduler.GetNextNondeterministicIntegerChoice(maxValue);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
@@ -851,7 +771,7 @@ namespace Microsoft.PSharp.TestingServices
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
             //{
-            //    this.BugFinder.Schedule();
+            //    this.Scheduler.Schedule();
             //}
         }
 
@@ -941,7 +861,7 @@ namespace Microsoft.PSharp.TestingServices
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
             //{
-            //    this.BugFinder.Schedule();
+            //    this.Scheduler.Schedule();
             //}
         }
 
@@ -958,8 +878,8 @@ namespace Microsoft.PSharp.TestingServices
             IO.Log($"<ReceiveLog> Machine '{machine.Id}' " +
                 $"is waiting on events:{events}.");
 
-            this.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
-            this.BugFinder.Schedule();
+            this.Scheduler.NotifyTaskBlockedOnEvent(Task.CurrentId);
+            this.Scheduler.Schedule();
         }
 
         /// <summary>
@@ -982,7 +902,7 @@ namespace Microsoft.PSharp.TestingServices
                     $"event '{eventInfo.EventName}' and unblocked.");
             }
 
-            this.BugFinder.NotifyTaskReceivedEvent(machine);
+            this.Scheduler.NotifyTaskReceivedEvent(machine);
             machine.IsWaitingToReceive = false;
         }
 
@@ -1002,22 +922,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override void NotifyDefaultHandlerFired()
         {
-            this.BugFinder.Schedule();
-        }
-
-        /// <summary>
-        /// Notifies that a scheduling point should be instrumented
-        /// due to a wait synchronization operation.
-        /// </summary>
-        /// <param name="blockingTasks">Blocking tasks</param>
-        /// <param name="waitAll">Boolean</param>
-        internal void ScheduleOnWait(IEnumerable<Task> blockingTasks, bool waitAll)
-        {
-            this.Assert(this.BugFinder is TaskAwareBugFindingScheduler,
-                "Cannot schedule on wait without enabling the task-aware bug finding scheduler.");
-            (this.BugFinder as TaskAwareBugFindingScheduler).NotifyTaskBlocked(
-                Task.CurrentId, blockingTasks, waitAll);
-            this.BugFinder.Schedule();
+            this.Scheduler.Schedule();
         }
 
         /// <summary>
@@ -1244,224 +1149,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return machineState;
-        }
-
-        #endregion
-
-        #region TPL methods
-
-        /// <summary>
-        /// Waits for all of the provided task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        public override void WaitAll(params Task[] tasks)
-        {
-            this.ScheduleOnWait(tasks, true);
-            Task.WaitAll(tasks);
-        }
-
-        /// <summary>
-        /// Waits for all of the provided cancellable task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="cancellationToken">CancellationToken</param>
-        public override void WaitAll(Task[] tasks, CancellationToken cancellationToken)
-        {
-            this.ScheduleOnWait(tasks, true);
-            Task.WaitAll(tasks, cancellationToken);
-        }
-
-        /// <summary>
-        /// Waits for all of the provided task objects to complete execution
-        /// within a specified number of milliseconds.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="millisecondsTimeout">Timeout</param>
-        public override void WaitAll(Task[] tasks, int millisecondsTimeout)
-        {
-            this.ScheduleOnWait(tasks, true);
-            Task.WaitAll(tasks, millisecondsTimeout);
-        }
-
-        /// <summary>
-        /// Waits for all of the provided cancellable task objects to complete
-        /// execution within a specified time interval.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="timeout">Timeout</param>
-        public override void WaitAll(Task[] tasks, TimeSpan timeout)
-        {
-            this.ScheduleOnWait(tasks, true);
-            Task.WaitAll(tasks, timeout);
-        }
-
-        /// <summary>
-        /// Waits for all of the provided cancellable task objects to complete
-        /// execution within a specified number of milliseconds.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="millisecondsTimeout">Timeout</param>
-        /// <param name="cancellationToken">CancellationToken</param>
-        public override void WaitAll(Task[] tasks, int millisecondsTimeout,
-            CancellationToken cancellationToken)
-        {
-            this.ScheduleOnWait(tasks, true);
-            Task.WaitAll(tasks, millisecondsTimeout, cancellationToken);
-        }
-
-        /// <summary>
-        /// Waits for any of the provided task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        public override void WaitAny(params Task[] tasks)
-        {
-            this.ScheduleOnWait(tasks, false);
-            Task.WaitAny(tasks);
-        }
-
-        /// <summary>
-        /// Waits for any of the provided cancellable task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="cancellationToken">CancellationToken</param>
-        public override void WaitAny(Task[] tasks, CancellationToken cancellationToken)
-        {
-            this.ScheduleOnWait(tasks, false);
-            Task.WaitAny(tasks, cancellationToken);
-        }
-
-        /// <summary>
-        /// Waits for any of the provided task objects to complete execution
-        /// within a specified number of milliseconds.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="millisecondsTimeout">Timeout</param>
-        public override void WaitAny(Task[] tasks, int millisecondsTimeout)
-        {
-            this.ScheduleOnWait(tasks, false);
-            Task.WaitAny(tasks, millisecondsTimeout);
-        }
-
-        /// <summary>
-        /// Waits for any of the provided cancellable task objects to complete
-        /// execution within a specified time interval.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="timeout">Timeout</param>
-        public override void WaitAny(Task[] tasks, TimeSpan timeout)
-        {
-            this.ScheduleOnWait(tasks, false);
-            Task.WaitAny(tasks, timeout);
-        }
-
-        /// <summary>
-        /// Waits for any of the provided cancellable task objects to complete
-        /// execution within a specified number of milliseconds.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="millisecondsTimeout">Timeout</param>
-        /// <param name="cancellationToken">CancellationToken</param>
-        public override void WaitAny(Task[] tasks, int millisecondsTimeout,
-            CancellationToken cancellationToken)
-        {
-            this.ScheduleOnWait(tasks, false);
-            Task.WaitAny(tasks, millisecondsTimeout, cancellationToken);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when all of the task objects
-        /// in an array have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task WhenAll(params Task[] tasks)
-        {
-            this.ScheduleOnWait(tasks, true);
-            return Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when all of the task objects
-        /// in an enumerable collection have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task WhenAll(IEnumerable<Task> tasks)
-        {
-            this.ScheduleOnWait(tasks, true);
-            return Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when all of the task objects
-        /// in an array have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task<TResult[]> WhenAll<TResult>(params Task<TResult>[] tasks)
-        {
-            this.ScheduleOnWait(tasks, true);
-            return Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when all of the task objects
-        /// in an enumerable collection have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task<TResult[]> WhenAll<TResult>(IEnumerable<Task<TResult>> tasks)
-        {
-            this.ScheduleOnWait(tasks, true);
-            return Task.WhenAll(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when any of the supplied
-        /// tasks have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task<Task> WhenAny(params Task[] tasks)
-        {
-            this.ScheduleOnWait(tasks, false);
-            return Task.WhenAny(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when any of the supplied
-        /// tasks have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task<Task> WhenAny(IEnumerable<Task> tasks)
-        {
-            this.ScheduleOnWait(tasks, false);
-            return Task.WhenAny(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when any of the supplied
-        /// tasks have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task<Task<TResult>> WhenAny<TResult>(params Task<TResult>[] tasks)
-        {
-            this.ScheduleOnWait(tasks, false);
-            return Task.WhenAny(tasks);
-        }
-
-        /// <summary>
-        /// Creates a task that will complete when any of the supplied
-        /// tasks have completed.
-        /// </summary>
-        /// <param name="tasks">Tasks</param>
-        /// <returns>Task</returns>
-        public override Task<Task<TResult>> WhenAny<TResult>(IEnumerable<Task<TResult>> tasks)
-        {
-            this.ScheduleOnWait(tasks, false);
-            return Task.WhenAny(tasks);
         }
 
         #endregion

@@ -309,10 +309,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.PrintTrace = true;
             }
-            else if (option.ToLower().Equals("/tpl"))
-            {
-                base.Configuration.ScheduleIntraMachineConcurrency = true;
-            }
             else if (option.ToLower().StartsWith("/liveness-temperature-threshold:") && option.Length > 32)
             {
                 int i = 0;
@@ -463,12 +459,6 @@ namespace Microsoft.PSharp.Utilities
             help += "\n Testing code coverage options:";
             help += "\n ---------------------------";
             help += "\n  /coverage-report\t Print code coverage statistics";
-
-            help += "\n\n ---------------------";
-            help += "\n Experimental options:";
-            help += "\n ---------------------";
-            help += "\n  /tpl\t\t Enable intra-machine concurrency scheduling";
-            help += "\n  /interactive\t Enable interactive scheduling";
 
             help += "\n";
 
