@@ -948,6 +948,50 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.WaitForTaskToStart(task.Id);
         }
 
+        /// <summary>
+        /// Returns the state name of the specified machine,
+        /// if the machine is in such a state.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        /// <returns>StateName</returns>
+        private string GetStateNameOfMachine(AbstractMachine machine)
+        {
+            string machineState = null;
+            if (machine is Machine)
+            {
+                machineState = (machine as Machine).CurrentStateName;
+            }
+            else if (machine is Monitor)
+            {
+                machineState = (machine as Monitor).CurrentStateName;
+            }
+
+            return machineState;
+        }
+
+        /// <summary>
+        /// Sets the operation id for the given event.
+        /// </summary>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        private void SetOperationIdForEvent(EventInfo eventInfo, AbstractMachine sender, bool isStarter)
+        {
+            if (isStarter)
+            {
+                this.OperationIdCounter++;
+                eventInfo.SetOperationId(this.OperationIdCounter);
+            }
+            else if (sender != null)
+            {
+                eventInfo.SetOperationId(sender.OperationId);
+            }
+            else
+            {
+                eventInfo.SetOperationId(0);
+            }
+        }
+
         #endregion
 
         #region code coverage
@@ -1100,50 +1144,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
-        }
-
-        /// <summary>
-        /// Sets the operation id for the given event.
-        /// </summary>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        private void SetOperationIdForEvent(EventInfo eventInfo, AbstractMachine sender, bool isStarter)
-        {
-            if (isStarter)
-            {
-                this.OperationIdCounter++;
-                eventInfo.SetOperationId(this.OperationIdCounter);
-            }
-            else if (sender != null)
-            {
-                eventInfo.SetOperationId(sender.OperationId);
-            }
-            else
-            {
-                eventInfo.SetOperationId(0);
-            }
-        }
-
-        /// <summary>
-        /// Returns the state name of the specified machine,
-        /// if the machine is in such a state.
-        /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        /// <returns>StateName</returns>
-        private string GetStateNameOfMachine(AbstractMachine machine)
-        {
-            string machineState = null;
-            if (machine is Machine)
-            {
-                machineState = (machine as Machine).CurrentStateName;
-            }
-            else if (machine is Monitor)
-            {
-                machineState = (machine as Monitor).CurrentStateName;
-            }
-
-            return machineState;
         }
 
         #endregion
