@@ -95,25 +95,7 @@ class M : Machine
  }
 }
 }";
-
-            var configuration = base.GetConfiguration();
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "No static analysis errors detected.";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            IO.StopWritingToMemory();
+            base.AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [TestMethod, Timeout(10000)]
@@ -188,25 +170,7 @@ class M : Machine
  }
 }
 }";
-
-            var configuration = base.GetConfiguration();
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "No static analysis errors detected.";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            IO.StopWritingToMemory();
+            base.AssertSucceeded(test, isPSharpProgram: false);
         }
     }
 }

@@ -113,7 +113,7 @@ this.Goto(typeof(S2));
 }
 }";
             // Note: original formatting is preserved for CSharp rewriting.
-            LanguageTestUtilities.AssertRewritten(expected, test, LanguageTestUtilities.ProgramExtension.CSharp);
+            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram:false);
         }
 
         [TestMethod, Timeout(10000)]
@@ -166,7 +166,7 @@ namespace Foo
     }
 }";
             // Note: original formatting is preserved for CSharp rewriting.
-            LanguageTestUtilities.AssertRewritten(expected, test, LanguageTestUtilities.ProgramExtension.CSharp);
+            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram:false);
         }
     }
 }
