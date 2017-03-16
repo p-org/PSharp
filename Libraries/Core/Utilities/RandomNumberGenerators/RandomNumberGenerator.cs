@@ -17,48 +17,31 @@ using System;
 namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
-    /// Random number generator interface
+    /// Default random number generator that uses the System.Random generator.
     /// </summary>
-    public interface IRandomNumberGenerator
-    {
-        /// <summary>
-        /// Returns a non-negative random number
-        /// </summary>
-        int Next();
-
-        /// <summary>
-        /// Returns a non-negative random number less than maxValue
-        /// </summary>
-        /// <param name="maxValue">Exclusive upper bound</param>
-        int Next(int maxValue);
-    }
-
-    /// <summary>
-    /// Wrapper around System.Random
-    /// </summary>
-    public class RandomWrapper : IRandomNumberGenerator
+    public class DefaultRandomNumberGenerator : IRandomNumberGenerator
     {
         Random random;
 
         /// <summary>
-        /// Initialize with time-dependent seed
+        /// Initializes with a time-dependent seed.
         /// </summary>
-        public RandomWrapper()
+        public DefaultRandomNumberGenerator()
         {
             random = new Random();
         }
 
         /// <summary>
-        /// Initialize with the given seed
+        /// Initializes with the given seed.
         /// </summary>
         /// <param name="seed">Seed value</param>
-        public RandomWrapper(int seed)
+        public DefaultRandomNumberGenerator(int seed)
         {
             random = new Random(seed);
         }
 
         /// <summary>
-        /// Returns a non-negative random number
+        /// Returns a non-negative random number.
         /// </summary>
         public int Next()
         {
@@ -66,7 +49,7 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
-        /// Returns a non-negative random number less than maxValue
+        /// Returns a non-negative random number less than maxValue.
         /// </summary>
         /// <param name="maxValue">Exclusive upper bound</param>
         public int Next(int maxValue)

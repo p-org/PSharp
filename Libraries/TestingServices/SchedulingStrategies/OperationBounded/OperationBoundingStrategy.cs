@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Configuration = configuration;
             this.Operations = new List<int>();
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public virtual void Reset()
         {
             this.Operations.Clear();
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }

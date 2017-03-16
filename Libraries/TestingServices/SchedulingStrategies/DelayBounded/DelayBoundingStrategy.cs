@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.MaxDelays = delays;
@@ -216,7 +216,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public virtual void Reset()
         {
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.RemainingDelays.Clear();

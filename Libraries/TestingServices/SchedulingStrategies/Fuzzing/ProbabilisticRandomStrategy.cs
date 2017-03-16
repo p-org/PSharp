@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.NumberOfCoinFlips = numberOfCoinFlips;
             this.ExploredSteps = 0;
         }
@@ -218,7 +218,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             this.ExploredSteps = 0;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
         }
 
         /// <summary>

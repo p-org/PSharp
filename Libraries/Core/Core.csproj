@@ -105,7 +105,8 @@
     <Compile Include="Utilities\Profiler.cs" />
     <Compile Include="Runtime\Runtime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities\RandomNumberGenerator.cs" />
+    <Compile Include="Utilities\RandomNumberGenerators\IRandomNumberGenerator.cs" />
+    <Compile Include="Utilities\RandomNumberGenerators\RandomNumberGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

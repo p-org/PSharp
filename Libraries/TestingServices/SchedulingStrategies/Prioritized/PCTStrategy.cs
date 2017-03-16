@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.ExploredSteps = 0;
             this.BugDepth = depth;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.PrioritizedMachines = new List<MachineId>();
             this.PriorityChangePoints = new SortedSet<int>();
         }
@@ -223,7 +223,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.PrioritizedMachines.Clear();
             this.PriorityChangePoints.Clear();
         }
