@@ -1155,7 +1155,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             private class LocalEvent : Event { }
 
-            private int CurrentTerm;
             private HashSet<int> TermsWithLeader;
 
             [Start]
@@ -1165,7 +1164,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                this.CurrentTerm = -1;
                 this.TermsWithLeader = new HashSet<int>();
                 this.Raise(new LocalEvent());
             }
