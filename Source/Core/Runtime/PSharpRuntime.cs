@@ -241,6 +241,13 @@ namespace Microsoft.PSharp
         public abstract void InvokeMonitor<T>(Event e);
 
         /// <summary>
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="e">Event</param>
+        public abstract void InvokeMonitor(Type type, Event e);
+
+        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled
         /// during analysis or testing.
         /// </summary>
@@ -381,9 +388,9 @@ namespace Microsoft.PSharp
         /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="sender">Sender machine</param>
-        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
-        internal abstract void Monitor<T>(AbstractMachine sender, Event e);
+        internal abstract void Monitor(Type type, AbstractMachine sender, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an

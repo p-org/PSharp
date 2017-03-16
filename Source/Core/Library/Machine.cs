@@ -329,9 +329,19 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected void Monitor<T>(Event e)
         {
+            this.Monitor(typeof(T), e);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified event.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="e">Event</param>
+        protected void Monitor(Type type, Event e)
+        {
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.Monitor<T>(this, e);
+            base.Runtime.Monitor(type, this, e);
         }
 
         /// <summary>
