@@ -15,10 +15,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -254,19 +254,9 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (!predicate)
             {
-                string message = IO.Format(s, args);
+                string message = IO.Utilities.Format(s, args);
                 this.Scheduler.NotifyAssertionFailure(message);
             }
-        }
-
-        /// <summary>
-        /// Logs the given text.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Arguments</param>
-        public override void Log(string s, params object[] args)
-        {
-            IO.Log(s, args);
         }
 
         #endregion
@@ -307,7 +297,7 @@ namespace Microsoft.PSharp.TestingServices
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid}' was already created.");
 
-            IO.Log($"<CreateLog> Machine '{mid}' is created.");
+            this.Log($"<CreateLog> Machine '{mid}' is created.");
             
             this.BugTrace.AddCreateMachineStep(creator, mid, e == null ? null : new EventInfo(e));
             if (this.Configuration.EnableDataRaceDetection)
@@ -363,7 +353,7 @@ namespace Microsoft.PSharp.TestingServices
             (monitor as Monitor).SetMachineId(mid);
             (monitor as Monitor).InitializeStateInformation();
 
-            IO.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+            this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
             this.ReportCodeCoverageOfMachine(monitor as Monitor);
             this.BugTrace.AddCreateMonitorStep(mid);
@@ -406,17 +396,17 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations && sender != null)
             {
-                IO.Log($"<SendLog> Machine '{sender.Id}' sent event " +
+                this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
                     $"'{eventInfo.EventName}({eventInfo.OperationId})' to '{mid}'.");
             }
             else if (sender != null)
             {
-                IO.Log($"<SendLog> Machine '{sender.Id}' sent event " +
+                this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
                     $"'{eventInfo.EventName}' to '{mid}'.");
             }
             else
             {
-                IO.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
+                this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
             if (sender != null)
@@ -505,12 +495,12 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
             if (machine != null)
             {
-                IO.Log($"<RandomLog> Machine '{machine.Id}' " +
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
+                this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
             
             this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
@@ -536,12 +526,12 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
             if (machine != null)
             {
-                IO.Log($"<RandomLog> Machine '{machine.Id}' " +
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
+                this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
             
             this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
@@ -567,12 +557,12 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.Scheduler.GetNextNondeterministicIntegerChoice(maxValue);
             if (machine != null)
             {
-                IO.Log($"<RandomLog> Machine '{machine.Id}' " +
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
+                this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
 
             this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
@@ -591,7 +581,7 @@ namespace Microsoft.PSharp.TestingServices
                 string machineState = (machine as Machine).CurrentStateName;
                 this.BugTrace.AddGotoStateStep(machine.Id, machineState);
 
-                IO.Log($"<StateLog> Machine '{machine.Id}' enters " +
+                this.Log($"<StateLog> Machine '{machine.Id}' enters " +
                     $"state '{machineState}'.");
 
             }
@@ -611,7 +601,7 @@ namespace Microsoft.PSharp.TestingServices
                     liveness = "'cold' ";
                 }
 
-                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"enters {liveness}state '{monitorState}'.");
             }
         }
@@ -626,7 +616,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 string machineState = (machine as Machine).CurrentStateName;
 
-                IO.Log($"<StateLog> Machine '{machine.Id}' exits " +
+                this.Log($"<StateLog> Machine '{machine.Id}' exits " +
                     $"state '{machineState}'.");
             }
             else if (machine is Monitor)
@@ -645,7 +635,7 @@ namespace Microsoft.PSharp.TestingServices
                     monitorState += "[cold]";
                 }
 
-                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"exits {liveness}state '{monitorState}'.");
             }
         }
@@ -663,7 +653,7 @@ namespace Microsoft.PSharp.TestingServices
                 string machineState = (machine as Machine).CurrentStateName;
                 this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
 
-                IO.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
+                this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
                     $"'{action.Name}' in state '{machineState}'.");
 
                 if (this.Configuration.EnableDataRaceDetection)
@@ -677,7 +667,7 @@ namespace Microsoft.PSharp.TestingServices
                 string monitorState = (machine as Monitor).CurrentStateName;
                 this.BugTrace.AddInvokeActionStep(machine.Id, monitorState, action);
 
-                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
                     $"action '{action.Name}' in state '{monitorState}'.");
             }
         }
@@ -691,12 +681,12 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
+                this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                     $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
-                IO.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
+                this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                     $"event '{eventInfo.EventName}'.");
             }
             
@@ -753,12 +743,12 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (this.Configuration.BoundOperations)
                 {
-                    IO.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
+                    this.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
                         $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
                 }
                 else
                 {
-                    IO.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
+                    this.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
                         $"event '{eventInfo.EventName}'.");
                 }
             }
@@ -767,7 +757,7 @@ namespace Microsoft.PSharp.TestingServices
                 string monitorState = (machine as Monitor).CurrentStateName;
                 this.BugTrace.AddRaiseEventStep(machine.Id, monitorState, eventInfo);
 
-                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
+                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
                     $"event '{eventInfo.EventName}'.");
 
                 if (this.Configuration.ReportCodeCoverage)
@@ -817,7 +807,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
 
-            IO.Log($"<ReceiveLog> Machine '{machine.Id}' " +
+            this.Log($"<ReceiveLog> Machine '{machine.Id}' " +
                 $"is waiting on events:{events}.");
 
             this.Scheduler.NotifyTaskBlockedOnEvent(Task.CurrentId);
@@ -835,12 +825,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations)
             {
-                IO.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
+                this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                     $"event '{eventInfo.EventName}({eventInfo.OperationId})' and unblocked.");
             }
             else
             {
-                IO.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
+                this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                     $"event '{eventInfo.EventName}' and unblocked.");
             }
 
@@ -855,7 +845,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyHalted(Machine machine)
         {
             this.BugTrace.AddHaltStep(machine.Id, null);
-            IO.Log($"<HaltLog> Machine '{machine.Id}' halted.");
+            this.Log($"<HaltLog> Machine '{machine.Id}' halted.");
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 
@@ -893,6 +883,20 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return fingerprint;
+        }
+
+        #endregion
+
+        #region logging
+
+        /// <summary>
+        /// Logs the specified text.
+        /// </summary>
+        /// <param name="format">Text</param>
+        /// <param name="args">Arguments</param>
+        protected internal override void Log(string format, params object[] args)
+        {
+            this.Logger.WriteLine(format, args);
         }
 
         #endregion

@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -273,7 +274,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 var mIndex = this.Random.Next(this.PrioritizedMachines.Count) + 1;
                 this.PrioritizedMachines.Insert(mIndex, mi.Machine.Id);
-                IO.Debug($"<PCTDebug> Detected new machine '{mi.Machine.Id}' at index '{mIndex}'.");
+                Debug.WriteLine($"<PCTLog> Detected new machine '{mi.Machine.Id}' at index '{mIndex}'.");
             }
 
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
@@ -287,25 +288,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     var priority = this.GetHighestPriorityEnabledMachine(choices);
                     this.PrioritizedMachines.Remove(priority);
                     this.PrioritizedMachines.Add(priority);
-                    IO.PrintLine($"<PCTLog> Machine '{priority}' changes to lowest priority.");
+                    Debug.WriteLine($"<PCTLog> Machine '{priority}' changes to lowest priority.");
                 }
             }
 
             var prioritizedMachine = this.GetHighestPriorityEnabledMachine(choices);
-            IO.Debug($"<PCTDebug> Prioritized machine '{prioritizedMachine}'.");
-            if (IO.Debugging)
+            Debug.WriteLine($"<PCTLog> Prioritized machine '{prioritizedMachine}'.");
+            Debug.Write("<PCTLog> Priority list: ");
+            for (int idx = 0; idx < this.PrioritizedMachines.Count; idx++)
             {
-                IO.Print("<PCTDebug> Priority list: ");
-                for (int idx = 0; idx < this.PrioritizedMachines.Count; idx++)
+                if (idx < this.PrioritizedMachines.Count - 1)
                 {
-                    if (idx < this.PrioritizedMachines.Count - 1)
-                    {
-                        IO.Print($"'{this.PrioritizedMachines[idx]}', ");
-                    }
-                    else
-                    {
-                        IO.Print($"'{this.PrioritizedMachines[idx]}({1})'.\n");
-                    }
+                    Debug.Write($"'{this.PrioritizedMachines[idx]}', ");
+                }
+                else
+                {
+                    Debug.Write($"'{this.PrioritizedMachines[idx]}({1})'.\n");
                 }
             }
 
@@ -368,7 +366,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.PriorityChangePoints.Add(newPriorityChangePoint);
-            IO.Debug($"<PCTDebug> Moving priority change to '{newPriorityChangePoint}'.");
+            Debug.WriteLine($"<PCTLog> Moving priority change to '{newPriorityChangePoint}'.");
         }
 
         #endregion

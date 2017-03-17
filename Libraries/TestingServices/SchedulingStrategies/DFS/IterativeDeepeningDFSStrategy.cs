@@ -12,10 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -86,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 base.Reset();
                 this.CurrentDepth++;
-                IO.PrintLine("....... Depth bound increased to {0}", this.CurrentDepth);
+                Debug.WriteLine("<IterativeDeepeningDFSLog> Depth bound increased to {0}", this.CurrentDepth);
             }
         }
 

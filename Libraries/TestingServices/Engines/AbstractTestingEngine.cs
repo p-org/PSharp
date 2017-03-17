@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -176,7 +177,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (FileNotFoundException ex)
             {
-                IO.Error.ReportAndExit(ex.Message);
+                Error.ReportAndExit(ex.Message);
             }
 
             this.Initialize();
@@ -329,7 +330,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
-                IO.Error.ReportAndExit("Portfolio testing strategy in only " +
+                Error.ReportAndExit("Portfolio testing strategy in only " +
                     "available in parallel testing.");
             }
 
@@ -378,7 +379,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (this.CancellationTokenSource.IsCancellationRequested)
                 {
-                    IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} timed out.");
+                    Output.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
                 }
             }
             catch (AggregateException aex)
@@ -388,12 +389,12 @@ namespace Microsoft.PSharp.TestingServices
                     this.ResetOutput();
                 }
 
-                aex.Handle((ex) =>
+                aex.Handle((Func<Exception, bool>)((ex) =>
                 {
-                    IO.Debug(ex.Message);
-                    IO.Debug(ex.StackTrace);
+                    Debug.WriteLine((string)ex.Message);
+                    Debug.WriteLine((string)ex.StackTrace);
                     return true;
-                });
+                }));
 
                 if (this.Configuration.ThrowInternalExceptions)
                 {
@@ -402,10 +403,10 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (aex.InnerException is FileNotFoundException)
                 {
-                    IO.Error.ReportAndExit($"{aex.InnerException.Message}");
+                    Error.ReportAndExit($"{aex.InnerException.Message}");
                 }
 
-                IO.Error.ReportAndExit("Exception thrown during testing outside the context of a " +
+                Error.ReportAndExit("Exception thrown during testing outside the context of a " +
                     "machine, possibly in a test method. Please use " +
                     "/debug /v:2 to print more information.");
             }
@@ -439,12 +440,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (testMethods.Count == 0)
             {
-                IO.Error.ReportAndExit("Cannot detect a P# test method. Use the " +
+                Error.ReportAndExit("Cannot detect a P# test method. Use the " +
                     $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
             }
             else if (testMethods.Count > 1)
             {
-                IO.Error.ReportAndExit("Only one test method to the P# program can " +
+                Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{typeof(Test).FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead. Provide " +
                     $"/method flag to qualify the test method name you wish to use.");
@@ -458,7 +459,7 @@ namespace Microsoft.PSharp.TestingServices
                 testMethods[0].GetParameters().Length != 1 ||
                 testMethods[0].GetParameters()[0].ParameterType != typeof(PSharpRuntime))
             {
-                IO.Error.ReportAndExit("Incorrect test method declaration. Please " +
+                Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(Test).FullName}] public static void " +
                     $"void {testMethods[0].Name}(PSharpRuntime runtime) {{ ... }}");
@@ -481,7 +482,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (testMethods.Count > 1)
             {
-                IO.Error.ReportAndExit("Only one test method to the P# program can " +
+                Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{attribute.FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead.");
             }
@@ -493,7 +494,7 @@ namespace Microsoft.PSharp.TestingServices
                 !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
                 testMethods[0].GetParameters().Length != 0)
             {
-                IO.Error.ReportAndExit("Incorrect test method declaration. Please " +
+                Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{attribute.FullName}] public static " +
                     $"void {testMethods[0].Name}() {{ ... }}");
@@ -522,15 +523,15 @@ namespace Microsoft.PSharp.TestingServices
             {
                 foreach (var le in ex.LoaderExceptions)
                 {
-                    ErrorReporter.Report(le.Message);
+                    ErrorReporter.Report(Output.Logger, le.Message);
                 }
 
-                IO.Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
             catch (Exception ex)
             {
-                ErrorReporter.Report(ex.Message);
-                IO.Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                ErrorReporter.Report(Output.Logger, ex.Message);
+                Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
 
             return testMethods;

@@ -14,23 +14,23 @@
 
 using System;
 
-namespace Microsoft.PSharp.Utilities
+namespace Microsoft.PSharp.IO
 {
     /// <summary>
     /// Reports errors and warnings to the user.
     /// </summary>
-    public static class ErrorReporter
+    internal static class ErrorReporter
     {
         #region fields
 
         /// <summary>
         /// Report warnings if true.
         /// </summary>
-        public static bool ShowWarnings;
+        internal static bool ShowWarnings;
 
         #endregion
 
-        #region public API
+        #region public methods
 
         /// <summary>
         /// Static constructor.
@@ -43,55 +43,46 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Reports a generic error to the user.
         /// </summary>
-        /// <param name="s">String</param>
-        public static void Report(string s)
+        /// <param name="logger">ILogger</param>
+        /// <param name="value">Text</param>
+        internal static void Report(ILogger logger, string value)
         {
-            IO.Print(ConsoleColor.Red, "Error: ");
-            IO.Print(ConsoleColor.Yellow, s);
-            IO.PrintLine();
-        }
-
-        /// <summary>
-        /// Reports a generic error to the user.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void Report(string s, params object[] args)
-        {
-            string message = IO.Format(s, args);
-            IO.Print(ConsoleColor.Red, "Error: ");
-            IO.Print(ConsoleColor.Yellow, message);
-            IO.PrintLine();
+            Report(logger, "Error: ", ConsoleColor.Red);
+            Report(logger, value, ConsoleColor.Yellow);
+            logger?.WriteLine("");
         }
 
         /// <summary>
         /// Reports a generic warning to the user.
         /// </summary>
-        /// <param name="s">String</param>
-        public static void ReportWarning(string s)
+        /// <param name="logger">ILogger</param>
+        /// <param name="value">Text</param>
+        internal static void ReportWarning(ILogger logger, string value)
         {
             if (ErrorReporter.ShowWarnings)
             {
-                IO.Print(ConsoleColor.Red, "Warning: ");
-                IO.Print(ConsoleColor.Yellow, s);
-                IO.PrintLine();
+                Report(logger, "Warning: ", ConsoleColor.Red);
+                Report(logger, value, ConsoleColor.Yellow);
+                logger?.WriteLine("");
             }
         }
 
+        #endregion
+
+        #region private methods
+
         /// <summary>
-        /// Reports a generic warning to the user.
+        /// Reports a generic error to the user using the specified color.
         /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void ReportWarning(string s, params object[] args)
+        /// <param name="logger">ILogger</param>
+        /// <param name="value">Text</param>
+        /// <param name="color">ConsoleColor</param>
+        private static void Report(ILogger logger, string value, ConsoleColor color)
         {
-            if (ErrorReporter.ShowWarnings)
-            {
-                string message = IO.Format(s, args);
-                IO.Print(ConsoleColor.Red, "Warning: ");
-                IO.Print(ConsoleColor.Yellow, message);
-                IO.PrintLine();
-            }
+            var previousForegroundColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            logger?.Write(value);
+            Console.ForegroundColor = previousForegroundColor;
         }
 
         #endregion

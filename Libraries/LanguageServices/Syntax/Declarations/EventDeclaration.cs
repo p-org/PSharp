@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
 
@@ -131,10 +132,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
             catch (Exception ex)
             {
-                IO.Debug("Exception was thrown during rewriting:");
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                IO.Error.ReportAndExit("Failed to rewrite event '{0}'.",
+                Debug.WriteLine("Exception was thrown during rewriting:");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                Error.ReportAndExit("Failed to rewrite event '{0}'.",
                     this.Identifier.TextUnit.Text);
             }
 

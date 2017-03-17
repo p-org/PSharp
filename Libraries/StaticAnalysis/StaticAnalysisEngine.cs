@@ -18,7 +18,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Utilities;
 
@@ -170,15 +170,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                     throw ex;
                 }
 
-                IO.PrintLine($"... Failed to analyze project '{project.Name}'");
-                IO.Debug(ex.ToString());
+                Output.WriteLine($"... Failed to analyze project '{project.Name}'");
+                Debug.WriteLine(ex.ToString());
             }
             
             // Stops profiling the analysis.
             if (this.CompilationContext.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Total static analysis runtime: '" +
+                Output.WriteLine("... Total static analysis runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
         }
@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     throw new Exception(message);
                 }
 
-                IO.Error.ReportAndExit(message);
+                Error.ReportAndExit(message);
             }
         }
 

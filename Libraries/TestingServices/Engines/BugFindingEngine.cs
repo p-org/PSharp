@@ -22,6 +22,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -113,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices
                     Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
                 string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
 
-                IO.Error.PrintLine($"..... Writing {readableTracePath}");
+                Output.WriteLine($"..... Writing {readableTracePath}");
                 File.WriteAllText(readableTracePath, this.ReadableTrace);
             }
 
@@ -126,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    IO.Error.PrintLine($"..... Writing {bugTracePath}");
+                    Output.WriteLine($"..... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }
@@ -137,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices
                 string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
                 string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
 
-                IO.Error.PrintLine($"..... Writing {reproTracePath}");
+                Output.WriteLine($"..... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
             }
         }
@@ -219,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices
                 options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
             }
 
-            IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} is " +
+            Output.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
                 $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
 
             Task task = new Task(() =>
@@ -250,7 +251,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (this.ShouldPrintIteration(i + 1))
                     {
-                        IO.PrintLine($"..... Iteration #{i + 1}");
+                        Output.WriteLine($"..... Iteration #{i + 1}");
                     }
 
                     var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
@@ -322,7 +323,7 @@ namespace Microsoft.PSharp.TestingServices
                     base.Configuration.RaceDetectionCallback?.Invoke();
                     if (base.Configuration.RaceFound)
                     {
-                        string message = IO.Format("Found a race");
+                        string message = IO.Utilities.Format("Found a race");
                         runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
 
@@ -343,7 +344,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
                     {
-                        IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                        Output.WriteLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
                             $"[task-{this.Configuration.TestingProcessId}]");
                     }
 
@@ -506,13 +507,13 @@ namespace Microsoft.PSharp.TestingServices
             
             foreach (var kvp in runtime.MachineActionTraceMap)
             {
-                IO.Debug($"<RaceTracing> Machine id '{kvp.Key}'");
+                Debug.WriteLine($"<RaceTracing> Machine id '{kvp.Key}'");
 
                 foreach (var actionTrace in kvp.Value)
                 {
                     if (actionTrace.Type == MachineActionType.InvocationAction)
                     {
-                        IO.Debug($"<RaceTracing> Action '{actionTrace.ActionName}' " +
+                        Debug.WriteLine($"<RaceTracing> Action '{actionTrace.ActionName}' " +
                             $"'{actionTrace.ActionId}'");
                     }
                 }
@@ -525,7 +526,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         DataContractSerializer serializer = new DataContractSerializer(kvp.Value.GetType());
                         serializer.WriteObject(stream, kvp.Value);
-                        IO.Debug($"..... Writing {path}");
+                        Debug.WriteLine($"..... Writing {path}");
                     }
                 }
             }

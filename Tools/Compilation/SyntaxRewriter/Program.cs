@@ -12,12 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
-
 using Microsoft.Build.Framework;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
@@ -33,7 +29,7 @@ namespace Microsoft.PSharp
         {
             if (args.Length != 1)
             {
-                IO.PrintLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
+                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
                 return;
             }
 
@@ -45,7 +41,7 @@ namespace Microsoft.PSharp
             }
             catch (System.IO.IOException e)
             {
-                IO.PrintLine("Error: {0}", e.Message);
+                Output.WriteLine("Error: {0}", e.Message);
                 return;
             }
 
@@ -53,7 +49,7 @@ namespace Microsoft.PSharp
             // Translate and print on console
             string errors = "";
             var output = Translate(input_string, out errors);
-            IO.PrintLine("{0}", output == null ? "Parse Error: " + errors : output);
+            Output.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
         /// <summary>

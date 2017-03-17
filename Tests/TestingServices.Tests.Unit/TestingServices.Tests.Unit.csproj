@@ -88,6 +88,7 @@
     <Compile Include="Feature2Stmts\DynamicError\GotoStateMultipleInActionFailTest.cs" />
     <Compile Include="Feature2Stmts\DynamicError\ReceiveEventFailTest.cs" />
     <Compile Include="Generics\Correct\GenericMachineTest.cs" />
+    <Compile Include="Generics\Correct\GenericMonitorTest.cs" />
     <Compile Include="Integration\Correct\ExternalCalls\ReceivingExternalEventTest.cs" />
     <Compile Include="Feature2Stmts\Correct\TestIgnoreRaised.cs" />
     <Compile Include="Integration\Correct\OneMachine\SEMOneMachine42Test.cs" />

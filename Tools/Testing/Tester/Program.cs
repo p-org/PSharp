@@ -14,6 +14,7 @@
 
 using System;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
@@ -40,16 +41,16 @@ namespace Microsoft.PSharp
             }
             else
             {
-                IO.PrintLine(". Testing " + configuration.AssemblyToBeAnalyzed);
+                Output.WriteLine(". Testing " + configuration.AssemblyToBeAnalyzed);
                 if (configuration.TestMethodName != "")
                 {
-                    IO.PrintLine("... Method {0}", configuration.TestMethodName);
+                    Output.WriteLine("... Method {0}", configuration.TestMethodName);
                 }
 
                 // Creates and runs the testing process scheduler.
                 TestingProcessScheduler.Create(configuration).Run();
 
-                IO.PrintLine(". Done");
+                Output.WriteLine(". Done");
             }
         }
 
@@ -61,8 +62,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            IO.Error.Report("[PSharpTester] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
-            IO.Error.PrintLine(ex.StackTrace);
+            Error.Report("[PSharpTester] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
+            Output.WriteLine(ex.StackTrace);
             Environment.Exit(1);
         }
     }

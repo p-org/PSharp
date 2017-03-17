@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IOLogger.cs">
+// <copyright file="Utilities.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,32 +12,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.IO;
+using System.Globalization;
 
-namespace Microsoft.PSharp.Utilities
+namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Static class for setting a custom logger.
+    /// IO utilities.
     /// </summary>
-    public static class IOLogger
+    internal static class Utilities
     {
         /// <summary>
-        /// Starts writing all output to the provided logger,
-        /// which is of type TextWriter. The logger must at
-        /// minimum override the method Write(char).
+        /// Formats the given string.
         /// </summary>
-        /// <param name="logger">TextWriter</param>
-        public static void InstallCustomLogger(TextWriter logger)
+        /// <param name="value">Text</param>
+        /// <param name="args">Arguments</param>
+        /// <returns></returns>
+        internal static string Format(string value, params object[] args)
         {
-            IO.InstallCustomLogger(logger);
-        }
-
-        /// <summary>
-        /// Removes the custom logger. Defaults to the console.
-        /// </summary>
-        public static void RemoveCustomLogger()
-        {
-            IO.InstallCustomLogger(null);
+            return string.Format(CultureInfo.InvariantCulture, value, args);
         }
     }
 }

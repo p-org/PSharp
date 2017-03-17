@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -23,7 +22,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp
 {
@@ -936,12 +935,12 @@ namespace Microsoft.PSharp
 
                 if (innerException is ExecutionCanceledException)
                 {
-                    IO.Debug("<Exception> ExecutionCanceledException was " +
+                    IO.Debug.WriteLine("<Exception> ExecutionCanceledException was " +
                         $"thrown from Machine '{base.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
-                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                    IO.Debug.WriteLine("<Exception> TaskSchedulerException was thrown from " +
                         $"thrown from Machine '{base.Id}'.");
                 }
                 else

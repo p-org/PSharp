@@ -12,9 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.StaticAnalysis;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -49,7 +49,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            IO.PrintLine(". Analyzing");
+            Output.WriteLine(". Analyzing");
 
             // Creates and runs a P# static analysis engine.
             StaticAnalysisEngine.Create(this.CompilationContext).Run();
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp
                 (this.CompilationContext.Configuration.ShowWarnings &&
                 AnalysisErrorReporter.GetWarningCount() > 0))
             {
-                IO.Error.ReportAndExit(AnalysisErrorReporter.GetStats());
+                Error.ReportAndExit(AnalysisErrorReporter.GetStats());
             }
         }
 

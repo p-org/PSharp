@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -450,7 +450,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            IO.PrintLine("... Respects ownership analysis runtime: '" +
+            Output.WriteLine("... Respects ownership analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

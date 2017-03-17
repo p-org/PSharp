@@ -14,6 +14,7 @@
 
 using System;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Utilities;
 
@@ -53,7 +54,7 @@ namespace Microsoft.PSharp
             // Creates and starts a compilation process.
             CompilationProcess.Create(context).Start();
 
-            IO.PrintLine(". Done");
+            Output.WriteLine(". Done");
         }
 
         /// <summary>
@@ -64,8 +65,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            IO.Error.Report("[PSharpCompiler] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
-            IO.Error.PrintLine(ex.StackTrace);
+            Error.Report("[PSharpCompiler] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
+            Output.WriteLine(ex.StackTrace);
             Environment.Exit(1);
         }
     }

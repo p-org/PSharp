@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
@@ -50,12 +52,6 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         [DataMember]
         public int Timeout;
-
-        /// <summary>
-        /// Pause on assertion failure.
-        /// </summary>
-        [DataMember]
-        internal bool PauseOnAssertionFailure;
 
         /// <summary>
         /// True if interoperation is enabled.
@@ -439,7 +435,6 @@ namespace Microsoft.PSharp.Utilities
             
             this.Timeout = 0;
             
-            this.PauseOnAssertionFailure = false;
             this.InteroperationEnabled = true;
 
             this.CompilationTarget = CompilationTarget.Execution;
@@ -539,7 +534,7 @@ namespace Microsoft.PSharp.Utilities
         /// <returns>Configuration</returns>
         public Configuration WithDebuggingEnabled(bool isEnabled = true)
         {
-            IO.Debugging = isEnabled;
+            Debug.IsEnabled = isEnabled;
             return this;
         }
 

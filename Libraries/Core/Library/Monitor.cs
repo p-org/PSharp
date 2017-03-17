@@ -17,8 +17,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp
 {
@@ -172,7 +175,9 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the monitor, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Monitor '{this.GetType().Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Any(val
+                => val.DeclaringType.Equals(s.DeclaringType) &&
+                val.Name.Equals(s.Name)), $"Monitor '{base.Id}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -596,7 +601,33 @@ namespace Microsoft.PSharp
             {
                 foreach (var type in StateTypeMap[monitorType])
                 {
-                    var state = Activator.CreateInstance(type) as MonitorState;
+                    Type stateType = type;
+                    if (type.IsGenericType)
+                    {
+                        // If the state type is generic (only possible if inherited by a
+                        // generic machine declaration), then iterate through the base
+                        // machine classes to identify the runtime generic type, and use
+                        // it to instantiate the runtime state type. This type can be
+                        // then used to create the state constructor.
+                        Type declaringType = this.GetType();
+                        while (!declaringType.IsGenericType ||
+                            !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
+                            0, declaringType.FullName.IndexOf('['))))
+                        {
+                            declaringType = declaringType.BaseType;
+                        }
+
+                        if (declaringType.IsGenericType)
+                        {
+                            stateType = type.MakeGenericType(declaringType.GetGenericArguments());
+                        }
+                    }
+
+                    ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
+                    var lambda = Expression.Lambda<Func<MonitorState>>(
+                        Expression.New(constructor)).Compile();
+                    MonitorState state = lambda();
+
                     state.InitializeState();
 
                     this.Assert((state.IsCold && !state.IsHot) ||

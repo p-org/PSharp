@@ -12,14 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Diagnostics;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 
 using Microsoft.Build.Framework;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
@@ -36,7 +32,7 @@ namespace Microsoft.PSharp
             // number of args must be even
             if (args.Length % 2 != 0)
             {
-                IO.PrintLine("Usage: PSharpSyntaxRewriterProcess.exe file1.psharp, outfile1.cs, file2.pshap, outfile2.cs, ...");
+                Output.WriteLine("Usage: PSharpSyntaxRewriterProcess.exe file1.psharp, outfile1.cs, file2.pshap, outfile2.cs, ...");
                 return;
             }
 
@@ -55,7 +51,7 @@ namespace Microsoft.PSharp
                 }
                 catch (System.IO.IOException e)
                 {
-                    IO.PrintLine("Error: {0}", e.Message);
+                    Output.WriteLine("Error: {0}", e.Message);
                     return;
                 }
 

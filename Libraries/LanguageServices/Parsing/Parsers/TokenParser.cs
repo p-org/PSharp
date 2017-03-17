@@ -17,8 +17,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.CodeAnalysis;
-
-using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -194,7 +193,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             if (base.Options.ExitOnError)
             {
-                IO.Error.ReportAndExit(this.ErrorLog.ToString());
+                Error.ReportAndExit(this.ErrorLog.ToString());
             }
         }
 
