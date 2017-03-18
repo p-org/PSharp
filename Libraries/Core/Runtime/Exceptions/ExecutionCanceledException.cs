@@ -20,14 +20,11 @@ namespace Microsoft.PSharp
     /// The exception that is thrown in a P# machine upon cancellation
     /// of execution by the P# runtime.
     /// </summary>
-    internal sealed class ExecutionCanceledException : RuntimeException
+    public sealed class ExecutionCanceledException : RuntimeException
     {
         /// <summary>
         /// Initializes a new instance of the exception.
         /// </summary>
-        public ExecutionCanceledException()
-        {
-
-        }
+        internal ExecutionCanceledException() { }
     }
 }
