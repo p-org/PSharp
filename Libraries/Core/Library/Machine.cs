@@ -945,8 +945,8 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    // Handles generic exception.
-                    this.ReportGenericAssertion(innerException, action.Name);
+                    // Reports the unhandled exception.
+                    this.ReportUnhandledException(innerException, action.Name);
                 }
             }
         }
@@ -1583,11 +1583,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Reports the generic assertion and raises a runtime error.
+        /// Reports the unhandled exception and raises a runtime error.
         /// </summary>
         /// <param name="ex">Exception</param>
 		/// <param name="actionName">Action name</param>
-        private void ReportGenericAssertion(Exception ex, string actionName)
+        private void ReportUnhandledException(Exception ex, string actionName)
         {
             string state = "<unknown>";
             if (this.CurrentState != null)
@@ -1595,7 +1595,7 @@ namespace Microsoft.PSharp
                 state = this.CurrentStateName;
             }
 
-            this.Assert(false, $"Exception '{ex.GetType()}' was thrown " +
+            base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                 $"in machine '{base.Id}', state '{state}', action '{actionName}', " +
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +

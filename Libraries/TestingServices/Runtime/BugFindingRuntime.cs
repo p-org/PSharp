@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -227,36 +226,6 @@ namespace Microsoft.PSharp.TestingServices
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot monitor a null event.");
             this.Monitor<T>(null, e);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        public override void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                string message = "Assertion failure.";
-                this.Scheduler.NotifyAssertionFailure(message);
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        public override void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                string message = IO.Utilities.Format(s, args);
-                this.Scheduler.NotifyAssertionFailure(message);
-            }
         }
 
         #endregion
@@ -883,6 +852,53 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return fingerprint;
+        }
+
+        #endregion
+
+        #region error checking
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an
+        /// <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        public override void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                string message = "Assertion failure.";
+                this.Scheduler.NotifyAssertionFailure(message);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an
+        /// <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        public override void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                string message = IO.Utilities.Format(s, args);
+                this.Scheduler.NotifyAssertionFailure(message);
+            }
+        }
+
+        /// <summary>
+        /// Throws an <see cref="AssertionFailureException"/> exception
+        /// containing the specified exception.
+        /// </summary>
+        /// <param name="exception">Exception</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        internal override void WrapAndThrowException(Exception exception, string s, params object[] args)
+        {
+            string message = IO.Utilities.Format(s, args);
+            this.Scheduler.NotifyAssertionFailure(message);
         }
 
         #endregion

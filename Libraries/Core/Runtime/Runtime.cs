@@ -65,12 +65,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Records if the P# program has faulted.
         /// </summary>
-        volatile internal bool IsFaulted;
-
-        /// <summary>
-        /// The runtime lock.
-        /// </summary>
-        private object Lock;
+        internal volatile bool IsFaulted;
 
         #endregion
 
@@ -349,35 +344,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        public virtual void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException("Detected an assertion failure.");
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        public virtual void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                string message = IO.Utilities.Format(s, args);
-                throw new AssertionFailureException(message);
-            }
-        }
-
-        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
         public void Wait()
@@ -460,7 +426,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
-            this.Lock = new object();
             this.Logger = new DefaultLogger();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
@@ -963,6 +928,52 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region error checking
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an
+        /// <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        public virtual void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException("Detected an assertion failure.");
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an
+        /// <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        public virtual void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                string message = IO.Utilities.Format(s, args);
+                throw new AssertionFailureException(message);
+            }
+        }
+
+        /// <summary>
+        /// Throws an <see cref="AssertionFailureException"/> exception
+        /// containing the specified exception.
+        /// </summary>
+        /// <param name="exception">Exception</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
+        {
+            string message = IO.Utilities.Format(s, args);
+            throw new AssertionFailureException(message, exception);
+        }
+
+        #endregion
+
         #region logging
 
         /// <summary>
@@ -1007,26 +1018,16 @@ namespace Microsoft.PSharp
         #region private methods
 
         /// <summary>
-		/// Runs a new asynchronous machine event handler.
-		/// This is a fire and forget invocation.
-		/// </summary>
-		/// <param name="machine">Machine</param>
-		/// <param name="e">Event</param>
-		/// <param name="isFresh">Is a new machine</param>
-		private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
+        /// Runs a new asynchronous machine event handler.
+        /// This is a fire and forget invocation.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="isFresh">Is a new machine</param>
+        private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
         {
-            if (this.IsFaulted)
-            {
-                return;
-            }
-
             Task task = new Task(() =>
             {
-                if (this.IsFaulted)
-                {
-                    return;
-                }
-
                 try
                 {
                     if (isFresh)
@@ -1039,12 +1040,7 @@ namespace Microsoft.PSharp
                 catch (Exception ex)
                 {
                     this.IsFaulted = true;
-                    lock (this.Lock)
-                    {
-                        // Invoke any installed event handlers only once.
-                        this.OnFailure?.Invoke(ex);
-                        this.OnFailure = null;
-                    }
+                    this.OnFailure?.Invoke(ex);
                 }
                 finally
                 {

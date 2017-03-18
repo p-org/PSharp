@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -23,8 +25,19 @@ namespace Microsoft.PSharp
         /// Initializes a new instance of the exception.
         /// </summary>
         /// <param name="message">Message</param>
-        public AssertionFailureException(string message)
+        internal AssertionFailureException(string message)
             : base(message)
+        {
+
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the exception.
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="innerException">Inner exception</param>
+        internal AssertionFailureException(string message, Exception innerException)
+            : base(message, innerException)
         {
 
         }
