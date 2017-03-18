@@ -572,6 +572,8 @@ namespace Microsoft.PSharp
                 this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
+            Task.Delay(100).Wait();
+
             bool runNewHandler = false;
             machine.Enqueue(eventInfo, ref runNewHandler);
             if (runNewHandler)

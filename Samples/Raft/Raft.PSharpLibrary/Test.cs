@@ -19,6 +19,7 @@ namespace Raft.PSharpLibrary
         {
             // Optional: increases verbosity level to see the P# runtime log.
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
+            configuration.EnableMonitorsInProduction = true;
 
             // Creates a new P# runtime instance, and passes an optional configuration.
             var runtime = PSharpRuntime.Create(configuration);
@@ -28,8 +29,8 @@ namespace Raft.PSharpLibrary
 
             // The P# runtime executes asynchronously, so we wait
             // to not terminate the process.
-            Console.WriteLine("Press Enter to terminate...");
-            Console.ReadLine();
+            runtime.Wait();
+            Console.WriteLine("Test Success");
         }
 
         [Microsoft.PSharp.Test]

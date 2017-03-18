@@ -40,7 +40,7 @@ namespace Raft.PSharpLibrary
         void ProcessLeaderElected()
         {
             var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
-
+            
             this.Assert(!this.TermsWithLeader.Contains(term), "Detected more than one leader in term " + term);
             this.TermsWithLeader.Add(term);
         }
