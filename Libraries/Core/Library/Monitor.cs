@@ -169,7 +169,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Returns from the execution context, and transitions
-        /// the monitor to the given state.
+        /// the monitor to the given <see cref="MonitorState"/>.
         /// </summary>
         /// <param name="s">Type of the state</param>
         protected void Goto(Type s)
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Raises an event internally and returns from the execution context.
+        /// Raises an <see cref="Event"/> internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
         protected void Raise(Event e)
@@ -197,8 +197,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
+        /// Checks if the assertion holds, and if not it throws
+        /// an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">Predicate</param>
         protected void Assert(bool predicate)
@@ -207,8 +207,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
+        /// Checks if the assertion holds, and if not it throws
+        /// an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">Predicate</param>
         /// <param name="s">Message</param>
@@ -785,7 +785,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Reports the unhandled exception and raises a runtime error.
+        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
+        /// exception, and throws it to the user.
         /// </summary>
         /// <param name="ex">Exception</param>
 		/// <param name="actionName">Action name</param>

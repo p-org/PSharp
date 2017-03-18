@@ -125,7 +125,7 @@ namespace Microsoft.PSharp
         private List<EventWaitHandler> EventWaitHandlers;
 
         /// <summary>
-        /// Event obtained using the receive statement.
+        /// The <see cref="Event"/> obtained using the receive statement.
         /// </summary>
         private Event EventViaReceiveStatement;
 
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp
         #region properties
 
         /// <summary>
-        /// Gets the current state.
+        /// Gets the <see cref="Type"/> of the current state.
         /// </summary>
         protected internal Type CurrentState
         {
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Gets the current state name.
+        /// Gets the name of the current state.
         /// </summary>
         internal string CurrentStateName
         {
@@ -178,8 +178,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Gets the latest received event, or null if no event
-        /// has been received.
+        /// Gets the latest received <see cref="Event"/>, or null if
+        /// no <see cref="Event"/> has been received.
         /// </summary>
         protected internal Event ReceivedEvent { get; private set; }
 
@@ -202,7 +202,6 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         protected Machine()
-            : base()
         {
             this.Inbox = new List<EventInfo>();
             this.StateStack = new Stack<MachineState>();
@@ -220,9 +219,9 @@ namespace Microsoft.PSharp
         #region P# user API
 
         /// <summary>
-        /// Creates a new machine of the specified type and with the
-        /// specified optional event. This event can only be used to
-        /// access its payload, and cannot be handled.
+        /// Creates a new machine of the specified type and with the specified
+        /// optional <see cref="Event"/>. This <see cref="Event"/> can only be
+        /// used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
@@ -233,9 +232,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of the specified type and name, and
-        /// with the specified optional event. This event can only be
-        /// used to access its payload, and cannot be handled.
+        /// Creates a new machine of the specified type and name, and with the
+        /// specified optional <see cref="Event"/>. This <see cref="Event"/> can
+        /// only be used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
@@ -247,9 +246,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the specified type and with
-        /// the specified optional event. This event can only be used to
-        /// access its payload, and cannot be handled.
+        /// Creates a new remote machine of the specified type and with the specified
+        /// optional <see cref="Event"/>. This <see cref="Event"/> can only be used
+        /// to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
@@ -261,9 +260,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the specified type and name, and
-        /// with the specified optional event. This event can only be used to
-        /// access its payload, and cannot be handled.
+        /// Creates a new remote machine of the specified type and name, and with the
+        /// specified optional <see cref="Event"/>. This <see cref="Event"/> can only
+        /// be used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
@@ -277,7 +276,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
@@ -292,7 +291,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a remote machine.
+        /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
@@ -307,7 +306,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the specified event.
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
@@ -319,7 +318,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Transitions the machine to the specified state
+        /// Transitions the machine to the specified <see cref="MachineState"/>
         /// at the end of the current action.
         /// </summary>
         /// <param name="s">Type of the state</param>
@@ -334,7 +333,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Raises an event internally at the end of the current action.
+        /// Raises an <see cref="Event"/> internally at the end of the current action.
         /// </summary>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
@@ -348,7 +347,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the specified types.
+        /// Waits to receive an <see cref="Event"/> of the specified types.
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Event received</returns>
@@ -372,7 +371,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the specified type
+        /// Waits to receive an <see cref="Event"/> of the specified type
         /// that satisfies the specified predicate.
         /// </summary>
         /// <param name="eventType">Event type</param>
@@ -395,7 +394,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the specified types
+        /// Waits to receive an <see cref="Event"/> of the specified types
         /// that satisfy the specified predicates.
         /// </summary>
         /// <param name="events">Event types and predicates</param>
@@ -420,7 +419,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Pops the current state from the state stack
+        /// Pops the current <see cref="MachineState"/> from the state stack
         /// at the end of the current action.
         /// </summary>
         protected void Pop()
@@ -446,7 +445,7 @@ namespace Microsoft.PSharp
                     $"and reentered state '{this.CurrentStateName}'.");
             }
 
-            // watch out for an extra pop
+            // Watch out for an extra pop.
             this.Assert(this.CurrentState != null, 
                 $"Machine '{base.Id}' popped with no matching push.");
         }
@@ -505,8 +504,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
+        /// Checks if the assertion holds, and if not it throws
+        /// an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">Predicate</param>
         protected void Assert(bool predicate)
@@ -515,8 +514,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
+        /// Checks if the assertion holds, and if not it throws
+        /// an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">Predicate</param>
         /// <param name="s">Message</param>
@@ -531,7 +530,7 @@ namespace Microsoft.PSharp
         #region inbox accessing
 
         /// <summary>
-        /// Enqueues the event wrapper.
+        /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="runNewHandler">Run a new handler</param>
@@ -585,9 +584,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Gets the next available event. It gives priority to raised events,
-        /// else deqeues from the inbox. Returns false if the next event was
-        /// not dequeued. It returns a null event if no event is available.
+        /// Gets the next available <see cref="EventInfo"/>. It gives priority to raised
+        /// events, else deqeues from the inbox. Returns false if the next event was not
+        /// dequeued. It returns a null event if no event is available.
         /// </summary>
         /// <param name="nextEventInfo">EventInfo</param>
         /// <returns>Boolean</returns>
@@ -736,7 +735,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Handles the specified event.
+        /// Handles the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
@@ -1583,7 +1582,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Reports the unhandled exception and raises a runtime error.
+        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
+        /// exception, and throws it to the user.
         /// </summary>
         /// <param name="ex">Exception</param>
 		/// <param name="actionName">Action name</param>
