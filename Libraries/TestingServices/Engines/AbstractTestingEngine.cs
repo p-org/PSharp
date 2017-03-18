@@ -396,11 +396,6 @@ namespace Microsoft.PSharp.TestingServices
                     return true;
                 }));
 
-                if (this.Configuration.ThrowInternalExceptions)
-                {
-                    throw aex;
-                }
-
                 if (aex.InnerException is FileNotFoundException)
                 {
                     Error.ReportAndExit($"{aex.InnerException.Message}");

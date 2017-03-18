@@ -678,7 +678,7 @@ namespace Microsoft.PSharp
 
             EventInfo nextEventInfo = null;
 
-            while (!this.IsHalted)
+            while (!this.IsHalted && !base.Runtime.IsFaulted)
             {
                 var defaultHandling = false;
                 var dequeued = false;
@@ -945,12 +945,6 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    if (Debugger.IsAttached ||
-                        base.Runtime.Configuration.ThrowInternalExceptions)
-                    {
-                        throw innerException;
-                    }
-
                     // Handles generic exception.
                     this.ReportGenericAssertion(innerException, action.Name);
                 }

@@ -62,6 +62,16 @@ namespace Microsoft.PSharp
         /// </summary>
         internal INetworkProvider NetworkProvider;
 
+        /// <summary>
+        /// Records if the P# program has faulted.
+        /// </summary>
+        volatile internal bool IsFaulted;
+
+        /// <summary>
+        /// The runtime lock.
+        /// </summary>
+        private object Lock;
+
         #endregion
 
         #region properties
@@ -70,6 +80,20 @@ namespace Microsoft.PSharp
         /// The installed logger.
         /// </summary>
         public ILogger Logger { get; private set; }
+
+        #endregion
+
+        #region events
+
+        /// <summary>
+        /// Event that is fired when the P# program throws an exception.
+        /// </summary>
+        public event OnFailureHandler OnFailure;
+
+        /// <summary>
+        /// Handles the <see cref="OnFailure"/> event.
+        /// </summary>
+        public delegate void OnFailureHandler(Exception ex);
 
         #endregion
 
@@ -333,8 +357,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                ErrorReporter.Report(this.Logger, "Assertion failure.");
-                Environment.Exit(1);
+                throw new AssertionFailureException("Detected an assertion failure.");
             }
         }
 
@@ -350,8 +373,7 @@ namespace Microsoft.PSharp
             if (!predicate)
             {
                 string message = IO.Utilities.Format(s, args);
-                ErrorReporter.Report(this.Logger, message);
-                Environment.Exit(1);
+                throw new AssertionFailureException(message);
             }
         }
 
@@ -438,11 +460,13 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
+            this.Lock = new object();
             this.Logger = new DefaultLogger();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
             this.Monitors = new List<Monitor>();
+            this.IsFaulted = false;
         }
 
         #endregion
@@ -991,8 +1015,18 @@ namespace Microsoft.PSharp
 		/// <param name="isFresh">Is a new machine</param>
 		private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
         {
+            if (this.IsFaulted)
+            {
+                return;
+            }
+
             Task task = new Task(() =>
             {
+                if (this.IsFaulted)
+                {
+                    return;
+                }
+
                 try
                 {
                     if (isFresh)
@@ -1004,14 +1038,18 @@ namespace Microsoft.PSharp
                 }
                 catch (Exception ex)
                 {
-                    if (this.Configuration.ThrowInternalExceptions)
+                    this.IsFaulted = true;
+                    lock (this.Lock)
                     {
-                        throw ex;
+                        // Invoke any installed event handlers only once.
+                        this.OnFailure?.Invoke(ex);
+                        this.OnFailure = null;
                     }
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                    Machine m;
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out m);
                 }
             });
 
