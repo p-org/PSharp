@@ -12,9 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -49,7 +49,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            IO.PrintLine(". Parsing");
+            Output.WriteLine(". Parsing");
 
             // Creates the P# parsing options.
             ParsingOptions options = ParsingOptions.CreateDefault()

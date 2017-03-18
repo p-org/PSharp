@@ -17,8 +17,8 @@ using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing.Framework;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -165,10 +165,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 report += "\nIn " + this.SyntaxTree.FilePath + " (line " + warningLine + "):\n";
                 report += " " + lines[warningLine - 1];
 
-                ErrorReporter.ReportWarning(report);
+                ErrorReporter.ReportWarning(Output.Logger, report);
             }
 
-            IO.PrettyPrintLine("Found {0} parsing warning{1}.", this.WarningLog.Count,
+            Output.WriteLine("Found {0} parsing warning{1}.", this.WarningLog.Count,
                 this.WarningLog.Count == 1 ? "" : "s");
         }
 
@@ -194,10 +194,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 report += "\nIn " + this.SyntaxTree.FilePath + " (line " + errorLine + "):\n";
                 report += " " + lines[errorLine - 1];
 
-                ErrorReporter.Report(report);
+                ErrorReporter.Report(Output.Logger, report);
             }
 
-            IO.PrettyPrintLine("Found {0} parsing error{1}.", this.ErrorLog.Count,
+            Output.WriteLine("Found {0} parsing error{1}.", this.ErrorLog.Count,
                 this.ErrorLog.Count == 1 ? "" : "s");
             Environment.Exit(1);
         }

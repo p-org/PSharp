@@ -16,10 +16,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Utilities;
 
@@ -61,6 +61,15 @@ namespace Microsoft.PSharp
         /// Network provider for remote communication.
         /// </summary>
         internal INetworkProvider NetworkProvider;
+
+        #endregion
+
+        #region properties
+
+        /// <summary>
+        /// The installed logger.
+        /// </summary>
+        public ILogger Logger { get; private set; }
 
         #endregion
 
@@ -324,13 +333,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                ErrorReporter.Report("Assertion failure.");
-
-                if (this.Configuration.PauseOnAssertionFailure)
-                {
-                    IO.GetLine();
-                }
-
+                ErrorReporter.Report(this.Logger, "Assertion failure.");
                 Environment.Exit(1);
             }
         }
@@ -346,28 +349,9 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                string message = IO.Format(s, args);
-                ErrorReporter.Report(message);
-
-                if (this.Configuration.PauseOnAssertionFailure)
-                {
-                    IO.GetLine();
-                }
-
+                string message = IO.Utilities.Format(s, args);
+                ErrorReporter.Report(this.Logger, message);
                 Environment.Exit(1);
-            }
-        }
-
-        /// <summary>
-        /// Logs the specified text.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Arguments</param>
-        public virtual void Log(string s, params object[] args)
-        {
-            if (this.Configuration.Verbose > 1)
-            {
-                IO.Log(s, args);
             }
         }
 
@@ -454,6 +438,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
+            this.Logger = new DefaultLogger();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
@@ -950,6 +935,47 @@ namespace Microsoft.PSharp
         internal virtual void NotifyDefaultHandlerFired()
         {
             // No-op in production.
+        }
+
+        #endregion
+
+        #region logging
+
+        /// <summary>
+        /// Logs the specified text.
+        /// </summary>
+        /// <param name="format">Text</param>
+        /// <param name="args">Arguments</param>
+        protected internal virtual void Log(string format, params object[] args)
+        {
+            if (this.Configuration.Verbose > 1)
+            {
+                this.Logger.WriteLine(format, args);
+            }
+        }
+
+        /// <summary>
+        /// Installs the specified logger.
+        /// </summary>
+        /// <param name="logger">TextWriter</param>
+        public void SetLogger(ILogger logger)
+        {
+            if (logger == null)
+            {
+                throw new InvalidOperationException("Cannot install a null logger.");
+            }
+
+            this.Logger.Dispose();
+            this.Logger = logger;
+        }
+
+        /// <summary>
+        /// Replaces the currently installed logger with the default logger.
+        /// </summary>
+        public void RemoveLogger()
+        {
+            this.Logger.Dispose();
+            this.Logger = new DefaultLogger();
         }
 
         #endregion

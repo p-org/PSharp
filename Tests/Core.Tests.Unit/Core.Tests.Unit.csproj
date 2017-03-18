@@ -69,6 +69,8 @@
   <ItemGroup>
     <Compile Include="Integration\Correct\NoMemoryLeakInEventSendingTest.cs" />
     <Compile Include="Integration\Correct\NoMemoryLeakAfterHaltTest.cs" />
+    <Compile Include="Logging\Correct\CustomLoggerTest.cs" />
+    <Compile Include="Logging\DynamicError\CustomLoggerFailTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +82,7 @@
       <Name>Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Microsoft.PSharp;
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace PingPong.CustomLogging
@@ -23,25 +24,25 @@ namespace PingPong.CustomLogging
         /// <summary>
         /// Custom logger.
         /// </summary>
-        static MyLogger MyLogger = null;
+        static ILogger MyLogger = null;
 
         static void Main(string[] args)
         {
-            // Installs the custom logger.
-            var myLogger = new MyLogger();
-            IOLogger.InstallCustomLogger(myLogger);
-
             // Optional: increases verbosity level to see the P# runtime log.
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
             var runtime = PSharpRuntime.Create(configuration);
 
+            // Creates and installs a custom logger.
+            ILogger myLogger = new MyLogger();
+            runtime.SetLogger(myLogger);
+
             // Executes the P# program.
             Program.Execute(runtime);
 
-            // Closes the logger.
-            myLogger.Close();
+            // Disposes the logger.
+            myLogger.Dispose();
 
             // The P# runtime executes asynchronously, so we wait
             // to not terminate the process.
@@ -55,8 +56,8 @@ namespace PingPong.CustomLogging
         [Microsoft.PSharp.TestInit]
         public static void Initialize()
         {
+            // Creates a custom logger.
             Program.MyLogger = new MyLogger();
-            IOLogger.InstallCustomLogger(Program.MyLogger);
         }
 
         /// <summary>
@@ -67,6 +68,9 @@ namespace PingPong.CustomLogging
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            // Installs the custom logger.
+            runtime.SetLogger(Program.MyLogger);
+
             // Assigns a user-defined name to this network environment machine.
             runtime.CreateMachine(typeof(NetworkEnvironment), "TheUltimateNetworkEnvironmentMachine");
         }
@@ -77,45 +81,58 @@ namespace PingPong.CustomLogging
         [Microsoft.PSharp.TestDispose]
         public static void Dispose()
         {
-            Program.MyLogger.Close();
+            Program.MyLogger.Dispose();
         }
     }
 
     /// <summary>
     /// Custom logger that just dumps to console.
     /// </summary>
-    class MyLogger : System.IO.TextWriter
+    class MyLogger : ILogger
     {
         /// <summary>
-        /// The encoding.
+        /// Writes the specified string value.
         /// </summary>
-        public override Encoding Encoding
+        /// <param name="value">Text</param>
+        public void Write(string value)
         {
-            get
-            {
-                return Encoding.ASCII;
-            }
+            Console.Write(value);
         }
 
         /// <summary>
-        /// Minimum override necessary.
+        /// Writes the text representation of the specified array of objects.
         /// </summary>
-        /// <param name="value">Character</param>
-        public override void Write(char value)
+        /// <param name="format">Text</param>
+        /// <param name="args">Arguments</param>
+        public void Write(string format, params object[] args)
         {
-            Console.Write(value);
+            Console.Write(format, args);
         }
 
-        // The following are optional overrides (for performance).
-
-        public override void Write(string value)
-        {
-            Console.Write(value);
-        }
-
-        public override void WriteLine(string value)
+        /// <summary>
+        /// Writes the specified string value, followed by the
+        /// current line terminator.
+        /// </summary>
+        /// <param name="value">Text</param>
+        public void WriteLine(string value)
         {
             Console.WriteLine("MyLogger: {0}", value);
         }
+
+        /// <summary>
+        /// Writes the text representation of the specified array of objects,
+        /// followed by the current line terminator.
+        /// </summary>
+        /// <param name="format">Text</param>
+        /// <param name="args">Arguments</param>
+        public void WriteLine(string format, params object[] args)
+        {
+            Console.WriteLine(format, args);
+        }
+
+        /// <summary>
+        /// Disposes the logger.
+        /// </summary>
+        public void Dispose() { }
     }
 }

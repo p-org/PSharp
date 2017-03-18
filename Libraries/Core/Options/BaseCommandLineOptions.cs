@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.Utilities
 {
@@ -95,7 +96,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0 && i <= 3)
                 {
-                    IO.Error.ReportAndExit("Please give a valid verbosity level " +
+                    Error.ReportAndExit("Please give a valid verbosity level " +
                         "'/v:[x]', where 1 <= [x] <= 3.");
                 }
 
@@ -104,7 +105,7 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/debug"))
             {
                 this.Configuration.EnableDebugging = true;
-                IO.Debugging = true;
+                Debug.IsEnabled = true;
             }
             else if (option.ToLower().Equals("/warnings-on"))
             {
@@ -117,8 +118,7 @@ namespace Microsoft.PSharp.Utilities
                 if (!int.TryParse(option.Substring(9), out i) &&
                     i > 0)
                 {
-                    IO.Error.ReportAndExit("Please give a valid timeout " +
-                        "'/timeout:[x]', where [x] > 0 seconds.");
+                    Error.ReportAndExit("Please give a valid timeout '/timeout:[x]', where [x] > 0 seconds.");
                 }
 
                 this.Configuration.Timeout = i;
@@ -130,8 +130,7 @@ namespace Microsoft.PSharp.Utilities
             else
                 {
                 this.ShowHelp();
-                IO.Error.ReportAndExit("cannot recognise command line option '" +
-                    option + "'.");
+                Error.ReportAndExit("cannot recognise command line option '" + option + "'.");
             }
         }
 

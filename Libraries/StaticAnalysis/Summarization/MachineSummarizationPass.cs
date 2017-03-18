@@ -18,7 +18,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
 
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            IO.PrintLine("... Data-flow analysis runtime: '" +
+            Output.WriteLine("... Data-flow analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

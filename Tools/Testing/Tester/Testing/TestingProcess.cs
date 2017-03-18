@@ -20,6 +20,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Timers;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -124,7 +125,7 @@ namespace Microsoft.PSharp.TestingServices
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 &&
                     !this.Configuration.RunAsParallelBugFindingTask)
                 {
-                    IO.PrintLine($"... Task {this.Configuration.TestingProcessId} found a bug.");
+                    Output.WriteLine($"... Task {this.Configuration.TestingProcessId} found a bug.");
                 }
 
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
@@ -203,7 +204,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (AddressAccessDeniedException)
             {
-                IO.Error.ReportAndExit("Your process does not have access " +
+                Error.ReportAndExit("Your process does not have access " +
                     "rights to open the remote testing notification listener. " +
                     "Please run the process as administrator.");
             }
@@ -274,7 +275,7 @@ namespace Microsoft.PSharp.TestingServices
 
             string directory = Reporter.GetOutputDirectory(this.Configuration.AssemblyToBeAnalyzed);
 
-            IO.Error.PrintLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
+            Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
             this.TestingEngine.TryEmitTraces(directory, file);
         }
 

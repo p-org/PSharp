@@ -20,8 +20,8 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Rewriting.CSharp;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.LanguageServices
             this.RewriteStatements();
             this.PerformCustomRewriting();
 
-            if (IO.Debugging)
+            if (Debug.IsEnabled)
             {
                 base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
             }
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.LanguageServices
 
                     if (snapshot.Any(item => item.SequenceEqual(rewritingPasses)))
                     {
-                        IO.Error.ReportAndExit("Possible cycle in the rewriting " +
+                        Error.ReportAndExit("Possible cycle in the rewriting " +
                             "pass dependencies, or dependency missing.");
                     }
 
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.LanguageServices
                 }
                 catch (MissingMethodException)
                 {
-                    IO.Error.ReportAndExit($"Public constructor of {nextPass} not found.");
+                    Error.ReportAndExit($"Public constructor of {nextPass} not found.");
                 }
 
                 rewriter.Rewrite();
@@ -167,15 +167,15 @@ namespace Microsoft.PSharp.LanguageServices
             {
                 foreach (var le in ex.LoaderExceptions)
                 {
-                    ErrorReporter.Report(le.Message);
+                    ErrorReporter.Report(Output.Logger, le.Message);
                 }
 
-                IO.Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+                Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
             }
             catch (Exception ex)
             {
-                ErrorReporter.Report(ex.Message);
-                IO.Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+                ErrorReporter.Report(Output.Logger, ex.Message);
+                Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
             }
 
             return passes;

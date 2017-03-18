@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -87,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.HasCurrentOperationCompleted(choices, current))
             {
                 this.Operations.Remove(current.Machine.OperationId);
-                IO.Debug("<OperationDebug> Removes operation '{0}'.", current.Machine.OperationId);
+                Debug.WriteLine("<OperationDebug> Removes operation '{0}'.", current.Machine.OperationId);
             }
 
             var availableMachines = choices.Where(
@@ -106,23 +107,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             
             var nextOperation = this.GetNextOperation(availableMachines, current);
 
-            IO.Debug("<OperationDebug> Chosen operation '{0}'.", nextOperation);
-            if (IO.Debugging)
+            Debug.WriteLine("<OperationDebug> Chosen operation '{0}'.", nextOperation);
+            Debug.Write("<OperationDebug> Operation list: ");
+            for (int opIdx = 0; opIdx < this.Operations.Count; opIdx++)
             {
-                IO.Print("<OperationDebug> Operation list: ");
-                for (int opIdx = 0; opIdx < this.Operations.Count; opIdx++)
+                if (opIdx < this.Operations.Count - 1)
                 {
-                    if (opIdx < this.Operations.Count - 1)
-                    {
-                        IO.Print("'{0}', ", this.Operations[opIdx]);
-                    }
-                    else
-                    {
-                        IO.Print("'{0}'.\n", this.Operations[opIdx]);
-                    }
+                    Debug.Write("'{0}', ", this.Operations[opIdx]);
+                }
+                else
+                {
+                    Debug.Write("'{0}'.\n", this.Operations[opIdx]);
                 }
             }
-            
+
             if (this.Configuration.DynamicEventQueuePrioritization)
             {
                 var machineChoices = availableMachines.Where(mi => mi.Machine is Machine).
@@ -275,7 +273,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 var opIndex = this.Random.Next(this.Operations.Count) + 1;
                 this.Operations.Insert(opIndex, id);
-                IO.Debug("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
+                Debug.WriteLine("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
             }
         }
 

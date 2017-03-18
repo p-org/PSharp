@@ -20,6 +20,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Compilation
@@ -178,16 +179,16 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             {
                 if (printResults)
                 {
-                    IO.PrintLine("... Writing {0}", fileName);
+                    Output.WriteLine("... Writing {0}", fileName);
                 }
 
                 return fileName;
             }
 
-            IO.PrintLine("---");
-            IO.PrintLine("Note: the errors below correspond to the intermediate C#-IR, " +
+            Output.WriteLine("---");
+            Output.WriteLine("Note: the errors below correspond to the intermediate C#-IR, " +
                 "which can be printed using /debug.");
-            IO.PrintLine("---");
+            Output.WriteLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
@@ -224,10 +225,10 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 return assembly;
             }
 
-            IO.PrintLine("---");
-            IO.PrintLine("Note: the errors below correspond to the intermediate C#-IR, " +
+            Output.WriteLine("---");
+            Output.WriteLine("Note: the errors below correspond to the intermediate C#-IR, " +
                 "which can be printed using /debug.");
-            IO.PrintLine("---");
+            Output.WriteLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
@@ -270,7 +271,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
             catch (ApplicationException ex)
             {
-                IO.Error.ReportAndExit(ex.Message);
+                Error.ReportAndExit(ex.Message);
             }
         }
 
@@ -329,7 +330,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="dll">Name of dll</param>
         private void LinkAssemblyToAllProjects(Assembly assembly, string dll)
         {
-            IO.PrintLine("... Linking {0}", dll);
+            Output.WriteLine("... Linking {0}", dll);
 
             foreach (var outputDir in this.OutputDirectoryMap.Values)
             {
@@ -374,7 +375,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
             catch (NotSupportedException)
             {
-                IO.Debug("... Unable to copy {0}", src);
+                Debug.WriteLine("... Unable to copy {0}", src);
             }
         }
 

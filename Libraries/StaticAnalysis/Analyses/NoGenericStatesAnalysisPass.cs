@@ -15,7 +15,7 @@
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            IO.PrintLine("... No generic states analysis runtime: '" +
+            Output.WriteLine("... No generic states analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

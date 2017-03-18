@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
@@ -31,7 +32,7 @@ namespace Microsoft.PSharp.Remote
             Manager.Configure(configuration);
             Manager.Run();
 
-            IO.PrettyPrintLine(". Done");
+            Output.WriteLine(". Done");
         }
 
         #endregion

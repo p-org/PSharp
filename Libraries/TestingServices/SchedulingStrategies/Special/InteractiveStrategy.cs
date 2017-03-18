@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -88,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             
             if (availableMachines.Count == 0)
             {
-                IO.PrintLine(">> No available machines to schedule ...");
+                Output.WriteLine(">> No available machines to schedule ...");
                 return false;
             }
             
@@ -115,24 +116,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     break;
                 }
 
-                IO.PrintLine(">> Available machines to schedule ...");
+                Output.WriteLine(">> Available machines to schedule ...");
                 for (int idx = 0; idx < availableMachines.Count; idx++)
                 {
                     var m = availableMachines[idx];
                     if (this.Configuration.BoundOperations)
                     {
-                        IO.PrintLine($">> [{idx}] '{m.Machine.Id}' with " +
+                        Output.WriteLine($">> [{idx}] '{m.Machine.Id}' with " +
                             $"operation id '{m.Machine.OperationId}'");
                     }
                     else
                     {
-                        IO.PrintLine($">> [{idx}] '{m.Machine.Id}'");
+                        Output.WriteLine($">> [{idx}] '{m.Machine.Id}'");
                     }
                 }
 
-                IO.PrintLine($">> Choose machine to schedule [step '{this.ExploredSteps}']");
+                Output.WriteLine($">> Choose machine to schedule [step '{this.ExploredSteps}']");
 
-                var input = IO.GetLine();
+                var input = Console.ReadLine();
                 if (input.Equals("replay"))
                 {
                     if (!this.Replay())
@@ -162,14 +163,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         var idx = Convert.ToInt32(input);
                         if (idx < 0)
                         {
-                            IO.PrintLine(">> Expected positive integer, please retry ...");
+                            Output.WriteLine(">> Expected positive integer, please retry ...");
                             continue;
                         }
 
                         next = availableMachines[idx];
                         if (next == null)
                         {
-                            IO.PrintLine(">> Unexpected id, please retry ...");
+                            Output.WriteLine(">> Unexpected id, please retry ...");
                             continue;
                         }
 
@@ -180,7 +181,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
                     catch (FormatException)
                     {
-                        IO.PrintLine(">> Wrong format, please retry ...");
+                        Output.WriteLine(">> Wrong format, please retry ...");
                         continue;
                     }
                 }
@@ -226,9 +227,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     break;
                 }
 
-                IO.PrintLine($">> Choose true or false [step '{this.ExploredSteps}']");
+                Output.WriteLine($">> Choose true or false [step '{this.ExploredSteps}']");
 
-                var input = IO.GetLine();
+                var input = Console.ReadLine();
                 if (input.Equals("replay"))
                 {
                     if (!this.Replay())
@@ -259,7 +260,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
                     catch (FormatException)
                     {
-                        IO.PrintLine(">> Wrong format, please retry ...");
+                        Output.WriteLine(">> Wrong format, please retry ...");
                         continue;
                     }
                 }
@@ -301,9 +302,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     break;
                 }
 
-                IO.PrintLine($">> Choose an integer (< {maxValue}) [step '{this.ExploredSteps}']");
+                Output.WriteLine($">> Choose an integer (< {maxValue}) [step '{this.ExploredSteps}']");
 
-                var input = IO.GetLine();
+                var input = Console.ReadLine();
                 if (input.Equals("replay"))
                 {
                     if (!this.Replay())
@@ -334,14 +335,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
                     catch (FormatException)
                     {
-                        IO.PrintLine(">> Wrong format, please retry ...");
+                        Output.WriteLine(">> Wrong format, please retry ...");
                         continue;
                     }
                 }
 
                 if (next >= maxValue)
                 {
-                    IO.PrintLine($">> {next} is >= {maxValue}, please retry ...");
+                    Output.WriteLine($">> {next} is >= {maxValue}, please retry ...");
                 }
 
                 this.InputCache.Add(input);
@@ -477,14 +478,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var result = true;
 
-            IO.PrintLine($">> Replay up to first ?? steps [step '{this.ExploredSteps}']");
+            Output.WriteLine($">> Replay up to first ?? steps [step '{this.ExploredSteps}']");
 
             try
             {
-                var steps = Convert.ToInt32(IO.GetLine());
+                var steps = Convert.ToInt32(Console.ReadLine());
                 if (steps < 0)
                 {
-                    IO.PrintLine(">> Expected positive integer, please retry ...");
+                    Output.WriteLine(">> Expected positive integer, please retry ...");
                     result = false;
                 }
 
@@ -492,7 +493,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
             catch (FormatException)
             {
-                IO.PrintLine(">> Wrong format, please retry ...");
+                Output.WriteLine(">> Wrong format, please retry ...");
                 result = false;
             }
 
@@ -507,14 +508,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var result = true;
 
-            IO.PrintLine($">> Jump to ?? step [step '{this.ExploredSteps}']");
+            Output.WriteLine($">> Jump to ?? step [step '{this.ExploredSteps}']");
 
             try
             {
-                var steps = Convert.ToInt32(IO.GetLine());
+                var steps = Convert.ToInt32(Console.ReadLine());
                 if (steps < this.ExploredSteps)
                 {
-                    IO.PrintLine(">> Expected integer greater than " +
+                    Output.WriteLine(">> Expected integer greater than " +
                         $"{this.ExploredSteps}, please retry ...");
                     result = false;
                 }
@@ -523,7 +524,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
             catch (FormatException)
             {
-                IO.PrintLine(">> Wrong format, please retry ...");
+                Output.WriteLine(">> Wrong format, please retry ...");
                 result = false;
             }
 

@@ -15,8 +15,8 @@
 using System.IO;
 using System.Runtime.Serialization;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Coverage;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -91,19 +91,19 @@ namespace Microsoft.PSharp.TestingServices
             string[] graphFiles = Directory.GetFiles(directory, file + "_*.dgml");
             string graphFilePath = directory + file + "_" + graphFiles.Length + ".dgml";
 
-            IO.Error.PrintLine($"..... Writing {graphFilePath}");
+            Output.WriteLine($"..... Writing {graphFilePath}");
             codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
 
             string[] coverageFiles = Directory.GetFiles(directory, file + "_*.coverage.txt");
             string coverageFilePath = directory + file + "_" + coverageFiles.Length + ".coverage.txt";
 
-            IO.Error.PrintLine($"..... Writing {coverageFilePath}");
+            Output.WriteLine($"..... Writing {coverageFilePath}");
             codeCoverageReporter.EmitCoverageReport(coverageFilePath);
 
             string[] serFiles = Directory.GetFiles(directory, file + "_*.sci");
             string serFilePath = directory + file + "_" + serFiles.Length + ".sci";
 
-            IO.Error.PrintLine($"..... Writing {serFilePath}");
+            Output.WriteLine($"..... Writing {serFilePath}");
             using (var fs = new FileStream(serFilePath, FileMode.Create))
             {
                 var serializer = new DataContractSerializer(typeof(CoverageInfo));

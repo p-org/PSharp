@@ -15,6 +15,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
@@ -36,7 +37,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         private CompilationContext RunTest(Configuration configuration, string test, bool isPSharpProgram)
         {
-            IO.StartWritingToMemory();
+            Output.SetLogger(new InMemoryLogger());
 
             var context = CompilationContext.Create(configuration).LoadSolution(test, isPSharpProgram ? "psharp" : "cs");
 
@@ -52,7 +53,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         private void TestComplete()
         {
-            IO.StopWritingToMemory();
+            Output.RemoveLogger();
         }
 
         protected void AssertSucceeded(string test, bool isPSharpProgram = true)
@@ -110,7 +111,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
                 if (!string.IsNullOrEmpty(expectedOutput))
                 {
-                    var actual = IO.GetOutput();
+                    var actual = ((InMemoryLogger)Output.Logger).ToString();
                     Assert.AreEqual(expectedOutput.Replace(Environment.NewLine, string.Empty),
                        actual.Substring(0, actual.IndexOf(Environment.NewLine)));
                 }
@@ -183,7 +184,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
                 if (!string.IsNullOrEmpty(expectedOutput))
                 {
-                    var actual = IO.GetOutput();
+                    var actual = ((InMemoryLogger)Output.Logger).ToString();
                     Assert.AreEqual(expectedOutput.Replace(Environment.NewLine, string.Empty),
                        //actual.Substring(0, actual.IndexOf(Environment.NewLine)));
                        actual.Replace(Environment.NewLine, string.Empty));

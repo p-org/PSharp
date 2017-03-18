@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Utilities
 {
     public sealed class ReplayerCommandLineOptions : BaseCommandLineOptions
@@ -51,7 +53,7 @@ namespace Microsoft.PSharp.Utilities
                 string extension = System.IO.Path.GetExtension(option.Substring(8));
                 if (!extension.Equals(".schedule"))
                 {
-                    IO.Error.ReportAndExit("Please give a valid schedule file " +
+                    Error.ReportAndExit("Please give a valid schedule file " +
                         "'/replay:[x]', where [x] has extension '.schedule'.");
                 }
 
@@ -83,13 +85,13 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid path to a P# " +
+                Error.ReportAndExit("Please give a valid path to a P# " +
                     "program's dll using '/test:[x]'.");
             }
 
             if (base.Configuration.ScheduleFile.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid path to a P# schedule " +
+                Error.ReportAndExit("Please give a valid path to a P# schedule " +
                     "file using '/replay:[x]', where [x] has extension '.schedule'.");
             }
         }
@@ -129,7 +131,7 @@ namespace Microsoft.PSharp.Utilities
 
             help += "\n";
 
-            IO.PrettyPrintLine(help);
+            Output.WriteLine(help);
         }
 
         #endregion

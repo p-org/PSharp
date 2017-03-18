@@ -55,62 +55,68 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library\MachineFactory.cs" />
-    <Compile Include="Runtime\Exceptions\RuntimeException.cs" />
-    <Compile Include="Runtime\Exceptions\ExecutionCanceledException.cs" />
-    <Compile Include="Runtime\Exceptions\LoggingException.cs" />
+    <Compile Include="IO\Debugging\Debug.cs" />
+    <Compile Include="IO\Debugging\Error.cs" />
+    <Compile Include="IO\Debugging\ErrorReporter.cs" />
+    <Compile Include="IO\Logging\DefaultErrorLogger.cs" />
+    <Compile Include="IO\Logging\DefaultLogger.cs" />
+    <Compile Include="IO\Logging\ILogger.cs" />
+    <Compile Include="IO\Output.cs" />
+    <Compile Include="IO\Utilities.cs" />
+    <Compile Include="Library\AbstractMachine.cs" />
     <Compile Include="Library\Attributes\Cold.cs" />
-    <Compile Include="Library\Attributes\IgnoreEvents.cs" />
     <Compile Include="Library\Attributes\EntryPoint.cs" />
-    <Compile Include="Library\Attributes\Test.cs" />
     <Compile Include="Library\Attributes\DeferEvents.cs" />
+    <Compile Include="Library\Attributes\Hot.cs" />
+    <Compile Include="Library\Attributes\IgnoreEvents.cs" />
     <Compile Include="Library\Attributes\OnEventPushState.cs" />
     <Compile Include="Library\Attributes\OnExit.cs" />
     <Compile Include="Library\Attributes\OnEntry.cs" />
     <Compile Include="Library\Attributes\OnEventDoAction.cs" />
     <Compile Include="Library\Attributes\OnEventGotoState.cs" />
-    <Compile Include="Library\Attributes\Hot.cs" />
     <Compile Include="Library\Attributes\Start.cs" />
-    <Compile Include="Library\EventHandlers\IgnoreAction.cs" />
+    <Compile Include="Library\Attributes\Test.cs" />
+    <Compile Include="Library\EventHandlers\ActionBinding.cs" />
     <Compile Include="Library\EventHandlers\DeferAction.cs" />
     <Compile Include="Library\EventHandlers\EventActionHandler.cs" />
     <Compile Include="Library\EventHandlers\EventWaitHandler.cs" />
-    <Compile Include="Library\Events\WildcardEvent.cs" />
+    <Compile Include="Library\EventHandlers\GotoStateTransition.cs" />
+    <Compile Include="Library\EventHandlers\IgnoreAction.cs" />
+    <Compile Include="Library\EventHandlers\PushStateTransition.cs" />
     <Compile Include="Library\Events\Default.cs" />
-    <Compile Include="Library\Events\EventOriginInfo.cs" />
-    <Compile Include="Library\Events\EventInfo.cs" />
     <Compile Include="Library\Events\Event.cs" />
+    <Compile Include="Library\Events\EventInfo.cs" />
+    <Compile Include="Library\Events\EventOriginInfo.cs" />
     <Compile Include="Library\Events\GotoStateEvent.cs" />
     <Compile Include="Library\Events\Halt.cs" />
-    <Compile Include="Library\StateGroup.cs" />
-    <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
-    <Compile Include="Options\OptimizationTarget.cs" />
-    <Compile Include="Options\CompilationTarget.cs" />
-    <Compile Include="Options\SchedulingStrategy.cs" />
-    <Compile Include="Net\INetworkProvider.cs" />
-    <Compile Include="Utilities\ErrorReporter.cs" />
-    <Compile Include="Utilities\IOLogger.cs" />
-    <Compile Include="Utilities\IO.cs" />
-    <Compile Include="Library\EventHandlers\ActionBinding.cs" />
-    <Compile Include="Library\EventHandlers\GotoStateTransition.cs" />
-    <Compile Include="Library\AbstractMachine.cs" />
-    <Compile Include="Library\MachineId.cs" />
+    <Compile Include="Library\Events\WildcardEvent.cs" />
     <Compile Include="Library\Machine.cs" />
+    <Compile Include="Library\MachineFactory.cs" />
+    <Compile Include="Library\MachineId.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="Library\Monitor.cs" />
     <Compile Include="Library\MonitorState.cs" />
-    <Compile Include="Library\EventHandlers\PushStateTransition.cs" />
+    <Compile Include="Library\StateGroup.cs" />
+    <Compile Include="Net\INetworkProvider.cs" />
+    <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
     <Compile Include="Options\BaseCommandLineOptions.cs" />
+    <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\Configuration.cs" />
-    <Compile Include="Utilities\Profiler.cs" />
-    <Compile Include="Runtime\Runtime.cs" />
+    <Compile Include="Options\OptimizationTarget.cs" />
+    <Compile Include="Options\SchedulingStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Runtime\Runtime.cs" />
+    <Compile Include="Runtime\Exceptions\ExecutionCanceledException.cs" />
+    <Compile Include="Runtime\Exceptions\LoggingException.cs" />
+    <Compile Include="Runtime\Exceptions\RuntimeException.cs" />
+    <Compile Include="Utilities\Profiler.cs" />
     <Compile Include="Utilities\RandomNumberGenerators\DefaultRandomNumberGenerator.cs" />
     <Compile Include="Utilities\RandomNumberGenerators\IRandomNumberGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

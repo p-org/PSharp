@@ -115,6 +115,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="InMemoryLogger.cs" />
     <Compile Include="BaseTest.cs" />
     <Compile Include="AccessChecking\Correct\AccessAfterCreateMachineTests.cs" />
     <Compile Include="AccessChecking\Correct\ResetAfterSendTests.cs" />

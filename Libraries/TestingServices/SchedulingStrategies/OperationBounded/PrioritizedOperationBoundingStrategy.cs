@@ -12,10 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -169,8 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     var priority = this.GetHighestPriorityEnabledOperationId(choices);
                     base.Operations.Remove(priority);
                     base.Operations.Add(priority);
-                    IO.PrintLine("<OperationLog> Operation '{0}' changes to lowest priority.",
-                        priority);
+                    Debug.WriteLine("<OperationLog> Operation '{0}' changes to lowest priority.", priority);
                 }
             }
             
@@ -216,7 +215,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.PriorityChangePoints.Add(newPriorityChangePoint);
-            IO.Debug("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
+            Debug.WriteLine("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
         }
 
         #endregion

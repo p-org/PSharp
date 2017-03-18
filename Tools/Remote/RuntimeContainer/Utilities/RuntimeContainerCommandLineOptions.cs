@@ -15,6 +15,7 @@
 using System;
 using System.IO;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
@@ -48,7 +49,7 @@ namespace Microsoft.PSharp.Remote
                 int i = 0;
                 if (!int.TryParse(option.Substring(4), out i) && i >= 0)
                 {
-                    IO.Error.ReportAndExit("Please give a valid container id");
+                    Error.ReportAndExit("Please give a valid container id");
                 }
 
                 base.Configuration.ContainerId = i;
@@ -68,12 +69,12 @@ namespace Microsoft.PSharp.Remote
         {
             if (base.Configuration.RemoteApplicationFilePath.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid P# application path.");
+                Error.ReportAndExit("Please give a valid P# application path.");
             }
 
             if (!Path.GetExtension(base.Configuration.RemoteApplicationFilePath).Equals(".dll"))
             {
-                IO.Error.ReportAndExit("The application must be a `dll` file.");
+                Error.ReportAndExit("The application must be a `dll` file.");
             }
         }
 
@@ -104,7 +105,7 @@ namespace Microsoft.PSharp.Remote
 
             help += "\n";
 
-            IO.PrettyPrintLine(help);
+            Output.WriteLine(help);
         }
 
         #endregion

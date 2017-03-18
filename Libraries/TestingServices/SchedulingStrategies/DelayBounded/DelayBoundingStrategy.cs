@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -117,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 idx = (idx + 1) % availableMachines.Count;
                 this.RemainingDelays.RemoveAt(0);
-                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
             next = availableMachines[idx];
@@ -140,7 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 next = true;
                 this.RemainingDelays.RemoveAt(0);
-                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
             this.ExploredSteps++;

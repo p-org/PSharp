@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Utilities;
 
@@ -50,11 +51,11 @@ namespace Microsoft.PSharp
         {
             if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing)
             {
-                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget})");
+                Output.WriteLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget})");
             }
             else
             {
-                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
+                Output.WriteLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
                     $"{this.CompilationContext.Configuration.OptimizationTarget})");
             }
 

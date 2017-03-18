@@ -22,6 +22,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Utilities;
 
@@ -79,15 +80,14 @@ namespace Microsoft.PSharp.Remote
         /// <param name="configuration">Configuration</param>
         internal static void Configure(Configuration configuration)
         {
-            configuration.PauseOnAssertionFailure = true;
             Container.Configuration = configuration;
 
-            IO.PrettyPrintLine(". Setting up the runtime container");
+            Output.WriteLine(". Setting up the runtime container");
 
             Container.LoadApplicationAssembly();
             Container.RegisterSerializableTypes();
 
-            IO.PrettyPrintLine("... Configured as container '{0}'", Configuration.ContainerId);
+            Output.WriteLine("... Configured as container '{0}'", Configuration.ContainerId);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         internal static void Run()
         {
-            IO.PrettyPrintLine(". Running");
+            Output.WriteLine(". Running");
             
             Container.CreateNetworkProvider();
             Container.InitializePSharpRuntime();
@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.Remote
             Container.RequestService.Close();
             Container.NotificationService.Close();
 
-            IO.PrettyPrintLine(". Closed listeners");
+            Output.WriteLine(". Closed listeners");
         }
 
         /// <summary>
@@ -114,9 +114,9 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         internal static void StartPSharpRuntime()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew((Action)(() =>
             {
-                IO.PrettyPrintLine("... Starting the P# runtime");
+                Output.WriteLine("... Starting the P# runtime");
                 MethodInfo entry = Container.FindEntryPointOfRemoteApplication();
 
                 try
@@ -125,9 +125,9 @@ namespace Microsoft.PSharp.Remote
                 }
                 catch (Exception ex)
                 {
-                    ErrorReporter.Report(ex.Message);
+                    ErrorReporter.Report(Output.Logger, ex.Message);
                 }
-            });
+            }));
         }
 
         #endregion
@@ -146,7 +146,7 @@ namespace Microsoft.PSharp.Remote
             }
             catch (FileNotFoundException ex)
             {
-                IO.Error.ReportAndExit(ex.Message);
+                Error.ReportAndExit(ex.Message);
             }
         }
 
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void CreateNetworkProvider()
         {
-            IO.PrettyPrintLine("... Creating network provider");
+            Output.WriteLine("... Creating network provider");
 
             Container.NetworkProvider = new InterProcessNetworkProvider("localhost", "8000");
             Container.RequestService = new ServiceHost(Container.NetworkProvider);
@@ -197,7 +197,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void OpenNotificationListener()
         {
-            IO.PrettyPrintLine("... Opening notification listener");
+            Output.WriteLine("... Opening notification listener");
 
             Uri address = new Uri("http://localhost:8000/notify/" + Configuration.ContainerId + "/");
             WSHttpBinding binding = new WSHttpBinding();
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void NotifyManagerInitialization()
         {
-            IO.PrettyPrintLine("... Notifying remote manager [initialization]");
+            Output.WriteLine("... Notifying remote manager [initialization]");
 
             Uri address = new Uri("http://localhost:8000/manager/");
 
@@ -242,12 +242,12 @@ namespace Microsoft.PSharp.Remote
                 Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
             if (entrypoints.Count == 0)
             {
-                IO.Error.ReportAndExit("Cannot detect a P# entry point method. " +
+                Error.ReportAndExit("Cannot detect a P# entry point method. " +
                     "Use the attribute [EntryPoint] to declare an entry point.");
             }
             else if (entrypoints.Count > 1)
             {
-                IO.Error.ReportAndExit("Only one entry point method to the P# program can be " +
+                Error.ReportAndExit("Only one entry point method to the P# program can be " +
                     "declared. {0} entry points were found instead.", entrypoints.Count);
             }
 

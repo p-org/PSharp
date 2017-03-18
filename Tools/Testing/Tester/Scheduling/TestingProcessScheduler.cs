@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -122,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (!this.Configuration.PerformFullExploration && this.BugFoundByProcess == null)
                 {
-                    IO.PrintLine($"... Task {processId} found a bug.");
+                    Output.WriteLine($"... Task {processId} found a bug.");
                     this.BugFoundByProcess = processId;
 
                     foreach (var testingProcess in this.TestingProcesses)
@@ -144,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices
                             }
                             catch (InvalidOperationException)
                             {
-                                IO.Debug("... Unable to terminate testing task " +
+                                IO.Debug.WriteLine("... Unable to terminate testing task " +
                                     $"'{testingProcess.Key}'. Task has already terminated.");
                             }
                         }
@@ -224,7 +225,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.TestingProcessChannels.Add(testId, this.CreateTestingProcessChannel(testId));
             }
 
-            IO.PrintLine($"... Created '{this.Configuration.ParallelBugFindingTasks}' " +
+            Output.WriteLine($"... Created '{this.Configuration.ParallelBugFindingTasks}' " +
                 "testing tasks.");
         }
 
@@ -248,7 +249,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
                 catch (InvalidOperationException)
                 {
-                    IO.Debug($"... Unable to wait for testing task '{testId}' to " +
+                    IO.Debug.WriteLine($"... Unable to wait for testing task '{testId}' to " +
                         "terminate. Task has already terminated.");
                 }
             }
@@ -262,7 +263,7 @@ namespace Microsoft.PSharp.TestingServices
             TestingProcess testingProcess = TestingProcess.Create(this.Configuration);
             this.TestingProcessChannels.Add(0, testingProcess);
 
-            IO.PrintLine($"... Created '1' testing task.");
+            Output.WriteLine($"... Created '1' testing task.");
 
             // Starts the testing process.
             testingProcess.Start();
@@ -305,7 +306,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (AddressAccessDeniedException)
             {
-                IO.Error.ReportAndExit("Your process does not have access " +
+                Error.ReportAndExit("Your process does not have access " +
                     "rights to open the remote testing notification listener. " +
                     "Please run the process as administrator.");
             }
@@ -373,9 +374,9 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (CommunicationException ex)
             {
-                IO.Debug("... Unable to communicate with testing task " +
+                IO.Debug.WriteLine("... Unable to communicate with testing task " +
                     $"'{processId}'. Task has already terminated.");
-                IO.Debug(ex.ToString());
+                IO.Debug.WriteLine(ex.ToString());
             }
         }
 
@@ -394,9 +395,9 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (CommunicationException ex)
             {
-                IO.Debug("... Unable to communicate with testing task " +
+                IO.Debug.WriteLine("... Unable to communicate with testing task " +
                     $"'{processId}'. Task has already terminated.");
-                IO.Debug(ex.ToString());
+                IO.Debug.WriteLine(ex.ToString());
             }
 
             return testReport;
@@ -412,12 +413,12 @@ namespace Microsoft.PSharp.TestingServices
             if (this.TestReports.TryAdd(processId, testReport))
             {
                 // Merges the test report into the global report.
-                IO.Debug($"... Merging task {processId} test report.");
+                IO.Debug.WriteLine($"... Merging task {processId} test report.");
                 this.GlobalTestReport.Merge(testReport);
             }
             else
             {
-                IO.Debug($"... Unable to merge test report from task '{processId}'. " +
+                IO.Debug.WriteLine($"... Unable to merge test report from task '{processId}'. " +
                     " Report is already merged.");
             }
         }
@@ -432,7 +433,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (!this.TestReports.ContainsKey(process.Key))
                 {
-                    IO.Error.PrintLine($"... Task {process.Key} failed due to an internal error.");
+                    Output.WriteLine($"... Task {process.Key} failed due to an internal error.");
                 }
             }
 
@@ -443,21 +444,21 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.ReportCodeCoverage)
             {
-                IO.Error.PrintLine($"... Emitting coverage reports:");
+                Output.WriteLine($"... Emitting coverage reports:");
                 Reporter.EmitTestingCoverageReport(this.GlobalTestReport);
             }
 
             if (this.Configuration.DebugCodeCoverage)
             {
-                IO.Error.PrintLine($"... Emitting debug coverage reports:");
+                Output.WriteLine($"... Emitting debug coverage reports:");
                 foreach (var report in this.TestReports)
                 {
                     Reporter.EmitTestingCoverageReport(report.Value, report.Key, isDebug: true);
                 }
             }
 
-            IO.Error.PrintLine(this.GlobalTestReport.GetText(this.Configuration, "..."));
-            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
+            Output.WriteLine(this.GlobalTestReport.GetText(this.Configuration, "..."));
+            Output.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         #endregion

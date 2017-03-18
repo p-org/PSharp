@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.LanguageServices
 
             this.InsertLibraries();
 
-            if (IO.Debugging)
+            if (Debug.IsEnabled)
             {
                 base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
             }

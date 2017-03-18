@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -393,43 +394,43 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private void PrintSchedule()
         {
-            IO.PrintLine("*******************");
-            IO.PrintLine("Schedule stack size: " + this.ScheduleStack.Count);
+            Debug.WriteLine("*******************");
+            Debug.WriteLine("Schedule stack size: " + this.ScheduleStack.Count);
             for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
             {
-                IO.PrintLine("Index: " + idx);
+                Debug.WriteLine("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
-                    IO.Print(sc.Id + " [" + sc.IsDone + "], ");
+                    Debug.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
-                IO.PrintLine("");
+                Debug.WriteLine("");
             }
 
-            IO.PrintLine("*******************");
-            IO.PrintLine("Random bool stack size: " + this.BoolNondetStack.Count);
+            Debug.WriteLine("*******************");
+            Debug.WriteLine("Random bool stack size: " + this.BoolNondetStack.Count);
             for (int idx = 0; idx < this.BoolNondetStack.Count; idx++)
             {
-                IO.PrintLine("Index: " + idx);
+                Debug.WriteLine("Index: " + idx);
                 foreach (var nc in this.BoolNondetStack[idx])
                 {
-                    IO.Print(nc.Value + " [" + nc.IsDone + "], ");
+                    Debug.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                IO.PrintLine("");
+                Debug.WriteLine("");
             }
-            IO.PrintLine("*******************");
+            Debug.WriteLine("*******************");
 
-            IO.PrintLine("*******************");
-            IO.PrintLine("Random int stack size: " + this.IntNondetStack.Count);
+            Debug.WriteLine("*******************");
+            Debug.WriteLine("Random int stack size: " + this.IntNondetStack.Count);
             for (int idx = 0; idx < this.IntNondetStack.Count; idx++)
             {
-                IO.PrintLine("Index: " + idx);
+                Debug.WriteLine("Index: " + idx);
                 foreach (var nc in this.IntNondetStack[idx])
                 {
-                    IO.Print(nc.Value + " [" + nc.IsDone + "], ");
+                    Debug.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                IO.PrintLine("");
+                Debug.WriteLine("");
             }
-            IO.PrintLine("*******************");
+            Debug.WriteLine("*******************");
         }
 
         /// <summary>
