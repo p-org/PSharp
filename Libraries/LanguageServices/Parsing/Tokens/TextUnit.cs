@@ -62,6 +62,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             return new TextUnit(textUnit.Text, textUnit.Line);
         }
 
+        /// <summary>
+        /// Returns a string representing the TextUnit.
+        /// </summary>
+        /// <returns>A string representing the TextUnit.</returns>
+        public override string ToString()
+        {
+            return $"#line {this.Line}: {this.Text}";
+        }
         #endregion
     }
 }
