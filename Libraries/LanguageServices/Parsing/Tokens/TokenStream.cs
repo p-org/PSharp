@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -259,6 +260,30 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.Consume();
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns a string representing the current position in the TokenStream.
+        /// </summary>
+        /// <returns>A string representing the current position in the TokenStream.</returns>
+        public override string ToString()
+        {
+            const int MaxTokensToShow = 3;
+            var numTokensRemaining = Math.Min(this.Length - this.Index, 3);
+            var sb = new StringBuilder();
+            for (var ii = 0; ii < numTokensRemaining; ++ii)
+            {
+                if (ii > 0)
+                {
+                    sb.Append(" ");
+                }
+                sb.Append(this.Tokens[this.Index + ii]);
+            }
+            if (numTokensRemaining > MaxTokensToShow)
+            {
+                sb.Append("...");
+            }
+            return $"{this.Index}/{this.Length}: {sb.ToString()}";
         }
 
         #endregion

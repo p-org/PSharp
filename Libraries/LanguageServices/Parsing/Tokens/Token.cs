@@ -84,6 +84,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.Type = type;
         }
 
+        /// <summary>
+        /// Returns a string representing the Token.
+        /// </summary>
+        /// <returns>A string representing the Token.</returns>
+        public override string ToString()
+        {
+            return $"[({this.Type}) {this.TextUnit}]";
+        }
         #endregion
     }
 }
