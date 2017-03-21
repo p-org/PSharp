@@ -22,27 +22,29 @@ namespace PSharpBatchTester
 
         //Config
         private static PSharpBatchConfig config;
+        private static PSharpBatchAuthConfig authConfig;
 
         static void Main(string[] args)
         {
-            if (args.Count() < 1)
+            if (args.Count() < 2)
             {
-                Console.WriteLine("No config file path given.");
+                if (args.Count() < 1)
+                {
+                    Console.WriteLine("No Config file path given");
+                }
+                Console.WriteLine("No auth config file path given.");
                 Console.Read();
                 return;
             }
             try
             {
                 //Get args
-                string configFilePath = args[0];
-                configFilePath = Path.GetFullPath(configFilePath);
-                using (FileStream configStream = new FileStream(configFilePath, FileMode.Open))
-                {
-                    config = PSharpBatchConfig.XMLDeserialize(configStream);
-                    configStream.Close();
-                }
-
+                string configFilePath = Path.GetFullPath(args[0]);
+                config = PSharpBatchConfig.LoadFromXML(configFilePath);
                 PSharpOperations.ParseConfig(config);
+
+                string authConfigFilePath = Path.GetFullPath(args[1]);
+                authConfig = PSharpBatchAuthConfig.LoadFromXML(authConfigFilePath);
 
 
                 //We call the async main so we can await on many async calls
@@ -69,10 +71,10 @@ namespace PSharpBatchTester
         private static async Task MainAsync()
         {
             //Creating BatchOperations
-            BatchOperations batchOperations = new BatchOperations(config.BatchAccountName, config.BatchAccountKey, config.BatchAccountUrl);
+            BatchOperations batchOperations = new BatchOperations(authConfig.BatchAccountName, authConfig.BatchAccountKey, authConfig.BatchAccountUrl);
 
             //Creating BlobOperations
-            BlobOperations blobOperations = new BlobOperations(config.StorageAccountName, config.StorageAccountKey, config.BlobContainerSasExpiryHours);
+            BlobOperations blobOperations = new BlobOperations(authConfig.StorageAccountName, authConfig.StorageAccountKey, config.BlobContainerSasExpiryHours);
 
 
             //Pool operations
@@ -87,8 +89,8 @@ namespace PSharpBatchTester
                        poolId: config.PoolId,
                        resourceFiles: nodeFiles,
                        numberOfNodes: config.NumberOfNodesInPool,
-                       OSFamily: "5",
-                       VirtualMachineSize: "small",
+                       OSFamily: config.NodeOsFamily,
+                       VirtualMachineSize: config.NodeVirtualMachineSize,
                        NodeStartCommand: PSharpBatchTestCommon.Constants.PSharpDefaultNodeStartCommand
                     );
             }
@@ -104,7 +106,8 @@ namespace PSharpBatchTester
             var testApplicationName = Path.GetFileName(config.TestApplicationPath);
 
             //Uploading the data files to azure storage and get the resource objects.
-            var inputFiles = await blobOperations.UploadInputFiles(config.TestApplicationPath, config.PoolId, JobId);
+            //var inputFiles = await blobOperations.UploadInputFiles(config.TestApplicationPath, config.PoolId, JobId);
+            var inputFiles = await blobOperations.UploadInputFilesFromCommandEntities(config.CommandEntities, config.PoolId, JobId);
 
             //Uploading JobManager Files
             var jobManagerFiles = await blobOperations.UploadJobManagerFiles(jobManagerFilePath, config.PoolId, JobId);
@@ -122,16 +125,26 @@ namespace PSharpBatchTester
                 );
 
             //Adding tasks
-            await batchOperations.AddTaskWithIterations
+            await batchOperations.AddTasksFromCommandEntities
                 (
                     jobId: JobId,
                     taskIDPrefix: config.TaskDefaultId,
                     inputFiles: inputFiles,
-                    testFileName: testApplicationName,
-                    NumberOfTasks: config.NumberOfTasks,
-                    IterationsPerTask : config.IterationsPerTask,
-                    commandFlags : config.CommandFlags
+                    CommandEntities: config.CommandEntities
                 );
+
+            #region OldTaskAddition
+            //await batchOperations.AddTaskWithIterations
+            //    (
+            //        jobId: JobId,
+            //        taskIDPrefix: config.TaskDefaultId,
+            //        inputFiles: inputFiles,
+            //        testFileName: testApplicationName,
+            //        NumberOfTasks: config.NumberOfTasks,
+            //        IterationsPerTask : config.IterationsPerTask,
+            //        commandFlags : config.CommandFlags
+            //    ); 
+            #endregion
 
 
             //Monitor tasks

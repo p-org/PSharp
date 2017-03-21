@@ -28,6 +28,8 @@ namespace PSharpBatchTestGui
 
         private PSharpBatchConfig config;
 
+        private PSharpBatchAuthConfig authConfig;
+
         private ControlWriter controlWriter;
 
         private bool DeleteBlobAfterComplete;
@@ -74,13 +76,25 @@ namespace PSharpBatchTestGui
         }
 
         /// <summary>
+        /// Load Authentication config from a user chosen path
+        /// </summary>
+        /// <param name="path"></param>
+        public void LoadAuthConfig()
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = UIConstants.FileExtensionFilter;
+            fileDialog.ShowDialog();
+            var path = fileDialog.FileName;
+            if (string.IsNullOrEmpty(path)) { return; }
+            authConfig = PSharpBatchAuthConfig.LoadFromXML(path);
+            ApplyAuthConfig();
+        }
+
+        /// <summary>
         /// Applying loaded config to the UI Elements
         /// </summary>
         public void ApplyConfig()
         {
-            BatchAccountKeyTextbox.Text = config.BatchAccountKey;
-            BatchAccountNameTextbox.Text = config.BatchAccountName;
-            BatchAccountUrlTextbox.Text = config.BatchAccountUrl;
             SASExpiryHoursTextbox.Text = config.BlobContainerSasExpiryHours.ToString();
             JobIDTextbox.Text = config.JobDefaultId;
             NumNodesTextbox.Text = config.NumberOfNodesInPool.ToString();
@@ -88,12 +102,19 @@ namespace PSharpBatchTestGui
             PoolIDTextbox.Text = config.PoolId;
             PSharpBinariesTextbox.Text = config.PSharpBinariesFolderPath;
             PSharpTestCommandTextbox.Text = config.PSharpTestCommand;
-            StorageAccountKeyTextbox.Text = config.StorageAccountKey;
-            StorageAccountNameTextbox.Text = config.StorageAccountName;
             TaskIDTextbox.Text = config.TaskDefaultId;
             TaskWaitHoursTextbox.Text = config.TaskWaitHours.ToString();
             DeleteJobAfterCompleteCheckbox.IsChecked = config.DeleteJobAfterDone;
             DeleteBlobAfterCompleteCheckbox.IsChecked = config.DeleteContainerAfterDone;
+        }
+
+        public void ApplyAuthConfig()
+        {
+            BatchAccountKeyTextbox.Text = authConfig.BatchAccountKey;
+            BatchAccountNameTextbox.Text = authConfig.BatchAccountName;
+            BatchAccountUrlTextbox.Text = authConfig.BatchAccountUrl;
+            StorageAccountKeyTextbox.Text = authConfig.StorageAccountKey;
+            StorageAccountNameTextbox.Text = authConfig.StorageAccountName;
         }
 
         /// <summary>
@@ -107,9 +128,6 @@ namespace PSharpBatchTestGui
             {
                 config = new PSharpBatchConfig
                 {
-                    BatchAccountKey = BatchAccountKeyTextbox.Text,
-                    BatchAccountName = BatchAccountNameTextbox.Text,
-                    BatchAccountUrl = BatchAccountUrlTextbox.Text,
                     BlobContainerSasExpiryHours = int.Parse(SASExpiryHoursTextbox.Text),
                     JobDefaultId = JobIDTextbox.Text,
                     NumberOfNodesInPool = int.Parse(NumNodesTextbox.Text),
@@ -117,14 +135,11 @@ namespace PSharpBatchTestGui
                     PoolId = PoolIDTextbox.Text,
                     PSharpBinariesFolderPath = PSharpBinariesTextbox.Text,
                     PSharpTestCommand = PSharpTestCommandTextbox.Text,
-                    StorageAccountKey = StorageAccountKeyTextbox.Text,
-                    StorageAccountName = StorageAccountNameTextbox.Text,
                     TaskDefaultId = TaskIDTextbox.Text,
                     TaskWaitHours = int.Parse(TaskWaitHoursTextbox.Text),
                     DeleteJobAfterDone = DeleteJobAfterCompleteCheckbox.IsChecked ?? false,
                     DeleteContainerAfterDone = DeleteBlobAfterCompleteCheckbox.IsChecked ?? false
                 };
-
                 PSharpBatchTestCommon.PSharpOperations.ParseConfig(config);
             }
             catch(Exception e)
@@ -132,6 +147,27 @@ namespace PSharpBatchTestGui
                 return false;
             }
             return true;
+        }
+
+        public bool ExtractAuthConfig()
+        {
+            if (!validateAuthUIElements()) { return false; }
+            try
+            {
+                authConfig = new PSharpBatchAuthConfig
+                {
+                    BatchAccountKey = BatchAccountKeyTextbox.Text,
+                    BatchAccountName = BatchAccountNameTextbox.Text,
+                    BatchAccountUrl = BatchAccountUrlTextbox.Text,
+                    StorageAccountKey = StorageAccountKeyTextbox.Text,
+                    StorageAccountName = StorageAccountNameTextbox.Text
+                };
+            }
+            catch(Exception e)
+            {
+                return false;
+            }
+            return true && authConfig.Validate();
         }
 
         /// <summary>
@@ -142,18 +178,6 @@ namespace PSharpBatchTestGui
         {
             int temp;
             uint utemp;
-            if (string.IsNullOrEmpty(BatchAccountKeyTextbox.Text))
-            {
-                return false;
-            }
-            if (string.IsNullOrEmpty(BatchAccountNameTextbox.Text))
-            {
-                return false;
-            }
-            if (string.IsNullOrEmpty(BatchAccountUrlTextbox.Text))
-            {
-                return false;
-            }
             if (string.IsNullOrEmpty(SASExpiryHoursTextbox.Text) || !int.TryParse(SASExpiryHoursTextbox.Text, out temp))
             {
                 return false;
@@ -182,19 +206,40 @@ namespace PSharpBatchTestGui
             {
                 return false;
             }
-            if (string.IsNullOrEmpty(StorageAccountKeyTextbox.Text))
-            {
-                return false;
-            }
-            if (string.IsNullOrEmpty(StorageAccountNameTextbox.Text))
-            {
-                return false;
-            }
             if (string.IsNullOrEmpty(TaskIDTextbox.Text))
             {
                 return false;
             }
             if (string.IsNullOrEmpty(TaskWaitHoursTextbox.Text) || !uint.TryParse(TaskWaitHoursTextbox.Text, out utemp))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Validates the Authentication UI Elements
+        /// </summary>
+        /// <returns></returns>
+        public bool validateAuthUIElements()
+        {
+            if (string.IsNullOrEmpty(BatchAccountKeyTextbox.Text))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(BatchAccountNameTextbox.Text))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(BatchAccountUrlTextbox.Text))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(StorageAccountKeyTextbox.Text))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(StorageAccountNameTextbox.Text))
             {
                 return false;
             }
@@ -250,6 +295,30 @@ namespace PSharpBatchTestGui
             config.SaveAsXML(path);
         }
 
+        /// <summary>
+        /// Save config file to local disk
+        /// </summary>
+        /// <param name="path"></param>
+        public void SaveAuthConfig()
+        {
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            fileDialog.Filter = UIConstants.FileExtensionFilter;
+            fileDialog.AddExtension = true;
+            fileDialog.ShowDialog();
+            var path = fileDialog.FileName;
+            if (string.IsNullOrEmpty(path)) { return; }
+            if (null == authConfig)
+            {
+                return;
+            }
+            if (!ExtractAuthConfig())
+            {
+                MessageBox.Show(UIConstants.IncorrectParameterDuringSave);
+                return;
+            }
+            //Save this config file
+            authConfig.SaveAsXML(path);
+        }
 
         /// <summary>
         /// Action when Clear button is clicked
@@ -276,7 +345,9 @@ namespace PSharpBatchTestGui
 
             Console.WriteLine("Extracting Configurations");
             var isExtractSuccess = ExtractConfig();
-            if (!isExtractSuccess || null == config || !config.Validate())
+            var isAuthExtractSuccess = ExtractAuthConfig();
+            if (!isExtractSuccess || null == config || !config.Validate() || !isAuthExtractSuccess || 
+                null == authConfig || !authConfig.Validate())
             {
                 MessageBox.Show(UIConstants.IncorrectParameterDuringRun);
             }
@@ -346,10 +417,10 @@ namespace PSharpBatchTestGui
         private async Task Run()
         {
             //Creating BatchOperations
-            BatchOperations batchOperations = new BatchOperations(config.BatchAccountName, config.BatchAccountKey, config.BatchAccountUrl);
+            BatchOperations batchOperations = new BatchOperations(authConfig.BatchAccountName, authConfig.BatchAccountKey, authConfig.BatchAccountUrl);
 
             //Creating BlobOperations
-            BlobOperations blobOperations = new BlobOperations(config.StorageAccountName, config.StorageAccountKey, config.BlobContainerSasExpiryHours);
+            BlobOperations blobOperations = new BlobOperations(authConfig.StorageAccountName, authConfig.StorageAccountKey, config.BlobContainerSasExpiryHours);
 
 
             //Pool operations

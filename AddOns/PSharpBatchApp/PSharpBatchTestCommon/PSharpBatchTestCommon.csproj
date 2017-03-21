@@ -67,11 +67,14 @@
     <Compile Include="BlobOperations.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PSharpBatchAuthConfig.cs" />
     <Compile Include="PSharpBatchConfig.cs" />
     <Compile Include="PSharpOperations.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="PSharpBatch.config" />
+    <None Include="PSharpBatchAuth.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

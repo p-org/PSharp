@@ -5,19 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using static PSharpBatchTestCommon.PSharpOperations;
 
 namespace PSharpBatchTestCommon
 {
     public class PSharpBatchConfig
     {
-        // Batch account credentials
-        public string BatchAccountName;
-        public string BatchAccountKey;
-        public string BatchAccountUrl;
-
-        // Storage account credentials
-        public string StorageAccountName;
-        public string StorageAccountKey;
 
         //Job and pool details
         public string PoolId;
@@ -31,6 +24,8 @@ namespace PSharpBatchTestCommon
 
         //Node Details
         public int NumberOfNodesInPool;
+        public string NodeOsFamily; //Default Value : 5
+        public string NodeVirtualMachineSize; //Default value : small
 
         //File Details
         public string PSharpBinariesFolderPath;
@@ -66,6 +61,32 @@ namespace PSharpBatchTestCommon
         [XmlIgnore]
         public string TestApplicationPath;
 
+        [XmlArray("Commands")]
+        [XmlArrayItem("Command")]
+        public List<PSharpCommandEntities> CommandEntities;
+
+
+        public class PSharpCommandEntities
+        {
+            public int NumberOfParallelTasks;
+            public int IterationsPerTask;
+            public string TestApplicationPath;
+            public string CommandFlags;
+
+            public PSharpCommandEntities()
+            {
+                NumberOfParallelTasks = 1;
+                IterationsPerTask = 1;
+            }
+        }
+
+        public PSharpBatchConfig()
+        {
+            //Default Values
+            this.NodeOsFamily = "5";
+            this.NodeVirtualMachineSize = "small";
+        }
+
         public void SaveAsXML(string path)
         {
             using(FileStream fileStream = new FileStream(path, FileMode.Create))
@@ -81,6 +102,7 @@ namespace PSharpBatchTestCommon
             using(FileStream fileStream = new FileStream(path, FileMode.Open))
             {
                 config = XMLDeserialize(fileStream);
+                fileStream.Close();
             }
             return config;
         }
@@ -100,12 +122,6 @@ namespace PSharpBatchTestCommon
         public bool Validate()
         {
             //Validate all the properties
-            if (string.IsNullOrEmpty(this.BatchAccountName) || string.IsNullOrEmpty(this.BatchAccountKey) 
-                || string.IsNullOrEmpty(this.BatchAccountUrl) || string.IsNullOrEmpty(this.StorageAccountName) 
-                || string.IsNullOrEmpty(this.StorageAccountKey))
-            {
-                return false;
-            }
 
             if(string.IsNullOrEmpty(this.PoolId) || string.IsNullOrEmpty(this.JobDefaultId) 
                 || string.IsNullOrEmpty(this.TaskDefaultId))

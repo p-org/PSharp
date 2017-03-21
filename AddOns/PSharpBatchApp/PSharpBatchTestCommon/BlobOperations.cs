@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static PSharpBatchTestCommon.PSharpBatchConfig;
 
 namespace PSharpBatchTestCommon
 {
@@ -23,7 +24,7 @@ namespace PSharpBatchTestCommon
         CloudBlobClient blobClient;
 
         //Resource Files
-        List<ResourceFile> applicationFiles;
+        List<ResourceFile> nodeFiles;
         List<ResourceFile> jobManagerFiles;
         List<ResourceFile> inputFiles;
         string nodeContainerName;
@@ -103,11 +104,11 @@ namespace PSharpBatchTestCommon
         /// <returns></returns>
         public async Task<List<ResourceFile>> UploadNodeFiles(string nodeFodlerPath, string poolId)
         {
-            nodeContainerName = string.Format(Constants.ApplicationContainerNameFormat, poolId.ToLower());
+            nodeContainerName = string.Format(Constants.NodeContainerNameFormat, poolId.ToLower());
             await CreateContainerIfNotExistAsync(nodeContainerName);
-            var applicationFilePaths = new List<string> { nodeFodlerPath };
-            applicationFiles = await UploadFilesAndFoldersToContainerAsync(nodeContainerName, applicationFilePaths);
-            return applicationFiles;
+            var nodeFilePaths = new List<string> { nodeFodlerPath };
+            nodeFiles = await UploadFilesAndFoldersToContainerAsync(nodeContainerName, nodeFilePaths, true);
+            return nodeFiles;
         }
 
         /// <summary>
@@ -137,6 +138,21 @@ namespace PSharpBatchTestCommon
             await CreateContainerIfNotExistAsync(inputContainerName);
             //inputFiles = await UploadFilesAndFoldersToContainerAsync(inputContainerName, inputFilePaths);
             inputFiles = await UploadDllsAndDependenciesAsync(inputContainerName, inputFilePath);
+            return inputFiles;
+        }
+
+        public async Task<List<ResourceFile>> UploadInputFilesFromCommandEntities(List<PSharpCommandEntities> CommandEntites, string poolId, string jobId)
+        {
+            inputContainerName = string.Format(Constants.InputContainerNameFormat, poolId.ToLower(), jobId.ToLower());
+            await CreateContainerIfNotExistAsync(inputContainerName);
+            inputFiles = new List<ResourceFile>();
+            //inputFiles = await UploadFilesAndFoldersToContainerAsync(inputContainerName, inputFilePaths);
+            //Creating application hashset
+            HashSet<string> applicationPaths = new HashSet<string>(CommandEntites.Select(ce => Path.GetFullPath(ce.TestApplicationPath)));
+            foreach(var filePath in applicationPaths)
+            {
+                inputFiles.AddRange(await UploadDllsAndDependenciesAsync(inputContainerName, filePath));
+            }
             return inputFiles;
         }
 
@@ -185,7 +201,7 @@ namespace PSharpBatchTestCommon
 
         public List<ResourceFile> GetApplicationResourceFiles()
         {
-            return applicationFiles;
+            return nodeFiles;
         }
 
         public List<ResourceFile> GetInputResourceFiles()
@@ -223,7 +239,7 @@ namespace PSharpBatchTestCommon
         }
 
 
-        public async Task<List<ResourceFile>> UploadDllsAndDependenciesAsync(string inputContainerName, string applicationPath)
+        public async Task<List<ResourceFile>> UploadDllsAndDependenciesAsync(string inputContainerName, string applicationPath, bool IsInfinteTimeout = false)
         {
             HashSet<string> allDependencies = new HashSet<string>();
             var fullPath = Path.GetFullPath(applicationPath);
@@ -236,7 +252,7 @@ namespace PSharpBatchTestCommon
             allDependencies = GetDependenciesRecursive(fullPath);
             allDependencies.Add(fullPath);
             var finalPaths = allDependencies.ToList();
-            return await UploadFilesToContainerAsync(inputContainerName, finalPaths);
+            return await UploadFilesToContainerAsync(inputContainerName, finalPaths, IsInfinteTimeout);
         }
 
         private HashSet<string> GetDependenciesRecursive(string filePath)
@@ -279,7 +295,7 @@ namespace PSharpBatchTestCommon
             return allDependencies;
         }
 
-        public async Task<List<ResourceFile>> UploadFilesAndFoldersToContainerAsync(string inputContainerName, List<string> filePaths)
+        public async Task<List<ResourceFile>> UploadFilesAndFoldersToContainerAsync(string inputContainerName, List<string> filePaths, bool IsInfiniteTimeout = false)
         {
             List<string> allFilePaths = new List<string>();
             foreach (var path in filePaths)
@@ -295,23 +311,23 @@ namespace PSharpBatchTestCommon
                 }
             }
 
-            return await UploadFilesToContainerAsync(inputContainerName, allFilePaths);
+            return await UploadFilesToContainerAsync(inputContainerName, allFilePaths, IsInfiniteTimeout);
         }
 
 
-        private async Task<List<ResourceFile>> UploadFilesToContainerAsync(string inputContainerName, List<string> filePaths)
+        private async Task<List<ResourceFile>> UploadFilesToContainerAsync(string inputContainerName, List<string> filePaths, bool IsInfinteTimeout)
         {
             List<ResourceFile> resourceFiles = new List<ResourceFile>();
 
             foreach (string filePath in filePaths)
             {
-                resourceFiles.Add(await UploadFileToContainerAsync(inputContainerName, filePath));
+                resourceFiles.Add(await UploadFileToContainerAsync(inputContainerName, filePath, IsInfinteTimeout));
             }
 
             return resourceFiles;
         }
 
-        public async Task<ResourceFile> UploadFileToContainerAsync(string containerName, string filePath)
+        public async Task<ResourceFile> UploadFileToContainerAsync(string containerName, string filePath, bool IsInfinteTimeout)
         {
             Console.WriteLine("Uploading file {0} to container [{1}]...", filePath, containerName);
 
@@ -325,7 +341,7 @@ namespace PSharpBatchTestCommon
             // so the shared access signature becomes valid immediately
             SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy
             {
-                SharedAccessExpiryTime = (ContainerExpiryHours < 0)?DateTime.MaxValue.ToUniversalTime():DateTime.UtcNow.AddHours(ContainerExpiryHours),
+                SharedAccessExpiryTime = (ContainerExpiryHours < 0 || IsInfinteTimeout) ?DateTime.MaxValue.ToUniversalTime():DateTime.UtcNow.AddHours(ContainerExpiryHours),
                 Permissions = SharedAccessBlobPermissions.Read
             };
 

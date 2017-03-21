@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static PSharpBatchTestCommon.PSharpBatchConfig;
 
 namespace PSharpBatchTestCommon
 {
@@ -216,6 +217,30 @@ namespace PSharpBatchTestCommon
             {
                 var command = string.Format(Constants.PSharpTaskCommandFormatWithFlags, testFileName, IterationsPerTask, commandFlags);
                 taskCommands.Add(command);
+            }
+
+            return await AddTasksAsync(jobId, taskIDPrefix, inputFiles, taskCommands);
+        }
+
+        /// <summary>
+        /// Adds tasks from Command entities containing multiple test commands
+        /// </summary>
+        /// <param name="jobId"></param>
+        /// <param name="taskIDPrefix"></param>
+        /// <param name="inputFiles"></param>
+        /// <param name="CommandEntities"></param>
+        /// <returns></returns>
+        public async Task<List<CloudTask>> AddTasksFromCommandEntities(string jobId, string taskIDPrefix, List<ResourceFile> inputFiles, List<PSharpCommandEntities> CommandEntities)
+        {
+            //Creating tasks with iterations
+            List<string> taskCommands = new List<string>();
+            foreach(var entity in CommandEntities)
+            {
+                for (int i = 0; i < entity.NumberOfParallelTasks; i++)
+                {
+                    var command = string.Format(Constants.PSharpTaskCommandFormatWithFlags, Path.GetFileName(entity.TestApplicationPath), entity.IterationsPerTask, entity.CommandFlags);
+                    taskCommands.Add(command);
+                }
             }
 
             return await AddTasksAsync(jobId, taskIDPrefix, inputFiles, taskCommands);
