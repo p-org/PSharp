@@ -278,7 +278,6 @@ namespace Microsoft.PSharp.TestingServices
                         ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     }
                 }
-
             }, base.CancellationTokenSource.Token);
 
             return task;

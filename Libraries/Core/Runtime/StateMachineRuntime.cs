@@ -38,11 +38,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private ConcurrentDictionary<ulong, Machine> MachineMap;
 
-        /// <summary>
-        /// Map from task ids to machines.
-        /// </summary>
-        private ConcurrentDictionary<int, Machine> TaskMap;
-
         #endregion
 
         #region initialization
@@ -73,7 +68,6 @@ namespace Microsoft.PSharp
         {
             this.Monitors = new List<Monitor>();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
-            this.TaskMap = new ConcurrentDictionary<int, Machine>();
         }
 
         #endregion
@@ -174,9 +168,9 @@ namespace Microsoft.PSharp
         public override void SendEvent(MachineId target, Event e)
         {
             // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
+            base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
+            base.Assert(e != null, "Cannot send a null event.");
             this.Send(target, e, null, false, false);
         }
 
@@ -189,9 +183,9 @@ namespace Microsoft.PSharp
         public override void SendEventAndExecute(MachineId target, Event e)
         {
             // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
+            base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
+            base.Assert(e != null, "Cannot send a null event.");
             this.Send(target, e, null, true, false);
         }
 
@@ -203,64 +197,10 @@ namespace Microsoft.PSharp
         public override void RemoteSendEvent(MachineId target, Event e)
         {
             // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
+            base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
+            base.Assert(e != null, "Cannot send a null event.");
             this.SendRemotely(target, e, null, false);
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types.
-        /// </summary>
-        /// <param name="eventTypes">Event types</param>
-        /// <returns>Received event</returns>
-        public override Event Receive(params Type[] eventTypes)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not correspond to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Receive(eventTypes);
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified type
-        /// that satisfies the specified predicate.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <returns>Received event</returns>
-        public override Event Receive(Type eventType, Func<Event, bool> predicate)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Receive(eventType, predicate);
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types
-        /// that satisfy the specified predicates.
-        /// </summary>
-        /// <param name="events">Event types and predicates</param>
-        /// <returns>Received event</returns>
-        public override Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Receive(events);
         }
 
         /// <summary>
@@ -280,22 +220,8 @@ namespace Microsoft.PSharp
         public override void InvokeMonitor<T>(Event e)
         {
             // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot monitor a null event.");
+            base.Assert(e != null, "Cannot monitor a null event.");
             this.Monitor<T>(null, e);
-        }
-
-        /// <summary>
-        /// Gets the id of the currently executing <see cref="Machine"/>.
-        /// <returns>MachineId</returns>
-        /// </summary>
-        public override MachineId GetCurrentMachineId()
-        {
-            if (Task.CurrentId == null || !this.TaskMap.ContainsKey((int)Task.CurrentId))
-            {
-                return null;
-            }
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Id;
         }
 
         /// <summary>
@@ -324,7 +250,7 @@ namespace Microsoft.PSharp
         internal override MachineId TryCreateMachine(Type type, string friendlyName, Event e,
             Machine creator, bool executeSynchronously)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' is not a machine.");
+            base.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' is not a machine.");
 
             MachineId mid = new MachineId(type, friendlyName, this);
             Machine machine = MachineFactory.Create(type);
@@ -333,9 +259,9 @@ namespace Microsoft.PSharp
             machine.InitializeStateInformation();
             
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
-            this.Assert(result, $"Machine '{mid}' was already created.");
+            base.Assert(result, $"Machine '{mid}' was already created.");
 
-            this.Log($"<CreateLog> Machine '{mid}' is created.");
+            base.Log($"<CreateLog> Machine '{mid}' is created.");
 
             if (executeSynchronously)
             {
@@ -361,7 +287,7 @@ namespace Microsoft.PSharp
         internal override MachineId TryCreateRemoteMachine(Type type, string friendlyName, string endpoint,
             Event e, Machine creator)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)),
+            base.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
             return base.NetworkProvider.RemoteCreateMachine(type, friendlyName, endpoint, e);
         }
@@ -386,12 +312,12 @@ namespace Microsoft.PSharp
 
             if (sender != null)
             {
-                this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
+                base.Log($"<SendLog> Machine '{sender.Id}' sent event " +
                     $"'{eventInfo.EventName}' to '{mid}'.");
             }
             else
             {
-                this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
+                base.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
             bool runNewHandler = false;
@@ -433,10 +359,10 @@ namespace Microsoft.PSharp
             {
                 if (isFresh)
                 {
-                    machine.GotoStartState(e);
+                    machine.GotoStartState(e).Wait();
                 }
 
-                machine.RunEventHandler();
+                machine.RunEventHandler().Wait();
             }
             catch (Exception ex)
             {
@@ -454,33 +380,23 @@ namespace Microsoft.PSharp
         /// <param name="isFresh">Is a new machine</param>
         private void RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh)
         {
-
-            Task task = new Task(() =>
+            Task.Run(async () =>
             {
                 try
                 {
                     if (isFresh)
                     {
-                        machine.GotoStartState(e);
+                        await machine.GotoStartState(e);
                     }
 
-                    machine.RunEventHandler();
+                    await machine.RunEventHandler();
                 }
                 catch (Exception ex)
                 {
                     base.IsRunning = false;
                     base.RaiseOnFailureEvent(ex);
                 }
-                finally
-                {
-                    Machine m;
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out m);
-                }
             });
-
-            this.TaskMap.TryAdd(task.Id, machine);
-
-            task.Start();
         }
 
         #endregion
@@ -499,7 +415,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
+            base.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
                 "is not a subclass of Monitor.\n");
 
             MachineId mid = new MachineId(type, null, this);
@@ -512,7 +428,7 @@ namespace Microsoft.PSharp
                 this.Monitors.Add(monitor as Monitor);
             }
 
-            this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+            base.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
             (monitor as Monitor).GotoStartState();
         }
@@ -577,12 +493,12 @@ namespace Microsoft.PSharp
 
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                base.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{result}'.");
             }
             else
             {
-                this.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
+                base.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
             }
 
             return result;
@@ -614,12 +530,12 @@ namespace Microsoft.PSharp
 
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                base.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{result}'.");
             }
             else
             {
-                this.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
+                base.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
             }
 
             return result;
@@ -644,7 +560,7 @@ namespace Microsoft.PSharp
             {
                 string machineState = (machine as Machine).CurrentStateName;
 
-                this.Log($"<StateLog> Machine '{machine.Id}' enters " +
+                base.Log($"<StateLog> Machine '{machine.Id}' enters " +
                     $"state '{machineState}'.");
             }
             else if (machine is Monitor)
@@ -661,7 +577,7 @@ namespace Microsoft.PSharp
                     liveness = "'cold' ";
                 }
 
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"enters {liveness}state '{monitorState}'.");
             }
         }
@@ -681,7 +597,7 @@ namespace Microsoft.PSharp
             {
                 string machineState = (machine as Machine).CurrentStateName;
 
-                this.Log($"<StateLog> Machine '{machine.Id}' exits " +
+                base.Log($"<StateLog> Machine '{machine.Id}' exits " +
                     $"state '{machineState}'.");
             }
             else if (machine is Monitor)
@@ -700,7 +616,7 @@ namespace Microsoft.PSharp
                     monitorState += "[cold]";
                 }
 
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"exits {liveness}state '{monitorState}'.");
             }
         }
@@ -722,14 +638,14 @@ namespace Microsoft.PSharp
             {
                 string machineState = (machine as Machine).CurrentStateName;
 
-                this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
+                base.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
                     $"'{action.Name}' in state '{machineState}'.");
             }
             else if (machine is Monitor)
             {
                 string monitorState = (machine as Monitor).CurrentStateName;
 
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
+                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
                     $"action '{action.Name}' in state '{monitorState}'.");
             }
         }
@@ -741,7 +657,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
+            base.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
         }
 
@@ -761,14 +677,14 @@ namespace Microsoft.PSharp
             if (machine is Machine)
             {
                 string machineState = (machine as Machine).CurrentStateName;
-                this.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
+                base.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
                     $"event '{eventInfo.EventName}'.");
             }
             else if (machine is Monitor)
             {
                 string monitorState = (machine as Monitor).CurrentStateName;
 
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
+                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
                     $"event '{eventInfo.EventName}'.");
             }
         }
@@ -777,19 +693,9 @@ namespace Microsoft.PSharp
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="events">Events</param>
-        internal override void NotifyWaitEvents(Machine machine, string events)
+        internal override void NotifyWaitEvents(Machine machine)
         {
-            this.Log($"<ReceiveLog> Machine '{machine.Id}' " +
-                $"is waiting on events:{events}.");
-
-            lock (machine)
-            {
-                while (machine.IsWaitingToReceive)
-                {
-                    System.Threading.Monitor.Wait(machine);
-                }
-            }
+            base.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting to receive an event.");
         }
 
         /// <summary>
@@ -799,7 +705,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
-            this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
+            base.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                 $"event '{eventInfo.EventName}' and unblocked.");
 
             lock (machine)
@@ -815,7 +721,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         internal override void NotifyHalted(Machine machine)
         {
-            this.Log($"<HaltLog> Machine '{machine.Id}' halted.");
+            base.Log($"<HaltLog> Machine '{machine.Id}' halted.");
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 
@@ -830,7 +736,6 @@ namespace Microsoft.PSharp
         {
             this.Monitors.Clear();
             this.MachineMap.Clear();
-            this.TaskMap.Clear();
             base.Dispose();
         }
 

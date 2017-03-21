@@ -56,6 +56,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #endregion
 
         #region properties
+        
+        /// <summary>
+        /// The currently scheduled machine info.
+        /// </summary>
+        internal MachineInfo ScheduledMachine { get; private set; }
 
         /// <summary>
         /// Number of explored steps.
@@ -135,6 +140,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.HasFullyExploredSchedule = true;
                 this.Stop();
             }
+
+            this.ScheduledMachine = next;
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
             next.Machine.ProgramCounter = 0;
@@ -374,6 +381,26 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             Debug.WriteLine($"<ScheduleDebug> Task '{machineInfo.Id}' of machine " +
                 $"'{machineInfo.Machine.Id}' received an event and unblocked.");
+        }
+
+        /// <summary>
+        /// Notify that the task of the scheduled machine changed.
+        /// This can occur if a machine is using async/await.
+        /// </summary>
+        /// <param name="taskId">Task id</param>
+        internal void NotifyScheduledMachineTaskChanged(int taskId)
+        {
+            MachineInfo parentInfo = this.ScheduledMachine;
+
+            Debug.WriteLine($"<ScheduleDebug> Task '{parentInfo.Id}' changed to {taskId}.");
+
+            parentInfo.IsEnabled = false;
+            parentInfo.IsCompleted = true;
+
+            this.TaskMap.TryRemove(parentInfo.Id, out parentInfo);
+
+            this.ScheduledMachine = this.TaskMap[taskId];
+            this.ScheduledMachine.HasStarted = true;
         }
 
         /// <summary>

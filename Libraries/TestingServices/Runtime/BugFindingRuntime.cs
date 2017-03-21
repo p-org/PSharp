@@ -46,10 +46,20 @@ namespace Microsoft.PSharp.TestingServices
         internal LivenessChecker LivenessChecker;
 
         /// <summary>
+        /// The asynchronous task scheduler.
+        /// </summary>
+        internal AsynchronousTaskScheduler TaskScheduler;
+
+        /// <summary>
         /// The P# program schedule trace.
         /// </summary>
         internal ScheduleTrace ScheduleTrace;
-        
+
+        /// <summary>
+        /// The bug trace.
+        /// </summary>
+        internal BugTrace BugTrace;
+
         /// <summary>
         /// Data structure containing information
         /// regarding testing coverage.
@@ -60,12 +70,7 @@ namespace Microsoft.PSharp.TestingServices
         /// The P# program state cache.
         /// </summary>
         internal StateCache StateCache;
-
-        /// <summary>
-        /// The bug trace.
-        /// </summary>
-        internal BugTrace BugTrace;
-
+        
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
@@ -116,6 +121,7 @@ namespace Microsoft.PSharp.TestingServices
             
             this.Scheduler = new BugFindingScheduler(this, strategy);
             this.LivenessChecker = new LivenessChecker(this, strategy);
+            this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.StateCache = new StateCache(this);
             this.CoverageInfo = new CoverageInfo();
         }
@@ -301,60 +307,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types.
-        /// </summary>
-        /// <param name="eventTypes">Event types</param>
-        /// <returns>Received event</returns>
-        public override Event Receive(params Type[] eventTypes)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not correspond to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Receive(eventTypes);
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified type
-        /// that satisfies the specified predicate.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <returns>Received event</returns>
-        public override Event Receive(Type eventType, Func<Event, bool> predicate)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Receive(eventType, predicate);
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types
-        /// that satisfy the specified predicates.
-        /// </summary>
-        /// <param name="events">Event types and predicates</param>
-        /// <returns>Received event</returns>
-        public override Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
-        {
-            this.Assert(Task.CurrentId != null, "Only machines can " +
-                "wait to receive an event.");
-            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task " +
-                $"{(int)Task.CurrentId} does not belong to a machine.");
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Receive(events);
-        }
-
-        /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
@@ -373,21 +325,6 @@ namespace Microsoft.PSharp.TestingServices
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot monitor a null event.");
             this.Monitor<T>(null, e);
-        }
-
-        /// <summary>
-        /// Gets the id of the currently executing <see cref="Machine"/>.
-        /// <returns>MachineId</returns>
-        /// </summary>
-        public override MachineId GetCurrentMachineId()
-        {
-            if (Task.CurrentId == null || !this.TaskMap.ContainsKey((int)Task.CurrentId))
-            {
-                return null;
-            }
-
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Id;
         }
 
         /// <summary>
@@ -624,7 +561,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
 		private void RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh, bool executeSynchronously)
         {
-            Task task = new Task(() =>
+            Task task = new Task(async () =>
             {
                 try
                 {
@@ -634,10 +571,10 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (isFresh)
                     {
-                        machine.GotoStartState(e);
+                        await machine.GotoStartState(e);
                     }
 
-                    machine.RunEventHandler();
+                    await machine.RunEventHandler();
                     machine.IsInsideSynchronousCall = false;
 
                     this.Scheduler.NotifyTaskCompleted();
@@ -656,7 +593,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
 
-            task.Start();
+            task.Start(this.TaskScheduler);
 
             this.Scheduler.WaitForTaskToStart(task.Id);
         }
@@ -727,7 +664,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (!predicate)
             {
-                string message = "Assertion failure.";
+                string message = "Detected an assertion failure.";
                 this.Scheduler.NotifyAssertionFailure(message);
             }
         }
@@ -1079,14 +1016,15 @@ namespace Microsoft.PSharp.TestingServices
         /// or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="events">Events</param>
-        internal override void NotifyWaitEvents(Machine machine, string events)
+        internal override void NotifyWaitEvents(Machine machine)
         {
+            string events = machine.GetEventWaitHandlerNames();
+
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
 
             this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
 
-            this.Scheduler.NotifyTaskBlockedOnEvent(Task.CurrentId);
+            this.Scheduler.NotifyTaskBlockedOnEvent(Task.CurrentId.Value);
             this.Scheduler.Schedule();
         }
 

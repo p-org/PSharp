@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ExternalConcurrencyTest.cs">
+// <copyright file="AsyncAwaitTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,13 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class ExternalConcurrencyTest : BaseTest
+    public class AsyncAwaitTest : BaseTest
     {
         class E : Event { }
 
@@ -27,14 +28,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             [Start]
             [OnEntry(nameof(EntryInit))]
+            [IgnoreEvents(typeof(E))]
             class Init : MachineState { }
 
-            void EntryInit()
+            async Task EntryInit()
             {
-                Task task = Task.Run(() => {
-                    this.Send(this.Id, new E());
-                });
-                task.Wait();
+                this.Send(this.Id, new E());
+                await Task.Delay(2);
+                this.Send(this.Id, new E());
             }
         }
 
@@ -42,30 +43,35 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             [Start]
             [OnEntry(nameof(EntryInit))]
+            [IgnoreEvents(typeof(E))]
             class Init : MachineState { }
 
-            void EntryInit()
+            async Task EntryInit()
             {
-                Task task = Task.Run(() => {
-                    this.Random();
-                });
-                task.Wait();
+                this.Send(this.Id, new E());
+                await Task.Delay(2).ConfigureAwait(false);
+                this.Send(this.Id, new E());
             }
         }
 
         [Fact]
-        public void TestExternalTaskSendingEvent()
+        public void TestAsyncDelay()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M)); });
-            string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
-            base.AssertFailed(test, bugReport);
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(M));
+            });
+
+            base.AssertSucceeded(test);
         }
 
         [Fact]
-        public void TestExternalTaskInvokingRandom()
+        public void TestAsyncDelayWithOtherSynchronizationContext()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
-            string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(N));
+            });
+
+            var bugReport = "Detected synchronization context that is not controlled by the P# runtime.";
             base.AssertFailed(test, bugReport);
         }
     }

@@ -224,30 +224,6 @@ namespace Microsoft.PSharp
         public abstract void RemoteSendEvent(MachineId target, Event e);
 
         /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types.
-        /// </summary>
-        /// <param name="eventTypes">Event types</param>
-        /// <returns>Received event</returns>
-        public abstract Event Receive(params Type[] eventTypes);
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified type
-        /// that satisfies the specified predicate.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <returns>Received event</returns>
-        public abstract Event Receive(Type eventType, Func<Event, bool> predicate);
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types
-        /// that satisfy the specified predicates.
-        /// </summary>
-        /// <param name="events">Event types and predicates</param>
-        /// <returns>Received event</returns>
-        public abstract Event Receive(params Tuple<Type, Func<Event, bool>>[] events);
-
-        /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
@@ -293,12 +269,6 @@ namespace Microsoft.PSharp
         {
             return this.GetNondeterministicIntegerChoice(null, maxValue);
         }
-
-        /// <summary>
-        /// Gets the id of the currently executing <see cref="Machine"/>.
-        /// <returns>MachineId</returns>
-        /// </summary>
-        public abstract MachineId GetCurrentMachineId();
 
         /// <summary>
         /// Notifies each active machine to halt execution to allow the runtime
@@ -528,9 +498,7 @@ namespace Microsoft.PSharp
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="events">Events</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyWaitEvents(Machine machine, string events)
+        internal virtual void NotifyWaitEvents(Machine machine)
         {
             // Override to implement the notification.
         }
