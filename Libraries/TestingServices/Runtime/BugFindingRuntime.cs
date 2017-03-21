@@ -228,6 +228,11 @@ namespace Microsoft.PSharp.TestingServices
             this.Monitor<T>(null, e);
         }
 
+        /// <summary>
+        /// Waits until all P# machines have finished execution.
+        /// </summary>
+        public override void Wait() => this.Scheduler.Wait();
+
         #endregion
 
         #region internal methods

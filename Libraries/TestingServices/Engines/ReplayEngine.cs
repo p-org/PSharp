@@ -138,24 +138,24 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = new Task(() =>
             {
-                var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
+                try
+                {
+                    var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
 
-                StringWriter sw = null;
-                if (base.Configuration.RedirectTestConsoleOutput &&
-                    base.Configuration.Verbose < 2)
-                {
-                    sw = base.RedirectConsoleOutput();
-                    base.HasRedirectedConsoleOutput = true;
-                }
-                
-                // Start the test.
-                if (base.TestAction != null)
-                {
-                    base.TestAction(runtime);
-                }
-                else
-                {
-                    try
+                    StringWriter sw = null;
+                    if (base.Configuration.RedirectTestConsoleOutput &&
+                        base.Configuration.Verbose < 2)
+                    {
+                        sw = base.RedirectConsoleOutput();
+                        base.HasRedirectedConsoleOutput = true;
+                    }
+
+                    // Start the test.
+                    if (base.TestAction != null)
+                    {
+                        base.TestAction(runtime);
+                    }
+                    else
                     {
                         if (base.TestInitMethod != null)
                         {
@@ -165,22 +165,11 @@ namespace Microsoft.PSharp.TestingServices
 
                         // Starts the test.
                         base.TestMethod.Invoke(null, new object[] { runtime });
-
                     }
-                    catch (TargetInvocationException ex)
-                    {
-                        if (!(ex.InnerException is TaskCanceledException))
-                        {
-                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                        }
-                    }
-                }
 
-                // Wait for the test to terminate.
-                runtime.Wait();
+                    // Wait for the test to terminate.
+                    runtime.Wait();
 
-                try
-                {
                     // Invokes user-provided cleanup for this iteration.
                     if (base.TestIterationDisposeMethod != null)
                     {
@@ -194,6 +183,23 @@ namespace Microsoft.PSharp.TestingServices
                         // Disposes the test state.
                         base.TestDisposeMethod.Invoke(null, new object[] { });
                     }
+
+                    // Checks for any liveness property violations. Requires
+                    // that the program has terminated and no safety property
+                    // violations have been found.
+                    if (!runtime.Scheduler.BugFound)
+                    {
+                        runtime.LivenessChecker.CheckLivenessAtTermination();
+                    }
+
+                    TestReport report = runtime.Scheduler.GetReport();
+                    report.CoverageInfo.Merge(runtime.CoverageInfo);
+                    this.TestReport.Merge(report);
+
+                    if (base.HasRedirectedConsoleOutput)
+                    {
+                        base.ResetOutput();
+                    }
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -201,23 +207,6 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     }
-                }
-
-                // Checks for any liveness property violations. Requires
-                // that the program has terminated and no safety property
-                // violations have been found.
-                if (!runtime.Scheduler.BugFound)
-                {
-                    runtime.LivenessChecker.CheckLivenessAtTermination();
-                }
-
-                TestReport report = runtime.Scheduler.GetReport();
-                report.CoverageInfo.Merge(runtime.CoverageInfo);
-                this.TestReport.Merge(report);
-
-                if (base.HasRedirectedConsoleOutput)
-                {
-                    base.ResetOutput();
                 }
             }, base.CancellationTokenSource.Token);
 

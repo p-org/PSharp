@@ -347,7 +347,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
-        public void Wait()
+        public virtual void Wait()
         {
             Task[] taskArray = null;
 
