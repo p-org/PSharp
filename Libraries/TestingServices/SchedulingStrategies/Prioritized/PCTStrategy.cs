@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
             var availableMachines = choices.Where(
-                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaitingToReceive).ToList();
+                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
                 availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();

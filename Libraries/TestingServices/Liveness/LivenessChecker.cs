@@ -499,7 +499,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             MachineInfo current)
         {
             var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
+                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
                 availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();

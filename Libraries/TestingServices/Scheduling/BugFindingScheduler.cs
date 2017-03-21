@@ -547,7 +547,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private int NumberOfAvailableMachinesToSchedule()
         {
             var availableMachines = this.TaskMap.Values.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
+                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
             return availableMachines.Count;
         }
 

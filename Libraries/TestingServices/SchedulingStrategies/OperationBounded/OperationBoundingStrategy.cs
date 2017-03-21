@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             var availableMachines = choices.Where(
-                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaitingToReceive).ToList();
+                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
                 availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
