@@ -119,17 +119,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.Stop();
             }
 
+            // Checks if synchronisation not controlled by P# was used.
+            this.CheckIfExternalSynchronizationIsUsed();
+
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            MachineInfo machineInfo = null;
-            if (!this.TaskMap.TryGetValue((int)taskId, out machineInfo))
-            {
-                Debug.WriteLine($"<ScheduleDebug> Unable to schedule task '{taskId}'.");
-                this.Stop();
-            }
-
+            MachineInfo machineInfo = this.TaskMap[(int)taskId];
             MachineInfo next = null;
+
             var choices = this.TaskMap.Values.OrderBy(mi => mi.Machine.Id.Value);
             if (!this.Strategy.TryGetNext(out next, choices, machineInfo))
             {
@@ -203,6 +201,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool GetNextNondeterministicBooleanChoice(
             int maxValue, string uniqueId = null)
         {
+            // Checks if synchronisation not controlled by P# was used.
+            this.CheckIfExternalSynchronizationIsUsed();
+
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
@@ -250,6 +251,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Integer</returns>
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {
+            // Checks if synchronisation not controlled by P# was used.
+            this.CheckIfExternalSynchronizationIsUsed();
+
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
@@ -568,6 +572,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var availableMachines = this.TaskMap.Values.Where(
                 m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
             return availableMachines.Count;
+        }
+
+        /// <summary>
+        /// Checks if external (non-P#) synchronisation was used to invoke
+        /// the scheduler. If yes, it stops the scheduler, reports an error
+        /// and kills all enabled machines.
+        /// </summary>
+        private void CheckIfExternalSynchronizationIsUsed()
+        {
+            int? taskId = Task.CurrentId;
+            if (taskId == null)
+            {
+                string message = IO.Utilities.Format("Detected synchronization context " +
+                    "that is not controlled by the P# runtime.");
+                this.NotifyAssertionFailure(message, true);
+            }
+
+            if (!this.TaskMap.ContainsKey((int)taskId))
+            {
+                string message = IO.Utilities.Format($"Detected task with id '{taskId}' " +
+                    "that is not controlled by the P# runtime.");
+                this.NotifyAssertionFailure(message, true);
+            }
         }
 
         /// <summary>
