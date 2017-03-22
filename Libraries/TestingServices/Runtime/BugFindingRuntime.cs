@@ -948,6 +948,10 @@ namespace Microsoft.PSharp.TestingServices
 
                     this.Scheduler.NotifyTaskCompleted();
                 }
+                catch (ExecutionCanceledException)
+                {
+                    this.Log($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                }
                 finally
                 {
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
