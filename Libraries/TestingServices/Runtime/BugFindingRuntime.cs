@@ -950,7 +950,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
                 catch (ExecutionCanceledException)
                 {
-                    this.Log($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                    IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
                 }
                 finally
                 {
