@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
     public class PSharpRuntime
     {
         #region fields
-
+        
         /// <summary>
         /// The configuration.
         /// </summary>
@@ -572,7 +572,18 @@ namespace Microsoft.PSharp
                 this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
-            Task.Delay(100).Wait();
+            if (RandomInteger(10) == 0)
+            {
+                var delay = 0;
+                var cnt = 0;
+                do
+                {
+                    cnt = RandomInteger(10);
+                    delay += cnt;
+                } while (cnt > 5);
+
+                Task.Delay(delay).Wait();
+            }
 
             bool runNewHandler = false;
             machine.Enqueue(eventInfo, ref runNewHandler);
