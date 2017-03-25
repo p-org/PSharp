@@ -183,6 +183,12 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal Event ReceivedEvent { get; private set; }
 
+        /// <summary>
+        /// User-defined hashed state of the machine. Override to improve the
+        /// accuracy of liveness checking when state caching is enabled.
+        /// </summary>
+        protected virtual int HashedState => 0;
+
         #endregion
 
         #region constructors
@@ -1205,6 +1211,44 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region state caching
+
+        /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        /// <returns>Hash value</returns>
+        internal int GetCachedState()
+        {
+            unchecked
+            {
+                var hash = 19;
+
+                hash = hash + 31 * this.GetType().GetHashCode();
+                hash = hash + 31 * base.Id.Value.GetHashCode();
+                hash = hash + 31 * this.IsRunning.GetHashCode();
+                hash = hash + 31 * this.IsHalted.GetHashCode();
+
+                hash = hash + 31 * this.ProgramCounter;
+                
+                // Adds the user-defined hashed state.
+                hash = hash + 31 * this.HashedState;
+
+                foreach (var state in this.StateStack)
+                {
+                    hash = hash * 31 + state.GetType().GetHashCode();
+                }
+
+                foreach (var e in this.Inbox)
+                {
+                    hash = hash * 31 + e.EventType.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
+        #endregion
+
         #region initialization
 
         /// <summary>
@@ -1416,37 +1460,6 @@ namespace Microsoft.PSharp
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Returns the cached state of this machine.
-        /// </summary>
-        /// <returns>Hash value</returns>
-        internal int GetCachedState()
-        {
-            unchecked
-            {
-                var hash = 19;
-
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * base.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
-                hash = hash + 31 * this.IsHalted.GetHashCode();
-
-                hash = hash + 31 * this.ProgramCounter;
-
-                foreach (var state in this.StateStack)
-                {
-                    hash = hash * 31 + state.GetType().GetHashCode();
-                }
-
-                foreach (var e in this.Inbox)
-                {
-                    hash = hash * 31 + e.EventType.GetHashCode();
-                }
-
-                return hash;
-            }
         }
 
         /// <summary>
