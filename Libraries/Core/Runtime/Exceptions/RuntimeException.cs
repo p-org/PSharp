@@ -19,12 +19,12 @@ namespace Microsoft.PSharp
     /// <summary>
     /// An exception that is thrown by the P# runtime.
     /// </summary>
-    internal class RuntimeException : Exception
+    public class RuntimeException : Exception
     {
         /// <summary>
         /// Initializes a new instance of the exception.
         /// </summary>
-        public RuntimeException()
+        internal RuntimeException()
         {
 
         }
@@ -32,8 +32,20 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes a new instance of the exception.
         /// </summary>
-        public RuntimeException(string message)
+        /// <param name="message">Message</param>
+        internal RuntimeException(string message)
             : base(message)
+        {
+
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the exception.
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="innerException">Inner exception</param>
+        internal RuntimeException(string message, Exception innerException)
+            : base(message, innerException)
         {
 
         }

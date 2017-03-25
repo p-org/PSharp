@@ -67,6 +67,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />

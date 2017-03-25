@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="LoggingException.cs">
+// <copyright file="AssertionFailureException.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,16 +17,27 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Represents errors that occur during logging.
+    /// The exception that is thrown by the P# runtime upon assertion failure.
     /// </summary>
-    internal sealed class LoggingException : Exception
+    internal sealed class AssertionFailureException : RuntimeException
     {
         /// <summary>
         /// Initializes a new instance of the exception.
         /// </summary>
         /// <param name="message">Message</param>
-        public LoggingException(string message)
+        internal AssertionFailureException(string message)
             : base(message)
+        {
+
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the exception.
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="innerException">Inner exception</param>
+        internal AssertionFailureException(string message, Exception innerException)
+            : base(message, innerException)
         {
 
         }

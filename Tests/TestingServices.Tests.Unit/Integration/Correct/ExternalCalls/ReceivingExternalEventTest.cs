@@ -70,7 +70,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestReceivingExternalEvents()
         {
             var configuration = Configuration.Create();
-            configuration.ThrowInternalExceptions = true;
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
 

@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
         #region fields
         
         /// <summary>
-        /// The configuration.
+        /// The configuration used by the runtime.
         /// </summary>
         internal Configuration Configuration;
 
@@ -62,6 +62,11 @@ namespace Microsoft.PSharp
         /// </summary>
         internal INetworkProvider NetworkProvider;
 
+        /// <summary>
+        /// Records if the P# program has faulted.
+        /// </summary>
+        internal volatile bool IsFaulted;
+
         #endregion
 
         #region properties
@@ -70,6 +75,20 @@ namespace Microsoft.PSharp
         /// The installed logger.
         /// </summary>
         public ILogger Logger { get; private set; }
+
+        #endregion
+
+        #region events
+
+        /// <summary>
+        /// Event that is fired when the P# program throws an exception.
+        /// </summary>
+        public event OnFailureHandler OnFailure;
+
+        /// <summary>
+        /// Handles the <see cref="OnFailure"/> event.
+        /// </summary>
+        public delegate void OnFailureHandler(Exception ex);
 
         #endregion
 
@@ -85,7 +104,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new P# runtime.
+        /// Creates a new P# runtime with the specified <see cref="INetworkProvider"/>.
         /// </summary>
         /// <param name="netProvider">NetworkProvider</param>
         /// <returns>PSharpRuntime</returns>
@@ -95,7 +114,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new P# runtime.
+        /// Creates a new P# runtime with the specified <see cref="Utilities.Configuration"/>.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>PSharpRuntime</returns>
@@ -105,7 +124,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new P# runtime.
+        /// Creates a new P# runtime with the specified <see cref="Utilities.Configuration"/>
+        /// and <see cref="INetworkProvider"/>.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="netProvider">NetworkProvider</param>
@@ -116,8 +136,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of the specified type and with
-        /// the specified optional event. This event can only be
+        /// Creates a new machine of the specified <see cref="Type"/> and with
+        /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -129,8 +149,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of the specified type and name, and
-        /// with the specified optional event. This event can only be
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -143,8 +163,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the specified type and with
-        /// the specified optional event. This event can only be used
+        /// Creates a new remote machine of the specified <see cref="Type"/> and with
+        /// the specified optional <see cref="Event"/>. This event can only be used
         /// to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -157,8 +177,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the specified type and name, and
-        /// with the specified optional event. This event can only be used
+        /// Creates a new remote machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be used
         /// to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -187,7 +207,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
@@ -201,7 +221,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a remote machine.
+        /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
@@ -215,8 +235,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the specified types.
-        /// Returns the received event.
+        /// Blocks and waits to receive an <see cref="Event"/> of the specified types.
+        /// Returns the received <see cref="Event"/>.
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Received event</returns>
@@ -233,8 +253,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfies
-        /// the specified predicate. Returns the received event.
+        /// Blocks and waits to receive an <see cref="Event"/> of the specified types that
+        /// satisfies the specified predicate. Returns the received <see cref="Event"/>.
         /// </summary>
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
@@ -252,8 +272,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfy
-        /// the specified predicates. Returns the received event.
+        /// Blocks and waits to receive an <see cref="Event"/> of the specified types that
+        /// satisfy the specified predicates. Returns the received <see cref="Event"/>.
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Received event</returns>
@@ -270,7 +290,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Registers a new specification monitor of the specified type.
+        /// Registers a new specification monitor of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
         public virtual void RegisterMonitor(Type type)
@@ -279,7 +299,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the specified event.
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
@@ -325,40 +345,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        public virtual void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                ErrorReporter.Report(this.Logger, "Assertion failure.");
-                Environment.Exit(1);
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        public virtual void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                string message = IO.Utilities.Format(s, args);
-                ErrorReporter.Report(this.Logger, message);
-                Environment.Exit(1);
-            }
-        }
-
-        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
-        public void Wait()
+        public virtual void Wait()
         {
             Task[] taskArray = null;
 
@@ -443,6 +432,7 @@ namespace Microsoft.PSharp
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
             this.Monitors = new List<Monitor>();
+            this.IsFaulted = false;
         }
 
         #endregion
@@ -450,7 +440,7 @@ namespace Microsoft.PSharp
         #region internal methods
 
         /// <summary>
-        /// Gets the currently executing machine.
+        /// Gets the currently executing <see cref="Machine"/>.
         /// </summary>
         /// <returns>Machine or null, if not present</returns>
         internal virtual Machine GetCurrentMachine()
@@ -471,7 +461,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new machine of the specified type.
+        /// Tries to create a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
@@ -499,7 +489,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new remote machine of the specified type.
+        /// Tries to create a new remote <see cref="Machine"/> of the specified <see cref="System.Type"/>.
         /// </summary>
         /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
@@ -516,7 +506,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the specified type.
+        /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
         internal virtual void TryCreateMonitor(Type type)
@@ -546,7 +536,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
@@ -594,7 +584,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a remote machine.
+        /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
         /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
@@ -606,7 +596,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the specified event.
+        /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
@@ -649,8 +639,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetNondeterministicBooleanChoice(
-            AbstractMachine machine, int maxValue)
+        internal virtual bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -680,8 +669,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetFairNondeterministicBooleanChoice(
-            AbstractMachine machine, string uniqueId)
+        internal virtual bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(machine, 2);
         }
@@ -693,8 +681,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        internal virtual int GetNondeterministicIntegerChoice(
-            AbstractMachine machine, int maxValue)
+        internal virtual int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);
@@ -824,7 +811,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine dequeued an event.
+        /// Notifies that a machine dequeued an <see cref="Event"/>.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
@@ -847,7 +834,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine raised an event.
+        /// Notifies that a machine raised an <see cref="Event"/>.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
         /// <param name="eventInfo">EventInfo</param>
@@ -886,7 +873,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine handles a raised event.
+        /// Notifies that a machine handles a raised <see cref="Event"/>.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
@@ -896,8 +883,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive one
-        /// or more events.
+        /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="events">Events</param>
@@ -916,7 +902,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine received an event that it was waiting for.
+        /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
@@ -948,6 +934,52 @@ namespace Microsoft.PSharp
         internal virtual void NotifyDefaultHandlerFired()
         {
             // No-op in production.
+        }
+
+        #endregion
+
+        #region error checking
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an
+        /// <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        public virtual void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException("Detected an assertion failure.");
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an
+        /// <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        public virtual void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                string message = IO.Utilities.Format(s, args);
+                throw new AssertionFailureException(message);
+            }
+        }
+
+        /// <summary>
+        /// Throws an <see cref="AssertionFailureException"/> exception
+        /// containing the specified exception.
+        /// </summary>
+        /// <param name="exception">Exception</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
+        {
+            string message = IO.Utilities.Format(s, args);
+            throw new AssertionFailureException(message, exception);
         }
 
         #endregion
@@ -996,13 +1028,13 @@ namespace Microsoft.PSharp
         #region private methods
 
         /// <summary>
-		/// Runs a new asynchronous machine event handler.
-		/// This is a fire and forget invocation.
-		/// </summary>
-		/// <param name="machine">Machine</param>
-		/// <param name="e">Event</param>
-		/// <param name="isFresh">Is a new machine</param>
-		private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
+        /// Runs a new asynchronous machine event handler.
+        /// This is a fire and forget invocation.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="isFresh">Is a new machine</param>
+        private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
         {
             Task task = new Task(() =>
             {
@@ -1017,14 +1049,13 @@ namespace Microsoft.PSharp
                 }
                 catch (Exception ex)
                 {
-                    if (this.Configuration.ThrowInternalExceptions)
-                    {
-                        throw ex;
-                    }
+                    this.IsFaulted = true;
+                    this.OnFailure?.Invoke(ex);
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                    Machine m;
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out m);
                 }
             });
 
