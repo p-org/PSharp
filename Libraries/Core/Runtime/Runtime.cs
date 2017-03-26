@@ -561,7 +561,7 @@ namespace Microsoft.PSharp
             {
                 this.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
-
+            
             if (RandomInteger(10) == 0)
             {
                 var delay = 0;
@@ -574,7 +574,7 @@ namespace Microsoft.PSharp
 
                 Task.Delay(delay).Wait();
             }
-
+            
             bool runNewHandler = false;
             machine.Enqueue(eventInfo, ref runNewHandler);
             if (runNewHandler)

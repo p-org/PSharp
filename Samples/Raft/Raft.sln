@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.PSharpLibrary", "Raft.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.PSharpLanguage", "Raft.PSharpLanguage\Raft.PSharpLanguage.csproj", "{214E1042-FEF1-442E-B72C-532AE52B9933}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunRaft", "RunRaft\RunRaft.csproj", "{F6D920E4-3741-445E-93B7-FC89E9E1A9E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{214E1042-FEF1-442E-B72C-532AE52B9933}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{214E1042-FEF1-442E-B72C-532AE52B9933}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{214E1042-FEF1-442E-B72C-532AE52B9933}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6D920E4-3741-445E-93B7-FC89E9E1A9E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6D920E4-3741-445E-93B7-FC89E9E1A9E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6D920E4-3741-445E-93B7-FC89E9E1A9E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6D920E4-3741-445E-93B7-FC89E9E1A9E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,5 +36,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{30E6C291-9479-437D-9E51-C0855B5C9447} = {B8FF079A-CF0F-4407-B23B-6A7A5C91D691}
 		{214E1042-FEF1-442E-B72C-532AE52B9933} = {B8FF079A-CF0F-4407-B23B-6A7A5C91D691}
+		{F6D920E4-3741-445E-93B7-FC89E9E1A9E4} = {B8FF079A-CF0F-4407-B23B-6A7A5C91D691}
 	EndGlobalSection
 EndGlobal

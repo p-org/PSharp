@@ -17,19 +17,30 @@ namespace Raft.PSharpLibrary
     {
         public static void Main(string[] args)
         {
+            int workerThreads, completionPortThreads;
+            
+            System.Threading.ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
+            System.Threading.ThreadPool.SetMaxThreads(2, completionPortThreads);
+
             // Optional: increases verbosity level to see the P# runtime log.
-            var configuration = Configuration.Create().WithVerbosityEnabled(2);
+            var configuration = Configuration.Create();
             configuration.EnableMonitorsInProduction = true;
 
             // Creates a new P# runtime instance, and passes an optional configuration.
             var runtime = PSharpRuntime.Create(configuration);
-            
+            runtime.OnFailure += delegate (Exception e)
+            {
+                Console.WriteLine("Failure!");
+                Environment.Exit(1);
+            };
+
             // Executes the P# program.
             Program.Execute(runtime);
 
             // The P# runtime executes asynchronously, so we wait
             // to not terminate the process.
             runtime.Wait();
+
             Console.WriteLine("Test Success");
         }
 

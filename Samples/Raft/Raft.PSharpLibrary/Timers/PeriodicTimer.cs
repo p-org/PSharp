@@ -24,6 +24,7 @@ namespace Raft
         private class TickEvent : Event { }
 
         MachineId Target;
+        int counter = 0;
 
         [Start]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
@@ -49,8 +50,9 @@ namespace Raft
 
         void Tick()
         {
-            if (this.Random())
+            if (this.Random() && counter < 5)
             {
+                counter++;
                 Console.WriteLine("\n [PeriodicTimer] " + this.Target + " | timed out\n");
                 this.Send(this.Target, new Timeout(), true);
             }
