@@ -246,7 +246,7 @@ namespace Microsoft.PSharp.TestingServices
                             Output.WriteLine($"..... Iteration #{i + 1}");
                         }
 
-                        var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
+                        var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
 
                         StringWriter sw = null;
                         if (base.Configuration.RedirectTestConsoleOutput &&
@@ -381,8 +381,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Gathers the exploration strategy statistics for
         /// the latest testing iteration.
         /// </summary>
-        /// <param name="runtime">PSharpBugFindingRuntime</param>
-        private void GatherIterationStatistics(PSharpBugFindingRuntime runtime)
+        /// <param name="runtime">BugFindingRuntime</param>
+        private void GatherIterationStatistics(BugFindingRuntime runtime)
         {
             TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
@@ -406,8 +406,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        /// <param name="runtime">Runtime</param>
-        private void ConstructReproducableTrace(PSharpBugFindingRuntime runtime)
+        /// <param name="runtime">BugFindingRuntime</param>
+        private void ConstructReproducableTrace(BugFindingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -466,9 +466,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Emits race instrumentation traces.
         /// </summary>
-        /// <param name="runtime">Runtime</param>
+        /// <param name="runtime">BugFindingRuntime</param>
         /// <param name="iteration">Iteration</param>
-        private void EmitRaceInstrumentationTraces(PSharpBugFindingRuntime runtime, int iteration)
+        private void EmitRaceInstrumentationTraces(BugFindingRuntime runtime, int iteration)
         {
             string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
             name += "_" + base.Configuration.TestingProcessId;

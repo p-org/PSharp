@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 try
                 {
-                    var runtime = new PSharpBugFindingRuntime(base.Configuration, base.Strategy);
+                    var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
 
                     StringWriter sw = null;
                     if (base.Configuration.RedirectTestConsoleOutput &&

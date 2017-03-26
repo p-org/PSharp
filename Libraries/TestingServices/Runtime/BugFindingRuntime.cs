@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// Class implementing the P# bug-finding runtime.
     /// </summary>
-    internal sealed class PSharpBugFindingRuntime : PSharpRuntime, IDisposable
+    internal sealed class BugFindingRuntime : PSharpRuntime, IDisposable
     {
         #region fields
 
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
         /// </summary>
-        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
+        internal BugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;

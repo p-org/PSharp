@@ -32,9 +32,9 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         #region fields
 
         /// <summary>
-        /// The P# runtime.
+        /// The P# bug-finding runtime.
         /// </summary>
-        private PSharpBugFindingRuntime Runtime;
+        private BugFindingRuntime Runtime;
 
         /// <summary>
         /// List of monitors in the program.
@@ -54,10 +54,9 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private ISet<Monitor> HotMonitors;
 
         /// <summary>
-        /// The scheduling strategy installed with the
-        /// P# bugfinder.
+        /// The scheduling strategy installed with the P# bug-finder.
         /// </summary>
-        private ISchedulingStrategy BugFindingSchedulingStrategy;
+        private ISchedulingStrategy SchedulingStrategy;
 
         /// <summary>
         /// A counter that increases in each step of the execution,
@@ -94,10 +93,9 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">PSharpBugFindingRuntime</param>
-        /// <param name="bugFindingSchedulingStrategy">ISchedulingStrategy</param>
-        internal LivenessChecker(PSharpBugFindingRuntime runtime,
-            ISchedulingStrategy bugFindingSchedulingStrategy)
+        /// <param name="runtime">BugFindingRuntime</param>
+        /// <param name="schedulingStrategy">ISchedulingStrategy</param>
+        internal LivenessChecker(BugFindingRuntime runtime, ISchedulingStrategy schedulingStrategy)
         {
             this.Runtime = runtime;
 
@@ -108,7 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.LivenessTemperature = 0;
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
-            this.BugFindingSchedulingStrategy = bugFindingSchedulingStrategy;
+            this.SchedulingStrategy = schedulingStrategy;
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
@@ -174,7 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
             }
             else if (!this.Runtime.Configuration.CacheProgramState &&
-                this.BugFindingSchedulingStrategy.IsFair())
+                this.SchedulingStrategy.IsFair())
             {
                 foreach (var monitor in this.Monitors)
                 {
@@ -501,8 +499,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
 
-            this.Runtime.Scheduler.SwitchSchedulingStrategy(
-                this.BugFindingSchedulingStrategy);
+            this.Runtime.Scheduler.SwitchSchedulingStrategy(this.SchedulingStrategy);
         }
 
         #endregion
@@ -538,7 +535,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is not a scheduling choice.");
                     this.EscapeCycle();
-                    return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
+                    return this.SchedulingStrategy.TryGetNext(out next, choices, current);
                 }
 
                 Debug.WriteLine($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachineId}'.");
@@ -551,7 +548,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: cannot detect machine with type " +
                         $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.");
                     this.EscapeCycle();
-                    return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
+                    return this.SchedulingStrategy.TryGetNext(out next, choices, current);
                 }
 
                 this.CurrentCycleIndex++;
@@ -585,7 +582,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is " +
                         "not a nondeterministic boolean choice.");
                     this.EscapeCycle();
-                    return this.BugFindingSchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+                    return this.SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
                 }
 
                 Debug.WriteLine($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.BooleanChoice.Value}'.");
@@ -627,7 +624,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is " +
                         "not a nondeterministic integer choice.");
                     this.EscapeCycle();
-                    return this.BugFindingSchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+                    return this.SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
                 }
 
                 Debug.WriteLine($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.IntegerChoice.Value}'.");
@@ -654,7 +651,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <returns>Explored steps</returns>
         int ISchedulingStrategy.GetExploredSteps()
         {
-            return this.BugFindingSchedulingStrategy.GetExploredSteps();
+            return this.SchedulingStrategy.GetExploredSteps();
         }
 
         /// <summary>
@@ -707,7 +704,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <returns>String</returns>
         string ISchedulingStrategy.GetDescription()
         {
-            return this.BugFindingSchedulingStrategy.GetDescription();
+            return this.SchedulingStrategy.GetDescription();
         }
 
         #endregion
