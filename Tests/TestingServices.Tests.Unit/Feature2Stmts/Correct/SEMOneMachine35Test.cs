@@ -12,10 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {

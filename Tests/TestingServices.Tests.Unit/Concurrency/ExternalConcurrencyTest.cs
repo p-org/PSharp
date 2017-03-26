@@ -16,7 +16,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit

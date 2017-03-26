@@ -12,9 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using Microsoft.PSharp.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {

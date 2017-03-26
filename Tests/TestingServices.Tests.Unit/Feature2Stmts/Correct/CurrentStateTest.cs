@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
 using Microsoft.PSharp.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

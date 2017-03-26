@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {

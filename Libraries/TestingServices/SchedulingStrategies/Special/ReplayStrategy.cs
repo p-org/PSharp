@@ -18,7 +18,6 @@ using System.Linq;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {

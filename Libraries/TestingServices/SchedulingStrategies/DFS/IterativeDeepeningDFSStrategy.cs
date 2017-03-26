@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {

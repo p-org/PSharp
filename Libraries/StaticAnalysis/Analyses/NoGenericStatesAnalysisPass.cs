@@ -16,7 +16,6 @@ using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {

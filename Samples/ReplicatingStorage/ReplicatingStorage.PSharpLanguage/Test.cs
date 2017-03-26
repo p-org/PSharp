@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.PSharp;
-using Microsoft.PSharp.Utilities;
 
 namespace ReplicatingStorage.PSharpLanguage
 {

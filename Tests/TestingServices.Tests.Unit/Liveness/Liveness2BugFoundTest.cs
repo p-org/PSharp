@@ -14,7 +14,6 @@
 
 using Microsoft.PSharp.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {

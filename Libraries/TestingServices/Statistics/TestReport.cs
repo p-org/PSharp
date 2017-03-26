@@ -17,7 +17,6 @@ using System.Runtime.Serialization;
 using System.Text;
 
 using Microsoft.PSharp.TestingServices.Coverage;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
 {

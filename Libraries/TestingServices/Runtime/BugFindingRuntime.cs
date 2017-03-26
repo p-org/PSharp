@@ -25,7 +25,6 @@ using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
 {

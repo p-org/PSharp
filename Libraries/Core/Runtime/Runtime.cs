@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -114,7 +113,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new P# runtime with the specified <see cref="Utilities.Configuration"/>.
+        /// Creates a new P# runtime with the specified <see cref="PSharp.Configuration"/>.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>PSharpRuntime</returns>
@@ -124,7 +123,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new P# runtime with the specified <see cref="Utilities.Configuration"/>
+        /// Creates a new P# runtime with the specified <see cref="PSharp.Configuration"/>
         /// and <see cref="INetworkProvider"/>.
         /// </summary>
         /// <param name="configuration">Configuration</param>

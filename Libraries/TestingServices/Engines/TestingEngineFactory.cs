@@ -15,8 +15,6 @@
 using System;
 using System.Reflection;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>

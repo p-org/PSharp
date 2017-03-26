@@ -17,8 +17,9 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.Utilities
+namespace Microsoft.PSharp
 {
     /// <summary>
     /// The P# project configurations.

@@ -17,7 +17,6 @@ using System;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit

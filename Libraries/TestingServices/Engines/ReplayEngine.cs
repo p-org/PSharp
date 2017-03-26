@@ -19,8 +19,6 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>

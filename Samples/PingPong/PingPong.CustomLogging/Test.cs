@@ -2,7 +2,6 @@
 using System.Text;
 using Microsoft.PSharp;
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Utilities;
 
 namespace PingPong.CustomLogging
 {
