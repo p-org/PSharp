@@ -134,7 +134,6 @@
     <Compile Include="Liveness\UnfairExecutionTest.cs" />
     <Compile Include="Liveness\Liveness1Test.cs" />
     <Compile Include="Liveness\StateCaching\FairNondet1Test.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness4Test.cs" />
     <Compile Include="Liveness\WarmStateTest.cs" />
     <Compile Include="Liveness\Liveness2BugFoundTest.cs" />
     <Compile Include="Liveness\StateCaching\Liveness3Test.cs" />
