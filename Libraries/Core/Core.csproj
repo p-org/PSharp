@@ -55,6 +55,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Configuration.cs" />
     <Compile Include="IO\Debugging\Debug.cs" />
     <Compile Include="IO\Debugging\Error.cs" />
     <Compile Include="IO\Debugging\ErrorReporter.cs" />
@@ -99,19 +100,19 @@
     <Compile Include="Library\StateGroup.cs" />
     <Compile Include="Networking\INetworkProvider.cs" />
     <Compile Include="Networking\NetworkProviders\LocalNetworkProvider.cs" />
-    <Compile Include="Utilities\Tooling\BaseCommandLineOptions.cs" />
-    <Compile Include="Utilities\Tooling\CompilationTarget.cs" />
-    <Compile Include="Configuration\Configuration.cs" />
-    <Compile Include="Utilities\Tooling\OptimizationTarget.cs" />
-    <Compile Include="Utilities\Tooling\SchedulingStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime\Exceptions\AssertionFailureException.cs" />
     <Compile Include="Runtime\Exceptions\ExecutionCanceledException.cs" />
     <Compile Include="Runtime\Exceptions\RuntimeException.cs" />
-    <Compile Include="Runtime\Runtime.cs" />
+    <Compile Include="Runtime\PSharpRuntime.cs" />
+    <Compile Include="Runtime\StateMachineRuntime.cs" />
     <Compile Include="Utilities\Profiler.cs" />
     <Compile Include="Utilities\RandomNumberGenerators\DefaultRandomNumberGenerator.cs" />
     <Compile Include="Utilities\RandomNumberGenerators\IRandomNumberGenerator.cs" />
+    <Compile Include="Utilities\Tooling\BaseCommandLineOptions.cs" />
+    <Compile Include="Utilities\Tooling\CompilationTarget.cs" />
+    <Compile Include="Utilities\Tooling\OptimizationTarget.cs" />
+    <Compile Include="Utilities\Tooling\SchedulingStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
