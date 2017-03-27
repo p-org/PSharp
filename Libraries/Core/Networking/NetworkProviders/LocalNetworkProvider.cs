@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DefaultNetworkProvider.cs">
+// <copyright file="LocalNetworkProvider.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,9 +17,9 @@ using System;
 namespace Microsoft.PSharp.Net
 {
     /// <summary>
-    /// Class implementing the default P# network provider.
+    /// The local P# network provider.
     /// </summary>
-    internal class DefaultNetworkProvider : INetworkProvider
+    internal class LocalNetworkProvider : INetworkProvider
     {
         #region fields
 
@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.Net
         /// Constructor.
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
-        public DefaultNetworkProvider(PSharpRuntime runtime)
+        public LocalNetworkProvider(PSharpRuntime runtime)
         {
             this.Runtime = runtime;
             this.LocalEndpoint = "";

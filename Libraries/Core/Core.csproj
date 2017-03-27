@@ -98,7 +98,7 @@
     <Compile Include="Library\MonitorState.cs" />
     <Compile Include="Library\StateGroup.cs" />
     <Compile Include="Networking\INetworkProvider.cs" />
-    <Compile Include="Networking\NetworkProviders\DefaultNetworkProvider.cs" />
+    <Compile Include="Networking\NetworkProviders\LocalNetworkProvider.cs" />
     <Compile Include="Utilities\Tooling\BaseCommandLineOptions.cs" />
     <Compile Include="Utilities\Tooling\CompilationTarget.cs" />
     <Compile Include="Configuration\Configuration.cs" />

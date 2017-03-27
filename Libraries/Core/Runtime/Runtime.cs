@@ -383,7 +383,7 @@ namespace Microsoft.PSharp
         protected PSharpRuntime()
         {
             this.Configuration = Configuration.Create();
-            this.NetworkProvider = new DefaultNetworkProvider(this);
+            this.NetworkProvider = new LocalNetworkProvider(this);
             this.Initialize();
         }
 
@@ -405,7 +405,7 @@ namespace Microsoft.PSharp
         protected PSharpRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.NetworkProvider = new DefaultNetworkProvider(this);
+            this.NetworkProvider = new LocalNetworkProvider(this);
             this.Initialize();
         }
 
