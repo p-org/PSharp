@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Net
         /// <summary>
         /// The local endpoint.
         /// </summary>
-        private string LocalEndPoint;
+        private string LocalEndpoint;
 
         #endregion
 
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Net
         public DefaultNetworkProvider(PSharpRuntime runtime)
         {
             this.Runtime = runtime;
-            this.LocalEndPoint = "";
+            this.LocalEndpoint = "";
         }
 
         #endregion
@@ -82,9 +82,9 @@ namespace Microsoft.PSharp.Net
         /// Returns the local endpoint.
         /// </summary>
         /// <returns>Endpoint</returns>
-        string INetworkProvider.GetLocalEndPoint()
+        string INetworkProvider.GetLocalEndpoint()
         {
-            return this.LocalEndPoint;
+            return this.LocalEndpoint;
         }
 
         #endregion

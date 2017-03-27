@@ -59,7 +59,7 @@ namespace Microsoft.PSharp
         /// Endpoint.
         /// </summary>
         [DataMember]
-        internal readonly string EndPoint;
+        public readonly string Endpoint;
 
         #endregion
 
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp
             this.Runtime = runtime;
 
             this.Type = type.FullName;
-            this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
+            this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
             
             // Atomically increments and safely wraps into an unsigned long.
             this.Value = (uint)Interlocked.Increment(ref IdCounter);

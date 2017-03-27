@@ -45,6 +45,6 @@ namespace Microsoft.PSharp.Net
         /// Returns the local endpoint.
         /// </summary>
         /// <returns>Endpoint</returns>
-        string GetLocalEndPoint();
+        string GetLocalEndpoint();
     }
 }
