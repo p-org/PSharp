@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Net
     /// <summary>
     /// Interface for a P# network provider.
     /// </summary>
-    public interface INetworkProvider
+    public interface INetworkProvider : IDisposable
     {
         /// <summary>
         /// Creates a new remote machine of the specified type

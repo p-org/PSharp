@@ -141,6 +141,11 @@ namespace Microsoft.PSharp.Remote
             return this.IpAddress + ":" + this.Port;
         }
 
+        /// <summary>
+        /// Disposes the network provider.
+        /// </summary>
+        public void Dispose() { }
+
         #endregion
 
         #region remote communication methods

@@ -87,6 +87,11 @@ namespace Microsoft.PSharp.Net
             return this.LocalEndpoint;
         }
 
+        /// <summary>
+        /// Disposes the network provider.
+        /// </summary>
+        public void Dispose() { }
+
         #endregion
     }
 }
