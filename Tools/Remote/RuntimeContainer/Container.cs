@@ -187,7 +187,8 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void InitializePSharpRuntime()
         {
-            Container.PSharpRuntime = PSharpRuntime.Create(Container.Configuration, Container.NetworkProvider);
+            Container.PSharpRuntime = PSharpRuntime.Create(Container.Configuration);
+            Container.PSharpRuntime.SetNetworkProvider(Container.NetworkProvider);
             Container.NetworkProvider.Initialize(Container.PSharpRuntime, Container.RemoteApplicationAssembly);
             Container.NotifyManagerInitialization();
         }

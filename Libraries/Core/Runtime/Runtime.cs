@@ -57,11 +57,6 @@ namespace Microsoft.PSharp
         protected ConcurrentBag<Task> MachineTasks;
 
         /// <summary>
-        /// Network provider for remote communication.
-        /// </summary>
-        internal INetworkProvider NetworkProvider;
-
-        /// <summary>
         /// Records if the P# program has faulted.
         /// </summary>
         internal volatile bool IsFaulted;
@@ -69,6 +64,11 @@ namespace Microsoft.PSharp
         #endregion
 
         #region properties
+
+        /// <summary>
+        /// Network provider used for remote communication.
+        /// </summary>
+        public INetworkProvider NetworkProvider { get; private set; }
 
         /// <summary>
         /// The installed logger.
@@ -103,16 +103,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new P# runtime with the specified <see cref="INetworkProvider"/>.
-        /// </summary>
-        /// <param name="netProvider">NetworkProvider</param>
-        /// <returns>PSharpRuntime</returns>
-        public static PSharpRuntime Create(INetworkProvider netProvider)
-        {
-            return new PSharpRuntime(netProvider);
-        }
-
-        /// <summary>
         /// Creates a new P# runtime with the specified <see cref="PSharp.Configuration"/>.
         /// </summary>
         /// <param name="configuration">Configuration</param>
@@ -120,18 +110,6 @@ namespace Microsoft.PSharp
         public static PSharpRuntime Create(Configuration configuration)
         {
             return new PSharpRuntime(configuration);
-        }
-
-        /// <summary>
-        /// Creates a new P# runtime with the specified <see cref="PSharp.Configuration"/>
-        /// and <see cref="INetworkProvider"/>.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="netProvider">NetworkProvider</param>
-        /// <returns>PSharpRuntime</returns>
-        public static PSharpRuntime Create(Configuration configuration, INetworkProvider netProvider)
-        {
-            return new PSharpRuntime(configuration, netProvider);
         }
 
         /// <summary>
@@ -383,18 +361,6 @@ namespace Microsoft.PSharp
         protected PSharpRuntime()
         {
             this.Configuration = Configuration.Create();
-            this.NetworkProvider = new LocalNetworkProvider(this);
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="netProvider">NetworkProvider</param>
-        protected PSharpRuntime(INetworkProvider netProvider)
-        {
-            this.Configuration = Configuration.Create();
-            this.NetworkProvider = netProvider;
             this.Initialize();
         }
 
@@ -405,19 +371,6 @@ namespace Microsoft.PSharp
         protected PSharpRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.NetworkProvider = new LocalNetworkProvider(this);
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="netProvider">NetworkProvider</param>
-        protected PSharpRuntime(Configuration configuration, INetworkProvider netProvider)
-        {
-            this.Configuration = configuration;
-            this.NetworkProvider = netProvider;
             this.Initialize();
         }
 
@@ -426,6 +379,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
+            this.NetworkProvider = new LocalNetworkProvider(this);
             this.Logger = new DefaultLogger();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
@@ -1007,6 +961,35 @@ namespace Microsoft.PSharp
         {
             this.Logger.Dispose();
             this.Logger = new DefaultLogger();
+        }
+
+        #endregion
+
+        #region networking
+
+        /// <summary>
+        /// Installs the specified <see cref="INetworkProvider"/>.
+        /// </summary>
+        /// <param name="networkProvider">INetworkProvider</param>
+        public void SetNetworkProvider(INetworkProvider networkProvider)
+        {
+            if (networkProvider == null)
+            {
+                throw new InvalidOperationException("Cannot install a null network provider.");
+            }
+
+            this.NetworkProvider.Dispose();
+            this.NetworkProvider = networkProvider;
+        }
+
+        /// <summary>
+        /// Replaces the currently installed <see cref="INetworkProvider"/> 
+        /// with the default <see cref="INetworkProvider"/>.
+        /// </summary>
+        public void RemoveNetworkProvider()
+        {
+            this.NetworkProvider.Dispose();
+            this.NetworkProvider = new LocalNetworkProvider(this);
         }
 
         #endregion
