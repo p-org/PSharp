@@ -940,7 +940,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Installs the specified logger.
+        /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
         /// <param name="logger">TextWriter</param>
         public void SetLogger(ILogger logger)
@@ -955,7 +955,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Replaces the currently installed logger with the default logger.
+        /// Replaces the currently installed <see cref="ILogger"/> with
+        /// the default <see cref="ILogger"/>.
         /// </summary>
         public void RemoveLogger()
         {
@@ -983,7 +984,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Replaces the currently installed <see cref="INetworkProvider"/> 
+        /// Replaces the currently installed <see cref="INetworkProvider"/>
         /// with the default <see cref="INetworkProvider"/>.
         /// </summary>
         public void RemoveNetworkProvider()
