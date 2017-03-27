@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Runtime.cs">
+// <copyright file="StateMachineRuntime.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,98 +19,72 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Net;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class implementing the P# runtime.
+    /// Runtime for executing state-machines in production.
     /// </summary>
-    public class PSharpRuntime
+    internal sealed class StateMachineRuntime : PSharpRuntime
     {
         #region fields
 
         /// <summary>
-        /// The configuration used by the runtime.
-        /// </summary>
-        internal Configuration Configuration;
-
-        /// <summary>
         /// List of monitors in the program.
         /// </summary>
-        protected List<Monitor> Monitors;
+        private List<Monitor> Monitors;
 
         /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<ulong, Machine> MachineMap;
+        private ConcurrentDictionary<ulong, Machine> MachineMap;
 
         /// <summary>
         /// Map from task ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<int, Machine> TaskMap;
+        private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
         /// Collection of machine tasks.
         /// </summary>
-        protected ConcurrentBag<Task> MachineTasks;
-
-        /// <summary>
-        /// Records if the P# program has faulted.
-        /// </summary>
-        internal volatile bool IsFaulted;
+        private ConcurrentBag<Task> MachineTasks;
 
         #endregion
 
-        #region properties
+        #region initialization
 
         /// <summary>
-        /// Network provider used for remote communication.
+        /// Constructor.
         /// </summary>
-        public INetworkProvider NetworkProvider { get; private set; }
-
-        /// <summary>
-        /// The installed logger.
-        /// </summary>
-        public ILogger Logger { get; private set; }
-
-        #endregion
-
-        #region events
-
-        /// <summary>
-        /// Event that is fired when the P# program throws an exception.
-        /// </summary>
-        public event OnFailureHandler OnFailure;
-
-        /// <summary>
-        /// Handles the <see cref="OnFailure"/> event.
-        /// </summary>
-        public delegate void OnFailureHandler(Exception ex);
-
-        #endregion
-
-        #region public methods
-
-        /// <summary>
-        /// Creates a new P# runtime.
-        /// </summary>
-        /// <returns>PSharpRuntime</returns>
-        public static PSharpRuntime Create()
+        internal StateMachineRuntime()
+            : base()
         {
-            return new PSharpRuntime();
+            this.Initialize();
         }
 
         /// <summary>
-        /// Creates a new P# runtime with the specified <see cref="PSharp.Configuration"/>.
+        /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <returns>PSharpRuntime</returns>
-        public static PSharpRuntime Create(Configuration configuration)
+        internal StateMachineRuntime(Configuration configuration)
+            : base(configuration)
         {
-            return new PSharpRuntime(configuration);
+            this.Initialize();
         }
+
+        /// <summary>
+        /// Initializes various components of the runtime.
+        /// </summary>
+        private void Initialize()
+        {
+            this.Monitors = new List<Monitor>();
+            this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
+            this.TaskMap = new ConcurrentDictionary<int, Machine>();
+            this.MachineTasks = new ConcurrentBag<Task>();
+        }
+
+        #endregion
+
+        #region runtime interface
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
@@ -120,7 +94,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public virtual MachineId CreateMachine(Type type, Event e = null)
+        public override MachineId CreateMachine(Type type, Event e = null)
         {
             return this.TryCreateMachine(null, type, null, e);
         }
@@ -134,7 +108,7 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public virtual MachineId CreateMachine(Type type, string friendlyName, Event e = null)
+        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
             return this.TryCreateMachine(null, type, friendlyName, e);
         }
@@ -148,7 +122,7 @@ namespace Microsoft.PSharp
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public virtual MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
+        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
         {
             return this.TryCreateRemoteMachine(null, type, null, endpoint, e);
         }
@@ -163,24 +137,10 @@ namespace Microsoft.PSharp
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public virtual MachineId RemoteCreateMachine(Type type, string friendlyName,
+        public override MachineId RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
             return this.TryCreateRemoteMachine(null, type, friendlyName, endpoint, e);
-        }
-
-        /// <summary>
-        /// Gets the id of the currently executing machine. Returns null if none.
-        /// <returns>MachineId</returns>
-        /// </summary>
-        public virtual MachineId GetCurrentMachineId()
-        {
-            if(Task.CurrentId == null || !this.TaskMap.ContainsKey((int) Task.CurrentId))
-            {
-                return null;
-            }
-            Machine machine = this.TaskMap[(int)Task.CurrentId];
-            return machine.Id;
         }
 
         /// <summary>
@@ -188,7 +148,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public virtual void SendEvent(MachineId target, Event e)
+        public override void SendEvent(MachineId target, Event e)
         {
             // If the target machine is null then report an error and exit.
             this.Assert(target != null, "Cannot send to a null machine.");
@@ -202,7 +162,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public virtual void RemoteSendEvent(MachineId target, Event e)
+        public override void RemoteSendEvent(MachineId target, Event e)
         {
             // If the target machine is null then report an error and exit.
             this.Assert(target != null, "Cannot send to a null machine.");
@@ -212,12 +172,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an <see cref="Event"/> of the specified types.
-        /// Returns the received <see cref="Event"/>.
+        /// Waits to receive an <see cref="Event"/> of the specified types.
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(params Type[] eventTypes)
+        public override Event Receive(params Type[] eventTypes)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");
@@ -230,13 +189,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an <see cref="Event"/> of the specified types that
-        /// satisfies the specified predicate. Returns the received <see cref="Event"/>.
+        /// Waits to receive an <see cref="Event"/> of the specified type
+        /// that satisfies the specified predicate.
         /// </summary>
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(Type eventType, Func<Event, bool> predicate)
+        public override Event Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");
@@ -249,12 +208,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an <see cref="Event"/> of the specified types that
-        /// satisfy the specified predicates. Returns the received <see cref="Event"/>.
+        /// Waits to receive an <see cref="Event"/> of the specified types
+        /// that satisfy the specified predicates.
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        public override Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");
@@ -270,7 +229,7 @@ namespace Microsoft.PSharp
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        public virtual void RegisterMonitor(Type type)
+        public override void RegisterMonitor(Type type)
         {
             this.TryCreateMonitor(type);
         }
@@ -280,7 +239,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        public virtual void InvokeMonitor<T>(Event e)
+        public override void InvokeMonitor<T>(Event e)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot monitor a null event.");
@@ -288,43 +247,23 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be controlled
-        /// during analysis or testing.
+        /// Gets the id of the currently executing <see cref="Machine"/>.
+        /// <returns>MachineId</returns>
         /// </summary>
-        /// <returns>Boolean</returns>
-        public virtual bool Random()
+        public override MachineId GetCurrentMachineId()
         {
-            return this.GetNondeterministicBooleanChoice(null, 2);
-        }
-
-        /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be controlled
-        /// during analysis or testing. The value is used to generate a number
-        /// in the range [0..maxValue), where 0 triggers true.
-        /// </summary>
-        /// <param name="maxValue">Max value</param>
-        /// <returns>Boolean</returns>
-        public virtual bool Random(int maxValue)
-        {
-            return this.GetNondeterministicBooleanChoice(null, maxValue);
-        }
-
-        /// <summary>
-        /// Returns a nondeterministic integer choice, that can be
-        /// controlled during analysis or testing. The value is used
-        /// to generate an integer in the range [0..maxValue).
-        /// </summary>
-        /// <param name="maxValue">Max value</param>
-        /// <returns>Integer</returns>
-        public virtual int RandomInteger(int maxValue)
-        {
-            return this.GetNondeterministicIntegerChoice(null, maxValue);
+            if (Task.CurrentId == null || !this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                return null;
+            }
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            return machine.Id;
         }
 
         /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
-        public virtual void Wait()
+        public override void Wait()
         {
             Task[] taskArray = null;
 
@@ -353,65 +292,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region initialization
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        protected PSharpRuntime()
-        {
-            this.Configuration = Configuration.Create();
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        protected PSharpRuntime(Configuration configuration)
-        {
-            this.Configuration = configuration;
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Initializes various components of the runtime.
-        /// </summary>
-        private void Initialize()
-        {
-            this.NetworkProvider = new LocalNetworkProvider(this);
-            this.Logger = new DefaultLogger();
-            this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
-            this.TaskMap = new ConcurrentDictionary<int, Machine>();
-            this.MachineTasks = new ConcurrentBag<Task>();
-            this.Monitors = new List<Monitor>();
-            this.IsFaulted = false;
-        }
-
-        #endregion
-
-        #region internal methods
-
-        /// <summary>
-        /// Gets the currently executing <see cref="Machine"/>.
-        /// </summary>
-        /// <returns>Machine or null, if not present</returns>
-        internal virtual Machine GetCurrentMachine()
-        {
-            //  The current task does not correspond to a machine.
-            if (Task.CurrentId == null)
-            {
-                return null;
-            }
-
-            // The current task does not correspond to a machine.
-            if (!this.TaskMap.ContainsKey((int)Task.CurrentId))
-            {
-                return null;
-            }
-
-            return this.TaskMap[(int)Task.CurrentId];
-        }
+        #region state-machine execution
 
         /// <summary>
         /// Tries to create a new <see cref="Machine"/> of the specified <see cref="Type"/>.
@@ -421,7 +302,7 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateMachine(Machine creator, Type type, string friendlyName, Event e)
+        internal override MachineId TryCreateMachine(Machine creator, Type type, string friendlyName, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' is not a machine.");
 
@@ -450,42 +331,12 @@ namespace Microsoft.PSharp
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateRemoteMachine(Machine creator, Type type,
+        internal override MachineId TryCreateRemoteMachine(Machine creator, Type type,
             string friendlyName, string endpoint, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
-            return this.NetworkProvider.RemoteCreateMachine(type, friendlyName, endpoint, e);
-        }
-
-        /// <summary>
-        /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        internal virtual void TryCreateMonitor(Type type)
-        {
-            if(!this.Configuration.EnableMonitorsInProduction)
-            {
-                // No-op in production.
-                return;
-            }
-
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
-                "is not a subclass of Monitor.\n");
-
-            MachineId mid = new MachineId(type, null, this);
-            Object monitor = Activator.CreateInstance(type);
-            (monitor as Monitor).SetMachineId(mid);
-            (monitor as Monitor).InitializeStateInformation();
-
-            lock (this.Monitors)
-            {
-                this.Monitors.Add(monitor as Monitor);
-            }
-
-            this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
-
-            (monitor as Monitor).GotoStartState();
+            return base.NetworkProvider.RemoteCreateMachine(type, friendlyName, endpoint, e);
         }
 
         /// <summary>
@@ -495,7 +346,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal virtual void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
+        internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
             EventInfo eventInfo = new EventInfo(e, null);
 
@@ -530,9 +381,81 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal virtual void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
+        internal override void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            this.NetworkProvider.RemoteSend(mid, e);
+            base.NetworkProvider.RemoteSend(mid, e);
+        }
+
+        /// <summary>
+        /// Runs a new asynchronous machine event handler.
+        /// This is a fire and forget invocation.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="isFresh">Is a new machine</param>
+        private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
+        {
+            Task task = new Task(() =>
+            {
+                try
+                {
+                    if (isFresh)
+                    {
+                        machine.GotoStartState(e);
+                    }
+
+                    machine.RunEventHandler();
+                }
+                catch (Exception ex)
+                {
+                    base.IsFaulted = true;
+                    base.RaiseOnFailureEvent(ex);
+                }
+                finally
+                {
+                    Machine m;
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out m);
+                }
+            });
+
+            this.MachineTasks.Add(task);
+            this.TaskMap.TryAdd(task.Id, machine);
+
+            task.Start();
+        }
+
+        #endregion
+
+        #region specifications and error checking
+
+        /// <summary>
+        /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        internal override void TryCreateMonitor(Type type)
+        {
+            if (!base.Configuration.EnableMonitorsInProduction)
+            {
+                // No-op in production.
+                return;
+            }
+
+            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
+                "is not a subclass of Monitor.\n");
+
+            MachineId mid = new MachineId(type, null, this);
+            Object monitor = Activator.CreateInstance(type);
+            (monitor as Monitor).SetMachineId(mid);
+            (monitor as Monitor).InitializeStateInformation();
+
+            lock (this.Monitors)
+            {
+                this.Monitors.Add(monitor as Monitor);
+            }
+
+            this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+
+            (monitor as Monitor).GotoStartState();
         }
 
         /// <summary>
@@ -541,9 +464,9 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal virtual void Monitor<T>(AbstractMachine sender, Event e)
+        internal override void Monitor<T>(AbstractMachine sender, Event e)
         {
-            if (!this.Configuration.EnableMonitorsInProduction)
+            if (!base.Configuration.EnableMonitorsInProduction)
             {
                 // No-op in production.
                 return;
@@ -572,6 +495,10 @@ namespace Microsoft.PSharp
             }
         }
 
+        #endregion
+
+        #region nondeterministic choices
+
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
@@ -579,7 +506,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -609,7 +536,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(machine, 2);
         }
@@ -621,7 +548,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        internal virtual int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue)
+        internal override int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);
@@ -639,14 +566,17 @@ namespace Microsoft.PSharp
             return result;
         }
 
+        #endregion
+
+        #region notifications
+
         /// <summary>
         /// Notifies that a machine entered a state.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
-        internal virtual void NotifyEnteredState(AbstractMachine machine)
+        internal override void NotifyEnteredState(AbstractMachine machine)
         {
-            // No-op in production, except for logging.
-            if (this.Configuration.Verbose <= 1)
+            if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
@@ -675,17 +605,15 @@ namespace Microsoft.PSharp
                 this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"enters {liveness}state '{monitorState}'.");
             }
-
         }
 
         /// <summary>
         /// Notifies that a machine exited a state.
         /// </summary>
         /// <param name="machine">AbstractMachine</param>
-        internal virtual void NotifyExitedState(AbstractMachine machine)
+        internal override void NotifyExitedState(AbstractMachine machine)
         {
-            // No-op in production, except for logging.
-            if (this.Configuration.Verbose <= 1)
+            if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
@@ -716,7 +644,6 @@ namespace Microsoft.PSharp
                 this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
                     $"exits {liveness}state '{monitorState}'.");
             }
-
         }
 
         /// <summary>
@@ -725,10 +652,9 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
+        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
-            // No-op in production, except for logging.
-            if (this.Configuration.Verbose <= 1)
+            if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
@@ -747,7 +673,6 @@ namespace Microsoft.PSharp
                 this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
                     $"action '{action.Name}' in state '{monitorState}'.");
             }
-
         }
 
         /// <summary>
@@ -755,22 +680,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            // No-op in production, except for logging.
             this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
-        }
-
-        /// <summary>
-        /// Notifies that a machine called Pop.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="fromState">Top of the stack state</param>
-        /// <param name="toState">Next to top state of the stack</param>
-        internal virtual void NotifyPop(Machine machine, Type fromState, Type toState)
-        {
-            // No-op in production.
         }
 
         /// <summary>
@@ -779,10 +692,9 @@ namespace Microsoft.PSharp
         /// <param name="machine">AbstractMachine</param>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
+        internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
         {
-            // No-op in production, except for logging.
-            if (this.Configuration.Verbose <= 1)
+            if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
@@ -800,26 +712,6 @@ namespace Microsoft.PSharp
                 this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
                     $"event '{eventInfo.EventName}'.");
             }
-
-        }
-
-        /// <summary>
-        /// Notifies that a machine called Receive.
-        /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal virtual void NotifyReceiveCalled(AbstractMachine machine)
-        {
-            // No-op in production.
-        }
-
-        /// <summary>
-        /// Notifies that a machine handles a raised <see cref="Event"/>.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
-        {
-            // No-op in production.
         }
 
         /// <summary>
@@ -827,7 +719,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="events">Events</param>
-        internal virtual void NotifyWaitEvents(Machine machine, string events)
+        internal override void NotifyWaitEvents(Machine machine, string events)
         {
             this.Log($"<ReceiveLog> Machine '{machine.Id}' " +
                 $"is waiting on events:{events}.");
@@ -846,7 +738,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                 $"event '{eventInfo.EventName}' and unblocked.");
@@ -862,177 +754,25 @@ namespace Microsoft.PSharp
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal virtual void NotifyHalted(Machine machine)
+        internal override void NotifyHalted(Machine machine)
         {
             this.Log($"<HaltLog> Machine '{machine.Id}' halted.");
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 
-        /// <summary>
-        /// Notifies that a default handler has been used.
-        /// </summary>
-        internal virtual void NotifyDefaultHandlerFired()
-        {
-            // No-op in production.
-        }
-
         #endregion
 
-        #region error checking
+        #region cleanup
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Disposes runtime resources.
         /// </summary>
-        /// <param name="predicate">Predicate</param>
-        public virtual void Assert(bool predicate)
+        public override void Dispose()
         {
-            if (!predicate)
-            {
-                throw new AssertionFailureException("Detected an assertion failure.");
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        public virtual void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                string message = IO.Utilities.Format(s, args);
-                throw new AssertionFailureException(message);
-            }
-        }
-
-        /// <summary>
-        /// Throws an <see cref="AssertionFailureException"/> exception
-        /// containing the specified exception.
-        /// </summary>
-        /// <param name="exception">Exception</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
-        {
-            string message = IO.Utilities.Format(s, args);
-            throw new AssertionFailureException(message, exception);
-        }
-
-        #endregion
-
-        #region logging
-
-        /// <summary>
-        /// Logs the specified text.
-        /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
-        protected internal virtual void Log(string format, params object[] args)
-        {
-            if (this.Configuration.Verbose > 1)
-            {
-                this.Logger.WriteLine(format, args);
-            }
-        }
-
-        /// <summary>
-        /// Installs the specified <see cref="ILogger"/>.
-        /// </summary>
-        /// <param name="logger">TextWriter</param>
-        public void SetLogger(ILogger logger)
-        {
-            if (logger == null)
-            {
-                throw new InvalidOperationException("Cannot install a null logger.");
-            }
-
-            this.Logger.Dispose();
-            this.Logger = logger;
-        }
-
-        /// <summary>
-        /// Replaces the currently installed <see cref="ILogger"/> with
-        /// the default <see cref="ILogger"/>.
-        /// </summary>
-        public void RemoveLogger()
-        {
-            this.Logger.Dispose();
-            this.Logger = new DefaultLogger();
-        }
-
-        #endregion
-
-        #region networking
-
-        /// <summary>
-        /// Installs the specified <see cref="INetworkProvider"/>.
-        /// </summary>
-        /// <param name="networkProvider">INetworkProvider</param>
-        public void SetNetworkProvider(INetworkProvider networkProvider)
-        {
-            if (networkProvider == null)
-            {
-                throw new InvalidOperationException("Cannot install a null network provider.");
-            }
-
-            this.NetworkProvider.Dispose();
-            this.NetworkProvider = networkProvider;
-        }
-
-        /// <summary>
-        /// Replaces the currently installed <see cref="INetworkProvider"/>
-        /// with the default <see cref="INetworkProvider"/>.
-        /// </summary>
-        public void RemoveNetworkProvider()
-        {
-            this.NetworkProvider.Dispose();
-            this.NetworkProvider = new LocalNetworkProvider(this);
-        }
-
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Runs a new asynchronous machine event handler.
-        /// This is a fire and forget invocation.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        /// <param name="isFresh">Is a new machine</param>
-        private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
-        {
-            Task task = new Task(() =>
-            {
-                try
-                {
-                    if (isFresh)
-                    {
-                        machine.GotoStartState(e);
-                    }
-
-                    machine.RunEventHandler();
-                }
-                catch (Exception ex)
-                {
-                    this.IsFaulted = true;
-                    this.OnFailure?.Invoke(ex);
-                }
-                finally
-                {
-                    Machine m;
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out m);
-                }
-            });
-
-            this.MachineTasks.Add(task);
-            this.TaskMap.TryAdd(task.Id, machine);
-
-            task.Start();
+            this.Monitors.Clear();
+            this.MachineMap.Clear();
+            this.TaskMap.Clear();
+            base.Dispose();
         }
 
         #endregion
