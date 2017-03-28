@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateMachine(creator, type, null, e);
+            return this.TryCreateMachine(type, null, e, creator, false);
         }
 
         /// <summary>
@@ -174,7 +174,36 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateMachine(creator, type, friendlyName, e);
+            return this.TryCreateMachine(type, friendlyName, e, creator, false);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled. The method returns only
+        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public override MachineId CreateMachineAndExecute(Type type, Event e = null)
+        {
+            return this.CreateMachine(type, e);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled. The method returns only
+        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public override MachineId CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
+        {
+            return this.CreateMachine(type, friendlyName, e);
         }
 
         /// <summary>
@@ -194,7 +223,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateRemoteMachine(creator, type, null, endpoint, e);
+            return this.TryCreateRemoteMachine(type, null, endpoint, e, creator);
         }
 
         /// <summary>
@@ -216,7 +245,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateRemoteMachine(creator, type, friendlyName, endpoint, e);
+            return this.TryCreateRemoteMachine(type, friendlyName, endpoint, e, creator);
         }
 
         /// <summary>
@@ -230,8 +259,18 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
+            this.Send(target, e, this.GetCurrentMachine(), false, false);
+        }
 
-            this.Send(this.GetCurrentMachine(), target, e, false);
+        /// <summary>
+        /// Synchronously delivers an <see cref="Event"/> to a machine
+        /// and executes it if the machine is available.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        public override void SendEventAndExecute(MachineId target, Event e)
+        {
+            this.SendEvent(target, e);
         }
 
         /// <summary>
@@ -385,15 +424,16 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Tries to create a new machine of the specified type.
+        /// Tries to create a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="e">Event</param>
+        /// <param name="e">Event passed during machine construction</param>
+        /// <param name="creator">Creator machine</param>
+        /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateMachine(Machine creator, Type type,
-            string friendlyName, Event e)
+        internal override MachineId TryCreateMachine(Type type, string friendlyName, Event e,
+            Machine creator, bool executeSynchronously)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
@@ -431,23 +471,25 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            this.RunMachineEventHandler(machine, e, true);
+            this.RunMachineEventHandlerAsync(machine, e, true);
             this.Scheduler.Schedule();
 
             return mid;
         }
 
         /// <summary>
-        /// Tries to create a new remote machine of the specified type.
+        /// Tries to create a new remote <see cref="Machine"/> of the
+        /// specified <see cref="System.Type"/>, which is modeled as a
+        /// local machine during testing.
         /// </summary>
-        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
-        /// <param name="e">Event</param>
+        /// <param name="e">Event passed during machine construction</param>
+        /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateRemoteMachine(Machine creator, Type type,
-            string friendlyName, string endpoint, Event e)
+        internal override MachineId TryCreateRemoteMachine(Type type, string friendlyName, string endpoint,
+            Event e, Machine creator)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
@@ -457,17 +499,18 @@ namespace Microsoft.PSharp.TestingServices
                 creator.AssertNoPendingRGP("CreateRemoteMachine");
             }
 
-            return this.TryCreateMachine(creator, type, friendlyName, e);
+            return this.TryCreateMachine(type, friendlyName, e, creator, false);
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
         /// <param name="isStarter">Is starting a new operation</param>
-        internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
+        internal override void Send(MachineId mid, Event e, AbstractMachine sender, bool executeSynchronously, bool isStarter)
         {
             if (sender != null)
             {
@@ -526,23 +569,23 @@ namespace Microsoft.PSharp.TestingServices
             machine.Enqueue(eventInfo, ref runNewHandler);
             if (runNewHandler)
             {
-                this.RunMachineEventHandler(machine);
+                this.RunMachineEventHandlerAsync(machine, null, false);
             }
 
             this.Scheduler.Schedule();
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a remote machine, which
+        /// Sends an asynchronous <see cref="Event"/> to a remote machine, which
         /// is modeled as a local machine during testing.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
+        /// <param name="sender">Sender machine</param>
+        /// <param name="isStarter">If true, the send is starting a new operation</param>
+        internal override void SendRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
         {
-            this.Send(sender, mid, e, isStarter);
+            this.Send(mid, e, sender, false, isStarter);
         }
 
         /// <summary>
@@ -552,7 +595,7 @@ namespace Microsoft.PSharp.TestingServices
 		/// <param name="machine">Machine</param>
 		/// <param name="e">Event</param>
 		/// <param name="isFresh">Is a new machine</param>
-		private void RunMachineEventHandler(Machine machine, Event e = null, bool isFresh = false)
+		private void RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh)
         {
             Task task = new Task(() =>
             {
