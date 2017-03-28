@@ -126,6 +126,7 @@
     <Compile Include="Integration\DynamicError\BasicTransitions\Actions5FailTest.cs" />
     <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
     <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionArtificial.cs" />
     <Compile Include="Liveness\CycleDetection\CycleDetectionDefaultHandlerTest.cs" />
     <Compile Include="Liveness\CycleDetection\CycleDetectionCounterTest.cs" />
     <Compile Include="Liveness\CycleDetection\CycleDetectionRingOfNodesTest.cs" />
