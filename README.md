@@ -1,4 +1,4 @@
-P#
+[P#
 ====================
 A language and toolkit for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software, such as web-services and distributed systems.
 
@@ -22,4 +22,4 @@ We welcome contributions! However, before you start contributing, please read ca
 
 ## Contact us
 
-If you are interested in using P# in your project, or have any P# related questions, please send us an email (pdev@microsoft.com).
+If you are interested in using P# in your project, or have any P# related questions, please send us an [email](pdev@microsoft.com) or open a new [issue](https://github.com/p-org/PSharp/issues).
