@@ -1,4 +1,4 @@
-[P#
+P#
 ====================
 A language and toolkit for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software, such as web-services and distributed systems.
 
