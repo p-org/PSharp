@@ -63,7 +63,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Path</returns>
         internal static string GetOutputDirectory(string path, string suffix = "")
         {
-            string directoryPath = Path.GetDirectoryName(path) +
+            var subpath = Path.GetDirectoryName(path);
+            if (subpath == "")
+            {
+                subpath = ".";
+            }
+
+            string directoryPath = subpath +
                 Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
             if (suffix.Length > 0)
             {
