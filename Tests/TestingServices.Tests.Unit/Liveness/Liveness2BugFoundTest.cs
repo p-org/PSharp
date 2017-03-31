@@ -12,13 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 using Microsoft.PSharp.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class Liveness2BugFoundTest
+    public class Liveness2BugFoundTest : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -72,33 +74,22 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class CannotGetUserInput : MonitorState { }
         }
 
-        public static class TestProgram
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.RegisterMonitor(typeof(WatchDog));
-                runtime.CreateMachine(typeof(EventHandler));
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestLiveness2BugFound()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
+            configuration.CacheProgramState = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, TestProgram.Execute);
-            engine.Run();
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler));
+            });
 
-            var bugReport = "Monitor 'WatchDog' detected liveness bug in hot state " +
+            string bugReport = "Monitor 'WatchDog' detected liveness bug in hot state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.Liveness2BugFoundTest+WatchDog.CannotGetUserInput' " +
                 "at the end of program execution.";
-            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
-            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
+            base.AssertFailed(configuration, test, bugReport);
         }
     }
 }

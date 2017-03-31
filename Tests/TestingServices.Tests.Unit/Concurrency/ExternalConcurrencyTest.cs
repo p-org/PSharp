@@ -12,16 +12,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Linq;
-using System.Text.RegularExpressions;
+using System;
 using System.Threading.Tasks;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class ExternalConcurrencyTest
+    public class ExternalConcurrencyTest : BaseTest
     {
         class E : Event { }
 
@@ -55,40 +53,20 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestExternalTaskSendingEvent()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
-
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, (r) => { r.CreateMachine(typeof(M)); });
-            engine.Run();
-
-            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-
-            string expected = @"Detected task with id '' that is not controlled by the P# runtime.";
-            string actual = Regex.Replace(engine.TestReport.BugReports.First(), "[0-9]", "");
-            Assert.AreEqual(expected, actual);
+            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M)); });
+            string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
+            base.AssertFailed(test, bugReport);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestExternalTaskInvokingRandom()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
-
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, (r) => { r.CreateMachine(typeof(N)); });
-            engine.Run();
-
-            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-
-            string expected = @"Detected task with id '' that is not controlled by the P# runtime.";
-            string actual = Regex.Replace(engine.TestReport.BugReports.First(), "[0-9]", "");
-            Assert.AreEqual(expected, actual);
+            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
+            string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
+            base.AssertFailed(test, bugReport);
         }
     }
 }

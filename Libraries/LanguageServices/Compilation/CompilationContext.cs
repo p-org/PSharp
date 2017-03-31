@@ -55,6 +55,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         internal readonly ISet<Assembly> CustomCompilerPassAssemblies;
 
         /// <summary>
+        /// The installed logger.
+        /// </summary>
+        private ILogger Logger;
+
+        /// <summary>
         /// True if program info has been initialized.
         /// </summary>
         private bool HasInitialized = false;
@@ -317,6 +322,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private CompilationContext(Configuration configuration)
         {
             this.Configuration = configuration;
+            this.Logger = new DefaultLogger();
             this.PSharpProjects = new List<PSharpProject>();
             this.CustomCompilerPassAssemblies = new HashSet<Assembly>();
             this.LoadCustomCompilerPasses();
@@ -368,6 +374,25 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     Error.ReportAndExit($"Could not find compiler pass '{path}'");
                 }
             }
+        }
+
+        #endregion
+
+        #region logging
+
+        /// <summary>
+        /// Installs the specified <see cref="ILogger"/>.
+        /// </summary>
+        /// <param name="logger">TextWriter</param>
+        public void SetLogger(ILogger logger)
+        {
+            if (logger == null)
+            {
+                throw new InvalidOperationException("Cannot install a null logger.");
+            }
+
+            this.Logger.Dispose();
+            this.Logger = logger;
         }
 
         #endregion

@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.PSharp.IO
 {
     /// <summary>

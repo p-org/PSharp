@@ -164,6 +164,8 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.RandomSchedulingSeed = (int)(configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId));
             }
 
+            configuration.EnableColoredConsoleOutput = true;
+
             this.Configuration = configuration;
             this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(
                 this.Configuration);

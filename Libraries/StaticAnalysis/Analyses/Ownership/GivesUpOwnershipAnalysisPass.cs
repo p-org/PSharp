@@ -12,7 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,11 +36,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
         /// <returns>GivesUpOwnershipAnalysisPass</returns>
         internal static GivesUpOwnershipAnalysisPass Create(AnalysisContext context,
-            Configuration configuration)
+            Configuration configuration, ILogger logger, ErrorReporter errorReporter)
         {
-            return new GivesUpOwnershipAnalysisPass(context, configuration);
+            return new GivesUpOwnershipAnalysisPass(context, configuration, logger, errorReporter);
         }
 
         #endregion
@@ -197,7 +198,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (calleeSummary.SideEffectsInfo.FieldFlowParamIndexes.Any(v => v.Value.Contains(idx) &&
                         base.IsFieldAccessedInSuccessor(v.Key, statement.Summary, machine)))
                     {
-                        AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace, argSymbol);
+                        base.ErrorReporter.ReportGivenUpFieldOwnershipError(trace, argSymbol);
                     }
                 }
             }
@@ -221,7 +222,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 givenUpSymbol.ContainingSymbol.Kind == SymbolKind.Field &&
                 base.IsFieldAccessedInSuccessor(givenUpSymbol.ContainingSymbol as IFieldSymbol, statement.Summary, machine))
             {
-                AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace, givenUpSymbol.ContainingSymbol);
+                base.ErrorReporter.ReportGivenUpFieldOwnershipError(trace, givenUpSymbol.ContainingSymbol);
             }
         }
 
@@ -234,8 +235,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private GivesUpOwnershipAnalysisPass(AnalysisContext context, Configuration configuration)
-            : base(context, configuration)
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
+        private GivesUpOwnershipAnalysisPass(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
+            : base(context, configuration, logger, errorReporter)
         {
 
         }
@@ -302,7 +306,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 newTrace.Merge(trace);
                 newTrace.AddErrorTrace(statement.SyntaxNode);
 
-                AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newTrace, symbol);
+                base.ErrorReporter.ReportGivenUpFieldOwnershipError(newTrace, symbol);
             }
         }
 
@@ -315,7 +319,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            Output.WriteLine("... Gives-up ownership analysis runtime: '" +
+            base.Logger.WriteLine("... Gives-up ownership analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

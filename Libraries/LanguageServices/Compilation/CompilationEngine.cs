@@ -38,6 +38,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private CompilationContext CompilationContext;
 
         /// <summary>
+        /// The installed logger.
+        /// </summary>
+        private ILogger Logger;
+
+        /// <summary>
         /// Map from project assembly names to assembly paths.
         /// </summary>
         private Dictionary<string, string> ProjectAssemblyPathMap;
@@ -58,7 +63,18 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns></returns>
         public static CompilationEngine Create(CompilationContext context)
         {
-            return new CompilationEngine(context);
+            return new CompilationEngine(context, new DefaultLogger());
+        }
+
+        /// <summary>
+        /// Creates a P# compilation engine.
+        /// </summary>
+        /// <param name="context">CompilationContext</param>
+        /// <param name="logger">ILogger</param>
+        /// <returns></returns>
+        public static CompilationEngine Create(CompilationContext context, ILogger logger)
+        {
+            return new CompilationEngine(context, logger);
         }
 
         /// <summary>
@@ -114,9 +130,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// Constructor.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        private CompilationEngine(CompilationContext context)
+        /// <param name="logger">ILogger</param>
+        private CompilationEngine(CompilationContext context, ILogger logger)
         {
             this.CompilationContext = context;
+            this.Logger = logger;
         }
 
         #endregion
@@ -179,16 +197,16 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             {
                 if (printResults)
                 {
-                    Output.WriteLine("... Writing {0}", fileName);
+                    this.Logger.WriteLine("... Writing {0}", fileName);
                 }
 
                 return fileName;
             }
 
-            Output.WriteLine("---");
-            Output.WriteLine("Note: the errors below correspond to the intermediate C#-IR, " +
+            this.Logger.WriteLine("---");
+            this.Logger.WriteLine("Note: the errors below correspond to the intermediate C#-IR, " +
                 "which can be printed using /debug.");
-            Output.WriteLine("---");
+            this.Logger.WriteLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
@@ -225,10 +243,10 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 return assembly;
             }
 
-            Output.WriteLine("---");
-            Output.WriteLine("Note: the errors below correspond to the intermediate C#-IR, " +
+            this.Logger.WriteLine("---");
+            this.Logger.WriteLine("Note: the errors below correspond to the intermediate C#-IR, " +
                 "which can be printed using /debug.");
-            Output.WriteLine("---");
+            this.Logger.WriteLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
@@ -330,7 +348,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="dll">Name of dll</param>
         private void LinkAssemblyToAllProjects(Assembly assembly, string dll)
         {
-            Output.WriteLine("... Linking {0}", dll);
+            this.Logger.WriteLine("... Linking {0}", dll);
 
             foreach (var outputDir in this.OutputDirectoryMap.Values)
             {

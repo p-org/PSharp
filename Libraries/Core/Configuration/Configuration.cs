@@ -396,12 +396,6 @@ namespace Microsoft.PSharp
         public bool KeepTemporaryFiles;
 
         /// <summary>
-        /// Redirects the testing console output.
-        /// </summary>
-        [DataMember]
-        internal bool RedirectTestConsoleOutput;
-
-        /// <summary>
         /// If true, then the P# tester will print the trace
         /// to a file, even if a bug is not found.
         /// </summary>
@@ -420,6 +414,16 @@ namespace Microsoft.PSharp
         /// </summary>
         [DataMember]
         internal bool ThrowInternalExceptions;
+
+        #endregion
+
+        #region tooling options
+
+        /// <summary>
+        /// Enables colored console output.
+        /// </summary>
+        [DataMember]
+        internal bool EnableColoredConsoleOutput;
 
         #endregion
 
@@ -496,10 +500,11 @@ namespace Microsoft.PSharp
             this.EnableDebugging = false;
             this.EnableProfiling = false;
             this.KeepTemporaryFiles = false;
-            this.RedirectTestConsoleOutput = true;
             this.PrintTrace = false;
             this.SuppressTrace = false;
             this.ThrowInternalExceptions = false;
+
+            this.EnableColoredConsoleOutput = false;
         }
 
         #endregion

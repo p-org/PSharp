@@ -12,16 +12,16 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class HotStateTest
+    public class HotStateTest : BaseTest
     {
         class Config : Event
         {
@@ -144,35 +144,22 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class Done : MonitorState { }
         }
 
-        public static class TestProgram
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.RegisterMonitor(typeof(M));
-                runtime.CreateMachine(typeof(Master));
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestHotStateMonitor()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
+            configuration.CacheProgramState = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            Debug.IsEnabled = true;
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(M));
+                r.CreateMachine(typeof(Master));
+            });
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, TestProgram.Execute);
-            engine.Run();
-
-            var bugReport = "Monitor 'M' detected liveness bug in hot state " +
+            string bugReport = "Monitor 'M' detected liveness bug in hot state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.HotStateTest+M.Init' " +
                 "at the end of program execution.";
-            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
-            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
+            base.AssertFailed(configuration, test, bugReport);
         }
     }
 }

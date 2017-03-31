@@ -441,13 +441,10 @@ namespace Microsoft.PSharp.Utilities
             help += "\n Basic options:";
             help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
-            help += "\n  /s:[x]\t Path to a P# solution";
-            help += "\n  /test:[x]\t Name of a project in the P# solution to test";
+            help += "\n  /test:[x]\t Path to the P# program to test";
             help += "\n  /method:[x]\t Suffix of the test method to execute";
-            help += "\n  /o:[x]\t Path for output files";
             help += "\n  /timeout:[x]\t Timeout in seconds (disabled by default)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
-            help += "\n  /debug\t Enable debugging";
 
             help += "\n\n ---------------------------";
             help += "\n Systematic testing options:";

@@ -12,7 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Compilation;
@@ -106,7 +105,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         #endregion
 
-        #region private methods
+        #region constructors
 
         /// <summary>
         /// Constructor.

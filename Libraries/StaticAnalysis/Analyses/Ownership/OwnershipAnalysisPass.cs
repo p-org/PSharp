@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -64,8 +65,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        protected OwnershipAnalysisPass(AnalysisContext context, Configuration configuration)
-            : base(context, configuration)
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
+        protected OwnershipAnalysisPass(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
+            : base(context, configuration, logger, errorReporter)
         {
 
         }
@@ -182,7 +186,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
             {
-                AnalysisErrorReporter.ReportExternalInvocation(callTrace);
+                base.ErrorReporter.ReportExternalInvocation(callTrace);
                 return potentialReturnSymbols;
             }
 
@@ -196,7 +200,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (SymbolFinder.FindSourceDefinitionAsync(callSymbol,
                 this.AnalysisContext.Solution).Result == null)
             {
-                AnalysisErrorReporter.ReportExternalInvocation(callTrace);
+                base.ErrorReporter.ReportExternalInvocation(callTrace);
                 return potentialReturnSymbols;
             }
 

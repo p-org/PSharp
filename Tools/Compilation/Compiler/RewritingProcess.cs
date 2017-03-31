@@ -51,15 +51,8 @@ namespace Microsoft.PSharp
         {
             Output.WriteLine(". Rewriting");
 
-            try
-            {
-                // Creates and runs a P# rewriting engine.
-                RewritingEngine.Create(this.CompilationContext).Run();
-            }
-            catch (RewritingException ex)
-            {
-                Error.ReportAndExit(ex.Message);
-            }
+            // Creates and runs a P# rewriting engine.
+            RewritingEngine.Create(this.CompilationContext).Run();
         }
 
         #endregion

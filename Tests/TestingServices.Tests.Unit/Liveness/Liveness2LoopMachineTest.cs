@@ -12,12 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class Liveness2LoopMachineTest
+    public class Liveness2LoopMachineTest : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -84,30 +85,19 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class CannotGetUserInput : MonitorState { }
         }
 
-        public static class TestProgram
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.RegisterMonitor(typeof(WatchDog));
-                runtime.CreateMachine(typeof(EventHandler));
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestLiveness2LoopMachine()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.SchedulingIterations = 100;
             configuration.LivenessTemperatureThreshold = 200;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, TestProgram.Execute);
-            engine.Run();
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler));
+            });
 
-            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
+            base.AssertFailed(configuration, test, 1);
         }
     }
 }

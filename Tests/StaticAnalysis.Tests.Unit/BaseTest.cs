@@ -13,47 +13,18 @@
 //-----------------------------------------------------------------------
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 
+using Xunit;
+
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     public abstract class BaseTest
     {
-        protected Configuration GetConfiguration()
-        {
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataFlow = true;
-            configuration.AnalyzeDataRaces = true;
-            return configuration;
-        }
-
-        private CompilationContext RunTest(Configuration configuration, string test, bool isPSharpProgram)
-        {
-            Output.SetLogger(new InMemoryLogger());
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test, isPSharpProgram ? "psharp" : "cs");
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-            return context;
-        }
-
         #region successful tests
-
-        private void TestComplete()
-        {
-            Output.RemoveLogger();
-        }
 
         protected void AssertSucceeded(string test, bool isPSharpProgram = true)
         {
@@ -62,17 +33,21 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
         }
 
         protected void AssertSucceeded(Configuration configuration, string test, bool isPSharpProgram = true)
-        { 
+        {
+            InMemoryLogger logger = new InMemoryLogger();
+
             try
             {
-                var context = RunTest(configuration, test, isPSharpProgram);
-                var stats = AnalysisErrorReporter.GetStats();
-                var expected = "No static analysis errors detected.";
-                Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+                var context = CompileTest(configuration, test, isPSharpProgram);
+                var engine = StaticAnalysisEngine.Create(context, logger).Run();
+                var numErrors = engine.ErrorReporter.ErrorCount;
+                var numWarnings = engine.ErrorReporter.WarningCount;
+                Assert.Equal(0, numErrors);
+                Assert.Equal(0, numWarnings);
             }
             finally
             {
-                TestComplete();
+                logger.Dispose();
             }
         }
 
@@ -99,25 +74,26 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         protected void AssertFailed(Configuration configuration, string test, int numExpectedErrors, string expectedOutput, bool isPSharpProgram = true)
         {
+            InMemoryLogger logger = new InMemoryLogger();
+
             try
             {
-                var context = RunTest(configuration, test, isPSharpProgram);
+                var context = CompileTest(configuration, test, isPSharpProgram);
+                var engine = StaticAnalysisEngine.Create(context, logger).Run();
 
-                var stats = AnalysisErrorReporter.GetStats();
-                var errorSuffix = numExpectedErrors > 1 ? "s" : string.Empty;
-                var expected = $"Static analysis detected '{numExpectedErrors}' error{errorSuffix}.";
-                Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+                var numErrors = engine.ErrorReporter.ErrorCount;
+                Assert.Equal(numExpectedErrors, numErrors);
 
                 if (!string.IsNullOrEmpty(expectedOutput))
                 {
-                    var actual = ((InMemoryLogger)Output.Logger).ToString();
-                    Assert.AreEqual(expectedOutput.Replace(Environment.NewLine, string.Empty),
+                    var actual = logger.ToString();
+                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, string.Empty),
                        actual.Substring(0, actual.IndexOf(Environment.NewLine)));
                 }
             }
             finally
             {
-                TestComplete();
+                logger.Dispose();
             }
         }
 
@@ -170,30 +146,53 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         protected void AssertFailedAndWarning(Configuration configuration, string test, int numExpectedErrors, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
         {
+            InMemoryLogger logger = new InMemoryLogger();
+            configuration.ShowWarnings = true;
+
             try
             {
-                ErrorReporter.ShowWarnings = true;
-                var context = RunTest(configuration, test, isPSharpProgram);
+                var context = CompileTest(configuration, test, isPSharpProgram);
+                var engine = StaticAnalysisEngine.Create(context, logger).Run();
 
-                var stats = AnalysisErrorReporter.GetStats();
-                var errorSuffix = numExpectedErrors == 1 ? string.Empty : "s";
-                var warningSuffix = numExpectedWarnings == 1 ? string.Empty : "s";
-                var expected = $"Static analysis detected '{numExpectedErrors}' error{errorSuffix} and '{numExpectedWarnings}' warning{warningSuffix}.";
-                Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+                var numErrors = engine.ErrorReporter.ErrorCount;
+                var numWarnings = engine.ErrorReporter.WarningCount;
+                Assert.Equal(numExpectedErrors, numErrors);
+                Assert.Equal(numExpectedWarnings, numWarnings);
 
                 if (!string.IsNullOrEmpty(expectedOutput))
                 {
-                    var actual = ((InMemoryLogger)Output.Logger).ToString();
-                    Assert.AreEqual(expectedOutput.Replace(Environment.NewLine, string.Empty),
-                       //actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+                    var actual = logger.ToString();
+                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, string.Empty),
                        actual.Replace(Environment.NewLine, string.Empty));
                 }
             }
             finally
             {
-                ErrorReporter.ShowWarnings = false;
-                TestComplete();
+                logger.Dispose();
             }
+        }
+
+        #endregion
+
+        #region utilities
+
+        protected Configuration GetConfiguration()
+        {
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
+            configuration.Verbose = 2;
+            configuration.AnalyzeDataFlow = true;
+            configuration.AnalyzeDataRaces = true;
+            return configuration;
+        }
+
+        private CompilationContext CompileTest(Configuration configuration, string test, bool isPSharpProgram)
+        {
+            var context = CompilationContext.Create(configuration).LoadSolution(test, isPSharpProgram ? "psharp" : "cs");
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+            return context;
         }
 
         #endregion
