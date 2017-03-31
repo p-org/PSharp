@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6CF10554-1535-4FE0-A949-EEA5025D8604}</ProjectGuid>
+    <ProjectGuid>{6cf10554-1535-4fe0-a949-eea5025d8604}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</RootNamespace>

@@ -12,14 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
+using System;
+
 using Microsoft.PSharp.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class UnfairExecutionTest
+    public class UnfairExecutionTest : BaseTest
     {
         class Unit : Event { }
 
@@ -92,33 +93,20 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class S2 : MonitorState { }
         }
 
-        public static class TestProgram
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.RegisterMonitor(typeof(LivenessMonitor));
-                runtime.CreateMachine(typeof(M));
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestUnfairExecution()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 3;
+            var configuration = base.GetConfiguration();
             configuration.LivenessTemperatureThreshold = 150;
             configuration.SchedulingStrategy = SchedulingStrategy.PCT;
             configuration.MaxSchedulingSteps = 300;
 
-            Debug.IsEnabled = true;
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                r.CreateMachine(typeof(M));
+            });
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, TestProgram.Execute);
-            engine.Run();
-            
-            Assert.AreEqual(0, engine.TestReport.NumOfFoundBugs);
+            base.AssertSucceeded(configuration, test);
         }
     }
 }

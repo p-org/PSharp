@@ -103,7 +103,8 @@
   <ItemGroup>
     <Compile Include="Compilation\CompilationContext.cs" />
     <Compile Include="Compilation\CompilationEngine.cs" />
-    <Compile Include="Exceptions\Exceptions.cs" />
+    <Compile Include="Exceptions\ParsingException.cs" />
+    <Compile Include="Exceptions\RewritingException.cs" />
     <Compile Include="Parsing\Lexers\BaseLexer.cs" />
     <Compile Include="Parsing\Lexers\ILexer.cs" />
     <Compile Include="Parsing\Lexers\PSharpLexer.cs" />

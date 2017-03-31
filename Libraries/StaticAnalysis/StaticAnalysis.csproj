@@ -115,14 +115,14 @@
     <Compile Include="Summarization\StateMachines\StateMachine.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />
     <Compile Include="Tracing\ErrorTraceStep.cs" />
-    <Compile Include="Utilities\AnalysisErrorReporter.cs" />
     <Compile Include="Tracing\TraceInfo.cs" />
     <Compile Include="Analyses\StateMachineAnalysisPass.cs" />
-    <Compile Include="StaticAnalysisEngine.cs" />
+    <Compile Include="Engines\StaticAnalysisEngine.cs" />
     <Compile Include="Summarization\MachineSummarizationPass.cs" />
     <Compile Include="Analyses\Ownership\RespectsOwnershipAnalysisPass.cs" />
     <Compile Include="Analyses\DirectAccessAnalysisPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\ErrorReporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

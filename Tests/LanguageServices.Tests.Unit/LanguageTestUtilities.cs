@@ -17,7 +17,8 @@ using System;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -43,12 +44,13 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             {
                 var expected = expectedLines[ii];
                 var actual = actualLines[ii];
+
                 if (expected != actual)
                 {
                     // Use same number of characters for as close alignment as possible for non-fixed fonts.
                     var message = string.Format("Line {0}:{1}expect: {2}{3}actual: {4}",
-                                                ii + 1, Environment.NewLine, expected, Environment.NewLine, actual);
-                    Assert.Fail(message);
+                        ii + 1, Environment.NewLine, expected, Environment.NewLine, actual);
+                    Assert.True(false, message);
                 }
             }
 
@@ -59,9 +61,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 {
                     var line = expectedLines.Length > actualLines.Length ? expectedLines[numLines] : actualLines[numLines];
                     var message = string.Format("{0} has more lines, starting at line {1}:{2}",
-                                                expectedLines.Length > actualLines.Length ? "expected" : "actual", numLines + 1,
-                                                line.Length > 0 ? line : "<empty>");
-                    Assert.Fail(message);
+                        expectedLines.Length > actualLines.Length ? "expected" : "actual", numLines + 1,
+                        line.Length > 0 ? line : "<empty>");
+                    Assert.True(false, message);
                 }
             }
         }
@@ -89,7 +91,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(expectedResult, parser.GetParsingErrorLog());
+            Assert.Equal(expectedResult, parser.GetParsingErrorLog());
         }
     }
 }

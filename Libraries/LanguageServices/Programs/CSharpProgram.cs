@@ -163,19 +163,9 @@ namespace Microsoft.PSharp.LanguageServices
             {
                 passes = assembly.GetTypes().Where(m => m.GetCustomAttributes(attribute, false).Length > 0).ToList();
             }
-            catch (ReflectionTypeLoadException ex)
-            {
-                foreach (var le in ex.LoaderExceptions)
-                {
-                    ErrorReporter.Report(Output.Logger, le.Message);
-                }
-
-                Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
-            }
             catch (Exception ex)
             {
-                ErrorReporter.Report(Output.Logger, ex.Message);
-                Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+                throw new RewritingException($"Failed to load assembly '{assembly.FullName}'", ex);
             }
 
             return passes;

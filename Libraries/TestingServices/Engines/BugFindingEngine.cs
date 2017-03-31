@@ -62,10 +62,19 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static BugFindingEngine Create(Configuration configuration,
-            Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
+        }
+
+        /// <summary>
+        /// Creates a new P# bug-finding engine.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <returns>BugFindingEngine</returns>
+        internal static BugFindingEngine Create(Configuration configuration)
+        {
+            return new BugFindingEngine(configuration);
         }
 
         /// <summary>
@@ -77,16 +86,6 @@ namespace Microsoft.PSharp.TestingServices
         internal static BugFindingEngine Create(Configuration configuration, Assembly assembly)
         {
             return new BugFindingEngine(configuration, assembly);
-        }
-
-        /// <summary>
-        /// Creates a new P# bug-finding engine.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>BugFindingEngine</returns>
-        internal static BugFindingEngine Create(Configuration configuration)
-        {
-            return new BugFindingEngine(configuration);
         }
 
         /// <summary>
@@ -114,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices
                     Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
                 string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
 
-                Output.WriteLine($"..... Writing {readableTracePath}");
+                base.Logger.WriteLine($"..... Writing {readableTracePath}");
                 File.WriteAllText(readableTracePath, this.ReadableTrace);
             }
 
@@ -127,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    Output.WriteLine($"..... Writing {bugTracePath}");
+                    base.Logger.WriteLine($"..... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }
@@ -138,7 +137,7 @@ namespace Microsoft.PSharp.TestingServices
                 string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
                 string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
 
-                Output.WriteLine($"..... Writing {reproTracePath}");
+                base.Logger.WriteLine($"..... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
             }
         }
@@ -220,7 +219,7 @@ namespace Microsoft.PSharp.TestingServices
                 options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
             }
 
-            Output.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
+            base.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
                 $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
 
             Task task = new Task(() =>
@@ -243,31 +242,35 @@ namespace Microsoft.PSharp.TestingServices
 
                         if (this.ShouldPrintIteration(i + 1))
                         {
-                            Output.WriteLine($"..... Iteration #{i + 1}");
+                            base.Logger.WriteLine($"..... Iteration #{i + 1}");
                         }
 
                         var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
 
-                        StringWriter sw = null;
-                        if (base.Configuration.RedirectTestConsoleOutput &&
-                            base.Configuration.Verbose < 2)
+                        InMemoryLogger runtimeLogger = null;
+                        if (base.Configuration.Verbose < 2)
                         {
-                            sw = base.RedirectConsoleOutput();
-                            base.HasRedirectedConsoleOutput = true;
+                            runtimeLogger = new InMemoryLogger();
+                            runtime.SetLogger(runtimeLogger);
                         }
 
-                        // Starts the test.
+                        // Runs the test inside the P# test-harness machine.
                         if (base.TestAction != null)
                         {
-                            base.TestAction(runtime);
+                            TestHarnessMachine.Run(runtime, base.TestAction);
                         }
                         else
                         {
-                            base.TestMethod.Invoke(null, new object[] { runtime });
+                            TestHarnessMachine.Run(runtime, base.TestMethod);
                         }
 
                         // Wait for the test to terminate.
                         runtime.Wait();
+
+                        if (runtime.Scheduler.BugFound)
+                        {
+                            base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                        }
 
                         if (this.Configuration.EnableDataRaceDetection)
                         {
@@ -309,14 +312,9 @@ namespace Microsoft.PSharp.TestingServices
 
                         this.GatherIterationStatistics(runtime);
 
-                        if (base.HasRedirectedConsoleOutput)
-                        {
-                            base.ResetOutput();
-                        }
-
                         if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
                         {
-                            Output.WriteLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                            base.Logger.WriteLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
                                 $"[task-{this.Configuration.TestingProcessId}]");
                         }
 
@@ -329,9 +327,9 @@ namespace Microsoft.PSharp.TestingServices
 
                         if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
                         {
-                            if (sw != null && !base.Configuration.SuppressTrace)
+                            if (runtimeLogger != null && !base.Configuration.SuppressTrace)
                             {
-                                this.ReadableTrace = sw.ToString();
+                                this.ReadableTrace = runtimeLogger.ToString();
                                 this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
                                 this.BugTrace = runtime.BugTrace;
                                 this.ConstructReproducableTrace(runtime);
@@ -339,9 +337,9 @@ namespace Microsoft.PSharp.TestingServices
 
                             break;
                         }
-                        else if (sw != null && base.Configuration.PrintTrace)
+                        else if (runtimeLogger != null && base.Configuration.PrintTrace)
                         {
-                            this.ReadableTrace = sw.ToString();
+                            this.ReadableTrace = runtimeLogger.ToString();
                             this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
                             this.BugTrace = runtime.BugTrace;
                             this.ConstructReproducableTrace(runtime);

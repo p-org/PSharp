@@ -1324,6 +1324,8 @@ namespace Microsoft.PSharp.TestingServices
             this.StateCache = null;
             this.ScheduleTrace = null;
             this.BugTrace = null;
+
+            base.Dispose();
         }
 
         #endregion

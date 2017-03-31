@@ -16,6 +16,7 @@ using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -36,6 +37,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Configuration.
         /// </summary>
         protected Configuration Configuration;
+
+        /// <summary>
+        /// The installed logger.
+        /// </summary>
+        protected ILogger Logger;
+
+        /// <summary>
+        /// The error reporter.
+        /// </summary>
+        protected ErrorReporter ErrorReporter;
 
         /// <summary>
         /// The analysis pass profiler.
@@ -61,16 +72,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        protected StateMachineAnalysisPass(AnalysisContext context, Configuration configuration)
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
+        protected StateMachineAnalysisPass(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
         {
+            this.Logger = logger;
             this.Profiler = new Profiler();
             this.AnalysisContext = context;
             this.Configuration = configuration;
+            this.ErrorReporter = errorReporter;
         }
 
         #endregion
 
-        #region profiling methods
+        #region profiling
 
         /// <summary>
         /// Prints profiling results.

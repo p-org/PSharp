@@ -110,7 +110,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/warnings-on"))
             {
                 this.Configuration.ShowWarnings = true;
-                ErrorReporter.ShowWarnings = true;
             }
             else if (option.ToLower().StartsWith("/timeout:") && option.Length > 9)
             {

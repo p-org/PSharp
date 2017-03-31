@@ -86,9 +86,14 @@ namespace Microsoft.PSharp.TestingServices
         protected int PrintGuard;
 
         /// <summary>
-        /// Has redirected console output.
+        /// The installed logger.
         /// </summary>
-        protected bool HasRedirectedConsoleOutput;
+        protected ILogger Logger;
+
+        /// <summary>
+        /// The error reporter.
+        /// </summary>
+        protected ErrorReporter ErrorReporter;
 
         /// <summary>
         /// The profiler.
@@ -166,9 +171,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         protected AbstractTestingEngine(Configuration configuration)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
-
             this.PerIterationCallbacks = new HashSet<Action<int>>();
 
             try
@@ -181,6 +184,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.Initialize();
+
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
@@ -194,7 +198,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="assembly">Assembly</param>
         protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
             this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.Assembly = assembly;
@@ -210,10 +213,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration,
-            Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
             this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.TestAction = action;
@@ -225,6 +226,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
+            this.Logger = new DefaultLogger();
+            this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
+            this.Profiler = new Profiler();
+
             this.CancellationTokenSource = new CancellationTokenSource();
 
             this.TestReport = new TestReport(this.Configuration);
@@ -233,7 +238,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)
             {
-                this.Strategy = new InteractiveStrategy(this.Configuration);
+                this.Strategy = new InteractiveStrategy(this.Configuration, this.Logger);
                 this.Configuration.SchedulingIterations = 1;
                 this.Configuration.PerformFullExploration = false;
                 this.Configuration.Verbose = 2;
@@ -339,8 +344,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration.SchedulingIterations = 1;
                 this.Configuration.PerformFullExploration = false;
             }
-
-            this.HasRedirectedConsoleOutput = false;
         }
 
         #endregion
@@ -379,16 +382,11 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (this.CancellationTokenSource.IsCancellationRequested)
                 {
-                    Output.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
+                    this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
                 }
             }
             catch (AggregateException aex)
             {
-                if (this.HasRedirectedConsoleOutput)
-                {
-                    this.ResetOutput();
-                }
-
                 aex.Handle((Func<Exception, bool>)((ex) =>
                 {
                     Debug.WriteLine((string)ex.Message);
@@ -518,14 +516,14 @@ namespace Microsoft.PSharp.TestingServices
             {
                 foreach (var le in ex.LoaderExceptions)
                 {
-                    ErrorReporter.Report(Output.Logger, le.Message);
+                    this.ErrorReporter.WriteErrorLine(le.Message);
                 }
 
                 Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
             catch (Exception ex)
             {
-                ErrorReporter.Report(Output.Logger, ex.Message);
+                this.ErrorReporter.WriteErrorLine(ex.Message);
                 Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
 
@@ -575,26 +573,24 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        /// <summary>
-        /// Redirects the console output.
-        /// </summary>
-        /// <returns>StringWriter</returns>
-        protected StringWriter RedirectConsoleOutput()
-        {
-            var sw = new StringWriter();
-            Console.SetOut(sw);
-            return sw;
-        }
+        #endregion
+
+        #region logging
 
         /// <summary>
-        /// Resets the console output.
+        /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
-        protected void ResetOutput()
+        /// <param name="logger">TextWriter</param>
+        public void SetLogger(ILogger logger)
         {
-            var sw = new StreamWriter(Console.OpenStandardOutput());
-            sw.AutoFlush = true;
-            Console.SetOut(sw);
-            this.HasRedirectedConsoleOutput = false;
+            if (logger == null)
+            {
+                throw new InvalidOperationException("Cannot install a null logger.");
+            }
+
+            this.Logger.Dispose();
+            this.Logger = logger;
+            this.ErrorReporter.Logger = logger;
         }
 
         #endregion

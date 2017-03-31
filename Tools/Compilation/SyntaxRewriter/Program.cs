@@ -14,6 +14,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 

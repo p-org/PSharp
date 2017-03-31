@@ -104,6 +104,8 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.EnableDataRaceDetection = false;
             }
 
+            configuration.EnableColoredConsoleOutput = true;
+
             this.Configuration = configuration;
         }
 

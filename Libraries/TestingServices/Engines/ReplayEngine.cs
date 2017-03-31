@@ -13,11 +13,12 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
+
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -138,35 +139,38 @@ namespace Microsoft.PSharp.TestingServices
             {
                 try
                 {
-                    var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
-
-                    StringWriter sw = null;
-                    if (base.Configuration.RedirectTestConsoleOutput &&
-                        base.Configuration.Verbose < 2)
+                    if (base.TestInitMethod != null)
                     {
-                        sw = base.RedirectConsoleOutput();
-                        base.HasRedirectedConsoleOutput = true;
+                        // Initializes the test state.
+                        base.TestInitMethod.Invoke(null, new object[] { });
                     }
 
-                    // Start the test.
+                    var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
+
+                    InMemoryLogger runtimeLogger = null;
+                    if (base.Configuration.Verbose < 2)
+                    {
+                        runtimeLogger = new InMemoryLogger();
+                        runtime.SetLogger(runtimeLogger);
+                    }
+
+                    // Runs the test inside the P# test-harness machine.
                     if (base.TestAction != null)
                     {
-                        base.TestAction(runtime);
+                        TestHarnessMachine.Run(runtime, base.TestAction);
                     }
                     else
                     {
-                        if (base.TestInitMethod != null)
-                        {
-                            // Initializes the test state.
-                            base.TestInitMethod.Invoke(null, new object[] { });
-                        }
-
-                        // Starts the test.
-                        base.TestMethod.Invoke(null, new object[] { runtime });
+                        TestHarnessMachine.Run(runtime, base.TestMethod);
                     }
 
                     // Wait for the test to terminate.
                     runtime.Wait();
+
+                    if (runtime.Scheduler.BugFound)
+                    {
+                        base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                    }
 
                     // Invokes user-provided cleanup for this iteration.
                     if (base.TestIterationDisposeMethod != null)
@@ -194,10 +198,7 @@ namespace Microsoft.PSharp.TestingServices
                     report.CoverageInfo.Merge(runtime.CoverageInfo);
                     this.TestReport.Merge(report);
 
-                    if (base.HasRedirectedConsoleOutput)
-                    {
-                        base.ResetOutput();
-                    }
+                    runtime.Dispose();
                 }
                 catch (TargetInvocationException ex)
                 {

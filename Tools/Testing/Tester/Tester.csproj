@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}</ProjectGuid>
+    <ProjectGuid>{f30ae100-be49-4944-b5a2-6d8d4310cc0b}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp</RootNamespace>
