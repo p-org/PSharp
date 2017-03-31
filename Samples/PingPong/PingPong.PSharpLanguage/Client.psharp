@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PingPong.PSharpLanguage
+﻿namespace PingPong.PSharpLanguage
 {
 	/// <summary>
     /// A P# machine that models a simple client.
@@ -75,7 +73,7 @@ namespace PingPong.PSharpLanguage
 			// a reference to this client as a payload.
 			send(this.Server, Ping, this);
 
-			Console.WriteLine("Client request: {0} / 5", this.Counter);
+			this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
 
 			if (this.Counter == 5)
             {

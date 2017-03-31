@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PingPong.CustomLogging
+﻿namespace PingPong.CustomLogging
 {
     internal machine Client
     {
@@ -36,7 +34,7 @@ namespace PingPong.CustomLogging
             this.Counter++;
 			send(this.Server, Ping, this);
 
-			Console.WriteLine("Client request: {0} / 5", this.Counter);
+			this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
 
 			if (this.Counter == 5)
             {

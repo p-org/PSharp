@@ -37,7 +37,7 @@ namespace Raft.PSharpLanguage
         {
             if (this.Random())
             {
-                Console.WriteLine("\n [ElectionTimer] " + this.Target + " | timed out\n");
+                this.Logger.WriteLine("\n [ElectionTimer] " + this.Target + " | timed out\n");
                 send(this.Target, ETimeout);
             }
 

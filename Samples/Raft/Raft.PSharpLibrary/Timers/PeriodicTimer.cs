@@ -51,7 +51,7 @@ namespace Raft
         {
             if (this.Random())
             {
-                Console.WriteLine("\n [PeriodicTimer] " + this.Target + " | timed out\n");
+                this.Logger.WriteLine("\n [PeriodicTimer] " + this.Target + " | timed out\n");
                 this.Send(this.Target, new Timeout(), true);
             }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.PSharp;
+﻿using Microsoft.PSharp;
 
 namespace PingPong.MixedMode
 {
@@ -16,7 +15,7 @@ namespace PingPong.MixedMode
 
             this.Send(this.Server, new Ping(this.Id));
 
-            Console.WriteLine("Client request: {0} / 5", this.Counter);
+            this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
 
             if (this.Counter == 5)
             {

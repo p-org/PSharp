@@ -50,7 +50,7 @@ namespace ReplicatingStorage.PSharpLibrary
         {
             if (this.Random())
             {
-                Console.WriteLine("\n [FailureTimer] " + this.Target + " | timed out\n");
+                this.Logger.WriteLine("\n [FailureTimer] " + this.Target + " | timed out\n");
                 this.Send(this.Target, new Timeout(), true);
             }
 
