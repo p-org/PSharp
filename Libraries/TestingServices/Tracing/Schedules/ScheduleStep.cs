@@ -90,6 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
 
+            System.Console.WriteLine("xxx Index: " + index);
             return scheduleStep;
         }
 
@@ -112,6 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
 
+            System.Console.WriteLine("xxx Index: " + index);
             return scheduleStep;
         }
 
@@ -137,6 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
 
+            System.Console.WriteLine("xxx Index: " + index);
             return scheduleStep;
         }
 
@@ -159,6 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
 
+            System.Console.WriteLine("xxx Index: " + index);
             return scheduleStep;
         }
 

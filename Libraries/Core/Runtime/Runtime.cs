@@ -661,6 +661,19 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="uniqueId">Unique id</param>
+        /// /// <param name="interval">interval</param>
+        /// <returns>Boolean</returns>
+        internal virtual bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId, int interval)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>

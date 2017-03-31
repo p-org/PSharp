@@ -47,6 +47,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private int ExploredSteps;
 
+        private int RandomCount;
+
         #endregion
 
         #region public API
@@ -61,6 +63,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.ExploredSteps = 0;
+
+            RandomCount = 0;
         }
 
         /// <summary>
@@ -103,6 +107,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             next = false;
             if (this.Random.Next(maxValue) == 0)
             {
+                next = true;
+            }
+
+            this.ExploredSteps++;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <param name="interval">interval</param>
+        /// <returns>Boolean</returns>
+        public bool GetNextBooleanChoice(int maxValue, out bool next, int interval)
+        {
+            next = false;
+            RandomCount++;
+            if (this.RandomCount == interval)
+            {
+                RandomCount = 0;
                 next = true;
             }
 

@@ -193,6 +193,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Returns the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <param name="interval">interval</param>
+        /// <returns>Boolean</returns>
+        public bool GetNextBooleanChoice(int maxValue, out bool next, int interval)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        /// <summary>
         /// Returns the next integer choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>

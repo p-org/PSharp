@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -61,6 +62,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.ExploredSteps++;
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <param name="interval">interval</param>
+        /// <returns>Boolean</returns>
+        public override bool GetNextBooleanChoice(int maxValue, out bool next, int interval)
+        {
+            throw new System.NotImplementedException();
         }
 
         /// <summary>
