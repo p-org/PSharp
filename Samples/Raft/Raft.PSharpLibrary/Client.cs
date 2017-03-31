@@ -83,7 +83,7 @@ namespace Raft.PSharpLibrary
             this.LatestCommand = this.RandomInteger(100); //new Random().Next(100);
             this.Counter++;
 
-            Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
+            this.Logger.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
 
             this.Send(this.Cluster, new Request(this.Id, this.LatestCommand), true);
         }

@@ -159,7 +159,7 @@ namespace ReplicatingStorage.PSharpLibrary
             {
                 if (node.Value != latestData)
                 {
-                    Console.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
+                    this.Logger.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
                     this.Send(this.StorageNodes[node.Key], new StorageNode.SyncRequest(latestData));
                     numOfReplicas++;
                 }
@@ -198,7 +198,7 @@ namespace ReplicatingStorage.PSharpLibrary
             this.StorageNodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
 
-            Console.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
+            this.Logger.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
 
             this.CreateNewNode();
         }

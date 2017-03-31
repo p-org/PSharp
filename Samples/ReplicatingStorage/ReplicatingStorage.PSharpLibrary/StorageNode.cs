@@ -116,7 +116,7 @@ namespace ReplicatingStorage.PSharpLibrary
             this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
             this.NodeId = (this.ReceivedEvent as ConfigureEvent).Id;
 
-            Console.WriteLine("\n [StorageNode-{0}] is up and running.\n", this.NodeId);
+            this.Logger.WriteLine("\n [StorageNode-{0}] is up and running.\n", this.NodeId);
 
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeCreated(this.NodeId));
             this.Send(this.Environment, new Environment.NotifyNode(this.Id));
@@ -134,7 +134,7 @@ namespace ReplicatingStorage.PSharpLibrary
         {
             var cmd = (this.ReceivedEvent as StoreRequest).Command;
             this.Data += cmd;
-            Console.WriteLine("\n [StorageNode-{0}] is applying command {1}.\n", this.NodeId, cmd);
+            this.Logger.WriteLine("\n [StorageNode-{0}] is applying command {1}.\n", this.NodeId, cmd);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
         }
 
@@ -142,7 +142,7 @@ namespace ReplicatingStorage.PSharpLibrary
         {
             var data = (this.ReceivedEvent as SyncRequest).Data;
             this.Data = data;
-            Console.WriteLine("\n [StorageNode-{0}] is syncing with data {1}.\n", this.NodeId, this.Data);
+            this.Logger.WriteLine("\n [StorageNode-{0}] is syncing with data {1}.\n", this.NodeId, this.Data);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
         }
 

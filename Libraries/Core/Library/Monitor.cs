@@ -92,6 +92,11 @@ namespace Microsoft.PSharp
         #region properties
 
         /// <summary>
+        /// The logger installed to the P# runtime.
+        /// </summary>
+        protected ILogger Logger => base.Runtime.Logger;
+
+        /// <summary>
         /// Gets the current state.
         /// </summary>
         protected internal Type CurrentState

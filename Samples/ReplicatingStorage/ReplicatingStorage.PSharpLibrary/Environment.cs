@@ -104,7 +104,7 @@ namespace ReplicatingStorage.PSharpLibrary
             int nodeId = this.RandomInteger(this.AliveNodes.Count);
             var node = this.AliveNodes[nodeId];
 
-            Console.WriteLine("\n [Environment] injecting fault.\n");
+            this.Logger.WriteLine("\n [Environment] injecting fault.\n");
 
             this.Send(node, new FaultInject());
             this.Send(this.NodeManager, new NodeManager.NotifyFailure(node));
