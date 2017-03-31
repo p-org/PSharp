@@ -3,7 +3,7 @@
   <metadata>
     <id>Microsoft.PSharp</id>
     <version>1.1.1</version>
-    <authors>Pantazis Deligiannis, Akash Lal, Shaz Qadeer</authors>
+    <authors>Microsoft</authors>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
