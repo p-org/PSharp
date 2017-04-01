@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="logger">ILogger</param>
         public InteractiveStrategy(Configuration configuration, ILogger logger)
         {
-            this.Logger = logger ?? new DefaultLogger();
+            this.Logger = logger ?? new ConsoleLogger();
             this.Configuration = configuration;
             this.InputCache = new List<string>();
             this.ExploredSteps = 0;

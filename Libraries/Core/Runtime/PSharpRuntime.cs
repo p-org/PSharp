@@ -119,7 +119,7 @@ namespace Microsoft.PSharp
         private void Initialize()
         {
             this.NetworkProvider = new LocalNetworkProvider(this);
-            this.Logger = new DefaultLogger();
+            this.Logger = new ConsoleLogger();
             this.IsFaulted = false;
         }
 
@@ -544,7 +544,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
-        /// <param name="logger">TextWriter</param>
+        /// <param name="logger">ILogger</param>
         public void SetLogger(ILogger logger)
         {
             if (logger == null)
@@ -552,18 +552,7 @@ namespace Microsoft.PSharp
                 throw new InvalidOperationException("Cannot install a null logger.");
             }
 
-            this.Logger.Dispose();
             this.Logger = logger;
-        }
-
-        /// <summary>
-        /// Replaces the currently installed <see cref="ILogger"/> with
-        /// the default <see cref="ILogger"/>.
-        /// </summary>
-        public void RemoveLogger()
-        {
-            this.Logger.Dispose();
-            this.Logger = new DefaultLogger();
         }
 
         #endregion
@@ -631,7 +620,6 @@ namespace Microsoft.PSharp
         public virtual void Dispose()
         {
             this.NetworkProvider.Dispose();
-            this.Logger.Dispose();
         }
 
         #endregion

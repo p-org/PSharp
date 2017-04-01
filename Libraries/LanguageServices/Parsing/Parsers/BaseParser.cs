@@ -12,10 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
 using Microsoft.CodeAnalysis;
-using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -46,11 +43,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected ParsingOptions Options;
 
-        /// <summary>
-        /// The installed logger.
-        /// </summary>
-        protected ILogger Logger;
-
         #endregion
 
         #region constructors
@@ -77,14 +69,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.Options = options;
         }
 
-        /// <summary>
-        /// Initialized the parser.
-        /// </summary>
-        private void Initialize()
-        {
-            this.Logger = new DefaultLogger();
-        }
-
         #endregion
 
         #region protected API
@@ -94,25 +78,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <returns>P# program</returns>
         protected abstract IPSharpProgram CreateNewProgram();
-
-        #endregion
-
-        #region logging
-
-        /// <summary>
-        /// Installs the specified <see cref="ILogger"/>.
-        /// </summary>
-        /// <param name="logger">TextWriter</param>
-        public void SetLogger(ILogger logger)
-        {
-            if (logger == null)
-            {
-                throw new InvalidOperationException("Cannot install a null logger.");
-            }
-
-            this.Logger.Dispose();
-            this.Logger = logger;
-        }
 
         #endregion
     }

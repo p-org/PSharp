@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DefaultLogger.cs">
+// <copyright file="ConsoleLogger.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.IO
     /// <summary>
     /// Logger that writes text to the console.
     /// </summary>
-    internal sealed class DefaultLogger : ILogger
+    internal sealed class ConsoleLogger : ILogger
     {
         /// <summary>
         /// Writes the specified string value.

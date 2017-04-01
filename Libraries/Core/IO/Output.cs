@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         static Output()
         {
-            Logger = new DefaultErrorLogger();
+            Logger = new ConsoleLogger();
         }
 
         #endregion
@@ -88,11 +88,11 @@ namespace Microsoft.PSharp.IO
         /// Installs the specified logger. If a null logger is provided,
         /// then the default logger will be installed.
         /// </summary>
-        /// <param name="logger">TextWriter</param>
+        /// <param name="logger">ILogger</param>
         internal static void SetLogger(ILogger logger)
         {
             Logger?.Dispose();
-            Logger = logger ?? new DefaultErrorLogger();
+            Logger = logger ?? new ConsoleLogger();
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.IO
         internal static void RemoveLogger()
         {
             Logger?.Dispose();
-            Logger = new DefaultErrorLogger();
+            Logger = new ConsoleLogger();
         }
 
         #endregion

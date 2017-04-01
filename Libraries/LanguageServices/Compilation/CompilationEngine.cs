@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns></returns>
         public static CompilationEngine Create(CompilationContext context)
         {
-            return new CompilationEngine(context, new DefaultLogger());
+            return new CompilationEngine(context, new ConsoleLogger());
         }
 
         /// <summary>
