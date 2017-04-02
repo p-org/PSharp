@@ -145,27 +145,55 @@ namespace Microsoft.PSharp.TestingServices
                         base.TestInitMethod.Invoke(null, new object[] { });
                     }
 
+                    // Creates a new instance of the bug-finding runtime.
                     var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
 
+                    // Logger used to intercept the program output if no custom logger
+                    // is installed and if verbosity is turned off.
                     InMemoryLogger runtimeLogger = null;
-                    if (base.Configuration.Verbose < 2)
-                    {
-                        runtimeLogger = new InMemoryLogger();
-                        runtime.SetLogger(runtimeLogger);
-                    }
 
-                    // Runs the test inside the P# test-harness machine.
-                    if (base.TestAction != null)
-                    {
-                        TestHarnessMachine.Run(runtime, base.TestAction);
-                    }
-                    else
-                    {
-                        TestHarnessMachine.Run(runtime, base.TestMethod);
-                    }
+                    // Gets a handle to the standard output and error streams.
+                    var stdOut = Console.Out;
+                    var stdErr = Console.Error;
 
-                    // Wait for the test to terminate.
-                    runtime.Wait();
+                    try
+                    {
+                        // If verbosity is turned off, then intercept the program log, and also redirect
+                        // the standard output and error streams into the runtime logger.
+                        if (base.Configuration.Verbose < 2)
+                        {
+                            runtimeLogger = new InMemoryLogger();
+                            runtime.SetLogger(runtimeLogger);
+
+                            var writer = new LogWriter(new DisposingLogger());
+                            Console.SetOut(writer);
+                            Console.SetError(writer);
+                        }
+
+                        // Runs the test inside the P# test-harness machine.
+                        if (base.TestAction != null)
+                        {
+                            TestHarnessMachine.Run(runtime, base.TestAction);
+                        }
+                        else
+                        {
+                            TestHarnessMachine.Run(runtime, base.TestMethod);
+                        }
+
+                        // Wait for the test to terminate.
+                        runtime.Wait();
+                    }
+                    finally
+                    {
+                        if (base.Configuration.Verbose < 2)
+                        {
+                            // Restores the standard output and error streams.
+                            Console.SetOut(stdOut);
+                            Console.SetError(stdErr);
+                        }
+
+                        runtimeLogger?.Dispose();
+                    }
 
                     if (runtime.Scheduler.BugFound)
                     {

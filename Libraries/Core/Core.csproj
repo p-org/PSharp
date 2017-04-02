@@ -58,9 +58,10 @@
     <Compile Include="Configuration\Configuration.cs" />
     <Compile Include="IO\Debugging\Debug.cs" />
     <Compile Include="IO\Debugging\Error.cs" />
-    <Compile Include="IO\Logging\DefaultErrorLogger.cs" />
-    <Compile Include="IO\Logging\DefaultLogger.cs" />
+    <Compile Include="IO\Logging\DisposingLogger.cs" />
+    <Compile Include="IO\Logging\ConsoleLogger.cs" />
     <Compile Include="IO\Logging\ILogger.cs" />
+    <Compile Include="IO\Logging\LogWriter.cs" />
     <Compile Include="IO\Logging\InMemoryLogger.cs" />
     <Compile Include="IO\Output.cs" />
     <Compile Include="IO\Utilities.cs" />

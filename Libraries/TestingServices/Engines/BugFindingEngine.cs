@@ -204,6 +204,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new bug-finding task.
         /// </summary>
         /// <returns>Task</returns>
+
         private Task CreateBugFindingTask()
         {
             string options = "";
@@ -240,82 +241,12 @@ namespace Microsoft.PSharp.TestingServices
                             break;
                         }
 
-                        if (this.ShouldPrintIteration(i + 1))
+                        // Runs a new testing iteration.
+                        this.RunNextIteration(i);
+
+                        if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
                         {
-                            base.Logger.WriteLine($"..... Iteration #{i + 1}");
-                        }
-
-                        var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
-
-                        InMemoryLogger runtimeLogger = null;
-                        if (base.Configuration.Verbose < 2)
-                        {
-                            runtimeLogger = new InMemoryLogger();
-                            runtime.SetLogger(runtimeLogger);
-                        }
-
-                        // Runs the test inside the P# test-harness machine.
-                        if (base.TestAction != null)
-                        {
-                            TestHarnessMachine.Run(runtime, base.TestAction);
-                        }
-                        else
-                        {
-                            TestHarnessMachine.Run(runtime, base.TestMethod);
-                        }
-
-                        // Wait for the test to terminate.
-                        runtime.Wait();
-
-                        if (runtime.Scheduler.BugFound)
-                        {
-                            base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
-                        }
-
-                        if (this.Configuration.EnableDataRaceDetection)
-                        {
-                            this.EmitRaceInstrumentationTraces(runtime, i);
-                        }
-
-                        // Invokes user-provided cleanup for this iteration.
-                        if (base.TestIterationDisposeMethod != null)
-                        {
-                            // Disposes the test state.
-                            base.TestIterationDisposeMethod.Invoke(null, null);
-                        }
-
-                        // Invoke the per iteration callbacks, if any.
-                        foreach (var callback in base.PerIterationCallbacks)
-                        {
-                            callback(i);
-                        }
-
-                        // Cleans up the runtime before the next
-                        // iteration starts.
-                        this.CleanUpRuntime();
-
-                        // TODO: Clean this up.
-                        base.Configuration.RaceDetectionCallback?.Invoke();
-                        if (base.Configuration.RaceFound)
-                        {
-                            string message = IO.Utilities.Format("Found a race");
-                            runtime.Scheduler.NotifyAssertionFailure(message, false);
-                        }
-
-                        // Checks for any liveness property violations. Requires
-                        // that the program has terminated and no safety property
-                        // violations have been found.
-                        if (!runtime.Scheduler.BugFound)
-                        {
-                            runtime.LivenessChecker.CheckLivenessAtTermination();
-                        }
-
-                        this.GatherIterationStatistics(runtime);
-
-                        if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
-                        {
-                            base.Logger.WriteLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
-                                $"[task-{this.Configuration.TestingProcessId}]");
+                            break;
                         }
 
                         if (base.Strategy.HasFinished())
@@ -325,26 +256,6 @@ namespace Microsoft.PSharp.TestingServices
 
                         base.Strategy.ConfigureNextIteration();
 
-                        if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
-                        {
-                            if (runtimeLogger != null && !base.Configuration.SuppressTrace)
-                            {
-                                this.ReadableTrace = runtimeLogger.ToString();
-                                this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
-                                this.BugTrace = runtime.BugTrace;
-                                this.ConstructReproducableTrace(runtime);
-                            }
-
-                            break;
-                        }
-                        else if (runtimeLogger != null && base.Configuration.PrintTrace)
-                        {
-                            this.ReadableTrace = runtimeLogger.ToString();
-                            this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
-                            this.BugTrace = runtime.BugTrace;
-                            this.ConstructReproducableTrace(runtime);
-                        }
-
                         // Increases iterations if there is a specified timeout
                         // and the default iteration given.
                         if (base.Configuration.SchedulingIterations == 1 &&
@@ -352,8 +263,6 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             maxIterations++;
                         }
-
-                        runtime.Dispose();
                     }
 
                     if (base.TestDisposeMethod != null)
@@ -373,6 +282,131 @@ namespace Microsoft.PSharp.TestingServices
             }, base.CancellationTokenSource.Token);
 
             return task;
+        }
+
+        /// <summary>
+        /// Runs the next testing iteration.
+        /// </summary>
+        /// <param name="iteration">Iteration</param>
+        private void RunNextIteration(int iteration)
+        {
+            if (this.ShouldPrintIteration(iteration + 1))
+            {
+                base.Logger.WriteLine($"..... Iteration #{iteration + 1}");
+            }
+
+            // Runtime used to serialize and test the program in this iteration.
+            BugFindingRuntime runtime = null;
+
+            // Logger used to intercept the program output if no custom logger
+            // is installed and if verbosity is turned off.
+            InMemoryLogger runtimeLogger = null;
+
+            // Gets a handle to the standard output and error streams.
+            var stdOut = Console.Out;
+            var stdErr = Console.Error;
+
+            try
+            {
+                // Creates a new instance of the bug-finding runtime.
+                runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
+
+                // If verbosity is turned off, then intercept the program log, and also dispose
+                // the standard output and error streams.
+                if (base.Configuration.Verbose < 2)
+                {
+                    runtimeLogger = new InMemoryLogger();
+                    runtime.SetLogger(runtimeLogger);
+
+                    var writer = new LogWriter(new DisposingLogger());
+                    Console.SetOut(writer);
+                    Console.SetError(writer);
+                }
+                
+                // Runs the test inside the P# test-harness machine.
+                if (base.TestAction != null)
+                {
+                    TestHarnessMachine.Run(runtime, base.TestAction);
+                }
+                else
+                {
+                    TestHarnessMachine.Run(runtime, base.TestMethod);
+                }
+
+                // Wait for the test to terminate.
+                runtime.Wait();
+
+                if (runtime.Scheduler.BugFound)
+                {
+                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                }
+
+                if (this.Configuration.EnableDataRaceDetection)
+                {
+                    this.EmitRaceInstrumentationTraces(runtime, iteration);
+                }
+
+                // Invokes user-provided cleanup for this iteration.
+                if (base.TestIterationDisposeMethod != null)
+                {
+                    // Disposes the test state.
+                    base.TestIterationDisposeMethod.Invoke(null, null);
+                }
+
+                // Invoke the per iteration callbacks, if any.
+                foreach (var callback in base.PerIterationCallbacks)
+                {
+                    callback(iteration);
+                }
+
+                // TODO: Clean this up.
+                base.Configuration.RaceDetectionCallback?.Invoke();
+                if (base.Configuration.RaceFound)
+                {
+                    string message = IO.Utilities.Format("Found a race");
+                    runtime.Scheduler.NotifyAssertionFailure(message, false);
+                }
+
+                // Checks for any liveness property violations. Requires
+                // that the program has terminated and no safety property
+                // violations have been found.
+                if (!runtime.Scheduler.BugFound)
+                {
+                    runtime.LivenessChecker.CheckLivenessAtTermination();
+                }
+
+                this.GatherIterationStatistics(runtime);
+
+                if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
+                {
+                    base.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
+                        $"triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                        $"[task-{this.Configuration.TestingProcessId}]");
+                }
+
+                if (runtimeLogger != null && !base.Configuration.SuppressTrace && base.Configuration.PrintTrace)
+                {
+                    this.ReadableTrace = runtimeLogger.ToString();
+                    this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
+                    this.BugTrace = runtime.BugTrace;
+                    this.ConstructReproducableTrace(runtime);
+                }
+            }
+            finally
+            {
+                if (base.Configuration.Verbose < 2)
+                {
+                    // Restores the standard output and error streams.
+                    Console.SetOut(stdOut);
+                    Console.SetError(stdErr);
+                }
+
+                // Cleans up the runtime before the next iteration starts.
+                this.CleanUpRuntime();
+
+                runtimeLogger?.Dispose();
+                runtime?.Dispose();
+            }
         }
 
         /// <summary>

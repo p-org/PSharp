@@ -226,7 +226,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
-            this.Logger = new DefaultLogger();
+            this.Logger = new ConsoleLogger();
             this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
             this.Profiler = new Profiler();
 
@@ -580,7 +580,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
-        /// <param name="logger">TextWriter</param>
+        /// <param name="logger">ILogger</param>
         public void SetLogger(ILogger logger)
         {
             if (logger == null)

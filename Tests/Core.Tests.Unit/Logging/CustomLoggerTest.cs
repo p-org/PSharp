@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             Assert.True(expectedSet.SetEquals(actualSet));
 
-            runtime.RemoveLogger();
+            logger.Dispose();
         }
 
         [Fact]
@@ -177,7 +177,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             Assert.Equal("", logger.ToString());
 
-            runtime.RemoveLogger();
+            logger.Dispose();
         }
 
         [Fact]

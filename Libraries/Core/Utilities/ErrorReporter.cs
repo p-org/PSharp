@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.Utilities
         internal ErrorReporter(Configuration configuration, ILogger logger)
         {
             this.Configuration = configuration;
-            this.Logger = logger ?? new DefaultLogger();
+            this.Logger = logger ?? new ConsoleLogger();
         }
 
         #endregion
