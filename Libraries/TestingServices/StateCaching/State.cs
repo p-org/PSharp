@@ -14,7 +14,7 @@
 
 using System.Collections.Generic;
 
-using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
@@ -64,15 +64,15 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// </summary>
         internal void PrettyPrint()
         {
-            IO.PrintLine($"Fingerprint: {this.Fingerprint}");
+            Debug.WriteLine($"Fingerprint: {this.Fingerprint}");
             foreach (var m in this.EnabledMachines)
             {
-                IO.PrintLine($"  Enabled machine: {m}");
+                Debug.WriteLine($"  Enabled machine: {m}");
             }
 
             foreach (var m in this.MonitorStatus)
             {
-                IO.PrintLine($"  Monitor status: {m.Key.Id} is {m.Value}");
+                Debug.WriteLine($"  Monitor status: {m.Key.Id} is {m.Value}");
             }
         }
 

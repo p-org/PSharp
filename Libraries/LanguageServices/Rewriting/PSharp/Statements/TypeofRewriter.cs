@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             if (rewrittenMethods.Count > 1)
             {
-                throw new Parsing.RewritingException(
+                throw new RewritingException(
                     string.Format("Multiple definitions of the same method {0} in namespace {1}, machine {2}",
                       methoddecl.Identifier.ValueText,
                       namespacedecl.Name.ToString(),

@@ -14,6 +14,7 @@
 
 using System;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
@@ -32,18 +33,7 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            if (configuration.ParallelBugFindingTasks == 1 ||
-                configuration.TestingProcessId < 0)
-            {
-                IO.PrintLine(". Testing " + configuration.AssemblyToBeAnalyzed);
-                if (configuration.TestMethodName != "")
-                {
-                    IO.PrintLine(". Method {0}", configuration.TestMethodName);
-                }
-            }
-            
-            if (configuration.ParallelBugFindingTasks == 1 ||
-                configuration.TestingProcessId >= 0)
+            if (configuration.RunAsParallelBugFindingTask)
             {
                 // Creates and runs a testing process.
                 TestingProcess testingProcess = TestingProcess.Create(configuration);
@@ -51,15 +41,16 @@ namespace Microsoft.PSharp
             }
             else
             {
-                // Creates and runs the testing process scheduler, if there
-                // are more than one user specified parallel tasks.
-                TestingProcessScheduler.Create(configuration).Run();
-            }
+                Output.WriteLine(". Testing " + configuration.AssemblyToBeAnalyzed);
+                if (configuration.TestMethodName != "")
+                {
+                    Output.WriteLine("... Method {0}", configuration.TestMethodName);
+                }
 
-            if (configuration.ParallelBugFindingTasks == 1 ||
-                configuration.TestingProcessId < 0)
-            {
-                IO.PrintLine(". Done");
+                // Creates and runs the testing process scheduler.
+                TestingProcessScheduler.Create(configuration).Run();
+
+                Output.WriteLine(". Done");
             }
         }
 
@@ -71,8 +62,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            IO.Error.Report("[PSharpTester] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
-            IO.Error.PrintLine(ex.StackTrace);
+            Error.Report("[PSharpTester] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
+            Output.WriteLine(ex.StackTrace);
             Environment.Exit(1);
         }
     }

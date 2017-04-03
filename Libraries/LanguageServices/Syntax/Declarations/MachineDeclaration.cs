@@ -14,10 +14,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -39,24 +38,24 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal readonly bool IsMonitor;
 
         /// <summary>
+        /// The access modifier.
+        /// </summary>
+        internal readonly AccessModifier AccessModifier;
+
+        /// <summary>
+        /// The inheritance modifier.
+        /// </summary>
+        internal readonly InheritanceModifier InheritanceModifier;
+
+        /// <summary>
         /// True if the machine is partial.
         /// </summary>
-        internal bool IsPartial;
+        internal readonly bool IsPartial;
 
         /// <summary>
         /// The machine keyword.
         /// </summary>
         internal Token MachineKeyword;
-
-        /// <summary>
-        /// The access modifier.
-        /// </summary>
-        internal AccessModifier AccessModifier;
-
-        /// <summary>
-        /// The inheritance modifier.
-        /// </summary>
-        internal InheritanceModifier InheritanceModifier;
 
         /// <summary>
         /// The identifier token.
@@ -77,6 +76,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// The left curly bracket token.
         /// </summary>
         internal Token LeftCurlyBracketToken;
+
+        /// <summary>
+        /// List of event declarations.
+        /// </summary>
+        internal List<EventDeclaration> EventDeclarations;
 
         /// <summary>
         /// List of field declarations.
@@ -118,15 +122,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="namespaceNode">NamespaceDeclaration</param>
         /// <param name="isMonitor">Is a monitor</param>
-        /// <param name="isPartial">Is partial</param>
+        /// <param name="modSet">Modifier set</param>
         internal MachineDeclaration(IPSharpProgram program, NamespaceDeclaration namespaceNode,
-            bool isMonitor, bool isPartial)
+            bool isMonitor, ModifierSet modSet)
             : base(program)
         {
             this.Namespace = namespaceNode;
             this.IsMonitor = isMonitor;
-            this.IsPartial = isPartial;
+            this.AccessModifier = modSet.AccessModifier;
+            this.InheritanceModifier = modSet.InheritanceModifier;
+            this.IsPartial = modSet.IsPartial;
             this.BaseNameTokens = new List<Token>();
+            this.EventDeclarations = new List<EventDeclaration>();
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
             this.StateGroupDeclarations = new List<StateGroupDeclaration>();
@@ -138,56 +145,64 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            foreach (var node in this.EventDeclarations)
+            {
+                node.Rewrite(indentLevel + 1);
+            }
 
             foreach (var node in this.FieldDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
 
             foreach (var node in this.StateDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
 
             foreach (var node in this.StateGroupDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
 
             foreach (var node in this.MethodDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
 
+            string text = "";
+            string newLine = "";
             try
             {
-                text = this.GetRewrittenMachineDeclaration();
+                text = this.GetRewrittenMachineDeclaration(indentLevel, ref newLine);
             }
             catch (Exception ex)
             {
-                IO.Debug("Exception was thrown during rewriting:");
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                IO.Error.ReportAndExit("Failed to rewrite {0} '{1}'.",
+                Debug.WriteLine("Exception was thrown during rewriting:");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                Error.ReportAndExit("Failed to rewrite {0} '{1}'.",
                     this.IsMonitor ? "monitor" : "machine", this.Identifier.TextUnit.Text);
             }
 
+            var indent = GetIndent(indentLevel);
+
             foreach (var node in this.MethodDeclarations)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
 
-            text += this.GetRewrittenStateOnEntryAndExitActions();
-            text += this.GetRewrittenWithActions();
+            text += this.GetRewrittenStateOnEntryAndExitActions(indentLevel + 1, ref newLine);
+            text += this.GetRewrittenWithActions(indentLevel + 1, ref newLine);
 
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
 
-            this.PopulateRewrittenMethodsWithStates();
+            this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
 
         /// <summary>
@@ -254,9 +269,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten machine declaration.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenMachineDeclaration()
+        private string GetRewrittenMachineDeclaration(int indentLevel, ref string newLine)
         {
-            string text = "";
+            var indent = GetIndent(indentLevel);
+            string text = indent;
 
             if (this.AccessModifier == AccessModifier.Public)
             {
@@ -295,23 +311,46 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "Monitor";
             }
 
-            text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
+            foreach (var node in this.EventDeclarations)
+            {
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
+            }
+
+            if (this.FieldDeclarations.Count > 0)
+            {
+                text += newLine;
+                newLine = "";
+            }
             foreach (var node in this.FieldDeclarations)
             {
                 text += node.TextUnit.Text;
+                newLine = "\n";     // Not added per-line
             }
 
+            if (this.StateDeclarations.Count > 0)
+            {
+                text += newLine;
+                newLine = "";
+            }
             foreach (var node in this.StateDeclarations)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
 
+            if (this.StateGroupDeclarations.Count > 0)
+            {
+                text += newLine;
+                newLine = "";
+            }
             foreach (var node in this.StateGroupDeclarations)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
-
             return text;
         }
 
@@ -319,22 +358,23 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten state on entry and on exit actions.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenStateOnEntryAndExitActions()
+        private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine)
         {
             string text = "";
-
             foreach (var state in this.GetAllStateDeclarations())
             {
                 if (state.EntryDeclaration != null)
                 {
-                    state.EntryDeclaration.Rewrite();
-                    text += state.EntryDeclaration.TextUnit.Text + "\n";
+                    state.EntryDeclaration.Rewrite(indentLevel);
+                    text += newLine + state.EntryDeclaration.TextUnit.Text;
+                    newLine = "\n";
                 }
 
                 if (state.ExitDeclaration != null)
                 {
-                    state.ExitDeclaration.Rewrite();
-                    text += state.ExitDeclaration.TextUnit.Text + "\n";
+                    state.ExitDeclaration.Rewrite(indentLevel);
+                    text += newLine + state.ExitDeclaration.TextUnit.Text;
+                    newLine = "\n";
                 }
             }
 
@@ -345,19 +385,21 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten with actions.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenWithActions()
+        private string GetRewrittenWithActions(int indentLevel, ref string newLine)
         {
             string text = "";
+            var indent = GetIndent(indentLevel);
 
             foreach (var state in this.GetAllStateDeclarations())
             {
                 foreach (var withAction in state.TransitionsOnExitActions)
                 {
                     var onExitAction = withAction.Value;
-                    onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.GetFullyQualifiedName() +
+                    onExitAction.Rewrite(indentLevel);
+                    text += newLine + indent + "protected void psharp_" + state.GetFullyQualifiedName() +
                         state.GetResolvedEventHandlerName(withAction.Key) + "_action()";
-                    text += onExitAction.TextUnit.Text + "\n";
+                    text += "\n" + onExitAction.TextUnit.Text + "\n";
+                    newLine = "\n";
                 }
             }
 
@@ -366,10 +408,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 foreach (var withAction in state.ActionHandlers)
                 {
                     var onExitAction = withAction.Value;
-                    onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.GetFullyQualifiedName() +
+                    onExitAction.Rewrite(indentLevel);
+                    text += newLine + indent + "protected void psharp_" + state.GetFullyQualifiedName() +
                         state.GetResolvedEventHandlerName(withAction.Key) + "_action()";
-                    text += onExitAction.TextUnit.Text + "\n";
+                    text += "\n" + onExitAction.TextUnit.Text + "\n";
+                    newLine = "\n";
                 }
             }
 
@@ -377,16 +420,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Populated the set of rewritten methods and
+        /// Populated the set of rewritten methods with the group.state-qualified name of
         /// the states they came from.
         /// </summary>
-        private void PopulateRewrittenMethodsWithStates()
+        private void PopulateRewrittenMethodsWithStateQualifiedNames()
         {
             foreach (var state in this.GetAllStateDeclarations())
             {
+                // Qualify with the state name.
                 var tokens = new List<string>();
                 tokens.Insert(0, state.Identifier.TextUnit.Text);
 
+                // Back up the state's group parents, forming the chain of group names in reverse.
                 var group = state.Group;
                 while (group != null)
                 {
@@ -394,6 +439,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     group = group.Group;
                 }
                 
+                // Qualify the name of each state in this group.
                 foreach (var method in state.RewrittenMethods)
                 {
                     method.QualifiedStateName = tokens;

@@ -22,7 +22,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.TestingServices.Coverage;
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -62,10 +62,19 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static BugFindingEngine Create(Configuration configuration,
-            Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
+        }
+
+        /// <summary>
+        /// Creates a new P# bug-finding engine.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <returns>BugFindingEngine</returns>
+        internal static BugFindingEngine Create(Configuration configuration)
+        {
+            return new BugFindingEngine(configuration);
         }
 
         /// <summary>
@@ -77,16 +86,6 @@ namespace Microsoft.PSharp.TestingServices
         internal static BugFindingEngine Create(Configuration configuration, Assembly assembly)
         {
             return new BugFindingEngine(configuration, assembly);
-        }
-
-        /// <summary>
-        /// Creates a new P# bug-finding engine.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>BugFindingEngine</returns>
-        internal static BugFindingEngine Create(Configuration configuration)
-        {
-            return new BugFindingEngine(configuration);
         }
 
         /// <summary>
@@ -114,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices
                     Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
                 string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
 
-                IO.Error.PrintLine($"... Writing {readableTracePath}");
+                base.Logger.WriteLine($"..... Writing {readableTracePath}");
                 File.WriteAllText(readableTracePath, this.ReadableTrace);
             }
 
@@ -127,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    IO.Error.PrintLine($"... Writing {bugTracePath}");
+                    base.Logger.WriteLine($"..... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }
@@ -138,43 +137,8 @@ namespace Microsoft.PSharp.TestingServices
                 string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
                 string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
 
-                IO.Error.PrintLine($"... Writing {reproTracePath}");
+                base.Logger.WriteLine($"..... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
-            }
-        }
-
-        /// <summary>
-        /// Tries to emit the testing coverage report, if any.
-        /// </summary>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
-        public override void TryEmitCoverageReport(string directory, string file)
-        {
-            if (base.Configuration.ReportCodeCoverage)
-            {
-                var codeCoverageReporter = new CodeCoverageReporter(base.TestReport.CoverageInfo);
-
-                string[] graphFiles = Directory.GetFiles(directory, file + "_*.dgml");
-                string graphFilePath = directory + file + "_" + graphFiles.Length + ".dgml";
-
-                IO.Error.PrintLine($"... Writing {graphFilePath}");
-                codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
-                
-                string[] coverageFiles = Directory.GetFiles(directory, file + "_*.coverage.txt");
-                string coverageFilePath = directory + file + "_" + coverageFiles.Length + ".coverage.txt";
-
-                IO.Error.PrintLine($"... Writing {coverageFilePath}");
-                codeCoverageReporter.EmitCoverageReport(coverageFilePath);
-
-                string[] serFiles = Directory.GetFiles(directory, file + "_*.sci");
-                string serFilePath = directory + file + "_" + serFiles.Length + ".sci";
-
-                IO.Error.PrintLine($"... Writing {serFilePath}");
-                using (var fs = new FileStream(serFilePath, FileMode.Create))
-                {
-                    var ser = new DataContractSerializer(typeof(CoverageInfo));
-                    ser.WriteObject(fs, base.TestReport.CoverageInfo);
-                }
             }
         }
 
@@ -184,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Report</returns>
         public override string Report()
         {
-            return this.CreateReport("...");
+            return this.TestReport.GetText(base.Configuration, "...");
         }
 
         #endregion
@@ -240,6 +204,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new bug-finding task.
         /// </summary>
         /// <returns>Task</returns>
+
         private Task CreateBugFindingTask()
         {
             string options = "";
@@ -255,15 +220,8 @@ namespace Microsoft.PSharp.TestingServices
                 options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
             }
 
-            if (base.Configuration.TestingProcessId >= 0)
-            {
-                IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} is " +
-                    $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
-            }
-            else
-            {
-                IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
-            }
+            base.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
+                $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
 
             Task task = new Task(() =>
             {
@@ -274,178 +232,39 @@ namespace Microsoft.PSharp.TestingServices
                         // Initializes the test state.
                         base.TestInitMethod.Invoke(null, new object[] { });
                     }
-                }
-                catch (TargetInvocationException ex)
-                {
-                    if (!(ex.InnerException is TaskCanceledException))
-                    {
-                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                    }
-                }
 
-                int maxIterations = base.Configuration.SchedulingIterations;
-                for (int i = 0; i < maxIterations; i++)
-                {
-                    if (this.CancellationTokenSource.IsCancellationRequested)
+                    int maxIterations = base.Configuration.SchedulingIterations;
+                    for (int i = 0; i < maxIterations; i++)
                     {
-                        break;
-                    }
-
-                    if (this.ShouldPrintIteration(i + 1))
-                    {
-                        IO.PrintLine($"..... Iteration #{i + 1}");
-                    }
-
-                    var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                        base.Strategy, base.TestReport.CoverageInfo);
-
-                    StringWriter sw = null;
-                    if (base.Configuration.RedirectTestConsoleOutput &&
-                        base.Configuration.Verbose < 2)
-                    {
-                        sw = base.RedirectConsoleOutput();
-                        base.HasRedirectedConsoleOutput = true;
-                    }
-
-                    // Starts the test.
-                    if (base.TestAction != null)
-                    {
-                        base.TestAction(runtime);
-                    }
-                    else
-                    {
-                        try
+                        if (this.CancellationTokenSource.IsCancellationRequested)
                         {
-                            base.TestMethod.Invoke(null, new object[] { runtime });
+                            break;
                         }
-                        catch (TargetInvocationException ex)
+
+                        // Runs a new testing iteration.
+                        this.RunNextIteration(i);
+
+                        if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
                         {
-                            if (!(ex.InnerException is TaskCanceledException))
-                            {
-                                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                            }
+                            break;
+                        }
+
+                        if (base.Strategy.HasFinished())
+                        {
+                            break;
+                        }
+
+                        base.Strategy.ConfigureNextIteration();
+
+                        // Increases iterations if there is a specified timeout
+                        // and the default iteration given.
+                        if (base.Configuration.SchedulingIterations == 1 &&
+                            base.Configuration.Timeout > 0)
+                        {
+                            maxIterations++;
                         }
                     }
 
-                    // Wait for the test to terminate.
-                    runtime.Wait();
-
-                    if (this.Configuration.EnableDataRaceDetection)
-                    {
-                        this.EmitRaceInstrumentationTraces(runtime, i);
-                    }
-                    
-                    try
-                    {
-                        // Invokes user-provided cleanup for this iteration.
-                        if (base.TestIterationDisposeMethod != null)
-                        {
-                            // Disposes the test state.
-                            base.TestIterationDisposeMethod.Invoke(null, null);
-                        }
-                    }
-                    catch (TargetInvocationException ex)
-                    {
-                        if (!(ex.InnerException is TaskCanceledException))
-                        {
-                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                        }
-                    }
-
-                    // Invoke the per iteration callbacks, if any.
-                    foreach (var callback in base.PerIterationCallbacks)
-                    {
-                        callback(i);
-                    }
-
-                    // Cleans up the runtime before the next
-                    // iteration starts.
-                    this.CleanUpRuntime();
-
-                    base.Configuration.raceDetectionCallback?.Invoke();
-                    if (base.Configuration.raceFound)
-                    {
-                        string message = IO.Format("Found a race");
-                        runtime.BugFinder.NotifyAssertionFailure(message, false);
-                    }
-
-                    // Checks for any liveness property violations. Requires
-                    // that the program has terminated and no safety property
-                    // violations have been found.
-                    if (!runtime.BugFinder.BugFound)
-                    {
-                        runtime.LivenessChecker.CheckLivenessAtTermination();
-                    }
-
-                    if (base.HasRedirectedConsoleOutput)
-                    {
-                        base.ResetOutput();
-                    }
-                    
-                    this.GatherIterationStatistics(runtime);
-
-                    if (runtime.BugFinder.BugFound)
-                    {
-                        base.TestReport.NumOfFoundBugs++;
-                        base.TestReport.BugReport = runtime.BugFinder.BugReport;
-
-                        if (base.Configuration.PerformFullExploration)
-                        {
-                            if (base.Configuration.TestingProcessId >= 0)
-                            {
-                                IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
-                                    $"[task-{this.Configuration.TestingProcessId}]");
-                            }
-                            else
-                            {
-                                IO.PrintLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        base.TestReport.BugReport = "";
-                    }
-
-                    if (base.Strategy.HasFinished())
-                    {
-                        break;
-                    }
-
-                    base.Strategy.ConfigureNextIteration();
-
-                    if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
-                    {
-                        if (sw != null && !base.Configuration.SuppressTrace)
-                        {
-                            this.ReadableTrace = sw.ToString();
-                            this.ReadableTrace += this.CreateReport("<StrategyLog>");
-                            this.BugTrace = runtime.BugTrace;
-                            this.ConstructReproducableTrace(runtime);
-                        }
-
-                        break;
-                    }
-                    else if (sw != null && base.Configuration.PrintTrace)
-                    {
-                        this.ReadableTrace = sw.ToString();
-                        this.ReadableTrace += this.CreateReport("<StrategyLog>");
-                        this.BugTrace = runtime.BugTrace;
-                        this.ConstructReproducableTrace(runtime);
-                    }
-
-                    // Increases iterations if there is a specified timeout
-                    // and the default iteration given.
-                    if (base.Configuration.SchedulingIterations == 1 &&
-                        base.Configuration.Timeout > 0)
-                    {
-                        maxIterations++;
-                    }
-                    runtime.Dispose();
-                }
-                
-                try
-                {
                     if (base.TestDisposeMethod != null)
                     {
                         // Disposes the test state.
@@ -466,51 +285,140 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Gathers the exploration strategy statistics for
-        /// the current iteration.
+        /// Runs the next testing iteration.
         /// </summary>
-        /// <param name="runtime">PSharpBugFindingRuntime</param>
-        private void GatherIterationStatistics(PSharpBugFindingRuntime runtime)
+        /// <param name="iteration">Iteration</param>
+        private void RunNextIteration(int iteration)
         {
-            if (base.Strategy.IsFair())
+            if (this.ShouldPrintIteration(iteration + 1))
             {
-                base.TestReport.NumOfExploredFairSchedules++;
+                base.Logger.WriteLine($"..... Iteration #{iteration + 1}");
+            }
 
-                if (base.Strategy.HasReachedMaxSchedulingSteps())
+            // Runtime used to serialize and test the program in this iteration.
+            BugFindingRuntime runtime = null;
+
+            // Logger used to intercept the program output if no custom logger
+            // is installed and if verbosity is turned off.
+            InMemoryLogger runtimeLogger = null;
+
+            // Gets a handle to the standard output and error streams.
+            var stdOut = Console.Out;
+            var stdErr = Console.Error;
+
+            try
+            {
+                // Creates a new instance of the bug-finding runtime.
+                runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
+
+                // If verbosity is turned off, then intercept the program log, and also dispose
+                // the standard output and error streams.
+                if (base.Configuration.Verbose < 2)
                 {
-                    base.TestReport.MaxFairStepsHitInFairTests++;
+                    runtimeLogger = new InMemoryLogger();
+                    runtime.SetLogger(runtimeLogger);
+
+                    var writer = new LogWriter(new DisposingLogger());
+                    Console.SetOut(writer);
+                    Console.SetError(writer);
+                }
+                
+                // Runs the test inside the P# test-harness machine.
+                if (base.TestAction != null)
+                {
+                    TestHarnessMachine.Run(runtime, base.TestAction);
+                }
+                else
+                {
+                    TestHarnessMachine.Run(runtime, base.TestMethod);
                 }
 
-                if (runtime.BugFinder.ExploredSteps >= base.Configuration.MaxUnfairSchedulingSteps)
+                // Wait for the test to terminate.
+                runtime.Wait();
+
+                if (runtime.Scheduler.BugFound)
                 {
-                    base.TestReport.MaxUnfairStepsHitInFairTests++;
+                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
-                if (!base.Strategy.HasReachedMaxSchedulingSteps())
+                if (this.Configuration.EnableDataRaceDetection)
                 {
-                    base.TestReport.TotalExploredFairSteps += runtime.BugFinder.ExploredSteps;
+                    this.EmitRaceInstrumentationTraces(runtime, iteration);
+                }
 
-                    if (base.TestReport.MinExploredFairSteps < 0 ||
-                        base.TestReport.MinExploredFairSteps > runtime.BugFinder.ExploredSteps)
-                    {
-                        base.TestReport.MinExploredFairSteps = runtime.BugFinder.ExploredSteps;
-                    }
+                // Invokes user-provided cleanup for this iteration.
+                if (base.TestIterationDisposeMethod != null)
+                {
+                    // Disposes the test state.
+                    base.TestIterationDisposeMethod.Invoke(null, null);
+                }
 
-                    if (base.TestReport.MaxExploredFairSteps < runtime.BugFinder.ExploredSteps)
-                    {
-                        base.TestReport.MaxExploredFairSteps = runtime.BugFinder.ExploredSteps;
-                    }
+                // Invoke the per iteration callbacks, if any.
+                foreach (var callback in base.PerIterationCallbacks)
+                {
+                    callback(iteration);
+                }
+
+                // TODO: Clean this up.
+                base.Configuration.RaceDetectionCallback?.Invoke();
+                if (base.Configuration.RaceFound)
+                {
+                    string message = IO.Utilities.Format("Found a race");
+                    runtime.Scheduler.NotifyAssertionFailure(message, false);
+                }
+
+                // Checks for any liveness property violations. Requires
+                // that the program has terminated and no safety property
+                // violations have been found.
+                if (!runtime.Scheduler.BugFound)
+                {
+                    runtime.LivenessChecker.CheckLivenessAtTermination();
+                }
+
+                this.GatherIterationStatistics(runtime);
+
+                if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
+                {
+                    base.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
+                        $"triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                        $"[task-{this.Configuration.TestingProcessId}]");
+                }
+
+                if (runtimeLogger != null && !base.Configuration.SuppressTrace && base.Configuration.PrintTrace)
+                {
+                    this.ReadableTrace = runtimeLogger.ToString();
+                    this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
+                    this.BugTrace = runtime.BugTrace;
+                    this.ConstructReproducableTrace(runtime);
                 }
             }
-            else
+            finally
             {
-                base.TestReport.NumOfExploredUnfairSchedules++;
-
-                if (base.Strategy.HasReachedMaxSchedulingSteps())
+                if (base.Configuration.Verbose < 2)
                 {
-                    base.TestReport.MaxUnfairStepsHitInUnfairTests++;
+                    // Restores the standard output and error streams.
+                    Console.SetOut(stdOut);
+                    Console.SetError(stdErr);
                 }
+
+                // Cleans up the runtime before the next iteration starts.
+                this.CleanUpRuntime();
+
+                runtimeLogger?.Dispose();
+                runtime?.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Gathers the exploration strategy statistics for
+        /// the latest testing iteration.
+        /// </summary>
+        /// <param name="runtime">BugFindingRuntime</param>
+        private void GatherIterationStatistics(BugFindingRuntime runtime)
+        {
+            TestReport report = runtime.Scheduler.GetReport();
+            report.CoverageInfo.Merge(runtime.CoverageInfo);
+            this.TestReport.Merge(report);
         }
 
         /// <summary>
@@ -528,108 +436,10 @@ namespace Microsoft.PSharp.TestingServices
         #region utility methods
 
         /// <summary>
-        /// Creates a new testing report with the specified prefix.
-        /// </summary>
-        /// <param name="prefix">Prefix</param>
-        /// <returns>Report</returns>
-        private string CreateReport(string prefix)
-        {
-            StringBuilder report = new StringBuilder();
-
-            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.TestReport.NumOfFoundBugs,
-                base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
-
-            report.AppendLine();
-            report.AppendFormat("{0} Scheduling statistics:",
-                prefix);
-
-            int totalExploredSchedules = base.TestReport.NumOfExploredFairSchedules +
-                base.TestReport.NumOfExploredUnfairSchedules;
-
-            report.AppendLine();
-            report.AppendFormat("{0} Explored {1} schedule{2}: {3} fair and {4} unfair.",
-                prefix.Equals("...") ? "....." : prefix,
-                totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s",
-                base.TestReport.NumOfExploredFairSchedules,
-                base.TestReport.NumOfExploredUnfairSchedules);
-
-            if (totalExploredSchedules > 0 &&
-                base.TestReport.NumOfFoundBugs > 0)
-            {
-                report.AppendLine();
-                report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
-                    prefix.Equals("...") ? "....." : prefix,
-                    ((double)base.TestReport.NumOfFoundBugs / totalExploredSchedules) * 100);
-            }
-            
-            if (base.TestReport.NumOfExploredFairSchedules > 0)
-            {
-                if (base.TestReport.TotalExploredFairSteps > 0)
-                {
-                    int averageExploredFairSteps = base.TestReport.TotalExploredFairSteps /
-                        base.TestReport.NumOfExploredFairSchedules;
-
-                    report.AppendLine();
-                    report.AppendFormat("{0} Number of scheduling points in fair terminating schedules: " +
-                        "{1} (min), {2} (avg), {3} (max).",
-                        prefix.Equals("...") ? "....." : prefix,
-                        base.TestReport.MinExploredFairSteps < 0 ? 0 : base.TestReport.MinExploredFairSteps,
-                        averageExploredFairSteps,
-                        base.TestReport.MaxExploredFairSteps < 0 ? 0 : base.TestReport.MaxExploredFairSteps);
-                }
-
-                if (base.Configuration.MaxUnfairSchedulingSteps > 0 &&
-                    base.TestReport.MaxUnfairStepsHitInFairTests > 0)
-                {
-                    report.AppendLine();
-                    report.AppendFormat("{0} Exceeded the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
-                        prefix.Equals("...") ? "....." : prefix,
-                        base.Configuration.MaxUnfairSchedulingSteps,
-                        ((double)base.TestReport.MaxUnfairStepsHitInFairTests /
-                        (double)base.TestReport.NumOfExploredFairSchedules) * 100);
-                }
-
-                if (base.Configuration.UserExplicitlySetMaxFairSchedulingSteps &&
-                    base.Configuration.MaxFairSchedulingSteps > 0 &&
-                    base.TestReport.MaxFairStepsHitInFairTests > 0)
-                {
-                    report.AppendLine();
-                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
-                        prefix.Equals("...") ? "....." : prefix,
-                        base.Configuration.MaxFairSchedulingSteps,
-                        ((double)base.TestReport.MaxFairStepsHitInFairTests /
-                        (double)base.TestReport.NumOfExploredFairSchedules) * 100);
-                }
-            }
-
-            if (base.TestReport.NumOfExploredUnfairSchedules > 0)
-            {
-                if (base.Configuration.MaxUnfairSchedulingSteps > 0 &&
-                    base.TestReport.MaxUnfairStepsHitInUnfairTests > 0)
-                {
-                    report.AppendLine();
-                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the unfair schedules.",
-                        prefix.Equals("...") ? "....." : prefix,
-                        base.Configuration.MaxUnfairSchedulingSteps,
-                        ((double)base.TestReport.MaxUnfairStepsHitInUnfairTests /
-                        (double)base.TestReport.NumOfExploredUnfairSchedules) * 100);
-                }
-            }
-            
-            if (base.Configuration.ParallelBugFindingTasks == 1)
-            {
-                report.AppendLine();
-                report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
-            }
-
-            return report.ToString();
-        }
-
-        /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        /// <param name="runtime">Runtime</param>
-        private void ConstructReproducableTrace(PSharpBugFindingRuntime runtime)
+        /// <param name="runtime">BugFindingRuntime</param>
+        private void ConstructReproducableTrace(BugFindingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -688,32 +498,24 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Emits race instrumentation traces.
         /// </summary>
-        /// <param name="runtime">Runtime</param>
+        /// <param name="runtime">BugFindingRuntime</param>
         /// <param name="iteration">Iteration</param>
-        private void EmitRaceInstrumentationTraces(PSharpBugFindingRuntime runtime, int iteration)
+        private void EmitRaceInstrumentationTraces(BugFindingRuntime runtime, int iteration)
         {
             string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            if (base.Configuration.TestingProcessId >= 0)
-            {
-                name += "_" + base.Configuration.TestingProcessId;
-            }
-            else
-            {
-                name += "_0";
-            }
+            name += "_" + base.Configuration.TestingProcessId;
 
             string directoryPath = base.GetRuntimeTracesDirectory();
-
-
+            
             foreach (var kvp in runtime.MachineActionTraceMap)
             {
-                IO.Debug($"<RaceTracing> Machine id '{kvp.Key}'");
+                Debug.WriteLine($"<RaceTracing> Machine id '{kvp.Key}'");
 
                 foreach (var actionTrace in kvp.Value)
                 {
                     if (actionTrace.Type == MachineActionType.InvocationAction)
                     {
-                        IO.Debug($"<RaceTracing> Action '{actionTrace.ActionName}' " +
+                        Debug.WriteLine($"<RaceTracing> Action '{actionTrace.ActionName}' " +
                             $"'{actionTrace.ActionId}'");
                     }
                 }
@@ -726,7 +528,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         DataContractSerializer serializer = new DataContractSerializer(kvp.Value.GetType());
                         serializer.WriteObject(stream, kvp.Value);
-                        IO.Debug($"... Writing {path}");
+                        Debug.WriteLine($"..... Writing {path}");
                     }
                 }
             }

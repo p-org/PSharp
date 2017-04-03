@@ -14,83 +14,98 @@
 
 using System;
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// Reports errors and warnings to the user.
     /// </summary>
-    public static class ErrorReporter
+    public sealed class ErrorReporter
     {
         #region fields
 
         /// <summary>
-        /// Report warnings if true.
+        /// Configuration.
         /// </summary>
-        public static bool ShowWarnings;
+        private Configuration Configuration;
 
         #endregion
 
-        #region public API
+        #region properties
 
         /// <summary>
-        /// Static constructor.
+        /// The installed logger.
         /// </summary>
-        static ErrorReporter()
+        internal ILogger Logger { get; set; }
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="logger">ILogger</param>
+        internal ErrorReporter(Configuration configuration, ILogger logger)
         {
-            ErrorReporter.ShowWarnings = false;
+            this.Configuration = configuration;
+            this.Logger = logger ?? new ConsoleLogger();
+        }
+
+        #endregion
+
+        #region public methods
+
+        /// <summary>
+        /// Reports an error, followed by the current line terminator.
+        /// </summary>
+        /// <param name="value">Text</param>
+        public void WriteErrorLine(string value)
+        {
+            this.Write("Error: ", ConsoleColor.Red);
+            this.Write(value, ConsoleColor.Yellow);
+            this.Logger.WriteLine("");
         }
 
         /// <summary>
-        /// Reports a generic error to the user.
+        /// Reports a warning, followed by the current line terminator.
         /// </summary>
-        /// <param name="s">String</param>
-        public static void Report(string s)
+        /// <param name="value">Text</param>
+        public void WriteWarningLine(string value)
         {
-            IO.Print(ConsoleColor.Red, "Error: ");
-            IO.Print(ConsoleColor.Yellow, s);
-            IO.PrintLine();
-        }
-
-        /// <summary>
-        /// Reports a generic error to the user.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void Report(string s, params object[] args)
-        {
-            string message = IO.Format(s, args);
-            IO.Print(ConsoleColor.Red, "Error: ");
-            IO.Print(ConsoleColor.Yellow, message);
-            IO.PrintLine();
-        }
-
-        /// <summary>
-        /// Reports a generic warning to the user.
-        /// </summary>
-        /// <param name="s">String</param>
-        public static void ReportWarning(string s)
-        {
-            if (ErrorReporter.ShowWarnings)
+            if (this.Configuration.ShowWarnings)
             {
-                IO.Print(ConsoleColor.Red, "Warning: ");
-                IO.Print(ConsoleColor.Yellow, s);
-                IO.PrintLine();
+                this.Write("Warning: ", ConsoleColor.Red);
+                this.Write(value, ConsoleColor.Yellow);
+                this.Logger.WriteLine("");
             }
         }
 
+        #endregion
+
+        #region private methods
+
         /// <summary>
-        /// Reports a generic warning to the user.
+        /// Writes the specified string value.
         /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void ReportWarning(string s, params object[] args)
+        /// <param name="value">Text</param>
+        /// <param name="color">ConsoleColor</param>
+        private void Write(string value, ConsoleColor color)
         {
-            if (ErrorReporter.ShowWarnings)
+            ConsoleColor previousForegroundColor = default(ConsoleColor);
+            if (this.Configuration.EnableColoredConsoleOutput)
             {
-                string message = IO.Format(s, args);
-                IO.Print(ConsoleColor.Red, "Warning: ");
-                IO.Print(ConsoleColor.Yellow, message);
-                IO.PrintLine();
+                previousForegroundColor = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+            }
+
+            this.Logger.Write(value);
+
+            if (this.Configuration.EnableColoredConsoleOutput)
+            {
+                Console.ForegroundColor = previousForegroundColor;
             }
         }
 

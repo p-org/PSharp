@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Utilities;
 
@@ -29,6 +30,11 @@ namespace Microsoft.PSharp
         /// </summary>
         private CompilationContext CompilationContext;
 
+        /// <summary>
+        /// The installed logger.
+        /// </summary>
+        private ILogger Logger;
+
         #endregion
 
         #region API
@@ -37,10 +43,11 @@ namespace Microsoft.PSharp
         /// Creates a P# compilation process.
         /// </summary>
         /// <param name="context">CompilationContext</param>
+        /// <param name="logger">ILogger</param>
         /// <returns>CompilationProcess</returns>
-        public static CompilationProcess Create(CompilationContext context)
+        public static CompilationProcess Create(CompilationContext context, ILogger logger)
         {
-            return new CompilationProcess(context);
+            return new CompilationProcess(context, logger);
         }
 
         /// <summary>
@@ -50,29 +57,31 @@ namespace Microsoft.PSharp
         {
             if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing)
             {
-                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget})");
+                Output.WriteLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget})");
             }
             else
             {
-                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
+                Output.WriteLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
                     $"{this.CompilationContext.Configuration.OptimizationTarget})");
             }
 
             // Creates and runs a P# compilation engine.
-            CompilationEngine.Create(this.CompilationContext).Run();
+            CompilationEngine.Create(this.CompilationContext, this.Logger).Run();
         }
 
         #endregion
 
-        #region private methods
+        #region constructors
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        private CompilationProcess(CompilationContext context)
+        /// <param name="logger">ILogger</param>
+        private CompilationProcess(CompilationContext context, ILogger logger)
         {
             this.CompilationContext = context;
+            this.Logger = logger;
         }
 
         #endregion

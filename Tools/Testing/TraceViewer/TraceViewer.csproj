@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC}</ProjectGuid>
+    <ProjectGuid>{17dd1184-c1f7-41b6-8dfd-f159ce7d78cc}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp.Visualization</RootNamespace>

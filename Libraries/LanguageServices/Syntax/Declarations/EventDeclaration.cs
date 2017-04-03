@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
 
@@ -28,14 +29,19 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
-        /// The event keyword.
+        /// The machine parent node.
         /// </summary>
-        internal Token EventKeyword;
+        internal readonly MachineDeclaration Machine;
 
         /// <summary>
         /// The access modifier.
         /// </summary>
-        internal AccessModifier AccessModifier;
+        internal readonly AccessModifier AccessModifier;
+
+        /// <summary>
+        /// The event keyword.
+        /// </summary>
+        internal Token EventKeyword;
 
         /// <summary>
         /// The identifier token.
@@ -100,9 +106,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        internal EventDeclaration(IPSharpProgram program)
+        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="modSet">Modifier set</param>
+        internal EventDeclaration(IPSharpProgram program, MachineDeclaration machineNode, ModifierSet modSet)
             : base(program)
         {
+            this.Machine = machineNode;
+            this.AccessModifier = modSet.AccessModifier;
             this.GenericType = new List<Token>();
             this.PayloadTypes = new List<Token>();
             this.PayloadIdentifiers = new List<Token>();
@@ -112,20 +122,20 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             string text = "";
 
             try
             {
-                text = this.GetRewrittenEventDeclaration();
+                text = this.GetRewrittenEventDeclaration(indentLevel);
             }
             catch (Exception ex)
             {
-                IO.Debug("Exception was thrown during rewriting:");
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                IO.Error.ReportAndExit("Failed to rewrite event '{0}'.",
+                Debug.WriteLine("Exception was thrown during rewriting:");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                Error.ReportAndExit("Failed to rewrite event '{0}'.",
                     this.Identifier.TextUnit.Text);
             }
 
@@ -140,17 +150,35 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten event declaration.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenEventDeclaration()
+        private string GetRewrittenEventDeclaration(int indentLevel)
         {
+            var indent0 = GetIndent(indentLevel);
+            var indent1 = GetIndent(indentLevel + 1);
+            var indent2 = GetIndent(indentLevel + 2);
+
             string text = "";
 
             if ((this.Program as AbstractPSharpProgram).GetProject().CompilationContext.
                 Configuration.CompilationTarget == CompilationTarget.Remote)
             {
-                text += "[System.Runtime.Serialization.DataContract]\n";
+                text += indent0 + "[System.Runtime.Serialization.DataContract]\n";
             }
 
-            if (this.AccessModifier == AccessModifier.Public)
+            text += indent0;
+            if (this.AccessModifier == AccessModifier.None)
+            {
+                // The event was declared in the scope of a machine.
+                if (this.Machine != null)
+                {
+                    text += "private ";
+                }
+                // The event was declared in the scope of a namespace.
+                else
+                {
+                    text += "public ";
+                }
+            }
+            else if (this.AccessModifier == AccessModifier.Public)
             {
                 text += "public ";
             }
@@ -166,19 +194,20 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += token.TextUnit.Text;
             }
 
-            text += " : Event";
+            text += " : Event\n";
+            text += indent0 + "{\n";
 
-            text += "\n";
-            text += "{\n";
-
+            var newLine = "";
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
             {
-                text += " public ";
+                text += indent1 + "public ";
                 text += this.PayloadTypes[i].TextUnit.Text + " ";
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
+                newLine = "\n";     // Not included in payload lines
             }
 
-            text += " public ";
+            text += newLine;
+            text += indent1 + "public ";
             text += this.Identifier.TextUnit.Text + "(";
 
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
@@ -196,7 +225,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += ")\n";
-            text += "  : base(";
+            text += indent2 + ": base(";
 
             if (this.AssertKeyword != null)
             {
@@ -208,16 +237,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += ")\n";
-            text += " {\n";
+            text += indent1 + "{\n";
 
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
             {
-                text += "  this." + this.PayloadIdentifiers[i].TextUnit.Text + " = ";
+                text += indent2 + "this." + this.PayloadIdentifiers[i].TextUnit.Text + " = ";
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
             }
 
-            text += " }\n";
-            text += "}\n";
+            text += indent1 + "}\n";
+            text += indent0 + "}\n";
 
             return text;
         }

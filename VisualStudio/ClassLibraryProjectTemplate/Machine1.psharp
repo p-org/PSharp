@@ -1,0 +1,20 @@
+﻿using System;
+
+namespace $safeprojectname$
+{
+    machine Machine1
+    {
+        // TODO Add machine fields
+        start state Init
+		{
+			entry
+			{
+                // TODO Add C# code
+			}
+
+            // TODO Add event handlers
+        }
+
+        // TODO Add additional states
+    }
+}

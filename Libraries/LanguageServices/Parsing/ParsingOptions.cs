@@ -28,6 +28,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         internal bool ExitOnError;
 
         /// <summary>
+        /// Enables warnings.
+        /// </summary>
+        internal bool ShowWarnings;
+
+        /// <summary>
         /// The parser should throw a parsing
         /// exception when it finds an error.
         /// </summary>
@@ -48,6 +53,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         private ParsingOptions()
         {
             this.ExitOnError = false;
+            this.ShowWarnings = false;
             this.ThrowParsingException = true;
             this.SkipErrorChecking = false;
         }
@@ -83,6 +89,26 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public ParsingOptions DisableExitOnError()
         {
             this.ExitOnError = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Enables warnings.
+        /// </summary>
+        /// <returns>ParsingOptions</returns>
+        public ParsingOptions EnableWarnings()
+        {
+            this.ShowWarnings = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables warnings.
+        /// </summary>
+        /// <returns>ParsingOptions</returns>
+        public ParsingOptions DisableWarnings()
+        {
+            this.ShowWarnings = false;
             return this;
         }
 

@@ -13,11 +13,9 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -36,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// The access modifier.
         /// </summary>
-        internal AccessModifier AccessModifier;
+        internal readonly AccessModifier AccessModifier;
 
         /// <summary>
         /// The type identifier.
@@ -62,30 +60,32 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
-        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode)
+        /// <param name="modSet">Modifier set</param>
+        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode, ModifierSet modSet)
             : base(program)
         {
             this.Machine = machineNode;
+            this.AccessModifier = modSet.AccessModifier;
         }
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             string text = "";
 
             try
             {
-                text = this.GetRewrittenFieldDeclaration();
+                text = GetIndent(indentLevel) + this.GetRewrittenFieldDeclaration();
             }
             catch (Exception ex)
             {
-                IO.Debug("Exception was thrown during rewriting:");
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                IO.Error.ReportAndExit("Failed to rewrite field '{0}' of machine '{1}'.",
+                Debug.WriteLine("Exception was thrown during rewriting:");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                Error.ReportAndExit("Failed to rewrite field '{0}' of machine '{1}'.",
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
 

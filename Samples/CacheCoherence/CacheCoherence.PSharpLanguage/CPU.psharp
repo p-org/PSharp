@@ -1,0 +1,53 @@
+﻿using System;
+
+namespace CacheCoherence.PSharpLanguage
+{
+    internal machine CPU
+    {
+	    private Tuple<machine, machine, machine> Cache;
+
+		private start state Init
+        {
+            on unit goto MakeReq;
+			on cpuConfig do Configure;
+        }
+
+		private void Configure()
+        {
+			Cache = (trigger as cpuConfig).clients;
+			raise(unit);
+        }
+
+		state MakeReq
+        {
+            entry
+            {
+			    if (*)
+				{
+				    if (*)
+			            send(Cache.Item1, ask_share);
+				    else
+						send(Cache.Item1, ask_excl);
+			    }
+			    else if (*)
+			    {
+				    if (*)
+			            send(Cache.Item2, ask_share);
+				    else
+						send(Cache.Item2, ask_excl);
+			    }
+			    else
+			    {
+				    if (*)
+			            send(Cache.Item3, ask_share);
+				    else
+						send(Cache.Item3, ask_excl);
+			    }
+
+				raise(unit);
+            }
+
+			on unit goto MakeReq;
+        }
+    }
+}

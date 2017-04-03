@@ -16,8 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -39,6 +39,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal readonly StateGroupDeclaration Group;
 
         /// <summary>
+        /// The access modifier.
+        /// </summary>
+        internal readonly AccessModifier AccessModifier;
+
+        /// <summary>
         /// True if the state is the start state.
         /// </summary>
         internal readonly bool IsStart;
@@ -57,11 +62,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// The state keyword.
         /// </summary>
         internal Token StateKeyword;
-
-        /// <summary>
-        /// The access modifier.
-        /// </summary>
-        internal AccessModifier AccessModifier;
 
         /// <summary>
         /// The identifier token.
@@ -144,18 +144,17 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="groupNode">StateGroupDeclaration</param>
-        /// <param name="isStart">Is start state</param>
-        /// <param name="isHot">Is hot state</param>
-        /// <param name="isCold">Is cold state</param>
+        /// <param name="modSet">Modifier set</param>
         internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
-            StateGroupDeclaration groupNode, bool isStart, bool isHot, bool isCold)
+            StateGroupDeclaration groupNode, ModifierSet modSet)
             : base(program)
         {
             this.Machine = machineNode;
             this.Group = groupNode;
-            this.IsStart = isStart;
-            this.IsHot = isHot;
-            this.IsCold = isCold;
+            this.AccessModifier = modSet.AccessModifier;
+            this.IsStart = modSet.IsStart;
+            this.IsHot = modSet.IsHot;
+            this.IsCold = modSet.IsCold;
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
@@ -326,26 +325,24 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             string text = "";
-
             try
             {
-                text = this.GetRewrittenStateDeclaration();
+                text = this.GetRewrittenStateDeclaration(indentLevel);
             }
             catch (Exception ex)
             {
-                IO.Debug("Exception was thrown during rewriting:");
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                IO.Error.ReportAndExit("Failed to rewrite state '{0}' of machine '{1}'.",
+                Debug.WriteLine("Exception was thrown during rewriting:");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                Error.ReportAndExit("Failed to rewrite state '{0}' of machine '{1}'.",
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
             
             base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
-
 
         /// <summary>
         /// Returns the fully qualified state name.
@@ -399,33 +396,35 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten state declaration.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenStateDeclaration()
+        private string GetRewrittenStateDeclaration(int indentLevel)
         {
+            var indent = GetIndent(indentLevel);
             string text = "";
 
             if (this.IsStart)
             {
-                text += "[Microsoft.PSharp.Start]\n";
+                text += indent + "[Microsoft.PSharp.Start]\n";
             }
 
             if (this.IsHot)
             {
-                text += "[Microsoft.PSharp.Hot]\n";
+                text += indent + "[Microsoft.PSharp.Hot]\n";
             }
             else if (this.IsCold)
             {
-                text += "[Microsoft.PSharp.Cold]\n";
+                text += indent + "[Microsoft.PSharp.Cold]\n";
             }
 
-            text += this.InstrumentOnEntryAction();
-            text += this.InstrumentOnExitAction();
-            text += this.InstrumentGotoStateTransitions();
-            text += this.InstrumentPushStateTransitions();
-            text += this.InstrumentActionsBindings();
+            text += this.InstrumentOnEntryAction(indent);
+            text += this.InstrumentOnExitAction(indent);
+            text += this.InstrumentGotoStateTransitions(indent);
+            text += this.InstrumentPushStateTransitions(indent);
+            text += this.InstrumentActionsBindings(indent);
 
-            text += this.InstrumentIgnoredEvents();
-            text += this.InstrumentDeferredEvents();
+            text += this.InstrumentIgnoredEvents(indent);
+            text += this.InstrumentDeferredEvents(indent);
 
+            text += indent;
             if (this.Group != null)
             {
                 // When inside a group, the state should be made public.
@@ -453,8 +452,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "class " + this.Identifier.TextUnit.Text + " : MonitorState";
             }
 
-            text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             return text;
         }
@@ -463,7 +462,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Instruments the on entry action.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentOnEntryAction()
+        private string InstrumentOnEntryAction(string indent)
         {
             if (this.EntryDeclaration == null)
             {
@@ -475,14 +474,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
 
-            return "[OnEntry(nameof(" + generatedProcName + "))]\n";
+            return indent + "[OnEntry(nameof(" + generatedProcName + "))]\n";
         }
 
         /// <summary>
         /// Instruments the on exit action.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentOnExitAction()
+        private string InstrumentOnExitAction(string indent)
         {
             if (this.ExitDeclaration == null)
             {
@@ -494,14 +493,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
 
-            return "[OnExit(nameof(" + generatedProcName +   "))]\n";
+            return indent + "[OnExit(nameof(" + generatedProcName +   "))]\n";
         }
 
         /// <summary>
         /// Instruments the goto state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentGotoStateTransitions()
+        private string InstrumentGotoStateTransitions(string indent)
         {
             if (this.GotoStateTransitions.Count == 0)
             {
@@ -522,7 +521,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                         this.Machine.Namespace.QualifiedName));
                 }
 
-                text += "[OnEventGotoState(";
+                text += indent + "[OnEventGotoState(";
 
                 if (transition.Key.Type == TokenType.HaltEvent)
                 {
@@ -562,7 +561,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Instruments the push state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentPushStateTransitions()
+        private string InstrumentPushStateTransitions(string indent)
         {
             if (this.PushStateTransitions.Count == 0)
             {
@@ -573,7 +572,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var transition in this.PushStateTransitions)
             {
-                text += "[OnEventPushState(";
+                text += indent + "[OnEventPushState(";
 
                 if (transition.Key.Type == TokenType.HaltEvent)
                 {
@@ -608,7 +607,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Instruments the action bindings.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentActionsBindings()
+        private string InstrumentActionsBindings(string indent)
         {
             if (this.ActionBindings.Count == 0)
             {
@@ -629,7 +628,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                         this.Machine.Namespace.QualifiedName));
                 }
 
-                text += "[OnEventDoAction(";
+                text += indent + "[OnEventDoAction(";
 
                 if (binding.Key.Type == TokenType.HaltEvent)
                 {
@@ -667,14 +666,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Instruments the ignored events.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentIgnoredEvents()
+        private string InstrumentIgnoredEvents(string indent)
         {
             if (this.IgnoredEvents.Count == 0)
             {
                 return "";
             }
 
-            string text = "[IgnoreEvents(";
+            string text = indent + "[IgnoreEvents(";
 
             var eventIds = this.IgnoredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)
@@ -711,14 +710,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Instruments the deferred events.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentDeferredEvents()
+        private string InstrumentDeferredEvents(string indent)
         {
             if (this.Machine.IsMonitor || this.DeferredEvents.Count == 0)
             {
                 return "";
             }
 
-            string text = "[DeferEvents(";
+            string text = indent + "[DeferEvents(";
 
             var eventIds = this.DeferredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)

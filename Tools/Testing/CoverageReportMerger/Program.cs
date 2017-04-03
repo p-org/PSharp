@@ -16,10 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.IO;
-
-using Microsoft.PSharp.TestingServices.Coverage;
 using System.Xml;
-using Microsoft.PSharp.Utilities;
+
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Coverage;
 
 namespace Microsoft.PSharp
 {
@@ -70,13 +70,13 @@ namespace Microsoft.PSharp
             string[] graphFiles = Directory.GetFiles(directoryPath, name + "_*.dgml");
             string graphFilePath = Path.Combine(directoryPath, name + "_" + graphFiles.Length + ".dgml");
 
-            IO.Error.PrintLine($"... Writing {graphFilePath}");
+            Output.WriteLine($"... Writing {graphFilePath}");
             codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
 
             string[] coverageFiles = Directory.GetFiles(directoryPath, name + "_*.coverage.txt");
             string coverageFilePath = Path.Combine(directoryPath, name + "_" + coverageFiles.Length + ".coverage.txt");
 
-            IO.Error.PrintLine($"... Writing {coverageFilePath}");
+            Output.WriteLine($"... Writing {coverageFilePath}");
             codeCoverageReporter.EmitCoverageReport(coverageFilePath);
         }
 

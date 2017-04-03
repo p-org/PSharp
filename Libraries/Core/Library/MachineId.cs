@@ -53,13 +53,13 @@ namespace Microsoft.PSharp
         /// Unique id value.
         /// </summary>
         [DataMember]
-        internal readonly int Value;
+        internal readonly ulong Value;
 
         /// <summary>
         /// Endpoint.
         /// </summary>
         [DataMember]
-        internal readonly string EndPoint;
+        public readonly string Endpoint;
 
         #endregion
 
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
-        private static int IdCounter;
+        private static long IdCounter;
 
         #endregion
 
@@ -94,9 +94,13 @@ namespace Microsoft.PSharp
             this.Runtime = runtime;
 
             this.Type = type.FullName;
-            this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
+            this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
             
-            this.Value = Interlocked.Increment(ref IdCounter);
+            // Atomically increments and safely wraps into an unsigned long.
+            this.Value = (uint)Interlocked.Increment(ref IdCounter);
+
+            // Checks for overflow.
+            Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
 
             if (this.FriendlyName != null && this.FriendlyName.Length > 0)
             {
@@ -114,7 +118,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Machine type</param>
         /// <param name="value">Id value</param>
-        internal MachineId(string type, int value)
+        internal MachineId(string type, ulong value)
         {
             this.Type = type;
             this.Value = value;

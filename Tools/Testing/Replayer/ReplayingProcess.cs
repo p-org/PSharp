@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
@@ -48,13 +49,13 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            IO.PrintLine(". Reproducing trace in " + this.Configuration.AssemblyToBeAnalyzed);
+            Output.WriteLine(". Reproducing trace in " + this.Configuration.AssemblyToBeAnalyzed);
 
             // Creates a new P# replay engine to reproduce a bug.
             ITestingEngine engine = TestingEngineFactory.CreateReplayEngine(this.Configuration);
 
             engine.Run();
-            IO.PrintLine(engine.Report());
+            Output.WriteLine(engine.Report());
         }
 
         #endregion
@@ -68,6 +69,7 @@ namespace Microsoft.PSharp
         private ReplayingProcess(Configuration configuration)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
+            configuration.EnableColoredConsoleOutput = true;
             this.Configuration = configuration;
         }
 

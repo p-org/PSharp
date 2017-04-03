@@ -8,8 +8,5 @@ if not exist .\NuGet\nuget.exe (
     )
 )
 
-echo . Copying 'PSharp.nuspec' to '..\Binaries' directory
-copy .\NuGet\PSharp.nuspec ..\Binaries\PSharp.nuspec
-
 echo . Creating P# NuGet package
-.\NuGet\nuget.exe pack ..\Binaries\PSharp.nuspec
+.\NuGet\nuget.exe pack .\NuGet\PSharp.nuspec

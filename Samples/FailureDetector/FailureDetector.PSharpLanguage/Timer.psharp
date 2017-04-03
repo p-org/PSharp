@@ -1,0 +1,97 @@
+﻿namespace FailureDetector.PSharpLanguage
+{
+	/// <summary>
+    /// This P# machine models the operating system timer.
+    /// 
+    /// It fires timeouts in a non-deterministic fashion using the P#
+    /// method 'Random', rather than using an actual timeout.
+    /// </summary>
+    machine Timer
+    {
+		internal event Config (target: machine);
+		
+		/// <summary>
+        /// Although this event accepts a timeout value, because
+        /// this machine models a timer by nondeterministically
+        /// triggering a timeout, this value is not used.
+        /// </summary>
+		internal event StartTimer (timeout: int);
+		internal event Timeout;
+
+		internal event CancelSuccess;
+		internal event CancelFailure;
+		internal event CancelTimer;
+
+		/// <summary>
+        /// Reference to the owner of the timer.
+        /// </summary>
+        machine Target;
+
+		private start state Init
+        {
+			/// <summary>
+			/// When it enters the 'Init' state, the timer receives a reference to
+			/// the target machine, and then transitions to the 'WaitForReq' state.
+			/// </summary>
+			entry
+			{
+				this.Target = (trigger as Config).target;
+				jump(WaitForReq);
+			}
+        }
+
+		/// <summary>
+        /// The timer waits in the 'WaitForReq' state for a request from the client.
+        /// </summary>
+        state WaitForReq
+        {
+			/// <summary>
+			/// It responds with a 'CancelFailure' event on a 'CancelTimer' event.
+			/// </summary>
+            on CancelTimer goto WaitForReq with
+            {
+                send(this.Target, CancelFailure);
+            }
+
+			/// <summary>
+			/// It transitions to the 'WaitForCancel' state on a 'StartTimer' event.
+			/// </summary>
+            on StartTimer goto WaitForCancel;
+        }
+
+        state WaitForCancel
+        {
+			/// <summary>
+			/// Any 'StartTimer' event is dequeued and dropped without any action, while the timer
+			/// is in the 'WaitForCancel' state.
+			/// </summary>
+		    ignore StartTimer;
+
+			/// <summary>
+			/// The response to a 'CancelTimer' event is nondeterministic. During testing, P# will
+			/// take control of this source of nondeterminism and explore different execution paths.
+			/// 
+			/// Using this approach, we model the race condition between the arrival of a 'CancelTimer'
+			/// event from the target and the elapse of the timer.
+			/// </summary>
+            on CancelTimer goto WaitForReq with
+            {
+				// A nondeterministic choice that is controlled by the P# runtime during testing.
+			    if (*)
+				{
+				    send(this.Target, CancelSuccess);
+				}
+				else
+				{
+				    send(this.Target, CancelFailure);
+					send(this.Target, Timeout);
+				}
+            }
+
+            on default goto WaitForReq with
+            {
+                send(this.Target, Timeout);
+            }
+        }
+    }
+}

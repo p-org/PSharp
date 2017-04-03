@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
@@ -47,7 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         #endregion
 
-        #region public API
+        #region constructors
 
         /// <summary>
         /// Constructor.

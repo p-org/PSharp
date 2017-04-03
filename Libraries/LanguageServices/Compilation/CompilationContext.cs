@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Compilation
@@ -101,11 +102,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
             catch (AggregateException ex)
             {
-                IO.Error.ReportAndExit(ex.InnerException.Message);
+                Error.ReportAndExit(ex.InnerException.Message);
             }
             catch (Exception)
             {
-                IO.Error.ReportAndExit("Please give a valid solution path.");
+                Error.ReportAndExit("Please give a valid solution path.");
             }
 
             this.Solution = solution;
@@ -116,7 +117,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 var project = this.GetProjectWithName(this.Configuration.ProjectName);
                 if (project == null)
                 {
-                    IO.Error.ReportAndExit("Please give a valid project name.");
+                    Error.ReportAndExit("Please give a valid project name.");
                 }
             }
             
@@ -254,7 +255,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             if (!this.HasInitialized)
             {
-                throw new PSharpException("ProgramInfo has not been initialized.");
+                throw new Exception("ProgramInfo has not been initialized.");
             }
             
             var doc = project.Documents.First(val => val.FilePath.Equals(tree.FilePath));
@@ -279,7 +280,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
             for (int idx = 0; idx < lines.Length; idx++)
             {
-                IO.PrintLine(idx + 1 + " " + lines[idx]);
+                Output.WriteLine(idx + 1 + " " + lines[idx]);
             }
         }
 
@@ -364,7 +365,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 }
                 catch (FileNotFoundException)
                 {
-                    IO.Error.ReportAndExit($"Could not find compiler pass '{path}'");
+                    Error.ReportAndExit($"Could not find compiler pass '{path}'");
                 }
             }
         }

@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -75,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.MaxDelays = delays;
@@ -101,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             var availableMachines = orderedMachines.Where(
-                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaitingToReceive).ToList();
+                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
                 availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
@@ -117,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 idx = (idx + 1) % availableMachines.Count;
                 this.RemainingDelays.RemoveAt(0);
-                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
             next = availableMachines[idx];
@@ -140,7 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 next = true;
                 this.RemainingDelays.RemoveAt(0);
-                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
             this.ExploredSteps++;
@@ -216,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public virtual void Reset()
         {
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.RemainingDelays.Clear();

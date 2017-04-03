@@ -1,0 +1,148 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ReplicatingStorage.PSharpLanguage
+{
+    machine NodeManager
+    {
+		machine Environment;
+        List<machine> StorageNodes;
+        int NumberOfReplicas;
+        Dictionary<int, bool> StorageNodeMap;
+        int LatestData;
+        Dictionary<int, int> DataMap;
+        machine RepairTimer;
+        machine Client;
+
+		start state Init
+		{
+			entry
+			{
+				this.StorageNodes = new List<machine>();
+				this.StorageNodeMap = new Dictionary<int, bool>();
+				this.DataMap = new Dictionary<int, int>();
+				this.LatestData = 0;
+
+				this.RepairTimer = create(RepairTimer);
+				send(this.RepairTimer, RConfigureEvent, this.Id);
+			}
+
+			on NConfigureEvent do Configure;
+			on LocalEvent goto Active;
+			defer Request, Timeout;
+		}
+
+		void Configure()
+        {
+            this.Environment = (trigger as NConfigureEvent).Environment;
+            this.NumberOfReplicas = (trigger as NConfigureEvent).NumberOfReplicas;
+
+            for (int idx = 0; idx < this.NumberOfReplicas; idx++)
+            {
+                this.CreateNewNode();
+            }
+
+            raise(LocalEvent);
+        }
+
+        void CreateNewNode()
+        {
+            var idx = this.StorageNodes.Count;
+            var node = create(StorageNode);
+            this.StorageNodes.Add(node);
+            this.StorageNodeMap.Add(idx, true);
+            send(node, SConfigureEvent, this.Environment, this.Id, idx);
+        }
+
+		state Active
+		{
+			on Request do ProcessClientRequest;
+			on Timeout do RepairNodes;
+			on SyncReport do ProcessSyncReport;
+			on NotifyFailure do ProcessFailure;
+		}
+
+		void ProcessClientRequest()
+        {
+            this.Client = (trigger as Request).Client;
+            var command = (trigger as Request).Command;
+
+            var aliveNodeIds = this.StorageNodeMap.Where(n => n.Value).Select(n => n.Key);
+            foreach (var nodeId in aliveNodeIds)
+            {
+                send(this.StorageNodes[nodeId], StoreRequest, command);
+            }
+        }
+
+        void RepairNodes()
+        {
+            var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
+                OrderByDescending(v => v.Count()).FirstOrDefault();
+            if (consensus == null || this.LatestData > consensus.Key)
+            {
+                return;
+            }
+
+            this.Logger.WriteLine("\n [NodeManager] consensus {0} - {1}.\n",
+                consensus.Count(), consensus.Key);
+
+            var numOfReplicas = consensus.Count();
+            if (numOfReplicas >= this.NumberOfReplicas)
+            {
+                return;
+            }
+
+            foreach (var node in this.DataMap)
+            {
+                if (node.Value != consensus.Key)
+                {
+                    this.Logger.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
+                    send(this.StorageNodes[node.Key], SyncRequest, consensus.Key);
+                    numOfReplicas++;
+                }
+
+                if (numOfReplicas == this.NumberOfReplicas)
+                {
+                    break;
+                }
+            }
+        }
+
+        void ProcessSyncReport()
+        {
+            var nodeId = (trigger as SyncReport).NodeId;
+            var data = (trigger as SyncReport).Data;
+
+            if (this.LatestData < data)
+            {
+                this.LatestData = data;
+            }
+
+            // BUG: can fail to ever repair again as it thinks there are enough replicas
+            //if (!this.StorageNodeMap.ContainsKey(nodeId))
+            //{
+            //    return;
+            //}
+
+            if (!this.DataMap.ContainsKey(nodeId))
+            {
+                this.DataMap.Add(nodeId, 0);
+            }
+
+            this.DataMap[nodeId] = data;
+        }
+
+        void ProcessFailure()
+        {
+            var node = (trigger as NotifyFailure).Node;
+            var nodeId = this.StorageNodes.IndexOf(node);
+            this.StorageNodeMap.Remove(nodeId);
+            this.DataMap.Remove(nodeId);
+
+            this.Logger.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
+
+            this.CreateNewNode();
+        }
+    }
+}

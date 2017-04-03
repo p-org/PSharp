@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Utilities
 {
     public sealed class ReplayerCommandLineOptions : BaseCommandLineOptions
@@ -51,7 +53,7 @@ namespace Microsoft.PSharp.Utilities
                 string extension = System.IO.Path.GetExtension(option.Substring(8));
                 if (!extension.Equals(".schedule"))
                 {
-                    IO.Error.ReportAndExit("Please give a valid schedule file " +
+                    Error.ReportAndExit("Please give a valid schedule file " +
                         "'/replay:[x]', where [x] has extension '.schedule'.");
                 }
 
@@ -65,10 +67,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/print-trace"))
             {
                 base.Configuration.PrintTrace = true;
-            }
-            else if (option.ToLower().Equals("/tpl"))
-            {
-                base.Configuration.ScheduleIntraMachineConcurrency = true;
             }
             else if (option.ToLower().Equals("/state-caching"))
             {
@@ -87,13 +85,13 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid path to a P# " +
+                Error.ReportAndExit("Please give a valid path to a P# " +
                     "program's dll using '/test:[x]'.");
             }
 
             if (base.Configuration.ScheduleFile.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid path to a P# schedule " +
+                Error.ReportAndExit("Please give a valid path to a P# schedule " +
                     "file using '/replay:[x]', where [x] has extension '.schedule'.");
             }
         }
@@ -118,12 +116,9 @@ namespace Microsoft.PSharp.Utilities
             help += "\n Basic options:";
             help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
-            help += "\n  /s:[x]\t Path to a P# solution";
-            help += "\n  /test:[x]\t Name of a project in the P# solution to test";
-            help += "\n  /o:[x]\t Path for output files";
+            help += "\n  /test:[x]\t Path to the P# program to test";
             help += "\n  /timeout:[x]\t Timeout (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
-            help += "\n  /debug\t Enable debugging";
 
             help += "\n\n ------------------";
             help += "\n Replaying options:";
@@ -131,14 +126,9 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /replay:[x]\t Schedule to replay";
             help += "\n  /break:[x]\t Attach debugger and break at bug";
 
-            help += "\n\n ---------------------";
-            help += "\n Experimental options:";
-            help += "\n ---------------------";
-            help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
-
             help += "\n";
 
-            IO.PrettyPrintLine(help);
+            Output.WriteLine(help);
         }
 
         #endregion

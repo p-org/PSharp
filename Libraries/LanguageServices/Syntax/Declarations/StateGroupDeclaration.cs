@@ -14,10 +14,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -108,34 +107,34 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        internal override void Rewrite(int indentLevel)
         {
             string text = "";
 
             foreach (var node in this.StateGroupDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
 
             foreach (var node in this.StateDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(indentLevel + 1);
             }
 
             try
             {
-                text = this.GetRewrittenStateGroupDeclaration();
+                text = this.GetRewrittenStateGroupDeclaration(indentLevel);
             }
             catch (Exception ex)
             {
-                IO.Debug("Exception was thrown during rewriting:");
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                IO.Error.ReportAndExit("Failed to rewrite state group '{0}' of machine '{1}'.",
+                Debug.WriteLine("Exception was thrown during rewriting:");
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                Error.ReportAndExit("Failed to rewrite state group '{0}' of machine '{1}'.",
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
 
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            text += GetIndent(indentLevel) + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.StateGroupKeyword.TextUnit.Line);
         }
@@ -186,15 +185,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
         #endregion
 
-            #region private methods
+        #region private methods
 
-            /// <summary>
-            /// Returns the rewritten state group declaration.
-            /// </summary>
-            /// <returns>Text</returns>
-        private string GetRewrittenStateGroupDeclaration()
+        /// <summary>
+        /// Returns the rewritten state group declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenStateGroupDeclaration(int indentLevel)
         {
-            string text = "";
+            var indent = GetIndent(indentLevel);
+            string text = indent;
             
             if (this.Group != null)
             {
@@ -215,16 +215,19 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
-            text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
+            var newLine = "";  // no newline for the first
             foreach (var node in this.StateGroupDeclarations)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
 
             foreach (var node in this.StateDeclarations)
             {
-                text += node.TextUnit.Text;
+                text += newLine + node.TextUnit.Text;
+                newLine = "\n";
             }
 
             return text;

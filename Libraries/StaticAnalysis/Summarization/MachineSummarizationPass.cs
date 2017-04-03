@@ -18,9 +18,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -37,11 +36,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
         /// <returns>MachineSummarizationPass</returns>
         internal static MachineSummarizationPass Create(AnalysisContext context,
-            Configuration configuration)
+            Configuration configuration, ILogger logger, ErrorReporter errorReporter)
         {
-            return new MachineSummarizationPass(context, configuration);
+            return new MachineSummarizationPass(context, configuration, logger, errorReporter);
         }
 
         /// <summary>
@@ -78,8 +79,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private MachineSummarizationPass(AnalysisContext context, Configuration configuration)
-            : base(context, configuration)
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
+        private MachineSummarizationPass(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
+            : base(context, configuration, logger, errorReporter)
         {
 
         }
@@ -186,7 +190,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            IO.PrintLine("... Data-flow analysis runtime: '" +
+            base.Logger.WriteLine("... Data-flow analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

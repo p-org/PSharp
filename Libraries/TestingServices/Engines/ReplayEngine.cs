@@ -13,13 +13,12 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -138,50 +137,69 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = new Task(() =>
             {
-                var runtime = new PSharpBugFindingRuntime(base.Configuration,
-                    base.Strategy, base.TestReport.CoverageInfo);
-
-                StringWriter sw = null;
-                if (base.Configuration.RedirectTestConsoleOutput &&
-                    base.Configuration.Verbose < 2)
-                {
-                    sw = base.RedirectConsoleOutput();
-                    base.HasRedirectedConsoleOutput = true;
-                }
-                
-                // Start the test.
-                if (base.TestAction != null)
-                {
-                    base.TestAction(runtime);
-                }
-                else
-                {
-                    try
-                    {
-                        if (base.TestInitMethod != null)
-                        {
-                            // Initializes the test state.
-                            base.TestInitMethod.Invoke(null, new object[] { });
-                        }
-
-                        // Starts the test.
-                        base.TestMethod.Invoke(null, new object[] { runtime });
-
-                    }
-                    catch (TargetInvocationException ex)
-                    {
-                        if (!(ex.InnerException is TaskCanceledException))
-                        {
-                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                        }
-                    }
-                }
-
-                // Wait for the test to terminate.
-                runtime.Wait();
-
                 try
                 {
+                    if (base.TestInitMethod != null)
+                    {
+                        // Initializes the test state.
+                        base.TestInitMethod.Invoke(null, new object[] { });
+                    }
+
+                    // Creates a new instance of the bug-finding runtime.
+                    var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
+
+                    // Logger used to intercept the program output if no custom logger
+                    // is installed and if verbosity is turned off.
+                    InMemoryLogger runtimeLogger = null;
+
+                    // Gets a handle to the standard output and error streams.
+                    var stdOut = Console.Out;
+                    var stdErr = Console.Error;
+
+                    try
+                    {
+                        // If verbosity is turned off, then intercept the program log, and also redirect
+                        // the standard output and error streams into the runtime logger.
+                        if (base.Configuration.Verbose < 2)
+                        {
+                            runtimeLogger = new InMemoryLogger();
+                            runtime.SetLogger(runtimeLogger);
+
+                            var writer = new LogWriter(new DisposingLogger());
+                            Console.SetOut(writer);
+                            Console.SetError(writer);
+                        }
+
+                        // Runs the test inside the P# test-harness machine.
+                        if (base.TestAction != null)
+                        {
+                            TestHarnessMachine.Run(runtime, base.TestAction);
+                        }
+                        else
+                        {
+                            TestHarnessMachine.Run(runtime, base.TestMethod);
+                        }
+
+                        // Wait for the test to terminate.
+                        runtime.Wait();
+                    }
+                    finally
+                    {
+                        if (base.Configuration.Verbose < 2)
+                        {
+                            // Restores the standard output and error streams.
+                            Console.SetOut(stdOut);
+                            Console.SetError(stdErr);
+                        }
+
+                        runtimeLogger?.Dispose();
+                    }
+
+                    if (runtime.Scheduler.BugFound)
+                    {
+                        base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                    }
+
                     // Invokes user-provided cleanup for this iteration.
                     if (base.TestIterationDisposeMethod != null)
                     {
@@ -195,6 +213,20 @@ namespace Microsoft.PSharp.TestingServices
                         // Disposes the test state.
                         base.TestDisposeMethod.Invoke(null, new object[] { });
                     }
+
+                    // Checks for any liveness property violations. Requires
+                    // that the program has terminated and no safety property
+                    // violations have been found.
+                    if (!runtime.Scheduler.BugFound)
+                    {
+                        runtime.LivenessChecker.CheckLivenessAtTermination();
+                    }
+
+                    TestReport report = runtime.Scheduler.GetReport();
+                    report.CoverageInfo.Merge(runtime.CoverageInfo);
+                    this.TestReport.Merge(report);
+
+                    runtime.Dispose();
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -202,29 +234,6 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     }
-                }
-
-                // Checks for any liveness property violations. Requires
-                // that the program has terminated and no safety property
-                // violations have been found.
-                if (!runtime.BugFinder.BugFound)
-                {
-                    runtime.LivenessChecker.CheckLivenessAtTermination();
-                }
-
-                if (base.HasRedirectedConsoleOutput)
-                {
-                    base.ResetOutput();
-                }
-
-                if (runtime.BugFinder.BugFound)
-                {
-                    base.TestReport.NumOfFoundBugs++;
-                    base.TestReport.BugReport = runtime.BugFinder.BugReport;
-                }
-                else
-                {
-                    base.TestReport.BugReport = "";
                 }
             }, base.CancellationTokenSource.Token);
 

@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.ExploredSteps = 0;
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
             var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
+                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
                 availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             this.ExploredSteps = 0;
-            this.Random = new RandomWrapper(this.Seed);
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
         }
 
         /// <summary>

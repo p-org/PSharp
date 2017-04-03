@@ -12,7 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,8 +20,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -39,11 +37,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
         /// <returns>DirectAccessAnalysisPass</returns>
         internal static DirectAccessAnalysisPass Create(AnalysisContext context,
-            Configuration configuration)
+            Configuration configuration, ILogger logger, ErrorReporter errorReporter)
         {
-            return new DirectAccessAnalysisPass(context, configuration);
+            return new DirectAccessAnalysisPass(context, configuration, logger, errorReporter);
         }
 
         /// <summary>
@@ -65,8 +65,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private DirectAccessAnalysisPass(AnalysisContext context, Configuration configuration)
-            : base(context, configuration)
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
+        private DirectAccessAnalysisPass(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
+            : base(context, configuration, logger, errorReporter)
         {
 
         }
@@ -86,14 +89,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         TraceInfo trace = new TraceInfo();
                         trace.AddErrorTrace(field);
-                        AnalysisErrorReporter.ReportWarning(trace, "Field '{0}' of machine '{1}' is " +
+                        base.ErrorReporter.ReportWarning(trace, "Field '{0}' of machine '{1}' is " +
                             "declared as 'public'.", field.Declaration.ToString(), machine.Name);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
                         TraceInfo trace = new TraceInfo();
                         trace.AddErrorTrace(field);
-                        AnalysisErrorReporter.ReportWarning(trace, "Field '{0}' of machine '{1}' is " +
+                        base.ErrorReporter.ReportWarning(trace, "Field '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", field.Declaration.ToString(), machine.Name);
                     }
                 }
@@ -116,17 +119,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         TraceInfo trace = new TraceInfo();
                         trace.AddErrorTrace(method.Identifier);
-                        AnalysisErrorReporter.ReportWarning(trace, "Method '{0}' of machine '{1}' " +
-                            "is declared as 'public'.", method.Identifier.ValueText,
-                            machine.Name);
+                        base.ErrorReporter.ReportWarning(trace, "Method '{0}' of machine '{1}' " +
+                            "is declared as 'public'.", method.Identifier.ValueText, machine.Name);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
                         TraceInfo trace = new TraceInfo();
                         trace.AddErrorTrace(method.Identifier);
-                        AnalysisErrorReporter.ReportWarning(trace, "Method '{0}' of machine '{1}' " +
-                            "is declared as 'internal'.", method.Identifier.ValueText,
-                            machine.Name);
+                        base.ErrorReporter.ReportWarning(trace, "Method '{0}' of machine '{1}' " +
+                            "is declared as 'internal'.", method.Identifier.ValueText, machine.Name);
                     }
                 }
             }
@@ -141,7 +142,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            IO.PrintLine("... Direct access analysis runtime: '" +
+            base.Logger.WriteLine("... Direct access analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

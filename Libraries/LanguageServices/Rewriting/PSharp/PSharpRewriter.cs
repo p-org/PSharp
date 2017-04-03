@@ -110,12 +110,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             result = machine.MethodDeclarations.
                 Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
 
-            if (!result)
-            {
-                result = machine.FieldDeclarations.
-                    Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-            }
-
             return result;
         }
 

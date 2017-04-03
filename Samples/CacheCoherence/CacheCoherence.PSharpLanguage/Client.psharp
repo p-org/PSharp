@@ -1,0 +1,133 @@
+﻿namespace CacheCoherence.PSharpLanguage
+{
+    internal machine Client
+    {
+	    private machine Host;
+		private bool Pending;
+
+		private start state Init
+        {
+            on unit goto Invalid;
+			on clientConfig do Configure;
+        }
+
+		private void Configure()
+        {
+			Host = (trigger as clientConfig).host;
+			Pending = (trigger as clientConfig).pending;
+			raise(unit);
+        }
+
+		state Invalid
+        {
+			on ask_share goto AskedShare;
+			on ask_excl goto AskedExcl;
+			on invalidate goto Invalidating;
+			on grant_excl goto Exclusive;
+			on grant_share goto Sharing;
+        }
+
+		state AskedShare
+		{
+		    entry
+			{
+			    send(Host, req_share, this);
+				Pending = true;
+
+				raise(unit);
+		    }
+			
+			on unit goto InvalidWait;
+	    }
+
+		state AskedExcl
+		{
+		    entry
+			{
+			    send(Host, req_excl, this);
+				Pending = true;
+
+				raise(unit);
+		    }
+			
+			on unit goto InvalidWait;
+	    }
+
+		state InvalidWait
+        {
+			defer ask_share, ask_excl;
+
+			on invalidate goto Invalidating;
+			on grant_excl goto Exclusive;
+			on grant_share goto Sharing;
+        }
+
+		state AskedExcl2
+		{
+		    entry
+			{
+			    send(Host, req_excl, this);
+				Pending = true;
+
+				raise(unit);
+		    }
+			
+			on unit goto SharingWait;
+	    }
+
+		state Sharing
+		{
+		    entry
+			{
+				Pending = false;
+		    }
+			
+			on invalidate goto Invalidating;
+			on grant_share goto Sharing;
+			on grant_excl goto Exclusive;
+			on ask_share goto Sharing;
+			on ask_excl goto AskedExcl2;
+	    }
+
+		state SharingWait
+        {
+			defer ask_share, ask_excl;
+
+			on invalidate goto Invalidating;
+			on grant_share goto SharingWait;
+			on grant_excl goto Exclusive;
+        }
+
+		state Exclusive
+		{
+		    entry
+			{
+			    Pending = false;
+		    }
+			
+			on invalidate goto Invalidating;
+			on grant_share goto Sharing;
+			on grant_excl goto Exclusive;
+
+			ignore ask_share, ask_excl;
+	    }
+
+		state Invalidating
+		{
+		    entry
+			{
+			    send(Host, invalidate_ack);
+
+			    if (Pending)
+			    {
+				    raise(wait);
+			    }
+			    else
+				    raise(normal);
+		    }
+			
+			on wait goto InvalidWait;
+			on normal goto Invalid;
+	    }
+    }
+}

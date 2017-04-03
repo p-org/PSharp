@@ -67,14 +67,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Is machine blocked.
-        /// </summary>
-        public bool IsBlocked
-        {
-            get; internal set;
-        }
-
-        /// <summary>
         /// Is machine active.
         /// </summary>
         public bool IsActive
@@ -113,7 +105,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Machine = machine;
             this.IsEnabled = true;
             this.IsWaitingToReceive = false;
-            this.IsBlocked = false;
             this.IsActive = false;
             this.HasStarted = false;
             this.IsCompleted = false;
@@ -166,8 +157,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var text = $"Task {this.Id} of machine {this.Machine.Id}::" +
                 $"enabled[{this.IsEnabled}], waiting[{this.IsWaitingToReceive}], " +
-                $"blocked[{this.IsBlocked}], active[{this.IsActive}], " +
-                $"started[{this.HasStarted}], completed[{this.IsCompleted}]";
+                $"active[{this.IsActive}], started[{this.HasStarted}], " +
+                $"completed[{this.IsCompleted}]";
             return text;
         }
 

@@ -15,8 +15,7 @@
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
-
-using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -33,11 +32,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
         /// <returns>NoGenericStatesAnalysisPass</returns>
         internal static NoGenericStatesAnalysisPass Create(AnalysisContext context,
-            Configuration configuration)
+            Configuration configuration, ILogger logger, ErrorReporter errorReporter)
         {
-            return new NoGenericStatesAnalysisPass(context, configuration);
+            return new NoGenericStatesAnalysisPass(context, configuration, logger, errorReporter);
         }
 
         /// <summary>
@@ -58,8 +59,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private NoGenericStatesAnalysisPass(AnalysisContext context, Configuration configuration)
-            : base(context, configuration)
+        /// <param name="logger">ILogger</param>
+        /// <param name="errorReporter">ErrorReporter</param>
+        private NoGenericStatesAnalysisPass(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
+            : base(context, configuration, logger, errorReporter)
         {
 
         }
@@ -79,7 +83,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         TraceInfo trace = new TraceInfo();
                         trace.AddErrorTrace(state.Declaration.Identifier);
-                        AnalysisErrorReporter.Report(trace, $"State '{state.Name}' was" +
+                        base.ErrorReporter.Report(trace, $"State '{state.Name}' was" +
                             $" declared as generic, which is not allowed by P#.");
                     }
                 }
@@ -95,7 +99,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            IO.PrintLine("... No generic states analysis runtime: '" +
+            base.Logger.WriteLine("... No generic states analysis runtime: '" +
                 base.Profiler.Results() + "' seconds.");
         }
 

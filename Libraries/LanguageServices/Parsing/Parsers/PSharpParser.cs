@@ -299,6 +299,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case TokenType.Monitor:
                 case TokenType.Internal:
                 case TokenType.Public:
+                case TokenType.Private:
+                case TokenType.Protected:
                 case TokenType.Partial:
                 case TokenType.Abstract:
                 case TokenType.Virtual:
@@ -319,11 +321,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     base.TokenStream.Index++;
                     break;
 
-                case TokenType.Private:
-                case TokenType.Protected:
-                    throw new ParsingException("Event and machine declarations must be internal or public.",
-                        new List<TokenType>());
-
                 default:
                     throw new ParsingException("Unexpected token.",
                         new List<TokenType>());
@@ -341,61 +338,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <param name="parentNode">Node</param>
         private void VisitEventOrMachineDeclaration(NamespaceDeclaration parentNode)
         {
-            AccessModifier am = AccessModifier.None;
-            InheritanceModifier im = InheritanceModifier.None;
-            bool isPartial = false;
+            ModifierSet modSet = ModifierSet.CreateDefault();
 
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Monitor)
             {
-                if (am != AccessModifier.None &&
-                    (base.TokenStream.Peek().Type == TokenType.Public ||
-                    base.TokenStream.Peek().Type == TokenType.Private ||
-                    base.TokenStream.Peek().Type == TokenType.Protected ||
-                    base.TokenStream.Peek().Type == TokenType.Internal))
-                {
-                    throw new ParsingException("More than one protection modifier.",
-                        new List<TokenType>());
-                }
-                else if (im != InheritanceModifier.None &&
-                    base.TokenStream.Peek().Type == TokenType.Abstract)
-                {
-                    throw new ParsingException("Duplicate abstract modifier.",
-                        new List<TokenType>());
-                }
-                else if (isPartial &&
-                    base.TokenStream.Peek().Type == TokenType.Partial)
-                {
-                    throw new ParsingException("Duplicate partial modifier.",
-                        new List<TokenType>());
-                }
-
-                if (base.TokenStream.Peek().Type == TokenType.Public)
-                {
-                    am = AccessModifier.Public;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Private)
-                {
-                    am = AccessModifier.Private;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Protected)
-                {
-                    am = AccessModifier.Protected;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Internal)
-                {
-                    am = AccessModifier.Internal;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Abstract)
-                {
-                    im = InheritanceModifier.Abstract;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Partial)
-                {
-                    isPartial = true;
-                }
+                new ModifierVisitor(base.TokenStream).Visit(modSet);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -417,62 +367,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             if (base.TokenStream.Peek().Type == TokenType.EventDecl)
             {
-                if (am == AccessModifier.Private)
-                {
-                    throw new ParsingException("An event cannot be private.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Protected)
-                {
-                    throw new ParsingException("An event cannot be protected.",
-                        new List<TokenType>());
-                }
-
-                if (im == InheritanceModifier.Abstract)
-                {
-                    throw new ParsingException("An event cannot be abstract.",
-                        new List<TokenType>());
-                }
-
-                if (isPartial)
-                {
-                    throw new ParsingException("An event cannot be declared as partial.",
-                        new List<TokenType>());
-                }
-
-                new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, am);
+                new EventDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
             }
             else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                if (am == AccessModifier.Private)
-                {
-                    throw new ParsingException("A machine cannot be private.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Protected)
-                {
-                    throw new ParsingException("A machine cannot be protected.",
-                        new List<TokenType>());
-                }
-
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, isPartial, am, im);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, modSet);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Monitor)
             {
-                if (am == AccessModifier.Private)
-                {
-                    throw new ParsingException("A monitor cannot be private.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Protected)
-                {
-                    throw new ParsingException("A monitor cannot be protected.",
-                        new List<TokenType>());
-                }
-
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    true, isPartial, am, im);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, true, modSet);
             }
         }
 

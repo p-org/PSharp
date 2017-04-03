@@ -1,0 +1,45 @@
+﻿namespace PingPong.CustomLogging
+{
+    internal machine Client
+    {
+		internal event Config (server: machine);
+		internal event Unit;
+		internal event Ping (client: machine);
+
+        machine Server;
+        int Counter;
+
+        start state Init
+        {
+			entry
+			{
+				this.Server = (trigger as Config).server;
+				this.Counter = 0;
+				jump(Active);
+			}
+        }
+
+        state Active
+        {
+            entry
+            {
+                SendPing();
+            }
+
+            on Server.Pong do SendPing;
+        }
+
+        void SendPing()
+        {
+            this.Counter++;
+			send(this.Server, Ping, this);
+
+			this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
+
+			if (this.Counter == 5)
+            {
+                raise(halt);
+            }
+        }
+    }
+}

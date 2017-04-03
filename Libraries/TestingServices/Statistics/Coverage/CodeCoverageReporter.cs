@@ -15,8 +15,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
+
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Coverage
 {

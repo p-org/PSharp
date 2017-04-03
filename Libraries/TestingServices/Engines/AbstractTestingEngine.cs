@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -85,9 +86,14 @@ namespace Microsoft.PSharp.TestingServices
         protected int PrintGuard;
 
         /// <summary>
-        /// Has redirected console output.
+        /// The installed logger.
         /// </summary>
-        protected bool HasRedirectedConsoleOutput;
+        protected ILogger Logger;
+
+        /// <summary>
+        /// The error reporter.
+        /// </summary>
+        protected ErrorReporter ErrorReporter;
 
         /// <summary>
         /// The profiler.
@@ -108,22 +114,6 @@ namespace Microsoft.PSharp.TestingServices
         /// gathered during testing.
         /// </summary>
         public TestReport TestReport { get; set; }
-
-        /// <summary>
-        /// Name of the P# program being tested.
-        /// </summary>
-        public string ProgramName
-        {
-            get
-            {
-                if (this.Assembly == null)
-                {
-                    return "";
-                }
-
-                return this.Assembly.Location;
-            }
-        }
 
         #endregion
 
@@ -149,16 +139,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="directory">Directory name</param>
         /// <param name="file">File name</param>
         public virtual void TryEmitTraces(string directory, string file)
-        {
-            // No-op, must be implemented in subclass.
-        }
-
-        /// <summary>
-        /// Tries to emit the testing coverage report, if any.
-        /// </summary>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
-        public virtual void TryEmitCoverageReport(string directory, string file)
         {
             // No-op, must be implemented in subclass.
         }
@@ -191,9 +171,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         protected AbstractTestingEngine(Configuration configuration)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
-
             this.PerIterationCallbacks = new HashSet<Action<int>>();
 
             try
@@ -202,10 +180,11 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (FileNotFoundException ex)
             {
-                IO.Error.ReportAndExit(ex.Message);
+                Error.ReportAndExit(ex.Message);
             }
 
             this.Initialize();
+
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
@@ -219,7 +198,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="assembly">Assembly</param>
         protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
             this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.Assembly = assembly;
@@ -235,10 +213,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration,
-            Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
             this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.TestAction = action;
@@ -250,14 +226,19 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
+            this.Logger = new ConsoleLogger();
+            this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
+            this.Profiler = new Profiler();
+
             this.CancellationTokenSource = new CancellationTokenSource();
 
-            this.TestReport = new TestReport();
+            this.TestReport = new TestReport(this.Configuration);
+
             this.PrintGuard = 1;
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)
             {
-                this.Strategy = new InteractiveStrategy(this.Configuration);
+                this.Strategy = new InteractiveStrategy(this.Configuration, this.Logger);
                 this.Configuration.SchedulingIterations = 1;
                 this.Configuration.PerformFullExploration = false;
                 this.Configuration.Verbose = 2;
@@ -354,7 +335,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
-                IO.Error.ReportAndExit("Portfolio testing strategy in only " +
+                Error.ReportAndExit("Portfolio testing strategy in only " +
                     "available in parallel testing.");
             }
 
@@ -363,8 +344,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration.SchedulingIterations = 1;
                 this.Configuration.PerformFullExploration = false;
             }
-
-            this.HasRedirectedConsoleOutput = false;
         }
 
         #endregion
@@ -403,42 +382,24 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (this.CancellationTokenSource.IsCancellationRequested)
                 {
-                    if (this.Configuration.TestingProcessId >= 0)
-                    {
-                        IO.Error.PrintLine("... Task " +
-                            $"{this.Configuration.TestingProcessId} timed out.");
-                    }
-                    else
-                    {
-                        IO.Error.PrintLine("... Timed out.");
-                    }
+                    this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
                 }
             }
             catch (AggregateException aex)
             {
-                if (this.HasRedirectedConsoleOutput)
+                aex.Handle((Func<Exception, bool>)((ex) =>
                 {
-                    this.ResetOutput();
-                }
-
-                aex.Handle((ex) =>
-                {
-                    IO.Debug(ex.Message);
-                    IO.Debug(ex.StackTrace);
+                    Debug.WriteLine((string)ex.Message);
+                    Debug.WriteLine((string)ex.StackTrace);
                     return true;
-                });
-
-                if (this.Configuration.ThrowInternalExceptions)
-                {
-                    throw aex;
-                }
+                }));
 
                 if (aex.InnerException is FileNotFoundException)
                 {
-                    IO.Error.ReportAndExit($"{aex.InnerException.Message}");
+                    Error.ReportAndExit($"{aex.InnerException.Message}");
                 }
 
-                IO.Error.ReportAndExit("Exception thrown during testing outside the context of a " +
+                Error.ReportAndExit("Exception thrown during testing outside the context of a " +
                     "machine, possibly in a test method. Please use " +
                     "/debug /v:2 to print more information.");
             }
@@ -472,12 +433,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (testMethods.Count == 0)
             {
-                IO.Error.ReportAndExit("Cannot detect a P# test method. Use the " +
+                Error.ReportAndExit("Cannot detect a P# test method. Use the " +
                     $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
             }
             else if (testMethods.Count > 1)
             {
-                IO.Error.ReportAndExit("Only one test method to the P# program can " +
+                Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{typeof(Test).FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead. Provide " +
                     $"/method flag to qualify the test method name you wish to use.");
@@ -491,7 +452,7 @@ namespace Microsoft.PSharp.TestingServices
                 testMethods[0].GetParameters().Length != 1 ||
                 testMethods[0].GetParameters()[0].ParameterType != typeof(PSharpRuntime))
             {
-                IO.Error.ReportAndExit("Incorrect test method declaration. Please " +
+                Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(Test).FullName}] public static void " +
                     $"void {testMethods[0].Name}(PSharpRuntime runtime) {{ ... }}");
@@ -514,7 +475,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (testMethods.Count > 1)
             {
-                IO.Error.ReportAndExit("Only one test method to the P# program can " +
+                Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{attribute.FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead.");
             }
@@ -526,7 +487,7 @@ namespace Microsoft.PSharp.TestingServices
                 !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
                 testMethods[0].GetParameters().Length != 0)
             {
-                IO.Error.ReportAndExit("Incorrect test method declaration. Please " +
+                Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{attribute.FullName}] public static " +
                     $"void {testMethods[0].Name}() {{ ... }}");
@@ -555,15 +516,15 @@ namespace Microsoft.PSharp.TestingServices
             {
                 foreach (var le in ex.LoaderExceptions)
                 {
-                    ErrorReporter.Report(le.Message);
+                    this.ErrorReporter.WriteErrorLine(le.Message);
                 }
 
-                IO.Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
             catch (Exception ex)
             {
-                ErrorReporter.Report(ex.Message);
-                IO.Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                this.ErrorReporter.WriteErrorLine(ex.Message);
+                Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
 
             return testMethods;
@@ -612,26 +573,24 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        /// <summary>
-        /// Redirects the console output.
-        /// </summary>
-        /// <returns>StringWriter</returns>
-        protected StringWriter RedirectConsoleOutput()
-        {
-            var sw = new StringWriter();
-            Console.SetOut(sw);
-            return sw;
-        }
+        #endregion
+
+        #region logging
 
         /// <summary>
-        /// Resets the console output.
+        /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
-        protected void ResetOutput()
+        /// <param name="logger">ILogger</param>
+        public void SetLogger(ILogger logger)
         {
-            var sw = new StreamWriter(Console.OpenStandardOutput());
-            sw.AutoFlush = true;
-            Console.SetOut(sw);
-            this.HasRedirectedConsoleOutput = false;
+            if (logger == null)
+            {
+                throw new InvalidOperationException("Cannot install a null logger.");
+            }
+
+            this.Logger.Dispose();
+            this.Logger = logger;
+            this.ErrorReporter.Logger = logger;
         }
 
         #endregion

@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}</ProjectGuid>
+    <ProjectGuid>{f30ae100-be49-4944-b5a2-6d8d4310cc0b}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp</RootNamespace>
@@ -58,19 +58,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Remote\ITestingProcess.cs" />
-    <Compile Include="Remote\ITestingProcessScheduler.cs" />
-    <Compile Include="Remote\KnownTypesProvider.cs" />
+    <Compile Include="Interfaces\ITestingProcess.cs" />
+    <Compile Include="Interfaces\ITestingProcessScheduler.cs" />
+    <Compile Include="Interfaces\KnownTypesProvider.cs" />
     <Compile Include="Testing\TestingPortfolio.cs" />
     <Compile Include="Testing\TestingProcess.cs" />
     <Compile Include="Testing\TestingProcessFactory.cs" />
     <Compile Include="Utilities\TesterCommandLineOptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Testing\TestingProcessScheduler.cs" />
+    <Compile Include="Scheduling\TestingProcessScheduler.cs" />
+    <Compile Include="Utilities\Reporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">

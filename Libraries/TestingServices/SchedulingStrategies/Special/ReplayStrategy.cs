@@ -16,8 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
             var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
+                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
                 availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
@@ -96,13 +96,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
+                Error.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
             }
 
             ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
             if (nextStep.Type != ScheduleStepType.SchedulingChoice)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: next step is not a scheduling choice.");
+                Error.ReportAndExit("Trace is not reproducible: next step is not a scheduling choice.");
             }
 
             next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
             if (next == null)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: cannot detect machine with type " +
+                Error.ReportAndExit("Trace is not reproducible: cannot detect machine with type " +
                     $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.");
             }
 
@@ -129,20 +129,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: " +
+                Error.ReportAndExit("Trace is not reproducible: " +
                     "execution is longer than trace.");
             }
 
             ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
             if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: " +
+                Error.ReportAndExit("Trace is not reproducible: " +
                     "next step is not a nondeterministic choice.");
             }
 
             if (nextStep.BooleanChoice == null)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: " +
+                Error.ReportAndExit("Trace is not reproducible: " +
                     "next step is not a nondeterministic boolean choice.");
             }
 
@@ -162,20 +162,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: " +
+                Error.ReportAndExit("Trace is not reproducible: " +
                     "execution is longer than trace.");
             }
 
             ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
             if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: " +
+                Error.ReportAndExit("Trace is not reproducible: " +
                     "next step is not a nondeterministic choice.");
             }
 
             if (nextStep.IntegerChoice == null)
             {
-                IO.Error.ReportAndExit("Trace is not reproducible: " +
+                Error.ReportAndExit("Trace is not reproducible: " +
                     "next step is not a nondeterministic integer choice.");
             }
 

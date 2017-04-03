@@ -12,9 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
-using Microsoft.PSharp.LanguageServices.Compilation;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.Utilities
 {
@@ -62,7 +60,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    IO.Error.ReportAndExit("Please give a valid compilation target " +
+                    Error.ReportAndExit("Please give a valid compilation target " +
                         "'/t:[x]', where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
@@ -78,7 +76,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    IO.Error.ReportAndExit("Please give a valid optimization target " +
+                    Error.ReportAndExit("Please give a valid optimization target " +
                         "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
@@ -86,7 +84,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 if (!option.ToLower().Substring(6).EndsWith(".dll"))
                 {
-                    IO.Error.ReportAndExit("Please give a valid custom compiler pass dll " +
+                    Error.ReportAndExit("Please give a valid custom compiler pass dll " +
                         "'/pass:[x]', where [x] is a 'dll'.");
                 }
 
@@ -120,7 +118,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    IO.Error.ReportAndExit("Please give a valid data-flow information " +
+                    Error.ReportAndExit("Please give a valid data-flow information " +
                         "level '/emit-data-flow:[x]', where [x] is 'default' or 'full'.");
                 }
             }
@@ -145,7 +143,7 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.SolutionFilePath.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid solution path.");
+                Error.ReportAndExit("Please give a valid solution path.");
             }
         }
 
@@ -193,7 +191,7 @@ namespace Microsoft.PSharp.Utilities
 
             help += "\n";
 
-            IO.PrettyPrintLine(help);
+            Output.WriteLine(help);
         }
 
         #endregion

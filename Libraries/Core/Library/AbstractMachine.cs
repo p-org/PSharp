@@ -45,7 +45,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if the machine is executing an OnExit method.
         /// </summary>
-        internal bool InsideOnExit;
+        internal bool IsInsideOnExit;
 
         /// <summary>
         /// Checks if the current machine action called
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp
         public AbstractMachine()
         {
             this.OperationId = 0;
-            this.InsideOnExit = false;
+            this.IsInsideOnExit = false;
             this.CurrentActionCalledRGP = false;
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void AssertCorrectRGPInvocation()
         {
-            this.Runtime.Assert(!this.InsideOnExit, "Machine '{0}' has called raise/goto/pop " +
+            this.Runtime.Assert(!this.IsInsideOnExit, "Machine '{0}' has called raise/goto/pop " +
                 "inside an OnExit method.", this.Id.Name);
             this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' has called multiple " +
                 "raise/goto/pop in the same action.", this.Id.Name);

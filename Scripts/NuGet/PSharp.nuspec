@@ -2,15 +2,19 @@
 <package >
   <metadata>
     <id>Microsoft.PSharp</id>
-    <version>1.0.1</version>
-    <authors>Pantazis Deligiannis, Akash Lal, Shaz Qadeer</authors>
-    <owners>pdeligia, Akash.Lal, shazqadeer</owners>
+    <version>1.1.2</version>
+    <authors>Microsoft</authors>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Tools for PSharp programming framework</description>
-    <releaseNotes>This release contains the PSharp compiler and testing tools.</releaseNotes>
+    <description>The P# language, runtime and testing infrastructure</description>
+    <releaseNotes>This release contains the 1.1.2 version of the P# language, runtime and testing infrastructure.</releaseNotes>
     <copyright>Copyright ©2017 Microsoft Corporation</copyright>
     <tags>asynchrony testing .NET programming actors state-machines</tags>
   </metadata>
+  <files>
+    <file src="..\..\Binaries\*.dll" target="lib\net46" />
+    <file src="..\..\Binaries\*.mdb" target="lib\net46" />
+    <file src="..\..\Binaries\*.xml" target="lib\net46" />
+  </files>
 </package>

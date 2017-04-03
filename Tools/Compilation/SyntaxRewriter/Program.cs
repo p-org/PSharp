@@ -12,15 +12,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
-
 using Microsoft.Build.Framework;
-
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -33,7 +29,7 @@ namespace Microsoft.PSharp
         {
             if (args.Length != 1)
             {
-                IO.PrintLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
+                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
                 return;
             }
 
@@ -45,7 +41,7 @@ namespace Microsoft.PSharp
             }
             catch (System.IO.IOException e)
             {
-                IO.PrintLine("Error: {0}", e.Message);
+                Output.WriteLine("Error: {0}", e.Message);
                 return;
             }
 
@@ -53,7 +49,7 @@ namespace Microsoft.PSharp
             // Translate and print on console
             string errors = "";
             var output = Translate(input_string, out errors);
-            IO.PrintLine("{0}", output == null ? "Parse Error: " + errors : output);
+            Output.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
         /// <summary>
@@ -118,48 +114,6 @@ namespace Microsoft.PSharp
                     errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
                     // print a compiler error with log
                     System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, 
-                        string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
-                }
-            }
-
-            return true;
-        }
-    }
-
-    public class RewriterAsSeparateProcess : ITask
-    {
-        public IBuildEngine BuildEngine { get; set; }
-        public ITaskHost HostObject { get; set; }
-
-        public ITaskItem[] InputFiles { get; set; }
-
-        [Output]
-        public ITaskItem[] OutputFiles { get; set; }
-
-        public bool Execute()
-        {
-            for (int i = 0; i < InputFiles.Length; i++)
-            {
-                string errors;
-                var process = new System.Diagnostics.Process();
-                var processStartInfo = new System.Diagnostics.ProcessStartInfo(this.GetType().Assembly.Location, InputFiles[i].ItemSpec);
-                processStartInfo.CreateNoWindow = true;
-                processStartInfo.UseShellExecute = false;
-                processStartInfo.RedirectStandardOutput = true;
-                process.StartInfo = processStartInfo;
-                process.Start();
-                var outp = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
-                if (outp != null)
-                {
-                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
-                }
-                else
-                {
-                    // replace Program.psharp with the actual file name
-                    errors = outp.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
-                    // print a compiler error with log
-                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec,
                         string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
                 }
             }

@@ -17,8 +17,8 @@ using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing.Framework;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -80,15 +80,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ParseSyntaxTree();
             }
 
-            if (this.WarningLog.Count > 0)
-            {
-                this.ReportParsingWarnings();
-            }
-
-            if (this.ErrorLog.Count > 0)
-            {
-                this.ReportParsingErrors();
-            }
+            this.CheckForErrorsAndWarnings();
 
             return this.Program;
         }
@@ -144,12 +136,39 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
+        /// Checks for parsing errors and warnings. If any errors
+        /// are found (or warnings, if warnings are enabled) then
+        /// it throws an exception.
+        /// </summary>
+        private void CheckForErrorsAndWarnings()
+        {
+            var warnings = new List<string>();
+            var errors = new List<string>();
+
+            if (this.WarningLog.Count > 0)
+            {
+                this.ReportParsingWarnings(warnings);
+            }
+
+            if (this.ErrorLog.Count > 0)
+            {
+                this.ReportParsingErrors(errors);
+            }
+
+            if (errors.Count > 0 || warnings.Count > 0)
+            {
+                throw new ParsingException(errors, warnings);
+            }
+        }
+
+        /// <summary>
         /// Reports the parsing warnings. Only works if the
         /// parser is running internally.
         /// </summary>
-        private void ReportParsingWarnings()
+        /// <param name="reports">Reports</param>
+        private void ReportParsingWarnings(List<string> reports)
         {
-            if (!base.Options.ExitOnError || !ErrorReporter.ShowWarnings)
+            if (!base.Options.ExitOnError || !base.Options.ShowWarnings)
             {
                 return;
             }
@@ -165,18 +184,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 report += "\nIn " + this.SyntaxTree.FilePath + " (line " + warningLine + "):\n";
                 report += " " + lines[warningLine - 1];
 
-                ErrorReporter.ReportWarning(report);
+                reports.Add(report);
             }
-
-            IO.PrettyPrintLine("Found {0} parsing warning{1}.", this.WarningLog.Count,
-                this.WarningLog.Count == 1 ? "" : "s");
         }
 
         /// <summary>
         /// Reports the parsing errors and exits. Only works if the
         /// parser is running internally.
         /// </summary>
-        private void ReportParsingErrors()
+        /// <param name="reports">Reports</param>
+        private void ReportParsingErrors(List<string> reports)
         {
             if (!base.Options.ExitOnError)
             {
@@ -194,12 +211,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 report += "\nIn " + this.SyntaxTree.FilePath + " (line " + errorLine + "):\n";
                 report += " " + lines[errorLine - 1];
 
-                ErrorReporter.Report(report);
+                reports.Add(report);
             }
-
-            IO.PrettyPrintLine("Found {0} parsing error{1}.", this.ErrorLog.Count,
-                this.ErrorLog.Count == 1 ? "" : "s");
-            Environment.Exit(1);
         }
 
         #endregion

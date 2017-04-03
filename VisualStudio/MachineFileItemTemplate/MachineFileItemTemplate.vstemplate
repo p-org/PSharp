@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <DefaultName>Machine.psharp</DefaultName>
+    <Name>PSharp Machine Definition File</Name>
+    <Description>Creates a PSharp file with a simple machine definition template.</Description>
+    <Icon>MachineFileItemTemplate.ico</Icon>
+    <TemplateID>761d6c21-9384-493f-9910-cd789361f761</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.6</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>Microsoft.PSharp</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.psharp" ReplaceParameters="true" ItemType="PSharp">Machine1.psharp</ProjectItem>
+  </TemplateContent>
+</VSTemplate>
