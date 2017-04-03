@@ -53,9 +53,9 @@ namespace PSharpBatchTester
                 //If it contains 3 args, then get the location of the test application
                 if(args.Count() >= 3)
                 {
-                    if (!string.IsNullOrEmpty(args[3]))
+                    if (!string.IsNullOrEmpty(args[2]))
                     {
-                        config.PSharpBinariesFolderPath = args[3];
+                        config.PSharpBinariesFolderPath = args[2];
                     }
                 }
 
