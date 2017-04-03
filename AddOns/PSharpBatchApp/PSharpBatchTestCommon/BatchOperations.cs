@@ -379,7 +379,14 @@ namespace PSharpBatchTestCommon
         /// <returns></returns>
         public async Task DeleteJobAsync(string JobId)
         {
-            await batchClient.JobOperations.DeleteJobAsync(JobId);
+            try
+            {
+                await batchClient.JobOperations.DeleteJobAsync(JobId);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Unable to delete Job. Please delete it manually");
+            }
         }
 
         /// <summary>

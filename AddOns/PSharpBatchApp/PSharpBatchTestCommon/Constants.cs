@@ -25,7 +25,7 @@ namespace PSharpBatchTestCommon
         public const string PSharpDefaultNodeStartCommand = "cmd /c (robocopy %AZ_BATCH_TASK_WORKING_DIR% %AZ_BATCH_NODE_SHARED_DIR%) ^& IF %ERRORLEVEL% LEQ 1 exit 0";
         public const string PSharpDefaultTaskCommandLine = "cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\PSharpTester.exe /test:RaceTest.exe 1>out.txt 2>&1";
         public const string PSharpTaskCommandFormat = "cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\PSharpTester.exe /test:{0} /i:{1} 1>out.txt 2>&1";
-        public const string PSharpTaskCommandFormatWithFlags = "cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\PSharpTester.exe /test:{0} /i:{1} {2} 1>out.txt 2>&1"; //{0}: Test application, {1}: number of iterations, {2}: Flags
+        public const string PSharpTaskCommandFormatWithFlags = "cmd /c %AZ_BATCH_NODE_SHARED_DIR%\\PSharpTester.exe /test:.\\{0} /i:{1} {2} 1>out.txt 2>&1"; //{0}: Test application, {1}: number of iterations, {2}: Flags
 
         //Util Methods
         public static string GetTimeStamp()

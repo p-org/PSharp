@@ -36,18 +36,11 @@ namespace PSharpBatchTestCommon
         //Task Wait Time
         public int TaskWaitHours;
 
-        //PSharpTesting
-        public string PSharpTestCommand;
-
         //Delete job
         public bool DeleteJobAfterDone;
 
         //Delete containers
         public bool DeleteContainerAfterDone;
-
-        //Flags in command
-        [XmlIgnore]
-        public string CommandFlags;
 
         //Number of Tasks
         [XmlIgnore]
@@ -58,8 +51,8 @@ namespace PSharpBatchTestCommon
         public int IterationsPerTask;
 
         //Task Application Path
-        [XmlIgnore]
-        public string TestApplicationPath;
+        //[XmlIgnore]
+        //public string TestApplicationPath;
 
         [XmlArray("Commands")]
         [XmlArrayItem("Command")]
@@ -77,6 +70,12 @@ namespace PSharpBatchTestCommon
             {
                 NumberOfParallelTasks = 1;
                 IterationsPerTask = 1;
+            }
+
+            public override string ToString()
+            {
+                string format = "NumberOfParallelTasks:{0}\nIterations:{1}\nApplicationPath:{2}\nCommandFlags:{3}";
+                return string.Format(format, NumberOfParallelTasks, IterationsPerTask, TestApplicationPath, CommandFlags);
             }
         }
 
@@ -134,7 +133,7 @@ namespace PSharpBatchTestCommon
                 return false;
             }
             
-            if(string.IsNullOrEmpty(this.PSharpBinariesFolderPath) || string.IsNullOrEmpty(this.OutputFolderPath) || string.IsNullOrEmpty(PSharpTestCommand))
+            if(string.IsNullOrEmpty(this.PSharpBinariesFolderPath) || string.IsNullOrEmpty(this.OutputFolderPath))
             {
                 return false;
             }
