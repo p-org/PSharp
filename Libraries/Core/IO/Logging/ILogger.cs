@@ -24,8 +24,8 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="message">Text</param>
-        void Write(string message);
+        /// <param name="value">Text</param>
+        void Write(string value);
 
         /// <summary>
         /// Writes the text representation of the specified array of objects.
