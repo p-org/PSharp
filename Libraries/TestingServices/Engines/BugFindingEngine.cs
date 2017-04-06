@@ -322,16 +322,9 @@ namespace Microsoft.PSharp.TestingServices
                     Console.SetOut(writer);
                     Console.SetError(writer);
                 }
-                
+
                 // Runs the test inside the P# test-harness machine.
-                if (base.TestAction != null)
-                {
-                    TestHarnessMachine.Run(runtime, base.TestAction);
-                }
-                else
-                {
-                    TestHarnessMachine.Run(runtime, base.TestMethod);
-                }
+                runtime.RunTestHarness(base.TestMethod, base.TestAction);
 
                 // Wait for the test to terminate.
                 runtime.Wait();
@@ -377,19 +370,14 @@ namespace Microsoft.PSharp.TestingServices
 
                 this.GatherIterationStatistics(runtime);
 
-                if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
+                if (runtimeLogger != null && base.TestReport.NumOfFoundBugs > 0 &&
+                    !base.Configuration.PerformFullExploration && !base.Configuration.SuppressTrace)
                 {
-                    base.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
-                        $"triggered bug #{base.TestReport.NumOfFoundBugs} " +
-                        $"[task-{this.Configuration.TestingProcessId}]");
+                    this.ConstructReproducableTrace(runtime, runtimeLogger);
                 }
-
-                if (runtimeLogger != null && !base.Configuration.SuppressTrace && base.Configuration.PrintTrace)
+                else if (runtimeLogger != null && base.Configuration.PrintTrace)
                 {
-                    this.ReadableTrace = runtimeLogger.ToString();
-                    this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
-                    this.BugTrace = runtime.BugTrace;
-                    this.ConstructReproducableTrace(runtime);
+                    this.ConstructReproducableTrace(runtime, runtimeLogger);
                 }
             }
             finally
@@ -399,6 +387,13 @@ namespace Microsoft.PSharp.TestingServices
                     // Restores the standard output and error streams.
                     Console.SetOut(stdOut);
                     Console.SetError(stdErr);
+                }
+
+                if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
+                {
+                    base.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
+                        $"triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                        $"[task-{this.Configuration.TestingProcessId}]");
                 }
 
                 // Cleans up the runtime before the next iteration starts.
@@ -439,8 +434,13 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructs a reproducable trace.
         /// </summary>
         /// <param name="runtime">BugFindingRuntime</param>
-        private void ConstructReproducableTrace(BugFindingRuntime runtime)
+        /// <param name="logger">InMemoryLogger</param>
+        private void ConstructReproducableTrace(BugFindingRuntime runtime, InMemoryLogger logger)
         {
+            this.ReadableTrace = logger.ToString();
+            this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
+            this.BugTrace = runtime.BugTrace;
+
             StringBuilder stringBuilder = new StringBuilder();
 
             if (this.Strategy.IsFair())

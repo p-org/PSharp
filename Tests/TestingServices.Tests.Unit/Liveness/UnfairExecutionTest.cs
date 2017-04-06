@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         class N : Machine
         {
             [Start]
-            [OnEventDoAction(typeof(Unit), nameof(Foo))]
+            [OnEventDoAction(typeof(E), nameof(Foo))]
             class S : MachineState { }
 
             void Foo()

@@ -171,14 +171,7 @@ namespace Microsoft.PSharp.TestingServices
                         }
 
                         // Runs the test inside the P# test-harness machine.
-                        if (base.TestAction != null)
-                        {
-                            TestHarnessMachine.Run(runtime, base.TestAction);
-                        }
-                        else
-                        {
-                            TestHarnessMachine.Run(runtime, base.TestMethod);
-                        }
+                        runtime.RunTestHarness(base.TestMethod, base.TestAction);
 
                         // Wait for the test to terminate.
                         runtime.Wait();

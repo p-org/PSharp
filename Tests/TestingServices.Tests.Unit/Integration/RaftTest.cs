@@ -1134,7 +1134,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
 
-                this.Assert(!this.TermsWithLeader.Contains(term), $"Detected more than one leader in term {term}.");
+                this.Assert(!this.TermsWithLeader.Contains(term), $"Detected more than one leader.");
                 this.TermsWithLeader.Add(term);
             }
         }
@@ -1152,7 +1152,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(ClusterManager));
             });
 
-            var bugReport = "Detected more than one leader in term 1.";
+            var bugReport = "Detected more than one leader.";
             base.AssertFailed(configuration, test, bugReport);
         }
     }

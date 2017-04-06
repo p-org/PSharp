@@ -181,14 +181,20 @@ namespace Microsoft.PSharp
         /// (for code coverage).
         /// </summary>
         /// <returns>Set of all states in the machine</returns>
-        internal abstract HashSet<string> GetAllStates();
+        internal virtual HashSet<string> GetAllStates()
+        {
+            return new HashSet<string>();
+        }
 
         /// <summary>
         /// Returns the set of all (states, registered event) pairs in the machine
         /// (for code coverage).
         /// </summary>
         /// <returns>Set of all (states, registered event) pairs in the machine</returns>
-        internal abstract HashSet<Tuple<string, string>> GetAllStateEventPairs();
+        internal virtual HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        {
+            return new HashSet<Tuple<string, string>>();
+        }
 
         #endregion
     }

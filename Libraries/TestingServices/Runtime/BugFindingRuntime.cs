@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -83,11 +82,6 @@ namespace Microsoft.PSharp.TestingServices
         private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
-        /// Collection of machine tasks.
-        /// </summary>
-        private ConcurrentBag<Task> MachineTasks;
-
-        /// <summary>
         /// A map from unique machine ids to action traces.
         /// Only used for dynamic data race detection.
         /// </summary>
@@ -134,7 +128,6 @@ namespace Microsoft.PSharp.TestingServices
             this.Monitors = new List<Monitor>();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
-            this.MachineTasks = new ConcurrentBag<Task>();
             this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
 
             this.RootTaskId = Task.CurrentId;
@@ -352,6 +345,46 @@ namespace Microsoft.PSharp.TestingServices
         #region internal methods
 
         /// <summary>
+        /// Runs the specified test method inside a test harness machine.
+        /// </summary>
+        /// <param name="testAction">Action</param>
+        /// <param name="testMethod">MethodInfo</param>
+        internal void RunTestHarness(MethodInfo testMethod, Action<PSharpRuntime> testAction)
+        {
+            this.Assert(Task.CurrentId != null, "The test harness machine must execute inside a task.");
+            this.Assert(testMethod != null || testAction != null, "The test harness machine " +
+                "cannot execute a null test method or action.");
+
+            MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
+            TestHarnessMachine harness = new TestHarnessMachine(testMethod, testAction);
+
+            harness.SetMachineId(mid);
+
+            Task task = new Task(() =>
+            {
+                try
+                {
+                    this.Scheduler.NotifyTaskStarted();
+
+                    harness.Run();
+
+                    this.Scheduler.NotifyTaskCompleted();
+                }
+                catch (ExecutionCanceledException)
+                {
+                    IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown in the test harness.");
+                }
+            });
+
+            this.Scheduler.NotifyNewTaskCreated(task.Id, harness);
+
+            task.Start();
+
+            this.Scheduler.WaitForTaskToStart(task.Id);
+            this.Scheduler.Schedule();
+        }
+
+        /// <summary>
         /// Tries to create a new machine of the specified type.
         /// </summary>
         /// <param name="creator">Creator machine</param>
@@ -546,7 +579,6 @@ namespace Microsoft.PSharp.TestingServices
                 }
             });
 
-            this.MachineTasks.Add(task);
             this.TaskMap.TryAdd(task.Id, machine);
 
             this.Scheduler.NotifyNewTaskCreated(task.Id, machine);

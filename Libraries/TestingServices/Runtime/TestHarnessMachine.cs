@@ -19,108 +19,60 @@ namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
     /// The P# test harness machine. This is the root machine
-    /// that executes a test harness during bug-finding.
+    /// that executes a test method during bug-finding.
     /// </summary>
-    internal sealed class TestHarnessMachine : Machine
+    internal sealed class TestHarnessMachine : AbstractMachine
     {
-        #region runners
+        #region fields
 
         /// <summary>
-        /// Runs the specified test.
+        /// The test method.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        /// <param name="test">Test</param>
-        internal static void Run(BugFindingRuntime runtime, Action<PSharpRuntime> test)
-        {
-            Run(runtime, test, null);
-        }
+        private MethodInfo TestMethod;
 
         /// <summary>
-        /// Runs the specified test.
+        /// The test action.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        /// <param name="test">Test</param>
-        internal static void Run(BugFindingRuntime runtime, MethodInfo test)
-        {
-            Run(runtime, null, test);
-        }
+        private Action<PSharpRuntime> TestAction;
+
+        #endregion
+
+        #region constructors
 
         /// <summary>
-        /// Runs the specified test.
+        /// Constructor.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        /// <param name="testAction">Action</param>
         /// <param name="testMethod">MethodInfo</param>
-        private static void Run(BugFindingRuntime runtime, Action<PSharpRuntime> testAction,
-            MethodInfo testMethod)
+        /// <param name="testAction">Action</param>
+        internal TestHarnessMachine(MethodInfo testMethod, Action<PSharpRuntime> testAction)
         {
-            MachineId mid = new MachineId(typeof(TestHarnessMachine), null, runtime);
-            Machine harness = new TestHarnessMachine();
-            harness.SetMachineId(mid);
-            harness.InitializeStateInformation();
-            harness.GotoStartState(new SetEntryPoint(runtime, testAction, testMethod));
+            this.TestMethod = testMethod;
+            this.TestAction = testAction;
         }
 
         #endregion
 
-        #region state-machine logic
+        #region test harness logic
 
         /// <summary>
-        /// Sets the entry point to the P# program-under-test.
+        /// Runs the test harness.
         /// </summary>
-        private class SetEntryPoint : Event
+        internal void Run()
         {
-            /// <summary>
-            /// The bug-finding runtime.
-            /// </summary>
-            internal BugFindingRuntime Runtime;
-
-            /// <summary>
-            /// The test action to execute.
-            /// </summary>
-            internal Action<PSharpRuntime> TestAction;
-
-            /// <summary>
-            /// The test method to execute.
-            /// </summary>
-            internal MethodInfo TestMethod;
-
-            /// <summary>
-            /// Creates a new instance of the event.
-            /// </summary>
-            /// <param name="runtime">BugFindingRuntime</param>
-            /// <param name="testAction">Action</param>
-            /// <param name="testMethod">MethodInfo</param>
-            internal SetEntryPoint(BugFindingRuntime runtime, Action<PSharpRuntime> testAction,
-                MethodInfo testMethod)
-            {
-                this.Runtime = runtime;
-                this.TestAction = testAction;
-                this.TestMethod = testMethod;
-            }
-        }
-
-        [Start]
-        [OnEntry(nameof(ExecuteEntryPoint))]
-        private class Testing : MachineState { }
-
-        private void ExecuteEntryPoint()
-        {
-            var runtime = (this.ReceivedEvent as SetEntryPoint).Runtime;
-            var testAction = (this.ReceivedEvent as SetEntryPoint).TestAction;
-            var testMethod = (this.ReceivedEvent as SetEntryPoint).TestMethod;
-
             // Starts the test.
-            if (testAction != null)
+            if (this.TestAction != null)
             {
-                testAction(runtime);
+                base.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
+                this.TestAction(base.Id.Runtime);
             }
             else
             {
-                testMethod.Invoke(null, new object[] { runtime });
+                base.Runtime.Log("<TestHarnessLog> Running test method " +
+                    $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
+                this.TestMethod.Invoke(null, new object[] { base.Id.Runtime });
             }
         }
-        
+
         #endregion
     }
 }
