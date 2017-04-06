@@ -39,8 +39,9 @@ namespace PingPong.CustomLogging
             // Executes the P# program.
             Program.Execute(runtime);
 
-            // Disposes the logger.
+            // Disposes the logger and removes it from the runtime.
             myLogger.Dispose();
+            runtime.RemoveLogger();
 
             // The P# runtime executes asynchronously, so we wait
             // to not terminate the process.
