@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B34878DE-AB7D-4EA2-9867-A2AB42FF8CFB}</ProjectGuid>
+    <ProjectGuid>{B8194B8C-7B35-4772-8943-B62DADE9ADBE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Unit</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Integration</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Integration</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -58,47 +58,43 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTest.cs" />
-    <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
-    <Compile Include="EntryPoint\EntryPointRandomChoiceTest.cs" />
-    <Compile Include="EntryPoint\EntryPointEventSendingTest.cs" />
-    <Compile Include="EntryPoint\EntryPointMachineExecutionTest.cs" />
-    <Compile Include="EntryPoint\EntryPointMachineCreationTest.cs" />
-    <Compile Include="Machines\Statements\MethodCallTest.cs" />
-    <Compile Include="Machines\Declarations\GroupStateTest.cs" />
-    <Compile Include="EventHandling\MaxInstances1FailTest.cs" />
-    <Compile Include="Machines\Statements\PopTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateTest.cs" />
-    <Compile Include="Machines\Statements\CurrentStateTest.cs" />
-    <Compile Include="Machines\Transitions\PushTransitions\PushStateTest.cs" />
-    <Compile Include="EventHandling\ReceiveEvent\ReceiveEventTest.cs" />
-    <Compile Include="EventHandling\Wildcard\WildCardEventTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateExitFailTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateFailTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateMultipleInActionFailTest.cs" />
-    <Compile Include="EventHandling\ReceiveEvent\ReceiveEventFailTest.cs" />
-    <Compile Include="Generics\GenericMachineTest.cs" />
-    <Compile Include="Generics\GenericMonitorTest.cs" />
-    <Compile Include="RuntimeInterface\ReceivingExternalEventTest.cs" />
-    <Compile Include="EventHandling\IgnoreEvent\TestIgnoreRaised.cs" />
-    <Compile Include="EventHandling\Actions6FailTest.cs" />
-    <Compile Include="EventHandling\Actions5FailTest.cs" />
-    <Compile Include="EventHandling\Actions1FailTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionDefaultHandlerTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionCounterTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionRingOfNodesTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionRandomChoiceTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionBasicTest.cs" />
-    <Compile Include="Liveness\UnfairExecutionTest.cs" />
-    <Compile Include="Liveness\Liveness1Test.cs" />
-    <Compile Include="Liveness\StateCaching\FairNondet1Test.cs" />
-    <Compile Include="Liveness\WarmStateTest.cs" />
-    <Compile Include="Liveness\Liveness2BugFoundTest.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness3Test.cs" />
-    <Compile Include="Liveness\Liveness2LoopMachineTest.cs" />
-    <Compile Include="Liveness\StateCaching\Nondet1Test.cs" />
-    <Compile Include="Liveness\StateCaching\WarmStateBugTest.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness2Test.cs" />
-    <Compile Include="Liveness\HotStateTest.cs" />
+    <Compile Include="Basic\AlonBugFailTest.cs" />
+    <Compile Include="Basic\AlonBugTest.cs" />
+    <Compile Include="Basic\BugRepro1Test.cs" />
+    <Compile Include="Basic\MaxInstances2Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine35Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine34Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine33Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine42Test.cs" />
+    <Compile Include="Advanced\RaftTest.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine38Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine37Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine36Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine32Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine25Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine20Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine17Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine16Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine15Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine14Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine13Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine12Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine11Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine10Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine9Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine8Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine6Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine5Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines15Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines14Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines13Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines10Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines6Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines4Test.cs" />
+    <Compile Include="Basic\TwoMachines\SEMTwoMachines2Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine3Test.cs" />
+    <Compile Include="Basic\OneMachine\SEMOneMachine1Test.cs" />
+    <Compile Include="Interleavings\SendInterleavingsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +114,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

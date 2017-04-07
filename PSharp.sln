@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingServices.Tests.Unit"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Tests.Performance", "Tests\Core.Tests.Performance\Core.Tests.Performance.csproj", "{9E7B8EDB-36D8-4123-93B3-77308D44A2FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingServices.Tests.Integration", "Tests\TestingServices.Tests.Integration\TestingServices.Tests.Integration.csproj", "{B8194B8C-7B35-4772-8943-B62DADE9ADBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -158,6 +160,12 @@ Global
 		{9E7B8EDB-36D8-4123-93B3-77308D44A2FA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E7B8EDB-36D8-4123-93B3-77308D44A2FA}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
 		{9E7B8EDB-36D8-4123-93B3-77308D44A2FA}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,5 +190,6 @@ Global
 		{9230EB49-8195-4050-B364-01A8459DB49F} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 		{B34878DE-AB7D-4EA2-9867-A2AB42FF8CFB} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 		{9E7B8EDB-36D8-4123-93B3-77308D44A2FA} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
+		{B8194B8C-7B35-4772-8943-B62DADE9ADBE} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 	EndGlobalSection
 EndGlobal
