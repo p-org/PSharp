@@ -307,7 +307,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.PotentialCycle.Count == 0)
             {
                 bool isFairCycleFound = false;
-                int counter = Math.Min(checkIndex.Count, 5);
+                int counter = Math.Min(checkIndex.Count, checkIndex.Count);
                 while (!isFairCycleFound && counter > 0)
                 {
                     var randInd = this.Random.Next(checkIndex.Count - 1);
