@@ -20,13 +20,12 @@ using Xunit;
 namespace Microsoft.PSharp.TestingServices.Tests.Integration
 {
     /// <summary>
-    /// This is a simple implementation of the Raft consensus protocol
-    /// described in the following paper:
-    /// 
-    /// https://raft.github.io/raft.pdf
-    /// 
-    /// This test contains a bug that leads to duplicate leader election
-    /// in the same term.
+    /// This test implements a failure detection protocol. A failure detector
+    /// machine is given a list of machines, each of which represents a daemon
+    /// running at a computing node in a distributed system. The failure detector
+    /// sends each machine in the list a 'Ping' event and determines whether the
+    /// machine has failed if it does not respond with a 'Pong' event within a
+    /// certain time period.
     /// </summary>
     public class FailureDetectorTest : BaseTest
     {
