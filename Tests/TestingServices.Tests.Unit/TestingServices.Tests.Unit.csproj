@@ -59,6 +59,10 @@
   <ItemGroup>
     <Compile Include="BaseTest.cs" />
     <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
+    <Compile Include="EntryPoint\EntryPointRandomChoiceTest.cs" />
+    <Compile Include="EntryPoint\EntryPointEventSendingTest.cs" />
+    <Compile Include="EntryPoint\EntryPointMachineExecutionTest.cs" />
+    <Compile Include="EntryPoint\EntryPointMachineCreationTest.cs" />
     <Compile Include="Machines\MaxInstances2Test.cs" />
     <Compile Include="Machines\Statements\MethodCallTest.cs" />
     <Compile Include="Machines\BugRepro1Test.cs" />
