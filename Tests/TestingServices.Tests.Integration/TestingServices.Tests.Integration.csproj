@@ -57,6 +57,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Advanced\FailureDetectorTest.cs" />
+    <Compile Include="Advanced\ReplicatingStorageTest.cs" />
     <Compile Include="BaseTest.cs" />
     <Compile Include="Basic\AlonBugFailTest.cs" />
     <Compile Include="Basic\AlonBugTest.cs" />

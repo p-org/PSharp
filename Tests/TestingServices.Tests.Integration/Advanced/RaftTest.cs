@@ -19,9 +19,18 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Integration
 {
+    /// <summary>
+    /// This is a simple implementation of the Raft consensus protocol
+    /// described in the following paper:
+    /// 
+    /// https://raft.github.io/raft.pdf
+    /// 
+    /// This test contains a bug that leads to duplicate leader election
+    /// in the same term.
+    /// </summary>
     public class RaftTest : BaseTest
     {
-        internal class Log
+        class Log
         {
             public readonly int Term;
             public readonly int Command;
@@ -33,7 +42,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        internal class ClusterManager : Machine
+        class ClusterManager : Machine
         {
             internal class NotifyLeaderUpdate : Event
             {
@@ -176,7 +185,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         /// A server in Raft can be one of the following three roles:
         /// follower, candidate or leader.
         /// </summary>
-        internal class Server : Machine
+        class Server : Machine
         {
             /// <summary>
             /// Used to configure the server.
@@ -900,7 +909,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        internal class Client : Machine
+        class Client : Machine
         {
             /// <summary>
             /// Used to configure the client.
@@ -985,7 +994,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        internal class ElectionTimer : Machine
+        class ElectionTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -1042,7 +1051,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             class Inactive : MachineState { }
         }
 
-        internal class PeriodicTimer : Machine
+        class PeriodicTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -1099,7 +1108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             class Inactive : MachineState { }
         }
 
-        internal class SafetyMonitor : Monitor
+        class SafetyMonitor : Monitor
         {
             internal class NotifyLeaderElected : Event
             {
@@ -1143,9 +1152,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         public void TestMultipleLeadersInRaftProtocol()
         {
             var configuration = base.GetConfiguration();
-            configuration.MaxSchedulingSteps = 200;
-            configuration.SchedulingIterations = 97;
-            configuration.RandomSchedulingSeed = 128;
+            configuration.MaxUnfairSchedulingSteps = 100;
+            configuration.MaxFairSchedulingSteps = 1000;
+            configuration.LivenessTemperatureThreshold = 500;
+            configuration.RandomSchedulingSeed = 495;
+            configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
