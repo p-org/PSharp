@@ -26,7 +26,7 @@ if (($test -eq "all") -or ($test -eq "testing-services"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Integration\bin\$configuration\Microsoft.PSharp.TestingServices.Tests.Integration.dll -verbose -parallel none"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Integration\bin\$configuration\Microsoft.PSharp.TestingServices.Tests.Integration.dll -verbose"
 }
 
 Write-Host "Done." -ForegroundColor "green" 

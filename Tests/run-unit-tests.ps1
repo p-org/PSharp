@@ -28,7 +28,7 @@ if (($test -eq "all") -or ($test -eq "core"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\Core.Tests.Unit\bin\$configuration\Microsoft.PSharp.Core.Tests.Unit.dll -verbose -parallel none"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\Core.Tests.Unit\bin\$configuration\Microsoft.PSharp.Core.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "testing-services"))
@@ -42,7 +42,7 @@ if (($test -eq "all") -or ($test -eq "testing-services"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Unit\bin\$configuration\Microsoft.PSharp.TestingServices.Tests.Unit.dll -verbose -parallel none"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Unit\bin\$configuration\Microsoft.PSharp.TestingServices.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "language-services"))
