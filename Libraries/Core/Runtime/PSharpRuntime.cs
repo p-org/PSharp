@@ -34,6 +34,11 @@ namespace Microsoft.PSharp
         internal Configuration Configuration;
 
         /// <summary>
+        /// Monotonically increasing machine id counter.
+        /// </summary>
+        internal long MachineIdCounter;
+
+        /// <summary>
         /// Records if the P# program has faulted.
         /// </summary>
         internal volatile bool IsFaulted;
@@ -118,6 +123,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
+            this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.Logger = new ConsoleLogger();
             this.IsFaulted = false;
@@ -628,6 +634,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public virtual void Dispose()
         {
+            this.MachineIdCounter = 0;
             this.NetworkProvider.Dispose();
         }
 

@@ -397,8 +397,6 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 // Cleans up the runtime before the next iteration starts.
-                this.CleanUpRuntime();
-
                 runtimeLogger?.Dispose();
                 runtime?.Dispose();
             }
@@ -414,16 +412,6 @@ namespace Microsoft.PSharp.TestingServices
             TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
             this.TestReport.Merge(report);
-        }
-
-        /// <summary>
-        /// Cleans up the P# runtime. Called before the next
-        /// testing iteration starts.
-        /// </summary>
-        private void CleanUpRuntime()
-        {
-            // Resets the machine id counter.
-            MachineId.ResetMachineIDCounter();
         }
 
         #endregion

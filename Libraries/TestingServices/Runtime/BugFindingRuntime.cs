@@ -1351,6 +1351,8 @@ namespace Microsoft.PSharp.TestingServices
         public override void Dispose()
         {
             this.Monitors.Clear();
+            this.MachineMap.Clear();
+            this.TaskMap.Clear();
             this.MachineActionTraceMap.Clear();
 
             this.LivenessChecker = null;

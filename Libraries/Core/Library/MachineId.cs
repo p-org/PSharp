@@ -63,24 +63,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region static fields
-
-        /// <summary>
-        /// Monotonically increasing machine id counter.
-        /// </summary>
-        private static long IdCounter;
-
-        #endregion
-
-        #region internal API
-
-        /// <summary>
-        /// Static constructor.
-        /// </summary>
-        static MachineId()
-        {
-            IdCounter = 0;
-        }
+        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -97,7 +80,7 @@ namespace Microsoft.PSharp
             this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
             
             // Atomically increments and safely wraps into an unsigned long.
-            this.Value = (uint)Interlocked.Increment(ref IdCounter);
+            this.Value = (uint)Interlocked.Increment(ref runtime.MachineIdCounter);
 
             // Checks for overflow.
             Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
@@ -122,14 +105,6 @@ namespace Microsoft.PSharp
         {
             this.Type = type;
             this.Value = value;
-        }
-
-        /// <summary>
-        /// Resets the machine id counter.
-        /// </summary>
-        internal static void ResetMachineIDCounter()
-        {
-            IdCounter = 0;
         }
 
         #endregion
