@@ -81,6 +81,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteStatements()
         {
+            new CallerMachineNameRewriter(this).Rewrite();
             //new RaiseRewriter(this).Rewrite();
             //new GotoStateRewriter(this).Rewrite();
             //new PopRewriter(this).Rewrite();
@@ -107,7 +108,6 @@ namespace Microsoft.PSharp.LanguageServices
             while (rewritingPasses.Count > 0)
             {
                 Type nextPass = rewritingPasses.Dequeue();
-
 
                 bool allDependenciesDone = true;
                 foreach (var dependency in passDependencies[nextPass])

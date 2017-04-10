@@ -65,6 +65,7 @@
     <Compile Include="IO\Logging\InMemoryLogger.cs" />
     <Compile Include="IO\Output.cs" />
     <Compile Include="IO\Utilities.cs" />
+    <Compile Include="LanguageServices\CallerMachineName.cs" />
     <Compile Include="Library\AbstractMachine.cs" />
     <Compile Include="Library\Attributes\Cold.cs" />
     <Compile Include="Library\Attributes\EntryPoint.cs" />

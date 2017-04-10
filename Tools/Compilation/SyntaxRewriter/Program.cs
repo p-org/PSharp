@@ -45,7 +45,6 @@ namespace Microsoft.PSharp
                 return;
             }
 
-
             // Translate and print on console
             string errors = "";
             var output = Translate(input_string, out errors);

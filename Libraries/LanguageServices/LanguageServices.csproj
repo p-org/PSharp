@@ -146,8 +146,9 @@
     <Compile Include="Rewriting\Attributes\RewritingPassDependency.cs" />
     <Compile Include="Rewriting\Attributes\CustomCSharpRewritingPass.cs" />
     <Compile Include="Rewriting\CSharp\CSharpRewriter.cs" />
-    <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\CallerMachineNameRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\GotoStateRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\RandomChoiceRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\ThisRewriter.cs" />
