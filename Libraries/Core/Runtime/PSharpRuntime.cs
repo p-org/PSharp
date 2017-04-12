@@ -155,6 +155,29 @@ namespace Microsoft.PSharp
         public abstract MachineId CreateMachine(Type type, string friendlyName, Event e = null);
 
         /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and with the
+        /// specified optional <see cref="Event"/>. This event can only be used to
+        /// access its payload, and cannot be handled. The method returns only when
+        /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public abstract MachineId CreateMachineAndExecute(Type type, Event e = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and with
+        /// the specified optional <see cref="Event"/>. This event can only be used to
+        /// access its payload, and cannot be handled. The method returns only when the
+        /// machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public abstract MachineId CreateMachineAndExecute(Type type, string friendlyName, Event e = null);
+
+        /// <summary>
         /// Creates a new remote machine of the specified <see cref="Type"/> and with
         /// the specified optional <see cref="Event"/>. This event can only be used
         /// to access its payload, and cannot be handled.
@@ -184,6 +207,14 @@ namespace Microsoft.PSharp
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         public abstract void SendEvent(MachineId target, Event e);
+
+        /// <summary>
+        /// Synchronously delivers an <see cref="Event"/> to a machine
+        /// and executes it if the machine is available.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        public abstract void SendEventAndExecute(MachineId target, Event e);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -282,42 +313,45 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Tries to create a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="e">Event</param>
+        /// <param name="e">Event passed during machine construction</param>
+        /// <param name="creator">Creator machine</param>
+        /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
         /// <returns>MachineId</returns>
-        internal abstract MachineId TryCreateMachine(Machine creator, Type type, string friendlyName, Event e);
+        internal abstract MachineId TryCreateMachine(Type type, string friendlyName, Event e,
+            Machine creator, bool executeSynchronously);
 
         /// <summary>
         /// Tries to create a new remote <see cref="Machine"/> of the specified <see cref="System.Type"/>.
         /// </summary>
-        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
-        /// <param name="e">Event</param>
+        /// <param name="e">Event passed during machine construction</param>
+        /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract MachineId TryCreateRemoteMachine(Machine creator, Type type,
-            string friendlyName, string endpoint, Event e);
+        internal abstract MachineId TryCreateRemoteMachine(Type type, string friendlyName, string endpoint,
+            Event e, Machine creator);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
         /// <param name="isStarter">Is starting a new operation</param>
-        internal abstract void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter);
+        internal abstract void Send(MachineId mid, Event e, AbstractMachine sender, bool executeSynchronously, bool isStarter);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal abstract void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter);
+        /// <param name="sender">Sender machine</param>
+        /// <param name="isStarter">If true, the send is starting a new operation</param>
+        internal abstract void SendRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
 
         #endregion
 

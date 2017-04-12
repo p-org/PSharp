@@ -99,8 +99,9 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         public void SendMessages()
         {
             var runtime = new StateMachineRuntime();
-            runtime.TryCreateMachine(null, typeof(Server), null,
-                new Server.Configure(this.Clients, this.EventsPerClient));
+            runtime.TryCreateMachine(typeof(Server), null,
+                new Server.Configure(this.Clients, this.EventsPerClient),
+                null, false);
             runtime.Wait();
         }
 

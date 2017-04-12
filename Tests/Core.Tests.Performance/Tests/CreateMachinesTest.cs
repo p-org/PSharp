@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
             for (int idx = 0; idx < Size; idx++)
             {
-                runtime.TryCreateMachine(null, typeof(Node), null, null);
+                runtime.TryCreateMachine(typeof(Node), null, null, null, false);
             }
 
             runtime.Wait();
