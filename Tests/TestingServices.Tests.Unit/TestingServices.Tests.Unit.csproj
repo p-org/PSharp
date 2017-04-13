@@ -78,6 +78,7 @@
     <Compile Include="EventHandling\ReceiveEvent\ReceiveEventFailTest.cs" />
     <Compile Include="Generics\GenericMachineTest.cs" />
     <Compile Include="Generics\GenericMonitorTest.cs" />
+    <Compile Include="RuntimeInterface\CreateAndExecuteTest.cs" />
     <Compile Include="RuntimeInterface\ReceivingExternalEventTest.cs" />
     <Compile Include="EventHandling\IgnoreEvent\TestIgnoreRaised.cs" />
     <Compile Include="EventHandling\Actions6FailTest.cs" />
@@ -100,6 +101,7 @@
     <Compile Include="Liveness\StateCaching\Liveness2Test.cs" />
     <Compile Include="Liveness\HotStateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RuntimeInterface\SendAndExecuteTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

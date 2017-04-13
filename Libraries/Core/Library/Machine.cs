@@ -104,6 +104,12 @@ namespace Microsoft.PSharp
         internal bool IsWaitingToReceive;
 
         /// <summary>
+        /// Is machine executing under a synchronous call. This includes the
+        /// methods CreateMachineAndExecute and SendEventAndExecute.
+        /// </summary>
+        internal bool IsInsideSynchronousCall;
+
+        /// <summary>
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
@@ -223,6 +229,7 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsHalted = false;
             this.IsWaitingToReceive = false;
+            this.IsInsideSynchronousCall = false;
         }
 
         #endregion
