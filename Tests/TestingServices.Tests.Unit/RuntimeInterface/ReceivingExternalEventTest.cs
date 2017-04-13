@@ -20,14 +20,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class ReceivingExternalEventTest : BaseTest
     {
-        class E1 : Event
+        class E : Event
         {
             public int Value;
 
-            public E1(int v)
-                : base()
+            public E(int value)
             {
-                this.Value = v;
+                this.Value = value;
             }
         }
 
@@ -35,15 +34,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             public static void Send(PSharpRuntime runtime, MachineId target)
             {
-                runtime.SendEvent(target, new E1(2));
+                runtime.SendEvent(target, new E(2));
             }
         }
 
-        class Real1 : Machine
+        class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(E1), nameof(HandleEvent))]
+            [OnEventDoAction(typeof(E), nameof(HandleEvent))]
             class Init : MachineState { }
 
             void InitOnEntry()
@@ -53,14 +52,17 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void HandleEvent()
             {
-                this.Assert((this.ReceivedEvent as E1).Value == 2);
+                this.Assert((this.ReceivedEvent as E).Value == 2);
             }
         }
         
         [Fact]
         public void TestReceivingExternalEvents()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Real1)); });
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(M));
+            });
+
             base.AssertSucceeded(test);
         }
     }

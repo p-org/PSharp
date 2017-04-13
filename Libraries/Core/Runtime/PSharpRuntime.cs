@@ -505,9 +505,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
+        /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyReceiveCalled(AbstractMachine machine)
+        internal virtual void NotifyReceiveCalled(Machine machine)
         {
             // Override to implement the notification.
         }

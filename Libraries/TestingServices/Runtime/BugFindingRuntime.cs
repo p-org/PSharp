@@ -188,7 +188,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         public override MachineId CreateMachineAndExecute(Type type, Event e = null)
         {
-            return this.CreateMachine(type, e);
+            Machine creator = null;
+            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                creator = this.TaskMap[(int)Task.CurrentId];
+            }
+
+            return this.TryCreateMachine(type, null, e, creator, true);
         }
 
         /// <summary>
@@ -203,7 +209,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         public override MachineId CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
         {
-            return this.CreateMachine(type, friendlyName, e);
+            Machine creator = null;
+            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                creator = this.TaskMap[(int)Task.CurrentId];
+            }
+
+            return this.TryCreateMachine(type, friendlyName, e, creator, true);
         }
 
         /// <summary>
@@ -270,7 +282,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         public override void SendEventAndExecute(MachineId target, Event e)
         {
-            this.SendEvent(target, e);
+            // If the target machine is null then report an error and exit.
+            this.Assert(target != null, "Cannot send to a null machine.");
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Cannot send a null event.");
+            this.Send(target, e, this.GetCurrentMachine(), true, false);
         }
 
         /// <summary>
@@ -471,7 +487,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            this.RunMachineEventHandlerAsync(machine, e, true);
+            this.RunMachineEventHandlerAsync(machine, e, true, executeSynchronously);
             this.Scheduler.Schedule();
 
             return mid;
@@ -569,7 +585,7 @@ namespace Microsoft.PSharp.TestingServices
             machine.Enqueue(eventInfo, ref runNewHandler);
             if (runNewHandler)
             {
-                this.RunMachineEventHandlerAsync(machine, null, false);
+                this.RunMachineEventHandlerAsync(machine, null, false, executeSynchronously);
             }
 
             this.Scheduler.Schedule();
@@ -595,7 +611,8 @@ namespace Microsoft.PSharp.TestingServices
 		/// <param name="machine">Machine</param>
 		/// <param name="e">Event</param>
 		/// <param name="isFresh">Is a new machine</param>
-		private void RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh)
+        /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
+		private void RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh, bool executeSynchronously)
         {
             Task task = new Task(() =>
             {
@@ -603,12 +620,15 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     this.Scheduler.NotifyTaskStarted();
 
+                    machine.IsInsideSynchronousCall = executeSynchronously;
+
                     if (isFresh)
                     {
                         machine.GotoStartState(e);
                     }
 
                     machine.RunEventHandler();
+                    machine.IsInsideSynchronousCall = false;
 
                     this.Scheduler.NotifyTaskCompleted();
                 }
@@ -739,8 +759,7 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
-                    $"nondeterministically chose '{choice}'.");
+                this.Log($"<RandomLog> Machine '{machine.Id}' nondeterministically chose '{choice}'.");
             }
             else
             {
@@ -1016,9 +1035,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyReceiveCalled(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyReceiveCalled(Machine machine)
         {
+            this.Assert(!machine.IsInsideSynchronousCall, $"Machine '{machine.Id}' called " +
+                "receive while executing synchronously.");
             machine.AssertNoPendingRGP("Receive");
         }
 
@@ -1053,8 +1074,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
 
-            this.Log($"<ReceiveLog> Machine '{machine.Id}' " +
-                $"is waiting on events:{events}.");
+            this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
 
             this.Scheduler.NotifyTaskBlockedOnEvent(Task.CurrentId);
             this.Scheduler.Schedule();
