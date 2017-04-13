@@ -157,8 +157,21 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         state.PrettyPrint();
                         Debug.WriteLine("<LivenessDebug> Detected a state that does not belong to the potential cycle.");
-                        this.EscapeCycle();
-                        return;
+                        //Fallback to just replaying events
+                        //In case of unfair scheduling, give up
+                        HashSet<MachineId> enabledInPotentialCycle = new HashSet<MachineId>();
+                        foreach (var st in PotentialCycle)
+                        {
+                            enabledInPotentialCycle.UnionWith(st.Item2.EnabledMachines);
+                        }
+                        foreach(var e in state.EnabledMachines)
+                        {
+                            if (!enabledInPotentialCycle.Contains(e))
+                            {
+                                this.EscapeCycle();
+                                return;
+                            }
+                        }
                     }
                 }
 

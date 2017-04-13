@@ -65,6 +65,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
+                else if (scheduler.ToLower().Equals("roundrobin"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RoundRobin;
+                }
                 else if (scheduler.StartsWith("probabilistic"))
                 {
                     int i = 0;
@@ -372,7 +376,8 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RoundRobin)
             {
                 Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'/sch:[x]', where [x] is 'random' or 'pct' (other experimental " +

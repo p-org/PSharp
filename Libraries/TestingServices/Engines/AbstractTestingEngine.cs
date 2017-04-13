@@ -278,6 +278,10 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RoundRobin)
+            {
+                this.Strategy = new RoundRobinStrategy(this.Configuration);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
             {
                 this.Strategy = new ProbabilisticRandomStrategy(this.Configuration,

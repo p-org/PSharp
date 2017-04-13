@@ -78,8 +78,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal void CaptureState(ScheduleStep scheduleStep)
         {
             var fingerprint = this.Runtime.GetProgramState();
-            System.Console.WriteLine(fingerprint);
-            this.Runtime.GetProgramStatePrint();
+            //System.Console.WriteLine(fingerprint);
+            //this.Runtime.GetProgramStatePrint();
             var enabledMachines = this.Runtime.Scheduler.GetEnabledMachines();
             var state = new State(fingerprint, enabledMachines, this.Runtime.LivenessChecker.GetMonitorStatus());
 
@@ -109,14 +109,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             
             //var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             var stateExists = this.Fingerprints.Any(val => val.Equals(fingerprint));
-            if (stateExists)
-            {
-                System.Console.WriteLine("State Exists: " + fingerprint);
-                //this.Runtime.GetProgramStatePrint();
-            }
             this.StateMap.Add(scheduleStep, state);
             this.Fingerprints.Add(fingerprint);
-
             if (stateExists)
             {
                 Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
