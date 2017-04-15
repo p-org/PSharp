@@ -17,6 +17,8 @@ using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.PSharp
 {
@@ -27,28 +29,60 @@ namespace Microsoft.PSharp
     {
         static void Main(string[] args)
         {
-            if (args.Length != 1)
+            if (args.Length != 1 && args.Length != 2)
             {
-                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
+                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file[.cs|.psharp] [ProjectFile.csproj]");
                 return;
             }
 
-            // Get input file as string
-            var input_string = "";
-            try
+            var configuration = Configuration.Create();
+            var filename = args[0];
+
+            if(!System.IO.File.Exists(filename))
             {
-                input_string = System.IO.File.ReadAllText(args[0]);
-            }
-            catch (System.IO.IOException e)
-            {
-                Output.WriteLine("Error: {0}", e.Message);
+                Output.WriteLine("Error: File not found: {0}", filename);
                 return;
             }
 
-            // Translate and print on console
-            string errors = "";
-            var output = Translate(input_string, out errors);
-            Output.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
+            if(args.Length == 2)
+            {
+                if(!args[1].EndsWith(".csproj") || !System.IO.File.Exists(args[1]))
+                {
+                    Output.WriteLine("Error: Please provide a valid csproj file: {0}", args[1]);
+                    return;
+                }
+
+                configuration.ProjectFilePath = args[1];
+                configuration.ProjectName = args[1].Replace(".csproj", "");
+            }
+            
+
+            if (configuration.ProjectName == "")
+            {
+                // Get input file as string
+                var input_string = "";
+                try
+                {
+                    input_string = System.IO.File.ReadAllText(filename);
+                }
+                catch (System.IO.IOException e)
+                {
+                    Output.WriteLine("Error: {0}", e.Message);
+                    return;
+                }
+
+                // Translate and print on console
+                string errors = "";
+                var output = Translate(input_string, out errors);
+                Output.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
+            }
+            else
+            {
+                string errors = "";
+                var output = Translate(configuration, new HashSet<string> { filename }, out errors);
+                Output.WriteLine("{0}", output == null ? "Parse Error: " + errors : output[filename]);
+            }
+
         }
 
         /// <summary>
@@ -84,6 +118,52 @@ namespace Microsoft.PSharp
                 return null;
             }
         }
+
+        /// <summary>
+        /// Translates the specified text from P# to C#.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="text">Text</param>
+        /// <returns>Text for each file</returns>
+        public static Dictionary<string, string> 
+            Translate(Configuration configuration, HashSet<string> filenames, out string errors)
+        {
+            errors = null;
+
+            var context = CompilationContext.Create(configuration).LoadSolution();
+            var ret = new Dictionary<string, string>();
+
+            try
+            {
+                ParsingEngine.Create(context).Run();
+                RewritingEngine.Create(context).Run();
+
+                var project = context.GetProjects()[0];
+
+                foreach (var filename in filenames)
+                {
+                    var fullpath = System.IO.Path.GetFullPath(filename);
+
+                    var syntaxTree = filename.EndsWith(".psharp")
+                        ? project.PSharpPrograms.Find(p => p.GetSyntaxTree().FilePath == fullpath).GetSyntaxTree()
+                        : project.CSharpPrograms.Find(p => p.GetSyntaxTree().FilePath == fullpath).GetSyntaxTree();
+
+                    ret.Add(filename, syntaxTree.ToString());
+                }
+                return ret;
+            }
+            catch (ParsingException ex)
+            {
+                errors = ex.Message;
+                return null;
+            }
+            catch (RewritingException ex)
+            {
+                errors = ex.Message;
+                return null;
+            }
+        }
+
     }
 
     public class Rewriter : ITask
@@ -98,23 +178,60 @@ namespace Microsoft.PSharp
 
         public bool Execute()
         {
+            if (InputFiles.Length == 0)
+            {
+                return true;
+            }
+
+            // Get project file
+            var projectFile = InputFiles[0].GetMetadata("DefiningProjectFullPath");
+            var projectName = InputFiles[0].GetMetadata("DefiningProjectName");
+
+            // sanity check
             for (int i = 0; i < InputFiles.Length; i++)
             {
-                var inp = System.IO.File.ReadAllText(InputFiles[i].ItemSpec);
-                string errors;
-                var outp = SyntaxRewriter.Translate(inp, out errors);
-                if (outp != null)
+                if (InputFiles[i].GetMetadata("DefiningProjectFullPath") != projectFile)
                 {
-                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
+                    return false;
                 }
-                else
+            }
+
+            if (!projectFile.ToLower().EndsWith(".csproj"))
+            {
+                return false;
+            }
+
+            var configuration = Configuration.Create();
+            configuration.ProjectFilePath = projectFile;
+            configuration.ProjectName = projectName;
+
+            var files = new HashSet<string>();
+            string errors = "";
+
+            for (int i = 0; i < InputFiles.Length; i++)
+            {
+                files.Add(InputFiles[i].ItemSpec);
+            }
+
+            var outp = SyntaxRewriter.Translate(configuration, files, out errors);
+
+            if (outp != null)
+            {
+                for (int i = 0; i < InputFiles.Length; i++)
                 {
-                    // replace Program.psharp with the actual file name
-                    errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
-                    // print a compiler error with log
-                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, 
-                        string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
+                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp[InputFiles[i].ItemSpec]);
                 }
+            }
+            else
+            {
+                return false;
+                
+                // replace Program.psharp with the actual file name
+                //errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
+                // print a compiler error with log
+                //System.IO.File.WriteAllText(OutputFiles[i].ItemSpec,
+                //    string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
+                
             }
 
             return true;

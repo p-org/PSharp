@@ -96,9 +96,18 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             try
             {
-                // Populate the workspace with the user defined solution.
-                solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
-                    @"" + this.Configuration.SolutionFilePath + "").Result;
+                if (this.Configuration.SolutionFilePath != "")
+                {
+                    // Populate the workspace with the user defined solution.
+                    solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
+                        @"" + this.Configuration.SolutionFilePath + "").Result;
+                }
+                else
+                {
+                    // Populate the workspace with the user defined solution.
+                    solution = (workspace as MSBuildWorkspace).OpenProjectAsync(
+                        @"" + this.Configuration.ProjectFilePath + "").Result.Solution;
+                }
             }
             catch (AggregateException ex)
             {

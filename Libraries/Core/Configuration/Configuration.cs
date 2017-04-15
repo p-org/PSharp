@@ -43,6 +43,12 @@ namespace Microsoft.PSharp
         public string OutputFilePath;
 
         /// <summary>
+        /// The path to the project file.
+        /// </summary>
+        [DataMember]
+        public string ProjectFilePath;
+
+        /// <summary>
         /// The name of the project to analyze.
         /// </summary>
         [DataMember]
@@ -436,6 +442,7 @@ namespace Microsoft.PSharp
         {
             this.SolutionFilePath = "";
             this.OutputFilePath = "";
+            this.ProjectFilePath = "";
             this.ProjectName = "";
             
             this.Timeout = 0;
