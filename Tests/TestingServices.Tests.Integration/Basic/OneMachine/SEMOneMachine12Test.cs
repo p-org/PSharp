@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -59,11 +60,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             [OnEntry(nameof(EntryS1))]
             class S1 : MachineState { }
 
-            void EntryS1()
+            async Task EntryS1()
             {
                 test = true;
                 this.Send(this.Id, new E3());
-                this.Pop();
+                await this.Pop();
             }
 
             void Action1()

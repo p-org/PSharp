@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -67,9 +68,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 }
             }
 
-            void ExitMethod()
+            async Task ExitMethod()
             {
-                this.Pop();
+                await this.Pop();
             }
 
             void Foo()

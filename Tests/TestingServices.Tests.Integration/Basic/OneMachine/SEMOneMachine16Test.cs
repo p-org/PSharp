@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -60,10 +61,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             [OnExit(nameof(ExitS1))]
             class S1 : MachineState { }
 
-            void EntryS1()
+            async Task EntryS1()
             {
                 test = true;
-                this.Pop();
+                await this.Pop();
             }
 
             void ExitS1()

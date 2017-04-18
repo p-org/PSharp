@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -23,20 +24,18 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         class A : Machine
         {
             [Start]
-            [OnEventDoAction(typeof(E1), nameof(foo))]
+            [OnEventDoAction(typeof(E1), nameof(Foo))]
             [OnEventPushState(typeof(E2), typeof(S1))]
             class S0 : MachineState { }
 
-            [OnEventDoAction(typeof(E3), nameof(bar))]
+            [OnEventDoAction(typeof(E3), nameof(Bar))]
             class S1 : MachineState { }
 
-            void foo()
-            {
-            }
+            void Foo() { }
 
-            void bar()
+            async Task Bar()
             {
-                this.Pop();
+                await this.Pop();
             }
 
         }

@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -29,15 +30,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             [OnEntry(nameof(Init))]
             public class S1 : MachineState { }
 
-            void Init()
+            async Task Init()
             {
                 // unbalanced pop
-                this.Pop();
+                await this.Pop();
             }
         }
 
         [Fact]
-        public void TestGroupState()
+        public void TestUnbalancedPop()
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Program)); });
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.PopTest+Program()' popped with no matching push.";
