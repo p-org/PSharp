@@ -39,9 +39,9 @@ namespace Microsoft.PSharp
         internal long MachineIdCounter;
 
         /// <summary>
-        /// Records if the P# program has faulted.
+        /// Records if the runtime is running.
         /// </summary>
-        internal volatile bool IsFaulted;
+        internal volatile bool IsRunning;
 
         #endregion
 
@@ -126,7 +126,7 @@ namespace Microsoft.PSharp
             this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.Logger = new ConsoleLogger();
-            this.IsFaulted = false;
+            this.IsRunning = true;
         }
 
         #endregion
@@ -301,10 +301,11 @@ namespace Microsoft.PSharp
         public abstract MachineId GetCurrentMachineId();
 
         /// <summary>
-        /// Waits until the runtime has reached quiescence. This is an experimental
-        /// feature, which should only be used for testing purposes.
+        /// Notifies each active machine to halt execution to allow the runtime
+        /// to reach quiescence. This is an experimental feature, which should
+        /// be used only for testing purposes.
         /// </summary>
-        public abstract void Wait();
+        public abstract void Stop();
 
         #endregion
 

@@ -43,11 +43,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private ConcurrentDictionary<int, Machine> TaskMap;
 
-        /// <summary>
-        /// Collection of machine tasks.
-        /// </summary>
-        private ConcurrentBag<Task> MachineTasks;
-
         #endregion
 
         #region initialization
@@ -79,7 +74,6 @@ namespace Microsoft.PSharp
             this.Monitors = new List<Monitor>();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
-            this.MachineTasks = new ConcurrentBag<Task>();
         }
 
         #endregion
@@ -305,33 +299,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Waits until all P# machines have finished execution.
+        /// Notifies each active machine to halt execution to allow the runtime
+        /// to reach quiescence. This is an experimental feature, which should
+        /// be used only for testing purposes.
         /// </summary>
-        public override void Wait()
+        public override void Stop()
         {
-            Task[] taskArray = null;
-
-            while (true)
-            {
-                taskArray = this.MachineTasks.ToArray();
-
-                try
-                {
-                    Task.WaitAll(taskArray);
-                }
-                catch (AggregateException)
-                {
-                    this.MachineTasks = new ConcurrentBag<Task>(
-                        this.MachineTasks.Where(val => !val.IsCompleted));
-
-                    continue;
-                }
-
-                if (taskArray.Length == this.MachineTasks.Count)
-                {
-                    break;
-                }
-            }
+            base.IsRunning = false;
         }
 
         #endregion
@@ -466,7 +440,7 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
-                base.IsFaulted = true;
+                base.IsRunning = false;
                 base.RaiseOnFailureEvent(ex);
             }
         }
@@ -494,7 +468,7 @@ namespace Microsoft.PSharp
                 }
                 catch (Exception ex)
                 {
-                    base.IsFaulted = true;
+                    base.IsRunning = false;
                     base.RaiseOnFailureEvent(ex);
                 }
                 finally
@@ -504,7 +478,6 @@ namespace Microsoft.PSharp
                 }
             });
 
-            this.MachineTasks.Add(task);
             this.TaskMap.TryAdd(task.Id, machine);
 
             task.Start();

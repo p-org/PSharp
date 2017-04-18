@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
@@ -23,8 +24,34 @@ namespace Microsoft.PSharp.Core.Tests.Performance
     {
         class Node : Machine
         {
+            internal class Configure : Event
+            {
+                public TaskCompletionSource<bool> TCS;
+                public int Size;
+                public int Counter;
+
+                internal Configure(TaskCompletionSource<bool> tcs, int size)
+                {
+                    this.TCS = tcs;
+                    this.Size = size;
+                    this.Counter = 0;
+                }
+            }
+
             [Start]
+            [OnEntry(nameof(InitOnEntry))]
             class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as Configure).TCS;
+                var size = (this.ReceivedEvent as Configure).Size;
+                var counter = Interlocked.Increment(ref (this.ReceivedEvent as Configure).Counter);
+                if (counter == size)
+                {
+                    tcs.TrySetResult(true);
+                }
+            }
         }
 
         [Params(100, 1000, 10000)]
@@ -35,26 +62,37 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         {
             var runtime = new StateMachineRuntime();
 
+            var tcs = new TaskCompletionSource<bool>();
+            Node.Configure evt = new Node.Configure(tcs, Size);
+
             for (int idx = 0; idx < Size; idx++)
             {
-                runtime.TryCreateMachine(typeof(Node), null, null, null, false);
+                runtime.TryCreateMachine(typeof(Node), null, evt, null, false);
             }
 
-            runtime.Wait();
+            tcs.Task.Wait();
         }
 
         [Benchmark(Baseline = true)]
         public void CreateTasks()
         {
-            Task[] tasks = new Task[Size];
+            var tcs = new TaskCompletionSource<bool>();
+            int counter = 0;
+
             for (int idx = 0; idx < Size; idx++)
             {
-                var task = new Task(() => { return; });
+                var task = new Task(() => {
+                    int value = Interlocked.Increment(ref counter);
+                    if (value == Size)
+                    {
+                        tcs.TrySetResult(true);
+                    }
+                });
+
                 task.Start();
-                tasks[idx] = task;
             }
 
-            Task.WaitAll(tasks);
+            tcs.Task.Wait();
         }
     }
 }

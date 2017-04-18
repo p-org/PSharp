@@ -56,16 +56,22 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         {
             internal class Configure : Event
             {
+                public TaskCompletionSource<bool> TCS;
                 internal long NumberOfClients;
                 internal long NumberOfSends;
 
-                internal Configure(long numberOfClients, long numberOfSends)
+                internal Configure(TaskCompletionSource<bool> tcs, long numberOfClients, long numberOfSends)
                 {
+                    this.TCS = tcs;
                     this.NumberOfClients = numberOfClients;
                     this.NumberOfSends = numberOfSends;
                 }
             }
 
+            TaskCompletionSource<bool> TCS;
+            long NumberOfClients;
+            long NumberOfSends;
+            long MaxValue = 0;
             long Counter = 0;
 
             [Start]
@@ -75,17 +81,23 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
             void InitOnEntry()
             {
-                var numberOfClients = (this.ReceivedEvent as Configure).NumberOfClients;
-                var numberOfSends = (this.ReceivedEvent as Configure).NumberOfSends;
-                for (int i = 0; i < numberOfClients; i++)
+                this.TCS = (this.ReceivedEvent as Configure).TCS;
+                this.NumberOfClients = (this.ReceivedEvent as Configure).NumberOfClients;
+                this.NumberOfSends = (this.ReceivedEvent as Configure).NumberOfSends;
+                this.MaxValue = this.NumberOfClients * this.NumberOfSends;
+                for (int i = 0; i < this.NumberOfClients; i++)
                 {
-                    this.CreateMachine(typeof(Client), new Client.Configure(this.Id, numberOfSends));
+                    this.CreateMachine(typeof(Client), new Client.Configure(this.Id, this.NumberOfSends));
                 }
             }
 
             void Pong()
             {
                 this.Counter++;
+                if (this.Counter == this.MaxValue)
+                {
+                    this.TCS.SetResult(true);
+                }
             }
         }
 
@@ -98,11 +110,14 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         [Benchmark]
         public void SendMessages()
         {
+            var tcs = new TaskCompletionSource<bool>();
+
             var runtime = new StateMachineRuntime();
             runtime.TryCreateMachine(typeof(Server), null,
-                new Server.Configure(this.Clients, this.EventsPerClient),
+                new Server.Configure(tcs, this.Clients, this.EventsPerClient),
                 null, false);
-            runtime.Wait();
+
+            tcs.Task.Wait();
         }
 
         //[Benchmark(Baseline = true)]
