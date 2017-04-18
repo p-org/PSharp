@@ -12,12 +12,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Threading.Tasks;
+
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
     public class NoMemoryLeakInEventSendingTest
     {
+        internal class Configure : Event
+        {
+            public TaskCompletionSource<bool> TCS;
+
+            public Configure(TaskCompletionSource<bool> tcs)
+            {
+                this.TCS = tcs;
+            }
+        }
+
         internal class E : Event
         {
             public MachineId Id;
@@ -41,6 +53,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
+                var tcs = (this.ReceivedEvent as Configure).TCS;
+
                 int counter = 0;
                 var n = CreateMachine(typeof(N));
 
@@ -50,6 +64,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                     this.Receive(typeof(E));
                     counter++;
                 }
+
+                tcs.SetResult(true);
             }
         }
 
@@ -66,21 +82,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
 
-        public static class Program
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.CreateMachine(typeof(M));
-            }
-        }
-
         [Fact]
         public void TestNoMemoryLeakInEventSending()
         {
+            var tcs = new TaskCompletionSource<bool>();
             var runtime = PSharpRuntime.Create();
-            Program.Execute(runtime);
-            runtime.Wait();
+            runtime.CreateMachine(typeof(M), new Configure(tcs));
+            tcs.Task.Wait();
+            runtime.Stop();
         }
     }
 }

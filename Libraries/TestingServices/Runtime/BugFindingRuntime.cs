@@ -391,9 +391,14 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Waits until all P# machines have finished execution.
+        /// Notifies each active machine to halt execution to allow the runtime
+        /// to reach quiescence. This is an experimental feature, which should
+        /// be used only for testing purposes.
         /// </summary>
-        public override void Wait() => this.Scheduler.Wait();
+        public override void Stop()
+        {
+            base.IsRunning = false;
+        }
 
         #endregion
 
@@ -438,6 +443,11 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.WaitForTaskToStart(task.Id);
             this.Scheduler.Schedule();
         }
+
+        /// <summary>
+        /// Waits until all P# machines have finished execution.
+        /// </summary>
+        internal void Wait() => this.Scheduler.Wait();
 
         /// <summary>
         /// Tries to create a new <see cref="Machine"/> of the specified <see cref="Type"/>.

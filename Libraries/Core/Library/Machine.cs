@@ -695,7 +695,7 @@ namespace Microsoft.PSharp
 
             EventInfo nextEventInfo = null;
 
-            while (!this.IsHalted && !base.Runtime.IsFaulted)
+            while (!this.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
                 var dequeued = false;
@@ -1376,7 +1376,8 @@ namespace Microsoft.PSharp
                         }
                     }
                 }
-                // cache completed
+
+                // Cache completed.
                 lock(MachineStateCached)
                 {
                     MachineStateCached[machineType] = true;
