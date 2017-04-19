@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -38,7 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             [OnEntry(nameof(InitOnEntry))]
             class Init : MachineState { }
 
-            void InitOnEntry()
+            async Task InitOnEntry()
             {
                 var e = (this.ReceivedEvent as Configure);
 
@@ -46,7 +47,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
                 if (e.ExecuteSynchronously)
                 {
-                    this.Runtime.SendEventAndExecute(mid, new E());
+                    await this.Runtime.SendEventAndExecute(mid, new E());
                 }
                 else
                 {
@@ -63,9 +64,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             [OnEventDoAction(typeof(E), nameof(HandleEvent))]
             class Init : MachineState { }
 
-            void HandleEvent()
+            async Task HandleEvent()
             {
-                this.Receive(typeof(E));
+                await this.Receive(typeof(E));
             }
         }
 

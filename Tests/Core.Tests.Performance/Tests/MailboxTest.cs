@@ -113,9 +113,9 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             var tcs = new TaskCompletionSource<bool>();
 
             var runtime = new StateMachineRuntime();
-            runtime.TryCreateMachine(typeof(Server), null,
+            runtime.CreateMachine(typeof(Server), null,
                 new Server.Configure(tcs, this.Clients, this.EventsPerClient),
-                null, false);
+                null);
 
             tcs.Task.Wait();
         }

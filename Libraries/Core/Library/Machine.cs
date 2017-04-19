@@ -253,7 +253,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(type, null, e, this, false);
+            return base.Runtime.CreateMachine(type, null, e, this);
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(type, friendlyName, e, this, false);
+            return base.Runtime.CreateMachine(type, friendlyName, e, this);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, null, endpoint, e, this);
+            return base.Runtime.CreateRemoteMachine(type, null, endpoint, e, this);
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace Microsoft.PSharp
         protected MachineId CreateRemoteMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, friendlyName, endpoint, e, this);
+            return base.Runtime.CreateRemoteMachine(type, friendlyName, endpoint, e, this);
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace Microsoft.PSharp
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.Send(mid, e, this, false, isStarter);
+            base.Runtime.SendEvent(mid, e, this, isStarter);
         }
 
         /// <summary>
@@ -327,7 +327,7 @@ namespace Microsoft.PSharp
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendRemotely(mid, e, this, isStarter);
+            base.Runtime.SendEventRemotely(mid, e, this, isStarter);
         }
 
         /// <summary>
