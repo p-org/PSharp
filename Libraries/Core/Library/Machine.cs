@@ -89,27 +89,6 @@ namespace Microsoft.PSharp
         private Dictionary<string, MethodInfo> ActionMap;
 
         /// <summary>
-        /// Is machine running.
-        /// </summary>
-        private bool IsRunning;
-
-        /// <summary>
-        /// Is machine halted.
-        /// </summary>
-        private bool IsHalted;
-
-        /// <summary>
-        /// Is machine waiting to receive an event.
-        /// </summary>
-        internal bool IsWaitingToReceive;
-
-        /// <summary>
-        /// Is machine executing under a synchronous call. This includes the
-        /// methods CreateMachineAndExecute and SendEventAndExecute.
-        /// </summary>
-        internal bool IsInsideSynchronousCall;
-
-        /// <summary>
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
@@ -135,6 +114,32 @@ namespace Microsoft.PSharp
         /// using the receive statement.
         /// </summary>
         private TaskCompletionSource<Event> ReceiveCompletionSource;
+
+        /// <summary>
+        /// Is the machine running.
+        /// </summary>
+        private bool IsRunning;
+
+        /// <summary>
+        /// Is the machine halted.
+        /// </summary>
+        private bool IsHalted;
+
+        /// <summary>
+        /// Is the machine waiting to receive an event.
+        /// </summary>
+        internal bool IsWaitingToReceive;
+
+        /// <summary>
+        /// Is the machine executing under a synchronous call. This includes
+        /// the methods CreateMachineAndExecute and SendEventAndExecute.
+        /// </summary>
+        internal bool IsInsideSynchronousCall;
+
+        /// <summary>
+        /// Is pop invoked in the current action.
+        /// </summary>
+        private bool IsPopInvoked;
 
         #endregion
 
@@ -231,6 +236,7 @@ namespace Microsoft.PSharp
             this.IsHalted = false;
             this.IsWaitingToReceive = false;
             this.IsInsideSynchronousCall = false;
+            this.IsPopInvoked = false;
         }
 
         #endregion
@@ -432,32 +438,10 @@ namespace Microsoft.PSharp
         /// Pops the current <see cref="MachineState"/> from the state stack
         /// at the end of the current action.
         /// </summary>
-        protected async Task Pop()
+        protected void Pop()
         {
-            base.Runtime.NotifyPop(this, this.CurrentState, this.StateStack.ElementAtOrDefault(1)?.GetType());
-
-            // The machine performs the on exit action of the current state.
-            await this.ExecuteCurrentStateOnExit(null);
-            if (this.IsHalted)
-            {
-                return;
-            }
-
-            this.DoStatePop();
-
-            if (this.CurrentState == null)
-            {
-                base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped.");
-            }
-            else
-            {
-                base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
-                    $"and reentered state '{this.CurrentStateName}'.");
-            }
-
-            // Watch out for an extra pop.
-            this.Assert(this.CurrentState != null, 
-                $"Machine '{base.Id}' popped with no matching push.");
+            base.Runtime.NotifyPop(this);
+            this.IsPopInvoked = true;
         }
 
         /// <summary>
@@ -856,6 +840,12 @@ namespace Microsoft.PSharp
             MethodInfo action = this.ActionMap[actionName];
             base.Runtime.NotifyInvokedAction(this, action, this.ReceivedEvent);
             await this.ExecuteAction(action);
+
+            if (this.IsPopInvoked)
+            {
+                // Performs the state transition, if pop was invoked during the action.
+                await this.PopState();
+            }
         }
 
         /// <summary>
@@ -877,6 +867,12 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.NotifyInvokedAction(this, entryAction, this.ReceivedEvent);
                 await this.ExecuteAction(entryAction);
+            }
+
+            if (this.IsPopInvoked)
+            {
+                // Performs the state transition, if pop was invoked during the action.
+                await this.PopState();
             }
         }
 
@@ -1003,6 +999,37 @@ namespace Microsoft.PSharp
 
             // The machine performs the on entry statements of the new state.
             await this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
+        /// Performs a pop transition from the current state.
+        /// </summary>
+        private async Task PopState()
+        {
+            this.IsPopInvoked = false;
+
+            // The machine performs the on exit action of the current state.
+            await this.ExecuteCurrentStateOnExit(null);
+            if (this.IsHalted)
+            {
+                return;
+            }
+
+            this.DoStatePop();
+
+            if (this.CurrentState == null)
+            {
+                base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped.");
+            }
+            else
+            {
+                base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
+                    $"and reentered state '{this.CurrentStateName}'.");
+            }
+
+            // Watch out for an extra pop.
+            this.Assert(this.CurrentState != null,
+                $"Machine '{base.Id}' popped with no matching push.");
         }
 
         /// <summary>
@@ -1191,7 +1218,6 @@ namespace Microsoft.PSharp
 
             return false;
         }
-
 
         /// <summary>
         /// Checks if the machine has a default handler.
@@ -1472,6 +1498,17 @@ namespace Microsoft.PSharp
             }
 
             return events;
+        }
+
+        /// <summary>
+        /// Returns the type of the state at the specified state
+        /// stack index, if there is one.
+        /// </summary>
+        /// <param name="index">State stack index</param>
+        /// <returns>Type</returns>
+        internal Type GetStateTypeAtStackIndex(int index)
+        {
+            return this.StateStack.ElementAtOrDefault(index)?.GetType();
         }
 
         /// <summary>

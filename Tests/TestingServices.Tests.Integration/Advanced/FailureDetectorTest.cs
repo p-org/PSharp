@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -253,9 +252,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 this.Raise(new RoundDone());
             }
 
-            async Task CancelFailure()
+            void CancelFailure()
             {
-                await this.Pop();
+                this.Pop();
             }
 
             [OnEntry(nameof(ResetOnEntry))]

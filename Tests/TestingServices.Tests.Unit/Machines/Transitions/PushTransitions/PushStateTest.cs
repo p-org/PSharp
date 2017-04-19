@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -33,9 +32,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Foo() { }
 
-            async Task Bar()
+            void Bar()
             {
-                await this.Pop();
+                this.Pop();
             }
 
         }

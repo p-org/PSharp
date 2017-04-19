@@ -450,13 +450,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine called pop.
+        /// Notifies that a machine invoked pop.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="fromState">Top of the stack state</param>
-        /// <param name="toState">Next to top state of the stack</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyPop(Machine machine, Type fromState, Type toState)
+        internal virtual void NotifyPop(Machine machine)
         {
             // Override to implement the notification.
         }

@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -48,11 +47,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             [OnEntry(nameof(EntryCall))]
             class Call : MachineState { }
 
-            async Task EntryCall()
+            void EntryCall()
             {
                 if (i == 3)
                 {
-                    await this.Pop();
+                    this.Pop();
                 }
                 else
                 {

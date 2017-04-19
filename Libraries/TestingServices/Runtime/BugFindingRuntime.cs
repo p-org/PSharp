@@ -906,7 +906,7 @@ namespace Microsoft.PSharp.TestingServices
 
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
-            
+
             if (base.Configuration.ReportCodeCoverage)
             {
                 this.ReportCodeCoverageOfReceivedEvent(machine, eventInfo);
@@ -920,18 +920,18 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that a machine called pop.
+        /// Notifies that a machine invoked pop.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="fromState">Top of the stack state</param>
-        /// <param name="toState">Next to top state of the stack</param>
-        internal override void NotifyPop(Machine machine, Type fromState, Type toState)
+        internal override void NotifyPop(Machine machine)
         {
             machine.AssertCorrectRGPInvocation();
 
+            this.Log($"<PopLog> Machine '{machine.Id}' invoked pop in state '{machine.CurrentStateName}'.");
+
             if (base.Configuration.ReportCodeCoverage)
             {
-                this.ReportCodeCoverageOfPopTransition(machine, fromState, toState);
+                this.ReportCodeCoverageOfPopTransition(machine, machine.CurrentState, machine.GetStateTypeAtStackIndex(1));
             }
         }
 

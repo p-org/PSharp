@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -21,27 +20,51 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class PopTest : BaseTest
     {
-        class E : Event { }
-
-        class Program : Machine
+        class M : Machine
         {
-
             [Start]
             [OnEntry(nameof(Init))]
             public class S1 : MachineState { }
 
-            async Task Init()
+            void Init()
             {
-                // unbalanced pop
-                await this.Pop();
+                this.Pop();
             }
+        }
+
+        class N : Machine
+        {
+            [Start]
+            [OnEntry(nameof(Init))]
+            [OnExit(nameof(Exit))]
+            public class S1 : MachineState { }
+
+            void Init()
+            {
+                this.Goto(typeof(S2));
+            }
+
+            void Exit()
+            {
+                this.Pop();
+            }
+
+            public class S2 : MachineState { }
         }
 
         [Fact]
         public void TestUnbalancedPop()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Program)); });
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.PopTest+Program()' popped with no matching push.";
+            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M), "M"); });
+            var bugReport = "Machine 'M()' popped with no matching push.";
+            base.AssertFailed(test, bugReport);
+        }
+
+        [Fact]
+        public void TestPopDuringOnExit()
+        {
+            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });
+            var bugReport = "Machine 'N()' has called raise/goto/pop inside an OnExit method.";
             base.AssertFailed(test, bugReport);
         }
     }
