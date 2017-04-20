@@ -294,9 +294,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var machineInfo = this.TaskMap[id];
             lock (machineInfo)
             {
-                while (!machineInfo.HasStarted)
+                if (this.TaskMap.Count == 1)
                 {
-                    System.Threading.Monitor.Wait(machineInfo);
+                    machineInfo.IsActive = true;
+                    System.Threading.Monitor.PulseAll(machineInfo);
+                }
+                else
+                {
+                    while (!machineInfo.HasStarted)
+                    {
+                        System.Threading.Monitor.Wait(machineInfo);
+                    }
                 }
             }
         }
@@ -312,12 +320,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             Debug.WriteLine($"<ScheduleDebug> Created task '{machineInfo.Id}' for machine " +
                 $"'{machineInfo.Machine.Id}'.");
-
-            if (this.TaskMap.Count == 0)
-            {
-                machineInfo.IsActive = true;
-            }
-
             this.TaskMap.TryAdd(id, machineInfo);
         }
 
