@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 
-namespace PingPong.PSharpLibrary
+namespace PingPong.PSharpLibrary.AsyncAwait
 {
     /// <summary>
     /// A P# machine that models a simple client.
@@ -94,7 +94,7 @@ namespace PingPong.PSharpLibrary
                 Console.WriteLine("Client request: {0} / 5", counter);
             }
 
-            // If 5 'Ping' events where sent, then raise the special event 'Halt'.
+            // If 5 'Ping' events were sent, then raise the special event 'Halt'.
             //
             // Raising an event, notifies the P# runtime to execute the event handler
             // that corresponds to this event in the current state, when 'SendPing'

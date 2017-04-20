@@ -126,15 +126,39 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
+                bool isAsync = false;
+                if (base.TokenStream.Peek().Type == TokenType.Async)
+                {
+                    isAsync = true;
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                }
+
+                if (base.TokenStream.Peek().Type == TokenType.Await)
+                {
+                    throw new ParsingException("'await' should not be used on actions.",
+                        new List<TokenType>());
+                }
+
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.Identifier &&
                     base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
                 {
-                    throw new ParsingException("Expected action identifier.",
-                        new List<TokenType>
+                    var message = isAsync
+                        ? "Expected action identifier or opening curly bracket."
+                        : "Expected async keyword, action identifier, or opening curly bracket.";
+                    var list = new List<TokenType>
                     {
-                        TokenType.Identifier
-                    });
+                        TokenType.Identifier,
+                        TokenType.LeftCurlyBracket
+                    };
+
+                    if (!isAsync)
+                    {
+                        list.Insert(0, TokenType.Async);
+                    }
+
+                    throw new ParsingException(message, list);
                 }
 
                 if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
@@ -145,7 +169,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     foreach (var kvp in resolvedEventIdentifiers)
                     {
-                        if (!parentNode.AddActionBinding(kvp.Key, kvp.Value, blockNode))
+                        if (!parentNode.AddActionBinding(kvp.Key, kvp.Value, new AnonymousActionHandler(blockNode, isAsync)))
                         {
                             throw new ParsingException("Unexpected action handler.",
                                 new List<TokenType>());
@@ -154,6 +178,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 }
                 else
                 {
+                    if (isAsync)
+                    {
+                        throw new ParsingException("'async' should only be used on anonymous actions.",
+                            new List<TokenType>());
+                    }
+
                     base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                     TokenType.ActionIdentifier));
 
@@ -201,6 +231,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
+                    bool isAsync = false;
+                    if (base.TokenStream.Peek().Type == TokenType.Async)
+                    {
+                        isAsync = true;
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+
                     if (base.TokenStream.Done ||
                         base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
                     {
@@ -216,7 +254,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     foreach (var kvp in resolvedEventIdentifiers)
                     {
-                        if (!parentNode.AddGotoStateTransition(kvp.Key, kvp.Value, stateIdentifiers, blockNode))
+                        if (!parentNode.AddGotoStateTransition(kvp.Key, kvp.Value, stateIdentifiers,
+                            new AnonymousActionHandler(blockNode, isAsync)))
                         {
                             throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());

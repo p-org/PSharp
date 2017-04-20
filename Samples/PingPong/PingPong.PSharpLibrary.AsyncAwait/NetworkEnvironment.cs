@@ -1,6 +1,6 @@
 ﻿using Microsoft.PSharp;
 
-namespace PingPong.PSharpLibrary
+namespace PingPong.PSharpLibrary.AsyncAwait
 {
     /// <summary>
     /// This machine acts as a test harness. It models a network environment,

@@ -84,9 +84,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                     case TokenType.CommentLine:
                     case TokenType.Region:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        break;
-
                     case TokenType.CommentStart:
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
@@ -116,12 +113,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                             new List<TokenType>());
                 }
             }
-
-            throw new ParsingException(new List<TokenType>
-            {
-                TokenType.Using,
-                TokenType.NamespaceDecl
-            });
         }
 
         #endregion

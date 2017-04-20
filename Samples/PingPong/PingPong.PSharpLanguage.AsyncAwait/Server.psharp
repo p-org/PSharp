@@ -1,4 +1,4 @@
-﻿namespace PingPong.PSharpLanguage
+﻿namespace PingPong.PSharpLanguage.AsyncAwait
 {
     /// <summary>
     /// A P# machine that models a simple server.
@@ -17,7 +17,9 @@
             /// <summary>
             /// The 'on ... do ...' action declaration will execute (asynchrously)
             /// the 'SendPong' method, whenever a 'Ping' event is dequeued while the
-            /// server machine is in the 'Active' state.
+            /// server machine is in the 'Active' state. See client.psharp for an 
+            /// example of an async anonymous action, which requires an explicit async
+            /// declaration.
             /// </summary>
             on Client.Ping do SendPong;
         }

@@ -2,21 +2,21 @@
 {
     internal machine Client
     {
-		internal event Config (server: machine);
-		internal event Unit;
-		internal event Ping (client: machine);
+        internal event Config (server: machine);
+        internal event Unit;
+        internal event Ping (client: machine);
 
         machine Server;
         int Counter;
 
         start state Init
         {
-			entry
-			{
-				this.Server = (trigger as Config).server;
-				this.Counter = 0;
-				jump(Active);
-			}
+            entry
+            {
+                this.Server = (trigger as Config).server;
+                this.Counter = 0;
+                jump(Active);
+            }
         }
 
         state Active
@@ -32,11 +32,11 @@
         void SendPing()
         {
             this.Counter++;
-			send(this.Server, Ping, this);
+            send(this.Server, Ping, this);
 
-			this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
+            this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
 
-			if (this.Counter == 5)
+            if (this.Counter == 5)
             {
                 raise(halt);
             }

@@ -1,4 +1,4 @@
-﻿namespace PingPong.PSharpLanguage
+﻿namespace PingPong.PSharpLanguage.AsyncAwait
 {
     /// <summary>
     /// This machine acts as a test harness. It models a network environment,

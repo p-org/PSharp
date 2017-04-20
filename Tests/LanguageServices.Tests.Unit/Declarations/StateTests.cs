@@ -83,6 +83,38 @@ namespace Foo
         }
 
         [Fact]
+        public void TestAsyncEntryDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+async entry{ await Task.Delay(42); }
+}
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S_on_entry_action_async))]
+        class S : MachineState
+        {
+        }
+
+        protected async Task psharp_S_on_entry_action_async()
+        { await Task.Delay(42); }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
         public void TestExitDeclaration()
         {
             var test = @"
@@ -109,6 +141,38 @@ namespace Foo
 
         protected void psharp_S_on_exit_action()
         {}
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestAsyncExitDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+async exit{ await Task.Delay(42); }
+}
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnExit(nameof(psharp_S_on_exit_action_async))]
+        class S : MachineState
+        {
+        }
+
+        protected async Task psharp_S_on_exit_action_async()
+        { await Task.Delay(42); }
     }
 }";
             LanguageTestUtilities.AssertRewritten(expected, test);
@@ -146,6 +210,43 @@ namespace Foo
 
         protected void psharp_S_on_exit_action()
         {}
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestAsyncEntryAndExitDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+async entry { await Task.Delay(42); }
+async exit { await Task.Delay(42); }
+}
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEntry(nameof(psharp_S_on_entry_action_async))]
+        [OnExit(nameof(psharp_S_on_exit_action_async))]
+        class S : MachineState
+        {
+        }
+
+        protected async Task psharp_S_on_entry_action_async()
+        { await Task.Delay(42); }
+
+        protected async Task psharp_S_on_exit_action_async()
+        { await Task.Delay(42); }
     }
 }";
             LanguageTestUtilities.AssertRewritten(expected, test);
@@ -327,6 +428,38 @@ namespace Foo
 
         protected void psharp_S1_e_action()
         {}
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestOnEventGotoStateDeclarationWithAsyncBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e goto S2 with async { await Task.Delay(42); }
+}
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_S1_e_action_async))]
+        class S1 : MachineState
+        {
+        }
+
+        protected async Task psharp_S1_e_action_async()
+        { await Task.Delay(42); }
     }
 }";
             LanguageTestUtilities.AssertRewritten(expected, test);
@@ -614,6 +747,38 @@ namespace Foo
 
         protected void psharp_S1_e_action()
         {}
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestOnEventDoActionDeclarationWithAsyncBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e do async { await Task.Delay(42); }
+}
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEventDoAction(typeof(e), nameof(psharp_S1_e_action_async))]
+        class S1 : MachineState
+        {
+        }
+
+        protected async Task psharp_S1_e_action_async()
+        { await Task.Delay(42); }
     }
 }";
             LanguageTestUtilities.AssertRewritten(expected, test);
@@ -1145,6 +1310,111 @@ on e do Bar
         }
 
         [Fact]
+        public void TestOnEventDoActionNamedHandlerWithAwaitedAction()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e do await foo;
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("'await' should not be used on actions.", test);
+        }
+
+        [Fact]
+        public void TestOnEventDoActionAnonymousHandlerWithAwaitedAction()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e do await {}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("'await' should not be used on actions.", test);
+        }
+
+        [Fact]
+        public void TestAsyncOnMachine()
+        {
+            var test = @"
+namespace Foo {
+async machine M {
+start state S1
+{
+on e do {}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
+        }
+
+        [Fact]
+        public void TestAsyncOnState()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+async state S1
+{
+on e do {}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("A machine state cannot be async.", test);
+        }
+
+        [Fact]
+        public void TestAsyncInWrongDoLocation()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+state S1
+{
+async on e do {}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("'async' was used in an incorrect context.", test);
+        }
+
+        [Fact]
+        public void TestAsyncInWrongEntryLocation()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+state S1
+{
+    entry async {}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
+        }
+
+        [Fact]
+        public void TestAsyncInWrongExitLocation()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+state S1
+{
+    exit async {}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
+        }
+
+        [Fact]
         public void TestOnEventDoActionDeclarationWithoutAction()
         {
             var test = @"
@@ -1156,7 +1426,7 @@ on e do;
 }
 }
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected action identifier.", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected async keyword, action identifier, or opening curly bracket.", test);
         }
 
         [Fact]

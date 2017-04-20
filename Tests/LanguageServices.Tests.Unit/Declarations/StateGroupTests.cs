@@ -1521,7 +1521,24 @@ on e do;
 }
 }
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected action identifier.", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected async keyword, action identifier, or opening curly bracket.", test);
+        }
+
+        [Fact]
+        public void TestMachineOnEventDoActionDeclarationWithoutAsyncAction()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G {
+start state S1
+{
+on e do async;
+}
+}
+}
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Expected action identifier or opening curly bracket.", test);
         }
 
         [Fact]
@@ -1828,7 +1845,7 @@ on e do;
 }
 }
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected action identifier.", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected async keyword, action identifier, or opening curly bracket.", test);
         }
 
         [Fact]

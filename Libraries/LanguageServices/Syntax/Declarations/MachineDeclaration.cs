@@ -324,6 +324,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += newLine;
                 newLine = "";
             }
+
             foreach (var node in this.FieldDeclarations)
             {
                 text += node.TextUnit.Text;
@@ -335,6 +336,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += newLine;
                 newLine = "";
             }
+
             foreach (var node in this.StateDeclarations)
             {
                 text += newLine + node.TextUnit.Text;
@@ -346,11 +348,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += newLine;
                 newLine = "";
             }
+
             foreach (var node in this.StateGroupDeclarations)
             {
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }
+
             return text;
         }
 
@@ -395,10 +399,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 foreach (var withAction in state.TransitionsOnExitActions)
                 {
                     var onExitAction = withAction.Value;
-                    onExitAction.Rewrite(indentLevel);
-                    text += newLine + indent + "protected void psharp_" + state.GetFullyQualifiedName() +
-                        state.GetResolvedEventHandlerName(withAction.Key) + "_action()";
-                    text += "\n" + onExitAction.TextUnit.Text + "\n";
+                    onExitAction.BlockSyntax.Rewrite(indentLevel);
+                    var typeStr = onExitAction.IsAsync ? "async Task" : "void";
+                    var suffix = onExitAction.IsAsync ? "_async()" : "()";
+                    text += newLine + indent + $"protected {typeStr} psharp_" + state.GetFullyQualifiedName() +
+                        state.GetResolvedEventHandlerName(withAction.Key) + $"_action{suffix}";
+                    text += "\n" + onExitAction.BlockSyntax.TextUnit.Text + "\n";
                     newLine = "\n";
                 }
             }
@@ -408,10 +414,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 foreach (var withAction in state.ActionHandlers)
                 {
                     var onExitAction = withAction.Value;
-                    onExitAction.Rewrite(indentLevel);
-                    text += newLine + indent + "protected void psharp_" + state.GetFullyQualifiedName() +
-                        state.GetResolvedEventHandlerName(withAction.Key) + "_action()";
-                    text += "\n" + onExitAction.TextUnit.Text + "\n";
+                    onExitAction.BlockSyntax.Rewrite(indentLevel);
+                    var typeStr = onExitAction.IsAsync ? "async Task" : "void";
+                    var suffix = onExitAction.IsAsync ? "_async()" : "()";
+                    text += newLine + indent + $"protected {typeStr} psharp_" + state.GetFullyQualifiedName() +
+                        state.GetResolvedEventHandlerName(withAction.Key) + $"_action{suffix}";
+                    text += "\n" + onExitAction.BlockSyntax.TextUnit.Text + "\n";
                     newLine = "\n";
                 }
             }

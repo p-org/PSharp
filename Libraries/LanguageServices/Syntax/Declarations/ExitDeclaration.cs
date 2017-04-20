@@ -43,6 +43,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal BlockSyntax StatementBlock;
 
+        /// <summary>
+        /// True if the exit action is async.
+        /// </summary>
+        internal readonly bool IsAsync;
+
         #endregion
 
         #region internal API
@@ -52,10 +57,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="stateNode">StateDeclaration</param>
-        internal ExitDeclaration(IPSharpProgram program, StateDeclaration stateNode)
+        /// <param name="isAsync">True if the exit action is async</param>
+        internal ExitDeclaration(IPSharpProgram program, StateDeclaration stateNode, bool isAsync = false)
             : base(program)
         {
             this.State = stateNode;
+            this.IsAsync = isAsync;
         }
 
         /// <summary>
@@ -66,8 +73,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             this.StatementBlock.Rewrite(indentLevel);
 
-            string text = GetIndent(indentLevel) + "protected void psharp_" + this.State.GetFullyQualifiedName() + 
-                "_on_exit_action()";
+            var typeStr = this.IsAsync ? "async Task" : "void";
+            var suffix = this.IsAsync ? "_async()" : "()";
+            string text = GetIndent(indentLevel) + $"protected {typeStr} psharp_" + this.State.GetFullyQualifiedName() + 
+                $"_on_exit_action{suffix}";
             text += "\n" + StatementBlock.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);

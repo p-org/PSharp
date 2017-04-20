@@ -168,6 +168,7 @@
     <Compile Include="Programs\AbstractPSharpProgram.cs" />
     <Compile Include="Syntax\Blocks\BlockSyntax.cs" />
     <Compile Include="Programs\CSharpProgram.cs" />
+    <Compile Include="Syntax\Declarations\ActionHandler.cs" />
     <Compile Include="Syntax\Declarations\EntryDeclaration.cs" />
     <Compile Include="Syntax\Declarations\EventDeclaration.cs" />
     <Compile Include="Syntax\Declarations\ExitDeclaration.cs" />

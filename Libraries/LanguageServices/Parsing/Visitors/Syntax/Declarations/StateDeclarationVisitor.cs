@@ -124,6 +124,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Index++;
                         break;
 
+                    case TokenType.Async:
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        token = base.TokenStream.Peek();
+                        switch (token.Type)
+                        {
+                            case TokenType.Entry:
+                                new StateEntryDeclarationVisitor(base.TokenStream).Visit(node, isAsync:true);
+                                base.TokenStream.Index++;
+                                break;
+
+                            case TokenType.Exit:
+                                new StateExitDeclarationVisitor(base.TokenStream).Visit(node, isAsync:true);
+                                base.TokenStream.Index++;
+                                break;
+                            default:
+                                throw new ParsingException("'async' was used in an incorrect context.",
+                                    new List<TokenType>());
+                        }
+                        break;
+
                     case TokenType.CommentLine:
                     case TokenType.Region:
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
