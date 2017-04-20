@@ -1,6 +1,6 @@
 ﻿using Microsoft.PSharp;
 
-namespace PingPong.PSharpLibrary
+namespace PingPong.PSharpLibrary.AsyncAwait
 {
     /// <summary>
     /// A P# machine that models a simple server.

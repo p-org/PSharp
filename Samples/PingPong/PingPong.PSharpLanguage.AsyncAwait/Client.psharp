@@ -1,4 +1,7 @@
-namespace PingPong.PSharpLanguage
+using System;
+using System.Threading.Tasks;
+
+namespace PingPong.PSharpLanguage.AsyncAwait
 {
     /// <summary>
     /// A P# machine that models a simple client.
@@ -52,20 +55,23 @@ namespace PingPong.PSharpLanguage
 
         state Active
         {
-            entry
+            async entry
             {
-                SendPing();
+                await SendPing();
             }
 
             /// <summary>
-            /// The 'on ... do ...' action declaration will execute (asynchrously)
-            /// the 'SendPing' method, whenever a 'Pong' event is dequeued while the
-            /// client machine is in the 'Active' state.
+            /// An async 'on ... do ...' anonymous action must be declared with async.
+            /// This is a simple example. See server.psharp for an example of a named
+            /// action, which does not require (or allow) this.
             /// </summary>
-            on Server.Pong do SendPing;
+            on Server.Pong do async
+            {
+                await SendPing(); 
+            }
         }
 
-        void SendPing()
+        async Task SendPing()
         {
             this.Counter++;
 
@@ -74,6 +80,7 @@ namespace PingPong.PSharpLanguage
             send(this.Server, Ping, this);
 
             this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
+            await Task.Delay(42);    // Simple await operation (compiler will warn if no awaits are present)
 
             if (this.Counter == 5)
             {

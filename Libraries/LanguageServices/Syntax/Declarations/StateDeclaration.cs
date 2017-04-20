@@ -101,12 +101,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Dictionary containing transitions on exit actions.
         /// </summary>
-        internal Dictionary<Token, BlockSyntax> TransitionsOnExitActions;
+        internal Dictionary<Token, AnonymousActionHandler> TransitionsOnExitActions;
 
         /// <summary>
         /// Dictionary containing actions handlers.
         /// </summary>
-        internal Dictionary<Token, BlockSyntax> ActionHandlers;
+        internal Dictionary<Token, AnonymousActionHandler> ActionHandlers;
 
         /// <summary>
         /// Set of deferred events.
@@ -158,8 +158,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
-            this.TransitionsOnExitActions = new Dictionary<Token, BlockSyntax>();
-            this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
+            this.TransitionsOnExitActions = new Dictionary<Token, AnonymousActionHandler>();
+            this.ActionHandlers = new Dictionary<Token, AnonymousActionHandler>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
             this.ResolvedEventIdentifierTokens = new Dictionary<Token, Tuple<List<Token>, int>>();
@@ -172,10 +172,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="eventIdentifier">Token</param>
         /// <param name="eventIdentifierTokens">Tokens</param>
         /// <param name="stateIdentifiers">Token list</param>
-        /// <param name="stmtBlock">Statement block</param>
+        /// <param name="actionHandler">AnonymousActionHandler</param>
         /// <returns>Boolean</returns>
         internal bool AddGotoStateTransition(Token eventIdentifier, List<Token> eventIdentifierTokens,
-            List<Token> stateIdentifiers, BlockSyntax stmtBlock = null)
+            List<Token> stateIdentifiers, AnonymousActionHandler actionHandler = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -185,9 +185,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.GotoStateTransitions.Add(eventIdentifier, stateIdentifiers);
-            if (stmtBlock != null)
+            if (actionHandler != null)
             {
-                this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
+                this.TransitionsOnExitActions.Add(eventIdentifier, actionHandler);
             }
 
             this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
@@ -230,10 +230,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <param name="stmtBlock">BlockSyntax</param>
+        /// <param name="actionHandler">AnonymousActionHandler</param>
         /// <returns>Boolean</returns>
         internal bool AddActionBinding(Token eventIdentifier, List<Token> eventIdentifierTokens,
-            BlockSyntax stmtBlock)
+            AnonymousActionHandler actionHandler)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.ActionBindings.Add(eventIdentifier, null);
-            this.ActionHandlers.Add(eventIdentifier, stmtBlock);
+            this.ActionHandlers.Add(eventIdentifier, actionHandler);
             this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
                 eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
@@ -469,7 +469,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
+            var suffix = this.EntryDeclaration.IsAsync ? "_async" : string.Empty;
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + $"_on_entry_action{suffix}";
             this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
@@ -488,7 +489,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
+            var suffix = this.ExitDeclaration.IsAsync ? "_async" : string.Empty;
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + $"_on_exit_action{suffix}";
             this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
@@ -512,10 +514,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             foreach (var transition in this.GotoStateTransitions)
             {
                 var onExitName = "";
-                if (this.TransitionsOnExitActions.ContainsKey(transition.Key))
+                AnonymousActionHandler handler;
+                if (this.TransitionsOnExitActions.TryGetValue(transition.Key, out handler))
                 {
+                    var suffix = handler.IsAsync ? "_async" : string.Empty;
                     onExitName = "psharp_" + this.GetFullyQualifiedName() +
-                        this.GetResolvedEventHandlerName(transition.Key) + "_action";
+                        this.GetResolvedEventHandlerName(transition.Key) + $"_action{suffix}";
                     this.RewrittenMethods.Add(new QualifiedMethod(onExitName,
                         this.Machine.Identifier.TextUnit.Text,
                         this.Machine.Namespace.QualifiedName));
@@ -619,10 +623,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             foreach (var binding in this.ActionBindings)
             {
                 var actionName = "";
-                if (this.ActionHandlers.ContainsKey(binding.Key))
+                AnonymousActionHandler handler;
+                if (this.ActionHandlers.TryGetValue(binding.Key, out handler))
                 {
+                    var suffix = handler.IsAsync ? "_async" : string.Empty;
                     actionName = "psharp_" + this.GetFullyQualifiedName() +
-                        this.GetResolvedEventHandlerName(binding.Key) + "_action";
+                        this.GetResolvedEventHandlerName(binding.Key) + $"_action{suffix}";
                     this.RewrittenMethods.Add(new QualifiedMethod(actionName,
                         this.Machine.Identifier.TextUnit.Text,
                         this.Machine.Namespace.QualifiedName));

@@ -913,10 +913,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-		/// Executes the specified action.
-		/// </summary>
-		/// <param name="action">MethodInfo</param>
-		[DebuggerStepThrough]
+        /// Executes the specified action.
+        /// </summary>
+        /// <param name="action">MethodInfo</param>
+        [DebuggerStepThrough]
         private async Task ExecuteAction(MethodInfo action)
         {
             try
@@ -1657,7 +1657,7 @@ namespace Microsoft.PSharp
         /// exception, and throws it to the user.
         /// </summary>
         /// <param name="ex">Exception</param>
-		/// <param name="actionName">Action name</param>
+        /// <param name="actionName">Action name</param>
         private void ReportUnhandledException(Exception ex, string actionName)
         {
             string state = "<unknown>";

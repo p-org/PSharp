@@ -4,8 +4,8 @@ namespace PingPong.MixedMode
 {
     /// <summary>
     /// We use the partial keyword to declare the high-level state-machine
-	/// transitions in the Client.psharp file, and the action-handler
-	/// implementation in the Client.cs file.
+    /// transitions in the Client.psharp file, and the action-handler
+    /// implementation in the Client.cs file.
     /// </summary>
     internal partial class Client : Machine
     {

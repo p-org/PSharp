@@ -12,6 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.IO;
+
 using Microsoft.Build.Framework;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
@@ -27,13 +30,15 @@ namespace Microsoft.PSharp
     {
         static void Main(string[] args)
         {
-            if (args.Length != 1)
+            if (args.Length < 1 || args.Length > 2)
             {
-                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
+                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp [file.psharp.cs]");
                 return;
             }
 
-            // Get input file as string
+            var outfile = args.Length > 1 ? args[1] : string.Empty;
+
+            // Gets input file as string.
             var input_string = "";
             try
             {
@@ -45,10 +50,23 @@ namespace Microsoft.PSharp
                 return;
             }
 
-
-            // Translate and print on console
+            // Translates and prints on console or to file.
             string errors = "";
             var output = Translate(input_string, out errors);
+            var result = string.Format("{0}", output == null ? "Parse Error: " + errors : output);
+            if (!string.IsNullOrEmpty(outfile))
+            {
+                try
+                {
+                    File.WriteAllLines(outfile, new[] { result });
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Output.WriteLine("Error writing to file: {0}", ex.Message);
+                }
+            }
+
             Output.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
@@ -101,19 +119,20 @@ namespace Microsoft.PSharp
         {
             for (int i = 0; i < InputFiles.Length; i++)
             {
-                var inp = System.IO.File.ReadAllText(InputFiles[i].ItemSpec);
+                var inp = File.ReadAllText(InputFiles[i].ItemSpec);
                 string errors;
                 var outp = SyntaxRewriter.Translate(inp, out errors);
                 if (outp != null)
                 {
-                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
+                    File.WriteAllText(OutputFiles[i].ItemSpec, outp);
                 }
                 else
                 {
-                    // replace Program.psharp with the actual file name
+                    // Replaces Program.psharp with the actual file name.
                     errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
-                    // print a compiler error with log
-                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, 
+                    
+                    // Prints a compiler error with log.
+                    File.WriteAllText(OutputFiles[i].ItemSpec, 
                         string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
                 }
             }

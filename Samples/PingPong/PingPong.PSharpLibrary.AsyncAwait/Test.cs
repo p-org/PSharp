@@ -1,8 +1,7 @@
 ﻿using System;
 using Microsoft.PSharp;
-using Microsoft.PSharp.Utilities;
 
-namespace PingPong.PSharpLibrary
+namespace PingPong.PSharpLibrary.AsyncAwait
 {
     /// <summary>
     /// A simple PingPong application written using P# as a C# library.
