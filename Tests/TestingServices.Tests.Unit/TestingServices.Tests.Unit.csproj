@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Asynchrony\AsyncAwaitTest.cs" />
     <Compile Include="Asynchrony\ReceiveTest.cs" />
+    <Compile Include="Asynchrony\ReceiveWaitTest.cs" />
     <Compile Include="BaseTest.cs" />
     <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
     <Compile Include="EntryPoint\EntryPointRandomChoiceTest.cs" />
