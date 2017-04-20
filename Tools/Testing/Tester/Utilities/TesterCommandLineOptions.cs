@@ -414,6 +414,8 @@ namespace Microsoft.PSharp.Utilities
             if (base.Configuration.EnableCycleReplayingStrategy)
             {
                 base.Configuration.CacheProgramState = true;
+                base.Configuration.LivenessTemperatureThreshold =
+                        base.Configuration.MaxFairSchedulingSteps / 2;
             }
 
             if (base.Configuration.LivenessTemperatureThreshold == 0)

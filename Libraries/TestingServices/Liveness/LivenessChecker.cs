@@ -87,6 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private IRandomNumberGenerator Random;
 
         private int RandomCount;
+        private int replayThreshold;
 
         #endregion
 
@@ -114,6 +115,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
 
             this.RandomCount = 0;
+            replayThreshold = 0;
         }
 
         /// <summary>
@@ -176,7 +178,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
 
                 this.LivenessTemperature++;
-                if (this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
+                //if (this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
+                if(this.LivenessTemperature > replayThreshold)
                 {
                     foreach (var monitor in this.HotMonitors)
                     {
@@ -188,14 +191,14 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     this.Runtime.Scheduler.Stop();
                 }
             }
-            else if (!this.Runtime.Configuration.CacheProgramState &&
-                this.SchedulingStrategy.IsFair())
-            {
+            //else if (!this.Runtime.Configuration.CacheProgramState &&
+            //    this.SchedulingStrategy.IsFair())
+            //{
                 foreach (var monitor in this.Monitors)
                 {
                     monitor.CheckLivenessTemperature();
                 }
-            }
+            //}
         }
 
         /// <summary>
@@ -384,9 +387,12 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     x.Item2.PrettyPrint();
                 }
                 Console.WriteLine("<LivenessDebug> ----------------------------------.");
+                Console.WriteLine("Found a lasso");
                 //this.Runtime.Scheduler.NotifyAssertionFailure("Found a Lasso!! " + this.PotentialCycle.Count);
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
-                this.Runtime.Configuration.LivenessTemperatureThreshold = 1 * this.PotentialCycle.Count;
+                //this.Runtime.Configuration.LivenessTemperatureThreshold = 1 * this.PotentialCycle.Count;
+                replayThreshold = 2 * this.PotentialCycle.Count;
+                this.Runtime.Configuration.LivenessTemperatureThreshold += (3 * PotentialCycle.Count);
                 this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
             }
             else
@@ -528,6 +534,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private void EscapeCycle()
         {
             Debug.WriteLine("<LivenessDebug> Escaping from unfair cycle.");
+            Console.WriteLine("Escaping......");
+            this.Runtime.Configuration.LivenessTemperatureThreshold -= (3 * PotentialCycle.Count);
 
             this.PotentialCycle.Clear();
             this.HotMonitors.Clear();
