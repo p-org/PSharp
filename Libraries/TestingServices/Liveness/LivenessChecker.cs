@@ -386,7 +386,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Console.WriteLine("<LivenessDebug> ----------------------------------.");
                 //this.Runtime.Scheduler.NotifyAssertionFailure("Found a Lasso!! " + this.PotentialCycle.Count);
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
-                this.Runtime.Configuration.LivenessTemperatureThreshold = 10 * this.PotentialCycle.Count;
+                this.Runtime.Configuration.LivenessTemperatureThreshold = 1 * this.PotentialCycle.Count;
                 this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
             }
             else

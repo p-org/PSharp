@@ -1259,9 +1259,6 @@ namespace Microsoft.PSharp
 
                 foreach (var e in this.Inbox)
                 {
-                    if (e.EventType.FullName.Contains("VoteRequest")
-                        || e.EventType.FullName.Contains("VoteResponse"))
-                        continue;
                     hash = hash * 31 + e.EventType.GetHashCode();
                 }
 
