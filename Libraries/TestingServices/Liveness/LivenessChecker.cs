@@ -86,9 +86,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         private IRandomNumberGenerator Random;
 
-        private int RandomCount;
-        private int replayThreshold;
-
         #endregion
 
         #region internal methods
@@ -113,9 +110,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
-
-            this.RandomCount = 0;
-            replayThreshold = 0;
         }
 
         /// <summary>
@@ -178,8 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
 
                 this.LivenessTemperature++;
-                //if (this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
-                if(this.LivenessTemperature > replayThreshold)
+                if (this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
                 {
                     foreach (var monitor in this.HotMonitors)
                     {
@@ -191,14 +184,14 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     this.Runtime.Scheduler.Stop();
                 }
             }
-            //else if (!this.Runtime.Configuration.CacheProgramState &&
-            //    this.SchedulingStrategy.IsFair())
-            //{
+            else if (!this.Runtime.Configuration.CacheProgramState &&
+                this.SchedulingStrategy.IsFair())
+            {
                 foreach (var monitor in this.Monitors)
                 {
                     monitor.CheckLivenessTemperature();
                 }
-            //}
+            }
         }
 
         /// <summary>
@@ -390,9 +383,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Console.WriteLine("Found a lasso");
                 //this.Runtime.Scheduler.NotifyAssertionFailure("Found a Lasso!! " + this.PotentialCycle.Count);
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
-                //this.Runtime.Configuration.LivenessTemperatureThreshold = 1 * this.PotentialCycle.Count;
-                replayThreshold = 2 * this.PotentialCycle.Count;
-                this.Runtime.Configuration.LivenessTemperatureThreshold += (3 * PotentialCycle.Count);
+                this.Runtime.Configuration.LivenessTemperatureThreshold = 10 * this.PotentialCycle.Count;
                 this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
             }
             else
@@ -534,8 +525,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private void EscapeCycle()
         {
             Debug.WriteLine("<LivenessDebug> Escaping from unfair cycle.");
-            Console.WriteLine("Escaping......");
-            this.Runtime.Configuration.LivenessTemperatureThreshold -= (3 * PotentialCycle.Count);
 
             this.PotentialCycle.Clear();
             this.HotMonitors.Clear();
@@ -649,52 +638,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
             }
             
-            return true;
-        }
-
-        /// <summary>
-        /// Returns the next boolean choice.
-        /// </summary>
-        /// <param name="maxValue">Max value</param>
-        /// <param name="next">Next</param>
-        /// <param name="interval">interval</param>
-        /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.GetNextBooleanChoice(int maxValue, out bool next, int interval)
-        {
-            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
-            {
-                ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-                if ((nextStep.Type == ScheduleStepType.SchedulingChoice) || nextStep.BooleanChoice == null)
-                {
-                    Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is " +
-                        "not a nondeterministic boolean choice.");
-                    this.EscapeCycle();
-                    return this.SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
-                }
-
-                Debug.WriteLine($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.BooleanChoice.Value}'.");
-
-                next = nextStep.BooleanChoice.Value;
-
-                this.CurrentCycleIndex++;
-                if (this.CurrentCycleIndex == this.PotentialCycle.Count)
-                {
-                    this.CurrentCycleIndex = 0;
-                }
-            }
-            else
-            {
-                next = false;
-                RandomCount++;
-                if (this.RandomCount == interval)
-                {
-                    RandomCount = 0;
-                    next = true;
-                }
-                
-                return true;
-            }
-
             return true;
         }
 

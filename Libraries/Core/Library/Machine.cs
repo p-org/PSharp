@@ -498,25 +498,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <param name="callerMemberName">CallerMemberName</param>
-        /// <param name="callerFilePath">CallerFilePath</param>
-        /// <param name="callerLineNumber">CallerLineNumber</param>
-        /// /// <param name="interval">interval</param>
-        /// <returns>Boolean</returns>
-        protected bool FairRandom(int interval,
-            [CallerMemberName] string callerMemberName = "",
-            [CallerFilePath] string callerFilePath = "",
-            [CallerLineNumber] int callerLineNumber = 0)
-        {
-            var havocId = string.Format("{0}_{1}_{2}_{3}_{4}_{5}", base.Id.Name, this.CurrentStateName,
-                callerMemberName, callerFilePath, callerLineNumber, interval);
-            return base.Runtime.GetFairNondeterministicBooleanChoice(this, havocId, interval);
-        }
-
-        /// <summary>
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing. The value is used
         /// to generate an integer in the range [0..maxValue).

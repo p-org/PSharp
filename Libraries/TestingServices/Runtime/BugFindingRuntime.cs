@@ -513,38 +513,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="uniqueId">Unique id</param>
-        /// /// <param name="interval">interval</param>
-        /// <returns>Boolean</returns>
-        internal override bool GetFairNondeterministicBooleanChoice(
-            AbstractMachine machine, string uniqueId, int interval)
-        {
-            if (machine != null)
-            {
-                machine.AssertNoPendingRGP("FairRandom");
-            }
-
-            var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, interval, uniqueId);
-            if (machine != null)
-            {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
-                    $"nondeterministically chose '{choice}'.");
-            }
-            else
-            {
-                this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
-            }
-
-            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
-
-            return choice;
-        }
-
-        /// <summary>
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>

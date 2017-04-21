@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
-            this.Runtime.GetProgramStatePrint();
+            //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
 
@@ -237,63 +237,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
-            this.Runtime.GetProgramStatePrint();
+            //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
             
-            return choice;
-        }
-
-        /// <summary>
-        /// Returns the next nondeterministic boolean choice.
-        /// </summary>
-        /// <param name="maxValue">Max value</param>
-        /// <param name="uniqueId">Unique id</param>
-        /// <param name="interval">interval</param>
-        /// <returns>Boolean</returns>
-        internal bool GetNextNondeterministicBooleanChoice(
-            int maxValue, int interval, string uniqueId = null)
-        {
-            // Checks if synchronisation not controlled by P# was used.
-            this.CheckIfExternalSynchronizationIsUsed();
-
-            // Checks if the scheduling steps bound has been reached.
-            this.CheckIfSchedulingStepsBoundIsReached();
-
-            var choice = false;
-            if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice, interval))
-            {
-                Debug.WriteLine("<ScheduleDebug> Schedule explored.");
-                this.Stop();
-            }
-
-            if (uniqueId == null)
-            {
-                this.Runtime.ScheduleTrace.AddNondeterministicBooleanChoice(choice);
-            }
-            else
-            {
-                this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
-            }
-
-            foreach (var m in TaskMap.Values)
-            {
-                if (m.IsActive)
-                {
-                    m.Machine.ProgramCounter++;
-                    break;
-                }
-            }
-
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
-            this.Runtime.GetProgramStatePrint();
-            // Checks the liveness monitors for potential liveness bugs.
-            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
-
             return choice;
         }
 
@@ -324,7 +271,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
-            this.Runtime.GetProgramStatePrint();
+            //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
 
