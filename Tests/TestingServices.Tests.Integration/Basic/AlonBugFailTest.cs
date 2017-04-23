@@ -52,7 +52,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 if (i == 3)
                 {
                     this.Pop();
-                    return; // important if not compiling
                 }
                 else
                 {

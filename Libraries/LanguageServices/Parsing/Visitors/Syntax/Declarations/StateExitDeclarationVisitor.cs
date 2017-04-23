@@ -38,7 +38,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        internal void Visit(StateDeclaration parentNode)
+        /// <param name="isAsync">True if the exit method is async</param>
+        internal void Visit(StateDeclaration parentNode, bool isAsync = false)
         {
             if (parentNode.ExitDeclaration != null)
             {
@@ -46,7 +47,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>());
             }
 
-            var node = new ExitDeclaration(base.TokenStream.Program, parentNode);
+            var node = new ExitDeclaration(base.TokenStream.Program, parentNode, isAsync);
             node.ExitKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

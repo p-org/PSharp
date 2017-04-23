@@ -39,7 +39,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Map from task ids to machine infos.
+        /// Dictionary from task ids to machine infos.
+        /// 
+        /// Note that it is safe to use the task id (which normally is not
+        /// guaranteed to be unique) as a key during serialized bug-finding
+        /// for the following reasons:
+        /// 
+        /// 1) Task ids monotonically increase and will wrap around only
+        /// after they reach <see cref="int.MaxValue"/>.
+        /// 2) Whenever a task completes, we remove it from this dictionary.
+        /// 3) At each time, due to the way we serialize execution, we
+        /// guarantee that there is only a single task corresponding to a
+        /// single machine in the dictionary.
+        /// 
+        /// Thus, to encounter erroneous dictionary conflicts, we need to
+        /// have <see cref="int.MaxValue"/> tasks (or machines) alive at
+        /// the same point during the same testing iteration, which is a
+        /// highly unlikely scenario.
         /// </summary>
         private ConcurrentDictionary<int, MachineInfo> TaskMap;
         
@@ -56,6 +72,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #endregion
 
         #region properties
+        
+        /// <summary>
+        /// The currently scheduled machine info.
+        /// </summary>
+        internal MachineInfo ScheduledMachine { get; private set; }
 
         /// <summary>
         /// Number of explored steps.
@@ -135,6 +156,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.HasFullyExploredSchedule = true;
                 this.Stop();
             }
+
+            this.ScheduledMachine = next;
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
             next.Machine.ProgramCounter = 0;
@@ -287,9 +310,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var machineInfo = this.TaskMap[id];
             lock (machineInfo)
             {
-                while (!machineInfo.HasStarted)
+                if (this.TaskMap.Count == 1)
                 {
-                    System.Threading.Monitor.Wait(machineInfo);
+                    machineInfo.IsActive = true;
+                    System.Threading.Monitor.PulseAll(machineInfo);
+                }
+                else
+                {
+                    while (!machineInfo.HasStarted)
+                    {
+                        System.Threading.Monitor.Wait(machineInfo);
+                    }
                 }
             }
         }
@@ -305,12 +336,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             Debug.WriteLine($"<ScheduleDebug> Created task '{machineInfo.Id}' for machine " +
                 $"'{machineInfo.Machine.Id}'.");
-
-            if (this.TaskMap.Count == 0)
-            {
-                machineInfo.IsActive = true;
-            }
-
             this.TaskMap.TryAdd(id, machineInfo);
         }
 
@@ -374,6 +399,26 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             Debug.WriteLine($"<ScheduleDebug> Task '{machineInfo.Id}' of machine " +
                 $"'{machineInfo.Machine.Id}' received an event and unblocked.");
+        }
+
+        /// <summary>
+        /// Notify that the task of the scheduled machine changed.
+        /// This can occur if a machine is using async/await.
+        /// </summary>
+        /// <param name="taskId">Task id</param>
+        internal void NotifyScheduledMachineTaskChanged(int taskId)
+        {
+            MachineInfo parentInfo = this.ScheduledMachine;
+
+            Debug.WriteLine($"<ScheduleDebug> Task '{parentInfo.Id}' changed to {taskId}.");
+
+            parentInfo.IsEnabled = false;
+            parentInfo.IsCompleted = true;
+
+            this.TaskMap.TryRemove(parentInfo.Id, out parentInfo);
+
+            this.ScheduledMachine = this.TaskMap[taskId];
+            this.ScheduledMachine.HasStarted = true;
         }
 
         /// <summary>

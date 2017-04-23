@@ -49,17 +49,24 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             [OnEntry(nameof(InitOnEntry))]
             class Init : MachineState { }
 
-            void InitOnEntry()
+            async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Configure).TCS;
 
-                int counter = 0;
-                while (counter < 100)
+                try
                 {
-                    var n = CreateMachine(typeof(N));
-                    this.Send(n, new E(this.Id));
-                    this.Receive(typeof(E));
-                    counter++;
+                    int counter = 0;
+                    while (counter < 100)
+                    {
+                        var n = CreateMachine(typeof(N));
+                        this.Send(n, new E(this.Id));
+                        await this.Receive(typeof(E));
+                        counter++;
+                    }
+                }
+                finally
+                {
+                    tcs.SetResult(true);
                 }
 
                 tcs.SetResult(true);

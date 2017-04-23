@@ -1,34 +1,34 @@
 ﻿namespace PingPong.PSharpLanguage
 {
-	/// <summary>
+    /// <summary>
     /// A P# machine that models a simple server.
     /// 
     /// It receives 'Ping' events from a client, and responds with a 'Pong' event.
     /// </summary>
     internal machine Server
     {
-		/// <summary>
+        /// <summary>
         /// Event declaration of a 'Pong' event that does not contain any payload.
         /// </summary>
-		internal event Pong;
+        internal event Pong;
 
         start state Active
         {
-			/// <summary>
-			/// The 'on ... do ...' action declaration will execute (asynchrously)
-			/// the 'SendPong' method, whenever a 'Ping' event is dequeued while the
-			/// server machine is in the 'Active' state.
-			/// </summary>
+            /// <summary>
+            /// The 'on ... do ...' action declaration will execute (asynchrously)
+            /// the 'SendPong' method, whenever a 'Ping' event is dequeued while the
+            /// server machine is in the 'Active' state.
+            /// </summary>
             on Client.Ping do SendPong;
         }
 
         void SendPong()
         {
-			// Receives a reference to a client machine (as a payload of
+            // Receives a reference to a client machine (as a payload of
             // the 'Ping' event).
-			var client = (trigger as Client.Ping).client;
-			// Sends (asynchronously) a 'Pong' event to the client.
-			send(client, Pong);
+            var client = (trigger as Client.Ping).client;
+            // Sends (asynchronously) a 'Pong' event to the client.
+            send(client, Pong);
         }
     }
 }

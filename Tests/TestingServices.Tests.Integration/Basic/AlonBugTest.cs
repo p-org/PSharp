@@ -52,14 +52,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 if (i == 3)
                 {
                     this.Pop();
-                    return; // important if not compiling
                 }
                 else
                 {
                     i = i + 1;
+                    this.Raise(new E()); // Call is popped.
                 }
-
-                this.Raise(new E()); // Call is popped.
             }
         }
 

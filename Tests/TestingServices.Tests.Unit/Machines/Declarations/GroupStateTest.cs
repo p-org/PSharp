@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program));
             });
 
-            var bugReport = "Assertion failure.";
+            var bugReport = "Detected an assertion failure.";
             base.AssertFailed(test, bugReport);
         }
     }

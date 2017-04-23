@@ -1,0 +1,131 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="AsynchronousTaskScheduler.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Microsoft.PSharp.TestingServices
+{
+    /// <summary>
+    /// The P# asynchronous task scheduler.
+    /// </summary>
+    internal sealed class AsynchronousTaskScheduler : TaskScheduler
+    {
+        #region fields
+
+        /// <summary>
+        /// The P# bug-finding runtime.
+        /// </summary>
+        private BugFindingRuntime Runtime;
+
+        /// <summary>
+        /// Map from task ids to machines.
+        /// </summary>
+        private ConcurrentDictionary<int, Machine> TaskMap;
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="runtime">PSharpBugFindingRuntime</param>
+        /// <param name="taskMap">Task map</param>
+        internal AsynchronousTaskScheduler(BugFindingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        {
+            this.Runtime = runtime;
+            this.TaskMap = taskMap;
+        }
+
+        #endregion
+
+        #region override methods
+
+        /// <summary>
+        /// Enqueues the given task. If the task does not correspond to a P# machine,
+        /// then it wraps it in a task machine and schedules it.
+        /// </summary>
+        /// <param name="task">Task</param>
+        protected override void QueueTask(Task task)
+        {
+            if (this.TaskMap.ContainsKey(task.Id))
+            {
+                // If the task was already registered with the P# runtime, then
+                // execute it on the thread pool.
+                this.Execute(task);
+            }
+            else
+            {
+                // Else, the task was spawned by user-code (e.g. due to async/await). In
+                // this case, get the currently scheduled machine (this was the machine
+                // that spawned this task).
+                Machine machine = this.TaskMap[Runtime.Scheduler.ScheduledMachine.Id];
+
+                this.TaskMap.TryRemove(Runtime.Scheduler.ScheduledMachine.Id, out machine);
+                this.TaskMap.TryAdd(task.Id, machine);
+
+                // Notify the bug-finding scheduler about the new task, and then change
+                // the task previously associated with the machine, to the new task.
+                this.Runtime.Scheduler.NotifyNewTaskCreated(task.Id, machine);
+                this.Runtime.Scheduler.NotifyScheduledMachineTaskChanged(task.Id);
+
+                // Execute the new task.
+                this.Execute(task);
+            }
+        }
+
+        /// <summary>
+        /// Tries to execute the task inline.
+        /// </summary>
+        /// <param name="task">Task</param>
+        /// <param name="taskWasPreviouslyQueued">Boolean</param>
+        /// <returns>Boolean</returns>
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the wrapped in a machine scheduled tasks.
+        /// </summary>
+        /// <returns>Scheduled tasks</returns>
+        protected override IEnumerable<Task> GetScheduledTasks()
+        {
+            throw new InvalidOperationException("The BugFindingTaskScheduler does not provide access to the scheduled tasks.");
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Executes the given scheduled task on the
+        /// thread pool.
+        /// </summary>
+        /// <param name="task">Task</param>
+        private void Execute(Task task)
+        {
+            ThreadPool.UnsafeQueueUserWorkItem(_ =>
+            {
+                base.TryExecuteTask(task);
+            }, null);
+        }
+
+        #endregion
+    }
+}

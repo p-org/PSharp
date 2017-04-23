@@ -2,7 +2,7 @@
 {
     internal machine Server
     {
-		internal event Pong;
+        internal event Pong;
 
         start state Active
         {
@@ -11,8 +11,8 @@
 
         void SendPong()
         {
-			var client = (trigger as Client.Ping).client;
-			send(client, Pong);
+            var client = (trigger as Client.Ping).client;
+            send(client, Pong);
         }
     }
 }

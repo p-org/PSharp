@@ -350,29 +350,29 @@ namespace Microsoft.PSharp
 
             base.IsInsideOnExit = true;
 
-			// Invokes the exit action of the current state,
-			// if there is one available.
-			if (exitAction != null)
-			{
-				this.ExecuteAction(exitAction);
-			}
+            // Invokes the exit action of the current state,
+            // if there is one available.
+            if (exitAction != null)
+            {
+                this.ExecuteAction(exitAction);
+            }
 
-			// Invokes the exit action of the event handler,
-			// if there is one available.
-			if (eventHandlerExitActionName != null)
-			{
-				MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-				this.ExecuteAction(eventHandlerExitAction);
-			}
+            // Invokes the exit action of the event handler,
+            // if there is one available.
+            if (eventHandlerExitActionName != null)
+            {
+                MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                this.ExecuteAction(eventHandlerExitAction);
+            }
 
             base.IsInsideOnExit = false;
         }
 
         /// <summary>
-		/// Executes the specified action.
-		/// </summary>
-		/// <param name="action">MethodInfo</param>
-		[DebuggerStepThrough]
+        /// Executes the specified action.
+        /// </summary>
+        /// <param name="action">MethodInfo</param>
+        [DebuggerStepThrough]
         private void ExecuteAction(MethodInfo action)
         {
             try
@@ -794,7 +794,7 @@ namespace Microsoft.PSharp
         /// exception, and throws it to the user.
         /// </summary>
         /// <param name="ex">Exception</param>
-		/// <param name="actionName">Action name</param>
+        /// <param name="actionName">Action name</param>
         private void ReportUnhandledException(Exception ex, string actionName)
         {
             string state = "<unknown>";

@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                Task task = Task.Factory.StartNew(() => {
+                Task task = Task.Run(() => {
                     this.Send(this.Id, new E());
                 });
                 task.Wait();
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                Task task = Task.Factory.StartNew(() => {
+                Task task = Task.Run(() => {
                     this.Random();
                 });
                 task.Wait();
