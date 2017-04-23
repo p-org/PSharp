@@ -39,7 +39,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Map from task ids to machine infos.
+        /// Dictionary from task ids to machine infos.
+        /// 
+        /// Note that it is safe to use the task id (which normally is not
+        /// guaranteed to be unique) as a key during serialized bug-finding
+        /// for the following reasons:
+        /// 
+        /// 1) Task ids monotonically increase and will wrap around only
+        /// after they reach <see cref="int.MaxValue"/>.
+        /// 2) Whenever a task completes, we remove it from this dictionary.
+        /// 3) At each time, due to the way we serialize execution, we
+        /// guarantee that there is only a single task corresponding to a
+        /// single machine in the dictionary.
+        /// 
+        /// Thus, to encounter erroneous dictionary conflicts, we need to
+        /// have <see cref="int.MaxValue"/> tasks (or machines) alive at
+        /// the same point during the same testing iteration, which is a
+        /// highly unlikely scenario.
         /// </summary>
         private ConcurrentDictionary<int, MachineInfo> TaskMap;
         
