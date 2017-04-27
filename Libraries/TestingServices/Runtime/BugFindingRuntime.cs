@@ -25,6 +25,7 @@ using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using System.Linq;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -874,7 +875,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 int hash = 19;
 
-                foreach (var machine in this.MachineMap.Values)
+                foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
                     hash = hash + 31 * machine.GetCachedState();
                 }
