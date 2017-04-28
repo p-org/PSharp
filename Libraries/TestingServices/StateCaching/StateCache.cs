@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal void CaptureState(ScheduleStep scheduleStep)
         {
             var fingerprint = this.Runtime.GetProgramState();
-            //System.Console.WriteLine(fingerprint);
+            System.Console.WriteLine("Index: " + scheduleStep.Index + "; Fingerprint" + fingerprint);
             //this.Runtime.GetProgramStatePrint();
             var enabledMachines = this.Runtime.Scheduler.GetEnabledMachines();
             var state = new State(fingerprint, enabledMachines, this.Runtime.LivenessChecker.GetMonitorStatus());

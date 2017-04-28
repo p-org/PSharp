@@ -98,9 +98,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
             RoundRobinIdx = tempRoundRobinIdx;
             next = choices.ElementAt(RoundRobinIdx);
-
-            //next = availableMachines[RoundRobinIdx];
-
+            
             Console.WriteLine("Scheduling Machine: " + next.Id);
 
             this.ExploredSteps++;
