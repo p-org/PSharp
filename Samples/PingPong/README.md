@@ -10,13 +10,6 @@ The aim of this sample is to show how to write basic P# programs. We provide 4 d
 - A version that is mixed-mode (uses both high-level syntax and the C# library, this is based on partial classes).
 - A version that shows how to install a custom logger for testing.
 
-## How to build
-Open PingPong.sln in Visual Studio and build.
-
-## How to run
-
-Simply run the produced executable.
-
 ## How to test
 
 To test the produced executable use the following command:
