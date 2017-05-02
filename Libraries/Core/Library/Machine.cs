@@ -123,7 +123,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Is the event handler running.
         /// </summary>
-        private bool IsEventHandlerRunning;
+        private volatile bool IsEventHandlerRunning;
 
         /// <summary>
         /// Is the machine waiting to receive an event.
