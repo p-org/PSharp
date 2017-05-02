@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -229,9 +228,19 @@ namespace Microsoft.PSharp
         /// to reach quiescence. This is an experimental feature, which should
         /// be used only for testing purposes.
         /// </summary>
-        public override void Stop()
+        public override async Task Stop()
         {
             base.IsRunning = false;
+            ICollection<Machine> machines;
+            do
+            {
+                machines = this.MachineMap.Values;
+                foreach (Machine m in machines)
+                {
+                    await m.Halt();
+                }
+            }
+            while (machines.Count > 0);
         }
 
         #endregion

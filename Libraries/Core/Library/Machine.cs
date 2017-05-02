@@ -116,14 +116,14 @@ namespace Microsoft.PSharp
         private TaskCompletionSource<Event> ReceiveCompletionSource;
 
         /// <summary>
-        /// Is the machine running.
-        /// </summary>
-        private bool IsRunning;
-
-        /// <summary>
         /// Is the machine halted.
         /// </summary>
         private bool IsHalted;
+
+        /// <summary>
+        /// Is the event handler running.
+        /// </summary>
+        private bool IsEventHandlerRunning;
 
         /// <summary>
         /// Is the machine waiting to receive an event.
@@ -232,8 +232,8 @@ namespace Microsoft.PSharp
             this.ActionMap = new Dictionary<string, MethodInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
-            this.IsRunning = true;
             this.IsHalted = false;
+            this.IsEventHandlerRunning = true;
             this.IsWaitingToReceive = false;
             this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
@@ -569,9 +569,9 @@ namespace Microsoft.PSharp
                         $"in the input queue of machine '{this}'");
                 }
 
-                if (!this.IsRunning)
+                if (!this.IsEventHandlerRunning)
                 {
-                    this.IsRunning = true;
+                    this.IsEventHandlerRunning = true;
                     runNewHandler = true;
                 }
             }
@@ -694,7 +694,7 @@ namespace Microsoft.PSharp
                         }
                         else
                         {
-                            this.IsRunning = false;
+                            this.IsEventHandlerRunning = false;
                             break;
                         }
                     }
@@ -747,6 +747,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             this.IsHalted = true;
+                            this.IsEventHandlerRunning = false;
                             this.CleanUpResources();
                             base.Runtime.NotifyHalted(this);
                         }
@@ -1246,7 +1247,7 @@ namespace Microsoft.PSharp
 
                 hash = hash + 31 * this.GetType().GetHashCode();
                 hash = hash + 31 * base.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
+                hash = hash + 31 * this.IsEventHandlerRunning.GetHashCode();
                 hash = hash + 31 * this.IsHalted.GetHashCode();
 
                 hash = hash + 31 * this.ProgramCounter;
@@ -1675,7 +1676,30 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region cleanup methods
+        #region termination and cleanup methods
+
+        /// <summary>
+        /// Halts the machine.
+        /// </summary>
+        internal async Task Halt()
+        {
+            lock (this.Inbox)
+            {
+                if (this.IsHalted)
+                {
+                    return;
+                }
+
+                this.IsHalted = true;
+                this.CleanUpResources();
+                base.Runtime.NotifyHalted(this);
+            }
+
+            while (this.IsEventHandlerRunning)
+            {
+                await Task.Delay(10);
+            }
+        }
 
         /// <summary>
         /// Resets the static caches.

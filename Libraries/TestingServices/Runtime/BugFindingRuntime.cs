@@ -332,9 +332,19 @@ namespace Microsoft.PSharp.TestingServices
         /// to reach quiescence. This is an experimental feature, which should
         /// be used only for testing purposes.
         /// </summary>
-        public override void Stop()
+        public override async Task Stop()
         {
             base.IsRunning = false;
+            ICollection<Machine> machines;
+            do
+            {
+                machines = this.MachineMap.Values;
+                foreach (Machine m in machines)
+                {
+                    await m.Halt();
+                }
+            }
+            while (machines.Count > 0);
         }
 
         #endregion

@@ -276,7 +276,7 @@ namespace Microsoft.PSharp
         /// to reach quiescence. This is an experimental feature, which should
         /// be used only for testing purposes.
         /// </summary>
-        public abstract void Stop();
+        public abstract Task Stop();
 
         #endregion
 
