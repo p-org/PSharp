@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp.StaticAnalysis</AssemblyName>
+    <Description>The P# static analysis library.</Description>
+    <AssemblyTitle>Microsoft.PSharp.StaticAnalysis</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LanguageServices\LanguageServices.csproj" />
+    <ProjectReference Include="..\AddOns\DataFlowAnalysis\DataFlowAnalysis.csproj" />
+  </ItemGroup>
+</Project>

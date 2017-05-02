@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <CoreFxVersion>4.3.0</CoreFxVersion>
+    <NETStandardImplicitPackageVersion>$(BundledNETStandardPackageVersion)</NETStandardImplicitPackageVersion>
+    <XunitVersion>2.2.0</XunitVersion>
+  </PropertyGroup>
+</Project>

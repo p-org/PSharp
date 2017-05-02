@@ -18,6 +18,18 @@ You can also read the manual and available publications:
 - [Manual](https://github.com/p-org/PSharp/blob/master/Docs/Manual/manual.pdf)  
 - [Publications](https://github.com/p-org/PSharp/wiki/Publications)
 
+## How to build
+
+To build P#, run the following powershell script from the Visual Studio 2017 developer command prompt:
+```
+powershell -c .\build.ps1
+```
+
+To build the samples, run the above script with the `samples` option:
+```
+powershell -c .\build.ps1 -samples
+```
+
 ## How to contribute
 
 We welcome contributions! However, before you start contributing, please read carefully the [development guidelines](https://github.com/p-org/PSharp/wiki/Contributing-Code).

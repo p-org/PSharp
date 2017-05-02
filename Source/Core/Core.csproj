@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp</AssemblyName>
+    <Description>The P# framework core libraries and runtime.</Description>
+    <AssemblyTitle>Microsoft.PSharp</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+</Project>

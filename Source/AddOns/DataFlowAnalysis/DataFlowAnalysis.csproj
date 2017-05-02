@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\Build\common.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyName>
+    <Description>Data-flow analysis APIs for C#.</Description>
+    <AssemblyTitle>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <PackageTags>data-flow;analysis;dotnet;csharp</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>..\..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="1.2.2" />
+  </ItemGroup>
+</Project>
