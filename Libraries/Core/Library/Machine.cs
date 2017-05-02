@@ -376,7 +376,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Event received</returns>
-        protected internal async Task<Event> Receive(params Type[] eventTypes)
+        protected internal Task<Event> Receive(params Type[] eventTypes)
         {
             base.Runtime.NotifyReceiveCalled(this);
 
@@ -389,7 +389,7 @@ namespace Microsoft.PSharp
                 }
             }
 
-            return await this.WaitOnEvent();
+            return this.WaitOnEvent();
         }
 
         /// <summary>
@@ -399,7 +399,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <returns>Event received</returns>
-        protected internal async Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
+        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
             base.Runtime.NotifyReceiveCalled(this);
 
@@ -409,7 +409,7 @@ namespace Microsoft.PSharp
                 this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
             }
 
-            return await this.WaitOnEvent();
+            return this.WaitOnEvent();
         }
 
         /// <summary>
@@ -418,7 +418,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Event received</returns>
-        protected internal async Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             base.Runtime.NotifyReceiveCalled(this);
 
@@ -431,7 +431,7 @@ namespace Microsoft.PSharp
                 }
             }
 
-            return await this.WaitOnEvent();
+            return this.WaitOnEvent();
         }
 
         /// <summary>
@@ -1126,7 +1126,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Waits for an event to arrive.
         /// </summary>
-        private async Task<Event> WaitOnEvent()
+        /// <returns>Event received</returns>
+        private Task<Event> WaitOnEvent()
         {
             bool isWaiting = true;
             lock (this.Inbox)
@@ -1158,7 +1159,7 @@ namespace Microsoft.PSharp
                 base.Runtime.NotifyWaitEvents(this);
             }
 
-            return await this.ReceiveCompletionSource.Task;
+            return this.ReceiveCompletionSource.Task;
         }
 
         /// <summary>
@@ -1277,10 +1278,10 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        internal async Task GotoStartState(Event e)
+        internal Task GotoStartState(Event e)
         {
             this.ReceivedEvent = e;
-            await this.ExecuteCurrentStateOnEntry();
+            return this.ExecuteCurrentStateOnEntry();
         }
 
         /// <summary>

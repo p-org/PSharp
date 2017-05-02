@@ -110,9 +110,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override async Task<MachineId> CreateMachineAndExecute(Type type, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null)
         {
-            return await this.CreateMachineAndExecute(type, null, e, null);
+            return this.CreateMachineAndExecute(type, null, e, null);
         }
 
         /// <summary>
@@ -125,9 +125,9 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
         {
-            return await this.CreateMachineAndExecute(type, friendlyName, e, null);
+            return this.CreateMachineAndExecute(type, friendlyName, e, null);
         }
 
         /// <summary>
@@ -180,13 +180,13 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public override async Task SendEventAndExecute(MachineId target, Event e)
+        public override Task SendEventAndExecute(MachineId target, Event e)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            await this.SendEventAndExecute(target, e, null, false);
+            return this.SendEventAndExecute(target, e, null, false);
         }
 
         /// <summary>
@@ -249,7 +249,21 @@ namespace Microsoft.PSharp
         internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator)
         {
             Machine machine = this.CreateMachine(type, friendlyName);
-            this.RunMachineEventHandler(machine, e, true);
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await machine.GotoStartState(e);
+                    await machine.RunEventHandler();
+                }
+                catch (Exception ex)
+                {
+                    base.IsRunning = false;
+                    base.RaiseOnFailureEvent(ex);
+                }
+            });
+
             return machine.Id;
         }
 
@@ -266,7 +280,18 @@ namespace Microsoft.PSharp
         internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator)
         {
             Machine machine = this.CreateMachine(type, friendlyName);
-            await this.RunMachineEventHandlerAsync(machine, e, true);
+
+            try
+            {
+                await machine.GotoStartState(e);
+                await machine.RunEventHandler();
+            }
+            catch (Exception ex)
+            {
+                base.IsRunning = false;
+                base.RaiseOnFailureEvent(ex);
+            }
+
             return machine.Id;
         }
 
@@ -330,7 +355,18 @@ namespace Microsoft.PSharp
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler)
             {
-                this.RunMachineEventHandler(machine, null, false);
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await machine.RunEventHandler();
+                    }
+                    catch (Exception ex)
+                    {
+                        base.IsRunning = false;
+                        base.RaiseOnFailureEvent(ex);
+                    }
+                });
             }
         }
 
@@ -354,7 +390,15 @@ namespace Microsoft.PSharp
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler)
             {
-                await this.RunMachineEventHandlerAsync(machine, null, false);
+                try
+                {
+                    await machine.RunEventHandler();
+                }
+                catch (Exception ex)
+                {
+                    base.IsRunning = false;
+                    base.RaiseOnFailureEvent(ex);
+                }
             }
         }
 
@@ -391,58 +435,6 @@ namespace Microsoft.PSharp
             }
 
             machine.Enqueue(eventInfo, ref runNewHandler);
-        }
-
-        /// <summary>
-        /// Runs a new asynchronous machine event handler.
-        /// This is a fire and forget invocation.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        /// <param name="isFresh">Is a new machine</param>
-        private void RunMachineEventHandler(Machine machine, Event e, bool isFresh)
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    if (isFresh)
-                    {
-                        await machine.GotoStartState(e);
-                    }
-
-                    await machine.RunEventHandler();
-                }
-                catch (Exception ex)
-                {
-                    base.IsRunning = false;
-                    base.RaiseOnFailureEvent(ex);
-                }
-            });
-        }
-
-        /// <summary>
-        /// Runs a new asynchronous machine event handler.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        /// <param name="isFresh">Is a new machine</param>
-        private async Task RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh)
-        {
-            try
-            {
-                if (isFresh)
-                {
-                    await machine.GotoStartState(e);
-                }
-
-                await machine.RunEventHandler();
-            }
-            catch (Exception ex)
-            {
-                base.IsRunning = false;
-                base.RaiseOnFailureEvent(ex);
-            }
         }
 
         #endregion

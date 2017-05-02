@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override async Task<MachineId> CreateMachineAndExecute(Type type, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return await this.CreateMachineAndExecute(type, null, e, creator);
+            return this.CreateMachineAndExecute(type, null, e, creator);
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return await this.CreateMachineAndExecute(type, friendlyName, e, creator);
+            return this.CreateMachineAndExecute(type, friendlyName, e, creator);
         }
 
         /// <summary>
