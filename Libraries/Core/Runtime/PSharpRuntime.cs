@@ -630,7 +630,7 @@ namespace Microsoft.PSharp
         /// <param name="exception">Exception</param>
         protected void RaiseOnFailureEvent(Exception exception)
         {
-            this.OnFailure?.Invoke(exception);
+            this.OnFailure?.Invoke(exception); 
         }
 
         /// <summary>

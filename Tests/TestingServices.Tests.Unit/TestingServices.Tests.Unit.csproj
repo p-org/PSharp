@@ -107,6 +107,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RuntimeInterface\SendAndExecuteTest1.cs" />
     <Compile Include="RuntimeInterface\SendAndExecuteTest2.cs" />
+    <Compile Include="SharedObjects\SharedCounterMockTest.cs" />
+    <Compile Include="SharedObjects\SharedCounterProductionTest.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryMockTest1.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryMockTest2.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryMockTest3.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryMockTest4.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryProductionTest1.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryProductionTest2.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryProductionTest3.cs" />
+    <Compile Include="SharedObjects\SharedDictionaryProductionTest4.cs" />
+    <Compile Include="SharedObjects\SharedRegisterMockTest.cs" />
+    <Compile Include="SharedObjects\SharedRegisterProductionTest.cs" />
+    <Compile Include="SharedObjects\SharedRegisterStructMocktest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -116,6 +129,10 @@
     <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\SharedObjects\SharedObjects.csproj">
+      <Project>{a9572dc2-9898-40aa-8a6f-e3ab2eb6a992}</Project>
+      <Name>SharedObjects</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Libraries\TestingServices\TestingServices.csproj">
       <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>

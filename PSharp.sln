@@ -53,6 +53,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visualization", "Visualizat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TraceViewer", "Tools\Visualization\TraceViewer\TraceViewer.csproj", "{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedObjects", "Libraries\SharedObjects\SharedObjects.csproj", "{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,6 +170,12 @@ Global
 		{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
 		{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -194,5 +202,6 @@ Global
 		{B8194B8C-7B35-4772-8943-B62DADE9ADBE} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 		{7C6A7CD5-7D25-4FAE-A197-32984E9ABEA6} = {1A773927-9427-43C5-A10A-6BB7F3C211AA}
 		{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC} = {7C6A7CD5-7D25-4FAE-A197-32984E9ABEA6}
+		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992} = {6F835BCA-788A-4C38-933B-DBE71F40797F}
 	EndGlobalSection
 EndGlobal
