@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Asynchrony\AsyncAwaitTest.cs" />
+    <Compile Include="Asynchrony\ReceiveFailTest.cs" />
     <Compile Include="Asynchrony\ReceiveTest.cs" />
     <Compile Include="Asynchrony\ReceiveWaitTest.cs" />
     <Compile Include="BaseTest.cs" />
