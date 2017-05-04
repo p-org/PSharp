@@ -669,8 +669,29 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Gets the currently executing <see cref="Machine"/>.
+        /// </summary>
+        /// <returns>Machine or null, if not present</returns>
+        internal Machine GetCurrentMachine()
+        {
+            //  The current task does not correspond to a machine.
+            if (Task.CurrentId == null)
+            {
+                return null;
+            }
+
+            // The current task does not correspond to a machine.
+            if (!this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                return null;
+            }
+
+            return this.TaskMap[(int)Task.CurrentId];
+        }
+
+        /// <summary>
         /// Gets the id of the currently executing <see cref="Machine"/>.
-        /// <returns>MachineId</returns>
+        /// <returns>MachineId or null, if not present</returns>
         /// </summary>
         internal MachineId GetCurrentMachineId()
         {
@@ -1354,27 +1375,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return machineState;
-        }
-
-        /// <summary>
-        /// Gets the currently executing <see cref="Machine"/>.
-        /// </summary>
-        /// <returns>Machine or null, if not present</returns>
-        private Machine GetCurrentMachine()
-        {
-            //  The current task does not correspond to a machine.
-            if (Task.CurrentId == null)
-            {
-                return null;
-            }
-
-            // The current task does not correspond to a machine.
-            if (!this.TaskMap.ContainsKey((int)Task.CurrentId))
-            {
-                return null;
-            }
-
-            return this.TaskMap[(int)Task.CurrentId];
         }
 
         /// <summary>
