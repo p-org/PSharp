@@ -668,6 +668,15 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.WaitForTaskToStart(task.Id);
         }
 
+        /// <summary>
+        /// Gets the id of the currently executing <see cref="Machine"/>.
+        /// <returns>MachineId</returns>
+        /// </summary>
+        internal MachineId GetCurrentMachineId()
+        {
+            return this.GetCurrentMachine()?.Id;
+        }
+
         #endregion
 
         #region specifications and error checking
