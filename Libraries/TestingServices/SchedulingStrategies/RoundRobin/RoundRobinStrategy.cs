@@ -51,8 +51,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private int RoundRobinIdx;
 
-        private int RandomCount;
-
         #endregion
 
         #region public API
@@ -70,7 +68,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
             this.MachineQueue = new List<MachineId>();
             this.RoundRobinIdx = -1;
-            this.RandomCount = 0;
         }
 
         /// <summary>
@@ -94,9 +91,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            RoundRobinIdx = (RoundRobinIdx + 1) % (availableMachines.Count);
-            next = availableMachines[RoundRobinIdx];
-
+            var tempRoundRobinIdx = (RoundRobinIdx + 1) % (choices.Count());
+            while (!choices.ElementAt(tempRoundRobinIdx).IsEnabled || choices.ElementAt(tempRoundRobinIdx).IsWaitingToReceive)
+            {
+                tempRoundRobinIdx++;
+            }
+            RoundRobinIdx = tempRoundRobinIdx;
+            next = choices.ElementAt(RoundRobinIdx);
+            
             Console.WriteLine("Scheduling Machine: " + next.Id);
 
             this.ExploredSteps++;
@@ -115,28 +117,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             next = false;
             if (this.Random.Next(maxValue) == 0)
             {
-                next = true;
-            }
-
-            this.ExploredSteps++;
-
-            return true;
-        }
-
-        /// <summary>
-        /// Returns the next boolean choice.
-        /// </summary>
-        /// <param name="maxValue">Max value</param>
-        /// <param name="next">Next</param>
-        /// <param name="interval">interval</param>
-        /// <returns>Boolean</returns>
-        public bool GetNextBooleanChoice(int maxValue, out bool next, int interval)
-        {
-            next = false;
-            RandomCount++;
-            if (this.RandomCount == interval)
-            {
-                RandomCount = 0;
                 next = true;
             }
 
