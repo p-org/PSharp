@@ -59,6 +59,12 @@ namespace Microsoft.PSharp.TestingServices
         public int NumOfFoundBugs { get; internal set; }
 
         /// <summary>
+        /// Number of discarded cycles during liveness check.
+        /// </summary>
+        [DataMember]
+        public int NumberOfDiscardedCycles;
+
+        /// <summary>
         /// List of unique bug reports.
         /// </summary>
         [DataMember]
@@ -128,6 +134,7 @@ namespace Microsoft.PSharp.TestingServices
             this.NumOfExploredFairSchedules = 0;
             this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
+            this.NumberOfDiscardedCycles = 0;
             this.BugReports = new HashSet<string>();
 
             this.MinExploredFairSteps = -1;
@@ -163,6 +170,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.CoverageInfo.Merge(testReport.CoverageInfo);
 
                 this.NumOfFoundBugs += testReport.NumOfFoundBugs;
+                this.NumberOfDiscardedCycles += testReport.NumberOfDiscardedCycles;
 
                 this.BugReports.UnionWith(testReport.BugReports);
 
@@ -283,7 +291,9 @@ namespace Microsoft.PSharp.TestingServices
                         (double)this.NumOfExploredUnfairSchedules) * 100);
                 }
             }
-
+            report.AppendLine();
+            report.AppendFormat("Number of cycles discarded: {0}",
+                this.NumberOfDiscardedCycles);
             return report.ToString();
         }
 

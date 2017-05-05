@@ -86,6 +86,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         private IRandomNumberGenerator Random;
 
+        public int DiscardedCycles;
+
         #endregion
 
         #region internal methods
@@ -110,6 +112,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
             this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
+
+            this.DiscardedCycles = 0;
         }
 
         /// <summary>
@@ -534,6 +538,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.LivenessTemperature = 0;
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
+
+            this.DiscardedCycles++;
 
             this.Runtime.Scheduler.SwitchSchedulingStrategy(this.SchedulingStrategy);
         }

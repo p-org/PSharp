@@ -509,7 +509,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal TestReport GetReport()
         {
             TestReport report = new TestReport(this.Runtime.Configuration);
-
+            report.NumberOfDiscardedCycles += this.Runtime.LivenessChecker.DiscardedCycles;
             if (this.BugFound)
             {
                 report.NumOfFoundBugs++;
