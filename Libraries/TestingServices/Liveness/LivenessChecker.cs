@@ -139,6 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         Debug.WriteLine("<LivenessDebug> Trace is not reproducible: monitor " +
                             $"{coldMonitor.Id} transitioned to a cold state.");
+
                     }
                     this.EscapeCycle();
                     return;
@@ -146,29 +147,30 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
                 var randomWalkScheduleTrace = this.Runtime.ScheduleTrace.Where(
                     val => val.Index > this.EndOfCycleIndex);
+                HashSet<MachineId> walkEnabledMachines = new HashSet<MachineId>();
+                HashSet<MachineId> cycleEnabledMachines = new HashSet<MachineId>();
                 foreach (var step in randomWalkScheduleTrace)
                 {
                     State state = this.Runtime.StateCache[step];
-                    if (!this.PotentialCycle.Any(val => val.Item2.Fingerprint.Equals(state.Fingerprint)))
-                    {
-                        state.PrettyPrint();
-                        Debug.WriteLine("<LivenessDebug> Detected a state that does not belong to the potential cycle.");
-                        //Fallback to just replaying events
-                        //In case of unfair scheduling, give up
-                        HashSet<MachineId> enabledInPotentialCycle = new HashSet<MachineId>();
-                        foreach (var st in PotentialCycle)
-                        {
-                            enabledInPotentialCycle.UnionWith(st.Item2.EnabledMachines);
-                        }
-                        foreach(var e in state.EnabledMachines)
-                        {
-                            if (!enabledInPotentialCycle.Contains(e))
-                            {
-                                this.EscapeCycle();
-                                return;
-                            }
-                        }
-                    }
+                    walkEnabledMachines.UnionWith(state.EnabledMachines);
+                    //if (!this.PotentialCycle.Any(val => val.Item2.Fingerprint.Equals(state.Fingerprint)))
+                    //{
+                    //    state.PrettyPrint();
+                    //    Debug.WriteLine("<LivenessDebug> Detected a state that does not belong to the potential cycle.");
+                    //    //Fallback to just replaying events
+                    //    //In case of unfair scheduling, give up
+                    //}
+                }
+
+                foreach(var state in PotentialCycle)
+                {
+                    cycleEnabledMachines.UnionWith(state.Item2.EnabledMachines);
+                }
+
+                if(walkEnabledMachines.Any(val => !cycleEnabledMachines.Contains(val)))
+                {
+                    this.EscapeCycle();
+                    return;
                 }
 
                 this.LivenessTemperature++;
@@ -361,26 +363,26 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.HotMonitors = this.GetHotMonitors(this.PotentialCycle);
             if (this.HotMonitors.Count > 0)
             {
-                Console.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
-                foreach (var x in this.PotentialCycle)
-                {
-                    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
-                    {
-                        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
-                    }
-                    else if (x.Item1.BooleanChoice != null)
-                    {
-                        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
-                    }
+                //Console.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
+                //foreach (var x in this.PotentialCycle)
+                //{
+                //    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
+                //    {
+                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
+                //    }
+                //    else if (x.Item1.BooleanChoice != null)
+                //    {
+                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
+                //    }
+                //    else
+                //    {
+                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
+                //    }
 
-                    x.Item2.PrettyPrint();
-                }
-                Console.WriteLine("<LivenessDebug> ----------------------------------.");
-                Console.WriteLine("Found a lasso");
+                //    x.Item2.PrettyPrint();
+                //}
+                //Console.WriteLine("<LivenessDebug> ----------------------------------.");
+                //Console.WriteLine("Found a lasso");
                 //this.Runtime.Scheduler.NotifyAssertionFailure("Found a Lasso!! " + this.PotentialCycle.Count);
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
                 this.Runtime.Configuration.LivenessTemperatureThreshold = 10 * this.PotentialCycle.Count;

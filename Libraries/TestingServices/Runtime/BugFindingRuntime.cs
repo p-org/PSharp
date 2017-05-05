@@ -861,9 +861,10 @@ namespace Microsoft.PSharp.TestingServices
 
         internal void GetProgramStatePrint()
         {
-            Console.WriteLine("============== Printing state cache ==================");
+            Console.WriteLine("============== Printing state cache =====");
             foreach (var machine in this.MachineMap.Values)
             {
+                Console.WriteLine(machine.Id);
                 machine.GetCachedStatePrint();
             }
         }
