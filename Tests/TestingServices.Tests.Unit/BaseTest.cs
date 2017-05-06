@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Microsoft.PSharp.IO;
@@ -57,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         #endregion
 
-        #region failed tests
+        #region tests that fail an assertion
 
         protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors)
         {
@@ -114,6 +115,46 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                         Assert.Contains(expected, bugReports);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Assert.False(true, ex.Message);
+            }
+            finally
+            {
+                logger.Dispose();
+            }
+        }
+
+        #endregion
+
+        #region tests that throw an exception
+
+        protected void AssertFailedWithException(Action<PSharpRuntime> test, Type exceptionType)
+        {
+            var configuration = GetConfiguration();
+            AssertFailedWithException(configuration, test, exceptionType);
+        }
+
+        protected void AssertFailedWithException(Configuration configuration, Action<PSharpRuntime> test, Type exceptionType)
+        {
+            Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
+                $"Type '{exceptionType}' is not an exception type.");
+
+            InMemoryLogger logger = new InMemoryLogger();
+
+            try
+            {
+                var engine = BugFindingEngine.Create(configuration, test);
+                engine.SetLogger(logger);
+                engine.Run();
+
+                var numErrors = engine.TestReport.NumOfFoundBugs;
+                Assert.Equal(1, numErrors);
+
+                var exception = this.RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
+                    Split(new[] { '\r', '\n' }).FirstOrDefault();
+                Assert.Contains("'" + exceptionType.ToString() + "'", exception);
             }
             catch (Exception ex)
             {
