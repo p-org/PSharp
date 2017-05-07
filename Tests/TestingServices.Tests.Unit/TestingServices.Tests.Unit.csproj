@@ -62,6 +62,7 @@
     <Compile Include="Asynchrony\ReceiveWaitTest.cs" />
     <Compile Include="BaseTest.cs" />
     <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
+    <Compile Include="EntryPoint\EntryPointThrowExceptionTest.cs" />
     <Compile Include="EntryPoint\EntryPointRandomChoiceTest.cs" />
     <Compile Include="EntryPoint\EntryPointEventSendingTest.cs" />
     <Compile Include="EntryPoint\EntryPointMachineExecutionTest.cs" />

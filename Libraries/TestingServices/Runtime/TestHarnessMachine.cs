@@ -74,5 +74,34 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         #endregion
+
+        #region error checking
+
+        /// <summary>
+        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
+        /// exception, and throws it to the user.
+        /// </summary>
+        /// <param name="ex">Exception</param>
+        internal void ReportUnhandledException(Exception ex)
+        {
+            if (this.TestAction != null)
+            {
+                base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                    $"in anonymous test method, " +
+                    $"'{ex.Source}':\n" +
+                    $"   {ex.Message}\n" +
+                    $"The stack trace is:\n{ex.StackTrace}");
+            }
+            else
+            {
+                base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                    $"in test method '{this.TestMethod.DeclaringType}.{this.TestMethod.Name}', " +
+                    $"'{ex.Source}':\n" +
+                    $"   {ex.Message}\n" +
+                    $"The stack trace is:\n{ex.StackTrace}");
+            }
+        }
+
+        #endregion
     }
 }

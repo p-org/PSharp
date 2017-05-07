@@ -371,6 +371,10 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown in the test harness.");
                 }
+                catch (Exception ex)
+                {
+                    harness.ReportUnhandledException(ex);
+                }
             });
 
             this.Scheduler.NotifyNewTaskCreated(task.Id, harness);
