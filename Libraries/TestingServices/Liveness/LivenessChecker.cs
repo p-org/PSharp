@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                             "violates a liveness property.", monitor.GetType().Name);
                         this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
-
+                    Console.WriteLine("Length of the lasso: " + PotentialCycle.Count);
                     this.Runtime.Scheduler.Stop();
                 }
             }
