@@ -113,6 +113,18 @@ namespace Microsoft.PSharp.TestingServices
         public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
         /// <summary>
+        /// Trace length.
+        /// </summary>
+        [DataMember]
+        public int BugTraceLength;
+
+        /// <summary>
+        /// Lasso length.
+        /// </summary>
+        [DataMember]
+        public int LassoLength;
+
+        /// <summary>
         /// Lock for the test report.
         /// </summary>
         private object Lock;
@@ -135,6 +147,8 @@ namespace Microsoft.PSharp.TestingServices
             this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
             this.NumberOfDiscardedCycles = 0;
+            this.BugTraceLength = 0;
+            this.LassoLength = 0;
             this.BugReports = new HashSet<string>();
 
             this.MinExploredFairSteps = -1;
@@ -171,6 +185,8 @@ namespace Microsoft.PSharp.TestingServices
 
                 this.NumOfFoundBugs += testReport.NumOfFoundBugs;
                 this.NumberOfDiscardedCycles += testReport.NumberOfDiscardedCycles;
+                this.BugTraceLength += testReport.BugTraceLength;
+                this.LassoLength += testReport.LassoLength;
 
                 this.BugReports.UnionWith(testReport.BugReports);
 
@@ -294,6 +310,12 @@ namespace Microsoft.PSharp.TestingServices
             report.AppendLine();
             report.AppendFormat("Number of cycles discarded: {0}",
                 this.NumberOfDiscardedCycles);
+            report.AppendLine();
+            report.AppendFormat("Total bug trace length: {0}",
+                this.BugTraceLength);
+            report.AppendLine();
+            report.AppendFormat("Total lasso length: {0}",
+                this.LassoLength);
             return report.ToString();
         }
 

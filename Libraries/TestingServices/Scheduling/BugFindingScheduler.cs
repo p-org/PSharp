@@ -511,9 +511,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             TestReport report = new TestReport(this.Runtime.Configuration);
             report.NumberOfDiscardedCycles += this.Runtime.LivenessChecker.DiscardedCycles;
+            
             if (this.BugFound)
             {
                 report.NumOfFoundBugs++;
+                report.BugTraceLength += this.Strategy.GetExploredSteps();
+                report.LassoLength += this.Runtime.LivenessChecker.LassoLength;
                 report.BugReports.Add(this.BugReport);
             }
 

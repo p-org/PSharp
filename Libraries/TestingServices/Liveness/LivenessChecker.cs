@@ -87,6 +87,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private IRandomNumberGenerator Random;
 
         public int DiscardedCycles;
+        public int LassoLength;
+        public int StemLength;
 
         #endregion
 
@@ -114,6 +116,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
 
             this.DiscardedCycles = 0;
+            this.StemLength = 0;
+            this.LassoLength = 0;
         }
 
         /// <summary>
@@ -187,6 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                         this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
                     Console.WriteLine("Length of the lasso: " + PotentialCycle.Count);
+                    this.LassoLength = PotentialCycle.Count;
                     this.Runtime.Scheduler.Stop();
                 }
             }
