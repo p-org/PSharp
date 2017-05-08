@@ -410,6 +410,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="killTasks">Kill tasks</param>
         internal void NotifyAssertionFailure(string text, bool killTasks = true)
         {
+            System.Console.WriteLine("Number of scheduled steps: " + this.Strategy.GetExploredSteps());
             if (!this.BugFound)
             {
                 this.BugReport = text;
@@ -522,7 +523,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (this.Strategy.HasReachedMaxSchedulingSteps())
                 {
-                    System.Console.WriteLine("Number of scheduled steps: " + this.Strategy.GetExploredSteps());
                     report.MaxFairStepsHitInFairTests++;
                 }
 
@@ -553,7 +553,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (this.Strategy.HasReachedMaxSchedulingSteps())
                 {
-                    System.Console.WriteLine("Number of scheduled steps: " + this.Strategy.GetExploredSteps());
                     report.MaxUnfairStepsHitInUnfairTests++;
                 }
             }
@@ -607,7 +606,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
-                System.Console.WriteLine("Number of scheduled steps: " + this.Strategy.GetExploredSteps());
                 var msg = IO.Utilities.Format("Scheduling steps bound of {0} reached.",
                     this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps :
                     this.Runtime.Configuration.MaxUnfairSchedulingSteps);
