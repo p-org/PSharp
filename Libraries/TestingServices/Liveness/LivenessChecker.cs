@@ -252,7 +252,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
             }
 
-            var checkIndexRand = checkIndex.First();
+            var checkIndexRand = checkIndex.Last();
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
             do
@@ -322,7 +322,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.PotentialCycle.Count == 0)
             {
                 bool isFairCycleFound = false;
-                int counter = Math.Min(checkIndex.Count, checkIndex.Count);
+                int counter = Math.Min(checkIndex.Count, 3);
                 while (!isFairCycleFound && counter > 0)
                 {
                     var randInd = this.Random.Next(checkIndex.Count - 1);
