@@ -88,6 +88,11 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
         public int DiscardedCycles;
 
+        private Profiler profiler;
+        private double IndexConstTime;
+        private double CycleConstTime;
+        private double FairCheckTime;
+
         #endregion
 
         #region internal methods
@@ -114,6 +119,11 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
 
             this.DiscardedCycles = 0;
+
+            this.profiler = new Profiler();
+            this.IndexConstTime = 0;
+            this.CycleConstTime = 0;
+            this.FairCheckTime = 0;
         }
 
         /// <summary>
@@ -238,6 +248,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 return;
             }
 
+            profiler.StartMeasuringExecutionTime();
             List<int> checkIndex = new List<int>();
             for (int i = this.Runtime.ScheduleTrace.Count - 1; i >= 0; i--)
             {
@@ -251,8 +262,12 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     checkIndex.Add(this.Runtime.ScheduleTrace[i].Index);
                 }
             }
+            profiler.StopMeasuringExecutionTime();
+            IndexConstTime += profiler.Results();
+            Console.WriteLine("Index Construction time: " + IndexConstTime);
 
-            var checkIndexRand = checkIndex.First();
+            profiler.StartMeasuringExecutionTime();
+            var checkIndexRand = checkIndex.Last();
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
             do
@@ -267,6 +282,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
             while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
                 this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+
+            profiler.StopMeasuringExecutionTime();
+            CycleConstTime += profiler.Results();
+            Console.WriteLine("Cycle Construction time: " + CycleConstTime);
 
             if (Runtime.Configuration.EnableDebugging)
             {
@@ -308,6 +327,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Debug.WriteLine("<LivenessDebug> ----------------------------------.");
             }
 
+            profiler.StartMeasuringExecutionTime();
             if (!this.IsSchedulingFair(this.PotentialCycle))
             {
                 Debug.WriteLine("<LivenessDebug> Scheduling in cycle is unfair.");
@@ -318,42 +338,55 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Debug.WriteLine("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 this.PotentialCycle.Clear();
             }
+            profiler.StopMeasuringExecutionTime();
+            FairCheckTime += profiler.Results();
+            Console.WriteLine("fair check time: " + FairCheckTime);
 
             if (this.PotentialCycle.Count == 0)
             {
                 bool isFairCycleFound = false;
-                int counter = Math.Min(checkIndex.Count, checkIndex.Count);
-                while (!isFairCycleFound && counter > 0)
-                {
-                    var randInd = this.Random.Next(checkIndex.Count - 1);
-                    checkIndexRand = checkIndex[randInd];
+                int counter = Math.Min(checkIndex.Count, 5);
+                //while (!isFairCycleFound && counter > 0)
+                //{
+                //    var randInd = this.Random.Next(checkIndex.Count - 1);
+                //    checkIndexRand = checkIndex[randInd];
 
-                    index = this.Runtime.ScheduleTrace.Count - 1;
-                    do
-                    {
-                        var scheduleStep = this.Runtime.ScheduleTrace[index];
-                        index--;
-                        var state = this.Runtime.StateCache[scheduleStep];
-                        this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
+                //    index = this.Runtime.ScheduleTrace.Count - 1;
+                //    profiler.StartMeasuringExecutionTime();
+                //    do
+                //    {
+                //        var scheduleStep = this.Runtime.ScheduleTrace[index];
+                //        index--;
+                //        var state = this.Runtime.StateCache[scheduleStep];
+                //        this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
 
-                        Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-                            scheduleStep.Type, state.Fingerprint.ToString());
-                    }
-                    while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
-                        this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+                //        Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
+                //            scheduleStep.Type, state.Fingerprint.ToString());
+                //    }
+                //    while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
+                //        this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
-                    if (IsSchedulingFair(this.PotentialCycle) && IsNondeterminismFair(this.PotentialCycle))
-                    {
-                        isFairCycleFound = true;
-                        break;
-                    }
-                    else
-                    {
-                        this.PotentialCycle.Clear();
-                    }
+                //    profiler.StopMeasuringExecutionTime();
+                //    CycleConstTime += profiler.Results();
+                //    Console.WriteLine("Cycle Construction time: " + CycleConstTime);
 
-                    counter--;
-                }
+                //    profiler.StartMeasuringExecutionTime();
+
+                //    if (IsSchedulingFair(this.PotentialCycle) && IsNondeterminismFair(this.PotentialCycle))
+                //    {
+                //        isFairCycleFound = true;
+                //        break;
+                //    }
+                //    else
+                //    {
+                //        this.PotentialCycle.Clear();
+                //    }
+                //    profiler.StopMeasuringExecutionTime();
+                //    FairCheckTime += profiler.Results();
+                //    Console.WriteLine("Fair check time: " + FairCheckTime);
+
+                //    counter--;
+                //}
 
                 if (!isFairCycleFound)
                 {
