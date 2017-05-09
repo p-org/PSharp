@@ -257,7 +257,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
             }
 
-            var checkIndexRand = checkIndex.Last();
+            var checkIndexRand = checkIndex.First();
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
             do
