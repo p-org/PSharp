@@ -516,7 +516,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 report.NumOfFoundBugs++;
                 report.BugTraceLength += this.Strategy.GetExploredSteps();
-                report.LassoLength += this.Runtime.LivenessChecker.LassoLength;
+                report.LassoLength += this.Runtime.LivenessChecker.GetLassoLength();
                 report.BugReports.Add(this.BugReport);
             }
 
