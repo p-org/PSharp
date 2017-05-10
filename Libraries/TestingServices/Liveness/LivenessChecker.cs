@@ -87,10 +87,14 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private IRandomNumberGenerator Random;
 
         public int DiscardedCycles;
-        public int LassoLength;
-        public int StemLength;
+        private int LassoLength;
 
         #endregion
+
+        public int GetLassoLength()
+        {
+            return this.LassoLength;
+        }
 
         #region internal methods
 
@@ -116,7 +120,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
 
             this.DiscardedCycles = 0;
-            this.StemLength = 0;
             this.LassoLength = 0;
         }
 
@@ -188,10 +191,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         string message = IO.Utilities.Format("Monitor '{0}' detected infinite execution that " +
                             "violates a liveness property.", monitor.GetType().Name);
+                        this.LassoLength = PotentialCycle.Count;
                         this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
                     Console.WriteLine("Length of the lasso: " + PotentialCycle.Count);
-                    this.LassoLength = PotentialCycle.Count;
                     this.Runtime.Scheduler.Stop();
                 }
             }
