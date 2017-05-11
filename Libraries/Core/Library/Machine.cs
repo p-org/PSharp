@@ -1223,15 +1223,15 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * base.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
-                hash = hash + 31 * this.IsHalted.GetHashCode();
+                hash = hash * 31 + this.GetType().GetHashCode();
+                hash = hash * 31 + base.Id.Value.GetHashCode();
+                hash = hash * 31 + this.IsRunning.GetHashCode();
+                hash = hash * 31 + this.IsHalted.GetHashCode();
 
-                hash = hash + 31 * this.ProgramCounter;
+                hash = hash * 31 + this.ProgramCounter;
                 
                 // Adds the user-defined hashed state.
-                hash = hash + 31 * this.HashedState;
+                hash = hash * 31 + this.HashedState;
 
                 foreach (var state in this.StateStack)
                 {
