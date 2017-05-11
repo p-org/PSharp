@@ -455,9 +455,13 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 scheduledMachines.Add(step.Item1.ScheduledMachineId);
             }
 
-            foreach(var state in cycle)
+            foreach(var state in schedulingChoiceSteps)
             {
                 enabledMachines.UnionWith(state.Item2.EnabledMachines);
+                if (enabledMachines.Count == scheduledMachines.Count)
+                {
+                    break;
+                }
             }
 
             foreach (var m in enabledMachines)
