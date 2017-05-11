@@ -535,11 +535,11 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * this.CurrentState.GetHashCode();
+                hash = hash * 31 + this.GetType().GetHashCode();
+                hash = hash * 31 + this.CurrentState.GetHashCode();
 
                 // Adds the user-defined hashed state.
-                hash = hash + 31 * this.GetHashedState(); 
+                hash = hash * 31 + this.GetHashedState(); 
 
                 return hash;
             }
