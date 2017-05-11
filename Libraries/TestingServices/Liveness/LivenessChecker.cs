@@ -89,7 +89,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         public int DiscardedCycles;
 
         private Profiler profiler;
-        private double IndexConstTime;
         private double CycleConstTime1;
         private double CycleConstTime2;
         private double FairCheckTime;
@@ -122,7 +121,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.DiscardedCycles = 0;
 
             this.profiler = new Profiler();
-            this.IndexConstTime = 0;
             this.CycleConstTime1 = 0;
             this.CycleConstTime2 = 0;
             this.FairCheckTime = 0;
@@ -252,24 +250,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
 
             profiler.StartMeasuringExecutionTime();
-            //List<int> checkIndex = new List<int>();
-            //for (int i = this.Runtime.ScheduleTrace.Count - 1; i >= 0; i--)
-            //{
-            //    if (this.Runtime.ScheduleTrace.Peek().Equals(this.Runtime.ScheduleTrace[i]))
-            //    {
-            //        continue;
-            //    }
-
-            //    if (this.Runtime.StateCache[this.Runtime.ScheduleTrace[i]].Fingerprint.Equals(root))
-            //    {
-            //        checkIndex.Add(this.Runtime.ScheduleTrace[i].Index);
-            //    }
-            //}
-            profiler.StopMeasuringExecutionTime();
-            IndexConstTime += profiler.Results();
-            Console.WriteLine("Index Construction time: " + IndexConstTime);
-
-            profiler.StartMeasuringExecutionTime();
             //var checkIndexRand = checkIndex.First();
             var checkIndexRand = indices[indices.Count - 2];
             var index = this.Runtime.ScheduleTrace.Count - 1;
@@ -284,8 +264,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
                     scheduleStep.Type, state.Fingerprint.ToString());
             }
-            while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
-                this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+            while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
             profiler.StopMeasuringExecutionTime();
             CycleConstTime1 += profiler.Results();
@@ -367,8 +346,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                         Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
                             scheduleStep.Type, state.Fingerprint.ToString());
                     }
-                    while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
-                        this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+                    while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
                     profiler.StopMeasuringExecutionTime();
                     CycleConstTime2 += profiler.Results();
