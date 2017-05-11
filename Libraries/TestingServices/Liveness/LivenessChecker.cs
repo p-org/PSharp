@@ -239,7 +239,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Checks liveness at a schedule trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
-        internal void CheckLivenessAtTraceCycle(Fingerprint root)
+        /// <param name="indices">Cycle start</param>
+        internal void CheckLivenessAtTraceCycle(Fingerprint root, List<int> indices)
         {
             // If there is a potential cycle found, do not create a new one until the
             // liveness checker has finished exploring the current cycle.
@@ -249,25 +250,26 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
 
             profiler.StartMeasuringExecutionTime();
-            List<int> checkIndex = new List<int>();
-            for (int i = this.Runtime.ScheduleTrace.Count - 1; i >= 0; i--)
-            {
-                if (this.Runtime.ScheduleTrace.Peek().Equals(this.Runtime.ScheduleTrace[i]))
-                {
-                    continue;
-                }
+            //List<int> checkIndex = new List<int>();
+            //for (int i = this.Runtime.ScheduleTrace.Count - 1; i >= 0; i--)
+            //{
+            //    if (this.Runtime.ScheduleTrace.Peek().Equals(this.Runtime.ScheduleTrace[i]))
+            //    {
+            //        continue;
+            //    }
 
-                if (this.Runtime.StateCache[this.Runtime.ScheduleTrace[i]].Fingerprint.Equals(root))
-                {
-                    checkIndex.Add(this.Runtime.ScheduleTrace[i].Index);
-                }
-            }
+            //    if (this.Runtime.StateCache[this.Runtime.ScheduleTrace[i]].Fingerprint.Equals(root))
+            //    {
+            //        checkIndex.Add(this.Runtime.ScheduleTrace[i].Index);
+            //    }
+            //}
             profiler.StopMeasuringExecutionTime();
             IndexConstTime += profiler.Results();
             Console.WriteLine("Index Construction time: " + IndexConstTime);
 
             profiler.StartMeasuringExecutionTime();
-            var checkIndexRand = checkIndex.Last();
+            //var checkIndexRand = checkIndex.First();
+            var checkIndexRand = indices.Last();
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
             do
@@ -345,48 +347,48 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.PotentialCycle.Count == 0)
             {
                 bool isFairCycleFound = false;
-                int counter = Math.Min(checkIndex.Count, 5);
-                //while (!isFairCycleFound && counter > 0)
-                //{
-                //    var randInd = this.Random.Next(checkIndex.Count - 1);
-                //    checkIndexRand = checkIndex[randInd];
+                int counter = Math.Min(indices.Count, 3);
+                while (!isFairCycleFound && counter > 0)
+                {
+                    var randInd = this.Random.Next(indices.Count - 1);
+                    checkIndexRand = indices[randInd];
 
-                //    index = this.Runtime.ScheduleTrace.Count - 1;
-                //    profiler.StartMeasuringExecutionTime();
-                //    do
-                //    {
-                //        var scheduleStep = this.Runtime.ScheduleTrace[index];
-                //        index--;
-                //        var state = this.Runtime.StateCache[scheduleStep];
-                //        this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
+                    index = this.Runtime.ScheduleTrace.Count - 1;
+                    profiler.StartMeasuringExecutionTime();
+                    do
+                    {
+                        var scheduleStep = this.Runtime.ScheduleTrace[index];
+                        index--;
+                        var state = this.Runtime.StateCache[scheduleStep];
+                        this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
 
-                //        Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-                //            scheduleStep.Type, state.Fingerprint.ToString());
-                //    }
-                //    while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
-                //        this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+                        Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
+                            scheduleStep.Type, state.Fingerprint.ToString());
+                    }
+                    while (index > 0 && this.Runtime.ScheduleTrace[index] != null &&
+                        this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
-                //    profiler.StopMeasuringExecutionTime();
-                //    CycleConstTime += profiler.Results();
-                //    Console.WriteLine("Cycle Construction time: " + CycleConstTime);
+                    profiler.StopMeasuringExecutionTime();
+                    CycleConstTime += profiler.Results();
+                    Console.WriteLine("Cycle Construction time: " + CycleConstTime);
 
-                //    profiler.StartMeasuringExecutionTime();
+                    profiler.StartMeasuringExecutionTime();
 
-                //    if (IsSchedulingFair(this.PotentialCycle) && IsNondeterminismFair(this.PotentialCycle))
-                //    {
-                //        isFairCycleFound = true;
-                //        break;
-                //    }
-                //    else
-                //    {
-                //        this.PotentialCycle.Clear();
-                //    }
-                //    profiler.StopMeasuringExecutionTime();
-                //    FairCheckTime += profiler.Results();
-                //    Console.WriteLine("Fair check time: " + FairCheckTime);
+                    if (IsSchedulingFair(this.PotentialCycle) && IsNondeterminismFair(this.PotentialCycle))
+                    {
+                        isFairCycleFound = true;
+                        break;
+                    }
+                    else
+                    {
+                        this.PotentialCycle.Clear();
+                    }
+                    profiler.StopMeasuringExecutionTime();
+                    FairCheckTime += profiler.Results();
+                    Console.WriteLine("Fair check time: " + FairCheckTime);
 
-                //    counter--;
-                //}
+                    counter--;
+                }
 
                 if (!isFairCycleFound)
                 {
@@ -400,27 +402,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.HotMonitors = this.GetHotMonitors(this.PotentialCycle);
             if (this.HotMonitors.Count > 0)
             {
-                //Console.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
-                //foreach (var x in this.PotentialCycle)
-                //{
-                //    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
-                //    {
-                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
-                //    }
-                //    else if (x.Item1.BooleanChoice != null)
-                //    {
-                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
-                //    }
-                //    else
-                //    {
-                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
-                //    }
-
-                //    x.Item2.PrettyPrint();
-                //}
-                //Console.WriteLine("<LivenessDebug> ----------------------------------.");
-                //Console.WriteLine("Found a lasso");
-                //this.Runtime.Scheduler.NotifyAssertionFailure("Found a Lasso!! " + this.PotentialCycle.Count);
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
                 this.Runtime.Configuration.LivenessTemperatureThreshold = 10 * this.PotentialCycle.Count;
                 this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
