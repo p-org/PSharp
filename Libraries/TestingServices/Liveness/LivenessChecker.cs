@@ -90,7 +90,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
         private Profiler profiler;
         private double IndexConstTime;
-        private double CycleConstTime;
+        private double CycleConstTime1;
+        private double CycleConstTime2;
         private double FairCheckTime;
 
         #endregion
@@ -122,7 +123,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
             this.profiler = new Profiler();
             this.IndexConstTime = 0;
-            this.CycleConstTime = 0;
+            this.CycleConstTime1 = 0;
+            this.CycleConstTime2 = 0;
             this.FairCheckTime = 0;
         }
 
@@ -269,7 +271,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
             profiler.StartMeasuringExecutionTime();
             //var checkIndexRand = checkIndex.First();
-            var checkIndexRand = indices.Last();
+            var checkIndexRand = indices[indices.Count - 2];
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
             do
@@ -286,8 +288,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
             profiler.StopMeasuringExecutionTime();
-            CycleConstTime += profiler.Results();
-            Console.WriteLine("Cycle Construction time: " + CycleConstTime);
+            CycleConstTime1 += profiler.Results();
+            Console.WriteLine("Cycle Construction time 1: " + CycleConstTime1);
 
             if (Runtime.Configuration.EnableDebugging)
             {
@@ -347,10 +349,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             if (this.PotentialCycle.Count == 0)
             {
                 bool isFairCycleFound = false;
-                int counter = Math.Min(indices.Count, 3);
+                int counter = Math.Min(indices.Count - 1, 3);
                 while (!isFairCycleFound && counter > 0)
                 {
-                    var randInd = this.Random.Next(indices.Count - 1);
+                    var randInd = this.Random.Next(indices.Count - 2);
                     checkIndexRand = indices[randInd];
 
                     index = this.Runtime.ScheduleTrace.Count - 1;
@@ -369,8 +371,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                         this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
                     profiler.StopMeasuringExecutionTime();
-                    CycleConstTime += profiler.Results();
-                    Console.WriteLine("Cycle Construction time: " + CycleConstTime);
+                    CycleConstTime2 += profiler.Results();
+                    Console.WriteLine("Cycle Construction time2: " + CycleConstTime2);
 
                     profiler.StartMeasuringExecutionTime();
 
