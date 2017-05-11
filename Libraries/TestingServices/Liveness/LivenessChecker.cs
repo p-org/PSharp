@@ -254,17 +254,25 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             var checkIndexRand = indices[indices.Count - 2];
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
-            do
+            for(int i = checkIndexRand; i <= index; i++)
             {
-                var scheduleStep = this.Runtime.ScheduleTrace[index];
-                index--;
+                var scheduleStep = this.Runtime.ScheduleTrace[i];
                 var state = this.Runtime.StateCache[scheduleStep];
-                this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
-
-                Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-                    scheduleStep.Type, state.Fingerprint.ToString());
+                this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
             }
-            while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+
+            //do
+            //{
+            //    var scheduleStep = this.Runtime.ScheduleTrace[index];
+            //    index--;
+            //    var state = this.Runtime.StateCache[scheduleStep];
+            //    this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
+
+            //    Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
+            //        scheduleStep.Type, state.Fingerprint.ToString());
+            //    this.Runtime.Assert(index == this.Runtime.ScheduleTrace[index].Index, "CAUGHT");
+            //}
+            //while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
             profiler.StopMeasuringExecutionTime();
             CycleConstTime1 += profiler.Results();
@@ -336,17 +344,25 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
                     index = this.Runtime.ScheduleTrace.Count - 1;
                     profiler.StartMeasuringExecutionTime();
-                    do
+                    for (int i = checkIndexRand; i <= index; i++)
                     {
-                        var scheduleStep = this.Runtime.ScheduleTrace[index];
-                        index--;
+                        var scheduleStep = this.Runtime.ScheduleTrace[i];
                         var state = this.Runtime.StateCache[scheduleStep];
-                        this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
-
-                        Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-                            scheduleStep.Type, state.Fingerprint.ToString());
+                        this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
                     }
-                    while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
+
+                    //do
+                    //{
+                    //    var scheduleStep = this.Runtime.ScheduleTrace[index];
+                    //    index--;
+                    //    var state = this.Runtime.StateCache[scheduleStep];
+                    //    this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
+
+                    //    Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
+                    //        scheduleStep.Type, state.Fingerprint.ToString());
+                    //    this.Runtime.Assert(index == this.Runtime.ScheduleTrace[index].Index);
+                    //}
+                    //while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
 
                     profiler.StopMeasuringExecutionTime();
                     CycleConstTime2 += profiler.Results();
