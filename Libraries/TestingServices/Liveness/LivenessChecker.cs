@@ -610,8 +610,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             foreach(var state in cycle)
             {
                 enabledMachines.UnionWith(state.Item2.EnabledMachines);
-                if (enabledMachines.Count == scheduledMachines.Count)
-                    break;
+                //if (enabledMachines.Count == scheduledMachines.Count)
+                //    break;
             }
 
             foreach (var m in enabledMachines)
