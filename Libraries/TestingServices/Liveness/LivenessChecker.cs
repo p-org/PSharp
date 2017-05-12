@@ -237,6 +237,129 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Checks liveness at a schedule trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
+        /// <param name="indices">List of indexes with same fingerprint</param>
+        internal void CheckLivenessAtTraceCycle(Fingerprint root, List<int> indices)
+        {
+            // If there is a potential cycle found, do not create a new one until the
+            // liveness checker has finished exploring the current cycle.
+            if (this.PotentialCycle.Count > 0)
+            {
+                return;
+            }
+
+            var checkIndexRand = indices[indices.Count - 2];
+            var index = this.Runtime.ScheduleTrace.Count - 1;
+
+            for (int i = checkIndexRand; i <= index; i++)
+            {
+                var scheduleStep = this.Runtime.ScheduleTrace[i];
+                var state = this.Runtime.StateCache[scheduleStep];
+                this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
+            }
+            
+            if (Runtime.Configuration.EnableDebugging)
+            {
+                Debug.WriteLine("<LivenessDebug> ------------ SCHEDULE ------------.");
+                foreach (var x in this.Runtime.ScheduleTrace)
+                {
+                    if (x.Type == ScheduleStepType.SchedulingChoice)
+                    {
+                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.ScheduledMachineId} :: {this.Runtime.StateCache[x].Fingerprint}");
+                    }
+                    else if (x.BooleanChoice != null)
+                    {
+                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.BooleanChoice.Value} :: {this.Runtime.StateCache[x].Fingerprint}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.IntegerChoice.Value} :: {this.Runtime.StateCache[x].Fingerprint}");
+                    }
+                }
+                Debug.WriteLine("<LivenessDebug> ----------------------------------.");
+                Debug.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
+                foreach (var x in this.PotentialCycle)
+                {
+                    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
+                    {
+                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
+                    }
+                    else if (x.Item1.BooleanChoice != null)
+                    {
+                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
+                    }
+
+                    x.Item2.PrettyPrint();
+                }
+                Debug.WriteLine("<LivenessDebug> ----------------------------------.");
+            }
+            
+            if (!this.IsSchedulingFair(this.PotentialCycle))
+            {
+                Debug.WriteLine("<LivenessDebug> Scheduling in cycle is unfair.");
+                this.PotentialCycle.Clear();
+            }
+            else if (!this.IsNondeterminismFair(this.PotentialCycle))
+            {
+                Debug.WriteLine("<LivenessDebug> Nondeterminism in cycle is unfair.");
+                this.PotentialCycle.Clear();
+            }
+           
+            if (this.PotentialCycle.Count == 0)
+            {
+                bool isFairCycleFound = false;
+                int counter = Math.Min(indices.Count - 1, 3);
+                while (!isFairCycleFound && counter > 0)
+                {
+                    var randInd = this.Random.Next(indices.Count - 2);
+                    checkIndexRand = indices[randInd];
+
+                    index = this.Runtime.ScheduleTrace.Count - 1;
+                    for (int i = checkIndexRand; i <= index; i++)
+                    {
+                        var scheduleStep = this.Runtime.ScheduleTrace[i];
+                        var state = this.Runtime.StateCache[scheduleStep];
+                        this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
+                    }
+
+                    if (IsSchedulingFair(this.PotentialCycle) && IsNondeterminismFair(this.PotentialCycle))
+                    {
+                        isFairCycleFound = true;
+                        break;
+                    }
+                    else
+                    {
+                        this.PotentialCycle.Clear();
+                    }
+                    counter--;
+                }
+
+                if (!isFairCycleFound)
+                {
+                    this.PotentialCycle.Clear();
+                    return;
+                }
+            }
+
+            Debug.WriteLine("<LivenessDebug> Cycle execution is fair.");
+
+            this.HotMonitors = this.GetHotMonitors(this.PotentialCycle);
+            if (this.HotMonitors.Count > 0)
+            {
+                this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
+                this.Runtime.Configuration.LivenessTemperatureThreshold = 10 * this.PotentialCycle.Count;
+                this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
+            }
+            else
+            {
+                this.PotentialCycle.Clear();
+            }
+        }
+
+        #region unnecessary
         internal void CheckLivenessAtTraceCycle(Fingerprint root)
         {
             // If there is a potential cycle found, do not create a new one until the
@@ -406,6 +529,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
         }
 
+        #endregion
+
         /// <summary>
         /// Returns the monitor status.
         /// </summary>
@@ -456,6 +581,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             foreach(var state in cycle)
             {
                 enabledMachines.UnionWith(state.Item2.EnabledMachines);
+                if (enabledMachines.Count == scheduledMachines.Count)
+                    break;
             }
 
             foreach (var m in enabledMachines)
