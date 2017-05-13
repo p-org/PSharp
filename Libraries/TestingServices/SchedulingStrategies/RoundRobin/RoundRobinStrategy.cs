@@ -91,15 +91,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            var tempRoundRobinIdx = (RoundRobinIdx + 1) % (choices.Count());
-            while (!choices.ElementAt(tempRoundRobinIdx).IsEnabled || choices.ElementAt(tempRoundRobinIdx).IsWaitingToReceive)
-            {
-                tempRoundRobinIdx++;
-            }
-            RoundRobinIdx = tempRoundRobinIdx;
-            next = choices.ElementAt(RoundRobinIdx);
-            
-            Console.WriteLine("Scheduling Machine: " + next.Id);
+            //var tempRoundRobinIdx = (RoundRobinIdx + 1) % (choices.Count());
+            //while (!choices.ElementAt(tempRoundRobinIdx).IsEnabled || choices.ElementAt(tempRoundRobinIdx).IsWaitingToReceive)
+            //{
+            //    tempRoundRobinIdx++;
+            //}
+            //RoundRobinIdx = tempRoundRobinIdx;
+            //next = choices.ElementAt(RoundRobinIdx);
+
+            //Console.WriteLine("Scheduling Machine: " + next.Id);
+            RoundRobinIdx = (RoundRobinIdx + 1) % availableMachines.Count;
+            next = availableMachines[RoundRobinIdx];
 
             this.ExploredSteps++;
 
