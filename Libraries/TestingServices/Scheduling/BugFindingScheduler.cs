@@ -18,6 +18,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using System;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -515,8 +516,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.BugFound)
             {
                 report.NumOfFoundBugs++;
-                report.BugTraceLength += this.Strategy.GetExploredSteps();
                 report.LassoLength += this.Runtime.LivenessChecker.GetLassoLength();
+                report.BugTraceLength += this.Strategy.GetExploredSteps() - report.LassoLength;
+                report.MinBugTraceLength = Math.Min(report.MinBugTraceLength, report.BugTraceLength);
+                report.MaxBugTraceLength = Math.Max(report.MaxBugTraceLength, report.BugTraceLength);
+
+                report.MinLassoLength = Math.Min(report.MinLassoLength, report.LassoLength);
+                report.MaxLassoLength = Math.Max(report.MaxLassoLength, report.LassoLength);
                 report.BugReports.Add(this.BugReport);
             }
 

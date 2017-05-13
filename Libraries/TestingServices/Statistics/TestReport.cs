@@ -17,6 +17,7 @@ using System.Runtime.Serialization;
 using System.Text;
 
 using Microsoft.PSharp.TestingServices.Coverage;
+using System;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -119,6 +120,30 @@ namespace Microsoft.PSharp.TestingServices
         public int BugTraceLength;
 
         /// <summary>
+        /// Min Trace length.
+        /// </summary>
+        [DataMember]
+        public int MinBugTraceLength;
+
+        /// <summary>
+        /// Min Lasso length.
+        /// </summary>
+        [DataMember]
+        public int MinLassoLength;
+
+        /// <summary>
+        /// Max Trace length.
+        /// </summary>
+        [DataMember]
+        public int MaxBugTraceLength;
+
+        /// <summary>
+        /// Max Lasso length.
+        /// </summary>
+        [DataMember]
+        public int MaxLassoLength;
+
+        /// <summary>
         /// Lasso length.
         /// </summary>
         [DataMember]
@@ -148,6 +173,10 @@ namespace Microsoft.PSharp.TestingServices
             this.NumOfFoundBugs = 0;
             this.NumberOfDiscardedCycles = 0;
             this.BugTraceLength = 0;
+            this.MinBugTraceLength = 9999;
+            this.MinLassoLength = 9999;
+            this.MaxBugTraceLength = 0;
+            this.MaxLassoLength = 0;
             this.LassoLength = 0;
             this.BugReports = new HashSet<string>();
 
@@ -186,6 +215,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.NumOfFoundBugs += testReport.NumOfFoundBugs;
                 this.NumberOfDiscardedCycles += testReport.NumberOfDiscardedCycles;
                 this.BugTraceLength += testReport.BugTraceLength;
+                this.MinBugTraceLength = Math.Min(this.MinBugTraceLength, testReport.MinBugTraceLength);
+                this.MaxBugTraceLength = Math.Max(this.MaxBugTraceLength, testReport.MaxBugTraceLength);
                 this.LassoLength += testReport.LassoLength;
 
                 this.BugReports.UnionWith(testReport.BugReports);
@@ -316,6 +347,18 @@ namespace Microsoft.PSharp.TestingServices
             report.AppendLine();
             report.AppendFormat("Total lasso length: {0}",
                 this.LassoLength);
+
+            report.AppendLine();
+            report.AppendFormat("Min trace length: {0}",
+                this.MinBugTraceLength);
+            report.AppendLine();
+            report.AppendFormat("Max trace length: {0}",
+                this.MaxBugTraceLength);
+            report.AppendLine();
+            report.AppendFormat("Min lasso length: {0}",
+                this.MinLassoLength);
+            report.AppendFormat("Max lasso length: {0}",
+                this.MaxLassoLength);
             return report.ToString();
         }
 
