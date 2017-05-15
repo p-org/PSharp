@@ -115,6 +115,11 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/coverage-report ");
             }
 
+            if (configuration.EnableCycleReplayingStrategy)
+            {
+                arguments.Append($"/cycle-replay ");
+            }
+
             arguments.Append($"/run-as-parallel-testing-task ");
             arguments.Append($"/testing-scheduler-endpoint:{configuration.TestingSchedulerEndPoint} ");
             arguments.Append($"/testing-scheduler-process-id:{Process.GetCurrentProcess().Id} ");
