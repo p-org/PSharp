@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Liveness\LivenessChecker.cs" />
     <Compile Include="SchedulingStrategies\RoundRobin\RoundRobinStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\ComboStrategy.cs" />
     <Compile Include="Statistics\TestReport.cs" />
@@ -73,7 +74,6 @@
     <Compile Include="Tracing\Schedules\ScheduleTrace.cs" />
     <Compile Include="Tracing\Schedules\ScheduleStep.cs" />
     <Compile Include="Tracing\Schedules\ScheduleStepType.cs" />
-    <Compile Include="Liveness\LivenessChecker.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />

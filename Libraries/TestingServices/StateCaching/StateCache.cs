@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
                     "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
             }
-            
+
             //var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             var stateExists = this.Fingerprints.Contains(fingerprint);
             this.StateMap.Add(scheduleStep, state);
@@ -122,6 +122,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             {
                 fpIndexMap[fingerprint].Add(scheduleStep.Index);
             }
+
             if (stateExists)
             {
                 Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");

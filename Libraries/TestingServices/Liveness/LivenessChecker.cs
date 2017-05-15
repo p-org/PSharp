@@ -87,13 +87,16 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         private IRandomNumberGenerator Random;
 
         public int DiscardedCycles;
+        private int LassoLength;
 
         private Profiler profiler;
-        private double CycleConstTime1;
-        private double CycleConstTime2;
-        private double FairCheckTime;
 
         #endregion
+
+        public int GetLassoLength()
+        {
+            return this.LassoLength;
+        }
 
         #region internal methods
 
@@ -119,11 +122,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
 
             this.DiscardedCycles = 0;
-
             this.profiler = new Profiler();
-            this.CycleConstTime1 = 0;
-            this.CycleConstTime2 = 0;
-            this.FairCheckTime = 0;
+            this.LassoLength = 0;
         }
 
         /// <summary>
@@ -181,12 +181,12 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     //}
                 }
 
-                foreach(var state in PotentialCycle)
+                foreach (var state in PotentialCycle)
                 {
                     cycleEnabledMachines.UnionWith(state.Item2.EnabledMachines);
                 }
 
-                if(walkEnabledMachines.Any(val => !cycleEnabledMachines.Contains(val)))
+                if (walkEnabledMachines.Any(val => !cycleEnabledMachines.Contains(val)))
                 {
                     this.EscapeCycle();
                     return;
@@ -199,6 +199,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         string message = IO.Utilities.Format("Monitor '{0}' detected infinite execution that " +
                             "violates a liveness property.", monitor.GetType().Name);
+                        this.LassoLength = PotentialCycle.Count;
                         this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
                     }
                     Console.WriteLine("Length of the lasso: " + PotentialCycle.Count);
@@ -244,7 +245,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Checks liveness at a schedule trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
-        /// <param name="indices">Cycle start</param>
+        /// <param name="indices">List of indexes with same fingerprint</param>
         internal void CheckLivenessAtTraceCycle(Fingerprint root, List<int> indices)
         {
             // If there is a potential cycle found, do not create a new one until the
@@ -254,34 +255,19 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 return;
             }
 
-            profiler.StartMeasuringExecutionTime();
-            //var checkIndexRand = checkIndex.First();
             var checkIndexRand = indices[indices.Count - 2];
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
-            for(int i = checkIndexRand + 1; i <= index; i++)
+            for (int i = checkIndexRand + 1; i <= index; i++)
             {
                 var scheduleStep = this.Runtime.ScheduleTrace[i];
                 var state = this.Runtime.StateCache[scheduleStep];
                 this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
+
+                Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
+                    scheduleStep.Type, state.Fingerprint.ToString());
             }
 
-            //do
-            //{
-            //    var scheduleStep = this.Runtime.ScheduleTrace[index];
-            //    index--;
-            //    var state = this.Runtime.StateCache[scheduleStep];
-            //    this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
-
-            //    Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-            //        scheduleStep.Type, state.Fingerprint.ToString());
-            //    this.Runtime.Assert(index == this.Runtime.ScheduleTrace[index].Index, "CAUGHT");
-            //}
-            //while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
-
-            profiler.StopMeasuringExecutionTime();
-            CycleConstTime1 += profiler.Results();
-            Console.WriteLine("Cycle Construction time 1: " + CycleConstTime1);
 
             if (Runtime.Configuration.EnableDebugging)
             {
@@ -323,7 +309,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Debug.WriteLine("<LivenessDebug> ----------------------------------.");
             }
 
-            profiler.StartMeasuringExecutionTime();
             if (!this.IsSchedulingFair(this.PotentialCycle))
             {
                 Debug.WriteLine("<LivenessDebug> Scheduling in cycle is unfair.");
@@ -334,9 +319,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 Debug.WriteLine("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 this.PotentialCycle.Clear();
             }
-            profiler.StopMeasuringExecutionTime();
-            FairCheckTime += profiler.Results();
-            Console.WriteLine("fair check time: " + FairCheckTime);
 
             if (this.PotentialCycle.Count == 0)
             {
@@ -348,32 +330,15 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     checkIndexRand = indices[randInd];
 
                     index = this.Runtime.ScheduleTrace.Count - 1;
-                    profiler.StartMeasuringExecutionTime();
-                    for (int i = checkIndexRand + 1; i < index; i++)
+                    for (int i = checkIndexRand + 1; i <= index; i++)
                     {
                         var scheduleStep = this.Runtime.ScheduleTrace[i];
                         var state = this.Runtime.StateCache[scheduleStep];
                         this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
+
+                        Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
+                            scheduleStep.Type, state.Fingerprint.ToString());
                     }
-
-                    //do
-                    //{
-                    //    var scheduleStep = this.Runtime.ScheduleTrace[index];
-                    //    index--;
-                    //    var state = this.Runtime.StateCache[scheduleStep];
-                    //    this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
-
-                    //    Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-                    //        scheduleStep.Type, state.Fingerprint.ToString());
-                    //    this.Runtime.Assert(index == this.Runtime.ScheduleTrace[index].Index);
-                    //}
-                    //while (this.Runtime.ScheduleTrace[index].Index != checkIndexRand);
-
-                    profiler.StopMeasuringExecutionTime();
-                    CycleConstTime2 += profiler.Results();
-                    Console.WriteLine("Cycle Construction time2: " + CycleConstTime2);
-
-                    profiler.StartMeasuringExecutionTime();
 
                     if (IsSchedulingFair(this.PotentialCycle) && IsNondeterminismFair(this.PotentialCycle))
                     {
@@ -384,9 +349,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     {
                         this.PotentialCycle.Clear();
                     }
-                    profiler.StopMeasuringExecutionTime();
-                    FairCheckTime += profiler.Results();
-                    Console.WriteLine("Fair check time: " + FairCheckTime);
 
                     counter--;
                 }
@@ -399,10 +361,31 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
 
             Debug.WriteLine("<LivenessDebug> Cycle execution is fair.");
-            
+
             this.HotMonitors = this.GetHotMonitors(this.PotentialCycle);
             if (this.HotMonitors.Count > 0)
             {
+                //Console.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
+                //foreach (var x in this.PotentialCycle)
+                //{
+                //    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
+                //    {
+                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
+                //    }
+                //    else if (x.Item1.BooleanChoice != null)
+                //    {
+                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
+                //    }
+                //    else
+                //    {
+                //        Console.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
+                //    }
+
+                //    x.Item2.PrettyPrint();
+                //}
+                //Console.WriteLine("<LivenessDebug> ----------------------------------.");
+                //Console.WriteLine("Found a lasso");
+                //this.Runtime.Scheduler.NotifyAssertionFailure("Found a Lasso!! " + this.PotentialCycle.Count);
                 this.EndOfCycleIndex = this.PotentialCycle.Select(val => val.Item1).Min(val => val.Index);
                 this.Runtime.Configuration.LivenessTemperatureThreshold = 10 * this.PotentialCycle.Count;
                 this.Runtime.Scheduler.SwitchSchedulingStrategy(this);
@@ -412,6 +395,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 this.PotentialCycle.Clear();
             }
         }
+
+        #region unnecessary
+
+        #endregion
 
         /// <summary>
         /// Returns the monitor status.
@@ -453,14 +440,16 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             var enabledMachines = new HashSet<MachineId>();
             var scheduledMachines = new HashSet<MachineId>();
 
-            var schedulingChoiceSteps= cycle.Where(
+            var schedulingChoiceSteps = cycle.Where(
                 val => val.Item1.Type == ScheduleStepType.SchedulingChoice);
             foreach (var step in schedulingChoiceSteps)
             {
                 scheduledMachines.Add(step.Item1.ScheduledMachineId);
             }
 
-            foreach(var state in schedulingChoiceSteps)
+            enabledMachines.UnionWith(cycle.First().Item2.EnabledMachines);
+
+            foreach (var state in schedulingChoiceSteps)
             {
                 enabledMachines.UnionWith(state.Item2.EnabledMachines);
                 if (enabledMachines.Count == scheduledMachines.Count)
@@ -623,7 +612,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 int idx = this.Random.Next(availableMachines.Count);
                 next = availableMachines[idx];
             }
-            
+
             return true;
         }
 
@@ -664,7 +653,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     next = true;
                 }
             }
-            
+
             return true;
         }
 
@@ -702,7 +691,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 next = this.Random.Next(maxValue);
             }
-            
+
             return true;
         }
 
