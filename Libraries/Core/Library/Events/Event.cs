@@ -39,6 +39,12 @@ namespace Microsoft.PSharp
         [DataMember]
         protected internal readonly int Assume;
 
+        /// <summary>
+        /// User-defined hash of the event payload. Override to improve the
+        /// accuracy of liveness checking when state caching is enabled.
+        /// </summary>
+        public virtual int HashedState => 0;
+
         #endregion
 
         #region constructors
