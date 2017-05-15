@@ -165,6 +165,11 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 HashSet<MachineId> cycleEnabledMachines = new HashSet<MachineId>();
                 foreach (var step in randomWalkScheduleTrace)
                 {
+                    if (!this.Runtime.StateCache.StateMap.ContainsKey(step))
+                    {
+                        continue;
+                    }
+
                     State state = this.Runtime.StateCache[step];
                     walkEnabledMachines.UnionWith(state.EnabledMachines);
                     //if (!this.PotentialCycle.Any(val => val.Item2.Fingerprint.Equals(state.Fingerprint)))
@@ -254,7 +259,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             var checkIndexRand = indices[indices.Count - 2];
             var index = this.Runtime.ScheduleTrace.Count - 1;
 
-            for(int i = checkIndexRand; i <= index; i++)
+            for(int i = checkIndexRand + 1; i <= index; i++)
             {
                 var scheduleStep = this.Runtime.ScheduleTrace[i];
                 var state = this.Runtime.StateCache[scheduleStep];
@@ -344,7 +349,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
                     index = this.Runtime.ScheduleTrace.Count - 1;
                     profiler.StartMeasuringExecutionTime();
-                    for (int i = checkIndexRand; i <= index; i++)
+                    for (int i = checkIndexRand + 1; i < index; i++)
                     {
                         var scheduleStep = this.Runtime.ScheduleTrace[i];
                         var state = this.Runtime.StateCache[scheduleStep];

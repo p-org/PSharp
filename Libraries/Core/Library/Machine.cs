@@ -1241,6 +1241,7 @@ namespace Microsoft.PSharp
                 foreach (var e in this.Inbox)
                 {
                     hash = hash * 31 + e.EventType.GetHashCode();
+                    hash = hash * 31 + e.Event.HashedState;
                 }
 
                 return hash;

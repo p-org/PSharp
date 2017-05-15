@@ -845,12 +845,12 @@ namespace Microsoft.PSharp.TestingServices
 
                 foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
-                    hash = hash + 31 * machine.GetCachedState();
+                    hash = hash * 31 + machine.GetCachedState();
                 }
 
                 foreach (var monitor in base.Monitors)
                 {
-                    hash = hash + 31 * monitor.GetCachedState();
+                    hash = hash * 31 + monitor.GetCachedState();
                 }
 
                 fingerprint = new Fingerprint(hash);

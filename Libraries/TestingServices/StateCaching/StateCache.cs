@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Map from schedule steps to states.
         /// </summary>
-        private Dictionary<ScheduleStep, State> StateMap;
+        internal Dictionary<ScheduleStep, State> StateMap;
 
         /// <summary>
         /// Set of fingerprints.

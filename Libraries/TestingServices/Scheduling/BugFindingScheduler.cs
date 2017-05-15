@@ -125,6 +125,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps &&
+                this.Runtime.ScheduleTrace.Count > 0)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
             MachineInfo machineInfo = this.TaskMap[(int)taskId];
             MachineInfo next = null;
 
@@ -139,11 +146,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine.Id);
             next.Machine.ProgramCounter = 0;
 
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
+
             //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
@@ -207,6 +210,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps &&
+                this.Runtime.ScheduleTrace.Count > 0)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
             var choice = false;
             if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
             {
@@ -232,11 +242,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
             
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
+
             //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
@@ -257,6 +263,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps &&
+                this.Runtime.ScheduleTrace.Count > 0)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
             var choice = 0;
             if (!this.Strategy.GetNextIntegerChoice(maxValue, out choice))
             {
@@ -265,12 +279,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
-            
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
+
             //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
