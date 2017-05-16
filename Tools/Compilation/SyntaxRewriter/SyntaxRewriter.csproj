@@ -4,7 +4,8 @@
     <AssemblyName>PSharpSyntaxRewriter</AssemblyName>
     <Description>The P# syntax rewriter.</Description>
     <AssemblyTitle>PSharpSyntaxRewriter</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <!-- TODO: Temporarily changed to singular TargetFramework to avoid 'BuiltProjectOutputGroup not found' error; VS fix pending -->
+    <TargetFramework>net46</TargetFramework>
     <OutputType>Exe</OutputType>
     <PackageTags>syntax;rewriter;psharp</PackageTags>
   </PropertyGroup>
