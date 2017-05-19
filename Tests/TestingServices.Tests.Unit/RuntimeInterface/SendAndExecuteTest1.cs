@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendAndExecuteTest.cs">
+// <copyright file="SendAndExecuteTest1.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class SendAndExecuteTest : BaseTest
+    public class SendAndExecuteTest1 : BaseTest
     {
         class Configure : Event
         {
@@ -31,9 +31,19 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
-        class E : Event { }
+        class E1 : Event { }
+        class E2 : Event
+        {
+            public MachineId Id;
 
-        class M : Machine
+            public E2(MachineId id)
+            {
+                this.Id = id;
+            }
+        }
+        class E3 : Event { }
+
+        class A : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -43,52 +53,72 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var e = (this.ReceivedEvent as Configure);
 
-                MachineId mid = this.CreateMachine(typeof(N), "N");
+                MachineId b = this.CreateMachine(typeof(B), "B");
+                MachineId c = this.CreateMachine(typeof(C), new E2(b));
 
                 if (e.ExecuteSynchronously)
                 {
-                    await this.Runtime.SendEventAndExecute(mid, new E());
+                    await this.Runtime.SendEventAndExecute(b, new E1());
                 }
                 else
                 {
-                    this.Runtime.SendEvent(mid, new E());
+                    this.Runtime.SendEvent(b, new E1());
                 }
-
-                this.Runtime.SendEvent(mid, new E());
             }
         }
 
-        class N : Machine
+        class B : Machine
         {
             [Start]
-            [OnEventDoAction(typeof(E), nameof(HandleEvent))]
+            [OnEventDoAction(typeof(E1), nameof(HandleEventE1))]
+            [OnEventDoAction(typeof(E3), nameof(HandleEventE3))]
             class Init : MachineState { }
 
-            async Task HandleEvent()
+            async Task HandleEventE1()
             {
-                await this.Receive(typeof(E));
+                await this.Receive(typeof(E1));
+            }
+
+            void HandleEventE3() { }
+        }
+
+        class C : Machine
+        {
+            MachineId Target;
+
+            [Start]
+            [OnEntry(nameof(Run))]
+            class Init : MachineState { }
+
+            void Run()
+            {
+                this.Target = (this.ReceivedEvent as E2).Id;
+                this.Send(this.Target, new E3());
+                this.Send(this.Target, new E1());
+                this.Send(this.Target, new E1());
+                this.Send(this.Target, new E1());
             }
         }
 
         [Fact]
-        public void TestSendAndExecuteWithReceive()
+        public void TestSendAndExecute1WithReceive()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(M), new Configure(false));
+                r.CreateMachine(typeof(A), new Configure(false));
             });
 
             base.AssertSucceeded(test);
         }
 
         [Fact]
-        public void TestSendAndExecuteWithReceiveFail()
+        public void TestSendAndExecute1WithReceiveFail()
         {
             var config = Configuration.Create().WithNumberOfIterations(10);
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(M), new Configure(true));
+                r.CreateMachine(typeof(A), new Configure(true));
             });
 
-            base.AssertFailed(config, test, "Machine 'N()' called receive while executing synchronously.");
+            base.AssertFailed(config, test, "Machine 'B()' called receive while executing synchronously.");
         }
     }
 }

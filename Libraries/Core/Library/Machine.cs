@@ -662,7 +662,8 @@ namespace Microsoft.PSharp
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        internal async Task RunEventHandler()
+        /// <param name="returnEarly">Returns after handling just one event</param>
+        internal async Task RunEventHandler(bool returnEarly = false)
         {
             if (this.IsHalted)
             {
@@ -670,7 +671,6 @@ namespace Microsoft.PSharp
             }
 
             EventInfo nextEventInfo = null;
-
             while (!this.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
@@ -724,6 +724,12 @@ namespace Microsoft.PSharp
                 if (defaultHandling)
                 {
                     base.Runtime.NotifyDefaultHandlerFired();
+                }
+
+                // Return after handling the first event?
+                if (returnEarly)
+                {
+                    return;
                 }
             }
         }
