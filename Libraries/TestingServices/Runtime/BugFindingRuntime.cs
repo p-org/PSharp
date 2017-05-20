@@ -648,8 +648,13 @@ namespace Microsoft.PSharp.TestingServices
                         await machine.GotoStartState(e);
                     }
 
-                    await machine.RunEventHandler();
+                    await machine.RunEventHandler(executeSynchronously);
                     machine.IsInsideSynchronousCall = false;
+
+                    if (executeSynchronously)
+                    {
+                        await machine.RunEventHandler();
+                    }
 
                     this.Scheduler.NotifyTaskCompleted();
                 }

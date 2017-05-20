@@ -436,13 +436,16 @@ namespace Microsoft.PSharp
                     await machine.GotoStartState(e);
                 }
 
-                await machine.RunEventHandler();
+                await machine.RunEventHandler(true);
             }
             catch (Exception ex)
             {
                 base.IsRunning = false;
                 base.RaiseOnFailureEvent(ex);
+                return;
             }
+
+            RunMachineEventHandler(machine, null, false);
         }
 
         #endregion

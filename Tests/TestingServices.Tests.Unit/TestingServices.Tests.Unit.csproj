@@ -105,7 +105,8 @@
     <Compile Include="Liveness\StateCaching\Liveness2Test.cs" />
     <Compile Include="Liveness\HotStateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RuntimeInterface\SendAndExecuteTest.cs" />
+    <Compile Include="RuntimeInterface\SendAndExecuteTest1.cs" />
+    <Compile Include="RuntimeInterface\SendAndExecuteTest2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
