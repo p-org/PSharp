@@ -2,7 +2,7 @@
 
 P#
 ====================
-A language and toolkit for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software, such as web-services and distributed systems.
+A framework for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software. P# is used by engineers in [Azure](https://azure.microsoft.com/) to design, implement and thoroughly test distributed systems and services.
 
 ## Features
 The P# framework provides:
