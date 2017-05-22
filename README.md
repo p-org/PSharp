@@ -24,4 +24,4 @@ We welcome contributions! However, before you start contributing, please read ca
 
 ## Contact us
 
-If you are interested in using P# in your project, or have any P# related questions, please send us an [email](pdev@microsoft.com) or open a new [issue](https://github.com/p-org/PSharp/issues).
+If you are interested in using P# in your project, or have any P# related questions, please send us an [email](mailto:pdev@microsoft.com) or open a new [issue](https://github.com/p-org/PSharp/issues).
