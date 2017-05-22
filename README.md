@@ -15,7 +15,7 @@ The best way to build and start using P# is to read our [wiki](https://github.co
 
 You can also read the manual and available publications:
 
-- [Manual](https://github.com/p-org/PSharp/blob/master/Docs/Manual/manual.pdf)  
+- [Manual](https://github.com/p-org/PSharp/wiki/Walkthrough-and-Samples)  
 - [Publications](https://github.com/p-org/PSharp/wiki/Publications)
 
 ## How to contribute
