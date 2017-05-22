@@ -218,6 +218,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.MinBugTraceLength = Math.Min(this.MinBugTraceLength, testReport.MinBugTraceLength);
                 this.MaxBugTraceLength = Math.Max(this.MaxBugTraceLength, testReport.MaxBugTraceLength);
                 this.LassoLength += testReport.LassoLength;
+                this.MinLassoLength = Math.Min(this.MinLassoLength, testReport.MinLassoLength);
+                this.MaxLassoLength = Math.Max(this.MaxLassoLength, testReport.MaxLassoLength);
 
                 this.BugReports.UnionWith(testReport.BugReports);
 
@@ -342,22 +344,23 @@ namespace Microsoft.PSharp.TestingServices
             report.AppendFormat("Number of cycles discarded: {0}",
                 this.NumberOfDiscardedCycles);
             report.AppendLine();
-            report.AppendFormat("Total bug trace length: {0}",
+            report.AppendFormat("Total Stem length: {0}",
                 this.BugTraceLength);
             report.AppendLine();
-            report.AppendFormat("Total lasso length: {0}",
+            report.AppendFormat("Total Cycle length: {0}",
                 this.LassoLength);
 
             report.AppendLine();
-            report.AppendFormat("Min trace length: {0}",
+            report.AppendFormat("Min Stem length: {0}",
                 this.MinBugTraceLength);
             report.AppendLine();
-            report.AppendFormat("Max trace length: {0}",
+            report.AppendFormat("Max Stem length: {0}",
                 this.MaxBugTraceLength);
             report.AppendLine();
-            report.AppendFormat("Min lasso length: {0}",
+            report.AppendFormat("Min Cycle length: {0}",
                 this.MinLassoLength);
-            report.AppendFormat("Max lasso length: {0}",
+            report.AppendLine();
+            report.AppendFormat("Max Cycle length: {0}",
                 this.MaxLassoLength);
             return report.ToString();
         }
