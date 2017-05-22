@@ -89,6 +89,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().StartsWith("/o:") && option.Length > 3)
             {
+                System.Diagnostics.Debugger.Launch();
                 this.Configuration.OutputFilePath = option.Substring(3);
             }
             else if (option.ToLower().StartsWith("/v:") && option.Length > 3)

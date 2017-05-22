@@ -275,7 +275,7 @@ namespace Microsoft.PSharp.TestingServices
             string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
             file += "_" + this.Configuration.TestingProcessId;
 
-            string directory = Reporter.GetOutputDirectory(this.Configuration.AssemblyToBeAnalyzed);
+            string directory = Reporter.GetOutputDirectory(this.Configuration.OutputFilePath, this.Configuration.AssemblyToBeAnalyzed);
 
             Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
             this.TestingEngine.TryEmitTraces(directory, file);
