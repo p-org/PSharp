@@ -445,6 +445,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /method:[x]\t Suffix of the test method to execute";
             help += "\n  /timeout:[x]\t Timeout in seconds (disabled by default)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
+            help += "\n  /o:[x]\t Dump output to directory x (absolute path or relative to current directory)";
 
             help += "\n\n ---------------------------";
             help += "\n Systematic testing options:";
