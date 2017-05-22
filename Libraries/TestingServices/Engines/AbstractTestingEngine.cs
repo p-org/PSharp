@@ -427,21 +427,41 @@ namespace Microsoft.PSharp.TestingServices
             List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test));
 
             // Filter by test method name
-            testMethods = testMethods
+            var filteredTestMethods = testMethods
                 .FindAll(mi => string.Format("{0}.{1}", mi.DeclaringType.FullName, mi.Name)
                 .EndsWith(Configuration.TestMethodName));
 
-            if (testMethods.Count == 0)
+            if (filteredTestMethods.Count == 0)
             {
-                Error.ReportAndExit("Cannot detect a P# test method. Use the " +
-                    $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
+                if (testMethods.Count > 0)
+                {
+                    var msg = "Cannot detect a P# test method with name " + Configuration.TestMethodName +
+                        ". Possible options are: " + Environment.NewLine;
+                    foreach (var mi in testMethods)
+                    {
+                        msg += string.Format("{0}.{1}{2}", mi.DeclaringType.FullName, mi.Name, Environment.NewLine);
+                    }
+                    Error.ReportAndExit(msg);
+                }
+                else
+                {
+                    Error.ReportAndExit("Cannot detect a P# test method. Use the " +
+                        $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
+                }
             }
             else if (testMethods.Count > 1)
             {
-                Error.ReportAndExit("Only one test method to the P# program can " +
+                var msg = "Only one test method to the P# program can " +
                     $"be declared with the attribute '{typeof(Test).FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead. Provide " +
-                    $"/method flag to qualify the test method name you wish to use.");
+                    $"/method flag to qualify the test method name you wish to use. " +
+                    "Possible options are: " + Environment.NewLine;
+
+                foreach (var mi in testMethods)
+                {
+                    msg += string.Format("{0}.{1}{2}", mi.DeclaringType.FullName, mi.Name, Environment.NewLine);
+                }
+                Error.ReportAndExit(msg);
             }
 
             if (testMethods[0].ReturnType != typeof(void) ||
