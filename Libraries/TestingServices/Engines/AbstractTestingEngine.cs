@@ -441,6 +441,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         msg += string.Format("{0}.{1}{2}", mi.DeclaringType.FullName, mi.Name, Environment.NewLine);
                     }
+
                     Error.ReportAndExit(msg);
                 }
                 else
@@ -461,6 +462,7 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     msg += string.Format("{0}.{1}{2}", mi.DeclaringType.FullName, mi.Name, Environment.NewLine);
                 }
+
                 Error.ReportAndExit(msg);
             }
 
