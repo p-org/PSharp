@@ -515,14 +515,13 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (sender != null)
                 {
-                    this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
-                        $"'{e.GetType().FullName}' to a halted machine '{mid}'.");
+                    this.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
                 }
                 else
                 {
-                    this.Log($"<SendLog> The event " +
-                        $"'{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
+                    this.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
                 }
+
                 return;
             }
 
@@ -549,6 +548,15 @@ namespace Microsoft.PSharp.TestingServices
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
+                if (sender != null)
+                {
+                    this.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
+                }
+                else
+                {
+                    this.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
+                }
+
                 return;
             }
 
