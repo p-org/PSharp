@@ -323,6 +323,15 @@ namespace Microsoft.PSharp
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
+                if (sender != null)
+                {
+                    base.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
+                }
+                else
+                {
+                    base.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
+                }
+
                 return;
             }
 
@@ -347,6 +356,15 @@ namespace Microsoft.PSharp
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
+                if (sender != null)
+                {
+                    base.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
+                }
+                else
+                {
+                    base.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
+                }
+
                 return;
             }
 
