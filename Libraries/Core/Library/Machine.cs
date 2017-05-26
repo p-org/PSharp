@@ -1229,10 +1229,12 @@ namespace Microsoft.PSharp
                 hash = hash * 31 + this.IsHalted.GetHashCode();
 
                 hash = hash * 31 + this.ProgramCounter;
-                
-                // Adds the user-defined hashed state.
-                hash = hash * 31 + this.HashedState;
 
+                // Adds the user-defined hashed state.
+                if (this.Runtime.Configuration.UserHash)
+                {
+                    hash = hash * 31 + this.HashedState;
+                }
                 foreach (var state in this.StateStack)
                 {
                     hash = hash * 31 + state.GetType().GetHashCode();
@@ -1241,7 +1243,10 @@ namespace Microsoft.PSharp
                 foreach (var e in this.Inbox)
                 {
                     hash = hash * 31 + e.EventType.GetHashCode();
-                    hash = hash * 31 + e.Event.HashedState;
+                    if (this.Runtime.Configuration.UserHash)
+                    {
+                        hash = hash * 31 + e.Event.HashedState;
+                    }
                 }
 
                 return hash;

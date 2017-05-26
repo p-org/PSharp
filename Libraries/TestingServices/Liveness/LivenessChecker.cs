@@ -396,10 +396,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
         }
 
-        #region unnecessary
-
-        #endregion
-
         /// <summary>
         /// Returns the monitor status.
         /// </summary>

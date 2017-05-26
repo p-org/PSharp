@@ -334,6 +334,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.EnableCycleReplayingStrategy = true;
             }
+            else if (option.ToLower().Equals("/user-hash"))
+            {
+                base.Configuration.UserHash = true;
+            }
             else if (option.ToLower().Equals("/opbound"))
             {
                 base.Configuration.BoundOperations = true;
