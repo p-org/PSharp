@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B34878DE-AB7D-4EA2-9867-A2AB42FF8CFB}</ProjectGuid>
+    <ProjectGuid>{09C9B216-A9CE-497F-9080-453F3E50410D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Unit</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.SharedObjects.Tests.Unit</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.SharedObjects.Tests.Unit</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -57,56 +57,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Asynchrony\AsyncAwaitTest.cs" />
-    <Compile Include="Asynchrony\ReceiveTest.cs" />
-    <Compile Include="Asynchrony\ReceiveWaitTest.cs" />
     <Compile Include="BaseTest.cs" />
-    <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
-    <Compile Include="EntryPoint\EntryPointThrowExceptionTest.cs" />
-    <Compile Include="EntryPoint\EntryPointRandomChoiceTest.cs" />
-    <Compile Include="EntryPoint\EntryPointEventSendingTest.cs" />
-    <Compile Include="EntryPoint\EntryPointMachineExecutionTest.cs" />
-    <Compile Include="EntryPoint\EntryPointMachineCreationTest.cs" />
-    <Compile Include="Machines\Statements\MethodCallTest.cs" />
-    <Compile Include="Machines\Declarations\GroupStateTest.cs" />
-    <Compile Include="EventHandling\MaxInstances1FailTest.cs" />
-    <Compile Include="Machines\Statements\PopTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateTest.cs" />
-    <Compile Include="Machines\Statements\CurrentStateTest.cs" />
-    <Compile Include="Machines\Transitions\PushTransitions\PushStateTest.cs" />
-    <Compile Include="EventHandling\ReceiveEvent\ReceiveEventTest.cs" />
-    <Compile Include="EventHandling\Wildcard\WildCardEventTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateExitFailTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateFailTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateMultipleInActionFailTest.cs" />
-    <Compile Include="EventHandling\ReceiveEvent\ReceiveEventFailTest.cs" />
-    <Compile Include="Generics\GenericMachineTest.cs" />
-    <Compile Include="Generics\GenericMonitorTest.cs" />
-    <Compile Include="RuntimeInterface\CreateAndExecuteTest.cs" />
-    <Compile Include="RuntimeInterface\ReceivingExternalEventTest.cs" />
-    <Compile Include="EventHandling\IgnoreEvent\TestIgnoreRaised.cs" />
-    <Compile Include="EventHandling\Actions6FailTest.cs" />
-    <Compile Include="EventHandling\Actions5FailTest.cs" />
-    <Compile Include="EventHandling\Actions1FailTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionDefaultHandlerTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionCounterTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionRingOfNodesTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionRandomChoiceTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionBasicTest.cs" />
-    <Compile Include="Liveness\UnfairExecutionTest.cs" />
-    <Compile Include="Liveness\Liveness1Test.cs" />
-    <Compile Include="Liveness\StateCaching\FairNondet1Test.cs" />
-    <Compile Include="Liveness\WarmStateTest.cs" />
-    <Compile Include="Liveness\Liveness2BugFoundTest.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness3Test.cs" />
-    <Compile Include="Liveness\Liveness2LoopMachineTest.cs" />
-    <Compile Include="Liveness\StateCaching\Nondet1Test.cs" />
-    <Compile Include="Liveness\StateCaching\WarmStateBugTest.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness2Test.cs" />
-    <Compile Include="Liveness\HotStateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RuntimeInterface\SendAndExecuteTest1.cs" />
-    <Compile Include="RuntimeInterface\SendAndExecuteTest2.cs" />
+    <Compile Include="SharedRegister\SharedRegisterMockTest.cs" />
+    <Compile Include="SharedRegister\SharedRegisterProductionTest.cs" />
+    <Compile Include="SharedRegister\SharedRegisterStructMocktest.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryMockTest1.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryMockTest2.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryMockTest3.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryMockTest4.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryProductionTest1.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryProductionTest2.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryProductionTest3.cs" />
+    <Compile Include="Mixed\MixedProductionTest.cs" />
+    <Compile Include="SharedCounter\SharedCounterMockTest.cs" />
+    <Compile Include="SharedCounter\SharedCounterProductionTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

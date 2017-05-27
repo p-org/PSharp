@@ -2,7 +2,7 @@ param(
     [ValidateSet("Release","Debug")]
     [string]
     $configuration="Release",
-    [ValidateSet("all","core","testing-services","language-services","static-analysis")]
+    [ValidateSet("all","core","testing-services","shared-objects","language-services","static-analysis")]
     [string]
     $test="all"
 )
@@ -43,6 +43,20 @@ if (($test -eq "all") -or ($test -eq "testing-services"))
     }
 
     Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Unit\bin\$configuration\Microsoft.PSharp.TestingServices.Tests.Unit.dll -verbose"
+}
+
+if (($test -eq "all") -or ($test -eq "shared-objects"))
+{
+    Write-Host "===================================" -ForegroundColor "yellow"
+    Write-Host "| Unit-testing 'shared-objects' |" -ForegroundColor "yellow"
+    Write-Host "===================================" -ForegroundColor "yellow"
+    if (-not (Test-Path $PSScriptRoot\SharedObjects.Tests.Unit\bin\$configuration\Microsoft.PSharp.SharedObjects.Tests.Unit.dll))
+    {
+        Write-Host "Error: Unit tests 'shared-objects' not found. Please build P# in '$configuration' to install them." -ForegroundColor "red"
+        exit
+    }
+
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\SharedObjects.Tests.Unit\bin\$configuration\Microsoft.PSharp.SharedObjects.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "language-services"))

@@ -625,7 +625,7 @@ namespace Microsoft.PSharp
         #region exceptions
 
         /// <summary>
-        /// Raises the <see cref="OnFailure"/> event with the specified <see cref="Exception"/> .
+        /// Raises the <see cref="OnFailure"/> event with the specified <see cref="Exception"/>.
         /// </summary>
         /// <param name="exception">Exception</param>
         protected void RaiseOnFailureEvent(Exception exception)

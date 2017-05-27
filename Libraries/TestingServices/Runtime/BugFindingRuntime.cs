@@ -695,36 +695,6 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.WaitForTaskToStart(task.Id);
         }
 
-        /// <summary>
-        /// Gets the currently executing <see cref="Machine"/>.
-        /// </summary>
-        /// <returns>Machine or null, if not present</returns>
-        internal Machine GetCurrentMachine()
-        {
-            //  The current task does not correspond to a machine.
-            if (Task.CurrentId == null)
-            {
-                return null;
-            }
-
-            // The current task does not correspond to a machine.
-            if (!this.TaskMap.ContainsKey((int)Task.CurrentId))
-            {
-                return null;
-            }
-
-            return this.TaskMap[(int)Task.CurrentId];
-        }
-
-        /// <summary>
-        /// Gets the id of the currently executing <see cref="Machine"/>.
-        /// <returns>MachineId or null, if not present</returns>
-        /// </summary>
-        internal MachineId GetCurrentMachineId()
-        {
-            return this.GetCurrentMachine()?.Id;
-        }
-
         #endregion
 
         #region specifications and error checking
@@ -1354,6 +1324,36 @@ namespace Microsoft.PSharp.TestingServices
         #endregion
 
         #region utilities
+
+        /// <summary>
+        /// Gets the currently executing <see cref="Machine"/>.
+        /// </summary>
+        /// <returns>Machine or null, if not present</returns>
+        internal Machine GetCurrentMachine()
+        {
+            //  The current task does not correspond to a machine.
+            if (Task.CurrentId == null)
+            {
+                return null;
+            }
+
+            // The current task does not correspond to a machine.
+            if (!this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                return null;
+            }
+
+            return this.TaskMap[(int)Task.CurrentId];
+        }
+
+        /// <summary>
+        /// Gets the id of the currently executing <see cref="Machine"/>.
+        /// <returns>MachineId or null, if not present</returns>
+        /// </summary>
+        internal MachineId GetCurrentMachineId()
+        {
+            return this.GetCurrentMachine()?.Id;
+        }
 
         /// <summary>
         /// Returns the fingerprint of the current program state.
