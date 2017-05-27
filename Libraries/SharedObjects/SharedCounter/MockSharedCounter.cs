@@ -12,63 +12,63 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.PSharp.TestingServices;
 
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Implements a shared counter
+    /// A wrapper for a shared counter modeled using a state-machine for testing.
     /// </summary>
     internal sealed class MockSharedCounter : ISharedCounter
     {
         /// <summary>
-        /// The counter
+        /// Machine modeling the shared counter.
         /// </summary>
-        MachineId counterMachine;
+        MachineId CounterMachine;
 
+        /// <summary>
+        /// The bug-finding runtime hosting this shared counter.
+        /// </summary>
         BugFindingRuntime Runtime;
 
         /// <summary>
-        /// Initializes the counter
+        /// Initializes the shared counter.
         /// </summary>
         /// <param name="value">Initial value</param>
-        /// <param name="Runtime">Runtime</param>
+        /// <param name="Runtime">BugFindingRuntime</param>
         public MockSharedCounter(int value, BugFindingRuntime Runtime)
         {
             this.Runtime = Runtime;
-            counterMachine = Runtime.CreateMachine(typeof(SharedCounterMachine));
-            Runtime.SendEvent(counterMachine, SharedCounterEvent.SetEvent(value));
+            CounterMachine = Runtime.CreateMachine(typeof(SharedCounterMachine));
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.SetEvent(value));
         }
 
         /// <summary>
-        /// Increments the counter
+        /// Increments the shared counter.
         /// </summary>
         public void Increment()
         {
-            Runtime.SendEvent(counterMachine, SharedCounterEvent.IncrementEvent());
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.IncrementEvent());
         }
 
         /// <summary>
-        /// Decrements the counter
+        /// Decrements the shared counter.
         /// </summary>
         public void Decrement()
         {
-            Runtime.SendEvent(counterMachine, SharedCounterEvent.DecrementEvent());
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.DecrementEvent());
         }
 
         /// <summary>
-        /// Gets current value of the counter
+        /// Gets the current value of the shared counter.
         /// </summary>
+        /// <returns>Current value</returns>
         public int GetValue()
         {
             var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(counterMachine, SharedCounterEvent.GetEvent(currentMachine.Id));
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.GetEvent(currentMachine.Id));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
-            return (response as SharedCounterResponseEvent).value;
+            return (response as SharedCounterResponseEvent).Value;
         }
     }
 }

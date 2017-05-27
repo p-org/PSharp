@@ -12,56 +12,52 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Implements a shared counter
+    /// Implements a shared counter to be used in production.
     /// </summary>
     internal sealed class ProductionSharedCounter : ISharedCounter
     {
         /// <summary>
-        /// The counter
+        /// The value of the shared counter.
         /// </summary>
-        volatile int counter;
-        
+        volatile int Counter;
+
         /// <summary>
-        /// Initializes the counter
+        /// Initializes the shared counter.
         /// </summary>
         /// <param name="value">Initial value</param>
         public ProductionSharedCounter(int value)
         {
-            counter = value;
+            Counter = value;
         }
 
         /// <summary>
-        /// Increments the counter
+        /// Increments the shared counter.
         /// </summary>
         public void Increment()
         {
-            Interlocked.Increment(ref counter);
+            Interlocked.Increment(ref Counter);
         }
 
         /// <summary>
-        /// Decrements the counter
+        /// Decrements the shared counter.
         /// </summary>
         public void Decrement()
         {
-            Interlocked.Decrement(ref counter);
+            Interlocked.Decrement(ref Counter);
         }
 
         /// <summary>
-        /// Gets current value of the counter
+        /// Gets the current value of the shared counter.
         /// </summary>
+        /// <returns>Current value</returns>
         public int GetValue()
         {
-            return counter;
+            return Counter;
         }
     }
 }

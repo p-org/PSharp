@@ -13,12 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
     public class SharedDictionaryMockTest3 : BaseTest
     {
@@ -40,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedObjects.CreateSharedDictionary<int, string>(this.Runtime);
+                var counter = SharedDictionary.Create<int, string>(this.Id.Runtime);
                 this.CreateMachine(typeof(N), new E(counter));
 
                 counter.TryAdd(1, "M");
@@ -76,6 +74,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             base.AssertSucceeded(config, test);
         }
-
     }
 }

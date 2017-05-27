@@ -55,6 +55,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TraceViewer", "Tools\Visual
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedObjects", "Libraries\SharedObjects\SharedObjects.csproj", "{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedObjects.Tests.Unit", "Tests\SharedObjects.Tests.Unit\SharedObjects.Tests.Unit.csproj", "{09C9B216-A9CE-497F-9080-453F3E50410D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -176,6 +178,12 @@ Global
 		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
 		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
+		{09C9B216-A9CE-497F-9080-453F3E50410D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09C9B216-A9CE-497F-9080-453F3E50410D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09C9B216-A9CE-497F-9080-453F3E50410D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09C9B216-A9CE-497F-9080-453F3E50410D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09C9B216-A9CE-497F-9080-453F3E50410D}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{09C9B216-A9CE-497F-9080-453F3E50410D}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -203,5 +211,6 @@ Global
 		{7C6A7CD5-7D25-4FAE-A197-32984E9ABEA6} = {1A773927-9427-43C5-A10A-6BB7F3C211AA}
 		{17DD1184-C1F7-41B6-8DFD-F159CE7D78CC} = {7C6A7CD5-7D25-4FAE-A197-32984E9ABEA6}
 		{A9572DC2-9898-40AA-8A6F-E3AB2EB6A992} = {6F835BCA-788A-4C38-933B-DBE71F40797F}
+		{09C9B216-A9CE-497F-9080-453F3E50410D} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 	EndGlobalSection
 EndGlobal

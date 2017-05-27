@@ -12,13 +12,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
     public class SharedCounterProductionTest : BaseTest
     {
@@ -66,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCounter()
         {
             var runtime = PSharpRuntime.Create();
-            var counter = SharedObjects.CreateSharedCounter(runtime, 0);
+            var counter = SharedCounter.Create(runtime, 0);
             var tcs1 = new TaskCompletionSource<bool>();
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
@@ -84,6 +82,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             Task.WaitAll(tcs1.Task, tcs2.Task);
             Assert.False(failed);
         }
-
     }
 }

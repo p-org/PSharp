@@ -13,12 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
     public class SharedCounterMockTest : BaseTest
     {
@@ -40,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedObjects.CreateSharedCounter(this.Id.Runtime, 0);
+                var counter = SharedCounter.Create(this.Id.Runtime, 0);
                 this.CreateMachine(typeof(N), new E(counter));
 
                 counter.Increment();
@@ -73,6 +71,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             base.AssertFailed(config, test, "Detected an assertion failure.");
         }
-
     }
 }

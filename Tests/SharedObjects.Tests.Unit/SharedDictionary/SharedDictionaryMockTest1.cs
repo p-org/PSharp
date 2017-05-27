@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedDictionaryMockTest4.cs">
+// <copyright file="SharedDictionaryMockTest1.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,14 +13,12 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedDictionaryMockTest4 : BaseTest
+    public class SharedDictionaryMockTest1 : BaseTest
     {
         class E : Event
         {
@@ -40,16 +38,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedObjects.CreateSharedDictionary<int, string>(this.Runtime);
+                var counter = SharedDictionary.Create<int, string>(this.Id.Runtime);
                 this.CreateMachine(typeof(N), new E(counter));
 
                 counter.TryAdd(1, "M");
 
-                string v;
-                var b = counter.TryRemove(1, out v);
+                var v = counter[1];
 
-                this.Assert(b == false || v == "M");
-                this.Assert(counter.Count == 0);
+                this.Assert(v == "M");
             }
         }
 
@@ -62,15 +58,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void EntryInit()
             {
                 var counter = (this.ReceivedEvent as E).counter;
-
-                string v;
-                var b = counter.TryRemove(1, out v);
-                this.Assert(b == false || v == "M");
+                counter.TryUpdate(1, "N", "M");
             }
         }
 
         [Fact]
-        public void TestDictionaryRemove()
+        public void TestDictionary()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
@@ -78,8 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M));
             });
 
-            base.AssertSucceeded(config, test);
+            base.AssertFailed(config, test, "Detected an assertion failure.");
         }
-
     }
 }

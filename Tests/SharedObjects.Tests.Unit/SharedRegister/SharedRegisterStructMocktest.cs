@@ -13,12 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
     public class SharedRegisterStructMockTest : BaseTest
     {
@@ -64,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var flag = (this.ReceivedEvent as Eflag).flag;
 
-                var counter = SharedObjects.CreateSharedRegister<S>(this.Id.Runtime);
+                var counter = SharedRegister.Create<S>(this.Id.Runtime);
                 counter.SetValue(new S(1, 1));
 
                 this.CreateMachine(typeof(N), new E(counter));

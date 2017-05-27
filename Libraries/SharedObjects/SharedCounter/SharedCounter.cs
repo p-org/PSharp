@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedDictionaryResponseEvent.cs">
+// <copyright file="SharedCounter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,25 +12,34 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.TestingServices;
+
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Event containing the value of a shared dictionary.
+    /// Shared counter that can be safely shared by multiple P# state-machines.
     /// </summary>
-    internal class SharedDictionaryResponseEvent<T> : Event
+    public static class SharedCounter
     {
         /// <summary>
-        /// Value.
+        /// Creates a new shared counter.
         /// </summary>
-        public T Value;
-
-        /// <summary>
-        /// Creates a new response event.
-        /// </summary>
-        /// <param name="value">Value</param>
-        public SharedDictionaryResponseEvent(T value)
+        /// <param name="runtime">PSharpRuntime</param>
+        /// <param name="value">Initial value</param>
+        public static ISharedCounter Create(PSharpRuntime runtime, int value = 0)
         {
-            Value = value;
+            if (runtime is StateMachineRuntime)
+            {
+                return new ProductionSharedCounter(value);
+            }
+            else if (runtime is TestingServices.BugFindingRuntime)
+            {
+                return new MockSharedCounter(value, runtime as BugFindingRuntime);
+            }
+            else
+            {
+                throw new RuntimeException("Unknown runtime object of type: " + runtime.GetType().Name + ".");
+            }
         }
     }
 }

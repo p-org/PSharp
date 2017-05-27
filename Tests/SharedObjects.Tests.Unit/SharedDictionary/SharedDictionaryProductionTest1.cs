@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedDictionaryProductionTest3.cs">
+// <copyright file="SharedDictionaryProductionTest1.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,15 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedDictionaryProductionTest3 : BaseTest
+    public class SharedDictionaryProductionTest1 : BaseTest
     {
         class E : Event
         {
@@ -44,15 +42,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var counter = (this.ReceivedEvent as E).counter;
                 var tcs = (this.ReceivedEvent as E).tcs;
+                var n = this.CreateMachine(typeof(N), this.ReceivedEvent);
 
-                for (int i = 0; i < 100; i++)
-                {
-                    counter.TryAdd(1, "M");
-                    counter[1] = "M";
-                }
+                string v;
+                while (counter.TryRemove(1, out v) == false) { }
+                this.Assert(v == "N");
 
-                var c = counter.Count;
-                this.Assert(c == 1);
                 tcs.SetResult(true);
             }
         }
@@ -66,40 +61,30 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void EntryInit()
             {
                 var counter = (this.ReceivedEvent as E).counter;
-                var tcs = (this.ReceivedEvent as E).tcs;
 
-                for (int i = 0; i < 100; i++)
-                {
-                    counter.TryAdd(1, "N");
-                    counter[1] = "N";
-                }
-
-                tcs.SetResult(true);
+                var b = counter.TryAdd(1, "N");
+                this.Assert(b == true);
             }
         }
 
         [Fact]
-        public void TestDictionaryCount()
+        public void TestCounter()
         {
             var runtime = PSharpRuntime.Create();
-            var counter = SharedObjects.CreateSharedDictionary<int, string>(runtime);
+            var counter = SharedDictionary.Create<int, string>(runtime);
             var tcs1 = new TaskCompletionSource<bool>();
-            var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
 
             runtime.OnFailure += delegate
             {
                 failed = true;
                 tcs1.SetResult(true);
-                tcs2.SetResult(true);
             };
 
             var m1 = runtime.CreateMachine(typeof(M), new E(counter, tcs1));
-            var m2 = runtime.CreateMachine(typeof(N), new E(counter, tcs2));
 
-            Task.WaitAll(tcs1.Task, tcs2.Task);
+            Task.WaitAll(tcs1.Task);
             Assert.False(failed);
         }
-
     }
 }

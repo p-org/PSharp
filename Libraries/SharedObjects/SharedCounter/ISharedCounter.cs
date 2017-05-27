@@ -12,32 +12,27 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Interface of a shared counter
+    /// Interface of a shared counter.
     /// </summary>
     public interface ISharedCounter
     {
         /// <summary>
-        /// Increments the counter
+        /// Increments the shared counter.
         /// </summary>
         void Increment();
 
         /// <summary>
-        /// Decrements the counter
+        /// Decrements the shared counter.
         /// </summary>
         void Decrement();
 
         /// <summary>
-        /// Gets current value of the counter
+        /// Gets the current value of the shared counter.
         /// </summary>
+        /// <returns>Current value</returns>
         int GetValue();
     }
 }

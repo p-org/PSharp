@@ -12,23 +12,25 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.SharedObjects
 {
+    /// <summary>
+    /// Event containing the value of a shared register.
+    /// </summary>
     internal class SharedRegisterResponseEvent<T> : Event
     {
-        public T value;
+        /// <summary>
+        /// Value.
+        /// </summary>
+        public T Value;
 
+        /// <summary>
+        /// Creates a new response event.
+        /// </summary>
+        /// <param name="value">Value</param>
         public SharedRegisterResponseEvent(T value)
         {
-            this.value = value;
+            Value = value;
         }
-
     }
 }

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ISharedRegister.cs">
+// <copyright file="ProductionSharedRegister.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,86 +13,81 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Implements a shared register
+    /// Implements a shared register to be used in production.
     /// </summary>
     internal sealed class ProductionSharedRegister<T> : ISharedRegister<T> where T : struct
     {
         /// <summary>
-        /// Current value of the register
+        /// Current value of the register.
         /// </summary>
-        T value;
+        T Value;
 
         /// <summary>
-        /// Initializes the register
+        /// Initializes the shared register.
         /// </summary>
         /// <param name="value">Initial value</param>
         public ProductionSharedRegister(T value)
         {
-            this.value = value;
+            Value = value;
         }
 
         /// <summary>
-        /// Read and update the register
+        /// Reads and updates the register.
         /// </summary>
         /// <param name="func">Update function</param>
         /// <returns>Resulting value of the register</returns>
         public T Update(Func<T, T> func)
         {
-            T old_value, new_value;
+            T oldValue, newValue;
             bool done = false;
 
             do
             {
-                old_value = value;
-                new_value = func(old_value);
+                oldValue = Value;
+                newValue = func(oldValue);
 
                 lock (this)
                 {
-                    if (old_value.Equals(value))
+                    if (oldValue.Equals(Value))
                     {
-                        value = new_value;
+                        Value = newValue;
                         done = true;
                     }
                 }
             } while (!done);
 
-            return new_value;
+            return newValue;
         }
 
         /// <summary>
-        /// Gets current value of the register
+        /// Gets current value of the register.
         /// </summary>
         /// <returns>Current value</returns>
         public T GetValue()
         {
-            T current_value;
+            T currentValue;
             lock (this)
             {
-                current_value = value;
+                currentValue = Value;
             }
-            return current_value;
+
+            return currentValue;
         }
 
         /// <summary>
-        /// Sets current value of the register
+        /// Sets current value of the register.
         /// </summary>
         /// <param name="value">Value</param>
         public void SetValue(T value)
         {
             lock(this)
             {
-                this.value = value;
+                this.Value = value;
             }
         }
-
     }
 }

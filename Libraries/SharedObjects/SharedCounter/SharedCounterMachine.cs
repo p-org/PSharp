@@ -12,41 +12,55 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.SharedObjects
 {
+    /// <summary>
+    /// A shared counter modeled using a state-machine for testing.
+    /// </summary>
     internal sealed class SharedCounterMachine : Machine
     {
-        int counter = 0;
+        /// <summary>
+        /// The value of the shared counter.
+        /// </summary>
+        int Counter;
 
+        /// <summary>
+        /// The start state of this machine.
+        /// </summary>
         [Start]
+        [OnEntry(nameof(Initialize))]
         [OnEventDoAction(typeof(SharedCounterEvent), nameof(ProcessEvent))]
         class Init : MachineState { }
 
+        /// <summary>
+        /// Initializes the machine.
+        /// </summary>
+        void Initialize()
+        {
+            Counter = 0;
+        }
+
+        /// <summary>
+        /// Processes the next dequeued event.
+        /// </summary>
         void ProcessEvent()
         {
             var e = this.ReceivedEvent as SharedCounterEvent;
-            switch (e.op)
+            switch (e.Operation)
             {
-                case SharedCounterEvent.SharedCounterOp.SET:
-                    counter = e.value;
+                case SharedCounterEvent.SharedCounterOperation.SET:
+                    Counter = e.Value;
                     break;
-                case SharedCounterEvent.SharedCounterOp.GET:
-                    this.Send(e.sender, new SharedCounterResponseEvent(counter));
+                case SharedCounterEvent.SharedCounterOperation.GET:
+                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
                     break;
-                case SharedCounterEvent.SharedCounterOp.INC:
-                    counter++;
+                case SharedCounterEvent.SharedCounterOperation.INC:
+                    Counter++;
                     break;
-                case SharedCounterEvent.SharedCounterOp.DEC:
-                    counter--;
+                case SharedCounterEvent.SharedCounterOperation.DEC:
+                    Counter--;
                     break;
             }
-
         }
     }
 }

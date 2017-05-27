@@ -13,27 +13,28 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.TestingServices
+using Microsoft.PSharp.TestingServices;
+
+namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Implements a shared register
+    /// A wrapper for a shared register modeled using a state-machine for testing.
     /// </summary>
     internal sealed class MockSharedRegister<T> : ISharedRegister<T> where T: struct
     {
         /// <summary>
-        /// The register
+        /// Machine modeling the shared register.
         /// </summary>
         MachineId registerMachine;
 
+        /// <summary>
+        /// The bug-finding runtime hosting this shared register.
+        /// </summary>
         BugFindingRuntime Runtime;
 
         /// <summary>
-        /// Initializes the register
+        /// Initializes the shared register.
         /// </summary>
         /// <param name="value">Initial value</param>
         /// <param name="Runtime">Runtime</param>
@@ -46,7 +47,7 @@ namespace Microsoft.PSharp.TestingServices
 
 
         /// <summary>
-        /// Read and update the register
+        /// Reads and updates the register.
         /// </summary>
         /// <param name="func">Update function</param>
         /// <returns>Resulting value of the register</returns>
@@ -55,11 +56,11 @@ namespace Microsoft.PSharp.TestingServices
             var currentMachine = Runtime.GetCurrentMachine();
             Runtime.SendEvent(registerMachine, SharedRegisterEvent.UpdateEvent(func, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
-            return e.value;
+            return e.Value;
         }
 
         /// <summary>
-        /// Gets current value of the register
+        /// Gets current value of the register.
         /// </summary>
         /// <returns>Current value</returns>
         public T GetValue()
@@ -67,11 +68,11 @@ namespace Microsoft.PSharp.TestingServices
             var currentMachine = Runtime.GetCurrentMachine();
             Runtime.SendEvent(registerMachine, SharedRegisterEvent.GetEvent(currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
-            return e.value;
+            return e.Value;
         }
 
         /// <summary>
-        /// Sets current value of the register
+        /// Sets current value of the register.
         /// </summary>
         /// <param name="value">Value</param>
         public void SetValue(T value)

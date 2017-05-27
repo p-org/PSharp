@@ -12,49 +12,82 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.SharedObjects
 {
+    /// <summary>
+    /// Event used to communicate with a shared register machine.
+    /// </summary>
     internal class SharedRegisterEvent: Event 
     {
-        internal enum SharedRegisterOp { GET, SET, UPDATE };
+        /// <summary>
+        /// Supported shared register operations.
+        /// </summary>
+        internal enum SharedRegisterOperation { GET, SET, UPDATE };
 
-        public SharedRegisterOp op { get; private set; }
+        /// <summary>
+        /// The operation stored in this event.
+        /// </summary>
+        public SharedRegisterOperation Operation { get; private set; }
 
-        public object value { get; private set; }
+        /// <summary>
+        /// The shared register value stored in this event.
+        /// </summary>
+        public object Value { get; private set; }
 
-        public object func { get; private set; }
+        /// <summary>
+        /// The shared register func stored in this event.
+        /// </summary>
+        public object Func { get; private set; }
 
-        public MachineId sender { get; private set; }
+        /// <summary>
+        /// The sender machine stored in this event.
+        /// </summary>
+        public MachineId Sender { get; private set; }
 
-        SharedRegisterEvent(SharedRegisterOp op, object value, object func, MachineId sender)
+        /// <summary>
+        /// Creates a new event with the specified operation.
+        /// </summary>
+        /// <param name="op">SharedRegisterOperation</param>
+        /// <param name="value">Value</param>
+        /// <param name="func">Func</param>
+        /// <param name="sender">Sender</param>
+        SharedRegisterEvent(SharedRegisterOperation op, object value, object func, MachineId sender)
         {
-            this.op = op;
-            this.value = value;
-            this.func = func;
-            this.sender = sender;
+            Operation = op;
+            Value = value;
+            Func = func;
+            Sender = sender;
         }
 
+        /// <summary>
+        /// Creates a new event for the 'UPDATE' operation.
+        /// </summary>
+        /// <param name="func">Func</param>
+        /// <param name="sender">Sender</param>
+        /// <returns>SharedRegisterEvent</returns>
         public static SharedRegisterEvent UpdateEvent(object func, MachineId sender)
         {
-            return new SharedRegisterEvent(SharedRegisterOp.UPDATE, null, func, sender);
+            return new SharedRegisterEvent(SharedRegisterOperation.UPDATE, null, func, sender);
         }
 
+        /// <summary>
+        /// Creates a new event for the 'SET' operation.
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>SharedRegisterEvent</returns>
         public static SharedRegisterEvent SetEvent(object value)
         {
-            return new SharedRegisterEvent(SharedRegisterOp.SET, value, null, null);
+            return new SharedRegisterEvent(SharedRegisterOperation.SET, value, null, null);
         }
 
+        /// <summary>
+        /// Creates a new event for the 'GET' operation.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <returns>SharedRegisterEvent</returns>
         public static SharedRegisterEvent GetEvent(MachineId sender)
         {
-            return new SharedRegisterEvent(SharedRegisterOp.GET, null, null, sender);
+            return new SharedRegisterEvent(SharedRegisterOperation.GET, null, null, sender);
         }
-
     }
 }

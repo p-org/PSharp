@@ -12,22 +12,25 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.SharedObjects
 {
+    /// <summary>
+    /// Event containing the value of a shared counter.
+    /// </summary>
     internal class SharedCounterResponseEvent : Event
     {
-        public int value;
+        /// <summary>
+        /// Value.
+        /// </summary>
+        public int Value;
 
+        /// <summary>
+        /// Creates a new response event.
+        /// </summary>
+        /// <param name="value">Value</param>
         public SharedCounterResponseEvent(int value)
         {
-            this.value = value;
+            Value = value;
         }
-
     }
 }

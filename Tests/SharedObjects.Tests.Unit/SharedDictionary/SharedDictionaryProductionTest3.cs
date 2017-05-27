@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedRegisterProductionTest.cs">
+// <copyright file="SharedDictionaryProductionTest3.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,22 +12,20 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedRegisterProductionTest : BaseTest
+    public class SharedDictionaryProductionTest3 : BaseTest
     {
         class E : Event
         {
-            public ISharedRegister<int> counter;
+            public ISharedDictionary<int, string> counter;
             public TaskCompletionSource<bool> tcs;
 
-            public E(ISharedRegister<int> counter, TaskCompletionSource<bool> tcs)
+            public E(ISharedDictionary<int, string> counter, TaskCompletionSource<bool> tcs)
             {
                 this.counter = counter;
                 this.tcs = tcs;
@@ -45,17 +43,33 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 var counter = (this.ReceivedEvent as E).counter;
                 var tcs = (this.ReceivedEvent as E).tcs;
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 100; i++)
                 {
-                    counter.Update(x => x + 5);
+                    counter.TryAdd(1, "M");
+                    counter[1] = "M";
+                }
 
-                    var v1 = counter.GetValue();
-                    this.Assert(v1 == 10 || v1 == 15);
+                var c = counter.Count;
+                this.Assert(c == 1);
+                tcs.SetResult(true);
+            }
+        }
 
-                    counter.Update(x => x - 5);
+        class N : Machine
+        {
+            [Start]
+            [OnEntry(nameof(EntryInit))]
+            class Init : MachineState { }
 
-                    var v2 = counter.GetValue();
-                    this.Assert(v2 == 5 || v2 == 10);
+            void EntryInit()
+            {
+                var counter = (this.ReceivedEvent as E).counter;
+                var tcs = (this.ReceivedEvent as E).tcs;
+
+                for (int i = 0; i < 100; i++)
+                {
+                    counter.TryAdd(1, "N");
+                    counter[1] = "N";
                 }
 
                 tcs.SetResult(true);
@@ -63,12 +77,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestRegister()
+        public void TestDictionaryCount()
         {
             var runtime = PSharpRuntime.Create();
-            var counter = SharedObjects.CreateSharedRegister<int>(runtime, 0);
-            counter.SetValue(5);
-
+            var counter = SharedDictionary.Create<int, string>(runtime);
             var tcs1 = new TaskCompletionSource<bool>();
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
@@ -81,11 +93,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             };
 
             var m1 = runtime.CreateMachine(typeof(M), new E(counter, tcs1));
-            var m2 = runtime.CreateMachine(typeof(M), new E(counter, tcs2));
+            var m2 = runtime.CreateMachine(typeof(N), new E(counter, tcs2));
 
             Task.WaitAll(tcs1.Task, tcs2.Task);
             Assert.False(failed);
         }
-
     }
 }

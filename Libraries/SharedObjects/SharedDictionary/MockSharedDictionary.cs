@@ -14,74 +14,76 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.TestingServices
+using Microsoft.PSharp.TestingServices;
+
+namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Implements a shared dictionary
+    /// A wrapper for a shared dictionary modeled using a state-machine for testing.
     /// </summary>
     internal sealed class MockSharedDictionary<TKey, TValue> : ISharedDictionary<TKey, TValue>
     {
         /// <summary>
-        /// The dictionary
+        /// Machine modeling the shared dictionary.
         /// </summary>
-        MachineId dictionaryMachine;
+        MachineId DictionaryMachine;
 
+        /// <summary>
+        /// The bug-finding runtime hosting this shared dictionary.
+        /// </summary>
         BugFindingRuntime Runtime;
 
         /// <summary>
-        /// Initializes the dictionary
+        /// Initializes the shared dictionary.
         /// </summary>
         /// <param name="comparer">Comparre for keys</param>
-        /// <param name="Runtime">Runtime</param>
+        /// <param name="Runtime">BugFindingRuntime</param>
         public MockSharedDictionary(IEqualityComparer<TKey> comparer, BugFindingRuntime Runtime)
         {
             this.Runtime = Runtime;
             if (comparer != null)
             {
-                dictionaryMachine = Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>),
+                DictionaryMachine = Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>),
                     SharedDictionaryEvent.InitEvent(comparer));
             }
             else
             {
-                dictionaryMachine = Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>));
+                DictionaryMachine = Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>));
             }
         }
 
         /// <summary>
-        /// Add a new key to the dictionary, if it doesn’t already exist in the dictionary
+        /// Adds a new key to the dictionary, if it doesn’t already exist in the dictionary.
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        /// <returns>true or false depending on whether the new key/value pair was added.</returns>
+        /// <returns>True or false depending on whether the new key/value pair was added.</returns>
         public bool TryAdd(TKey key, TValue value)
         {
             var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(dictionaryMachine, SharedDictionaryEvent.TryAddEvent(key, value, currentMachine.Id));
+            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryAddEvent(key, value, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<bool>)).Result as SharedDictionaryResponseEvent<bool>;
-            return e.value;
+            return e.Value;
         }
 
         /// <summary>
-        /// Update the value for an existing key in the dictionary, if that key has a specific value
+        /// Updates the value for an existing key in the dictionary, if that key has a specific value.
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="newValue">New value</param>
         /// <param name="comparisonValue">Old value</param>
-        /// <returns>true if the value with key was equal to comparisonValue and was replaced with newValue; otherwise, false.</returns>
+        /// <returns>True if the value with key was equal to comparisonValue and was replaced with newValue; otherwise, false.</returns>
         public bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue)
         {
             var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(dictionaryMachine, SharedDictionaryEvent.TryUpdateEvent(key, newValue, comparisonValue, currentMachine.Id));
+            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryUpdateEvent(key, newValue, comparisonValue, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<bool>)).Result as SharedDictionaryResponseEvent<bool>;
-            return e.value;
+            return e.Value;
         }
 
         /// <summary>
-        /// Gets or sets the value associated with the specified key
+        /// Gets or sets the value associated with the specified key.
         /// </summary>
         /// <param name="key">Key</param>
         /// <returns>Value</returns>
@@ -90,34 +92,34 @@ namespace Microsoft.PSharp.TestingServices
             get
             {
                 var currentMachine = Runtime.GetCurrentMachine();
-                Runtime.SendEvent(dictionaryMachine, SharedDictionaryEvent.GetEvent(key, currentMachine.Id));
+                Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.GetEvent(key, currentMachine.Id));
                 var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<TValue>)).Result as SharedDictionaryResponseEvent<TValue>;
-                return e.value;
+                return e.Value;
             }
             set
             {
-                Runtime.SendEvent(dictionaryMachine, SharedDictionaryEvent.SetEvent(key, value));
+                Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.SetEvent(key, value));
             }
         }
 
 
         /// <summary>
-        /// Removes the specified key from the dictionary
+        /// Removes the specified key from the dictionary.
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value associated with the key if present, or the default value otherwise.</param>
-        /// <returns>true if the element is successfully removed; otherwise, false.</returns>
+        /// <returns>True if the element is successfully removed; otherwise, false.</returns>
         public bool TryRemove(TKey key, out TValue value)
         {
             var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(dictionaryMachine, SharedDictionaryEvent.TryRemoveEvent(key, currentMachine.Id));
+            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryRemoveEvent(key, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
-            value = e.value.Item2;
-            return e.value.Item1;
+            value = e.Value.Item2;
+            return e.Value.Item1;
         }
 
         /// <summary>
-        /// Gets the number of elements in the dictionary
+        /// Gets the number of elements in the dictionary.
         /// </summary>
         /// <returns>Size</returns>
         public int Count
@@ -125,9 +127,9 @@ namespace Microsoft.PSharp.TestingServices
             get
             {
                 var currentMachine = Runtime.GetCurrentMachine();
-                Runtime.SendEvent(dictionaryMachine, SharedDictionaryEvent.CountEvent(currentMachine.Id));
+                Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.CountEvent(currentMachine.Id));
                 var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<int>)).Result as SharedDictionaryResponseEvent<int>;
-                return e.value;
+                return e.Value;
             }
         }
     }

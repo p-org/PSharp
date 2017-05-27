@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedDictionaryProductionTest2.cs">
+// <copyright file="SharedDictionaryMockTest4.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,24 +13,20 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedDictionaryProductionTest2 : BaseTest
+    public class SharedDictionaryMockTest4 : BaseTest
     {
         class E : Event
         {
             public ISharedDictionary<int, string> counter;
-            public TaskCompletionSource<bool> tcs;
 
-            public E(ISharedDictionary<int, string> counter, TaskCompletionSource<bool> tcs)
+            public E(ISharedDictionary<int, string> counter)
             {
                 this.counter = counter;
-                this.tcs = tcs;
             }
         }
 
@@ -42,7 +38,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                var n = this.CreateMachine(typeof(N), this.ReceivedEvent);
+                var counter = SharedDictionary.Create<int, string>(this.Id.Runtime);
+                this.CreateMachine(typeof(N), new E(counter));
+
+                counter.TryAdd(1, "M");
+
+                string v;
+                var b = counter.TryRemove(1, out v);
+
+                this.Assert(b == false || v == "M");
+                this.Assert(counter.Count == 0);
             }
         }
 
@@ -55,33 +60,23 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void EntryInit()
             {
                 var counter = (this.ReceivedEvent as E).counter;
-                var tcs = (this.ReceivedEvent as E).tcs;
 
-                counter.TryAdd(1, "N");
-                var v = counter[2]; // key doesn't exist
-                tcs.SetResult(true);
+                string v;
+                var b = counter.TryRemove(1, out v);
+                this.Assert(b == false || v == "M");
             }
         }
 
         [Fact]
-        public void TestDictionaryException()
+        public void TestDictionaryRemove()
         {
-            var runtime = PSharpRuntime.Create();
-            var counter = SharedObjects.CreateSharedDictionary<int, string>(runtime);
-            var tcs1 = new TaskCompletionSource<bool>();
-            var failed = false;
+            var config = Configuration.Create().WithNumberOfIterations(50);
 
-            runtime.OnFailure += delegate
-            {
-                failed = true;
-                tcs1.SetResult(true);
-            };
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(M));
+            });
 
-            var m1 = runtime.CreateMachine(typeof(M), new E(counter, tcs1));
-
-            Task.WaitAll(tcs1.Task);
-            Assert.True(failed);
+            base.AssertSucceeded(config, test);
         }
-
     }
 }

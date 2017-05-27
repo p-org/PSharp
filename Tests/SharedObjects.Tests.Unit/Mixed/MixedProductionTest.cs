@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedDictionaryProductionTest4.cs">
+// <copyright file="MixedProductionTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,15 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.Unit
+namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedDictionaryProductionTest4 : BaseTest
+    public class MixedProductionTest : BaseTest
     {
         const int T = 100;
 
@@ -105,8 +103,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestDictionaryCount()
         {
             var runtime = PSharpRuntime.Create();
-            var dictionary = SharedObjects.CreateSharedDictionary<int, string>(runtime);
-            var counter = SharedObjects.CreateSharedCounter(runtime);
+            var dictionary = SharedDictionary.Create<int, string>(runtime);
+            var counter = SharedCounter.Create(runtime);
             var tcs1 = new TaskCompletionSource<bool>();
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
@@ -125,6 +123,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             Assert.False(failed);
             Assert.True(counter.GetValue() == T);
         }
-
     }
 }
