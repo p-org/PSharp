@@ -319,7 +319,7 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             Output.WriteLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
                                 $"[task-{this.Configuration.TestingProcessId}]");
-                            if(base.TestReport.NumOfFoundBugs == 1)
+                            if (base.TestReport.NumOfFoundBugs == 1)
                             {
                                 this.ReadableTrace = sw.ToString();
                                 this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");

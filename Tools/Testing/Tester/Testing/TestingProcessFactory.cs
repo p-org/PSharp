@@ -120,6 +120,11 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/cycle-replay ");
             }
 
+            if (configuration.UserHash)
+            {
+                arguments.Append($"/user-hash ");
+            }
+
             arguments.Append($"/run-as-parallel-testing-task ");
             arguments.Append($"/testing-scheduler-endpoint:{configuration.TestingSchedulerEndPoint} ");
             arguments.Append($"/testing-scheduler-process-id:{Process.GetCurrentProcess().Id} ");
