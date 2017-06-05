@@ -6,7 +6,7 @@
   <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateToolOutput</CoreCompileDependsOn>
 </PropertyGroup>
 
-<UsingTask TaskName="Microsoft.PSharp.Rewriter" AssemblyFile="$(PSharpBinaries)\PSharpSyntaxRewriter.exe" />
+<UsingTask TaskName="Microsoft.PSharp.Rewriter" AssemblyFile=".\PSharpSyntaxRewriter.exe" />
 
 <Target Name="GenerateToolOutput">
 
