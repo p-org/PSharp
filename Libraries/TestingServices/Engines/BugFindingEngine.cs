@@ -336,10 +336,7 @@ namespace Microsoft.PSharp.TestingServices
                                 this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
                                 this.BugTrace = runtime.BugTrace;
                                 this.ConstructReproducableTrace(runtime);
-                                lock (base.Configuration)
-                                {
-                                    base.Configuration.SuppressTrace = true;
-                                }
+                                base.Configuration.SuppressTrace = true;
                             }
                             if(!base.Configuration.PerformFullExploration)
                                 break;
