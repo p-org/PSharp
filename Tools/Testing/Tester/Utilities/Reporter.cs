@@ -44,11 +44,11 @@ namespace Microsoft.PSharp.TestingServices
             string directory = "";
             if (isDebug)
             {
-                directory = GetOutputDirectory(report.Configuration.AssemblyToBeAnalyzed, "CoverageDebug");
+                directory = GetOutputDirectory(report.Configuration.OutputFilePath, report.Configuration.AssemblyToBeAnalyzed, "CoverageDebug");
             }
             else
             {
-                directory = GetOutputDirectory(report.Configuration.AssemblyToBeAnalyzed);
+                directory = GetOutputDirectory(report.Configuration.OutputFilePath, report.Configuration.AssemblyToBeAnalyzed);
             }
 
             EmitTestingCoverageOutputFiles(report, directory, file);
@@ -58,13 +58,31 @@ namespace Microsoft.PSharp.TestingServices
         /// Returns (and creates if it does not exist) the output
         /// directory with an optional suffix.
         /// </summary>
-        /// <param name="path">Path</param>
+        /// <param name="assemblyPath">Path of input assembly</param>
+        /// <param name="userOutputDir">User-provided output path</param>
         /// <param name="suffix">Optional suffix</param>
         /// <returns>Path</returns>
-        internal static string GetOutputDirectory(string path, string suffix = "")
+        internal static string GetOutputDirectory(string userOutputDir, string assemblyPath, string suffix = "")
         {
-            string directoryPath = Path.GetDirectoryName(path) +
-                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+            string directoryPath;
+
+            if (userOutputDir != "")
+            {
+                directoryPath = userOutputDir + Path.DirectorySeparatorChar;
+            }
+            else
+            {
+
+                var subpath = Path.GetDirectoryName(assemblyPath);
+                if (subpath == "")
+                {
+                    subpath = ".";
+                }
+
+                directoryPath = subpath +
+                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+            }
+
             if (suffix.Length > 0)
             {
                 directoryPath += suffix + Path.DirectorySeparatorChar;
