@@ -18,6 +18,7 @@ using System.Text;
 
 using Microsoft.PSharp.TestingServices.Coverage;
 using System;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -243,8 +244,11 @@ namespace Microsoft.PSharp.TestingServices
                 this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
+                if (this.NumOfFoundBugs == 1)
+                {
+                    Output.WriteLine("Found the first bug");
+                }
             }
-
             return true;
         }
 

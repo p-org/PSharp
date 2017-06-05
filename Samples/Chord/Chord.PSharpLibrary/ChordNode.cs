@@ -477,17 +477,17 @@ namespace Chord.PSharpLibrary
 
         void EmitFingerTableAndKeys()
         {
-            this.Id.Runtime.Log(" ... Printing finger table of node {0}:", this.NodeId);
+            this.Id.Runtime.Logger.WriteLine(" ... Printing finger table of node {0}:", this.NodeId);
             foreach (var finger in this.FingerTable)
             {
-                this.Id.Runtime.Log("  >> " + finger.Key + " | [" + finger.Value.Start +
+                this.Id.Runtime.Logger.WriteLine("  >> " + finger.Key + " | [" + finger.Value.Start +
                     ", " + finger.Value.End + ") | " + finger.Value.Node);
             }
 
-            this.Id.Runtime.Log(" ... Printing keys of node {0}:", this.NodeId);
+            this.Id.Runtime.Logger.WriteLine(" ... Printing keys of node {0}:", this.NodeId);
             foreach (var key in this.Keys)
             {
-                this.Id.Runtime.Log("  >> Key-" + key);
+                this.Id.Runtime.Logger.WriteLine("  >> Key-" + key);
             }
         }
 
