@@ -244,10 +244,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
-                if (this.NumOfFoundBugs == 1)
-                {
-                    Output.WriteLine("Found the first bug");
-                }
             }
             return true;
         }

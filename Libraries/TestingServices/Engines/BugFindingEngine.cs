@@ -319,13 +319,6 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             Output.WriteLine($"..... Iteration #{i + 1} triggered bug #{base.TestReport.NumOfFoundBugs} " +
                                 $"[task-{this.Configuration.TestingProcessId}]");
-                            if (base.TestReport.NumOfFoundBugs == 1)
-                            {
-                                this.ReadableTrace = sw.ToString();
-                                this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
-                                this.BugTrace = runtime.BugTrace;
-                                this.ConstructReproducableTrace(runtime);
-                            }
                         }
 
                         if (base.Strategy.HasFinished())
@@ -335,7 +328,7 @@ namespace Microsoft.PSharp.TestingServices
 
                         base.Strategy.ConfigureNextIteration();
 
-                        if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
+                        if (/*!base.Configuration.PerformFullExploration && */base.TestReport.NumOfFoundBugs > 0)
                         {
                             if (sw != null && !base.Configuration.SuppressTrace)
                             {
@@ -343,9 +336,13 @@ namespace Microsoft.PSharp.TestingServices
                                 this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
                                 this.BugTrace = runtime.BugTrace;
                                 this.ConstructReproducableTrace(runtime);
+                                lock (base.Configuration)
+                                {
+                                    base.Configuration.SuppressTrace = true;
+                                }
                             }
-
-                            break;
+                            if(!base.Configuration.PerformFullExploration)
+                                break;
                         }
                         else if (sw != null && base.Configuration.PrintTrace)
                         {
