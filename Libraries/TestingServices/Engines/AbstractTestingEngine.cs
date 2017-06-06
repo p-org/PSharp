@@ -450,7 +450,7 @@ namespace Microsoft.PSharp.TestingServices
                         $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
                 }
             }
-            else if (testMethods.Count > 1)
+            else if (filteredTestMethods.Count > 1)
             {
                 var msg = "Only one test method to the P# program can " +
                     $"be declared with the attribute '{typeof(Test).FullName}'. " +
@@ -466,21 +466,23 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(msg);
             }
 
-            if (testMethods[0].ReturnType != typeof(void) ||
-                testMethods[0].ContainsGenericParameters ||
-                testMethods[0].IsAbstract || testMethods[0].IsVirtual ||
-                testMethods[0].IsConstructor ||
-                !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
-                testMethods[0].GetParameters().Length != 1 ||
-                testMethods[0].GetParameters()[0].ParameterType != typeof(PSharpRuntime))
+            var testMethod = filteredTestMethods[0];
+
+            if (testMethod.ReturnType != typeof(void) ||
+                testMethod.ContainsGenericParameters ||
+                testMethod.IsAbstract || testMethod.IsVirtual ||
+                testMethod.IsConstructor ||
+                !testMethod.IsPublic || !testMethod.IsStatic ||
+                testMethod.GetParameters().Length != 1 ||
+                testMethod.GetParameters()[0].ParameterType != typeof(PSharpRuntime))
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(Test).FullName}] public static void " +
-                    $"void {testMethods[0].Name}(PSharpRuntime runtime) {{ ... }}");
+                    $"void {testMethod.Name}(PSharpRuntime runtime) {{ ... }}");
             }
 
-            this.TestMethod = testMethods[0];
+            this.TestMethod = testMethod;
         }
 
         /// <summary>
