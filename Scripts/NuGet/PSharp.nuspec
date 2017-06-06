@@ -2,13 +2,13 @@
 <package >
   <metadata>
     <id>Microsoft.PSharp</id>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <authors>Microsoft</authors>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>The P# language, runtime and testing infrastructure</description>
-    <releaseNotes>This release contains the 1.2.1 version of the P# language, runtime and testing infrastructure.</releaseNotes>
+    <releaseNotes>This release contains the 1.2.2 version of the P# language, runtime and testing infrastructure.</releaseNotes>
     <copyright>Copyright © 2017 Microsoft Corporation</copyright>
     <tags>asynchrony testing .NET programming actors state-machines</tags>
   </metadata>
