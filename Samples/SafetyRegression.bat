@@ -1,7 +1,7 @@
 ..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
 
 @echo off
-echo Test		Buggy schedules		Time taken	> .\SafetyResults.txt
+echo Test			Buggy schedules		Time taken	> .\SafetyResults.txt
 
 setlocal enabledelayedexpansion
 
@@ -17,6 +17,6 @@ for /D %%s in (.\*) do (
 	for /f "tokens=3" %%i in ("!mystr2_%%s!") do set Time_%%s=%%i
 	
 	cd ..\..\
-	echo %%s			!Bug_%%s!		!Time_%%s!		>> .\SafetyResults.txt
+	echo %%s		!Bug_%%s!		!Time_%%s!		>> .\SafetyResults.txt
 	cd .\Output
 )
