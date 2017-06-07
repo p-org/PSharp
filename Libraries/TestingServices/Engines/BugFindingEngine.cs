@@ -328,7 +328,7 @@ namespace Microsoft.PSharp.TestingServices
 
                         base.Strategy.ConfigureNextIteration();
 
-                        if (/*!base.Configuration.PerformFullExploration && */base.TestReport.NumOfFoundBugs > 0)
+                        if (/*!base.Configuration.PerformFullExploration && */base.TestReport.NumOfFoundBugs == 1)
                         {
                             if (sw != null && !base.Configuration.SuppressTrace)
                             {
