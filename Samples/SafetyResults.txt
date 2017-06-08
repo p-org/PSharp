@@ -1,7 +1,0 @@
-Test		Buggy schedules		Time taken	
-.\Test1_Command1					5.5616218		
-.\Test2_Command1					20.7738303		
-.\Test3_Command1					14.4329111		
-.\Test4_Command1			6.00%		4.4643019		
-.\Test5_Command1					15.1695933		
-.\Test6_Command1			2.60%		20.034876		
