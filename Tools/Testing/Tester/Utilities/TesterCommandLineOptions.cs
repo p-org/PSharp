@@ -138,25 +138,6 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
                     base.Configuration.DelayBound = i;
                 }
-                else if (scheduler.ToLower().Equals("rob"))
-                {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomOperationBounding;
-                    base.Configuration.BoundOperations = true;
-                }
-                else if (scheduler.StartsWith("pob"))
-                {
-                    int i = 0;
-                    if (scheduler.Equals("pob") ||
-                        !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
-                    {
-                        Error.ReportAndExit("Please give a valid number of priority " +
-                            "switch points '/sch:pob:[x]', where [x] >= 0.");
-                    }
-
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.PrioritizedOperationBounding;
-                    base.Configuration.BoundOperations = true;
-                    base.Configuration.PrioritySwitchBound = i;
-                }
                 else if (scheduler.ToLower().Equals("macemc"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
@@ -326,10 +307,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.EnableCycleReplayingStrategy = true;
             }
-            else if (option.ToLower().Equals("/opbound"))
-            {
-                base.Configuration.BoundOperations = true;
-            }
             else if (option.ToLower().Equals("/dynamic-event-reordering"))
             {
                 base.Configuration.DynamicEventQueuePrioritization = true;
@@ -366,8 +343,6 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 Error.ReportAndExit("Please give a valid scheduling strategy " +

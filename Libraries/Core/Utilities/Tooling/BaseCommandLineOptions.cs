@@ -122,12 +122,8 @@ namespace Microsoft.PSharp.Utilities
 
                 this.Configuration.Timeout = i;
             }
-            else if (option.ToLower().Equals("/interop"))
-            {
-                this.Configuration.InteroperationEnabled = true;
-            }
             else
-                {
+            {
                 this.ShowHelp();
                 Error.ReportAndExit("cannot recognise command line option '" + option + "'.");
             }

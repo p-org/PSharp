@@ -79,16 +79,6 @@ namespace Microsoft.PSharp.Utilities
         [EnumMember(Value = "FairPCT")]
         FairPCT,
         /// <summary>
-        /// Random operation-bounding scheduling.
-        /// </summary>
-        [EnumMember(Value = "RandomOperationBounding")]
-        RandomOperationBounding,
-        /// <summary>
-        /// Prioritized operation-bounding scheduling.
-        /// </summary>
-        [EnumMember(Value = "PrioritizedOperationBounding")]
-        PrioritizedOperationBounding,
-        /// <summary>
         /// MaceMC based search scheduling to detect
         /// potential liveness violations.
         /// </summary>

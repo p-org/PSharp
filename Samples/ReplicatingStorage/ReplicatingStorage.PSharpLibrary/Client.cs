@@ -79,7 +79,7 @@ namespace ReplicatingStorage.PSharpLibrary
 
             this.Logger.WriteLine("\n [Client] new request {0}.\n", command);
 
-            this.Send(this.NodeManager, new Request(this.Id, command), true);
+            this.Send(this.NodeManager, new Request(this.Id, command));
 
             if (this.Counter == 1)
             {

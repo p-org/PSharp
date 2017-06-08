@@ -114,10 +114,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     this.ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
                     throw new InvalidOperationException(this.ErrorText);
                 }
-
-                next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
+                
+                next = availableMachines.FirstOrDefault(m => m.MachineId.Type.Equals(
                     nextStep.ScheduledMachineId.Type) &&
-                    m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
+                    m.MachineId.Value == nextStep.ScheduledMachineId.Value);
                 if (next == null)
                 {
                     this.ErrorText = "Trace is not reproducible: cannot detect machine with type " +

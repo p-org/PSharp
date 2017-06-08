@@ -211,8 +211,6 @@ namespace Microsoft.PSharp.TestingServices
             if (base.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.PrioritizedOperationBounding ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)

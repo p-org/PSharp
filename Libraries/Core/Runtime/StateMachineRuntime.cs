@@ -171,7 +171,7 @@ namespace Microsoft.PSharp
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEvent(target, e, null, false);
+            this.SendEvent(target, e, null);
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, null, false);
+            return this.SendEventAndExecute(target, e, null);
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Microsoft.PSharp
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEventRemotely(target, e, null, false);
+            this.SendEventRemotely(target, e, null);
         }
 
         /// <summary>
@@ -300,7 +300,7 @@ namespace Microsoft.PSharp
             MachineId mid = new MachineId(type, friendlyName, this);
             Machine machine = MachineFactory.Create(type);
 
-            machine.SetMachineId(mid);
+            machine.Initialize(mid);
             machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
@@ -317,8 +317,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -350,8 +349,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -382,8 +380,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">If true, the send is starting a new operation</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender)
         {
             base.NetworkProvider.RemoteSend(mid, e);
         }
@@ -487,7 +484,8 @@ namespace Microsoft.PSharp
 
             MachineId mid = new MachineId(type, null, this);
             Object monitor = Activator.CreateInstance(type);
-            (monitor as Monitor).SetMachineId(mid);
+
+            (monitor as Monitor).Initialize(mid);
             (monitor as Monitor).InitializeStateInformation();
 
             lock (this.Monitors)
@@ -615,106 +613,150 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine entered a state.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyEnteredState(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyEnteredState(Machine machine)
         {
             if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
 
-            if (machine is Machine)
+            base.Log($"<StateLog> Machine '{machine.Id}' enters state '{machine.CurrentStateName}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a monitor entered a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        internal override void NotifyEnteredState(Monitor monitor)
+        {
+            if (base.Configuration.Verbose <= 1)
             {
-                string machineState = (machine as Machine).CurrentStateName;
-
-                base.Log($"<StateLog> Machine '{machine.Id}' enters " +
-                    $"state '{machineState}'.");
+                return;
             }
-            else if (machine is Monitor)
+
+            string liveness = "";
+            string monitorState = monitor.CurrentStateNameWithTemperature;
+
+            if (monitor.IsInHotState())
             {
-                string liveness = "";
-                string monitorState = (machine as Monitor).CurrentStateNameWithTemperature;
-
-                if ((machine as Monitor).IsInHotState())
-                {
-                    liveness = "'hot' ";
-                }
-                else if ((machine as Monitor).IsInColdState())
-                {
-                    liveness = "'cold' ";
-                }
-
-                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
-                    $"enters {liveness}state '{monitorState}'.");
+                liveness = "'hot' ";
             }
+            else if (monitor.IsInColdState())
+            {
+                liveness = "'cold' ";
+            }
+
+            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' " +
+                $"enters {liveness}state '{monitorState}'.");
         }
 
         /// <summary>
         /// Notifies that a machine exited a state.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyExitedState(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyExitedState(Machine machine)
         {
             if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
 
-            if (machine is Machine)
+            base.Log($"<StateLog> Machine '{machine.Id}' exits state '{machine.CurrentStateName}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a monitor exited a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        internal override void NotifyExitedState(Monitor monitor)
+        {
+            if (base.Configuration.Verbose <= 1)
             {
-                string machineState = (machine as Machine).CurrentStateName;
-
-                base.Log($"<StateLog> Machine '{machine.Id}' exits " +
-                    $"state '{machineState}'.");
+                return;
             }
-            else if (machine is Monitor)
+
+            string liveness = "";
+            string monitorState = monitor.CurrentStateName;
+
+            if (monitor.IsInHotState())
             {
-                string liveness = "";
-                string monitorState = (machine as Monitor).CurrentStateName;
-
-                if ((machine as Monitor).IsInHotState())
-                {
-                    liveness = "'hot' ";
-                    monitorState += "[hot]";
-                }
-                else if ((machine as Monitor).IsInColdState())
-                {
-                    liveness = "'cold' ";
-                    monitorState += "[cold]";
-                }
-
-                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
-                    $"exits {liveness}state '{monitorState}'.");
+                liveness = "'hot' ";
+                monitorState += "[hot]";
             }
+            else if (monitor.IsInColdState())
+            {
+                liveness = "'cold' ";
+                monitorState += "[cold]";
+            }
+
+            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' " +
+                $"exits {liveness}state '{monitorState}'.");
         }
 
         /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
+        /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
+        internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
             if (base.Configuration.Verbose <= 1)
             {
                 return;
             }
 
-            if (machine is Machine)
-            {
-                string machineState = (machine as Machine).CurrentStateName;
+            base.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
+                $"'{action.Name}' in state '{machine.CurrentStateName}'.");
+        }
 
-                base.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
-                    $"'{action.Name}' in state '{machineState}'.");
-            }
-            else if (machine is Monitor)
+        /// <summary>
+        /// Notifies that a monitor invoked an action.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        internal override void NotifyInvokedAction(Monitor monitor, MethodInfo action, Event receivedEvent)
+        {
+            if (base.Configuration.Verbose <= 1)
             {
-                string monitorState = (machine as Monitor).CurrentStateName;
-
-                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
-                    $"action '{action.Name}' in state '{monitorState}'.");
+                return;
             }
+
+            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' executed " +
+                $"action '{action.Name}' in state '{monitor.CurrentStateName}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a machine raised an <see cref="Event"/>.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        {
+            if (base.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            base.Log($"<RaiseLog> Machine '{machine.Id}' raised event '{eventInfo.EventName}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a monitor raised an <see cref="Event"/>.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyRaisedEvent(Monitor monitor, EventInfo eventInfo)
+        {
+            if (base.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' raised " +
+                $"event '{eventInfo.EventName}'.");
         }
 
         /// <summary>
@@ -726,34 +768,6 @@ namespace Microsoft.PSharp
         {
             base.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
-        }
-
-        /// <summary>
-        /// Notifies that a machine raised an <see cref="Event"/>.
-        /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
-        {
-            if (base.Configuration.Verbose <= 1)
-            {
-                return;
-            }
-
-            if (machine is Machine)
-            {
-                string machineState = (machine as Machine).CurrentStateName;
-                base.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
-                    $"event '{eventInfo.EventName}'.");
-            }
-            else if (machine is Monitor)
-            {
-                string monitorState = (machine as Monitor).CurrentStateName;
-
-                base.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
-                    $"event '{eventInfo.EventName}'.");
-            }
         }
 
         /// <summary>

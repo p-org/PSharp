@@ -322,8 +322,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
+        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine and
@@ -332,8 +331,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
+        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -341,8 +339,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">If true, the send is starting a new operation</param>
-        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
+        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender);
 
         #endregion
 
@@ -429,9 +426,19 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine entered a state.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
+        /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyEnteredState(AbstractMachine machine)
+        internal virtual void NotifyEnteredState(Machine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a monitor entered a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyEnteredState(Monitor monitor)
         {
             // Override to implement the notification.
         }
@@ -439,9 +446,19 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine exited a state.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
+        /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyExitedState(AbstractMachine machine)
+        internal virtual void NotifyExitedState(Machine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a monitor exited a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyExitedState(Monitor monitor)
         {
             // Override to implement the notification.
         }
@@ -449,11 +466,45 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
+        /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
+        internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a monitor invoked an action.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyInvokedAction(Monitor monitor, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine raised an <see cref="Event"/>.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a monitor raised an <see cref="Event"/>.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="eventInfo">EventInfo</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyRaisedEvent(Monitor monitor, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -475,18 +526,6 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyPop(Machine machine)
-        {
-            // Override to implement the notification.
-        }
-
-        /// <summary>
-        /// Notifies that a machine raised an <see cref="Event"/>.
-        /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
         {
             // Override to implement the notification.
         }

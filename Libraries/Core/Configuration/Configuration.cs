@@ -54,12 +54,6 @@ namespace Microsoft.PSharp
         [DataMember]
         public int Timeout;
 
-        /// <summary>
-        /// True if interoperation is enabled.
-        /// </summary>
-        [DataMember]
-        public bool InteroperationEnabled;
-
         #endregion
 
         #region language service options
@@ -279,12 +273,6 @@ namespace Microsoft.PSharp
         public bool EnableCycleReplayingStrategy;
 
         /// <summary>
-        /// If true, then the P# tester will try to bound
-        /// the interleavings between operations.
-        /// </summary>
-        public bool BoundOperations;
-
-        /// <summary>
         /// If true, the runtime can reorder events in machine
         /// queues dynamically, depending on priorities.
         /// </summary>
@@ -436,8 +424,6 @@ namespace Microsoft.PSharp
             this.ProjectName = "";
             
             this.Timeout = 0;
-            
-            this.InteroperationEnabled = true;
 
             this.CompilationTarget = CompilationTarget.Execution;
             this.OptimizationTarget = OptimizationTarget.Release;
@@ -477,7 +463,6 @@ namespace Microsoft.PSharp
             this.LivenessTemperatureThreshold = 0;
             this.CacheProgramState = false;
             this.EnableCycleReplayingStrategy = false;
-            this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
 
             this.EnableMonitorsInProduction = false;

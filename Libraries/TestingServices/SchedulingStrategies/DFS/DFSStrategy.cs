@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 scs = new List<SChoice>();
                 foreach (var task in availableMachines)
                 {
-                    scs.Add(new SChoice(task.Machine.Id.Value));
+                    scs.Add(new SChoice(task.MachineId.Value));
                 }
 
                 this.ScheduleStack.Add(scs);
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 previousChoice.IsDone = false;
             }
             
-            next = availableMachines.Find(task => task.Machine.Id.Value == nextChoice.Id);
+            next = availableMachines.Find(task => task.MachineId.Value == nextChoice.Id);
             nextChoice.IsDone = true;
             this.SchIndex++;
 

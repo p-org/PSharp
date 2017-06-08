@@ -12,83 +12,80 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class implementing machine related information for scheduling purposes.
+    /// Stores machine-related information, which can used
+    /// for scheduling and testing.
     /// </summary>
     public sealed class MachineInfo
     {
         #region fields
 
         /// <summary>
-        /// The corresponding machine.
+        /// Unique id of the machine.
         /// </summary>
-        internal AbstractMachine Machine;
+        internal MachineId MachineId;
+
+        /// <summary>
+        /// Checks if the machine is executing an OnExit method.
+        /// </summary>
+        internal bool IsInsideOnExit;
+
+        /// <summary>
+        /// Checks if the current action called a transition statement.
+        /// </summary>
+        internal bool CurrentActionCalledTransitionStatement;
+
+        /// <summary>
+        /// Program counter used for state-caching. Distinguishes
+        /// scheduling from non-deterministic choices.
+        /// </summary>
+        internal int ProgramCounter;
+
+        #endregion
+
+        #region properties
 
         /// <summary>
         /// Task id of the machine.
         /// </summary>
-        public readonly int Id;
+        public ulong Id => MachineId.Value;
 
         /// <summary>
-        /// List of wrapped tasks that block the machine.
+        /// Name of the machine.
         /// </summary>
-        internal List<MachineInfo> BlockingWrappedTasks;
+        public string Name => MachineId.Name;
 
         /// <summary>
-        /// List of tasks that block the machine.
+        /// Id of the task executing the event handler of the machine.
         /// </summary>
-        internal List<Task> BlockingUnwrappedTasks;
-
-        /// <summary>
-        /// True if the machine should wait all blocking
-        /// tasks to complete, before unblocking.
-        /// </summary>
-        internal bool WaitAll;
+        public int TaskId { get; internal set; }
 
         /// <summary>
         /// Is machine enabled.
         /// </summary>
-        public bool IsEnabled
-        {
-            get; internal set;
-        }
+        public bool IsEnabled { get; internal set; }
 
         /// <summary>
         /// Is machine waiting to receive an event.
         /// </summary>
-        public bool IsWaitingToReceive
-        {
-            get; internal set;
-        }
+        public bool IsWaitingToReceive { get; internal set; }
 
         /// <summary>
         /// Is machine active.
         /// </summary>
-        public bool IsActive
-        {
-            get; internal set;
-        }
+        public bool IsActive { get; internal set; }
 
         /// <summary>
         /// Has the machine started.
         /// </summary>
-        public bool HasStarted
-        {
-            get; internal set;
-        }
+        public bool HasStarted { get; internal set; }
 
         /// <summary>
         /// Is machine completed.
         /// </summary>
-        public bool IsCompleted
-        {
-            get; internal set;
-        }
+        public bool IsCompleted { get; internal set; }
 
         #endregion
 
@@ -97,21 +94,45 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="id">TaskId</param>
-        /// <param name="machine">Machine</param>
-        internal MachineInfo(int id, AbstractMachine machine)
+        /// <param name="mid">MachineId</param>
+        internal MachineInfo(MachineId mid)
         {
-            this.Id = id;
-            this.Machine = machine;
-            this.IsEnabled = true;
-            this.IsWaitingToReceive = false;
-            this.IsActive = false;
-            this.HasStarted = false;
-            this.IsCompleted = false;
+            MachineId = mid;
 
-            this.BlockingWrappedTasks = new List<MachineInfo>();
-            this.BlockingUnwrappedTasks = new List<Task>();
-            this.WaitAll = false;
+            IsEnabled = false;
+            IsWaitingToReceive = false;
+            IsActive = false;
+            HasStarted = false;
+            IsCompleted = false;
+
+            IsInsideOnExit = false;
+            CurrentActionCalledTransitionStatement = false;
+
+            ProgramCounter = 0;
+        }
+
+        #endregion
+
+        #region interface
+
+        /// <summary>
+        /// Notify that an event handler has been created and will
+        /// run on the specified task id.
+        /// </summary>
+        /// <param name="taskId">TaskId</param>
+        internal void NotifyEventHandlerCreated(int taskId)
+        {
+            TaskId = taskId;
+            IsEnabled = true;
+            IsWaitingToReceive = false;
+            IsActive = false;
+            HasStarted = false;
+            IsCompleted = false;
+
+            IsInsideOnExit = false;
+            CurrentActionCalledTransitionStatement = false;
+
+            ProgramCounter = 0;
         }
 
         #endregion
@@ -137,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            return this.Id == mid.Id;
+            return Id == mid.Id;
         }
 
         /// <summary>
@@ -146,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return this.Id.GetHashCode();
+            return Id.GetHashCode();
         }
 
         /// <summary>
@@ -155,11 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>string</returns>
         public override string ToString()
         {
-            var text = $"Task {this.Id} of machine {this.Machine.Id}::" +
-                $"enabled[{this.IsEnabled}], waiting[{this.IsWaitingToReceive}], " +
-                $"active[{this.IsActive}], started[{this.HasStarted}], " +
-                $"completed[{this.IsCompleted}]";
-            return text;
+            return MachineId.Name;
         }
 
         #endregion

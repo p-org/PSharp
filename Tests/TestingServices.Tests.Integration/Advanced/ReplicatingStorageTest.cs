@@ -449,7 +449,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 if (this.Random())
                 {
-                    this.Send(this.Target, new Timeout(), true);
+                    this.Send(this.Target, new Timeout());
                 }
 
                 this.Send(this.Id, new TickEvent());
@@ -507,7 +507,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 if (this.Random())
                 {
-                    this.Send(this.Target, new Timeout(), true);
+                    this.Send(this.Target, new Timeout());
                 }
 
                 this.Send(this.Id, new TickEvent());
@@ -565,7 +565,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 if (this.Random())
                 {
-                    this.Send(this.Target, new Timeout(), true);
+                    this.Send(this.Target, new Timeout());
                 }
 
                 this.Send(this.Id, new TickEvent());
@@ -634,7 +634,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 int command = this.RandomInteger(100) + 1;
                 this.Counter++;
 
-                this.Send(this.NodeManager, new Request(this.Id, command), true);
+                this.Send(this.NodeManager, new Request(this.Id, command));
 
                 if (this.Counter == 1)
                 {

@@ -28,7 +28,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Abstract class representing a P# monitor.
     /// </summary>
-    public abstract class Monitor : AbstractMachine
+    public abstract class Monitor
     {
         #region static fields
 
@@ -53,6 +53,11 @@ namespace Microsoft.PSharp
         #endregion
 
         #region fields
+
+        /// <summary>
+        /// The runtime that executes this monitor.
+        /// </summary>
+        private PSharpRuntime Runtime;
 
         /// <summary>
         /// The monitor state.
@@ -87,14 +92,29 @@ namespace Microsoft.PSharp
         /// </summary>
         private int LivenessTemperature;
 
+        /// <summary>
+        /// Checks if the monitor is executing an OnExit method.
+        /// </summary>
+        internal bool IsInsideOnExit;
+
+        /// <summary>
+        /// Checks if the current action called a transition statement.
+        /// </summary>
+        internal bool CurrentActionCalledTransitionStatement;
+
         #endregion
 
         #region properties
 
         /// <summary>
+        /// The unique monitor id.
+        /// </summary>
+        internal MachineId Id { get; private set; }
+
+        /// <summary>
         /// The logger installed to the P# runtime.
         /// </summary>
-        protected ILogger Logger => base.Runtime.Logger;
+        protected ILogger Logger => this.Runtime.Logger;
 
         /// <summary>
         /// Gets the current state.
@@ -146,7 +166,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region constructors
+        #region initialization
 
         /// <summary>
         /// Static constructor.
@@ -168,6 +188,18 @@ namespace Microsoft.PSharp
             this.LivenessTemperature = 0;
         }
 
+        /// <summary>
+        /// Initializes this monitor.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        internal void Initialize(MachineId mid)
+        {
+            this.Id = mid;
+            this.Runtime = mid.Runtime;
+            this.IsInsideOnExit = false;
+            this.CurrentActionCalledTransitionStatement = false;
+        }
+
         #endregion
 
         #region P# user API
@@ -182,7 +214,7 @@ namespace Microsoft.PSharp
             // If the state is not a state of the monitor, then report an error and exit.
             this.Assert(StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
-                val.Name.Equals(s.Name)), $"Monitor '{base.Id}' " +
+                val.Name.Equals(s.Name)), $"Monitor '{this.Id}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -196,8 +228,8 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
             EventInfo raisedEvent = new EventInfo(e, new EventOriginInfo(
-                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-            base.Runtime.NotifyRaisedEvent(this, raisedEvent, false);
+                this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+            this.Runtime.NotifyRaisedEvent(this, raisedEvent);
             this.HandleEvent(e);
         }
 
@@ -208,7 +240,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected void Assert(bool predicate)
         {
-            base.Runtime.Assert(predicate);
+            this.Runtime.Assert(predicate);
         }
 
         /// <summary>
@@ -220,7 +252,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected void Assert(bool predicate, string s, params object[] args)
         {
-            base.Runtime.Assert(predicate, s, args);
+            this.Runtime.Assert(predicate, s, args);
         }
 
         #endregion
@@ -233,7 +265,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
+            this.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
                 $"is processing event '{e.GetType().FullName}'.");
             this.HandleEvent(e);
         }
@@ -248,7 +280,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
-            base.CurrentActionCalledRGP = false;
+            this.CurrentActionCalledTransitionStatement = false;
 
             // Do not process an ignored event.
             if (this.IgnoredEvents.Contains(e.GetType()))
@@ -271,7 +303,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    base.Runtime.NotifyExitedState(this);
+                    this.Runtime.NotifyExitedState(this);
                     this.State = null;
                     continue;
                 }
@@ -307,7 +339,7 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-            base.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
+            this.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
             this.ExecuteAction(action);
         }
 
@@ -317,7 +349,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            base.Runtime.NotifyEnteredState(this);
+            this.Runtime.NotifyEnteredState(this);
 
             MethodInfo entryAction = null;
             if (this.State.EntryAction != null)
@@ -340,7 +372,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
-            base.Runtime.NotifyExitedState(this);
+            this.Runtime.NotifyExitedState(this);
 
             MethodInfo exitAction = null;
             if (this.State.ExitAction != null)
@@ -348,7 +380,7 @@ namespace Microsoft.PSharp
                 exitAction = this.ActionMap[this.State.ExitAction];
             }
 
-            base.IsInsideOnExit = true;
+            this.IsInsideOnExit = true;
 
             // Invokes the exit action of the current state,
             // if there is one available.
@@ -365,7 +397,7 @@ namespace Microsoft.PSharp
                 this.ExecuteAction(eventHandlerExitAction);
             }
 
-            base.IsInsideOnExit = false;
+            this.IsInsideOnExit = false;
         }
 
         /// <summary>
@@ -465,10 +497,10 @@ namespace Microsoft.PSharp
         internal void CheckLivenessTemperature()
         {
             if (this.State.IsHot &&
-                base.Runtime.Configuration.LivenessTemperatureThreshold > 0)
+                this.Runtime.Configuration.LivenessTemperatureThreshold > 0)
             {
                 this.LivenessTemperature++;
-                base.Runtime.Assert(this.LivenessTemperature <= base.Runtime.
+                this.Runtime.Assert(this.LivenessTemperature <= this.Runtime.
                     Configuration.LivenessTemperatureThreshold,
                     $"Monitor '{this.GetType().Name}' detected potential liveness " +
                     $"bug in hot state '{this.CurrentStateName}'.");
@@ -605,8 +637,8 @@ namespace Microsoft.PSharp
                     if (type.IsGenericType)
                     {
                         // If the state type is generic (only possible if inherited by a
-                        // generic machine declaration), then iterate through the base
-                        // machine classes to identify the runtime generic type, and use
+                        // generic monitor declaration), then iterate through the base
+                        // monitor classes to identify the runtime generic type, and use
                         // it to instantiate the runtime state type. This type can be
                         // then used to create the state constructor.
                         Type declaringType = this.GetType();
@@ -633,7 +665,7 @@ namespace Microsoft.PSharp
                     this.Assert((state.IsCold && !state.IsHot) ||
                         (!state.IsCold && state.IsHot) ||
                         (!state.IsCold && !state.IsHot),
-                        $"State '{type.FullName}' of monitor '{base.Id}' " +
+                        $"State '{type.FullName}' of monitor '{this.Id}' " +
                         "cannot be both cold and hot.");
 
                     StateMap[monitorType].Add(state);
@@ -687,8 +719,8 @@ namespace Microsoft.PSharp
             }
 
             var initialStates = StateMap[monitorType].Where(state => state.IsStart).ToList();
-            this.Assert(initialStates.Count != 0, $"Monitor '{base.Id}' must declare a start state.");
-            this.Assert(initialStates.Count == 1, $"Monitor '{base.Id}' " +
+            this.Assert(initialStates.Count != 0, $"Monitor '{this.Id}' must declare a start state.");
+            this.Assert(initialStates.Count == 1, $"Monitor '{this.Id}' " +
                 "can not declare more than one start states.");
 
             this.ConfigureStateTransitions(initialStates.Single());
@@ -804,8 +836,8 @@ namespace Microsoft.PSharp
                 state = this.CurrentStateName;
             }
 
-            base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                $"in monitor '{base.Id}', state '{state}', action '{actionName}', " +
+            this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                $"in monitor '{this.Id}', state '{state}', action '{actionName}', " +
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
@@ -816,14 +848,14 @@ namespace Microsoft.PSharp
         #region code coverage methods
 
         /// <summary>
-        /// Returns the set of all states in the machine
+        /// Returns the set of all states in the monitor
         /// (for code coverage).
         /// </summary>
-        /// <returns>Set of all states in the machine</returns>
-        internal override HashSet<string> GetAllStates()
+        /// <returns>Set of all states in the monitor</returns>
+        internal HashSet<string> GetAllStates()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()),
-                $"Monitor '{base.Id}' hasn't populated its states yet.");
+                $"Monitor '{this.Id}' hasn't populated its states yet.");
 
             var allStates = new HashSet<string>();
             foreach (var state in StateMap[this.GetType()])
@@ -835,14 +867,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the machine
+        /// Returns the set of all (states, registered event) pairs in the monitor
         /// (for code coverage).
         /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
-        internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        /// <returns>Set of all (states, registered event) pairs in the monitor</returns>
+        internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()),
-                $"Monitor '{base.Id}' hasn't populated its states yet.");
+                $"Monitor '{this.Id}' hasn't populated its states yet.");
 
             var pairs = new HashSet<Tuple<string, string>>();
             foreach (var state in StateMap[this.GetType()])

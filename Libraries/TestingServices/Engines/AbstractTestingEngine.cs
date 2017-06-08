@@ -326,15 +326,6 @@ namespace Microsoft.PSharp.TestingServices
                 var strategy2 = new RandomStrategy(this.Configuration);
                 this.Strategy = new ComboStrategy(this.Configuration, strategy1, strategy2);
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding)
-            {
-                this.Strategy = new RandomOperationBoundingStrategy(this.Configuration);
-            }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PrioritizedOperationBounding)
-            {
-                this.Strategy = new PrioritizedOperationBoundingStrategy(this.Configuration,
-                    this.Configuration.PrioritySwitchBound);
-            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
                 this.Strategy = new MaceMCStrategy(this.Configuration);

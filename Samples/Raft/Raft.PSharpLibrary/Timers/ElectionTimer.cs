@@ -52,7 +52,7 @@ namespace Raft
             if (this.Random())
             {
                 this.Logger.WriteLine("\n [ElectionTimer] " + this.Target + " | timed out\n");
-                this.Send(this.Target, new Timeout(), true);
+                this.Send(this.Target, new Timeout());
             }
 
             //this.Send(this.Id, new TickEvent());

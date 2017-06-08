@@ -28,7 +28,7 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// The P# runtime that executes this machine.
+        /// The runtime that executes this machine.
         /// </summary>
         internal PSharpRuntime Runtime { get; private set; }
 
@@ -38,40 +38,29 @@ namespace Microsoft.PSharp
         protected internal MachineId Id { get; private set; }
 
         /// <summary>
-        /// The operation id.
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
         /// </summary>
-        internal int OperationId { get; private set; }
+        internal MachineInfo Info { get; private set; }
+
+        #endregion
+
+        #region initialize
 
         /// <summary>
-        /// Checks if the machine is executing an OnExit method.
+        /// Initializes this machine.
         /// </summary>
-        internal bool IsInsideOnExit;
-
-        /// <summary>
-        /// Checks if the current machine action called
-        /// Raise/Goto/Pop (RGP).
-        /// </summary>
-        internal bool CurrentActionCalledRGP;
-
-        /// <summary>
-        /// Program counter used for state-caching. Distinguishes
-        /// scheduling from non-deterministic choices.
-        /// </summary>
-        internal int ProgramCounter;
+        /// <param name="mid">MachineId</param>
+        internal void Initialize(MachineId mid)
+        {
+            this.Id = mid;
+            this.Info = new MachineInfo(mid);
+            this.Runtime = mid.Runtime;
+        }
 
         #endregion
 
         #region generic public and override methods
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public AbstractMachine()
-        {
-            this.OperationId = 0;
-            this.IsInsideOnExit = false;
-            this.CurrentActionCalledRGP = false;
-        }
 
         /// <summary>
         /// Determines whether the specified System.Object is equal
@@ -112,64 +101,6 @@ namespace Microsoft.PSharp
         public override string ToString()
         {
             return this.Id.Name;
-        }
-
-        #endregion
-
-        #region internal methods
-        
-        /// <summary>
-        /// Sets the id of this machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal void SetMachineId(MachineId mid)
-        {
-            this.Id = mid;
-            this.Runtime = mid.Runtime;
-        }
-
-        /// <summary>
-        /// Sets the operation id of this machine.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        internal void SetOperationId(int opid)
-        {
-            this.OperationId = opid;
-        }
-
-        /// <summary>
-        /// Returns true if the given operation id is pending
-        /// execution by the machine.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        /// <returns>Boolean</returns>
-        internal virtual bool IsOperationPending(int opid)
-        {
-            return false;
-        }
-
-
-        /// <summary>
-        /// Asserts that a Raise/Goto/Pop hasn't already been called.
-        /// Records that RGP has been called.
-        /// </summary>
-        internal void AssertCorrectRGPInvocation()
-        {
-            this.Runtime.Assert(!this.IsInsideOnExit, "Machine '{0}' has called raise/goto/pop " +
-                "inside an OnExit method.", this.Id.Name);
-            this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' has called multiple " +
-                "raise/goto/pop in the same action.", this.Id.Name);
-
-            this.CurrentActionCalledRGP = true;
-        }
-
-        /// <summary>
-        /// Asserts that a Raise/Goto/Pop hasn't already been called.
-        /// </summary>
-        internal void AssertNoPendingRGP(string calledAPI)
-        {
-            this.Runtime.Assert(!this.CurrentActionCalledRGP, "Machine '{0}' cannot call API '{1}' " +
-                "after calling raise/goto/pop in the same action.", this.Id.Name, calledAPI);
         }
 
         #endregion

@@ -90,6 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var configuration = base.GetConfiguration();
             configuration.CacheProgramState = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
+            configuration.RandomSchedulingSeed = 96;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));

@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices
         /// The P# program state cache.
         /// </summary>
         internal StateCache StateCache;
-        
+
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
@@ -96,11 +96,6 @@ namespace Microsoft.PSharp.TestingServices
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
-        
-        /// <summary>
-        /// Monotonically increasing machine id counter.
-        /// </summary>
-        private int OperationIdCounter;
 
         #endregion
 
@@ -118,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
-            
+
             this.Scheduler = new BugFindingScheduler(this, strategy);
             this.LivenessChecker = new LivenessChecker(this, strategy);
             this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
@@ -137,12 +132,11 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
 
             this.RootTaskId = Task.CurrentId;
-            this.OperationIdCounter = 0;
         }
 
         #endregion
 
-        #region runtime interface
+        #region interface
 
         /// <summary>
         /// Creates a new machine of the specified type and with
@@ -277,7 +271,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            this.SendEvent(target, e, this.GetCurrentMachine(), false);
+            this.SendEvent(target, e, this.GetCurrentMachine());
         }
 
         /// <summary>
@@ -292,7 +286,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            await this.SendEventAndExecute(target, e, this.GetCurrentMachine(), false);
+            await this.SendEventAndExecute(target, e, this.GetCurrentMachine());
         }
 
         /// <summary>
@@ -355,17 +349,17 @@ namespace Microsoft.PSharp.TestingServices
             MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
             TestHarnessMachine harness = new TestHarnessMachine(testMethod, testAction);
 
-            harness.SetMachineId(mid);
+            harness.Initialize(mid);
 
             Task task = new Task(() =>
             {
                 try
                 {
-                    this.Scheduler.NotifyTaskStarted();
+                    this.Scheduler.NotifyEventHandlerStarted(harness.Id.Value);
 
                     harness.Run();
 
-                    this.Scheduler.NotifyTaskCompleted();
+                    this.Scheduler.NotifyEventHandlerCompleted(harness.Id.Value);
                 }
                 catch (ExecutionCanceledException)
                 {
@@ -377,18 +371,12 @@ namespace Microsoft.PSharp.TestingServices
                 }
             });
 
-            this.Scheduler.NotifyNewTaskCreated(task.Id, harness);
+            this.Scheduler.NotifyEventHandlerCreated(task.Id, harness);
 
             task.Start();
 
-            this.Scheduler.WaitForTaskToStart(task.Id);
-            this.Scheduler.Schedule();
+            this.Scheduler.WaitForEventHandlerToStart(harness.Id.Value);
         }
-
-        /// <summary>
-        /// Waits until all P# machines have finished execution.
-        /// </summary>
-        internal void Wait() => this.Scheduler.Wait();
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
@@ -400,7 +388,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator)
         {
-            creator?.AssertNoPendingRGP("CreateMachine");
+            if (creator != null)
+            {
+                this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
+            }
 
             Machine machine = this.CreateMachine(type, friendlyName);
 
@@ -433,7 +424,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator)
         {
-            creator?.AssertNoPendingRGP("CreateMachine");
+            if (creator != null)
+            {
+                this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
+            }
 
             Machine machine = this.CreateMachine(type, friendlyName);
 
@@ -485,7 +479,7 @@ namespace Microsoft.PSharp.TestingServices
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
 
-            machine.SetMachineId(mid);
+            machine.Initialize(mid);
             machine.InitializeStateInformation();
 
             if (base.Configuration.ReportCodeCoverage && !isMachineTypeCached)
@@ -507,8 +501,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -526,7 +519,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, isStarter, ref runNewHandler);
+            this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, false);
@@ -542,8 +535,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -561,7 +553,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, isStarter, ref runNewHandler);
+            this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, true);
@@ -579,10 +571,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">If true, the send is starting a new operation</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender)
         {
-            this.SendEvent(mid, e, sender, isStarter);
+            this.SendEvent(mid, e, sender);
         }
 
         /// <summary>
@@ -591,13 +582,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, bool isStarter, ref bool runNewHandler)
+        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, ref bool runNewHandler)
         {
-            if (sender != null)
+            if (sender != null && sender is Machine)
             {
-                sender.AssertNoPendingRGP("Send");
+                this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
             }
 
             EventOriginInfo originInfo = null;
@@ -613,14 +603,8 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             EventInfo eventInfo = new EventInfo(e, originInfo);
-            this.SetOperationIdForEvent(eventInfo, sender, isStarter);
 
-            if (base.Configuration.BoundOperations && sender != null)
-            {
-                this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
-                    $"'{eventInfo.EventName}({eventInfo.OperationId})' to '{machine.Id}'.");
-            }
-            else if (sender != null)
+            if (sender != null)
             {
                 this.Log($"<SendLog> Machine '{sender.Id}' sent event " +
                     $"'{eventInfo.EventName}' to '{machine.Id}'.");
@@ -632,7 +616,8 @@ namespace Microsoft.PSharp.TestingServices
 
             if (sender != null)
             {
-                this.BugTrace.AddSendEventStep(sender.Id, this.GetStateNameOfMachine(sender), eventInfo, machine.Id);
+                var stateName = sender is Machine ? (sender as Machine).CurrentStateName : "";
+                this.BugTrace.AddSendEventStep(sender.Id, stateName, eventInfo, machine.Id);
                 if (base.Configuration.EnableDataRaceDetection)
                 {
                     // Traces machine actions, if data-race detection is enabled.
@@ -657,7 +642,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 try
                 {
-                    this.Scheduler.NotifyTaskStarted();
+                    this.Scheduler.NotifyEventHandlerStarted(machine.Id.Value);
 
                     machine.IsInsideSynchronousCall = executeSynchronously;
 
@@ -674,7 +659,7 @@ namespace Microsoft.PSharp.TestingServices
                         await machine.RunEventHandler();
                     }
 
-                    this.Scheduler.NotifyTaskCompleted();
+                    this.Scheduler.NotifyEventHandlerCompleted(machine.Id.Value);
                 }
                 catch (ExecutionCanceledException)
                 {
@@ -688,12 +673,17 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TaskMap.TryAdd(task.Id, machine);
 
-            this.Scheduler.NotifyNewTaskCreated(task.Id, machine);
+            this.Scheduler.NotifyEventHandlerCreated(task.Id, machine);
 
             task.Start(this.TaskScheduler);
 
-            this.Scheduler.WaitForTaskToStart(task.Id);
+            this.Scheduler.WaitForEventHandlerToStart(machine.Id.Value);
         }
+
+        /// <summary>
+        /// Waits until all P# machines have finished execution.
+        /// </summary>
+        internal void Wait() => this.Scheduler.Wait();
 
         #endregion
 
@@ -709,19 +699,19 @@ namespace Microsoft.PSharp.TestingServices
                 "is not a subclass of Monitor.\n");
 
             MachineId mid = new MachineId(type, null, this);
-            Object monitor = Activator.CreateInstance(type);
-            (monitor as Monitor).SetMachineId(mid);
-            (monitor as Monitor).InitializeStateInformation();
+            Monitor monitor = Activator.CreateInstance(type) as Monitor;
+            monitor.Initialize(mid);
+            monitor.InitializeStateInformation();
 
             this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
-            this.ReportCodeCoverageOfMachine(monitor as Monitor);
+            this.ReportCodeCoverageOfMonitor(monitor);
             this.BugTrace.AddCreateMonitorStep(mid);
 
-            this.Monitors.Add(monitor as Monitor);
-            this.LivenessChecker.RegisterMonitor(monitor as Monitor);
-
-            (monitor as Monitor).GotoStartState();
+            this.Monitors.Add(monitor);
+            this.LivenessChecker.RegisterMonitor(monitor);
+            
+            monitor.GotoStartState();
         }
 
         /// <summary>
@@ -732,9 +722,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         internal override void Monitor<T>(AbstractMachine sender, Event e)
         {
-            if (sender != null)
+            if (sender != null && sender is Machine)
             {
-                sender.AssertNoPendingRGP("Monitor");
+                this.AssertNoPendingTransitionStatement(sender as Machine, "Monitor");
             }
 
             foreach (var m in this.Monitors)
@@ -782,6 +772,32 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
+        /// <summary>
+        /// Asserts that a transition statement (Raise/Goto/Pop) has not already
+        /// been called. Records that RGP has been called.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        internal void AssertTransitionStatement(Machine machine)
+        {
+            this.Assert(!machine.Info.IsInsideOnExit, "Machine '{0}' has called raise/goto/pop " +
+                "inside an OnExit method.", machine.Id.Name);
+            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' has called multiple " +
+                "raise/goto/pop in the same action.", machine.Id.Name);
+            machine.Info.CurrentActionCalledTransitionStatement = true;
+        }
+
+        /// <summary>
+        /// Asserts that a transition statement (Raise/Goto/Pop) has not
+        /// already been called.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="calledAPI">Called API</param>
+        internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
+        {
+            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call API '{1}' " +
+                "after calling raise/goto/pop in the same action.", machine.Id.Name, calledAPI);
+        }
+
         #endregion
 
         #region nondeterministic choices
@@ -790,27 +806,28 @@ namespace Microsoft.PSharp.TestingServices
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="caller">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal override bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(AbstractMachine caller, int maxValue)
         {
-            if (machine != null)
+            if (caller != null && caller is Machine)
             {
-                machine.AssertNoPendingRGP("Random");
+                this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
-            if (machine != null)
+            if (caller != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' nondeterministically chose '{choice}'.");
+                this.Log($"<RandomLog> Machine '{caller.Id}' nondeterministically chose '{choice}'.");
             }
             else
             {
                 this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
-            
-            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
+
+            var stateName = caller is Machine ? (caller as Machine).CurrentStateName : "";
+            this.BugTrace.AddRandomChoiceStep(caller == null ? null : caller.Id, stateName, choice);
 
             return choice;
         }
@@ -819,28 +836,29 @@ namespace Microsoft.PSharp.TestingServices
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="caller">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine caller, string uniqueId)
         {
-            if (machine != null)
+            if (caller != null && caller is Machine)
             {
-                machine.AssertNoPendingRGP("FairRandom");
+                this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
-            if (machine != null)
+            if (caller != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                this.Log($"<RandomLog> Machine '{caller.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
             {
                 this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
-            
-            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
+
+            var stateName = caller is Machine ? (caller as Machine).CurrentStateName : "";
+            this.BugTrace.AddRandomChoiceStep(caller == null ? null : caller.Id, stateName, choice);
 
             return choice;
         }
@@ -849,20 +867,20 @@ namespace Microsoft.PSharp.TestingServices
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="caller">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        internal override int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue)
+        internal override int GetNondeterministicIntegerChoice(AbstractMachine caller, int maxValue)
         {
-            if (machine != null)
+            if (caller != null && caller is Machine)
             {
-                machine.AssertNoPendingRGP("RandomInteger");
+                this.AssertNoPendingTransitionStatement(caller as Machine, "RandomInteger");
             }
 
             var choice = this.Scheduler.GetNextNondeterministicIntegerChoice(maxValue);
-            if (machine != null)
+            if (caller != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                this.Log($"<RandomLog> Machine '{caller.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
@@ -870,7 +888,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
 
-            this.BugTrace.AddRandomChoiceStep(machine == null ? null : machine.Id, this.GetStateNameOfMachine(machine), choice);
+            var stateName = caller is Machine ? (caller as Machine).CurrentStateName : "";
+            this.BugTrace.AddRandomChoiceStep(caller == null ? null : caller.Id, stateName, choice);
 
             return choice;
         }
@@ -882,103 +901,122 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Notifies that a machine entered a state.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyEnteredState(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyEnteredState(Machine machine)
         {
-            if (machine is Machine)
+            string machineState = machine.CurrentStateName;
+            this.BugTrace.AddGotoStateStep(machine.Id, machineState);
+
+            this.Log($"<StateLog> Machine '{machine.Id}' enters " +
+                $"state '{machineState}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a monitor entered a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        internal override void NotifyEnteredState(Monitor monitor)
+        {
+            string monitorState = monitor.CurrentStateNameWithTemperature;
+            this.BugTrace.AddGotoStateStep(monitor.Id, monitorState);
+
+            string liveness = "";
+
+            if (monitor.IsInHotState())
             {
-                string machineState = (machine as Machine).CurrentStateName;
-                this.BugTrace.AddGotoStateStep(machine.Id, machineState);
-
-                this.Log($"<StateLog> Machine '{machine.Id}' enters " +
-                    $"state '{machineState}'.");
-
+                liveness = "'hot' ";
             }
-            else if (machine is Monitor)
+            else if (monitor.IsInColdState())
             {
-                string monitorState = (machine as Monitor).CurrentStateNameWithTemperature;
-                this.BugTrace.AddGotoStateStep(machine.Id, monitorState);
-
-                string liveness = "";
-
-                if ((machine as Monitor).IsInHotState())
-                {
-                    liveness = "'hot' ";
-                }
-                else if ((machine as Monitor).IsInColdState())
-                {
-                    liveness = "'cold' ";
-                }
-
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
-                    $"enters {liveness}state '{monitorState}'.");
+                liveness = "'cold' ";
             }
+
+            this.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' " +
+                $"enters {liveness}state '{monitorState}'.");
         }
 
         /// <summary>
         /// Notifies that a machine exited a state.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        internal override void NotifyExitedState(AbstractMachine machine)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyExitedState(Machine machine)
         {
-            if (machine is Machine)
+            this.Log($"<StateLog> Machine '{machine.Id}' exits state '{machine.CurrentStateName}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a monitor exited a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        internal override void NotifyExitedState(Monitor monitor)
+        {
+            string liveness = "";
+            string monitorState = monitor.CurrentStateName;
+
+            if (monitor.IsInHotState())
             {
-                string machineState = (machine as Machine).CurrentStateName;
-
-                this.Log($"<StateLog> Machine '{machine.Id}' exits " +
-                    $"state '{machineState}'.");
+                liveness = "'hot' ";
+                monitorState += "[hot]";
             }
-            else if (machine is Monitor)
+            else if (monitor.IsInColdState())
             {
-                string liveness = "";
-                string monitorState = (machine as Monitor).CurrentStateName;
-
-                if ((machine as Monitor).IsInHotState())
-                {
-                    liveness = "'hot' ";
-                    monitorState += "[hot]";
-                }
-                else if ((machine as Monitor).IsInColdState())
-                {
-                    liveness = "'cold' ";
-                    monitorState += "[cold]";
-                }
-
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
-                    $"exits {liveness}state '{monitorState}'.");
+                liveness = "'cold' ";
+                monitorState += "[cold]";
             }
+
+            this.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' " +
+                $"exits {liveness}state '{monitorState}'.");
         }
 
         /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">AbstractMachine</param>
+        /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
+        internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            if (machine is Machine)
+            string machineState = machine.CurrentStateName;
+            this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
+
+            this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
+                $"'{action.Name}' in state '{machineState}'.");
+
+            if (base.Configuration.EnableDataRaceDetection)
             {
-                string machineState = (machine as Machine).CurrentStateName;
-                this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
-
-                this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
-                    $"'{action.Name}' in state '{machineState}'.");
-
-                if (base.Configuration.EnableDataRaceDetection)
-                {
-                    // Traces machine actions, if data-race detection is enabled.
-                    this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name, receivedEvent);
-                }
+                // Traces machine actions, if data-race detection is enabled.
+                this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name, receivedEvent);
             }
-            else if (machine is Monitor)
-            {
-                string monitorState = (machine as Monitor).CurrentStateName;
-                this.BugTrace.AddInvokeActionStep(machine.Id, monitorState, action);
+        }
 
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
-                    $"action '{action.Name}' in state '{monitorState}'.");
-            }
+        /// <summary>
+        /// Notifies that a monitor invoked an action.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        internal override void NotifyInvokedAction(Monitor monitor, MethodInfo action, Event receivedEvent)
+        {
+            string monitorState = monitor.CurrentStateName;
+            this.BugTrace.AddInvokeActionStep(monitor.Id, monitorState, action);
+
+            this.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' executed " +
+                $"action '{action.Name}' in state '{monitorState}'.");
+        }
+
+        /// <summary>
+        /// Notifies that a machine raised an <see cref="Event"/>.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        {
+            this.AssertTransitionStatement(machine);
+
+            string machineState = machine.CurrentStateName;
+            this.BugTrace.AddRaiseEventStep(machine.Id, machineState, eventInfo);
+
+            this.Log($"<RaiseLog> Machine '{machine.Id}' raised event '{eventInfo.EventName}'.");
         }
 
         /// <summary>
@@ -988,32 +1026,15 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            if (base.Configuration.BoundOperations)
-            {
-                this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
-                    $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
-            }
-            else
-            {
-                this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
-                    $"event '{eventInfo.EventName}'.");
-            }
+            this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued event '{eventInfo.EventName}'.");
 
             this.BugTrace.AddDequeueEventStep(machine.Id, machine.CurrentStateName, eventInfo);
 
-            var prevMachineOpId = machine.OperationId;
-            machine.SetOperationId(eventInfo.OperationId);
-            
             if (base.Configuration.ReportCodeCoverage)
             {
                 this.ReportCodeCoverageOfReceivedEvent(machine, eventInfo);
                 this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
             }
-
-            //if (base.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
-            //{
-            //    this.Scheduler.Schedule();
-            //}
         }
 
         /// <summary>
@@ -1022,57 +1043,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         internal override void NotifyPop(Machine machine)
         {
-            machine.AssertCorrectRGPInvocation();
+            this.AssertTransitionStatement(machine);
 
             this.Log($"<PopLog> Machine '{machine.Id}' invoked pop in state '{machine.CurrentStateName}'.");
 
             if (base.Configuration.ReportCodeCoverage)
             {
                 this.ReportCodeCoverageOfPopTransition(machine, machine.CurrentState, machine.GetStateTypeAtStackIndex(1));
-            }
-        }
-
-        /// <summary>
-        /// Notifies that a machine raised an event.
-        /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo,
-            bool isStarter)
-        {
-            machine.AssertCorrectRGPInvocation();
-
-            if (machine is Machine)
-            {
-                this.SetOperationIdForEvent(eventInfo, machine, isStarter);
-
-                string machineState = (machine as Machine).CurrentStateName;
-                this.BugTrace.AddRaiseEventStep(machine.Id, machineState, eventInfo);
-
-                if (base.Configuration.BoundOperations)
-                {
-                    this.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
-                        $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
-                }
-                else
-                {
-                    this.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
-                        $"event '{eventInfo.EventName}'.");
-                }
-            }
-            else if (machine is Monitor)
-            {
-                string monitorState = (machine as Monitor).CurrentStateName;
-                this.BugTrace.AddRaiseEventStep(machine.Id, monitorState, eventInfo);
-
-                this.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
-                    $"event '{eventInfo.EventName}'.");
-
-                if (base.Configuration.ReportCodeCoverage)
-                {
-                    this.ReportCodeCoverageOfMonitorTransition(machine as Monitor, eventInfo.Event);
-                }
             }
         }
 
@@ -1084,7 +1061,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(!machine.IsInsideSynchronousCall, $"Machine '{machine.Id}' called " +
                 "receive while executing synchronously.");
-            machine.AssertNoPendingRGP("Receive");
+            this.AssertNoPendingTransitionStatement(machine, "Receive");
         }
 
         /// <summary>
@@ -1094,18 +1071,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
         {
-            var prevMachineOpId = machine.OperationId;
-            machine.SetOperationId(eventInfo.OperationId);
-            
             if (base.Configuration.ReportCodeCoverage)
             {
                 this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
             }
-
-            //if (base.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
-            //{
-            //    this.Scheduler.Schedule();
-            //}
         }
 
         /// <summary>
@@ -1116,12 +1085,9 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyWaitEvents(Machine machine)
         {
             string events = machine.GetEventWaitHandlerNames();
-
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
-
             this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
-
-            this.Scheduler.NotifyTaskBlockedOnEvent(Task.CurrentId.Value);
+            this.Scheduler.NotifyMachineBlockedOnEvent(machine.Id.Value);
             this.Scheduler.Schedule();
         }
 
@@ -1133,19 +1099,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
-
-            if (base.Configuration.BoundOperations)
-            {
-                this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
-                    $"event '{eventInfo.EventName}({eventInfo.OperationId})' and unblocked.");
-            }
-            else
-            {
-                this.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
-                    $"event '{eventInfo.EventName}' and unblocked.");
-            }
-
-            this.Scheduler.NotifyTaskReceivedEvent(machine);
+            this.Log($"<ReceiveLog> Machine '{machine.Id}' received event '{eventInfo.EventName}' and unblocked.");
+            this.Scheduler.NotifyMachineReceivedEvent(machine.Id.Value);
             machine.IsWaitingToReceive = false;
         }
 
@@ -1199,7 +1154,6 @@ namespace Microsoft.PSharp.TestingServices
             string originMachine = (sender == null) ? "Env" : sender.GetType().Name;
             string originState = (sender == null) ? "Env" :
                 (sender is Machine) ? StateGroup.GetQualifiedStateName((sender as Machine).CurrentState) :
-                (sender is Monitor) ? StateGroup.GetQualifiedStateName((sender as Monitor).CurrentState) :
                 "Env";
 
             string edgeLabel = e.GetType().Name;
@@ -1213,7 +1167,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Reports code coverage for the specified machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void ReportCodeCoverageOfMachine(AbstractMachine machine)
+        private void ReportCodeCoverageOfMachine(Machine machine)
         {
             var machineName = machine.GetType().Name;
 
@@ -1231,6 +1185,31 @@ namespace Microsoft.PSharp.TestingServices
             foreach (var tup in pairs)
             {
                 this.CoverageInfo.DeclareStateEvent(machineName, tup.Item1, tup.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Reports code coverage for the specified monitor.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        private void ReportCodeCoverageOfMonitor(Monitor monitor)
+        {
+            var monitorName = monitor.GetType().Name;
+
+            // fetch states
+            var states = monitor.GetAllStates();
+
+            foreach (var state in states)
+            {
+                this.CoverageInfo.DeclareMachineState(monitorName, state);
+            }
+
+            // fetch registered events
+            var pairs = monitor.GetAllStateEventPairs();
+
+            foreach (var tup in pairs)
+            {
+                this.CoverageInfo.DeclareStateEvent(monitorName, tup.Item1, tup.Item2);
             }
         }
 
@@ -1258,7 +1237,7 @@ namespace Microsoft.PSharp.TestingServices
                 destState = StateGroup.GetQualifiedStateName(
                     machine.GotoTransitions[eventInfo.EventType].TargetState);
             }
-            else if(machine.PushTransitions.ContainsKey(eventInfo.EventType))
+            else if (machine.PushTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
                 destState = StateGroup.GetQualifiedStateName(
@@ -1271,7 +1250,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
-        
+
         /// <summary>
         /// Reports code coverage for a pop transition.
         /// </summary>
@@ -1282,13 +1261,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             string originMachine = machine.GetType().Name;
             string originState = StateGroup.GetQualifiedStateName(fromState);
-            string destMachine = machine.GetType().Name;            
+            string destMachine = machine.GetType().Name;
             string edgeLabel = "pop";
             string destState = StateGroup.GetQualifiedStateName(toState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
-        
+
         /// <summary>
         /// Reports code coverage for the specified state transition.
         /// </summary>
@@ -1381,50 +1360,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return fingerprint;
-        }
-
-        /// <summary>
-        /// Returns the state name of the specified machine,
-        /// if the machine is in such a state.
-        /// </summary>
-        /// <param name="machine">AbstractMachine</param>
-        /// <returns>StateName</returns>
-        private string GetStateNameOfMachine(AbstractMachine machine)
-        {
-            string machineState = null;
-            if (machine is Machine)
-            {
-                machineState = (machine as Machine).CurrentStateName;
-            }
-            else if (machine is Monitor)
-            {
-                machineState = (machine as Monitor).CurrentStateName;
-            }
-
-            return machineState;
-        }
-
-        /// <summary>
-        /// Sets the operation id for the given event.
-        /// </summary>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        private void SetOperationIdForEvent(EventInfo eventInfo, AbstractMachine sender, bool isStarter)
-        {
-            if (isStarter)
-            {
-                this.OperationIdCounter++;
-                eventInfo.SetOperationId(this.OperationIdCounter);
-            }
-            else if (sender != null)
-            {
-                eventInfo.SetOperationId(sender.OperationId);
-            }
-            else
-            {
-                eventInfo.SetOperationId(0);
-            }
         }
 
         #endregion

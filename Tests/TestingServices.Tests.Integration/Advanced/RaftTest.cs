@@ -578,7 +578,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                     if (this.VotesReceived >= (this.Servers.Length / 2) + 1)
                     {
                         this.VotesReceived = 0;
-                        this.Raise(new BecomeLeader(), true);
+                        this.Raise(new BecomeLeader());
                     }
                 }
             }
@@ -977,7 +977,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 this.LatestCommand = this.RandomInteger(100); //new Random().Next(100);
                 this.Counter++;
-                this.Send(this.Cluster, new Request(this.Id, this.LatestCommand), true);
+                this.Send(this.Cluster, new Request(this.Id, this.LatestCommand));
             }
 
             void ProcessResponse()
@@ -1040,7 +1040,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 if (this.Random())
                 {
-                    this.Send(this.Target, new Timeout(), true);
+                    this.Send(this.Target, new Timeout());
                 }
 
                 this.Raise(new CancelTimer());
@@ -1097,7 +1097,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 if (this.Random())
                 {
-                    this.Send(this.Target, new Timeout(), true);
+                    this.Send(this.Target, new Timeout());
                 }
 
                 this.Raise(new CancelTimer());
