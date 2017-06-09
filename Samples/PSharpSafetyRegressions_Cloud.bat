@@ -23,10 +23,13 @@ for /D %%s in (.\*) do (
 	cd %%s
 	findstr "buggy" .\psharpbatchout.txt>x.txt
 	set /p mystr1_%%s=<x.txt
+	del x.txt
 	for /f "tokens=3" %%i in ("!mystr1_%%s!") do set Bug_%%s=%%i
+	if "!Bug_%%s!" == "" set Bug_%%s=0
 
 	findstr "Elapsed" .\psharpbatchout.txt>y.txt
 	set /p mystr2_%%s=<y.txt
+	del y.txt
 	for /f "tokens=3" %%i in ("!mystr2_%%s!") do set Time_%%s=%%i
 
 	findstr "Testing" .\psharpbatchout.txt>z.txt
