@@ -10,7 +10,7 @@ if not exist .\PSharpBatch.config (
 ..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
 
 
-echo Test					Buggy schedules		Time taken	> .\PSharpSafetyResults.txt
+echo Test					Buggy schedules		Time taken	> .\RegressionResults.txt
 
 setlocal enabledelayedexpansion
 
@@ -21,7 +21,7 @@ for /D %%s in (.\*) do (
 	set /p mystr1_%%s=<x.txt
 	del x.txt
 	for /f "tokens=3" %%i in ("!mystr1_%%s!") do set Bug_%%s=%%i
-	if "!Bug_%%s!" == "" set Bug_%%s=0
+	if "!Bug_%%s!" == "" set Bug_%%s=0%%
 
 	findstr "Elapsed" .\psharpbatchout.txt>y.txt
 	set /p mystr2_%%s=<y.txt
@@ -34,7 +34,7 @@ for /D %%s in (.\*) do (
 	for %%a in ("!mystr3_%%s!\.") do set "Bmk_%%s=%%~nxa"
 
 	cd ..\..\
-	echo !Bmk_%%s!				!Bug_%%s!		!Time_%%s!		>> .\PSharpSafetyResults.txt
+	echo !Bmk_%%s!				!Bug_%%s!		!Time_%%s!		>> .\RegressionResults.txt
 	cd .\Output
 )
 
