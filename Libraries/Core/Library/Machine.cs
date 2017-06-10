@@ -1563,9 +1563,10 @@ namespace Microsoft.PSharp
 
             do
             {
-                method = machineType.GetMethod(actionName, BindingFlags.Public |
-                    BindingFlags.NonPublic | BindingFlags.Instance |
-                    BindingFlags.FlattenHierarchy);
+                method = machineType.GetMethod(actionName,
+                    BindingFlags.Public | BindingFlags.NonPublic |
+                    BindingFlags.Instance | BindingFlags.FlattenHierarchy,
+                    Type.DefaultBinder, new Type[0], null);
                 machineType = machineType.BaseType;
             }
             while (method == null && machineType != typeof(Machine));
