@@ -67,6 +67,7 @@
     <Compile Include="EntryPoint\EntryPointEventSendingTest.cs" />
     <Compile Include="EntryPoint\EntryPointMachineExecutionTest.cs" />
     <Compile Include="EntryPoint\EntryPointMachineCreationTest.cs" />
+    <Compile Include="Machines\Declarations\AmbiguousEventHandlerTest.cs" />
     <Compile Include="Machines\Statements\MethodCallTest.cs" />
     <Compile Include="Machines\Declarations\GroupStateTest.cs" />
     <Compile Include="EventHandling\MaxInstances1FailTest.cs" />
