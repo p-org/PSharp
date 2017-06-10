@@ -19,6 +19,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Scheduling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -27,6 +29,15 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal sealed class ReplayEngine : AbstractTestingEngine
     {
+        #region properties
+
+        /// <summary>
+        /// Text describing an internal replay error.
+        /// </summary>
+        internal string InternalError { get; private set; }
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -36,6 +47,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration)
         {
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration);
         }
 
@@ -47,6 +59,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration, Assembly assembly)
         {
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration, assembly);
         }
 
@@ -58,6 +71,21 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
+            return new ReplayEngine(configuration, action);
+        }
+
+        /// <summary>
+        /// Creates a new P# replaying engine.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="action">Action</param>
+        /// <param name="trace">Reproducable trace</param>
+        /// <returns>ReplayEngine</returns>
+        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action, string trace)
+        {
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
+            configuration.ScheduleTrace = trace;
             return new ReplayEngine(configuration, action);
         }
 
@@ -137,6 +165,17 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = new Task(() =>
             {
+                // Runtime used to serialize and test the program.
+                BugFindingRuntime runtime = null;
+
+                // Logger used to intercept the program output if no custom logger
+                // is installed and if verbosity is turned off.
+                InMemoryLogger runtimeLogger = null;
+
+                // Gets a handle to the standard output and error streams.
+                var stdOut = Console.Out;
+                var stdErr = Console.Error;
+
                 try
                 {
                     if (base.TestInitMethod != null)
@@ -146,49 +185,28 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     // Creates a new instance of the bug-finding runtime.
-                    var runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
+                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
 
-                    // Logger used to intercept the program output if no custom logger
-                    // is installed and if verbosity is turned off.
-                    InMemoryLogger runtimeLogger = null;
-
-                    // Gets a handle to the standard output and error streams.
-                    var stdOut = Console.Out;
-                    var stdErr = Console.Error;
-
-                    try
+                    // If verbosity is turned off, then intercept the program log, and also redirect
+                    // the standard output and error streams into the runtime logger.
+                    if (base.Configuration.Verbose < 2)
                     {
-                        // If verbosity is turned off, then intercept the program log, and also redirect
-                        // the standard output and error streams into the runtime logger.
-                        if (base.Configuration.Verbose < 2)
-                        {
-                            runtimeLogger = new InMemoryLogger();
-                            runtime.SetLogger(runtimeLogger);
+                        runtimeLogger = new InMemoryLogger();
+                        runtime.SetLogger(runtimeLogger);
 
-                            var writer = new LogWriter(new DisposingLogger());
-                            Console.SetOut(writer);
-                            Console.SetError(writer);
-                        }
-
-                        // Runs the test inside the P# test-harness machine.
-                        runtime.RunTestHarness(base.TestMethod, base.TestAction);
-
-                        // Wait for the test to terminate.
-                        runtime.Wait();
-                    }
-                    finally
-                    {
-                        if (base.Configuration.Verbose < 2)
-                        {
-                            // Restores the standard output and error streams.
-                            Console.SetOut(stdOut);
-                            Console.SetError(stdErr);
-                        }
-
-                        runtimeLogger?.Dispose();
+                        var writer = new LogWriter(new DisposingLogger());
+                        Console.SetOut(writer);
+                        Console.SetError(writer);
                     }
 
-                    if (runtime.Scheduler.BugFound)
+                    // Runs the test inside the P# test-harness machine.
+                    runtime.RunTestHarness(base.TestMethod, base.TestAction);
+
+                    // Wait for the test to terminate.
+                    runtime.Wait();
+
+                    this.InternalError = (base.Strategy as ReplayStrategy).ErrorText;
+                    if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                     {
                         base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                     }
@@ -210,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property
                     // violations have been found.
-                    if (!runtime.Scheduler.BugFound)
+                    if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                     {
                         runtime.LivenessChecker.CheckLivenessAtTermination();
                     }
@@ -218,8 +236,6 @@ namespace Microsoft.PSharp.TestingServices
                     TestReport report = runtime.Scheduler.GetReport();
                     report.CoverageInfo.Merge(runtime.CoverageInfo);
                     this.TestReport.Merge(report);
-
-                    runtime.Dispose();
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -227,6 +243,19 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     }
+                }
+                finally
+                {
+                    if (base.Configuration.Verbose < 2)
+                    {
+                        // Restores the standard output and error streams.
+                        Console.SetOut(stdOut);
+                        Console.SetError(stdErr);
+                    }
+
+                    // Cleans up the runtime.
+                    runtimeLogger?.Dispose();
+                    runtime?.Dispose();
                 }
             }, base.CancellationTokenSource.Token);
 

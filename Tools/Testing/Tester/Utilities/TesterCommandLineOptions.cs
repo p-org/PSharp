@@ -307,10 +307,6 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SafetyPrefixBound = i;
             }
-            else if (option.ToLower().Equals("/print-trace"))
-            {
-                base.Configuration.PrintTrace = true;
-            }
             else if (option.ToLower().StartsWith("/liveness-temperature-threshold:") && option.Length > 32)
             {
                 int i = 0;
