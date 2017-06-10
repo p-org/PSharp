@@ -513,8 +513,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices,
-            MachineInfo current)
+        bool ISchedulingStrategy.TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
             var availableMachines = choices.Where(
                 m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
@@ -540,9 +539,9 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
                 Debug.WriteLine($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachineId}'.");
 
-                next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
+                next = availableMachines.FirstOrDefault(m => m.MachineId.Type.Equals(
                     nextStep.ScheduledMachineId.Type) &&
-                    m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
+                    m.MachineId.Value == nextStep.ScheduledMachineId.Value);
                 if (next == null)
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: cannot detect machine with type " +

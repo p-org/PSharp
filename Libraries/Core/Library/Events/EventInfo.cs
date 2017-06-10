@@ -48,11 +48,6 @@ namespace Microsoft.PSharp
         [DataMember]
         internal EventOriginInfo OriginInfo { get; private set; }
 
-        /// <summary>
-        /// The operation id of the event.
-        /// </summary>
-        internal int OperationId { get; private set; }
-
         #endregion
 
         #region constructor
@@ -79,19 +74,6 @@ namespace Microsoft.PSharp
             this.EventType = e.GetType();
             this.EventName = this.EventType.FullName;
             this.OriginInfo = originInfo;
-        }
-
-        #endregion
-
-        #region methods
-
-        /// <summary>
-        /// Sets the operation id of this event.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        internal void SetOperationId(int opid)
-        {
-            this.OperationId = opid;
         }
 
         #endregion

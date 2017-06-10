@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
                 engine.Run();
 
                 var numErrors = engine.TestReport.NumOfFoundBugs;
-                Assert.Equal(0, numErrors);
+                Assert.True(numErrors == 0, GetBugReport(engine));
             }
             catch (Exception ex)
             {
@@ -204,6 +204,17 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         protected Configuration GetConfiguration()
         {
             return Configuration.Create();
+        }
+
+        private string GetBugReport(ITestingEngine engine)
+        {
+            string report = "";
+            foreach (var bug in engine.TestReport.BugReports)
+            {
+                report += bug + "\n";
+            }
+
+            return report;
         }
 
         private string RemoveNonDeterministicValuesFromReport(string report)

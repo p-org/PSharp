@@ -267,14 +267,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.PrioritizedMachines.Count == 0)
             {
-                this.PrioritizedMachines.Add(current.Machine.Id);
+                this.PrioritizedMachines.Add(current.MachineId);
             }
 
-            foreach (var mi in choices.Where(mi => !this.PrioritizedMachines.Contains(mi.Machine.Id)))
+            foreach (var mi in choices.Where(mi => !this.PrioritizedMachines.Contains(mi.MachineId)))
             {
                 var mIndex = this.Random.Next(this.PrioritizedMachines.Count) + 1;
-                this.PrioritizedMachines.Insert(mIndex, mi.Machine.Id);
-                Debug.WriteLine($"<PCTLog> Detected new machine '{mi.Machine.Id}' at index '{mIndex}'.");
+                this.PrioritizedMachines.Insert(mIndex, mi.MachineId);
+                Debug.WriteLine($"<PCTLog> Detected new machine '{mi.MachineId}' at index '{mIndex}'.");
             }
 
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
@@ -307,7 +307,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            var prioritizedMachineInfo = choices.First(mi => mi.Machine.Id.Equals(prioritizedMachine));
+            var prioritizedMachineInfo = choices.First(mi => mi.MachineId.Equals(prioritizedMachine));
             return prioritizedMachineInfo;
         }
 
@@ -321,7 +321,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             MachineId prioritizedMachine = null;
             foreach (var mid in this.PrioritizedMachines)
             {
-                if (choices.Any(m => m.Machine.Id == mid))
+                if (choices.Any(m => m.MachineId == mid))
                 {
                     prioritizedMachine = mid;
                     break;

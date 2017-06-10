@@ -65,7 +65,6 @@
     <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Runtime\TestHarnessMachine.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
-    <Compile Include="Scheduling\MachineInfo.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
@@ -74,9 +73,6 @@
     <Compile Include="SchedulingStrategies\Fuzzing\ProbabilisticRandomStrategy.cs" />
     <Compile Include="SchedulingStrategies\Fuzzing\RandomStrategy.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />
-    <Compile Include="SchedulingStrategies\OperationBounded\OperationBoundingStrategy.cs" />
-    <Compile Include="SchedulingStrategies\OperationBounded\RandomOperationBoundingStrategy.cs" />
-    <Compile Include="SchedulingStrategies\OperationBounded\PrioritizedOperationBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\Prioritized\PCTStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\ComboStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\InteractiveStrategy.cs" />

@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public virtual bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
-            var machines = choices.OrderBy(mi => mi.Machine.Id.Value).ToList();
+            var machines = choices.OrderBy(mi => mi.MachineId.Value).ToList();
 
             var currentMachineIdx = machines.IndexOf(current);
             var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);

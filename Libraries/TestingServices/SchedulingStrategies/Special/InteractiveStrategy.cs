@@ -81,18 +81,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             next = null;
 
-            List<MachineInfo> availableMachines;
-            if (this.Configuration.BoundOperations)
-            {
-                availableMachines = this.GetPrioritizedMachines(choices.ToList(), current);
-            }
-            else
-            {
-                choices = choices.OrderBy(machine => machine.Machine.Id.Value).ToList();
-                availableMachines = choices.Where(
-                    m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
-            }
-            
+            choices = choices.OrderBy(machine => machine.MachineId.Value).ToList();
+            List<MachineInfo> availableMachines = choices.Where(
+                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
+
             if (availableMachines.Count == 0)
             {
                 this.Logger.WriteLine(">> No available machines to schedule ...");
@@ -126,15 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 for (int idx = 0; idx < availableMachines.Count; idx++)
                 {
                     var m = availableMachines[idx];
-                    if (this.Configuration.BoundOperations)
-                    {
-                        this.Logger.WriteLine($">> [{idx}] '{m.Machine.Id}' with " +
-                            $"operation id '{m.Machine.OperationId}'");
-                    }
-                    else
-                    {
-                        this.Logger.WriteLine($">> [{idx}] '{m.Machine.Id}'");
-                    }
+                    this.Logger.WriteLine($">> [{idx}] '{m.MachineId}'");
                 }
 
                 this.Logger.WriteLine($">> Choose machine to schedule [step '{this.ExploredSteps}']");
@@ -178,11 +162,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         {
                             this.Logger.WriteLine(">> Unexpected id, please retry ...");
                             continue;
-                        }
-
-                        if (this.Configuration.BoundOperations)
-                        {
-                            this.PrioritizedOperationId = next.Machine.OperationId;
                         }
                     }
                     catch (FormatException)
@@ -432,49 +411,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #endregion
 
         #region private methods
-
-        /// <summary>
-        /// Returns the prioritized machines.
-        /// </summary>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
-        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> choices, MachineInfo current)
-        {
-            choices = choices.OrderBy(mi => mi.Machine.Id.Value).ToList();
-            choices = choices.OrderBy(mi => mi.Machine.OperationId).ToList();
-
-            MachineInfo priorityMachine = current;
-            var prioritizedMachines = new List<MachineInfo>();
-            if (current.Machine.OperationId == this.PrioritizedOperationId)
-            {
-                var currentMachineIdx = choices.IndexOf(current);
-                prioritizedMachines = choices.GetRange(currentMachineIdx, choices.Count - currentMachineIdx);
-                if (currentMachineIdx != 0)
-                {
-                    prioritizedMachines.AddRange(choices.GetRange(0, currentMachineIdx));
-                }
-            }
-            else
-            {
-                priorityMachine = choices.First(mi => mi.Machine.OperationId == this.PrioritizedOperationId);
-                var priorityMachineIdx = choices.IndexOf(priorityMachine);
-                prioritizedMachines = choices.GetRange(priorityMachineIdx, choices.Count - priorityMachineIdx);
-                if (priorityMachineIdx != 0)
-                {
-                    prioritizedMachines.AddRange(choices.GetRange(0, priorityMachineIdx));
-                }
-            }
-
-            prioritizedMachines = prioritizedMachines.Where(
-                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
-            if (prioritizedMachines.Count == 0)
-            {
-                return prioritizedMachines;
-            }
-
-            return prioritizedMachines;
-        }
 
         /// <summary>
         /// Replays an earlier point of the execution.

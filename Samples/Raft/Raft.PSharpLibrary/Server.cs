@@ -424,7 +424,7 @@ namespace Raft.PSharpLibrary
                     this.Logger.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
                         " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
                     this.VotesReceived = 0;
-                    this.Raise(new BecomeLeader(), true);
+                    this.Raise(new BecomeLeader());
                 }
             }
         }

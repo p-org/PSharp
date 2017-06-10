@@ -305,14 +305,13 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        protected void Send(MachineId mid, Event e, bool isStarter = false)
+        protected void Send(MachineId mid, Event e)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEvent(mid, e, this, isStarter);
+            base.Runtime.SendEvent(mid, e, this);
         }
 
         /// <summary>
@@ -320,14 +319,13 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        protected void RemoteSend(MachineId mid, Event e, bool isStarter = false)
+        protected void RemoteSend(MachineId mid, Event e)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEventRemotely(mid, e, this, isStarter);
+            base.Runtime.SendEventRemotely(mid, e, this);
         }
 
         /// <summary>
@@ -361,14 +359,13 @@ namespace Microsoft.PSharp
         /// Raises an <see cref="Event"/> internally at the end of the current action.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        protected void Raise(Event e, bool isStarter = false)
+        protected void Raise(Event e)
         {
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
                 base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent, isStarter);
+            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent);
         }
 
         /// <summary>
@@ -740,7 +737,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private async Task HandleEvent(Event e)
         {
-            base.CurrentActionCalledRGP = false;
+            base.Info.CurrentActionCalledTransitionStatement = false;
 
             while (true)
             {
@@ -896,7 +893,7 @@ namespace Microsoft.PSharp
                 exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
             }
 
-            base.IsInsideOnExit = true;
+            base.Info.IsInsideOnExit = true;
 
             // Invokes the exit action of the current state,
             // if there is one available.
@@ -915,7 +912,7 @@ namespace Microsoft.PSharp
                 await this.ExecuteAction(eventHandlerExitAction);
             }
 
-            base.IsInsideOnExit = false;
+            base.Info.IsInsideOnExit = false;
         }
 
         /// <summary>
@@ -1256,7 +1253,7 @@ namespace Microsoft.PSharp
                 hash = hash + 31 * this.IsRunning.GetHashCode();
                 hash = hash + 31 * this.IsHalted.GetHashCode();
 
-                hash = hash + 31 * this.ProgramCounter;
+                hash = hash + 31 * this.Info.ProgramCounter;
                 
                 // Adds the user-defined hashed state.
                 hash = hash + 31 * this.HashedState;
@@ -1430,66 +1427,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region utilities
-
-        /// <summary>
-        /// Sets the operation priority of the queue to the specified operation id.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        internal void SetQueueOperationPriority(int opid)
-        {
-            lock (this.Inbox)
-            {
-                // Iterate through the events in the inbox, and give priority
-                // to the first event with the specified operation id.
-                for (int idx = 0; idx < this.Inbox.Count; idx++)
-                {
-                    if (idx == 0 && this.Inbox[idx].OperationId == opid)
-                    {
-                        break;
-                    }
-                    else if (this.Inbox[idx].OperationId == opid)
-                    {
-                        var prioritizedEvent = this.Inbox[idx];
-
-                        var sameSenderConflict = false;
-                        for (int prev = 0; prev < idx; prev++)
-                        {
-                            if (this.Inbox[prev].OriginInfo.SenderMachineId.Equals(
-                                prioritizedEvent.OriginInfo.SenderMachineId))
-                            {
-                                sameSenderConflict = true;
-                            }
-                        }
-
-                        if (!sameSenderConflict)
-                        {
-                            this.Inbox.RemoveAt(idx);
-                            this.Inbox.Insert(0, prioritizedEvent);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the specified operation id is pending
-        /// execution by the machine.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        /// <returns>Boolean</returns>
-        internal override bool IsOperationPending(int opid)
-        {
-            foreach (var e in this.Inbox)
-            {
-                if (e.OperationId == opid)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Returns the names of the events that the machine
