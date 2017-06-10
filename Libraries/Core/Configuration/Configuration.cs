@@ -126,12 +126,6 @@ namespace Microsoft.PSharp
         public string TestMethodName;
 
         /// <summary>
-        /// The schedule file to be replayed.
-        /// </summary>
-        [DataMember]
-        public string ScheduleFile;
-
-        /// <summary>
         /// Scheduling strategy to use with the P# tester.
         /// </summary>
         [DataMember]
@@ -304,6 +298,20 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region trace replay options
+
+        /// <summary>
+        /// The schedule file to be replayed.
+        /// </summary>
+        internal string ScheduleFile;
+
+        /// <summary>
+        /// The schedule trace to be replayed.
+        /// </summary>
+        internal string ScheduleTrace;
+
+        #endregion
+
         #region data race detection options
 
         /// <summary>
@@ -395,26 +403,6 @@ namespace Microsoft.PSharp
         [DataMember]
         public bool KeepTemporaryFiles;
 
-        /// <summary>
-        /// If true, then the P# tester will print the trace
-        /// to a file, even if a bug is not found.
-        /// </summary>
-        [DataMember]
-        public bool PrintTrace;
-
-        /// <summary>
-        /// If true, then the P# tester will not output the
-        /// error trace to a file.
-        /// </summary>
-        [DataMember]
-        internal bool SuppressTrace;
-
-        /// <summary>
-        /// If true, then P# will throw any internal exceptions.
-        /// </summary>
-        [DataMember]
-        internal bool ThrowInternalExceptions;
-
         #endregion
 
         #region tooling options
@@ -422,8 +410,17 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Enables colored console output.
         /// </summary>
-        [DataMember]
         internal bool EnableColoredConsoleOutput;
+
+        /// <summary>
+        /// If true, then P# will throw any internal exceptions.
+        /// </summary>
+        internal bool ThrowInternalExceptions;
+
+        /// <summary>
+        /// If true, then environment exit will be disabled.
+        /// </summary>
+        internal bool DisableEnvironmentExit;
 
         #endregion
 
@@ -456,7 +453,6 @@ namespace Microsoft.PSharp
 
             this.AssemblyToBeAnalyzed = "";
             this.TestMethodName = "";
-            this.ScheduleFile = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
@@ -486,6 +482,9 @@ namespace Microsoft.PSharp
 
             this.EnableMonitorsInProduction = false;
 
+            this.ScheduleFile = "";
+            this.ScheduleTrace = "";
+
             this.EnableDataRaceDetection = false;
 
             this.ReportCodeCoverage = false;
@@ -500,11 +499,10 @@ namespace Microsoft.PSharp
             this.EnableDebugging = false;
             this.EnableProfiling = false;
             this.KeepTemporaryFiles = false;
-            this.PrintTrace = false;
-            this.SuppressTrace = false;
-            this.ThrowInternalExceptions = false;
 
             this.EnableColoredConsoleOutput = false;
+            this.ThrowInternalExceptions = false;
+            this.DisableEnvironmentExit = true;
         }
 
         #endregion

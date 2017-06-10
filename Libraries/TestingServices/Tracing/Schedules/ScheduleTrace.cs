@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             foreach (var step in traceDump)
             {
                 int intChoice;
-                if (step.StartsWith("--"))
+                if (step.StartsWith("--") || step.Length == 0)
                 {
                     continue;
                 }

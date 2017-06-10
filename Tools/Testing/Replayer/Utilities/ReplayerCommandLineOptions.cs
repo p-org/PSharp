@@ -64,10 +64,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AttachDebugger = true;
             }
-            else if (option.ToLower().Equals("/print-trace"))
-            {
-                base.Configuration.PrintTrace = true;
-            }
             else if (option.ToLower().Equals("/state-caching"))
             {
                 base.Configuration.CacheProgramState = true;

@@ -54,6 +54,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private bool IsSchedulerFair;
 
+        /// <summary>
+        /// Text describing a replay error.
+        /// </summary>
+        internal string ErrorText { get; private set; }
+
         #endregion
 
         #region public API
@@ -71,6 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.IsSchedulerFair = isFair;
+            this.ErrorText = "";
         }
 
         /// <summary>
@@ -94,24 +100,40 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            if (this.ExploredSteps >= this.ScheduleTrace.Count)
+            try
             {
-                Error.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
-            }
+                if (this.ExploredSteps >= this.ScheduleTrace.Count)
+                {
+                    this.ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
 
-            ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
-            if (nextStep.Type != ScheduleStepType.SchedulingChoice)
-            {
-                Error.ReportAndExit("Trace is not reproducible: next step is not a scheduling choice.");
-            }
+                ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
+                if (nextStep.Type != ScheduleStepType.SchedulingChoice)
+                {
+                    this.ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
 
-            next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
-                nextStep.ScheduledMachineId.Type) &&
-                m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
-            if (next == null)
+                next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
+                    nextStep.ScheduledMachineId.Type) &&
+                    m.Machine.Id.Value == nextStep.ScheduledMachineId.Value);
+                if (next == null)
+                {
+                    this.ErrorText = "Trace is not reproducible: cannot detect machine with type " +
+                        $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
+            }
+            catch (InvalidOperationException ex)
             {
-                Error.ReportAndExit("Trace is not reproducible: cannot detect machine with type " +
-                    $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.");
+                if (!this.Configuration.DisableEnvironmentExit)
+                {
+                    Error.ReportAndExit(ex.Message);
+                }
+
+                next = null;
+                return false;
             }
 
             this.ExploredSteps++;
@@ -127,23 +149,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            if (this.ExploredSteps >= this.ScheduleTrace.Count)
-            {
-                Error.ReportAndExit("Trace is not reproducible: " +
-                    "execution is longer than trace.");
-            }
+            ScheduleStep nextStep = null;
 
-            ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
-            if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+            try
             {
-                Error.ReportAndExit("Trace is not reproducible: " +
-                    "next step is not a nondeterministic choice.");
-            }
+                if (this.ExploredSteps >= this.ScheduleTrace.Count)
+                {
+                    this.ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
 
-            if (nextStep.BooleanChoice == null)
+                nextStep = this.ScheduleTrace[this.ExploredSteps];
+                if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+                {
+                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
+
+                if (nextStep.BooleanChoice == null)
+                {
+                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
+            }
+            catch (InvalidOperationException ex)
             {
-                Error.ReportAndExit("Trace is not reproducible: " +
-                    "next step is not a nondeterministic boolean choice.");
+                if (!this.Configuration.DisableEnvironmentExit)
+                {
+                    Error.ReportAndExit(ex.Message);
+                }
+
+                next = false;
+                return false;
             }
 
             next = nextStep.BooleanChoice.Value;
@@ -160,23 +197,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public virtual bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            if (this.ExploredSteps >= this.ScheduleTrace.Count)
-            {
-                Error.ReportAndExit("Trace is not reproducible: " +
-                    "execution is longer than trace.");
-            }
+            ScheduleStep nextStep = null;
 
-            ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
-            if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+            try
             {
-                Error.ReportAndExit("Trace is not reproducible: " +
-                    "next step is not a nondeterministic choice.");
-            }
+                if (this.ExploredSteps >= this.ScheduleTrace.Count)
+                {
+                    this.ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
 
-            if (nextStep.IntegerChoice == null)
+                nextStep = this.ScheduleTrace[this.ExploredSteps];
+                if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+                {
+                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
+
+                if (nextStep.IntegerChoice == null)
+                {
+                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
+                    throw new InvalidOperationException(this.ErrorText);
+                }
+            }
+            catch (InvalidOperationException ex)
             {
-                Error.ReportAndExit("Trace is not reproducible: " +
-                    "next step is not a nondeterministic integer choice.");
+                if (!this.Configuration.DisableEnvironmentExit)
+                {
+                    Error.ReportAndExit(ex.Message);
+                }
+
+                next = 0;
+                return false;
             }
 
             next = nextStep.IntegerChoice.Value;

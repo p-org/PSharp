@@ -245,7 +245,16 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {
-                string[] scheduleDump = File.ReadAllLines(this.Configuration.ScheduleFile);
+                string[] scheduleDump;
+                if (this.Configuration.ScheduleTrace.Length > 0)
+                {
+                    scheduleDump = this.Configuration.ScheduleTrace.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+                }
+                else
+                {
+                    scheduleDump = File.ReadAllLines(this.Configuration.ScheduleFile);
+                }
+
                 bool isFair = false;
 
                 foreach (var line in scheduleDump)
@@ -273,7 +282,6 @@ namespace Microsoft.PSharp.TestingServices
                         this.Configuration.TestMethodName =
                             line.Substring("--test-method:".Length);
                     }
-
                 }
 
                 ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
@@ -337,12 +345,6 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Portfolio testing strategy in only " +
                     "available in parallel testing.");
-            }
-
-            if (this.Configuration.PrintTrace)
-            {
-                this.Configuration.SchedulingIterations = 1;
-                this.Configuration.PerformFullExploration = false;
             }
         }
 

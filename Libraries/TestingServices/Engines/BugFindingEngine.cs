@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The reproducable trace, if any.
         /// </summary>
-        private string ReproducableTrace;
+        internal string ReproducableTrace { get; private set; }
 
         #endregion
 
@@ -369,14 +369,16 @@ namespace Microsoft.PSharp.TestingServices
 
                 this.GatherIterationStatistics(runtime);
 
-                if (runtimeLogger != null && base.TestReport.NumOfFoundBugs > 0 &&
-                    !base.Configuration.PerformFullExploration && !base.Configuration.SuppressTrace)
+                if (base.TestReport.NumOfFoundBugs > 0)
                 {
-                    this.ConstructReproducableTrace(runtime, runtimeLogger);
-                }
-                else if (runtimeLogger != null && base.Configuration.PrintTrace)
-                {
-                    this.ConstructReproducableTrace(runtime, runtimeLogger);
+                    if (runtimeLogger != null)
+                    {
+                        this.ReadableTrace = runtimeLogger.ToString();
+                        this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
+                    }
+
+                    this.BugTrace = runtime.BugTrace;
+                    this.ConstructReproducableTrace(runtime);
                 }
             }
             finally
@@ -421,13 +423,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructs a reproducable trace.
         /// </summary>
         /// <param name="runtime">BugFindingRuntime</param>
-        /// <param name="logger">InMemoryLogger</param>
-        private void ConstructReproducableTrace(BugFindingRuntime runtime, InMemoryLogger logger)
+        private void ConstructReproducableTrace(BugFindingRuntime runtime)
         {
-            this.ReadableTrace = logger.ToString();
-            this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
-            this.BugTrace = runtime.BugTrace;
-
             StringBuilder stringBuilder = new StringBuilder();
 
             if (this.Strategy.IsFair())

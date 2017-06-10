@@ -29,24 +29,22 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointThrowException()
         {
-            PSharpRuntime stored_runtime = null;
-            int counter = 0;
-
             var test = new Action<PSharpRuntime>((r) => {
-                if (counter == 0)
-                {
-                    stored_runtime = r; 
-                    counter++;
-                }
-
-                // Fails in the second iteration, because logger is disposed.
-                stored_runtime.Logger.WriteLine("Starting iteration {0}", counter); 
-
                 MachineId m = r.CreateMachine(typeof(M));
+                throw new InvalidOperationException();
             });
 
-            var config = Configuration.Create().WithNumberOfIterations(2);
-            base.AssertFailedWithException(config, test, typeof(ObjectDisposedException));
+            base.AssertFailedWithException(test, typeof(InvalidOperationException));
+        }
+
+        [Fact]
+        public void TestEntryPointNoMachinesThrowException()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                throw new InvalidOperationException();
+            });
+
+            base.AssertFailedWithException(test, typeof(InvalidOperationException));
         }
     }
 }

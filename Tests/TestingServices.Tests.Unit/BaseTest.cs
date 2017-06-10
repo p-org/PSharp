@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
             catch (Exception ex)
             {
-                Assert.False(true, ex.Message);
+                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
             }
             finally
             {
@@ -94,35 +94,50 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             try
             {
-                var engine = BugFindingEngine.Create(configuration, test);
-                engine.SetLogger(logger);
-                engine.Run();
+                var bfEngine = BugFindingEngine.Create(configuration, test);
+                bfEngine.SetLogger(logger);
+                bfEngine.Run();
 
-                var numErrors = engine.TestReport.NumOfFoundBugs;
-                Assert.Equal(numExpectedErrors, numErrors);
+                CheckErrors(bfEngine, numExpectedErrors, expectedOutputs);
 
-                if (expectedOutputs.Count > 0)
+                if (!configuration.EnableCycleReplayingStrategy && !configuration.CacheProgramState)
                 {
-                    var bugReports = new HashSet<string>();
-                    foreach (var bugReport in engine.TestReport.BugReports)
-                    {
-                        var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
-                        bugReports.Add(actual);
-                    }
+                    var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
+                    rEngine.SetLogger(logger);
+                    rEngine.Run();
 
-                    foreach (var expected in expectedOutputs)
-                    {
-                        Assert.Contains(expected, bugReports);
-                    }
+                    Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
+                    CheckErrors(rEngine, numExpectedErrors, expectedOutputs);
                 }
             }
             catch (Exception ex)
             {
-                Assert.False(true, ex.Message);
+                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
             }
             finally
             {
                 logger.Dispose();
+            }
+        }
+
+        private void CheckErrors(ITestingEngine engine, int numExpectedErrors, ISet<string> expectedOutputs)
+        {
+            var numErrors = engine.TestReport.NumOfFoundBugs;
+            Assert.Equal(numExpectedErrors, numErrors);
+
+            if (expectedOutputs.Count > 0)
+            {
+                var bugReports = new HashSet<string>();
+                foreach (var bugReport in engine.TestReport.BugReports)
+                {
+                    var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
+                    bugReports.Add(actual);
+                }
+
+                foreach (var expected in expectedOutputs)
+                {
+                    Assert.Contains(expected, bugReports);
+                }
             }
         }
 
@@ -145,25 +160,40 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             try
             {
-                var engine = BugFindingEngine.Create(configuration, test);
-                engine.SetLogger(logger);
-                engine.Run();
+                var bfEngine = BugFindingEngine.Create(configuration, test);
+                bfEngine.SetLogger(logger);
+                bfEngine.Run();
 
-                var numErrors = engine.TestReport.NumOfFoundBugs;
-                Assert.Equal(1, numErrors);
+                CheckErrors(bfEngine, exceptionType);
 
-                var exception = this.RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
-                    Split(new[] { '\r', '\n' }).FirstOrDefault();
-                Assert.Contains("'" + exceptionType.ToString() + "'", exception);
+                if (!configuration.EnableCycleReplayingStrategy && !configuration.CacheProgramState)
+                {
+                    var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
+                    rEngine.SetLogger(logger);
+                    rEngine.Run();
+
+                    Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
+                    CheckErrors(rEngine, exceptionType);
+                }
             }
             catch (Exception ex)
             {
-                Assert.False(true, ex.Message);
+                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
             }
             finally
             {
                 logger.Dispose();
             }
+        }
+
+        private void CheckErrors(ITestingEngine engine, Type exceptionType)
+        {
+            var numErrors = engine.TestReport.NumOfFoundBugs;
+            Assert.Equal(1, numErrors);
+
+            var exception = this.RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
+                Split(new[] { '\r', '\n' }).FirstOrDefault();
+            Assert.Contains("'" + exceptionType.ToString() + "'", exception);
         }
 
         #endregion
@@ -172,9 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected Configuration GetConfiguration()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            return configuration;
+            return Configuration.Create();
         }
 
         private string RemoveNonDeterministicValuesFromReport(string report)

@@ -100,7 +100,6 @@ namespace Microsoft.PSharp.TestingServices
             if (configuration.ParallelBugFindingTasks > 1)
             {
                 configuration.Verbose = 1;
-                configuration.PrintTrace = false;
                 configuration.EnableDataRaceDetection = false;
             }
 
