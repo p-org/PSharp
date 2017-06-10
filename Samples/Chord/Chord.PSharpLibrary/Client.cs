@@ -66,7 +66,7 @@ namespace Chord.PSharpLibrary
                 if (this.Random())
                 {
                     var key = this.GetNextQueryKey();
-                    IO.Log($"<ChordLog> Client is searching for successor of key '{key}'");
+                    this.Logger.WriteLine($"<ChordLog> Client is searching for successor of key '{key}'");
                     this.Send(this.ClusterManager, new ChordNode.FindSuccessor(this.Id, key));
                     this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientRequest(key));
                 }
