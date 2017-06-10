@@ -1,5 +1,5 @@
 @echo off
-if not exist ..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe (
+if not exist ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe (
 	echo ERROR: Can't find PSharpBatchTester.exe
 	exit
 )
@@ -11,7 +11,7 @@ if not exist .\PSharpBatchAuth.config (
 	echo ERROR: Can't find PSharpBatchAuth.config
 	exit
 )
-..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe /config:.\PSharpBatch.config /auth:.\PSharpBatchAuth.config
+..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe /config:.\PSharpBatch.config /auth:.\PSharpBatchAuth.config
 
 
 echo Test					Buggy schedules		Time taken	> .\PSharpSafetyResults_Cloud.txt

@@ -1,5 +1,5 @@
 @echo off
-if not exist ..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe (
+if not exist ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe (
 	echo ERROR: Can't find PSharpBatchTester.exe
 	exit
 )
@@ -7,7 +7,7 @@ if not exist .\PSharpBatch.config (
 	echo ERROR: Can't find .\PSharpBatch.config
 	exit
 )
-..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
+..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
 
 
 echo Test					Buggy schedules		Time taken	> .\RegressionResults.txt

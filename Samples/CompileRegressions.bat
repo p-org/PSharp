@@ -1,3 +1,9 @@
+@echo off
+if not exist ..\Binaries\PSharpCompiler.exe (
+	echo ERROR: Can't find ..\Binaries\PSharpCompiler.exe, please compile PSharp.sln
+	exit
+)
+
 ..\Binaries\PSharpCompiler.exe /s:BoundedAsync\BoundedAsync.sln /p:BoundedAsync.PSharpLibrary
 ..\Binaries\PSharpCompiler.exe /s:CacheCoherence\CacheCoherence.sln /p:CacheCoherence.PSharpLibrary
 ..\Binaries\PSharpCompiler.exe /s:ChainReplication\ChainReplication.sln /p:ChainReplication.PSharpLibrary
