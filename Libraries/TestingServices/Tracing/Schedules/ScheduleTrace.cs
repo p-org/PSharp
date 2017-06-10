@@ -91,8 +91,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
                 }
                 else
                 {
-                    string[] machineId = step.TrimEnd(')').Split('(');
-                    this.AddSchedulingChoice(new MachineId(machineId[0], ulong.Parse(machineId[1])));
+                    string id = step.TrimStart('(').TrimEnd(')');
+                    this.AddSchedulingChoice(ulong.Parse(id));
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// Adds a scheduling choice.
         /// </summary>
         /// <param name="scheduledMachineId">Scheduled machine id</param>
-        internal void AddSchedulingChoice(MachineId scheduledMachineId)
+        internal void AddSchedulingChoice(ulong scheduledMachineId)
         {
             var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count, scheduledMachineId);
             this.Push(scheduleStep);

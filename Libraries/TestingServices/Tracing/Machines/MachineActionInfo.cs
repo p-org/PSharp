@@ -212,17 +212,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// Creates a machine creation info.
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="creator">MachineId</param>
+        /// <param name="creatorId">Creator id</param>
         /// <param name="mid">MachineId</param>
         /// <returns>MachineId</returns>
-        internal static MachineActionInfo CreateMachineCreationInfo(int index, MachineId creator, MachineId mid)
+        internal static MachineActionInfo CreateMachineCreationInfo(int index, ulong creatorId, MachineId mid)
         {
             var actionInfo = new MachineActionInfo();
 
             actionInfo.Index = index;
             actionInfo.Type = MachineActionType.MachineCreationInfo;
 
-            actionInfo.MachineId = creator.Value;
+            actionInfo.MachineId = creatorId;
             actionInfo.createdMachineId = mid;
 
             actionInfo.TaskId = -5;

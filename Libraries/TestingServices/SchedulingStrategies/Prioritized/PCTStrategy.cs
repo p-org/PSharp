@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -60,9 +61,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private IRandomNumberGenerator Random;
 
         /// <summary>
-        /// List of prioritized machines.
+        /// List of prioritized entities.
         /// </summary>
-        private List<MachineId> PrioritizedMachines;
+        private List<ISchedulable> PrioritizedEntities;
 
         /// <summary>
         /// Set of priority change points.
@@ -86,32 +87,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.BugDepth = depth;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.PrioritizedMachines = new List<MachineId>();
+            this.PrioritizedEntities = new List<ISchedulable>();
             this.PriorityChangePoints = new SortedSet<int>();
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var availableMachines = choices.Where(
-                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
-            next = this.GetPrioritizedMachine(availableMachines, current);
+            next = this.GetPrioritizedChoice(enabledChoices, current);
             this.ExploredSteps++;
 
             return true;
@@ -202,7 +198,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
 
-            this.PrioritizedMachines.Clear();
+            this.PrioritizedEntities.Clear();
             this.PriorityChangePoints.Clear();
 
             var range = new List<int>();
@@ -225,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.PrioritizedMachines.Clear();
+            this.PrioritizedEntities.Clear();
             this.PriorityChangePoints.Clear();
         }
 
@@ -258,23 +254,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #region private methods
 
         /// <summary>
-        /// Returns the prioritized machine.
+        /// Returns the prioritized choice.
         /// </summary>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
-        /// <returns>MachineInfo</returns>
-        private MachineInfo GetPrioritizedMachine(List<MachineInfo> choices, MachineInfo current)
+        /// <returns>ISchedulable</returns>
+        private ISchedulable GetPrioritizedChoice(List<ISchedulable> choices, ISchedulable current)
         {
-            if (this.PrioritizedMachines.Count == 0)
+            if (this.PrioritizedEntities.Count == 0)
             {
-                this.PrioritizedMachines.Add(current.MachineId);
+                this.PrioritizedEntities.Add(current);
             }
 
-            foreach (var mi in choices.Where(mi => !this.PrioritizedMachines.Contains(mi.MachineId)))
+            foreach (var choice in choices.Where(choice => !this.PrioritizedEntities.Contains(choice)))
             {
-                var mIndex = this.Random.Next(this.PrioritizedMachines.Count) + 1;
-                this.PrioritizedMachines.Insert(mIndex, mi.MachineId);
-                Debug.WriteLine($"<PCTLog> Detected new machine '{mi.MachineId}' at index '{mIndex}'.");
+                var mIndex = this.Random.Next(this.PrioritizedEntities.Count) + 1;
+                this.PrioritizedEntities.Insert(mIndex, choice);
+                Debug.WriteLine($"<PCTLog> Detected new schedulable choice '{choice.Name}' at index '{mIndex}'.");
             }
 
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
@@ -285,50 +281,49 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    var priority = this.GetHighestPriorityEnabledMachine(choices);
-                    this.PrioritizedMachines.Remove(priority);
-                    this.PrioritizedMachines.Add(priority);
-                    Debug.WriteLine($"<PCTLog> Machine '{priority}' changes to lowest priority.");
+                    var priority = this.GetHighestPriorityEnabledChoice(choices);
+                    this.PrioritizedEntities.Remove(priority);
+                    this.PrioritizedEntities.Add(priority);
+                    Debug.WriteLine($"<PCTLog> Schedulable '{priority}' changes to lowest priority.");
                 }
             }
 
-            var prioritizedMachine = this.GetHighestPriorityEnabledMachine(choices);
-            Debug.WriteLine($"<PCTLog> Prioritized machine '{prioritizedMachine}'.");
+            var prioritizedSchedulable = this.GetHighestPriorityEnabledChoice(choices);
+            Debug.WriteLine($"<PCTLog> Prioritized schedulable '{prioritizedSchedulable}'.");
             Debug.Write("<PCTLog> Priority list: ");
-            for (int idx = 0; idx < this.PrioritizedMachines.Count; idx++)
+            for (int idx = 0; idx < this.PrioritizedEntities.Count; idx++)
             {
-                if (idx < this.PrioritizedMachines.Count - 1)
+                if (idx < this.PrioritizedEntities.Count - 1)
                 {
-                    Debug.Write($"'{this.PrioritizedMachines[idx]}', ");
+                    Debug.Write($"'{this.PrioritizedEntities[idx]}', ");
                 }
                 else
                 {
-                    Debug.Write($"'{this.PrioritizedMachines[idx]}({1})'.\n");
+                    Debug.Write($"'{this.PrioritizedEntities[idx]}({1})'.\n");
                 }
             }
 
-            var prioritizedMachineInfo = choices.First(mi => mi.MachineId.Equals(prioritizedMachine));
-            return prioritizedMachineInfo;
+            return choices.First(choice => choice.Equals(prioritizedSchedulable));
         }
 
         /// <summary>
-        /// Returns the highest-priority enabled machine.
+        /// Returns the highest-priority enabled choice.
         /// </summary>
         /// <param name="choices">Choices</param>
-        /// <returns>MachineId</returns>
-        private MachineId GetHighestPriorityEnabledMachine(IEnumerable<MachineInfo> choices)
+        /// <returns>ISchedulable</returns>
+        private ISchedulable GetHighestPriorityEnabledChoice(IEnumerable<ISchedulable> choices)
         {
-            MachineId prioritizedMachine = null;
-            foreach (var mid in this.PrioritizedMachines)
+            ISchedulable prioritizedChoice = null;
+            foreach (var entity in this.PrioritizedEntities)
             {
-                if (choices.Any(m => m.MachineId == mid))
+                if (choices.Any(m => m == entity))
                 {
-                    prioritizedMachine = mid;
+                    prioritizedChoice = entity;
                     break;
                 }
             }
 
-            return prioritizedMachine;
+            return prioritizedChoice;
         }
 
         /// <summary>

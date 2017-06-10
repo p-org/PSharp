@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -80,24 +81,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
             try
@@ -115,13 +111,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     throw new InvalidOperationException(this.ErrorText);
                 }
                 
-                next = availableMachines.FirstOrDefault(m => m.MachineId.Type.Equals(
-                    nextStep.ScheduledMachineId.Type) &&
-                    m.MachineId.Value == nextStep.ScheduledMachineId.Value);
+                next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
                 if (next == null)
                 {
-                    this.ErrorText = "Trace is not reproducible: cannot detect machine with type " +
-                        $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.";
+                    this.ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
                     throw new InvalidOperationException(this.ErrorText);
                 }
             }

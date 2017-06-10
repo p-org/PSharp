@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Scheduling;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -61,13 +62,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             if (this.BoundedDFS.HasReachedMaxSchedulingSteps())
             {

@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -81,24 +82,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
             SChoice nextChoice = null;
@@ -111,9 +107,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             else
             {
                 scs = new List<SChoice>();
-                foreach (var task in availableMachines)
+                foreach (var task in enabledChoices)
                 {
-                    scs.Add(new SChoice(task.MachineId.Value));
+                    scs.Add(new SChoice(task.Id));
                 }
 
                 this.ScheduleStack.Add(scs);
@@ -132,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 previousChoice.IsDone = false;
             }
             
-            next = availableMachines.Find(task => task.MachineId.Value == nextChoice.Id);
+            next = enabledChoices.Find(task => task.Id == nextChoice.Id);
             nextChoice.IsDone = true;
             this.SchIndex++;
 
@@ -432,7 +428,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// A scheduling choice. Contains a machine id and a boolean that is
+        /// A scheduling choice. Contains an id and a boolean that is
         /// true if the choice has been previously explored.
         /// </summary>
         private class SChoice
