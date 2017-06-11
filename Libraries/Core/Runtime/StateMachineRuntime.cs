@@ -300,7 +300,7 @@ namespace Microsoft.PSharp
             MachineId mid = new MachineId(type, friendlyName, this);
             Machine machine = MachineFactory.Create(type);
 
-            machine.Initialize(mid);
+            machine.Initialize(this, mid, new MachineInfo(mid));
             machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);

@@ -12,7 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Scheduling;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling

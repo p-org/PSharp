@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// The P# asynchronous task scheduler.
@@ -80,8 +80,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.TaskMap.TryAdd(task.Id, machine);
 
                 // Change the task previously associated with the machine to the new task.
-                machine.Info.TaskId = task.Id;
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{machine.Info.TaskId}' to {task.Id}.");
+                (machine.Info as SchedulableInfo).TaskId = task.Id;
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{(machine.Info as SchedulableInfo).TaskId}' to {task.Id}.");
 
                 // Execute the new task.
                 this.Execute(task);

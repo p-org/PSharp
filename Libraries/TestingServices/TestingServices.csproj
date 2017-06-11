@@ -61,7 +61,7 @@
     <Compile Include="Engines\ReplayEngine.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />
     <Compile Include="Liveness\LivenessChecker.cs" />
-    <Compile Include="Runtime\AsynchronousTaskScheduler.cs" />
+    <Compile Include="Scheduling\AsynchronousTaskScheduler.cs" />
     <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Runtime\TestHarnessMachine.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
@@ -78,6 +78,9 @@
     <Compile Include="SchedulingStrategies\Special\InteractiveStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\MaceMCStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\ReplayStrategy.cs" />
+    <Compile Include="Scheduling\ISchedulable.cs" />
+    <Compile Include="Scheduling\SchedulableInfo.cs" />
+    <Compile Include="Scheduling\OperationType.cs" />
     <Compile Include="StateCaching\Fingerprint.cs" />
     <Compile Include="StateCaching\MonitorStatus.cs" />
     <Compile Include="StateCaching\State.cs" />

@@ -108,8 +108,6 @@
     <Compile Include="Runtime\Exceptions\RuntimeException.cs" />
     <Compile Include="Runtime\PSharpRuntime.cs" />
     <Compile Include="Runtime\StateMachineRuntime.cs" />
-    <Compile Include="Scheduling\ISchedulable.cs" />
-    <Compile Include="Scheduling\OperationType.cs" />
     <Compile Include="Utilities\ErrorReporter.cs" />
     <Compile Include="Utilities\Profiler.cs" />
     <Compile Include="Utilities\RandomNumberGenerators\DefaultRandomNumberGenerator.cs" />
