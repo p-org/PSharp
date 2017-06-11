@@ -349,17 +349,17 @@ namespace Microsoft.PSharp.TestingServices
             MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
             TestHarnessMachine harness = new TestHarnessMachine(testMethod, testAction);
 
-            harness.Initialize(mid);
+            harness.Initialize(this, mid, new SchedulableInfo(mid));
 
             Task task = new Task(() =>
             {
                 try
                 {
-                    this.Scheduler.NotifyEventHandlerStarted(harness.Info);
+                    this.Scheduler.NotifyEventHandlerStarted(harness.Info as SchedulableInfo);
 
                     harness.Run();
 
-                    this.Scheduler.NotifyEventHandlerCompleted(harness.Info);
+                    this.Scheduler.NotifyEventHandlerCompleted(harness.Info as SchedulableInfo);
                 }
                 catch (ExecutionCanceledException)
                 {
@@ -371,12 +371,12 @@ namespace Microsoft.PSharp.TestingServices
                 }
             });
 
-            harness.Info.NotifyEventHandlerCreated(task.Id);
-            this.Scheduler.NotifyEventHandlerCreated(harness.Info);
+            (harness.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id);
+            this.Scheduler.NotifyEventHandlerCreated(harness.Info as SchedulableInfo);
 
             task.Start();
 
-            this.Scheduler.WaitForEventHandlerToStart(harness.Info);
+            this.Scheduler.WaitForEventHandlerToStart(harness.Info as SchedulableInfo);
         }
 
         /// <summary>
@@ -480,7 +480,7 @@ namespace Microsoft.PSharp.TestingServices
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
 
-            machine.Initialize(mid);
+            machine.Initialize(this, mid, new SchedulableInfo(mid));
             machine.InitializeStateInformation();
 
             if (base.Configuration.ReportCodeCoverage && !isMachineTypeCached)
@@ -643,7 +643,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 try
                 {
-                    this.Scheduler.NotifyEventHandlerStarted(machine.Info);
+                    this.Scheduler.NotifyEventHandlerStarted(machine.Info as SchedulableInfo);
 
                     machine.IsInsideSynchronousCall = executeSynchronously;
 
@@ -660,7 +660,7 @@ namespace Microsoft.PSharp.TestingServices
                         await machine.RunEventHandler();
                     }
 
-                    this.Scheduler.NotifyEventHandlerCompleted(machine.Info);
+                    this.Scheduler.NotifyEventHandlerCompleted(machine.Info as SchedulableInfo);
                 }
                 catch (ExecutionCanceledException)
                 {
@@ -674,12 +674,12 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TaskMap.TryAdd(task.Id, machine);
 
-            machine.Info.NotifyEventHandlerCreated(task.Id);
-            this.Scheduler.NotifyEventHandlerCreated(machine.Info);
+            (machine.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id);
+            this.Scheduler.NotifyEventHandlerCreated(machine.Info as SchedulableInfo);
 
             task.Start(this.TaskScheduler);
 
-            this.Scheduler.WaitForEventHandlerToStart(machine.Info);
+            this.Scheduler.WaitForEventHandlerToStart(machine.Info as SchedulableInfo);
         }
 
         /// <summary>
@@ -1088,8 +1088,8 @@ namespace Microsoft.PSharp.TestingServices
         {
             string events = machine.GetEventWaitHandlerNames();
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
-            machine.Info.IsEnabled = false;
-            machine.Info.IsWaitingToReceive = true;
+            (machine.Info as SchedulableInfo).IsEnabled = false;
+            (machine.Info as SchedulableInfo).IsWaitingToReceive = true;
             this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
             this.Scheduler.Schedule();
         }
@@ -1102,8 +1102,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
-            machine.Info.IsEnabled = true;
-            machine.Info.IsWaitingToReceive = false;
+            (machine.Info as SchedulableInfo).IsEnabled = true;
+            (machine.Info as SchedulableInfo).IsWaitingToReceive = false;
             this.Log($"<ReceiveLog> Machine '{machine.Id}' received event '{eventInfo.EventName}' and unblocked.");
             machine.IsWaitingToReceive = false;
         }

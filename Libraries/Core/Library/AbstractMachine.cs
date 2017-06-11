@@ -50,12 +50,14 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this machine.
         /// </summary>
+        /// <param name="runtime">PSharpRuntime</param>
         /// <param name="mid">MachineId</param>
-        internal void Initialize(MachineId mid)
+        /// <param name="info">MachineInfo</param>
+        internal void Initialize(PSharpRuntime runtime, MachineId mid, MachineInfo info)
         {
-            this.Id = mid;
-            this.Info = new MachineInfo(mid);
             this.Runtime = mid.Runtime;
+            this.Id = mid;
+            this.Info = info;
         }
 
         #endregion

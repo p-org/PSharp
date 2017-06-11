@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {

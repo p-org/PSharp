@@ -12,22 +12,20 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Scheduling;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// Stores machine-related information, which can used
     /// for scheduling and testing.
     /// </summary>
-    internal sealed class MachineInfo : ISchedulable
+    internal class MachineInfo
     {
         #region fields
 
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
-        internal MachineId MachineId;
+        protected MachineId MachineId;
 
         /// <summary>
         /// Checks if the machine is executing an OnExit method.
@@ -59,51 +57,6 @@ namespace Microsoft.PSharp
         /// </summary>
         public string Name => MachineId.Name;
 
-        /// <summary>
-        /// Id of the task executing the event handler of the machine.
-        /// </summary>
-        public int TaskId { get; internal set; }
-
-        /// <summary>
-        /// Is machine enabled.
-        /// </summary>
-        public bool IsEnabled { get; internal set; }
-
-        /// <summary>
-        /// Is machine waiting to receive an event.
-        /// </summary>
-        public bool IsWaitingToReceive { get; internal set; }
-
-        /// <summary>
-        /// Is machine active.
-        /// </summary>
-        public bool IsActive { get; internal set; }
-
-        /// <summary>
-        /// Has the machine started.
-        /// </summary>
-        public bool HasStarted { get; internal set; }
-
-        /// <summary>
-        /// Is machine completed.
-        /// </summary>
-        public bool IsCompleted { get; internal set; }
-
-        /// <summary>
-        /// Type of the next operation of the machine.
-        /// </summary>
-        public OperationType NextOperationType { get; internal set; }
-
-        /// <summary>
-        /// Target id of the next operation of the machine.
-        /// </summary>
-        public int NextTargetId { get; internal set; }
-
-        /// <summary>
-        /// Monotonically increasing operation count.
-        /// </summary>
-        public int OperationCount { get; internal set; }
-
         #endregion
 
         #region constructors
@@ -115,40 +68,8 @@ namespace Microsoft.PSharp
         internal MachineInfo(MachineId mid)
         {
             MachineId = mid;
-
-            IsEnabled = false;
-            IsWaitingToReceive = false;
-            IsActive = false;
-            HasStarted = false;
-            IsCompleted = false;
-
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
-
-            ProgramCounter = 0;
-        }
-
-        #endregion
-
-        #region interface
-
-        /// <summary>
-        /// Notify that an event handler has been created and will
-        /// run on the specified task id.
-        /// </summary>
-        /// <param name="taskId">TaskId</param>
-        internal void NotifyEventHandlerCreated(int taskId)
-        {
-            TaskId = taskId;
-            IsEnabled = true;
-            IsWaitingToReceive = false;
-            IsActive = false;
-            HasStarted = false;
-            IsCompleted = false;
-
-            IsInsideOnExit = false;
-            CurrentActionCalledTransitionStatement = false;
-
             ProgramCounter = 0;
         }
 
@@ -175,7 +96,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return Id == mid.Id;
+            return MachineId == mid.MachineId;
         }
 
         /// <summary>
@@ -184,7 +105,7 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return Id.GetHashCode();
+            return MachineId.GetHashCode();
         }
 
         /// <summary>

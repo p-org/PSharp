@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// Interface of an entity that can be scheduled.
