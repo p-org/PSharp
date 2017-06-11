@@ -32,10 +32,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         internal ScheduleStepType Type { get; private set; }
 
         /// <summary>
-        /// The scheduled machine id. Only relevant if this is
+        /// The id of the scheduled machine. Only relevant if this is
         /// a regular schedule step.
         /// </summary>
-        internal MachineId ScheduledMachineId;
+        internal ulong ScheduledMachineId;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <param name="index">Index</param>
         /// <param name="scheduledMachineId">Scheduled machine id</param>
         /// <returns>ScheduleStep</returns>
-        internal static ScheduleStep CreateSchedulingChoice(int index, MachineId scheduledMachineId)
+        internal static ScheduleStep CreateSchedulingChoice(int index, ulong scheduledMachineId)
         {
             var scheduleStep = new ScheduleStep();
 

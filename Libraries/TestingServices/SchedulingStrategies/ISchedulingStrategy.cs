@@ -12,23 +12,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Scheduling;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// Interface of a generic machine scheduling strategy.
+    /// Interface of a generic scheduling strategy.
     /// </summary>
     public interface ISchedulingStrategy
     {
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current);
+        bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
 
         /// <summary>
         /// Returns the next boolean choice.
@@ -60,12 +61,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         bool HasReachedMaxSchedulingSteps();
 
         /// <summary>
-        /// True if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        bool HasFinished();
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -74,7 +69,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Prepares the next scheduling iteration.
         /// </summary>
-        void ConfigureNextIteration();
+        /// <returns>False if all schedules have been explored</returns>
+        bool PrepareForNextIteration();
 
         /// <summary>
         /// Resets the scheduling strategy.

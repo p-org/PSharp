@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class representing an exhaustive delay-bounding scheduling strategy.
     /// </summary>
-    public class ExhaustiveDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
+    public sealed class ExhaustiveDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
         #region fields
 
@@ -46,13 +46,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public override void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public override bool PrepareForNextIteration()
         {
             base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
             base.ExploredSteps = 0;
-            
+
             var bound = Math.Min(
                 (base.IsFair() ? base.Configuration.MaxFairSchedulingSteps :
                 base.Configuration.MaxUnfairSchedulingSteps),
@@ -71,6 +72,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             base.RemainingDelays.Clear();
             base.RemainingDelays.AddRange(this.DelaysCache);
             base.RemainingDelays.Sort();
+
+            return true;
         }
 
         /// <summary>

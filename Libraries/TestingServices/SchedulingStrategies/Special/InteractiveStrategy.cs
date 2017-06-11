@@ -17,13 +17,14 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// Class representing an interactive scheduling strategy.
     /// </summary>
-    public class InteractiveStrategy : ISchedulingStrategy
+    internal sealed class InteractiveStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -71,21 +72,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             next = null;
 
-            choices = choices.OrderBy(machine => machine.MachineId.Value).ToList();
-            List<MachineInfo> availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
+            List<ISchedulable> enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
 
-            if (availableMachines.Count == 0)
+            if (enabledChoices.Count == 0)
             {
                 this.Logger.WriteLine(">> No available machines to schedule ...");
                 return false;
@@ -109,16 +108,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         this.InputCache[this.ExploredSteps - 1] = "0";
                     }
 
-                    next = availableMachines[idx];
+                    next = enabledChoices[idx];
                     parsed = true;
                     break;
                 }
 
                 this.Logger.WriteLine(">> Available machines to schedule ...");
-                for (int idx = 0; idx < availableMachines.Count; idx++)
+                for (int idx = 0; idx < enabledChoices.Count; idx++)
                 {
-                    var m = availableMachines[idx];
-                    this.Logger.WriteLine($">> [{idx}] '{m.MachineId}'");
+                    var choice = enabledChoices[idx];
+                    this.Logger.WriteLine($">> [{idx}] '{choice.Name}'");
                 }
 
                 this.Logger.WriteLine($">> Choose machine to schedule [step '{this.ExploredSteps}']");
@@ -132,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     this.Configuration.SchedulingIterations++;
-                    this.ConfigureNextIteration();
+                    this.PrepareForNextIteration();
                     return false;
                 }
                 else if (input.Equals("jump"))
@@ -157,7 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                             continue;
                         }
 
-                        next = availableMachines[idx];
+                        next = enabledChoices[idx];
                         if (next == null)
                         {
                             this.Logger.WriteLine(">> Unexpected id, please retry ...");
@@ -172,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    next = availableMachines[0];
+                    next = enabledChoices[0];
                 }
 
                 this.InputCache.Add(input);
@@ -223,7 +222,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     this.Configuration.SchedulingIterations++;
-                    this.ConfigureNextIteration();
+                    this.PrepareForNextIteration();
                     return false;
                 }
                 else if (input.Equals("jump"))
@@ -298,7 +297,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     this.Configuration.SchedulingIterations++;
-                    this.ConfigureNextIteration();
+                    this.PrepareForNextIteration();
                     return false;
                 }
                 else if (input.Equals("jump"))
@@ -365,15 +364,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return false;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -383,11 +373,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
             this.ExploredSteps = 0;
+            return true;
         }
 
         /// <summary>

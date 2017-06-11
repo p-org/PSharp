@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <param name="mid">MachineId</param>
         internal void AddCreateMachineInfo(MachineId mid)
         {
-            var info = MachineActionInfo.CreateMachineCreationInfo(this.Count, this.MachineId, mid);
+            var info = MachineActionInfo.CreateMachineCreationInfo(this.Count, this.MachineId.Value, mid);
             this.Push(info);
         }
 

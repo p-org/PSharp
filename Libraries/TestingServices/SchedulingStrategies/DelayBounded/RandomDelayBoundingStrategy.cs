@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class representing a random delay-bounding scheduling strategy.
     /// </summary>
-    public class RandomDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
+    public sealed class RandomDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
         #region fields
 
@@ -45,9 +45,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public override void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public override bool PrepareForNextIteration()
         {
             base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
             base.ExploredSteps = 0;
@@ -62,6 +63,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.CurrentIterationDelays.Clear();
             this.CurrentIterationDelays.AddRange(base.RemainingDelays);
+
+            return true;
         }
 
         /// <summary>

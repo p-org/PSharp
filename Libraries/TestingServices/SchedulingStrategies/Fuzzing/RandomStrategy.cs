@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -23,7 +24,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class representing a random-walk scheduling strategy.
     /// </summary>
-    public class RandomStrategy : ISchedulingStrategy
+    public sealed class RandomStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -64,28 +65,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
-            int idx = this.Random.Next(availableMachines.Count);
-            next = availableMachines[idx];
+            int idx = this.Random.Next(enabledChoices.Count);
+            next = enabledChoices[idx];
 
             this.ExploredSteps++;
 
@@ -152,28 +148,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return false;
-        }
-        
-        /// <summary>
-        /// Configures the next scheduling iteration.
-        /// </summary>
-        public void ConfigureNextIteration()
-        {
-            this.ExploredSteps = 0;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
+            return true;
+        }
+
+        /// <summary>
+        /// Prepares the next scheduling iteration.
+        /// </summary>
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
+        {
+            this.ExploredSteps = 0;
             return true;
         }
 

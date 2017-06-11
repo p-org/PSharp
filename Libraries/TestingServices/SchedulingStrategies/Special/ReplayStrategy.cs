@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -24,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class representing a replaying scheduling strategy.
     /// </summary>
-    internal class ReplayStrategy : ISchedulingStrategy
+    internal sealed class ReplayStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -80,24 +81,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
             try
@@ -115,13 +111,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     throw new InvalidOperationException(this.ErrorText);
                 }
                 
-                next = availableMachines.FirstOrDefault(m => m.MachineId.Type.Equals(
-                    nextStep.ScheduledMachineId.Type) &&
-                    m.MachineId.Value == nextStep.ScheduledMachineId.Value);
+                next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
                 if (next == null)
                 {
-                    this.ErrorText = "Trace is not reproducible: cannot detect machine with type " +
-                        $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.";
+                    this.ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
                     throw new InvalidOperationException(this.ErrorText);
                 }
             }
@@ -195,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public virtual bool GetNextIntegerChoice(int maxValue, out int next)
+        public bool GetNextIntegerChoice(int maxValue, out int next)
         {
             ScheduleStep nextStep = null;
 
@@ -265,15 +258,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return true;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -283,12 +267,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
             this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
+            return false;
         }
 
         /// <summary>

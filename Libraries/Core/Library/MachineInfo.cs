@@ -12,13 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Scheduling;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// Stores machine-related information, which can used
     /// for scheduling and testing.
     /// </summary>
-    public sealed class MachineInfo
+    internal sealed class MachineInfo : ISchedulable
     {
         #region fields
 
@@ -48,7 +50,7 @@ namespace Microsoft.PSharp
         #region properties
 
         /// <summary>
-        /// Task id of the machine.
+        /// Unique id of the machine.
         /// </summary>
         public ulong Id => MachineId.Value;
 
@@ -86,6 +88,21 @@ namespace Microsoft.PSharp
         /// Is machine completed.
         /// </summary>
         public bool IsCompleted { get; internal set; }
+
+        /// <summary>
+        /// Type of the next operation of the machine.
+        /// </summary>
+        public OperationType NextOperationType { get; internal set; }
+
+        /// <summary>
+        /// Target id of the next operation of the machine.
+        /// </summary>
+        public int NextTargetId { get; internal set; }
+
+        /// <summary>
+        /// Monotonically increasing operation count.
+        /// </summary>
+        public int OperationCount { get; internal set; }
 
         #endregion
 
@@ -171,7 +188,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a string that represents the current machine id.
+        /// Returns a string that represents this machine.
         /// </summary>
         /// <returns>string</returns>
         public override string ToString()

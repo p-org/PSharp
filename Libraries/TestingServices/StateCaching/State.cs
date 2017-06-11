@@ -36,10 +36,10 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal Dictionary<Monitor, MonitorStatus> MonitorStatus;
 
         /// <summary>
-        /// The enabled machines. Only relevant if this is a scheduling
-        /// trace step.
+        /// Ids of the enabled machines. Only relevant
+        /// if this is a scheduling trace step.
         /// </summary>
-        internal HashSet<MachineId> EnabledMachines;
+        internal HashSet<ulong> EnabledMachineIds;
 
         #endregion
 
@@ -49,13 +49,12 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// Constructor.
         /// </summary>
         /// <param name="fingerprint">Fingerprint</param>
-        /// <param name="enabledMachines">Enabled machines</param>
+        /// <param name="enabledMachineIds">Ids of enabled machines</param>
         /// <param name="monitorStatus">Monitor status</param>
-        internal State(Fingerprint fingerprint, HashSet<MachineId> enabledMachines,
-            Dictionary<Monitor, MonitorStatus> monitorStatus)
+        internal State(Fingerprint fingerprint, HashSet<ulong> enabledMachineIds, Dictionary<Monitor, MonitorStatus> monitorStatus)
         {
             this.Fingerprint = fingerprint;
-            this.EnabledMachines = enabledMachines;
+            this.EnabledMachineIds = enabledMachineIds;
             this.MonitorStatus = monitorStatus;
         }
 
@@ -65,9 +64,9 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal void PrettyPrint()
         {
             Debug.WriteLine($"Fingerprint: {this.Fingerprint}");
-            foreach (var m in this.EnabledMachines)
+            foreach (var id in this.EnabledMachineIds)
             {
-                Debug.WriteLine($"  Enabled machine: {m}");
+                Debug.WriteLine($"  Enabled machine id: {id}");
             }
 
             foreach (var m in this.MonitorStatus)

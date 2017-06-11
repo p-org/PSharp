@@ -79,9 +79,9 @@ namespace Microsoft.PSharp.TestingServices
                 this.TaskMap.TryRemove(Runtime.Scheduler.ScheduledMachine.TaskId, out machine);
                 this.TaskMap.TryAdd(task.Id, machine);
 
-                // Notify the bug-finding scheduler to change the task previously
-                // associated with the machine to the new task.
-                this.Runtime.Scheduler.NotifyScheduledMachineTaskChanged(task.Id);
+                // Change the task previously associated with the machine to the new task.
+                machine.Info.TaskId = task.Id;
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{machine.Info.TaskId}' to {task.Id}.");
 
                 // Execute the new task.
                 this.Execute(task);

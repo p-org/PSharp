@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Scheduling;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -64,13 +65,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             if (this.PrefixStrategy.GetExploredSteps() > this.SafetyPrefixDepth)
             {
@@ -145,15 +146,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return this.SuffixStrategy.HasFinished() && this.PrefixStrategy.HasFinished();
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -163,12 +155,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
-            this.PrefixStrategy.ConfigureNextIteration();
-            this.SuffixStrategy.ConfigureNextIteration();
+            bool doNext = this.PrefixStrategy.PrepareForNextIteration();
+            doNext = doNext || this.SuffixStrategy.PrepareForNextIteration();
+            return doNext;
         }
 
         /// <summary>

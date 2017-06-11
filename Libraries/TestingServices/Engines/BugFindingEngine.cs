@@ -247,12 +247,10 @@ namespace Microsoft.PSharp.TestingServices
                             break;
                         }
 
-                        if (base.Strategy.HasFinished())
+                        if (!base.Strategy.PrepareForNextIteration())
                         {
                             break;
                         }
-
-                        base.Strategy.ConfigureNextIteration();
 
                         // Increases iterations if there is a specified timeout
                         // and the default iteration given.
@@ -456,8 +454,7 @@ namespace Microsoft.PSharp.TestingServices
                 ScheduleStep step = runtime.ScheduleTrace[idx];
                 if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    stringBuilder.Append($"{step.ScheduledMachineId.Type}" +
-                        $"({step.ScheduledMachineId.Value})");
+                    stringBuilder.Append($"({step.ScheduledMachineId})");
                 }
                 else if (step.BooleanChoice != null)
                 {

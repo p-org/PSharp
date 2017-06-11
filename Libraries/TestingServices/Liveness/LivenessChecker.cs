@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -395,8 +396,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         {
             var result = false;
 
-            var enabledMachines = new HashSet<MachineId>();
-            var scheduledMachines = new HashSet<MachineId>();
+            var enabledMachines = new HashSet<ulong>();
+            var scheduledMachines = new HashSet<ulong>();
 
             var schedulingChoiceSteps= cycle.Where(
                 val => val.Item1.Type == ScheduleStepType.SchedulingChoice);
@@ -407,7 +408,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
             foreach(var state in cycle)
             {
-                enabledMachines.UnionWith(state.Item2.EnabledMachines);
+                enabledMachines.UnionWith(state.Item2.EnabledMachineIds);
             }
 
             foreach (var m in enabledMachines)
@@ -507,24 +508,19 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         #region scheduling strategy methods
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        bool ISchedulingStrategy.TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var availableMachines = choices.Where(
-                m => m.IsEnabled && !m.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
             if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
@@ -539,13 +535,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
 
                 Debug.WriteLine($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachineId}'.");
 
-                next = availableMachines.FirstOrDefault(m => m.MachineId.Type.Equals(
-                    nextStep.ScheduledMachineId.Type) &&
-                    m.MachineId.Value == nextStep.ScheduledMachineId.Value);
+                next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
                 if (next == null)
                 {
-                    Debug.WriteLine("<LivenessDebug> Trace is not reproducible: cannot detect machine with type " +
-                        $"'{nextStep.ScheduledMachineId.Type}' and id '{nextStep.ScheduledMachineId.Value}'.");
+                    Debug.WriteLine($"<LivenessDebug> Trace is not reproducible: cannot detect machine with id '{nextStep.ScheduledMachineId}'.");
                     this.EscapeCycle();
                     return this.SchedulingStrategy.TryGetNext(out next, choices, current);
                 }
@@ -558,8 +551,8 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
             else
             {
-                int idx = this.Random.Next(availableMachines.Count);
-                next = availableMachines[idx];
+                int idx = this.Random.Next(enabledChoices.Count);
+                next = enabledChoices[idx];
             }
             
             return true;
@@ -664,15 +657,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.HasFinished()
-        {
-            return false;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -682,11 +666,13 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        void ISchedulingStrategy.ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        bool ISchedulingStrategy.PrepareForNextIteration()
         {
             this.CurrentCycleIndex = 0;
+            return true;
         }
 
         /// <summary>

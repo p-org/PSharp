@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -84,44 +85,37 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public virtual bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        public virtual bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var machines = choices.OrderBy(mi => mi.MachineId.Value).ToList();
-
-            var currentMachineIdx = machines.IndexOf(current);
-            var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+            var currentMachineIdx = choices.IndexOf(current);
+            var orderedMachines = choices.GetRange(currentMachineIdx, choices.Count - currentMachineIdx);
             if (currentMachineIdx != 0)
             {
-                orderedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
+                orderedMachines.AddRange(choices.GetRange(0, currentMachineIdx));
             }
 
-            var availableMachines = orderedMachines.Where(
-                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
-            if (availableMachines.Count == 0)
+            var enabledChoices = orderedMachines.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
-                if (availableMachines.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                next = null;
+                return false;
             }
 
             int idx = 0;
             while (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
             {
-                idx = (idx + 1) % availableMachines.Count;
+                idx = (idx + 1) % enabledChoices.Count;
                 this.RemainingDelays.RemoveAt(0);
                 Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
-            next = availableMachines[idx];
+            next = enabledChoices[idx];
 
             this.ExploredSteps++;
 
@@ -190,15 +184,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return false;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -208,9 +193,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public abstract void ConfigureNextIteration();
+        /// <returns>False if all schedules have been explored</returns>
+        public abstract bool PrepareForNextIteration();
 
         /// <summary>
         /// Resets the scheduling strategy.
