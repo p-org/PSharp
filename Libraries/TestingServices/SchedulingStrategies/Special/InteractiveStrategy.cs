@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class representing an interactive scheduling strategy.
     /// </summary>
-    public class InteractiveStrategy : ISchedulingStrategy
+    internal sealed class InteractiveStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -131,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     this.Configuration.SchedulingIterations++;
-                    this.ConfigureNextIteration();
+                    this.PrepareForNextIteration();
                     return false;
                 }
                 else if (input.Equals("jump"))
@@ -222,7 +222,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     this.Configuration.SchedulingIterations++;
-                    this.ConfigureNextIteration();
+                    this.PrepareForNextIteration();
                     return false;
                 }
                 else if (input.Equals("jump"))
@@ -297,7 +297,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     this.Configuration.SchedulingIterations++;
-                    this.ConfigureNextIteration();
+                    this.PrepareForNextIteration();
                     return false;
                 }
                 else if (input.Equals("jump"))
@@ -364,15 +364,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return false;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -382,11 +373,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
             this.ExploredSteps = 0;
+            return true;
         }
 
         /// <summary>

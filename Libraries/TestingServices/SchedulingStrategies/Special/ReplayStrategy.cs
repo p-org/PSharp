@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class representing a replaying scheduling strategy.
     /// </summary>
-    internal class ReplayStrategy : ISchedulingStrategy
+    internal sealed class ReplayStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public virtual bool GetNextIntegerChoice(int maxValue, out int next)
+        public bool GetNextIntegerChoice(int maxValue, out int next)
         {
             ScheduleStep nextStep = null;
 
@@ -258,15 +258,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return true;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -276,12 +267,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
             this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
+            return false;
         }
 
         /// <summary>

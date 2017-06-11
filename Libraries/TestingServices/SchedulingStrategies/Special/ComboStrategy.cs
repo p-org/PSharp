@@ -146,15 +146,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return this.SuffixStrategy.HasFinished() && this.PrefixStrategy.HasFinished();
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -164,12 +155,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
-            this.PrefixStrategy.ConfigureNextIteration();
-            this.SuffixStrategy.ConfigureNextIteration();
+            bool doNext = this.PrefixStrategy.PrepareForNextIteration();
+            doNext = doNext || this.SuffixStrategy.PrepareForNextIteration();
+            return doNext;
         }
 
         /// <summary>

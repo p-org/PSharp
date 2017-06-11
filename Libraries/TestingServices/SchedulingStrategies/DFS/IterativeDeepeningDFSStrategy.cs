@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// Class representing a depth-first search scheduling strategy
     /// that incorporates iterative deepening.
     /// </summary>
-    public class IterativeDeepeningDFSStrategy : DFSStrategy, ISchedulingStrategy
+    public sealed class IterativeDeepeningDFSStrategy : DFSStrategy, ISchedulingStrategy
     {
         #region fields
 
@@ -61,29 +61,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public new bool HasFinished()
+        /// <returns>False if all schedules have been explored</returns>
+        public override bool PrepareForNextIteration()
         {
-            return base.HasFinished() && this.CurrentDepth == this.MaxDepth;
-        }
-
-        /// <summary>
-        /// Configures the next scheduling iteration.
-        /// </summary>
-        public new void ConfigureNextIteration()
-        {
-            if (!base.HasFinished())
-            {
-                base.ConfigureNextIteration();
-            }
-            else
+            bool doNext = base.PrepareForNextIteration();
+            if (!doNext)
             {
                 base.Reset();
                 this.CurrentDepth++;
-                Debug.WriteLine("<IterativeDeepeningDFSLog> Depth bound increased to {0}", this.CurrentDepth);
+                if (this.CurrentDepth <= this.MaxDepth)
+                {
+                    Debug.WriteLine($"<IterativeDeepeningDFSLog> Depth bound increased to {this.CurrentDepth} (max is {this.MaxDepth}).");
+                    doNext = true;
+                }
             }
+
+            return doNext;
         }
 
         /// <summary>
@@ -92,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public new string GetDescription()
         {
-            return "DFS with iterative deepening";
+            return $"DFS with iterative deepening (max depth is {this.MaxDepth})";
         }
 
         #endregion

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// Class representing a probabilistic random-walk
     /// scheduling strategy.
     /// </summary>
-    public class ProbabilisticRandomStrategy : ISchedulingStrategy
+    public sealed class ProbabilisticRandomStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -182,28 +182,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return false;
-        }
-        
-        /// <summary>
-        /// Configures the next scheduling iteration.
-        /// </summary>
-        public void ConfigureNextIteration()
-        {
-            this.ExploredSteps = 0;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
+            return true;
+        }
+
+        /// <summary>
+        /// Prepares the next scheduling iteration.
+        /// </summary>
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
+        {
+            this.ExploredSteps = 0;
             return true;
         }
 

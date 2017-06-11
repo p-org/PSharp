@@ -264,15 +264,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return this.ScheduleStack.All(scs => scs.All(val => val.IsDone));
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -282,10 +273,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public virtual bool PrepareForNextIteration()
         {
+            if (this.ScheduleStack.All(scs => scs.All(val => val.IsDone)))
+            {
+                return false;
+            }
+
             //this.PrintSchedule();
 
             this.ExploredSteps = 0;
@@ -355,6 +352,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     previousChoice.IsDone = false;
                 }
             }
+
+            return true;
         }
 
         /// <summary>

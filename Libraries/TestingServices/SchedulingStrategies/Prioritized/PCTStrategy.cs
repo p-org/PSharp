@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// Class representing a probabilistic concurrency testing (PCT)
     /// scheduling strategy.
     /// </summary>
-    public class PCTStrategy : ISchedulingStrategy
+    public sealed class PCTStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -173,15 +173,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return false;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -191,9 +182,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
             this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
@@ -211,6 +203,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.PriorityChangePoints.Add(point);
             }
+
+            return true;
         }
 
         /// <summary>

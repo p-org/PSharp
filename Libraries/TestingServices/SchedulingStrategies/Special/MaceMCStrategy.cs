@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// Class representing a depth-first search scheduling strategy
     /// that incorporates iterative deepening.
     /// </summary>
-    public class MaceMCStrategy : ISchedulingStrategy
+    public sealed class MaceMCStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -142,15 +142,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasFinished()
-        {
-            return this.BoundedDFS.HasFinished();
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -160,12 +151,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        public bool PrepareForNextIteration()
         {
-            this.BoundedDFS.ConfigureNextIteration();
-            this.Random.ConfigureNextIteration();
+            bool doNext = this.BoundedDFS.PrepareForNextIteration();
+            this.Random.PrepareForNextIteration();
+            return doNext;
         }
 
         /// <summary>

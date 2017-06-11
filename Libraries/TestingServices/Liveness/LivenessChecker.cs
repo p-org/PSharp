@@ -657,15 +657,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Returns true if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        bool ISchedulingStrategy.HasFinished()
-        {
-            return false;
-        }
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -675,11 +666,13 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Configures the next scheduling iteration.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        void ISchedulingStrategy.ConfigureNextIteration()
+        /// <returns>False if all schedules have been explored</returns>
+        bool ISchedulingStrategy.PrepareForNextIteration()
         {
             this.CurrentCycleIndex = 0;
+            return true;
         }
 
         /// <summary>

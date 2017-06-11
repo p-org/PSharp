@@ -61,12 +61,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         bool HasReachedMaxSchedulingSteps();
 
         /// <summary>
-        /// True if the scheduling has finished.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        bool HasFinished();
-
-        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -75,7 +69,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Prepares the next scheduling iteration.
         /// </summary>
-        void ConfigureNextIteration();
+        /// <returns>False if all schedules have been explored</returns>
+        bool PrepareForNextIteration();
 
         /// <summary>
         /// Resets the scheduling strategy.
