@@ -11,7 +11,7 @@ The P# framework provides:
 - Support for **replaying** bug traces, and **debugging** them using the Visual Studio debugger.
 
 ## Getting started
-The best way to build and start using P# is to read our [wiki](https://github.com/p-org/PSharp/wiki).
+The best way to [build](https://github.com/p-org/PSharp/wiki/Build-Instructions) and start using P# is to read our [wiki](https://github.com/p-org/PSharp/wiki).
 
 You can also read the manual and available publications:
 
