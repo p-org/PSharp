@@ -428,10 +428,9 @@ namespace Microsoft.PSharp
 
                     await machine.RunEventHandler();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     base.IsRunning = false;
-                    base.RaiseOnFailureEvent(ex);
                 }
             });
         }
@@ -453,10 +452,9 @@ namespace Microsoft.PSharp
 
                 await machine.RunEventHandler(true);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 base.IsRunning = false;
-                base.RaiseOnFailureEvent(ex);
                 return;
             }
 

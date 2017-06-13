@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             PSharpRuntime runtime = PSharpRuntime.Create();
             runtime.OnFailure += delegate (Exception exception)
             {
-                tcsFail.SetException(exception.InnerException);
+                tcsFail.SetException(exception);
             };
 
             var tcs = new TaskCompletionSource<bool>();

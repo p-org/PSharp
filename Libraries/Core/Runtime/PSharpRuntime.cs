@@ -384,7 +384,9 @@ namespace Microsoft.PSharp
             if (!predicate)
             {
                 string message = IO.Utilities.Format(s, args);
-                throw new AssertionFailureException(message);
+                var exception = new AssertionFailureException(message);
+                this.RaiseOnFailureEvent(exception);
+                throw exception;
             }
         }
 
@@ -681,6 +683,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
         {
+            this.RaiseOnFailureEvent(exception);
             string message = IO.Utilities.Format(s, args);
             throw new AssertionFailureException(message, exception);
         }
