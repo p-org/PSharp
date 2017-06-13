@@ -162,6 +162,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool PrepareForNextIteration()
         {
             this.ExploredSteps = 0;
+            if (this.Configuration.IncrementalSchedulingSeed)
+            {
+                this.Random.IncrementSeed();
+            }
+
             return true;
         }
 
