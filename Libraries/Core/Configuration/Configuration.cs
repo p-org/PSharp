@@ -138,6 +138,13 @@ namespace Microsoft.PSharp
         public int? RandomSchedulingSeed;
 
         /// <summary>
+        /// If true, the seed will increment in each
+        /// testing iteration.
+        /// </summary>
+        [DataMember]
+        public bool IncrementalSchedulingSeed;
+
+        /// <summary>
         /// If true, the P# tester performs a full exploration,
         /// and does not stop when it finds a bug.
         /// </summary>
@@ -443,6 +450,7 @@ namespace Microsoft.PSharp
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
+            this.IncrementalSchedulingSeed = false;
 
             this.PerformFullExploration = false;
             this.MaxFairSchedulingSteps = 0;

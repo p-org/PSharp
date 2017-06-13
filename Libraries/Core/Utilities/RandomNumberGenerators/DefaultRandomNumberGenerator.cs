@@ -21,14 +21,23 @@ namespace Microsoft.PSharp.Utilities
     /// </summary>
     public class DefaultRandomNumberGenerator : IRandomNumberGenerator
     {
-        Random random;
+        /// <summary>
+        /// Device for generating random numbers.
+        /// </summary>
+        private Random Random;
+
+        /// <summary>
+        /// The seed currently used by the generator.
+        /// </summary>
+        public int Seed { get; private set; }
 
         /// <summary>
         /// Initializes with a time-dependent seed.
         /// </summary>
         public DefaultRandomNumberGenerator()
         {
-            random = new Random();
+            Seed = DateTime.Now.Millisecond;
+            Random = new Random(Seed);
         }
 
         /// <summary>
@@ -37,7 +46,8 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="seed">Seed value</param>
         public DefaultRandomNumberGenerator(int seed)
         {
-            random = new Random(seed);
+            Seed = seed;
+            Random = new Random(seed);
         }
 
         /// <summary>
@@ -45,7 +55,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public int Next()
         {
-            return random.Next();
+            return Random.Next();
         }
 
         /// <summary>
@@ -54,7 +64,16 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="maxValue">Exclusive upper bound</param>
         public int Next(int maxValue)
         {
-            return random.Next(maxValue);
+            return Random.Next(maxValue);
+        }
+
+        /// <summary>
+        /// Increments the seed used by the generator.
+        /// </summary>
+        public void IncrementSeed()
+        {
+            Seed++;
+            Random = new Random(Seed);
         }
     }
 }

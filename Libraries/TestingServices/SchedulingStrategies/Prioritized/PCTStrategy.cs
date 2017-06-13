@@ -203,6 +203,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.PriorityChangePoints.Add(point);
             }
 
+            if (this.Configuration.IncrementalSchedulingSeed)
+            {
+                this.Random.IncrementSeed();
+            }
+
             return true;
         }
 

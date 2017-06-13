@@ -20,14 +20,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// Class representing a combination of two strategies, used
     /// one after the other.
     /// </summary>
-    public class ComboStrategy : ISchedulingStrategy
+    public sealed class ComboStrategy : ISchedulingStrategy
     {
         #region fields
 
         /// <summary>
         /// The configuration.
         /// </summary>
-        protected Configuration Configuration;
+        private Configuration Configuration;
 
         /// <summary>
         /// The safety prefix depth.

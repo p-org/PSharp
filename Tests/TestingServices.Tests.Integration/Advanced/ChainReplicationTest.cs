@@ -1447,8 +1447,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
             configuration.MaxUnfairSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = 504;
-            configuration.SchedulingIterations = 10;
+            configuration.RandomSchedulingSeed = 389;
+            configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(InvariantMonitor));

@@ -20,6 +20,11 @@ namespace Microsoft.PSharp.Utilities
     public interface IRandomNumberGenerator
     {
         /// <summary>
+        /// The seed currently used by the generator.
+        /// </summary>
+        int Seed { get; }
+
+        /// <summary>
         /// Returns a non-negative random number.
         /// </summary>
         int Next();
@@ -29,5 +34,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="maxValue">Exclusive upper bound</param>
         int Next(int maxValue);
+
+        /// <summary>
+        /// Increments the seed used by the generator.
+        /// </summary>
+        void IncrementSeed();
     }
 }

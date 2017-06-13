@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The configuration.
         /// </summary>
-        protected Configuration Configuration;
+        private Configuration Configuration;
 
         /// <summary>
         /// Nondeterminitic seed.
@@ -162,6 +162,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool PrepareForNextIteration()
         {
             this.ExploredSteps = 0;
+            if (this.Configuration.IncrementalSchedulingSeed)
+            {
+                this.Random.IncrementSeed();
+            }
+
             return true;
         }
 
