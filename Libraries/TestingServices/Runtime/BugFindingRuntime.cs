@@ -396,6 +396,8 @@ namespace Microsoft.PSharp.TestingServices
 
             Machine machine = this.CreateMachine(type, friendlyName);
 
+            this.Scheduler.Schedule();
+
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
             if (base.Configuration.EnableDataRaceDetection)
             {
@@ -408,7 +410,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.RunMachineEventHandler(machine, e, true, false);
-            this.Scheduler.Schedule();
 
             return machine.Id;
         }
@@ -432,6 +433,8 @@ namespace Microsoft.PSharp.TestingServices
 
             Machine machine = this.CreateMachine(type, friendlyName);
 
+            this.Scheduler.Schedule();
+
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
             if (base.Configuration.EnableDataRaceDetection)
             {
@@ -444,7 +447,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.RunMachineEventHandler(machine, e, true, true);
-            this.Scheduler.Schedule();
 
             return await Task.FromResult(machine.Id);
         }
@@ -519,14 +521,14 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
+            this.Scheduler.Schedule();
+
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, false);
             }
-
-            this.Scheduler.Schedule();
         }
 
         /// <summary>
@@ -553,14 +555,14 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
+            this.Scheduler.Schedule();
+
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, true);
             }
-
-            this.Scheduler.Schedule();
 
             await Task.CompletedTask;
         }

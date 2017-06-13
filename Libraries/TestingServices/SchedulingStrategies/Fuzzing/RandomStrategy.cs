@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The configuration.
         /// </summary>
-        protected Configuration Configuration;
+        private Configuration Configuration;
 
         /// <summary>
         /// Nondeterminitic seed.

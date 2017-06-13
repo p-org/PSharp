@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The configuration.
         /// </summary>
-        protected Configuration Configuration;
+        private Configuration Configuration;
 
         /// <summary>
         /// The P# program schedule trace.
