@@ -59,17 +59,24 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Run()
         {
-            // Starts the test.
-            if (this.TestAction != null)
+            try
             {
-                base.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
-                this.TestAction(base.Id.Runtime);
+                // Starts the test.
+                if (this.TestAction != null)
+                {
+                    base.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
+                    this.TestAction(base.Id.Runtime);
+                }
+                else
+                {
+                    base.Runtime.Log("<TestHarnessLog> Running test method " +
+                        $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
+                    this.TestMethod.Invoke(null, new object[] { base.Id.Runtime });
+                }
             }
-            else
+            catch (TargetInvocationException ex)
             {
-                base.Runtime.Log("<TestHarnessLog> Running test method " +
-                    $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
-                this.TestMethod.Invoke(null, new object[] { base.Id.Runtime });
+                throw ex.InnerException;
             }
         }
 
