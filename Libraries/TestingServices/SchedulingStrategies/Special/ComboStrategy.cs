@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool PrepareForNextIteration()
         {
             bool doNext = this.PrefixStrategy.PrepareForNextIteration();
-            doNext = doNext || this.SuffixStrategy.PrepareForNextIteration();
+            doNext = doNext | this.SuffixStrategy.PrepareForNextIteration();
             return doNext;
         }
 
