@@ -368,7 +368,9 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                throw new AssertionFailureException("Detected an assertion failure.");
+                var exception = new AssertionFailureException("Detected an assertion failure.");
+                this.RaiseOnFailureEvent(exception);
+                throw exception;
             }
         }
 
@@ -383,8 +385,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                string message = IO.Utilities.Format(s, args);
-                var exception = new AssertionFailureException(message);
+                var exception = new AssertionFailureException(IO.Utilities.Format(s, args));
                 this.RaiseOnFailureEvent(exception);
                 throw exception;
             }
