@@ -84,38 +84,46 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         public void TestAssertFailureEventHandler()
         {
             var tcsFail = new TaskCompletionSource<bool>();
+            int cnt = 0;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
             runtime.OnFailure += delegate (Exception exception)
             {
+                cnt++;
                 tcsFail.SetException(exception);
             };
 
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
+            Task.Delay(10).Wait(); // give it some time
 
             AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
             Assert.IsType<AssertionFailureException>(ex.InnerException);
+            Assert.True(cnt == 1);
         }
 
         [Fact]
         public void TestUnhandledExceptionEventHandler()
         {
             var tcsFail = new TaskCompletionSource<bool>();
+            int cnt = 0;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
             runtime.OnFailure += delegate (Exception exception)
             {
+                cnt++;
                 tcsFail.SetException(exception);
             };
 
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(N), new Configure(tcs));
             tcs.Task.Wait();
+            Task.Delay(10).Wait(); // give it some time
 
             AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
             Assert.IsType<InvalidOperationException>(ex.InnerException);
+            Assert.True(cnt == 1);
         }
     }
 }
