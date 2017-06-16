@@ -47,11 +47,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private int ExploredSteps;
 
-        /// <summary>
-        /// The prioritized operation id.
-        /// </summary>
-        private int PrioritizedOperationId;
-
         #endregion
 
         #region public API
@@ -67,7 +62,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Configuration = configuration;
             this.InputCache = new List<string>();
             this.ExploredSteps = 0;
-            this.PrioritizedOperationId = 0;
         }
 
         /// <summary>
