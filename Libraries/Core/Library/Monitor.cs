@@ -112,6 +112,11 @@ namespace Microsoft.PSharp
         internal MachineId Id { get; private set; }
 
         /// <summary>
+        /// Gets the name of this monitor.
+        /// </summary>
+        protected internal string Name => this.Id.Name;
+
+        /// <summary>
         /// The logger installed to the P# runtime.
         /// </summary>
         protected ILogger Logger => this.Runtime.Logger;
