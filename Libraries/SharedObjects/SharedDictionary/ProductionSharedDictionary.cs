@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.SharedObjects
         }
 
         /// <summary>
-        /// Attempts to get the value associated with the specified key
+        /// Attempts to get the value associated with the specified key.
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value associated with the key, or the default value if the key does not exist</param>
