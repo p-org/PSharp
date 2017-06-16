@@ -67,6 +67,17 @@ namespace Microsoft.PSharp.SharedObjects
         }
 
         /// <summary>
+        /// Attempts to get the value associated with the specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value associated with the key, or the default value if the key does not exist</param>
+        /// <returns>True if the key was found; otherwise, false.</returns>
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            return Dictionary.TryGetValue(key, out value);
+        }
+
+        /// <summary>
         /// Gets or sets the value associated with the specified key.
         /// </summary>
         /// <param name="key">Key</param>

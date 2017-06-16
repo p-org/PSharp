@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedDictionaryMockTest2.cs">
+// <copyright file="SharedDictionaryMockTest6.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,8 +18,18 @@ using Xunit;
 
 namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedDictionaryMockTest2 : BaseTest
+    public class SharedDictionaryMockTest6 : BaseTest
     {
+        class E : Event
+        {
+            public ISharedDictionary<int, string> counter;
+
+            public E(ISharedDictionary<int, string> counter)
+            {
+                this.counter = counter;
+            }
+        }
+
         class M : Machine
         {
             [Start]
@@ -28,12 +38,28 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedDictionary.Create<int, string>(this.Id.Runtime);
+                var counter = (this.ReceivedEvent as E).counter;
 
+                this.CreateMachine(typeof(N), new E(counter));
                 counter.TryAdd(1, "M");
 
-                // key not present; will throw an exception
-                var v = counter[2]; 
+                string v;
+                var b = counter.TryGetValue(2, out v);
+
+                this.Assert(!b);
+            }
+        }
+
+        class N : Machine
+        {
+            [Start]
+            [OnEntry(nameof(EntryInit))]
+            class Init : MachineState { }
+
+            void EntryInit()
+            {
+                var counter = (this.ReceivedEvent as E).counter;
+                counter.TryAdd(2, "N");
             }
         }
 
@@ -41,12 +67,14 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         public void TestDictionaryException()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
-            
+
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(M));
+                var counter = SharedDictionary.Create<int, string>(r);
+                r.CreateMachine(typeof(M), new E(counter));
             });
 
-            base.AssertFailed(config, test, 1);
+            base.AssertFailed(config, test, "Detected an assertion failure.");
         }
+
     }
 }

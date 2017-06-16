@@ -59,6 +59,10 @@
   <ItemGroup>
     <Compile Include="BaseTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryMockTest6.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryMockTest5.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryProductionTest4.cs" />
+    <Compile Include="SharedDictionary\SharedDictionaryProductionTest5.cs" />
     <Compile Include="SharedRegister\SharedRegisterMockTest.cs" />
     <Compile Include="SharedRegister\SharedRegisterProductionTest.cs" />
     <Compile Include="SharedRegister\SharedRegisterStructMocktest.cs" />

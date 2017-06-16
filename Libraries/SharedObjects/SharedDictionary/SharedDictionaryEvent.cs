@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Supported shared dictionary operations.
         /// </summary>
-        internal enum SharedDictionaryOperation { INIT, GET, SET, TRYADD, TRYUPDATE, TRYREMOVE, COUNT };
+        internal enum SharedDictionaryOperation { INIT, GET, SET, TRYADD, TRYGET, TRYUPDATE, TRYREMOVE, COUNT };
 
         /// <summary>
         /// The operation stored in this event.
@@ -117,6 +117,17 @@ namespace Microsoft.PSharp.SharedObjects
         public static SharedDictionaryEvent GetEvent(object key, MachineId sender)
         {
             return new SharedDictionaryEvent(SharedDictionaryOperation.GET, key, null, null, sender, null);
+        }
+
+        /// <summary>
+        /// Creates a new event for the 'TRYGET' operation.
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="sender">Sender</param>
+        /// <returns>SharedDictionaryEvent</returns>
+        public static SharedDictionaryEvent TryGetEvent(object key, MachineId sender)
+        {
+            return new SharedDictionaryEvent(SharedDictionaryOperation.TRYGET, key, null, null, sender, null);
         }
 
         /// <summary>

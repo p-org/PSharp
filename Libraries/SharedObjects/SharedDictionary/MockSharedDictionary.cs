@@ -83,6 +83,21 @@ namespace Microsoft.PSharp.SharedObjects
         }
 
         /// <summary>
+        /// Attempts to get the value associated with the specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value associated with the key, or the default value if the key does not exist</param>
+        /// <returns>True if the key was found; otherwise, false.</returns>
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            var currentMachine = Runtime.GetCurrentMachine();
+            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryGetEvent(key, currentMachine.Id));
+            var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
+            value = e.Value.Item2;
+            return e.Value.Item1;
+        }
+
+        /// <summary>
         /// Gets or sets the value associated with the specified key.
         /// </summary>
         /// <param name="key">Key</param>

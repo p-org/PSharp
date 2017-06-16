@@ -100,6 +100,17 @@ namespace Microsoft.PSharp.SharedObjects
 
                     break;
 
+                case SharedDictionaryEvent.SharedDictionaryOperation.TRYGET:
+                    if (!Dictionary.ContainsKey((TKey)e.Key))
+                    {
+                        Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(false, default(TValue))));
+                    }
+                    else
+                    {
+                        Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(true, Dictionary[(TKey)e.Key])));
+                    }
+                    break;
+
                 case SharedDictionaryEvent.SharedDictionaryOperation.GET:
                     Send(e.Sender, new SharedDictionaryResponseEvent<TValue>(Dictionary[(TKey)e.Key]));
                     break;

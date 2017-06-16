@@ -37,6 +37,14 @@ namespace Microsoft.PSharp.SharedObjects
         bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue);
 
         /// <summary>
+        /// Attempts to get the value associated with the specified key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value associated with the key, or the default value if the key does not exist</param>
+        /// <returns>True if the key was found; otherwise, false.</returns>
+        bool TryGetValue(TKey key, out TValue value);
+
+        /// <summary>
         /// Gets or sets the value associated with the specified key.
         /// </summary>
         /// <param name="key">Key</param>
