@@ -18,6 +18,9 @@ using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.Utilities
 {
+    /// <summary>
+    /// The P# tester command line options.
+    /// </summary>
     public sealed class TesterCommandLineOptions : BaseCommandLineOptions
     {
         #region public API

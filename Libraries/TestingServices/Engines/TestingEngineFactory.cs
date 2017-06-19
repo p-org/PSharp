@@ -25,6 +25,47 @@ namespace Microsoft.PSharp.TestingServices
         #region factory methods
 
         /// <summary>
+        /// Runs a P# tests.
+        /// </summary>
+        /// <param name="args">Flags to PSharpTester</param>
+        /// <param name="action">Test method</param>
+        /// <returns>TestReport</returns>
+        public static TestReport RunTester(string args, Action<PSharpRuntime> action)
+        {
+            args += " /test:program"; // dummy argument
+
+            var configuration = new Utilities.TesterCommandLineOptions(
+                args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)).Parse();
+
+            var parallel = configuration.ParallelBugFindingTasks;
+
+            if (configuration.ParallelBugFindingTasks > 1 &&
+               configuration.SchedulingStrategy != Utilities.SchedulingStrategy.Portfolio)
+            {
+                configuration.SchedulingIterations = configuration.SchedulingIterations *
+                    (int)configuration.ParallelBugFindingTasks;
+            }
+            
+            configuration.ParallelBugFindingTasks = 1;
+
+            var report = new TestReport(configuration);
+
+            for (uint i = 0; i < parallel; i++)
+            {
+                configuration.TestingProcessId = i;
+
+                var logger = new IO.InMemoryLogger();
+                var engine = BugFindingEngine.Create(configuration, action);
+                engine.SetLogger(logger);
+                engine.Run();
+
+                report.Merge(engine.TestReport);
+            }
+
+            return report;
+        }
+
+        /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>

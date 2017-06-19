@@ -1,5 +1,7 @@
 ﻿using System;
 using Microsoft.PSharp;
+using Microsoft.PSharp.TestingServices;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Raft.PSharpLibrary
 {
@@ -36,6 +38,19 @@ namespace Raft.PSharpLibrary
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
             runtime.CreateMachine(typeof(ClusterManager));
+        }
+    }
+
+    [TestClass]
+    public class VsTest
+    {
+        [TestMethod]
+        public void UnitTest()
+        {
+            var report =
+                TestingEngineFactory.RunTester("/i:10 /max-steps:100", Program.Execute);
+
+            Assert.IsTrue(true); 
         }
     }
 }
