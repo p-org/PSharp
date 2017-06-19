@@ -44,6 +44,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 configuration.SchedulingIterations = configuration.SchedulingIterations *
                     (int)configuration.ParallelBugFindingTasks;
+                parallel = 1;
             }
             
             configuration.ParallelBugFindingTasks = 1;
