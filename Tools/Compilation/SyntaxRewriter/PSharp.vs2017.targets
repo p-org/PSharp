@@ -1,0 +1,10 @@
+<Project>
+  <UsingTask TaskName="Microsoft.PSharp.Rewriter" AssemblyFile=".\PSharpSyntaxRewriter.exe" />
+  <Target Name="GenerateToolOutput" BeforeTargets="CoreCompile">
+    <Rewriter
+        InputFiles="@(PSharp)"
+        OutputFiles="@(PSharp->'$(IntermediateOutputPath)%(FileName)%(Extension).cs')">
+      <Output TaskParameter="OutputFiles" ItemName="Compile" />
+    </Rewriter>
+  </Target>
+</Project>

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <Import Project="..\..\Build\key.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp.LanguageServices</AssemblyName>
+    <Description>The P# language services.</Description>
+    <AssemblyTitle>Microsoft.PSharp.LanguageServices</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="1.2.2" />
+  </ItemGroup>
+</Project>

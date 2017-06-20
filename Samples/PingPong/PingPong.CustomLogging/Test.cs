@@ -19,11 +19,6 @@ namespace PingPong.CustomLogging
     /// </summary>
     public class Program
     {
-        /// <summary>
-        /// Custom logger.
-        /// </summary>
-        static ILogger MyLogger = null;
-
         static void Main(string[] args)
         {
             // Optional: increases verbosity level to see the P# runtime log.

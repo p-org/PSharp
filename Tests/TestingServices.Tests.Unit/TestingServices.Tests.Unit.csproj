@@ -1,147 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B34878DE-AB7D-4EA2-9867-A2AB42FF8CFB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Unit</RootNamespace>
     <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <Description>Unit tests for P#.</Description>
+    <AssemblyTitle>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>PSharp.snk</AssemblyOriginatorKeyFile>
+    <OutputPath>.\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\xunit.abstractions.2.0.1\lib\net35\xunit.abstractions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="xunit.assert, Version=2.2.0.3545, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\xunit.assert.2.2.0\lib\netstandard1.1\xunit.assert.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="xunit.core, Version=2.2.0.3545, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\xunit.extensibility.core.2.2.0\lib\netstandard1.1\xunit.core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="xunit.execution.desktop, Version=2.2.0.3545, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\xunit.extensibility.execution.2.2.0\lib\net452\xunit.execution.desktop.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <ProjectReference Include="..\..\Source\TestingServices\TestingServices.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Asynchrony\AsyncAwaitTest.cs" />
-    <Compile Include="Asynchrony\ReceiveTest.cs" />
-    <Compile Include="Asynchrony\ReceiveWaitTest.cs" />
-    <Compile Include="BaseTest.cs" />
-    <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
-    <Compile Include="EntryPoint\EntryPointThrowExceptionTest.cs" />
-    <Compile Include="EntryPoint\EntryPointRandomChoiceTest.cs" />
-    <Compile Include="EntryPoint\EntryPointEventSendingTest.cs" />
-    <Compile Include="EntryPoint\EntryPointMachineExecutionTest.cs" />
-    <Compile Include="EntryPoint\EntryPointMachineCreationTest.cs" />
-    <Compile Include="Machines\Declarations\AmbiguousEventHandlerTest.cs" />
-    <Compile Include="Machines\Statements\MethodCallTest.cs" />
-    <Compile Include="Machines\Declarations\GroupStateTest.cs" />
-    <Compile Include="EventHandling\MaxInstances1FailTest.cs" />
-    <Compile Include="Machines\Statements\PopTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateTest.cs" />
-    <Compile Include="Machines\Statements\CurrentStateTest.cs" />
-    <Compile Include="Machines\Transitions\PushTransitions\PushStateTest.cs" />
-    <Compile Include="EventHandling\ReceiveEvent\ReceiveEventTest.cs" />
-    <Compile Include="EventHandling\Wildcard\WildCardEventTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateExitFailTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateFailTest.cs" />
-    <Compile Include="Machines\Transitions\GotoTransitions\GotoStateMultipleInActionFailTest.cs" />
-    <Compile Include="EventHandling\ReceiveEvent\ReceiveEventFailTest.cs" />
-    <Compile Include="Generics\GenericMachineTest.cs" />
-    <Compile Include="Generics\GenericMonitorTest.cs" />
-    <Compile Include="RuntimeInterface\CreateAndExecuteTest.cs" />
-    <Compile Include="RuntimeInterface\ReceivingExternalEventTest.cs" />
-    <Compile Include="EventHandling\IgnoreEvent\TestIgnoreRaised.cs" />
-    <Compile Include="EventHandling\Actions6FailTest.cs" />
-    <Compile Include="EventHandling\Actions5FailTest.cs" />
-    <Compile Include="EventHandling\Actions1FailTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionDefaultHandlerTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionCounterTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionRingOfNodesTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionRandomChoiceTest.cs" />
-    <Compile Include="Liveness\CycleDetection\CycleDetectionBasicTest.cs" />
-    <Compile Include="Liveness\UnfairExecutionTest.cs" />
-    <Compile Include="Liveness\Liveness1Test.cs" />
-    <Compile Include="Liveness\StateCaching\FairNondet1Test.cs" />
-    <Compile Include="Liveness\WarmStateTest.cs" />
-    <Compile Include="Liveness\Liveness2BugFoundTest.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness3Test.cs" />
-    <Compile Include="Liveness\Liveness2LoopMachineTest.cs" />
-    <Compile Include="Liveness\StateCaching\Nondet1Test.cs" />
-    <Compile Include="Liveness\StateCaching\WarmStateBugTest.cs" />
-    <Compile Include="Liveness\StateCaching\Liveness2Test.cs" />
-    <Compile Include="Liveness\HotStateTest.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RuntimeInterface\SendAndExecuteTest1.cs" />
-    <Compile Include="RuntimeInterface\SendAndExecuteTest2.cs" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="PSharp.snk" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libraries\SharedObjects\SharedObjects.csproj">
-      <Project>{a9572dc2-9898-40aa-8a6f-e3ab2eb6a992}</Project>
-      <Name>SharedObjects</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libraries\TestingServices\TestingServices.csproj">
-      <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
-      <Name>TestingServices</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
