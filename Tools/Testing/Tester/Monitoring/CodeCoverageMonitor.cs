@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Monitoring process is running.
         /// </summary>
-        private static bool IsRunning;
+        internal static bool IsRunning;
 
         /// <summary>
         /// Starts the code coverage monitor.
@@ -49,25 +49,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             Configuration = configuration;
-
-            string VSPerfCmdToolPath = GetToolPath();
-            var monitorProc = new Process();
-
-            try
-            {
-                monitorProc.StartInfo.FileName = VSPerfCmdToolPath;
-                monitorProc.StartInfo.Arguments = $"/start:coverage /output:{GetOutputName()}";
-                monitorProc.StartInfo.UseShellExecute = false;
-                monitorProc.StartInfo.RedirectStandardOutput = true;
-                monitorProc.StartInfo.RedirectStandardError = true;
-                monitorProc.Start();
-                monitorProc.WaitForExit();
-            }
-            finally
-            {
-                monitorProc.Close();
-            }
-
+            RunMonitorProcess($"/start:coverage /output:{GetOutputName()}");
             IsRunning = true;
         }
 
@@ -86,17 +68,28 @@ namespace Microsoft.PSharp.TestingServices
                 throw new InvalidOperationException("Process is not running.");
             }
 
-            string VSPerfCmdToolPath = GetToolPath();
+            RunMonitorProcess("/shutdown");
+            IsRunning = false;
+        }
+
+        private static void RunMonitorProcess(string arguments)
+        {
             var monitorProc = new Process();
 
-            monitorProc.StartInfo.FileName = VSPerfCmdToolPath;
-            monitorProc.StartInfo.Arguments = "/shutdown";
-            monitorProc.StartInfo.UseShellExecute = false;
-            monitorProc.StartInfo.RedirectStandardOutput = true;
-            monitorProc.StartInfo.RedirectStandardError = true;
-            monitorProc.Start();
-
-            IsRunning = false;
+            try
+            {
+                monitorProc.StartInfo.FileName = CodeCoverageInstrumentation.GetToolPath("VSPerfCmdToolPath", "VSPerfCmd");
+                monitorProc.StartInfo.Arguments = arguments;
+                monitorProc.StartInfo.UseShellExecute = false;
+                monitorProc.StartInfo.RedirectStandardOutput = true;
+                monitorProc.StartInfo.RedirectStandardError = true;
+                monitorProc.Start();
+                monitorProc.WaitForExit();
+            }
+            finally
+            {
+                monitorProc.Close();
+            }
         }
 
         /// <summary>
@@ -106,37 +99,8 @@ namespace Microsoft.PSharp.TestingServices
         private static string GetOutputName()
         {
             string file = Path.GetFileNameWithoutExtension(Configuration.AssemblyToBeAnalyzed);
-            string directory = Reporter.GetOutputDirectory(Configuration.OutputFilePath, Configuration.AssemblyToBeAnalyzed);
-
-            string[] outputs = Directory.GetFiles(directory, file + "_*.coverage").
-                Where(path => new Regex(@"^.*_[0-9]+.coverage").IsMatch(path)).ToArray();
-            string output = directory + file + "_" + outputs.Length + ".coverage";
-
-            return output;
-        }
-
-        /// <summary>
-        /// Returns the tool path to the code coverage monitor.
-        /// </summary>
-        /// <returns>Tool path</returns>
-        private static string GetToolPath()
-        {
-            string tool = "";
-            try
-            {
-                tool = ConfigurationManager.AppSettings["VSPerfCmdToolPath"];
-            }
-            catch (ConfigurationErrorsException)
-            {
-                Error.ReportAndExit("[PSharpTester] required 'VSPerfCmdToolPath' value is not set in configuration file.");
-            }
-
-            if (!File.Exists(tool))
-            {
-                Error.ReportAndExit($"[PSharpTester] 'VSPerfCmd' tool '{tool}' not found.");
-            }
-
-            return tool;
+            string directory = CodeCoverageInstrumentation.OutputDirectory;
+            return $"{directory}{file}.coverage";
         }
     }
 }

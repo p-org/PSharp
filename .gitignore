@@ -6,6 +6,7 @@
 *.user
 *.sln.docstates
 *.opendb
+**/launchSettings.json
 
 # Build results
 [Dd]ebug/
