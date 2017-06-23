@@ -12,14 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Linq;
+using System;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class CycleDetectionCounterTest
+    public class CycleDetectionCounterTest : BaseTest
     {
         class Configure: Event
         {
@@ -89,73 +88,55 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class HotState : MonitorState { }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCycleDetectionCounterNoBug()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.CacheProgramState = true;
             configuration.EnableCycleReplayingStrategy = true;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration,
-                (runtime) => {
-                    runtime.RegisterMonitor(typeof(WatchDog));
-                    runtime.CreateMachine(typeof(EventHandler), new Configure(true, false));
-                });
-            engine.Run();
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler), new Configure(true, false));
+            });
 
-            Assert.AreEqual(0, engine.TestReport.NumOfFoundBugs);
+            base.AssertSucceeded(configuration, test);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCycleDetectionCounterBug()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.CacheProgramState = true;
             configuration.EnableCycleReplayingStrategy = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration,
-                (runtime) => {
-                    runtime.RegisterMonitor(typeof(WatchDog));
-                    runtime.CreateMachine(typeof(EventHandler), new Configure(false, false));
-                });
-            engine.Run();
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler), new Configure(false, false));
+            });
 
-            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-
-            string expected = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            string actual = engine.TestReport.BugReports.First();
-            Assert.AreEqual(expected, actual);
+            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
+            base.AssertFailed(configuration, test, bugReport);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCycleDetectionCounterResetBug()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.CacheProgramState = true;
             configuration.EnableCycleReplayingStrategy = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration,
-                (runtime) => {
-                    runtime.RegisterMonitor(typeof(WatchDog));
-                    runtime.CreateMachine(typeof(EventHandler), new Configure(true, true));
-                });
-            engine.Run();
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler), new Configure(true, true));
+            });
 
-            Assert.AreEqual(1, engine.TestReport.NumOfFoundBugs);
-
-            string expected = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            string actual = engine.TestReport.BugReports.First();
-            Assert.AreEqual(expected, actual);
+            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
+            base.AssertFailed(configuration, test, bugReport);
         }
     }
 }

@@ -68,7 +68,8 @@ namespace Microsoft.PSharp
         /// <param name="configuration">Configuration</param>
         private ReplayingProcess(Configuration configuration)
         {
-            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
+            configuration.EnableColoredConsoleOutput = true;
+            configuration.DisableEnvironmentExit = false;
             this.Configuration = configuration;
         }
 

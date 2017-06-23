@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.PSharp;
-using Microsoft.PSharp.Utilities;
 
 namespace Chord.PSharpLibrary
 {
@@ -66,7 +65,7 @@ namespace Chord.PSharpLibrary
                 if (this.Random())
                 {
                     var key = this.GetNextQueryKey();
-                    Id.Runtime.Logger.WriteLine($"<ChordLog> Client is searching for successor of key '{key}'");
+                    this.Logger.WriteLine($"<ChordLog> Client is searching for successor of key '{key}'.");
                     this.Send(this.ClusterManager, new ChordNode.FindSuccessor(this.Id, key));
                     this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientRequest(key));
                 }

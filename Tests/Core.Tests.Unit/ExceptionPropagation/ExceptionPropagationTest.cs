@@ -15,11 +15,10 @@
 using System;
 using System.Threading.Tasks;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    [TestClass]
     public class ExceptionPropagationTest
     {
         internal class Configure : Event
@@ -72,74 +71,59 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
 
-        public static class Program
-        {
-            public static void ExecuteM(PSharpRuntime runtime)
-            {
-                var tcs = new TaskCompletionSource<bool>();
-                runtime.CreateMachine(typeof(M), new Configure(tcs));
-                tcs.Task.Wait();
-            }
-
-            public static void ExecuteN(PSharpRuntime runtime)
-            {
-                var tcs = new TaskCompletionSource<bool>();
-                runtime.CreateMachine(typeof(N), new Configure(tcs));
-                tcs.Task.Wait();
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestAssertFailureNoEventHandler()
         {
             PSharpRuntime runtime = PSharpRuntime.Create();
-            Program.ExecuteM(runtime);
+            var tcs = new TaskCompletionSource<bool>();
+            runtime.CreateMachine(typeof(M), new Configure(tcs));
+            tcs.Task.Wait();
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(AssertionFailureException))]
+        [Fact]
         public void TestAssertFailureEventHandler()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcsFail = new TaskCompletionSource<bool>();
+            int cnt = 0;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
-            runtime.OnFailure += delegate (Exception ex)
+            runtime.OnFailure += delegate (Exception exception)
             {
-                tcs.SetException(ex);
+                cnt++;
+                tcsFail.SetException(exception);
             };
 
-            Program.ExecuteM(runtime);
-            try
-            {
-                tcs.Task.Wait();
-            }
-            catch (AggregateException ex)
-            {
-                throw ex.InnerException;
-            }
+            var tcs = new TaskCompletionSource<bool>();
+            runtime.CreateMachine(typeof(M), new Configure(tcs));
+            tcs.Task.Wait();
+            Task.Delay(10).Wait(); // give it some time
+
+            AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
+            Assert.IsType<AssertionFailureException>(ex.InnerException);
+            Assert.True(cnt == 1);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
+        [Fact]
         public void TestUnhandledExceptionEventHandler()
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcsFail = new TaskCompletionSource<bool>();
+            int cnt = 0;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
-            runtime.OnFailure += delegate (Exception ex)
+            runtime.OnFailure += delegate (Exception exception)
             {
-                tcs.SetException(ex.InnerException);
+                cnt++;
+                tcsFail.SetException(exception);
             };
 
-            Program.ExecuteN(runtime);
-            try
-            {
-                tcs.Task.Wait();
-            }
-            catch (AggregateException ex)
-            {
-                throw ex.InnerException;
-            }
+            var tcs = new TaskCompletionSource<bool>();
+            runtime.CreateMachine(typeof(N), new Configure(tcs));
+            tcs.Task.Wait();
+            Task.Delay(10).Wait(); // give it some time
+
+            AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
+            Assert.IsType<InvalidOperationException>(ex.InnerException);
+            Assert.True(cnt == 1);
         }
     }
 }

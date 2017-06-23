@@ -36,7 +36,7 @@ namespace Raft.PSharpLanguage
 			{
 				this.LatestCommand = new Random().Next(100);
 				this.Counter++;
-				Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
+				this.Logger.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
 				send(this.Cluster, Request, this.Id, this.LatestCommand);
 			}
 

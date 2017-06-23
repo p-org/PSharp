@@ -361,7 +361,7 @@ namespace Raft.PSharpLibrary
 
             this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
 
-            Console.WriteLine("\n [Candidate] " + this.ServerId + " | term " + this.CurrentTerm +
+            this.Logger.WriteLine("\n [Candidate] " + this.ServerId + " | term " + this.CurrentTerm +
                 " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
 
             this.BroadcastVoteRequests();
@@ -421,10 +421,10 @@ namespace Raft.PSharpLibrary
                 this.VotesReceived++;
                 if (this.VotesReceived >= (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                    this.Logger.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
                         " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
                     this.VotesReceived = 0;
-                    this.Raise(new BecomeLeader(), true);
+                    this.Raise(new BecomeLeader());
                 }
             }
         }
@@ -510,7 +510,7 @@ namespace Raft.PSharpLibrary
 
         void BroadcastLastClientRequest()
         {
-            Console.WriteLine("\n [Leader] " + this.ServerId + " sends append requests | term " +
+            this.Logger.WriteLine("\n [Leader] " + this.ServerId + " sends append requests | term " +
                 this.CurrentTerm + " | log " + this.Logs.Count + "\n");
 
             var lastLogIndex = this.Logs.Count;
@@ -610,7 +610,7 @@ namespace Raft.PSharpLibrary
                 if (request.ReceiverEndpoint != null &&
                     this.VotesReceived >= (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                    this.Logger.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
                         " | append votes " + this.VotesReceived + " | append success\n");
 
                     var commitIndex = this.MatchIndex[request.Server];
@@ -619,7 +619,7 @@ namespace Raft.PSharpLibrary
                     {
                         this.CommitIndex = commitIndex;
 
-                        Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                        this.Logger.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
                             " | log " + this.Logs.Count + " | command " + this.Logs[commitIndex - 1].Command + "\n");
                     }
 
@@ -642,7 +642,7 @@ namespace Raft.PSharpLibrary
                 var prevLogIndex = this.NextIndex[request.Server] - 1;
                 var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
 
-                Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                this.Logger.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
                     this.Logs.Count + " | append votes " + this.VotesReceived +
                     " | append fail (next idx = " + this.NextIndex[request.Server] + ")\n");
 
@@ -669,13 +669,13 @@ namespace Raft.PSharpLibrary
                 lastLogIndex > request.LastLogIndex ||
                 lastLogTerm > request.LastLogTerm)
             {
-                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
+                this.Logger.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
                     " | log " + this.Logs.Count + " | vote false\n");
                 this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, false));
             }
             else
             {
-                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
+                this.Logger.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
                     " | log " + this.Logs.Count + " | vote true\n");
 
                 this.VotedFor = request.CandidateId;
@@ -693,7 +693,7 @@ namespace Raft.PSharpLibrary
         {
             if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                this.Logger.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
                     this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (< term)\n");
 
                 this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
@@ -705,7 +705,7 @@ namespace Raft.PSharpLibrary
                     (this.Logs.Count < request.PrevLogIndex ||
                     this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
                 {
-                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                    this.Logger.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
                         this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (not in log)\n");
 
                     this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
@@ -747,7 +747,7 @@ namespace Raft.PSharpLibrary
                         this.LastApplied++;
                     }
 
-                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                    this.Logger.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
                         this.Logs.Count + " | entries received " + request.Entries.Count + " | last applied " +
                         this.LastApplied + " | append true\n");
 

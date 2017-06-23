@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <Import Project="..\..\Build\key.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp.SharedObjects.Tests.Unit</AssemblyName>
+    <Description>Unit tests for P#.</Description>
+    <AssemblyTitle>Microsoft.PSharp.SharedObjects.Tests.Unit</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\SharedObjects\SharedObjects.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.console" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+</Project>

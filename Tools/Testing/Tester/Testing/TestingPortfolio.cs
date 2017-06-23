@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRandom;
                 configuration.CoinFlipBound = 5 * (int)(configuration.TestingProcessId / 2);
             }
-            else if(configuration.TestingProcessId == 1)
+            else if (configuration.TestingProcessId == 1)
             {
                 configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
                 configuration.PrioritySwitchBound = 1; 
@@ -50,7 +50,6 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
                 configuration.PrioritySwitchBound = 5 * (int)((configuration.TestingProcessId + 1)/ 2);
             }
-
         }
 
         #endregion

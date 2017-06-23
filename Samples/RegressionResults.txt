@@ -1,0 +1,9 @@
+Test					Buggy schedules		Time taken	
+BoundedAsync.PSharpLibrary.exe				0%		51.1567974		
+ChainReplication.PSharpLibrary.exe				0%		109.7463685		
+Chord.PSharpLibrary.exe				6.12%		51.5987321		
+FailureDetector.PSharpLibrary.exe				12.38%		1365.2372515		
+CacheCoherence.PSharpLibrary.exe				0%		1072.8639177		
+MultiPaxos.PSharpLibrary.exe				0%		85.3408965		
+Raft.PSharpLibrary.exe				1.25%		248.5698921		
+TwoPhaseCommit.PSharpLibrary.exe				0%		19.6901824		

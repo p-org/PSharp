@@ -100,9 +100,10 @@ namespace Microsoft.PSharp.TestingServices
             if (configuration.ParallelBugFindingTasks > 1)
             {
                 configuration.Verbose = 1;
-                configuration.PrintTrace = false;
                 configuration.EnableDataRaceDetection = false;
             }
+
+            configuration.EnableColoredConsoleOutput = true;
 
             this.Configuration = configuration;
         }
@@ -189,19 +190,19 @@ namespace Microsoft.PSharp.TestingServices
             // Opens the remote notification listener.
             this.OpenNotificationListener();
 
-			this.Profiler.StartMeasuringExecutionTime();
+            this.Profiler.StartMeasuringExecutionTime();
 
-			if (this.Configuration.ParallelBugFindingTasks > 1)
-			{
+            if (this.Configuration.ParallelBugFindingTasks > 1)
+            {
                 this.CreateParallelTestingProcesses();
                 this.RunParallelTestingProcesses();
             }
-			else
-			{
+            else
+            {
                 this.CreateAndRunInMemoryTestingProcess();
             }
 
-			this.Profiler.StopMeasuringExecutionTime();
+            this.Profiler.StopMeasuringExecutionTime();
 
             // Closes the remote notification listener.
             this.CloseNotificationListener();

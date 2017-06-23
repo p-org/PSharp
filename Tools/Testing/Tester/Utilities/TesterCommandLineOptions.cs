@@ -142,25 +142,6 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
                     base.Configuration.DelayBound = i;
                 }
-                else if (scheduler.ToLower().Equals("rob"))
-                {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomOperationBounding;
-                    base.Configuration.BoundOperations = true;
-                }
-                else if (scheduler.StartsWith("pob"))
-                {
-                    int i = 0;
-                    if (scheduler.Equals("pob") ||
-                        !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
-                    {
-                        Error.ReportAndExit("Please give a valid number of priority " +
-                            "switch points '/sch:pob:[x]', where [x] >= 0.");
-                    }
-
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.PrioritizedOperationBounding;
-                    base.Configuration.BoundOperations = true;
-                    base.Configuration.PrioritySwitchBound = i;
-                }
                 else if (scheduler.ToLower().Equals("macemc"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
@@ -311,10 +292,6 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SafetyPrefixBound = i;
             }
-            else if (option.ToLower().Equals("/print-trace"))
-            {
-                base.Configuration.PrintTrace = true;
-            }
             else if (option.ToLower().StartsWith("/liveness-temperature-threshold:") && option.Length > 32)
             {
                 int i = 0;
@@ -337,10 +314,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/user-hash"))
             {
                 base.Configuration.UserHash = true;
-            }
-            else if (option.ToLower().Equals("/opbound"))
-            {
-                base.Configuration.BoundOperations = true;
             }
             else if (option.ToLower().Equals("/dynamic-event-reordering"))
             {
@@ -378,10 +351,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RoundRobin)
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'/sch:[x]', where [x] is 'random' or 'pct' (other experimental " +
@@ -450,13 +420,11 @@ namespace Microsoft.PSharp.Utilities
             help += "\n Basic options:";
             help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
-            help += "\n  /s:[x]\t Path to a P# solution";
-            help += "\n  /test:[x]\t Name of a project in the P# solution to test";
+            help += "\n  /test:[x]\t Path to the P# program to test";
             help += "\n  /method:[x]\t Suffix of the test method to execute";
-            help += "\n  /o:[x]\t Path for output files";
             help += "\n  /timeout:[x]\t Timeout in seconds (disabled by default)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
-            help += "\n  /debug\t Enable debugging";
+            help += "\n  /o:[x]\t Dump output to directory x (absolute path or relative to current directory)";
 
             help += "\n\n ---------------------------";
             help += "\n Systematic testing options:";

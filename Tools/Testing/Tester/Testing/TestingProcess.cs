@@ -125,9 +125,8 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Output.WriteLine($"... Task {this.Configuration.TestingProcessId} found a bug.");
             }
-
-            if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 ||
-                this.Configuration.PrintTrace)
+            
+            if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
             {
                 this.EmitTraces();
             }
@@ -160,6 +159,8 @@ namespace Microsoft.PSharp.TestingServices
             {
                 configuration.RandomSchedulingSeed = (int)(configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId));
             }
+
+            configuration.EnableColoredConsoleOutput = true;
 
             this.Configuration = configuration;
             this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(

@@ -1,0 +1,121 @@
+<TestHarnessLog> Running test method 'Chord.PSharpLibrary.Program.Execute'.
+<CreateLog> Monitor 'LivenessMonitor' is created.
+<MonitorLog> Monitor 'LivenessMonitor' enters state 'Chord.PSharpLibrary.LivenessMonitor.Init'.
+<MonitorLog> Monitor 'LivenessMonitor' exits state 'Chord.PSharpLibrary.LivenessMonitor.Init'.
+<MonitorLog> Monitor 'LivenessMonitor' enters 'cold' state 'Chord.PSharpLibrary.LivenessMonitor.Responded[cold]'.
+<CreateLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' is created.
+<StateLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' enters state 'Chord.PSharpLibrary.ClusterManager.Init'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' invoked action 'InitOnEntry' in state 'Chord.PSharpLibrary.ClusterManager.Init'.
+<CreateLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' is created.
+<CreateLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' is created.
+<CreateLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' is created.
+<SendLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' sent event 'Chord.PSharpLibrary.ChordNode+Config' to 'Chord.PSharpLibrary.ChordNode(4)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' enqueued event 'Chord.PSharpLibrary.ChordNode+Config'.
+<SendLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' sent event 'Chord.PSharpLibrary.ChordNode+Config' to 'Chord.PSharpLibrary.ChordNode(5)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' enqueued event 'Chord.PSharpLibrary.ChordNode+Config'.
+<SendLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' sent event 'Chord.PSharpLibrary.ChordNode+Config' to 'Chord.PSharpLibrary.ChordNode(6)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' enqueued event 'Chord.PSharpLibrary.ChordNode+Config'.
+<CreateLog> Machine 'Chord.PSharpLibrary.Client(7)' is created.
+<RaiseLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' raised event 'Chord.PSharpLibrary.ClusterManager+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' exits state 'Chord.PSharpLibrary.ClusterManager.Init'.
+<StateLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' enters state 'Chord.PSharpLibrary.ClusterManager.Waiting'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' enters state 'Chord.PSharpLibrary.Client.Init'.
+<ActionLog> Machine 'Chord.PSharpLibrary.Client(7)' invoked action 'InitOnEntry' in state 'Chord.PSharpLibrary.Client.Init'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.Client(7)' raised event 'Chord.PSharpLibrary.Client+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' exits state 'Chord.PSharpLibrary.Client.Init'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' enters state 'Chord.PSharpLibrary.Client.Querying'.
+<ActionLog> Machine 'Chord.PSharpLibrary.Client(7)' invoked action 'QueryingOnEntry' in state 'Chord.PSharpLibrary.Client.Querying'.
+<RandomLog> Machine 'Chord.PSharpLibrary.Client(7)' nondeterministically chose 'True'.
+<RandomLog> Machine 'Chord.PSharpLibrary.Client(7)' nondeterministically chose 'True'.
+<ChordLog> Client is searching for successor of key '1'.
+<SendLog> Machine 'Chord.PSharpLibrary.Client(7)' sent event 'Chord.PSharpLibrary.ChordNode+FindSuccessor' to 'Chord.PSharpLibrary.ClusterManager(3)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' enqueued event 'Chord.PSharpLibrary.ChordNode+FindSuccessor'.
+<MonitorLog> Monitor 'LivenessMonitor' is processing event 'Chord.PSharpLibrary.LivenessMonitor+NotifyClientRequest'.
+<MonitorLog> Monitor 'LivenessMonitor' exits 'cold' state 'Chord.PSharpLibrary.LivenessMonitor.Responded[cold]'.
+<MonitorLog> Monitor 'LivenessMonitor' enters 'hot' state 'Chord.PSharpLibrary.LivenessMonitor.Requested[hot]'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.Client(7)' raised event 'Chord.PSharpLibrary.Client+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' exits state 'Chord.PSharpLibrary.Client.Querying'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' enters state 'Chord.PSharpLibrary.Client.Waiting'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' dequeued event 'Chord.PSharpLibrary.ChordNode+FindSuccessor'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' invoked action 'ForwardFindSuccessor' in state 'Chord.PSharpLibrary.ClusterManager.Waiting'.
+<SendLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' sent event 'Chord.PSharpLibrary.ChordNode+FindSuccessor' to 'Chord.PSharpLibrary.ChordNode(4)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' enqueued event 'Chord.PSharpLibrary.ChordNode+FindSuccessor'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' enters state 'Chord.PSharpLibrary.ChordNode.Init'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' invoked action 'InitOnEntry' in state 'Chord.PSharpLibrary.ChordNode.Init'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' dequeued event 'Chord.PSharpLibrary.ChordNode+Config'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' invoked action 'Configure' in state 'Chord.PSharpLibrary.ChordNode.Init'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' raised event 'Chord.PSharpLibrary.ChordNode+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' exits state 'Chord.PSharpLibrary.ChordNode.Init'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' enters state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' enters state 'Chord.PSharpLibrary.ChordNode.Init'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' invoked action 'InitOnEntry' in state 'Chord.PSharpLibrary.ChordNode.Init'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' dequeued event 'Chord.PSharpLibrary.ChordNode+Config'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' invoked action 'Configure' in state 'Chord.PSharpLibrary.ChordNode.Init'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' raised event 'Chord.PSharpLibrary.ChordNode+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' exits state 'Chord.PSharpLibrary.ChordNode.Init'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(6)' enters state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' enters state 'Chord.PSharpLibrary.ChordNode.Init'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' invoked action 'InitOnEntry' in state 'Chord.PSharpLibrary.ChordNode.Init'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' dequeued event 'Chord.PSharpLibrary.ChordNode+Config'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' invoked action 'Configure' in state 'Chord.PSharpLibrary.ChordNode.Init'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' raised event 'Chord.PSharpLibrary.ChordNode+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' exits state 'Chord.PSharpLibrary.ChordNode.Init'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' enters state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' dequeued event 'Chord.PSharpLibrary.ChordNode+FindSuccessor'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' invoked action 'ProcessFindSuccessor' in state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<SendLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' sent event 'Chord.PSharpLibrary.ChordNode+FindSuccessorResp' to 'Chord.PSharpLibrary.Client(7)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.Client(7)' enqueued event 'Chord.PSharpLibrary.ChordNode+FindSuccessorResp'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.Client(7)' dequeued event 'Chord.PSharpLibrary.ChordNode+FindSuccessorResp'.
+<ActionLog> Machine 'Chord.PSharpLibrary.Client(7)' invoked action 'ProcessFindSuccessorResp' in state 'Chord.PSharpLibrary.Client.Waiting'.
+<MonitorLog> Monitor 'LivenessMonitor' is processing event 'Chord.PSharpLibrary.LivenessMonitor+NotifyClientResponse'.
+<MonitorLog> Monitor 'LivenessMonitor' exits 'hot' state 'Chord.PSharpLibrary.LivenessMonitor.Requested[hot]'.
+<MonitorLog> Monitor 'LivenessMonitor' enters 'cold' state 'Chord.PSharpLibrary.LivenessMonitor.Responded[cold]'.
+<SendLog> Machine 'Chord.PSharpLibrary.Client(7)' sent event 'Chord.PSharpLibrary.ChordNode+QueryId' to 'Chord.PSharpLibrary.ChordNode(5)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' enqueued event 'Chord.PSharpLibrary.ChordNode+QueryId'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' dequeued event 'Chord.PSharpLibrary.ChordNode+QueryId'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' invoked action 'ProcessQueryId' in state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<SendLog> Machine 'Chord.PSharpLibrary.ChordNode(5)' sent event 'Chord.PSharpLibrary.ChordNode+QueryIdResp' to 'Chord.PSharpLibrary.Client(7)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.Client(7)' enqueued event 'Chord.PSharpLibrary.ChordNode+QueryIdResp'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.Client(7)' dequeued event 'Chord.PSharpLibrary.ChordNode+QueryIdResp'.
+<ActionLog> Machine 'Chord.PSharpLibrary.Client(7)' invoked action 'ProcessQueryIdResp' in state 'Chord.PSharpLibrary.Client.Waiting'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.Client(7)' raised event 'Chord.PSharpLibrary.Client+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' exits state 'Chord.PSharpLibrary.Client.Waiting'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' enters state 'Chord.PSharpLibrary.Client.Querying'.
+<ActionLog> Machine 'Chord.PSharpLibrary.Client(7)' invoked action 'QueryingOnEntry' in state 'Chord.PSharpLibrary.Client.Querying'.
+<RandomLog> Machine 'Chord.PSharpLibrary.Client(7)' nondeterministically chose 'False'.
+<RandomLog> Machine 'Chord.PSharpLibrary.Client(7)' nondeterministically chose 'False'.
+<SendLog> Machine 'Chord.PSharpLibrary.Client(7)' sent event 'Chord.PSharpLibrary.ClusterManager+TerminateNode' to 'Chord.PSharpLibrary.ClusterManager(3)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' enqueued event 'Chord.PSharpLibrary.ClusterManager+TerminateNode'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.Client(7)' raised event 'Chord.PSharpLibrary.Client+Local'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' exits state 'Chord.PSharpLibrary.Client.Querying'.
+<StateLog> Machine 'Chord.PSharpLibrary.Client(7)' enters state 'Chord.PSharpLibrary.Client.Waiting'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' dequeued event 'Chord.PSharpLibrary.ClusterManager+TerminateNode'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' invoked action 'ProcessTerminateNode' in state 'Chord.PSharpLibrary.ClusterManager.Waiting'.
+<RandomLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' nondeterministically chose 'False'.
+<RandomLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' nondeterministically chose 'True'.
+<RandomLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' nondeterministically chose 'True'.
+<RandomLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' nondeterministically chose 'True'.
+<RandomLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' nondeterministically chose 'False'.
+<RandomLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' nondeterministically chose 'False'.
+<SendLog> Machine 'Chord.PSharpLibrary.ClusterManager(3)' sent event 'Chord.PSharpLibrary.ChordNode+Terminate' to 'Chord.PSharpLibrary.ChordNode(4)'.
+<EnqueueLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' enqueued event 'Chord.PSharpLibrary.ChordNode+Terminate'.
+<DequeueLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' dequeued event 'Chord.PSharpLibrary.ChordNode+Terminate'.
+<ActionLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' invoked action 'ProcessTerminate' in state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<RaiseLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' raised event 'Microsoft.PSharp.Halt'.
+<StateLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' exits state 'Chord.PSharpLibrary.ChordNode.Waiting'.
+<PopLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' popped with unhandled event 'Microsoft.PSharp.Halt'.
+<HaltLog> Machine 'Chord.PSharpLibrary.ChordNode(4)' halted.
+<StrategyLog> Testing statistics:
+<StrategyLog> Found 316 bugs.
+<StrategyLog> Scheduling statistics:
+<StrategyLog> Explored 5000 schedules: 5000 fair and 0 unfair.
+<StrategyLog> Found 6.32% buggy schedules.
+<StrategyLog> Number of scheduling points in fair terminating schedules: 21 (min), 212 (avg), 2579 (max).
+<StrategyLog> Exceeded the max-steps bound of '500' in 6.32% of the fair schedules.
+Number of cycles discarded: 0
+Total Stem length: 799634
+Total Cycle length: 0
+Min Stem length: 2516
+Max Stem length: 2579
+Min Cycle length: 0
+Max Cycle length: 0

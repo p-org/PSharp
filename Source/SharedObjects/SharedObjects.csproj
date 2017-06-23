@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <Import Project="..\..\Build\key.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp.SharedObjects</AssemblyName>
+    <Description>The P# shared objects library.</Description>
+    <AssemblyTitle>Microsoft.PSharp.SharedObjects</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TestingServices\TestingServices.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="1.2.2" />
+  </ItemGroup>
+</Project>

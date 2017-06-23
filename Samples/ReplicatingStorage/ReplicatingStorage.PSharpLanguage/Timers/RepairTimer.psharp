@@ -34,7 +34,7 @@ namespace ReplicatingStorage.PSharpLanguage
         {
             if (*)
             {
-                Console.WriteLine("\n [RepairTimer] " + this.Target + " | timed out\n");
+                this.Logger.WriteLine("\n [RepairTimer] " + this.Target + " | timed out\n");
                 send(this.Target, Timeout);
             }
 

@@ -31,7 +31,7 @@ namespace ReplicatingStorage.PSharpLanguage
 				var command = new Random().Next(100);
 				this.Counter++;
 
-				Console.WriteLine("\n [Client] new request {0}.\n", command);
+				this.Logger.WriteLine("\n [Client] new request {0}.\n", command);
 
 				send(this.NodeManager, Request, this.Id, command);
 

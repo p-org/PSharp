@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Build\common.props" />
+  <Import Project="..\..\Build\key.props" />
+  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp.Core.Tests.Performance</AssemblyName>
+    <Description>Performance tests for P#.</Description>
+    <AssemblyTitle>Microsoft.PSharp.Core.Tests.Performance</AssemblyTitle>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\Core\Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.3" />
+  </ItemGroup>
+</Project>

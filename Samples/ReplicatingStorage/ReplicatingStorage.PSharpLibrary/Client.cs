@@ -77,9 +77,9 @@ namespace ReplicatingStorage.PSharpLibrary
             int command = this.RandomInteger(100) + 1;
             this.Counter++;
 
-            Console.WriteLine("\n [Client] new request {0}.\n", command);
+            this.Logger.WriteLine("\n [Client] new request {0}.\n", command);
 
-            this.Send(this.NodeManager, new Request(this.Id, command), true);
+            this.Send(this.NodeManager, new Request(this.Id, command));
 
             if (this.Counter == 1)
             {

@@ -1,55 +1,53 @@
-﻿using System;
-
 namespace PingPong.PSharpLanguage
 {
-	/// <summary>
+    /// <summary>
     /// A P# machine that models a simple client.
     /// 
     /// It sends 'Ping' events to a server, and handles received 'Pong' event.
     /// </summary>
     internal machine Client
     {
-		/// <summary>
+        /// <summary>
         /// Event declaration of a 'Config' event that contains for payload a
-		/// reference to the server machine (send by the 'NetworkEnvironment'
-		/// machine upon creation of the client).
+        /// reference to the server machine (send by the 'NetworkEnvironment'
+        /// machine upon creation of the client).
         /// </summary>
-		internal event Config (server: machine);
+        internal event Config (server: machine);
 
-		/// <summary>
+        /// <summary>
         /// Event declaration of a 'Unit' event that does not contain any payload.
         /// </summary>
-		internal event Unit;
+        internal event Unit;
 
-		/// <summary>
+        /// <summary>
         /// Event declaration of a 'Ping' event that contains for payload a
-		/// reference to the client machine.
+        /// reference to the client machine.
         /// </summary>
-		internal event Ping (client: machine);
+        internal event Ping (client: machine);
 
-		/// <summary>
+        /// <summary>
         /// Reference to the server machine.
         /// </summary>
         machine Server;
 
-		/// <summary>
+        /// <summary>
         /// A counter for ping-pong turns.
         /// </summary>
         int Counter;
 
         start state Init
         {
-			entry
-			{
-				// Receives a reference to a server machine (as a payload of
-				// the 'Config' event).
-				this.Server = (trigger as Config).server;
-				this.Counter = 0;
+            entry
+            {
+                // Receives a reference to a server machine (as a payload of
+                // the 'Config' event).
+                this.Server = (trigger as Config).server;
+                this.Counter = 0;
 
-				// Notifies the P# runtime that the machine must transition
-				// to the 'Active' state when 'entry' returns.
-				jump(Active);
-			}
+                // Notifies the P# runtime that the machine must transition
+                // to the 'Active' state when 'entry' returns.
+                jump(Active);
+            }
         }
 
         state Active
@@ -59,11 +57,11 @@ namespace PingPong.PSharpLanguage
                 SendPing();
             }
 
-			/// <summary>
-			/// The 'on ... do ...' action declaration will execute (asynchrously)
-			/// the 'SendPing' method, whenever a 'Pong' event is dequeued while the
-			/// client machine is in the 'Active' state.
-			/// </summary>
+            /// <summary>
+            /// The 'on ... do ...' action declaration will execute (asynchrously)
+            /// the 'SendPing' method, whenever a 'Pong' event is dequeued while the
+            /// client machine is in the 'Active' state.
+            /// </summary>
             on Server.Pong do SendPing;
         }
 
@@ -71,15 +69,15 @@ namespace PingPong.PSharpLanguage
         {
             this.Counter++;
 
-			// Sends (asynchronously) a 'Ping' event to the server that contains
-			// a reference to this client as a payload.
-			send(this.Server, Ping, this);
+            // Sends (asynchronously) a 'Ping' event to the server that contains
+            // a reference to this client as a payload.
+            send(this.Server, Ping, this);
 
-			Console.WriteLine("Client request: {0} / 5", this.Counter);
+            this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
 
-			if (this.Counter == 5)
+            if (this.Counter == 5)
             {
-                // If 5 'Ping' events where sent, then raise the special event 'halt'.
+                // If 5 'Ping' events were sent, then raise the special event 'halt'.
                 //
                 // Raising an event, notifies the P# runtime to execute the event handler
                 // that corresponds to this event in the current state, when 'SendPing'

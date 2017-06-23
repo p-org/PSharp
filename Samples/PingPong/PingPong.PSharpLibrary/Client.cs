@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.PSharp;
+﻿using Microsoft.PSharp;
 
 namespace PingPong.PSharpLibrary
 {
@@ -96,7 +95,7 @@ namespace PingPong.PSharpLibrary
             // a reference to this client as a payload.
             this.Send(this.Server, new Ping(this.Id));
 
-            Console.WriteLine("Client request: {0} / 5", this.Counter);
+            this.Logger.WriteLine("Client request: {0} / 5", this.Counter);
 
             if (this.Counter == 5)
             {

@@ -50,8 +50,8 @@ namespace ReplicatingStorage.PSharpLibrary
         {
             if (this.Random())
             {
-                Console.WriteLine("\n [RepairTimer] " + this.Target + " | timed out\n");
-                this.Send(this.Target, new Timeout(), true);
+                this.Logger.WriteLine("\n [RepairTimer] " + this.Target + " | timed out\n");
+                this.Send(this.Target, new Timeout());
             }
 
             this.Send(this.Id, new TickEvent());

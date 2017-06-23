@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using Microsoft.PSharp;
 using Microsoft.PSharp.IO;
 
@@ -20,11 +19,6 @@ namespace PingPong.CustomLogging
     /// </summary>
     public class Program
     {
-        /// <summary>
-        /// Custom logger.
-        /// </summary>
-        static ILogger MyLogger = null;
-
         static void Main(string[] args)
         {
             // Optional: increases verbosity level to see the P# runtime log.
@@ -40,23 +34,14 @@ namespace PingPong.CustomLogging
             // Executes the P# program.
             Program.Execute(runtime);
 
-            // Disposes the logger.
+            // Disposes the logger and removes it from the runtime.
             myLogger.Dispose();
+            runtime.RemoveLogger();
 
             // The P# runtime executes asynchronously, so we wait
             // to not terminate the process.
             Console.WriteLine("Press Enter to terminate...");
             Console.ReadLine();
-        }
-
-        /// <summary>
-        /// Test initialization method (called before testing starts).
-        /// </summary>
-        [Microsoft.PSharp.TestInit]
-        public static void Initialize()
-        {
-            // Creates a custom logger.
-            Program.MyLogger = new MyLogger();
         }
 
         /// <summary>
@@ -67,20 +52,8 @@ namespace PingPong.CustomLogging
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            // Installs the custom logger.
-            runtime.SetLogger(Program.MyLogger);
-
             // Assigns a user-defined name to this network environment machine.
             runtime.CreateMachine(typeof(NetworkEnvironment), "TheUltimateNetworkEnvironmentMachine");
-        }
-
-        /// <summary>
-        /// Test cleanup (called when testing terminates).
-        /// </summary>
-        [Microsoft.PSharp.TestDispose]
-        public static void Dispose()
-        {
-            Program.MyLogger.Dispose();
         }
     }
 
@@ -105,7 +78,7 @@ namespace PingPong.CustomLogging
         /// <param name="args">Arguments</param>
         public void Write(string format, params object[] args)
         {
-            Console.Write(format, args);
+            Console.Write($"MyLogger: {format}", args);
         }
 
         /// <summary>
@@ -115,7 +88,7 @@ namespace PingPong.CustomLogging
         /// <param name="value">Text</param>
         public void WriteLine(string value)
         {
-            Console.WriteLine("MyLogger: {0}", value);
+            Console.WriteLine($"MyLogger: {value}");
         }
 
         /// <summary>
@@ -126,7 +99,7 @@ namespace PingPong.CustomLogging
         /// <param name="args">Arguments</param>
         public void WriteLine(string format, params object[] args)
         {
-            Console.WriteLine(format, args);
+            Console.WriteLine($"MyLogger: {format}", args);
         }
 
         /// <summary>

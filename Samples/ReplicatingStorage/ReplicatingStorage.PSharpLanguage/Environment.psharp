@@ -79,7 +79,7 @@ namespace ReplicatingStorage.PSharpLanguage
             {
                 if (*)
                 {
-                    Console.WriteLine("\n [Environment] injecting fault.\n");
+                    this.Logger.WriteLine("\n [Environment] injecting fault.\n");
 
                     send(node, FaultInject);
                     send(this.NodeManager, NotifyFailure, node);

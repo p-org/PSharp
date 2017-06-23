@@ -12,12 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class Liveness3Test
+    public class Liveness3Test : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -85,32 +86,20 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class CannotGetUserInput : MonitorState { }
         }
 
-        public static class TestProgram
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.RegisterMonitor(typeof(WatchDog));
-                runtime.CreateMachine(typeof(EventHandler));
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestLiveness3()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 3;
+            var configuration = base.GetConfiguration();
             configuration.CacheProgramState = true;
             configuration.SchedulingIterations = 100;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, TestProgram.Execute);
-            engine.Run();
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler));
+            });
 
-            var bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            Assert.IsTrue(engine.TestReport.BugReports.Count == 1);
-            Assert.IsTrue(engine.TestReport.BugReports.Contains(bugReport));
+            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
+            base.AssertFailed(configuration, test, bugReport);
         }
     }
 }

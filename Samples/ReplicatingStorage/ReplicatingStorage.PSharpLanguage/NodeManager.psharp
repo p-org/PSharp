@@ -84,7 +84,7 @@ namespace ReplicatingStorage.PSharpLanguage
                 return;
             }
 
-            Console.WriteLine("\n [NodeManager] consensus {0} - {1}.\n",
+            this.Logger.WriteLine("\n [NodeManager] consensus {0} - {1}.\n",
                 consensus.Count(), consensus.Key);
 
             var numOfReplicas = consensus.Count();
@@ -97,7 +97,7 @@ namespace ReplicatingStorage.PSharpLanguage
             {
                 if (node.Value != consensus.Key)
                 {
-                    Console.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
+                    this.Logger.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
                     send(this.StorageNodes[node.Key], SyncRequest, consensus.Key);
                     numOfReplicas++;
                 }
@@ -140,7 +140,7 @@ namespace ReplicatingStorage.PSharpLanguage
             this.StorageNodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
 
-            Console.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
+            this.Logger.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
 
             this.CreateNewNode();
         }

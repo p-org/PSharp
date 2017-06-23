@@ -12,14 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
+using System;
+
 using Microsoft.PSharp.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    [TestClass]
-    public class WarmStateTest
+    public class WarmStateTest : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -70,31 +71,18 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class CannotGetUserInput : MonitorState { }
         }
 
-        public static class TestProgram
-        {
-            [Test]
-            public static void Execute(PSharpRuntime runtime)
-            {
-                runtime.RegisterMonitor(typeof(WatchDog));
-                runtime.CreateMachine(typeof(EventHandler));
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestWarmState()
         {
-            var configuration = Configuration.Create();
-            configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            Debug.IsEnabled = true;
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WatchDog));
+                r.CreateMachine(typeof(EventHandler));
+            });
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(
-                configuration, TestProgram.Execute);
-            engine.Run();
-
-            Assert.AreEqual(0, engine.TestReport.NumOfFoundBugs);
+            base.AssertSucceeded(configuration, test);
         }
     }
 }

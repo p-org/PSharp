@@ -1,0 +1,221 @@
+. Testing D:\PSharp\Samples\Raft\Raft.PSharpLibrary\obj\Release\net46\Raft.PSharpLibrary.exe
+... Created '2' testing tasks.
+... Task 1 is using 'FairPCT' strategy (seed:1651).
+... Task 0 is using 'Random' strategy (seed:978).
+..... Iteration #1
+..... Iteration #1
+..... Iteration #2
+..... Iteration #3
+..... Iteration #4
+..... Iteration #5
+..... Iteration #6
+..... Iteration #7
+..... Iteration #8
+..... Iteration #9
+..... Iteration #10
+..... Iteration #2
+..... Iteration #3
+..... Iteration #4
+..... Iteration #5
+..... Iteration #6
+..... Iteration #7
+..... Iteration #8
+..... Iteration #8 triggered bug #1 [task-0]
+..... Iteration #9
+..... Iteration #10
+..... Iteration #20
+..... Iteration #30
+..... Iteration #40
+..... Iteration #50
+..... Iteration #60
+..... Iteration #70
+..... Iteration #20
+..... Iteration #80
+..... Iteration #90
+..... Iteration #100
+..... Iteration #30
+..... Iteration #38 triggered bug #2 [task-0]
+..... Iteration #40
+..... Iteration #200
+..... Iteration #50
+..... Iteration #60
+..... Iteration #70
+..... Iteration #80
+..... Iteration #82 triggered bug #3 [task-0]
+..... Iteration #300
+..... Iteration #90
+..... Iteration #400
+..... Iteration #100
+..... Iteration #103 triggered bug #4 [task-0]
+..... Iteration #137 triggered bug #5 [task-0]
+..... Iteration #500
+..... Iteration #165 triggered bug #6 [task-0]
+..... Iteration #600
+..... Iteration #700
+..... Iteration #200
+..... Iteration #242 triggered bug #7 [task-0]
+..... Iteration #800
+..... Iteration #265 triggered bug #8 [task-0]
+..... Iteration #281 triggered bug #9 [task-0]
+..... Iteration #298 triggered bug #10 [task-0]
+..... Iteration #300
+..... Iteration #900
+..... Iteration #327 triggered bug #11 [task-0]
+..... Iteration #389 triggered bug #12 [task-0]
+..... Iteration #400
+..... Iteration #1000
+..... Iteration #445 triggered bug #13 [task-0]
+..... Iteration #454 triggered bug #14 [task-0]
+..... Iteration #456 triggered bug #15 [task-0]
+..... Iteration #500
+..... Iteration #513 triggered bug #16 [task-0]
+..... Iteration #520 triggered bug #17 [task-0]
+..... Iteration #576 triggered bug #18 [task-0]
+..... Iteration #600
+..... Iteration #645 triggered bug #19 [task-0]
+Number of scheduled steps: 0
+..... Iteration #683 triggered bug #20 [task-0]
+..... Iteration #700
+..... Iteration #800
+..... Iteration #1875 triggered bug #1 [task-1]
+..... Iteration #2000
+..... Iteration #856 triggered bug #21 [task-0]
+..... Iteration #900
+..... Iteration #1000
+..... Iteration #1033 triggered bug #22 [task-0]
+..... Iteration #1118 triggered bug #23 [task-0]
+Number of scheduled steps: 0
+..... Iteration #1123 triggered bug #24 [task-0]
+..... Iteration #1211 triggered bug #25 [task-0]
+..... Iteration #3000
+..... Iteration #1265 triggered bug #26 [task-0]
+..... Iteration #1294 triggered bug #27 [task-0]
+..... Iteration #1319 triggered bug #28 [task-0]
+..... Iteration #1324 triggered bug #29 [task-0]
+..... Iteration #1369 triggered bug #30 [task-0]
+..... Iteration #3434 triggered bug #2 [task-1]
+..... Iteration #1561 triggered bug #31 [task-0]
+..... Iteration #1565 triggered bug #32 [task-0]
+..... Iteration #4000
+..... Iteration #1627 triggered bug #33 [task-0]
+..... Iteration #1660 triggered bug #34 [task-0]
+..... Iteration #1664 triggered bug #35 [task-0]
+..... Iteration #1732 triggered bug #36 [task-0]
+..... Iteration #1749 triggered bug #37 [task-0]
+..... Iteration #1796 triggered bug #38 [task-0]
+..... Iteration #4269 triggered bug #3 [task-1]
+..... Iteration #1872 triggered bug #39 [task-0]
+..... Iteration #1888 triggered bug #40 [task-0]
+..... Iteration #1899 triggered bug #41 [task-0]
+..... Iteration #1904 triggered bug #42 [task-0]
+..... Iteration #4436 triggered bug #4 [task-1]
+..... Iteration #1967 triggered bug #43 [task-0]
+..... Iteration #1982 triggered bug #44 [task-0]
+..... Iteration #2000
+..... Iteration #2029 triggered bug #45 [task-0]
+..... Iteration #2083 triggered bug #46 [task-0]
+..... Iteration #2084 triggered bug #47 [task-0]
+..... Iteration #2129 triggered bug #48 [task-0]
+..... Iteration #2198 triggered bug #49 [task-0]
+..... Iteration #2201 triggered bug #50 [task-0]
+..... Iteration #5000
+... Emitting task 1 traces:
+..... Writing D:\PSharp\Samples\Output\Test7_Command1\Raft.PSharpLibrary_1_0.txt
+..... Writing D:\PSharp\Samples\Output\Test7_Command1\Raft.PSharpLibrary_1_0.pstrace
+..... Writing D:\PSharp\Samples\Output\Test7_Command1\Raft.PSharpLibrary_1_0.schedule
+..... Iteration #2268 triggered bug #51 [task-0]
+..... Iteration #2358 triggered bug #52 [task-0]
+..... Iteration #2399 triggered bug #53 [task-0]
+..... Iteration #2521 triggered bug #54 [task-0]
+..... Iteration #2552 triggered bug #55 [task-0]
+..... Iteration #2643 triggered bug #56 [task-0]
+..... Iteration #2647 triggered bug #57 [task-0]
+..... Iteration #2658 triggered bug #58 [task-0]
+..... Iteration #2687 triggered bug #59 [task-0]
+..... Iteration #2801 triggered bug #60 [task-0]
+..... Iteration #2810 triggered bug #61 [task-0]
+..... Iteration #2817 triggered bug #62 [task-0]
+..... Iteration #2844 triggered bug #63 [task-0]
+..... Iteration #2872 triggered bug #64 [task-0]
+..... Iteration #2976 triggered bug #65 [task-0]
+Number of scheduled steps: 0
+..... Iteration #3000
+..... Iteration #3009 triggered bug #66 [task-0]
+..... Iteration #3016 triggered bug #67 [task-0]
+..... Iteration #3110 triggered bug #68 [task-0]
+..... Iteration #3124 triggered bug #69 [task-0]
+..... Iteration #3135 triggered bug #70 [task-0]
+..... Iteration #3188 triggered bug #71 [task-0]
+..... Iteration #3202 triggered bug #72 [task-0]
+..... Iteration #3217 triggered bug #73 [task-0]
+..... Iteration #3265 triggered bug #74 [task-0]
+..... Iteration #3293 triggered bug #75 [task-0]
+..... Iteration #3312 triggered bug #76 [task-0]
+..... Iteration #3314 triggered bug #77 [task-0]
+..... Iteration #3398 triggered bug #78 [task-0]
+..... Iteration #3431 triggered bug #79 [task-0]
+..... Iteration #3442 triggered bug #80 [task-0]
+..... Iteration #3443 triggered bug #81 [task-0]
+..... Iteration #3500 triggered bug #82 [task-0]
+..... Iteration #3506 triggered bug #83 [task-0]
+..... Iteration #3531 triggered bug #84 [task-0]
+..... Iteration #3570 triggered bug #85 [task-0]
+..... Iteration #3649 triggered bug #86 [task-0]
+..... Iteration #3651 triggered bug #87 [task-0]
+..... Iteration #3655 triggered bug #88 [task-0]
+..... Iteration #3748 triggered bug #89 [task-0]
+..... Iteration #3750 triggered bug #90 [task-0]
+..... Iteration #3801 triggered bug #91 [task-0]
+..... Iteration #3834 triggered bug #92 [task-0]
+..... Iteration #3845 triggered bug #93 [task-0]
+..... Iteration #3850 triggered bug #94 [task-0]
+..... Iteration #3871 triggered bug #95 [task-0]
+..... Iteration #3879 triggered bug #96 [task-0]
+..... Iteration #3880 triggered bug #97 [task-0]
+..... Iteration #3922 triggered bug #98 [task-0]
+..... Iteration #3948 triggered bug #99 [task-0]
+..... Iteration #3999 triggered bug #100 [task-0]
+..... Iteration #4000
+..... Iteration #4020 triggered bug #101 [task-0]
+..... Iteration #4041 triggered bug #102 [task-0]
+..... Iteration #4055 triggered bug #103 [task-0]
+..... Iteration #4191 triggered bug #104 [task-0]
+..... Iteration #4210 triggered bug #105 [task-0]
+Number of scheduled steps: 592
+..... Iteration #4268 triggered bug #106 [task-0]
+..... Iteration #4294 triggered bug #107 [task-0]
+..... Iteration #4307 triggered bug #108 [task-0]
+..... Iteration #4347 triggered bug #109 [task-0]
+..... Iteration #4351 triggered bug #110 [task-0]
+..... Iteration #4367 triggered bug #111 [task-0]
+..... Iteration #4458 triggered bug #112 [task-0]
+..... Iteration #4540 triggered bug #113 [task-0]
+..... Iteration #4608 triggered bug #114 [task-0]
+..... Iteration #4762 triggered bug #115 [task-0]
+..... Iteration #4793 triggered bug #116 [task-0]
+..... Iteration #4817 triggered bug #117 [task-0]
+..... Iteration #4917 triggered bug #118 [task-0]
+..... Iteration #4967 triggered bug #119 [task-0]
+..... Iteration #4985 triggered bug #120 [task-0]
+..... Iteration #4991 triggered bug #121 [task-0]
+..... Iteration #5000
+... Emitting task 0 traces:
+..... Writing D:\PSharp\Samples\Output\Test7_Command1\Raft.PSharpLibrary_0_0.txt
+..... Writing D:\PSharp\Samples\Output\Test7_Command1\Raft.PSharpLibrary_0_0.pstrace
+..... Writing D:\PSharp\Samples\Output\Test7_Command1\Raft.PSharpLibrary_0_0.schedule
+... Testing statistics:
+..... Found 125 bugs.
+... Scheduling statistics:
+..... Explored 10000 schedules: 10000 fair and 0 unfair.
+..... Found 1.25% buggy schedules.
+..... Number of scheduling points in fair terminating schedules: 71 (min), 318 (avg), 1996 (max).
+..... Exceeded the max-steps bound of '500' in 23.52% of the fair schedules.
+Number of cycles discarded: 0
+Total Stem length: 42164
+Total Cycle length: 0
+Min Stem length: 139
+Max Stem length: 1025
+Min Cycle length: 0
+Max Cycle length: 0
+... Elapsed 248.5698921 sec.
+. Done
