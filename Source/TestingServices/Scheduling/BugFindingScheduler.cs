@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using System;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -129,6 +130,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps &&
+                this.Runtime.ScheduleTrace.Count > 0)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
             SchedulableInfo current = this.ScheduledMachine;
             ISchedulable next = null;
 
@@ -147,12 +155,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Id);
             this.ScheduledMachine.ProgramCounter = 0;
-
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
             
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
@@ -204,6 +206,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps &&
+                this.Runtime.ScheduleTrace.Count > 0)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
             var choice = false;
             if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
             {
@@ -229,12 +238,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
             
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
-            
+
+            //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
             
@@ -254,6 +259,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps &&
+                this.Runtime.ScheduleTrace.Count > 0)
+            {
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            }
+
             var choice = 0;
             if (!this.Strategy.GetNextIntegerChoice(maxValue, out choice))
             {
@@ -262,13 +275,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
-            
-            if (this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-            }
-            
+
+            //this.Runtime.GetProgramStatePrint();
             // Checks the liveness monitors for potential liveness bugs.
             this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
 
@@ -412,17 +420,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="killTasks">Kill tasks</param>
         internal void NotifyAssertionFailure(string text, bool killTasks = true)
         {
+            System.Console.WriteLine("Number of scheduled steps: " + this.Strategy.GetExploredSteps());
             if (!this.BugFound)
             {
                 this.BugReport = text;
 
-                this.Runtime.Log($"<ErrorLog> {text}");
-                this.Runtime.Log("<StrategyLog> Found bug using " +
+                this.Runtime.Logger.WriteLine($"<ErrorLog> {text}");
+                this.Runtime.Logger.WriteLine("<StrategyLog> Found bug using " +
                     $"'{this.Runtime.Configuration.SchedulingStrategy}' strategy.");
 
                 if (this.Strategy.GetDescription().Length > 0)
                 {
-                    this.Runtime.Log($"<StrategyLog> {this.Strategy.GetDescription()}");
+                    this.Runtime.Logger.WriteLine($"<StrategyLog> {this.Strategy.GetDescription()}");
                 }
 
                 this.BugFound = true;
@@ -468,10 +477,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal TestReport GetReport()
         {
             TestReport report = new TestReport(this.Runtime.Configuration);
-
+            report.NumberOfDiscardedCycles += this.Runtime.LivenessChecker.DiscardedCycles;
+            
             if (this.BugFound)
             {
                 report.NumOfFoundBugs++;
+                report.LassoLength += this.Runtime.LivenessChecker.GetLassoLength();
+                report.BugTraceLength += this.Strategy.GetExploredSteps() - report.LassoLength;
+                report.MinBugTraceLength = Math.Min(report.MinBugTraceLength, report.BugTraceLength);
+                report.MaxBugTraceLength = Math.Max(report.MaxBugTraceLength, report.BugTraceLength);
+
+                report.MinLassoLength = Math.Min(report.MinLassoLength, report.LassoLength);
+                report.MaxLassoLength = Math.Max(report.MaxLassoLength, report.LassoLength);
                 report.BugReports.Add(this.BugReport);
             }
 

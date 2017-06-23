@@ -25,6 +25,7 @@ using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using System.Linq;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -1128,7 +1129,34 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Scheduler.Schedule();
         }
+        
+        /// <summary>
+        /// Returns the fingerprint of the current program state.
+        /// </summary>
+        /// <returns>Fingerprint</returns>
+        internal Fingerprint GetProgramState()
+        {
+            Fingerprint fingerprint = null;
 
+            unchecked
+            {
+                int hash = 19;
+
+                foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
+                {
+                    hash = hash * 31 + machine.GetCachedState();
+                }
+
+                foreach (var monitor in this.Monitors)
+                {
+                    hash = hash * 31 + monitor.GetCachedState();
+                }
+
+                fingerprint = new Fingerprint(hash);
+            }
+
+            return fingerprint;
+        }
         #endregion
 
         #region code coverage
@@ -1338,34 +1366,6 @@ namespace Microsoft.PSharp.TestingServices
         internal MachineId GetCurrentMachineId()
         {
             return this.GetCurrentMachine()?.Id;
-        }
-
-        /// <summary>
-        /// Returns the fingerprint of the current program state.
-        /// </summary>
-        /// <returns>Fingerprint</returns>
-        internal Fingerprint GetProgramState()
-        {
-            Fingerprint fingerprint = null;
-
-            unchecked
-            {
-                int hash = 19;
-
-                foreach (var machine in this.MachineMap.Values)
-                {
-                    hash = hash + 31 * machine.GetCachedState();
-                }
-
-                foreach (var monitor in this.Monitors)
-                {
-                    hash = hash + 31 * monitor.GetCachedState();
-                }
-
-                fingerprint = new Fingerprint(hash);
-            }
-
-            return fingerprint;
         }
 
         #endregion

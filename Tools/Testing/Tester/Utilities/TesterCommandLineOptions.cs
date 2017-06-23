@@ -65,6 +65,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
+                else if (scheduler.ToLower().Equals("roundrobin"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RoundRobin;
+                }
                 else if (scheduler.StartsWith("probabilistic"))
                 {
                     int i = 0;
@@ -306,6 +310,10 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/cycle-replay"))
             {
                 base.Configuration.EnableCycleReplayingStrategy = true;
+            }
+            else if (option.ToLower().Equals("/user-hash"))
+            {
+                base.Configuration.UserHash = true;
             }
             else if (option.ToLower().Equals("/dynamic-event-reordering"))
             {

@@ -11,7 +11,105 @@
     <OutputPath>.\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+<<<<<<< HEAD
+    <Reference Include="System" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <Compile Include="Concurrency\ExternalConcurrencyTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\AlonBugTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\AlonBugFailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\GroupStateFailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\MaxInstances1FailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\PopFailTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\GotoStateTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\CurrentStateTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\PushStateTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\ReceiveEventTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\WildCardEventTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\GotoStateExitFailTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\GotoStateFailTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\GotoStateMultipleInActionFailTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\ReceiveEventFailTest.cs" />
+    <Compile Include="Generics\Correct\GenericMachineTest.cs" />
+    <Compile Include="Generics\Correct\GenericMonitorTest.cs" />
+    <Compile Include="Integration\Correct\ExternalCalls\ReceivingExternalEventTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\TestIgnoreRaised.cs" />
+    <Compile Include="Integration\Correct\OneMachine\SEMOneMachine42Test.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\RaftTest.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine38Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine37Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine36Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine32Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine25Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine20Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine17Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine16Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine15Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine14Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine13Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine12Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine11Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine10Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine9Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine8Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine6Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine5Test.cs" />
+    <Compile Include="Integration\Correct\TwoMachines\SEMTwoMachines15Test.cs" />
+    <Compile Include="Integration\Correct\TwoMachines\SEMTwoMachines14Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines13Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines10Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines6Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines4Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines2Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine3Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine1Test.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\BangaloreToRedmondTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions6FailTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions5FailTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionArtificial.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionDefaultHandlerTest.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionCounterTest.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionRingOfNodesTest.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionRandomChoiceTest.cs" />
+    <Compile Include="Liveness\CycleDetection\CycleDetectionBasicTest.cs" />
+    <Compile Include="Liveness\UnfairExecutionTest.cs" />
+    <Compile Include="Liveness\Liveness1Test.cs" />
+    <Compile Include="Liveness\StateCaching\FairNondet1Test.cs" />
+    <Compile Include="Liveness\WarmStateTest.cs" />
+    <Compile Include="Liveness\Liveness2BugFoundTest.cs" />
+    <Compile Include="Liveness\StateCaching\Liveness3Test.cs" />
+    <Compile Include="Liveness\Liveness2LoopMachineTest.cs" />
+    <Compile Include="Liveness\StateCaching\Nondet1Test.cs" />
+    <Compile Include="Liveness\StateCaching\WarmStateBugTest.cs" />
+    <Compile Include="Liveness\StateCaching\Liveness2Test.cs" />
+    <Compile Include="Liveness\HotStateTest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PSharp.snk" />
+=======
     <ProjectReference Include="..\..\Source\TestingServices\TestingServices.csproj" />
+>>>>>>> master
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.2.0" />

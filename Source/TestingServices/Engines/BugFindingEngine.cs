@@ -213,7 +213,8 @@ namespace Microsoft.PSharp.TestingServices
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC ||
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.RoundRobin)
             {
                 options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
             }
@@ -246,7 +247,6 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             break;
                         }
-
                         if (!base.Strategy.PrepareForNextIteration())
                         {
                             break;

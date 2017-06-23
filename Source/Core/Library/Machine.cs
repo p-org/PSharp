@@ -1248,16 +1248,17 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * base.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
-                hash = hash + 31 * this.IsHalted.GetHashCode();
+                hash = hash * 31 + this.GetType().GetHashCode();
+                hash = hash * 31 + base.Id.Value.GetHashCode();
+                hash = hash * 31 + this.IsRunning.GetHashCode();
+                hash = hash * 31 + this.IsHalted.GetHashCode();
+                hash = hash * 31 + this.Info.ProgramCounter;
 
-                hash = hash + 31 * this.Info.ProgramCounter;
-                
-                // Adds the user-defined hashed state.
-                hash = hash + 31 * this.HashedState;
-
+                //Adds the user - defined hashed state.
+                if (this.Runtime.Configuration.UserHash)
+                {
+                    hash = hash * 31 + this.HashedState;
+                }
                 foreach (var state in this.StateStack)
                 {
                     hash = hash * 31 + state.GetType().GetHashCode();
@@ -1266,9 +1267,26 @@ namespace Microsoft.PSharp
                 foreach (var e in this.Inbox)
                 {
                     hash = hash * 31 + e.EventType.GetHashCode();
+                    if (this.Runtime.Configuration.UserHash)
+                    {
+                        hash = hash * 31 + e.Event.HashedState;
+                    }
                 }
 
                 return hash;
+            }
+        }
+
+        internal void GetCachedStatePrint()
+        {
+            foreach (var state in this.StateStack)
+            {
+                Console.WriteLine(state.GetType());
+            }
+
+            foreach (var e in this.Inbox)
+            {
+                Console.WriteLine(e.EventType);
             }
         }
 

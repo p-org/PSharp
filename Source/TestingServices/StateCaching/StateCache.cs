@@ -35,13 +35,14 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Map from schedule steps to states.
         /// </summary>
-        private Dictionary<ScheduleStep, State> StateMap;
+        internal Dictionary<ScheduleStep, State> StateMap;
 
         /// <summary>
         /// Set of fingerprints.
         /// </summary>
         private HashSet<Fingerprint> Fingerprints;
 
+        private Dictionary<Fingerprint, List<int>> fpIndexMap;
         #endregion
 
         #region internal API
@@ -55,6 +56,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             this.Runtime = runtime;
             this.StateMap = new Dictionary<ScheduleStep, State>();
             this.Fingerprints = new HashSet<Fingerprint>();
+            fpIndexMap = new Dictionary<Fingerprint, List<int>>();
         }
 
         /// <summary>
@@ -104,17 +106,25 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
                     "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
             }
-            
-            //var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
-            var stateExists = this.Fingerprints.Any(val => val.Equals(fingerprint));
 
+            ////var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
+            var stateExists = this.Fingerprints.Contains(fingerprint);
             this.StateMap.Add(scheduleStep, state);
             this.Fingerprints.Add(fingerprint);
+            if (!fpIndexMap.ContainsKey(fingerprint))
+            {
+                var hs = new List<int>() { scheduleStep.Index };
+                fpIndexMap.Add(fingerprint, hs);
+            }
+            else
+            {
+                fpIndexMap[fingerprint].Add(scheduleStep.Index);
+            }
 
             if (stateExists)
             {
                 Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
-                this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint);
+                this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, fpIndexMap[fingerprint]);
             }
         }
 

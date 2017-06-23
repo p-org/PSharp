@@ -83,6 +83,11 @@ namespace Microsoft.PSharp.Utilities
         /// potential liveness violations.
         /// </summary>
         [EnumMember(Value = "MaceMC")]
-        MaceMC
+        MaceMC,
+        /// <summary>
+        /// Round Robin scheduling.
+        /// </summary>
+        [EnumMember(Value = "RoundRobin")]
+        RoundRobin
     }
 }

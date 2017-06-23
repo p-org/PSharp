@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
-
+            
             return scheduleStep;
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
-
+            
             return scheduleStep;
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
-
+            
             return scheduleStep;
         }
 
@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             scheduleStep.Previous = null;
             scheduleStep.Next = null;
-
+            
             return scheduleStep;
         }
 

@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Text;
 
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -113,6 +114,21 @@ namespace Microsoft.PSharp.TestingServices
             if (configuration.ReportCodeCoverage)
             {
                 arguments.Append($"/coverage-report ");
+            }
+
+            if (configuration.EnableCycleReplayingStrategy)
+            {
+                arguments.Append($"/cycle-replay ");
+            }
+
+            if (configuration.UserHash)
+            {
+                arguments.Append($"/user-hash ");
+            }
+
+            if (!string.IsNullOrEmpty(configuration.OutputFilePath))
+            {
+                arguments.Append($"/o:{configuration.OutputFilePath} ");
             }
 
             arguments.Append($"/run-as-parallel-testing-task ");

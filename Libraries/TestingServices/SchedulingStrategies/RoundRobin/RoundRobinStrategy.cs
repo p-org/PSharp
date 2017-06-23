@@ -1,29 +1,18 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
-
+﻿using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Scheduling;
+using Microsoft.PSharp.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Microsoft.PSharp.Utilities;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// Class representing a random-walk scheduling strategy.
+    /// Class representing round robin scheduling strategy.
     /// </summary>
-    public sealed class RandomStrategy : ISchedulingStrategy
+    public class RoundRobinStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -31,6 +20,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// The configuration.
         /// </summary>
         private Configuration Configuration;
+
+        /// <summary>
+        /// The maximum number of explored steps.
+        /// </summary>
+        private int MaxExploredSteps;
+
+        /// <summary>
+        /// The number of explored steps.
+        /// </summary>
+        private int ExploredSteps;
 
         /// <summary>
         /// Nondeterminitic seed.
@@ -43,10 +42,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private IRandomNumberGenerator Random;
 
         /// <summary>
-        /// The number of explored steps.
+        /// The round robin index.
         /// </summary>
-        private int ExploredSteps;
-        
+        private int RoundRobinIdx;
+
+        /// <summary>
+        /// Set of priority change points.
+        /// </summary>
+        private SortedSet<int> DelayPoints;
+
+        private List<MachineId> DelayQ;
+
         #endregion
 
         #region public API
@@ -55,33 +61,45 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        public RandomStrategy(Configuration configuration)
+        public RoundRobinStrategy(Configuration configuration)
         {
             this.Configuration = configuration;
+            this.MaxExploredSteps = 0;
+            this.ExploredSteps = 0;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.ExploredSteps = 0;
+            this.RoundRobinIdx = -1;
+            this.DelayPoints = new SortedSet<int>();
+            this.DelayQ = new List<MachineId>();
         }
 
         /// <summary>
-        /// Returns the next choice to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
-            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-            if (enabledChoices.Count == 0)
+            var availableMachines = choices.Where(
+                mi => mi.IsEnabled && !mi.IsWaitingToReceive).ToList();
+            if (availableMachines.Count == 0)
             {
-                next = null;
-                return false;
+                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
+                if (availableMachines.Count == 0)
+                {
+                    next = null;
+                    return false;
+                }
             }
 
-            int idx = this.Random.Next(enabledChoices.Count);
-            next = enabledChoices[idx];
-
+            if(!DelayPoints.Contains(this.ExploredSteps))
+                RoundRobinIdx = (RoundRobinIdx + 1) % availableMachines.Count;
+            else
+                RoundRobinIdx = (RoundRobinIdx + 2) % availableMachines.Count;
+            next = availableMachines[RoundRobinIdx];
+            
             this.ExploredSteps++;
 
             return true;
@@ -127,10 +145,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             return this.ExploredSteps;
         }
-        
+
         /// <summary>
-        /// True if the scheduling strategy has reached the depth
-        /// bound for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
@@ -147,6 +165,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Returns true if the scheduling has finished.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public bool HasFinished()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -156,18 +183,25 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Prepares the next scheduling iteration.
+        /// Configures the next scheduling iteration.
         /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
-        public bool PrepareForNextIteration()
+        public void ConfigureNextIteration()
         {
+            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
-            if (this.Configuration.IncrementalSchedulingSeed)
+
+            this.DelayPoints.Clear();
+
+            var range = new List<int>();
+            for (int idx = 0; idx < this.MaxExploredSteps; idx++)
             {
-                this.Random.IncrementSeed();
+                range.Add(idx);
             }
 
-            return true;
+            foreach (int point in this.Shuffle(range).Take(10))
+            {
+                this.DelayPoints.Add(point);
+            }
         }
 
         /// <summary>
@@ -175,8 +209,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
+            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
+            this.DelayPoints.Clear();
         }
 
         /// <summary>
@@ -185,9 +221,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random seed '" + this.Seed + "'.";
+            return "";
         }
 
         #endregion
+
+        /// <summary>
+        /// Shuffles the specified list using the
+        /// Fisher-Yates algorithm.
+        /// </summary>
+        /// <param name="list">IList</param>
+        /// <returns>IList</returns>
+        private IList<int> Shuffle(IList<int> list)
+        {
+            var result = new List<int>(list);
+            for (int idx = result.Count - 1; idx >= 1; idx--)
+            {
+                int point = this.Random.Next(this.MaxExploredSteps);
+                int temp = result[idx];
+                result[idx] = result[point];
+                result[point] = temp;
+            }
+
+            return result;
+        }
     }
 }

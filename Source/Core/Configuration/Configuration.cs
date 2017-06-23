@@ -54,6 +54,11 @@ namespace Microsoft.PSharp
         [DataMember]
         public int Timeout;
 
+        /// <summary>
+        /// Additional caching for liveness check.
+        /// </summary>
+        [DataMember]
+        public bool UserHash;
         #endregion
 
         #region language service options
@@ -471,6 +476,7 @@ namespace Microsoft.PSharp
             this.LivenessTemperatureThreshold = 0;
             this.CacheProgramState = false;
             this.EnableCycleReplayingStrategy = false;
+            this.UserHash = false;
             this.DynamicEventQueuePrioritization = false;
 
             this.EnableMonitorsInProduction = false;

@@ -120,18 +120,15 @@ namespace Microsoft.PSharp.TestingServices
                 this.SendTestReport();
             }
 
-            if (!this.Configuration.PerformFullExploration)
-            {
-                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0 &&
+            if (this.TestingEngine.TestReport.NumOfFoundBugs == 1 &&
                     !this.Configuration.RunAsParallelBugFindingTask)
-                {
-                    Output.WriteLine($"... Task {this.Configuration.TestingProcessId} found a bug.");
-                }
-
-                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
-                {
-                    this.EmitTraces();
-                }
+            {
+                Output.WriteLine($"... Task {this.Configuration.TestingProcessId} found a bug.");
+            }
+            
+            if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
+            {
+                this.EmitTraces();
             }
 
             // Closes the remote notification listener.

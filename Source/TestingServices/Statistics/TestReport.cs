@@ -17,6 +17,8 @@ using System.Runtime.Serialization;
 using System.Text;
 
 using Microsoft.PSharp.TestingServices.Coverage;
+using System;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -57,6 +59,12 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         [DataMember]
         public int NumOfFoundBugs { get; internal set; }
+
+        /// <summary>
+        /// Number of discarded cycles during liveness check.
+        /// </summary>
+        [DataMember]
+        public int NumberOfDiscardedCycles;
 
         /// <summary>
         /// List of unique bug reports.
@@ -107,6 +115,42 @@ namespace Microsoft.PSharp.TestingServices
         public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
         /// <summary>
+        /// Trace length.
+        /// </summary>
+        [DataMember]
+        public int BugTraceLength;
+
+        /// <summary>
+        /// Min Trace length.
+        /// </summary>
+        [DataMember]
+        public int MinBugTraceLength;
+
+        /// <summary>
+        /// Min Lasso length.
+        /// </summary>
+        [DataMember]
+        public int MinLassoLength;
+
+        /// <summary>
+        /// Max Trace length.
+        /// </summary>
+        [DataMember]
+        public int MaxBugTraceLength;
+
+        /// <summary>
+        /// Max Lasso length.
+        /// </summary>
+        [DataMember]
+        public int MaxLassoLength;
+
+        /// <summary>
+        /// Lasso length.
+        /// </summary>
+        [DataMember]
+        public int LassoLength;
+
+        /// <summary>
         /// Lock for the test report.
         /// </summary>
         private object Lock;
@@ -128,6 +172,13 @@ namespace Microsoft.PSharp.TestingServices
             this.NumOfExploredFairSchedules = 0;
             this.NumOfExploredUnfairSchedules = 0;
             this.NumOfFoundBugs = 0;
+            this.NumberOfDiscardedCycles = 0;
+            this.BugTraceLength = 0;
+            this.MinBugTraceLength = 9999;
+            this.MinLassoLength = 9999;
+            this.MaxBugTraceLength = 0;
+            this.MaxLassoLength = 0;
+            this.LassoLength = 0;
             this.BugReports = new HashSet<string>();
 
             this.MinExploredFairSteps = -1;
@@ -163,6 +214,13 @@ namespace Microsoft.PSharp.TestingServices
                 this.CoverageInfo.Merge(testReport.CoverageInfo);
 
                 this.NumOfFoundBugs += testReport.NumOfFoundBugs;
+                this.NumberOfDiscardedCycles += testReport.NumberOfDiscardedCycles;
+                this.BugTraceLength += testReport.BugTraceLength;
+                this.MinBugTraceLength = Math.Min(this.MinBugTraceLength, testReport.MinBugTraceLength);
+                this.MaxBugTraceLength = Math.Max(this.MaxBugTraceLength, testReport.MaxBugTraceLength);
+                this.LassoLength += testReport.LassoLength;
+                this.MinLassoLength = Math.Min(this.MinLassoLength, testReport.MinLassoLength);
+                this.MaxLassoLength = Math.Max(this.MaxLassoLength, testReport.MaxLassoLength);
 
                 this.BugReports.UnionWith(testReport.BugReports);
 
@@ -187,7 +245,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
             }
-
             return true;
         }
 
@@ -283,7 +340,28 @@ namespace Microsoft.PSharp.TestingServices
                         (double)this.NumOfExploredUnfairSchedules) * 100);
                 }
             }
+            report.AppendLine();
+            report.AppendFormat("Number of cycles discarded: {0}",
+                this.NumberOfDiscardedCycles);
+            report.AppendLine();
+            report.AppendFormat("Total Stem length: {0}",
+                this.BugTraceLength);
+            report.AppendLine();
+            report.AppendFormat("Total Cycle length: {0}",
+                this.LassoLength);
 
+            report.AppendLine();
+            report.AppendFormat("Min Stem length: {0}",
+                this.MinBugTraceLength);
+            report.AppendLine();
+            report.AppendFormat("Max Stem length: {0}",
+                this.MaxBugTraceLength);
+            report.AppendLine();
+            report.AppendFormat("Min Cycle length: {0}",
+                this.MinLassoLength);
+            report.AppendLine();
+            report.AppendFormat("Max Cycle length: {0}",
+                this.MaxLassoLength);
             return report.ToString();
         }
 

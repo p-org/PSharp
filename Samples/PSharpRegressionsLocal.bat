@@ -1,5 +1,5 @@
 @echo off
-if not exist ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe (
+if not exist ..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe (
 	echo ERROR: Can't find PSharpBatchTester.exe
 	exit
 )
@@ -7,7 +7,7 @@ if not exist .\PSharpBatch.config (
 	echo ERROR: Can't find .\PSharpBatch.config
 	exit
 )
-..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
+..\..\PSharpBatchTesting\PSharpBatchTester\bin\Debug\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
 
 
 echo Test					Buggy schedules		Time taken	> .\RegressionResults.txt
@@ -38,4 +38,3 @@ for /D %%s in (.\*) do (
 	cd .\Output
 )
 
-::for /f "tokens=3" %%i in ("!mystr3_%%s!") do set Name_%%s=%%i
