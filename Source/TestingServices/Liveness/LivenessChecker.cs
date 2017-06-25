@@ -182,31 +182,6 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Checks for any liveness property violations. Requires
-        /// the P# program to have naturally terminated.
-        /// </summary>
-        internal void CheckLivenessAtTermination()
-        {
-            // Checks if the program has naturally terminated.
-            if (!this.Runtime.Scheduler.HasFullyExploredSchedule)
-            {
-                return;
-            }
-
-            foreach (var monitor in this.Monitors)
-            {
-                var stateName = "";
-                if (monitor.IsInHotState(out stateName))
-                {
-                    string message = IO.Utilities.Format("Monitor '{0}' detected liveness bug " +
-                        "in hot state '{1}' at the end of program execution.",
-                        monitor.GetType().Name, stateName);
-                    this.Runtime.Scheduler.NotifyAssertionFailure(message, false);
-                }
-            }
-        }
-
-        /// <summary>
         /// Checks liveness at a schedule trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>

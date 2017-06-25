@@ -225,12 +225,11 @@ namespace Microsoft.PSharp.TestingServices
                         base.TestDisposeMethod.Invoke(null, new object[] { });
                     }
 
-                    // Checks for any liveness property violations. Requires
-                    // that the program has terminated and no safety property
-                    // violations have been found.
+                    // Checks that no monitor is in a hot state at termination. Only
+                    // checked if no safety property violations have been found.
                     if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                     {
-                        runtime.LivenessChecker.CheckLivenessAtTermination();
+                        runtime.AssertNoMonitorInHotStateAtTermination();
                     }
 
                     TestReport report = runtime.Scheduler.GetReport();

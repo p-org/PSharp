@@ -812,6 +812,31 @@ namespace Microsoft.PSharp.TestingServices
                 "after calling raise/goto/pop in the same action.", machine.Id.Name, calledAPI);
         }
 
+        /// <summary>
+        /// Checks that no monitor is in a hot state upon program termination.
+        /// If the program is still running, then this method returns without
+        /// performing a check.
+        /// </summary>
+        internal void AssertNoMonitorInHotStateAtTermination()
+        {
+            if (!this.Scheduler.HasFullyExploredSchedule)
+            {
+                return;
+            }
+
+            foreach (var monitor in this.Monitors)
+            {
+                string stateName = "";
+                if (monitor.IsInHotState(out stateName))
+                {
+                    string message = IO.Utilities.Format("Monitor '{0}' detected liveness bug " +
+                        "in hot state '{1}' at the end of program execution.",
+                        monitor.GetType().Name, stateName);
+                    this.Scheduler.NotifyAssertionFailure(message, false);
+                }
+            }
+        }
+
         #endregion
 
         #region nondeterministic choices

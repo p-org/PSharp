@@ -355,12 +355,11 @@ namespace Microsoft.PSharp.TestingServices
                     runtime.Scheduler.NotifyAssertionFailure(message, false);
                 }
 
-                // Checks for any liveness property violations. Requires
-                // that the program has terminated and no safety property
-                // violations have been found.
+                // Checks that no monitor is in a hot state at termination. Only
+                // checked if no safety property violations have been found.
                 if (!runtime.Scheduler.BugFound)
                 {
-                    runtime.LivenessChecker.CheckLivenessAtTermination();
+                    runtime.AssertNoMonitorInHotStateAtTermination();
                 }
 
                 this.GatherIterationStatistics(runtime);
