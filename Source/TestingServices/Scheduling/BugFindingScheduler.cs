@@ -106,10 +106,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #region scheduling methods
 
         /// <summary>
-        /// Schedules the next machine to execute.
+        /// Schedules the next <see cref="ISchedulable"/> operation to execute.
         /// </summary>
-        internal void Schedule()
+        /// <param name="operationType">OperationType</param>
+        internal void Schedule(OperationType operationType)
         {
+            // If the operation type is receive, then return.
+            if (operationType == OperationType.Receive)
+            {
+                return;
+            }
+
             int? taskId = Task.CurrentId;
 
             // If the caller is the root task, then return.
@@ -130,9 +137,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.CheckIfSchedulingStepsBoundIsReached();
 
             SchedulableInfo current = this.ScheduledMachine;
-            ISchedulable next = null;
+            current.NextOperationType = operationType;
 
+            // Get and order the schedulable choices by their id.
             var choices = this.Infos.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
+
+            ISchedulable next = null;
             if (!this.Strategy.TryGetNext(out next, choices, current))
             {
                 // Checks if the program has livelocked.
@@ -387,22 +397,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     throw new ExecutionCanceledException();
                 }
             }
-        }
-
-        /// <summary>
-        /// Notify that the event handler has completed.
-        /// </summary>
-        /// <param name="info">SchedulableInfo</param>
-        internal void NotifyEventHandlerCompleted(SchedulableInfo info)
-        {
-            Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{info.Name}' with task id '{info.TaskId}'.");
-
-            info.IsEnabled = false;
-            info.IsCompleted = true;
-
-            this.Schedule();
-
-            Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{info.Name}' with task id '{info.TaskId}'.");
         }
 
         /// <summary>

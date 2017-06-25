@@ -786,6 +786,7 @@ namespace Microsoft.PSharp
         internal override void NotifyWaitEvents(Machine machine)
         {
             base.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting to receive an event.");
+            machine.Info.IsWaitingToReceive = true;
         }
 
         /// <summary>
@@ -801,7 +802,7 @@ namespace Microsoft.PSharp
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);
-                machine.IsWaitingToReceive = false;
+                machine.Info.IsWaitingToReceive = false;
             }
         }
 

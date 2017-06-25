@@ -126,11 +126,6 @@ namespace Microsoft.PSharp
         private bool IsHalted;
 
         /// <summary>
-        /// Is the machine waiting to receive an event.
-        /// </summary>
-        internal bool IsWaitingToReceive;
-
-        /// <summary>
         /// Is the machine executing under a synchronous call. This includes
         /// the methods CreateMachineAndExecute and SendEventAndExecute.
         /// </summary>
@@ -234,7 +229,6 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsHalted = false;
-            this.IsWaitingToReceive = false;
             this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
         }

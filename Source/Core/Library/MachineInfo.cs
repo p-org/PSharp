@@ -28,6 +28,11 @@ namespace Microsoft.PSharp
         protected MachineId MachineId;
 
         /// <summary>
+        /// Is the machine waiting to receive an event.
+        /// </summary>
+        internal bool IsWaitingToReceive;
+
+        /// <summary>
         /// Checks if the machine is executing an OnExit method.
         /// </summary>
         internal bool IsInsideOnExit;
@@ -68,6 +73,7 @@ namespace Microsoft.PSharp
         internal MachineInfo(MachineId mid)
         {
             MachineId = mid;
+            IsWaitingToReceive = false;
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
             ProgramCounter = 0;
