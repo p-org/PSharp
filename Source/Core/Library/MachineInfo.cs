@@ -28,6 +28,11 @@ namespace Microsoft.PSharp
         protected MachineId MachineId;
 
         /// <summary>
+        /// Is the machine halted.
+        /// </summary>
+        internal bool IsHalted;
+
+        /// <summary>
         /// Is the machine waiting to receive an event.
         /// </summary>
         internal bool IsWaitingToReceive;
@@ -73,6 +78,7 @@ namespace Microsoft.PSharp
         internal MachineInfo(MachineId mid)
         {
             MachineId = mid;
+            IsHalted = false;
             IsWaitingToReceive = false;
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;

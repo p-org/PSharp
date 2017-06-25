@@ -121,11 +121,6 @@ namespace Microsoft.PSharp
         private bool IsRunning;
 
         /// <summary>
-        /// Is the machine halted.
-        /// </summary>
-        private bool IsHalted;
-
-        /// <summary>
         /// Is the machine executing under a synchronous call. This includes
         /// the methods CreateMachineAndExecute and SendEventAndExecute.
         /// </summary>
@@ -228,7 +223,6 @@ namespace Microsoft.PSharp
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
-            this.IsHalted = false;
             this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
         }
@@ -523,7 +517,7 @@ namespace Microsoft.PSharp
         {
             lock (this.Inbox)
             {
-                if (this.IsHalted)
+                if (this.Info.IsHalted)
                 {
                     return;
                 }
@@ -656,13 +650,13 @@ namespace Microsoft.PSharp
         /// <param name="returnEarly">Returns after handling just one event</param>
         internal async Task RunEventHandler(bool returnEarly = false)
         {
-            if (this.IsHalted)
+            if (this.Info.IsHalted)
             {
                 return;
             }
 
             EventInfo nextEventInfo = null;
-            while (!this.IsHalted && base.Runtime.IsRunning)
+            while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
                 var dequeued = false;
@@ -743,7 +737,7 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            this.IsHalted = true;
+                            this.Info.IsHalted = true;
                             this.CleanUpResources();
                             base.Runtime.NotifyHalted(this);
                         }
@@ -802,7 +796,7 @@ namespace Microsoft.PSharp
                 {
                     // The machine performs the on exit action of the current state.
                     await this.ExecuteCurrentStateOnExit(null);
-                    if (this.IsHalted)
+                    if (this.Info.IsHalted)
                     {
                         return;
                     }
@@ -926,7 +920,7 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
-                this.IsHalted = true;
+                this.Info.IsHalted = true;
 
                 Exception innerException = ex;
                 while (innerException is TargetInvocationException)
@@ -966,7 +960,7 @@ namespace Microsoft.PSharp
         {
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(onExitActionName);
-            if (this.IsHalted)
+            if (this.Info.IsHalted)
             {
                 return;
             }
@@ -1007,7 +1001,7 @@ namespace Microsoft.PSharp
 
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(null);
-            if (this.IsHalted)
+            if (this.Info.IsHalted)
             {
                 return;
             }
@@ -1245,8 +1239,8 @@ namespace Microsoft.PSharp
                 hash = hash + 31 * this.GetType().GetHashCode();
                 hash = hash + 31 * base.Id.Value.GetHashCode();
                 hash = hash + 31 * this.IsRunning.GetHashCode();
-                hash = hash + 31 * this.IsHalted.GetHashCode();
 
+                hash = hash + 31 * this.Info.IsHalted.GetHashCode();
                 hash = hash + 31 * this.Info.ProgramCounter;
                 
                 // Adds the user-defined hashed state.
