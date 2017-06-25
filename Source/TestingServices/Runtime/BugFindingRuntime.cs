@@ -667,7 +667,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
                     (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
-                    this.Scheduler.Schedule(OperationType.Stop);
+                    this.Scheduler.Schedule(machine.Info.IsHalted ? OperationType.Stop : OperationType.Wait);
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{machine.Id}'.");
                 }
                 catch (ExecutionCanceledException)
@@ -1036,7 +1036,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            this.Scheduler.Schedule(OperationType.Receive);
+            // Skip `Receive` if the last operation exited the previous event handler,
+            // to avoid scheduling duplicate `Receive` operations.
+            if ((machine.Info as SchedulableInfo).NextOperationType == OperationType.Wait &&
+                (machine.Info as SchedulableInfo).EventHandlerOperationCount > 0)
+            {
+                this.Scheduler.Schedule(OperationType.Receive);
+            }
 
             this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued event '{eventInfo.EventName}'.");
 

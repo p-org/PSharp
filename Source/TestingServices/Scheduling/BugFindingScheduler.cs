@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.CheckIfSchedulingStepsBoundIsReached();
 
             SchedulableInfo current = this.ScheduledMachine;
-            current.NextOperationType = operationType;
+            current.SetNextOperation(operationType);
 
             // Get and order the schedulable choices by their id.
             var choices = this.Infos.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();

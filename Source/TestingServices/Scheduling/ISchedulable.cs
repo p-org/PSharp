@@ -52,17 +52,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Target id of the next operation of the entity.
         /// </summary>
-        int NextTargetId { get; }
+        ulong NextTargetId { get; }
 
         /// <summary>
         /// If the next operation is <see cref="OperationType.Receive"/>
         /// then this gives the step index of the corresponding Send. 
         /// </summary>
-        int NextOperationMatchingSendIndex { get; }
+        ulong NextOperationMatchingSendIndex { get; }
 
         /// <summary>
         /// Monotonically increasing operation count.
         /// </summary>
-        int OperationCount { get; }
+        ulong OperationCount { get; }
     }
 }
