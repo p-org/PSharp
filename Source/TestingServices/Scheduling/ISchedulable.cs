@@ -45,9 +45,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         OperationType NextOperationType { get; }
 
         /// <summary>
+        /// The target type of the next operation of the entity.
+        /// </summary>
+        OperationTargetType NextTargetType { get; }
+
+        /// <summary>
         /// Target id of the next operation of the entity.
         /// </summary>
         int NextTargetId { get; }
+
+        /// <summary>
+        /// If the next operation is <see cref="OperationType.Receive"/>
+        /// then this gives the step index of the corresponding Send. 
+        /// </summary>
+        int NextOperationMatchingSendIndex { get; }
 
         /// <summary>
         /// Monotonically increasing operation count.

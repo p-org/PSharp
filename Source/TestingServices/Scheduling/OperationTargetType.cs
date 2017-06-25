@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="OperationType.cs">
+// <copyright file="OperationTargetType.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,34 +15,21 @@
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// An operation used during scheduling.
+    /// The target of an operation used during scheduling.
     /// </summary>
-    public enum OperationType
+    public enum OperationTargetType
     {
         /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
-        /// starts executing.
+        /// The target of the operation is an <see cref="ISchedulable"/>.
+        /// For example, 'Create', 'Start' and 'Stop' are operations that
+        /// act upon an <see cref="ISchedulable"/>.
         /// </summary>
-        Start = 0,
+        Schedulable = 0,
         /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
-        /// creates another <see cref="ISchedulable"/>.
+        /// The target of the operation is the inbox of an <see cref="ISchedulable"/>.
+        /// For example, 'Send' and 'Receive' are operations that act upon the
+        /// inbox of an <see cref="ISchedulable"/>.
         /// </summary>
-        Create,
-        /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
-        /// sends an event to a target <see cref="ISchedulable"/>.
-        /// </summary>
-        Send,
-        /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
-        /// receives an event.
-        /// </summary>
-        Receive,
-        /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
-        /// stops executing.
-        /// </summary>
-        Stop
+        Inbox
     }
 }
