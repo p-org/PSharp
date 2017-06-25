@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Liveness2Test.cs">
+// <copyright file="Liveness3Test.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -14,13 +14,11 @@
 
 using System;
 
-using Microsoft.PSharp.Utilities;
-
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class Liveness2Test : BaseTest
+    public class Liveness3Test : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -37,6 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
+                this.CreateMachine(typeof(Loop));
                 this.Raise(new Unit());
             }
 
@@ -57,6 +56,18 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
+            }
+        }
+
+        class Loop : Machine
+        {
+            [Start]
+            [OnEntry(nameof(LoopingOnEntry))]
+            [OnEventGotoState(typeof(Done), typeof(Looping))]
+            class Looping : MachineState { }
+
+            void LoopingOnEntry()
+            {
                 this.Send(this.Id, new Done());
             }
         }
@@ -76,11 +87,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestLiveness2()
+        public void TestLiveness3()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
+            configuration.EnableCycleDetection = true;
+            configuration.SchedulingIterations = 100;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));

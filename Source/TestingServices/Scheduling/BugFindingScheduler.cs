@@ -40,8 +40,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Map from unique ids to schedulable infos.
         /// </summary>
-        private Dictionary<ulong, SchedulableInfo> Infos;
-        
+        private Dictionary<ulong, SchedulableInfo> SchedulableInfoMap;
+
         /// <summary>
         /// The scheduler completion source.
         /// </summary>
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
-            this.Infos = new Dictionary<ulong, SchedulableInfo>();
+            this.SchedulableInfoMap = new Dictionary<ulong, SchedulableInfo>();
             this.CompletionSource = new TaskCompletionSource<bool>();
             this.IsSchedulerRunning = true;
             this.BugFound = false;
@@ -140,10 +140,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             current.SetNextOperation(operationType);
 
             // Get and order the schedulable choices by their id.
-            var choices = this.Infos.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
+            var choices = this.SchedulableInfoMap.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
 
             ISchedulable next = null;
-            if (!this.Strategy.TryGetNext(out next, choices, current))
+            if (!this.Strategy.GetNext(out next, choices, current))
             {
                 // Checks if the program has livelocked.
                 this.CheckIfProgramHasLivelocked(choices.Select(choice => choice as SchedulableInfo));
@@ -156,16 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.ScheduledMachine = next as SchedulableInfo;
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Id);
-            this.ScheduledMachine.ProgramCounter = 0;
-
-            if (this.Runtime.Configuration.EnableProgramStateCaching &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-
-                // Checks the liveness monitors for potential liveness bugs.
-                this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
-            }
+            this.Strategy.PrepareForNextChoice();
 
             Debug.WriteLine($"<ScheduleDebug> Schedule '{next.Name}' with task id '{this.ScheduledMachine.TaskId}'.");
 
@@ -230,24 +221,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
 
-            foreach (var m in Infos.Values)
-            {
-                if (m.IsActive)
-                {
-                    m.ProgramCounter++;
-                    break;
-                }
-            }
-            
-            if (this.Runtime.Configuration.EnableProgramStateCaching &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
+            this.Strategy.PrepareForNextChoice();
 
-                // Checks the liveness monitors for potential liveness bugs.
-                this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
-            }
-            
             return choice;
         }
 
@@ -272,15 +247,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
-            
-            if (this.Runtime.Configuration.EnableProgramStateCaching &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
-            {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
-
-                // Checks the liveness monitors for potential liveness bugs.
-                this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
-            }
+            this.Strategy.PrepareForNextChoice();
 
             return choice;
         }
@@ -293,7 +260,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             lock (info)
             {
-                if (this.Infos.Count == 1)
+                if (this.SchedulableInfoMap.Count == 1)
                 {
                     info.IsActive = true;
                     System.Threading.Monitor.PulseAll(info);
@@ -337,19 +304,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal void Wait() => this.CompletionSource.Task.Wait();
 
-        /// <summary>
-        /// Switches the scheduler to the specified scheduling strategy,
-        /// and returns the previously installed strategy.
-        /// </summary>
-        /// <param name="strategy">ISchedulingStrategy</param>
-        /// <returns>ISchedulingStrategy</returns>
-        internal ISchedulingStrategy SwitchSchedulingStrategy(ISchedulingStrategy strategy)
-        {
-            ISchedulingStrategy previous = this.Strategy;
-            this.Strategy = strategy;
-            return previous;
-        }
-
         #endregion
 
         #region notifications
@@ -360,14 +314,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="info">SchedulableInfo</param>
         internal void NotifyEventHandlerCreated(SchedulableInfo info)
         {
-            if (!this.Infos.ContainsKey(info.Id))
+            if (!this.SchedulableInfoMap.ContainsKey(info.Id))
             {
-                if (this.Infos.Count == 0)
+                if (this.SchedulableInfoMap.Count == 0)
                 {
                     this.ScheduledMachine = info;
                 }
 
-                this.Infos.Add(info.Id, info);
+                this.SchedulableInfoMap.Add(info.Id, info);
             }
 
             Debug.WriteLine($"<ScheduleDebug> Created event handler of '{info.Name}' with task id '{info.TaskId}'.");
@@ -444,7 +398,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal HashSet<ulong> GetEnabledSchedulableIds()
         {
             var enabledSchedulableIds = new HashSet<ulong>();
-            foreach (var machineInfo in this.Infos.Values)
+            foreach (var machineInfo in this.SchedulableInfoMap.Values)
             {
                 if (machineInfo.IsEnabled)
                 {
@@ -522,7 +476,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Int</returns>
         private int NumberOfAvailableMachinesToSchedule()
         {
-            var availableMachines = this.Infos.Values.Where(choice => choice.IsEnabled).ToList();
+            var availableMachines = this.SchedulableInfoMap.Values.Where(choice => choice.IsEnabled).ToList();
             return availableMachines.Count;
         }
 
@@ -531,7 +485,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// machines, but there is one or more non-enabled machines that are
         /// waiting to receive an event.
         /// </summary>
-        /// <param name="choices">Infos</param>
+        /// <param name="choices">SchedulableInfos</param>
         private void CheckIfProgramHasLivelocked(IEnumerable<SchedulableInfo> choices)
         {
             var blockedChoices = choices.Where(choice => choice.IsWaitingToReceive).ToList();
@@ -609,7 +563,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private void KillRemainingMachines()
         {
-            foreach (var machineInfo in this.Infos.Values)
+            foreach (var machineInfo in this.SchedulableInfoMap.Values)
             {
                 machineInfo.IsActive = true;
                 machineInfo.IsEnabled = false;

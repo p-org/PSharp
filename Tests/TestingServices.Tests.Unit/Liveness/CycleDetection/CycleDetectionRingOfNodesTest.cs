@@ -112,8 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionRingOfNodesNoBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
-            configuration.EnableCycleReplaying = true;
+            configuration.EnableCycleDetection = true;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
@@ -129,8 +128,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionRingOfNodesBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
-            configuration.EnableCycleReplaying = true;
+            configuration.EnableCycleDetection = true;
             configuration.MaxSchedulingSteps = 200;
 
             var test = new Action<PSharpRuntime>((r) => {

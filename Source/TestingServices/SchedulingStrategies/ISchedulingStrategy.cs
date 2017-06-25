@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
+        bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
 
         /// <summary>
         /// Returns the next boolean choice.
@@ -45,6 +45,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
         bool GetNextIntegerChoice(int maxValue, out int next);
+
+        /// <summary>
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
+        /// </summary>
+        void PrepareForNextChoice();
+
+        /// <summary>
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
+        /// </summary>
+        /// <returns>True to start the next iteration</returns>
+        bool PrepareForNextIteration();
+
+        /// <summary>
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
+        /// </summary>
+        void Reset();
 
         /// <summary>
         /// Returns the explored steps.
@@ -64,17 +85,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <returns>Boolean</returns>
         bool IsFair();
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
-        bool PrepareForNextIteration();
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        void Reset();
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.

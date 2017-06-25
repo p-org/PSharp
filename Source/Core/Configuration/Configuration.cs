@@ -259,24 +259,18 @@ namespace Microsoft.PSharp
         public bool EnableLivenessChecking;
 
         /// <summary>
-        /// Enables program state-caching during liveness checking.
-        /// </summary>
-        [DataMember]
-        public bool EnableProgramStateCaching;
-
-        /// <summary>
-        /// Enables cycle-replaying when using state-caching
-        /// during liveness checking.
-        /// </summary>
-        [DataMember]
-        public bool EnableCycleReplaying;
-
-        /// <summary>
         /// The liveness temperature threshold. If it is 0
         /// then it is disabled.
         /// </summary>
         [DataMember]
         public int LivenessTemperatureThreshold;
+
+        /// <summary>
+        /// Enables cycle-detection using state-caching
+        /// for liveness checking.
+        /// </summary>
+        [DataMember]
+        public bool EnableCycleDetection;
 
         /// <summary>
         /// Enables (safety) monitors in the production runtime.
@@ -468,8 +462,7 @@ namespace Microsoft.PSharp
 
             this.EnableLivenessChecking = true;
             this.LivenessTemperatureThreshold = 0;
-            this.EnableProgramStateCaching = false;
-            this.EnableCycleReplaying = false;
+            this.EnableCycleDetection = false;
             this.EnableMonitorsInProduction = false;
 
             this.AttachDebugger = false;

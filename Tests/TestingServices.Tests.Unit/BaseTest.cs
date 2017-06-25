@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
                 CheckErrors(bfEngine, numExpectedErrors, expectedOutputs);
 
-                if (!configuration.EnableCycleReplaying && !configuration.EnableProgramStateCaching)
+                if (!configuration.EnableCycleDetection)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
                 CheckErrors(bfEngine, exceptionType);
 
-                if (!configuration.EnableCycleReplaying && !configuration.EnableProgramStateCaching)
+                if (!configuration.EnableCycleDetection)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);

@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
             if (enabledChoices.Count == 0)
@@ -120,6 +120,40 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
+        /// </summary>
+        public void PrepareForNextChoice() { }
+
+        /// <summary>
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
+        /// </summary>
+        /// <returns>True to start the next iteration</returns>
+        public bool PrepareForNextIteration()
+        {
+            this.ExploredSteps = 0;
+            if (this.Configuration.IncrementalSchedulingSeed)
+            {
+                this.Random.IncrementSeed();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
+        /// </summary>
+        public void Reset()
+        {
+            this.ExploredSteps = 0;
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
+        }
+
+        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
@@ -153,30 +187,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool IsFair()
         {
             return true;
-        }
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
-        public bool PrepareForNextIteration()
-        {
-            this.ExploredSteps = 0;
-            if (this.Configuration.IncrementalSchedulingSeed)
-            {
-                this.Random.IncrementSeed();
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        public void Reset()
-        {
-            this.ExploredSteps = 0;
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
         }
 
         /// <summary>

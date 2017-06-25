@@ -299,13 +299,9 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.LivenessTemperatureThreshold = i;
             }
-            else if (option.ToLower().Equals("/state-caching"))
+            else if (option.ToLower().Equals("/cycle-detection"))
             {
-                base.Configuration.EnableProgramStateCaching = true;
-            }
-            else if (option.ToLower().Equals("/cycle-replay"))
-            {
-                base.Configuration.EnableCycleReplaying = true;
+                base.Configuration.EnableCycleDetection = true;
             }
             else if (option.ToLower().Equals("/visualize"))
             {
@@ -373,14 +369,9 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void UpdateConfiguration()
         {
-            if (base.Configuration.EnableCycleReplaying)
-            {
-                base.Configuration.EnableProgramStateCaching = true;
-            }
-
             if (base.Configuration.LivenessTemperatureThreshold == 0)
             {
-                if (base.Configuration.EnableProgramStateCaching)
+                if (base.Configuration.EnableCycleDetection)
                 {
                     base.Configuration.LivenessTemperatureThreshold = 100;
                 }

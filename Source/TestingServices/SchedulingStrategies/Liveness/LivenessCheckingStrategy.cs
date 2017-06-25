@@ -17,29 +17,28 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// Class representing a scheduling strategy for detecting liveness property
-    /// violations. It contains a nested <see cref="ISchedulingStrategy"/> that
-    /// is used for scheduling decisions. Note that liveness property violations
-    /// are checked only if the nested strategy is fair.
+    /// Abstract strategy for detecting liveness property violations. It
+    /// contains a nested <see cref="ISchedulingStrategy"/> that is used
+    /// for scheduling decisions.
     /// </summary>
-    internal class LivenessCheckingStrategy : ISchedulingStrategy
+    internal abstract class LivenessCheckingStrategy : ISchedulingStrategy
     {
         #region fields
 
         /// <summary>
         /// The configuration.
         /// </summary>
-        private Configuration Configuration;
+        protected Configuration Configuration;
 
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
-        private List<Monitor> Monitors;
+        protected List<Monitor> Monitors;
 
         /// <summary>
         /// Strategy used for scheduling decisions.
         /// </summary>
-        private ISchedulingStrategy SchedulingStrategy;
+        protected ISchedulingStrategy SchedulingStrategy;
 
         #endregion
 
@@ -67,18 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
-        {
-            if (IsFair())
-            {
-                foreach (var monitor in Monitors)
-                {
-                    monitor.CheckLivenessTemperature();
-                }
-            }
-
-            return SchedulingStrategy.TryGetNext(out next, choices, current);
-        }
+        public abstract bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
 
         /// <summary>
         /// Returns the next boolean choice.
@@ -86,18 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextBooleanChoice(int maxValue, out bool next)
-        {
-            if (IsFair())
-            {
-                foreach (var monitor in Monitors)
-                {
-                    monitor.CheckLivenessTemperature();
-                }
-            }
-
-            return SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
-        }
+        public abstract bool GetNextBooleanChoice(int maxValue, out bool next);
 
         /// <summary>
         /// Returns the next integer choice.
@@ -105,24 +82,40 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextIntegerChoice(int maxValue, out int next)
-        {
-            if (IsFair())
-            {
-                foreach (var monitor in Monitors)
-                {
-                    monitor.CheckLivenessTemperature();
-                }
-            }
+        public abstract bool GetNextIntegerChoice(int maxValue, out int next);
 
-            return SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+        /// <summary>
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
+        /// </summary>
+        public abstract void PrepareForNextChoice();
+
+        /// <summary>
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
+        /// </summary>
+        /// <returns>True to start the next iteration</returns>
+        public virtual bool PrepareForNextIteration()
+        {
+            return SchedulingStrategy.PrepareForNextIteration();
+        }
+
+        /// <summary>
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
+        /// </summary>
+        public virtual void Reset()
+        {
+            SchedulingStrategy.Reset();
         }
 
         /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        public virtual int GetExploredSteps()
         {
             return SchedulingStrategy.GetExploredSteps();
         }
@@ -132,7 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
         /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
+        public virtual bool HasReachedMaxSchedulingSteps()
         {
             return SchedulingStrategy.HasReachedMaxSchedulingSteps();
         }
@@ -141,33 +134,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
-        public bool IsFair()
+        public virtual bool IsFair()
         {
             return SchedulingStrategy.IsFair();
-        }
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
-        public bool PrepareForNextIteration()
-        {
-            return SchedulingStrategy.PrepareForNextIteration();
-        }
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        public void Reset()
-        {
-            SchedulingStrategy.Reset();
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        public string GetDescription()
+        public virtual string GetDescription()
         {
             return SchedulingStrategy.GetDescription();
         }

@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestLiveness2BugFound()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
+            configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var test = new Action<PSharpRuntime>((r) => {

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Liveness3Test.cs">
+// <copyright file="WarmStateBugTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -14,11 +14,13 @@
 
 using System;
 
+using Microsoft.PSharp.Utilities;
+
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class Liveness3Test : BaseTest
+    public class WarmStateBugTest : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -35,7 +37,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                this.CreateMachine(typeof(Loop));
                 this.Raise(new Unit());
             }
 
@@ -50,24 +51,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(HandleEventOnEntry))]
-            [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
+            [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
             class HandleEvent : MachineState { }
 
             void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
-            }
-        }
-
-        class Loop : Machine
-        {
-            [Start]
-            [OnEntry(nameof(LoopingOnEntry))]
-            [OnEventGotoState(typeof(Done), typeof(Looping))]
-            class Looping : MachineState { }
-
-            void LoopingOnEntry()
-            {
                 this.Send(this.Id, new Done());
             }
         }
@@ -75,7 +64,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         class WatchDog : Monitor
         {
             [Start]
-            [Cold]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
             [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
             class CanGetUserInput : MonitorState { }
@@ -87,11 +75,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestLiveness3()
+        public void TestWarmStateBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
-            configuration.SchedulingIterations = 100;
+            configuration.EnableCycleDetection = true;
+            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));

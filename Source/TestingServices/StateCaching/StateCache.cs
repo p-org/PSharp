@@ -25,8 +25,6 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
     /// </summary>
     internal sealed class StateCache
     {
-        #region fields
-
         /// <summary>
         /// The P# bug-finding runtime.
         /// </summary>
@@ -42,19 +40,15 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// </summary>
         private HashSet<Fingerprint> Fingerprints;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="runtime">BugFindingRuntime</param>
         internal StateCache(BugFindingRuntime runtime)
         {
-            this.Runtime = runtime;
-            this.StateMap = new Dictionary<ScheduleStep, State>();
-            this.Fingerprints = new HashSet<Fingerprint>();
+            Runtime = runtime;
+            StateMap = new Dictionary<ScheduleStep, State>();
+            Fingerprints = new HashSet<Fingerprint>();
         }
 
         /// <summary>
@@ -67,19 +61,22 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         {
             get
             {
-                return this.StateMap[key];
+                return StateMap[key];
             }
         }
 
         /// <summary>
         /// Captures a snapshot of the program state.
         /// </summary>
+        /// <param name="state">Captured state</param>
         /// <param name="scheduleStep">ScheduleStep</param>
-        internal void CaptureState(ScheduleStep scheduleStep)
+        /// <param name="monitors">List of monitors</param>
+        /// <returns>True if state already exists</returns>
+        internal bool CaptureState(out State state, ScheduleStep scheduleStep, List<Monitor> monitors)
         {
-            var fingerprint = this.Runtime.GetProgramState();
-            var enabledMachineIds = this.Runtime.Scheduler.GetEnabledSchedulableIds();
-            var state = new State(fingerprint, enabledMachineIds, this.Runtime.LivenessChecker.GetMonitorStatus());
+            var fingerprint = Runtime.GetProgramState();
+            var enabledMachineIds = Runtime.Scheduler.GetEnabledSchedulableIds();
+            state = new State(fingerprint, enabledMachineIds, GetMonitorStatus(monitors));
 
             if (scheduleStep.Type == ScheduleStepType.SchedulingChoice)
             {
@@ -105,17 +102,13 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                     "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
             }
             
-            //var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
-            var stateExists = this.Fingerprints.Any(val => val.Equals(fingerprint));
+            //var stateExists = StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
+            var stateExists = Fingerprints.Any(val => val.Equals(fingerprint));
 
-            this.StateMap.Add(scheduleStep, state);
-            this.Fingerprints.Add(fingerprint);
+            StateMap.Add(scheduleStep, state);
+            Fingerprints.Add(fingerprint);
 
-            if (stateExists)
-            {
-                Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
-                this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint);
-            }
+            return stateExists;
         }
 
         /// <summary>
@@ -124,9 +117,33 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <param name="scheduleStep">ScheduleStep</param>
         internal void Remove(ScheduleStep scheduleStep)
         {
-            this.StateMap.Remove(scheduleStep);
+            StateMap.Remove(scheduleStep);
         }
 
-        #endregion
+        /// <summary>
+        /// Returns the monitor status.
+        /// </summary>
+        /// <param name="monitors">List of monitors</param>
+        /// <returns>Monitor status</returns>
+        private Dictionary<Monitor, MonitorStatus> GetMonitorStatus(List<Monitor> monitors)
+        {
+            var monitorStatus = new Dictionary<Monitor, MonitorStatus>();
+            foreach (var monitor in monitors)
+            {
+                MonitorStatus status = MonitorStatus.None;
+                if (monitor.IsInHotState())
+                {
+                    status = MonitorStatus.Hot;
+                }
+                else if (monitor.IsInColdState())
+                {
+                    status = MonitorStatus.Cold;
+                }
+
+                monitorStatus.Add(monitor, status);
+            }
+
+            return monitorStatus;
+        }
     }
 }

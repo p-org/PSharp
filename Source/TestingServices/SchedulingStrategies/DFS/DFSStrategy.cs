@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
             if (enabledChoices.Count == 0)
@@ -236,45 +236,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
-        {
-            return this.ExploredSteps;
-        }
+        public void PrepareForNextChoice() { }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
-        {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
-
-            if (bound == 0)
-            {
-                return false;
-            }
-
-            return this.ExploredSteps >= bound;
-        }
-
-        /// <summary>
-        /// Checks if this is a fair scheduling strategy.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
+        /// <returns>True to start the next iteration</returns>
         public virtual bool PrepareForNextIteration()
         {
             if (this.ScheduleStack.All(scs => scs.All(val => val.IsDone)))
@@ -356,7 +329,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Resets the scheduling strategy.
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
         /// </summary>
         public void Reset()
         {
@@ -366,6 +340,42 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.SchIndex = 0;
             this.NondetIndex = 0;
             this.ExploredSteps = 0;
+        }
+
+        /// <summary>
+        /// Returns the explored steps.
+        /// </summary>
+        /// <returns>Explored steps</returns>
+        public int GetExploredSteps()
+        {
+            return this.ExploredSteps;
+        }
+
+        /// <summary>
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public bool HasReachedMaxSchedulingSteps()
+        {
+            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
+                this.Configuration.MaxUnfairSchedulingSteps);
+
+            if (bound == 0)
+            {
+                return false;
+            }
+
+            return this.ExploredSteps >= bound;
+        }
+
+        /// <summary>
+        /// Checks if this is a fair scheduling strategy.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public bool IsFair()
+        {
+            return false;
         }
 
         /// <summary>

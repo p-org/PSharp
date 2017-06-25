@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="WarmStateBugTest.cs">
+// <copyright file="Nondet1Test.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,11 +20,12 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class WarmStateBugTest : BaseTest
+    public class Nondet1Test : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
         class Done : Event { }
+        class Loop : Event { }
         class Waiting : Event { }
         class Computing : Event { }
 
@@ -52,18 +53,27 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             [OnEntry(nameof(HandleEventOnEntry))]
             [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
+            [OnEventGotoState(typeof(Loop), typeof(HandleEvent))]
             class HandleEvent : MachineState { }
 
             void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
-                this.Send(this.Id, new Done());
+                if (this.Random())
+                {
+                    this.Send(this.Id, new Done());
+                }
+                else
+                {
+                    this.Send(this.Id, new Loop());
+                }
             }
         }
 
         class WatchDog : Monitor
         {
             [Start]
+            [Cold]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
             [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
             class CanGetUserInput : MonitorState { }
@@ -75,11 +85,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestWarmStateBug()
+        public void TestNondet1()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
+            configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
+            configuration.RandomSchedulingSeed = 96;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));

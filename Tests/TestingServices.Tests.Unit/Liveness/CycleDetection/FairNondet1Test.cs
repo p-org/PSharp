@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestFairNondet1()
         {
             var configuration = base.GetConfiguration();
-            configuration.EnableProgramStateCaching = true;
+            configuration.EnableCycleDetection = true;
             configuration.LivenessTemperatureThreshold = 0;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 300;
