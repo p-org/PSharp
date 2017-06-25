@@ -185,7 +185,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random seed '" + this.Seed + "'.";
+            return "Random seed '" + this.Random.Seed + "'.";
         }
 
         #endregion

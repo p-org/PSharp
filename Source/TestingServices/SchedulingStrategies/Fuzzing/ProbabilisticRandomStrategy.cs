@@ -196,6 +196,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool PrepareForNextIteration()
         {
             this.ExploredSteps = 0;
+            if (this.Configuration.IncrementalSchedulingSeed)
+            {
+                this.Random.IncrementSeed();
+            }
+
             return true;
         }
 
@@ -214,7 +219,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random seed '" + this.Seed + "'.";
+            return "Random seed '" + this.Random.Seed + "'.";
         }
 
         #endregion

@@ -229,7 +229,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            var text = this.BugDepth + "' bug depth, priority change points '[";
+            var text = "'" + this.BugDepth + "' bug depth, priority change points '[";
 
             int idx = 0;
             foreach (var points in this.PriorityChangePoints)
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 idx++;
             }
 
-            text += "]'.";
+            text += "]', random seed '" + this.Random.Seed + "'.";
             return text;
         }
 
