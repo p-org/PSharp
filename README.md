@@ -20,7 +20,7 @@ You can also read the manual and available publications:
 
 ## How to build
 
-To build P#, run the following powershell script from the Visual Studio 2017 developer command prompt:
+To build P#, either open `PSharp.sln` and build from inside Visual Studio 2017, or run the following powershell script from the Visual Studio 2017 developer command prompt:
 ```
 powershell -c .\build.ps1
 ```
