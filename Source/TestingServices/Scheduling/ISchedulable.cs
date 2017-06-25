@@ -19,8 +19,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     public interface ISchedulable
     {
-        #region properties
-
         /// <summary>
         /// Unique id of the entity.
         /// </summary>
@@ -35,16 +33,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Is the entity enabled.
         /// </summary>
         bool IsEnabled { get; }
-
-        /// <summary>
-        /// Is the entity active.
-        /// </summary>
-        bool IsActive { get; }
-
-        /// <summary>
-        /// Has the entity started.
-        /// </summary>
-        bool HasStarted { get; }
 
         /// <summary>
         /// Is the entity completed.
@@ -65,7 +53,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Monotonically increasing operation count.
         /// </summary>
         int OperationCount { get; }
-
-        #endregion
     }
 }
