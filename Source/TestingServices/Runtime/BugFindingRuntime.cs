@@ -114,8 +114,22 @@ namespace Microsoft.PSharp.TestingServices
             this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
 
-            this.Scheduler = new BugFindingScheduler(this, strategy);
-            this.LivenessChecker = new LivenessChecker(this, strategy);
+            if (configuration.EnableLivenessChecking && configuration.EnableProgramStateCaching)
+            {
+                this.Scheduler = new BugFindingScheduler(this, strategy);
+                this.LivenessChecker = new LivenessChecker(this, strategy);
+            }
+            else if (configuration.EnableLivenessChecking)
+            {
+                this.Scheduler = new BugFindingScheduler(this, new LivenessCheckingStrategy(
+                    configuration, this.Monitors, strategy));
+            }
+            else
+            {
+                this.Scheduler = new BugFindingScheduler(this, strategy);
+                this.LivenessChecker = new LivenessChecker(this, strategy);
+            }
+
             this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.StateCache = new StateCache(this);
             this.CoverageInfo = new CoverageInfo();
@@ -723,8 +737,8 @@ namespace Microsoft.PSharp.TestingServices
             this.BugTrace.AddCreateMonitorStep(mid);
 
             this.Monitors.Add(monitor);
-            this.LivenessChecker.RegisterMonitor(monitor);
-            
+            this.LivenessChecker?.RegisterMonitor(monitor);
+
             monitor.GotoStartState();
         }
 
