@@ -656,7 +656,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         }
 
         /// <summary>
-        /// Checks if this a fair scheduling strategy.
+        /// Checks if this is a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
         bool ISchedulingStrategy.IsFair()
