@@ -428,7 +428,7 @@ namespace Microsoft.PSharp.TestingServices
                 stringBuilder.Append("--fair-scheduling").Append(Environment.NewLine);
             }
 
-            if (base.Configuration.CacheProgramState)
+            if (base.Configuration.EnableProgramStateCaching)
             {
                 stringBuilder.Append("--state-caching").Append(Environment.NewLine);
                 stringBuilder.Append("--liveness-temperature-threshold:" +

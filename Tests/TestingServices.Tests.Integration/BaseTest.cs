@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
                 CheckErrors(bfEngine, numExpectedErrors, expectedOutputs);
 
-                if (!configuration.EnableCycleReplayingStrategy && !configuration.CacheProgramState)
+                if (!configuration.EnableCycleReplaying && !configuration.EnableProgramStateCaching)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);

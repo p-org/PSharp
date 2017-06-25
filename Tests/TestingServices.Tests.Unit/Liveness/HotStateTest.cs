@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestHotStateMonitor()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
+            configuration.EnableProgramStateCaching = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var test = new Action<PSharpRuntime>((r) => {

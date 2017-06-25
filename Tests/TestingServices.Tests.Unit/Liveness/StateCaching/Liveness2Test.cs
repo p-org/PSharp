@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestLiveness2()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
+            configuration.EnableProgramStateCaching = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var test = new Action<PSharpRuntime>((r) => {

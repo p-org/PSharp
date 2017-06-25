@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestWarmStateBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
+            configuration.EnableProgramStateCaching = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var test = new Action<PSharpRuntime>((r) => {

@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         internal void CheckLivenessAtShedulingStep()
         {
-            if (this.Runtime.Configuration.CacheProgramState &&
+            if (this.Runtime.Configuration.EnableProgramStateCaching &&
                 this.PotentialCycle.Count > 0)
             {
                 var coldMonitors = this.HotMonitors.Where(m => m.IsInColdState()).ToList();
@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                     this.Runtime.Scheduler.Stop();
                 }
             }
-            else if (!this.Runtime.Configuration.CacheProgramState &&
+            else if (!this.Runtime.Configuration.EnableProgramStateCaching &&
                 this.SchedulingStrategy.IsFair())
             {
                 foreach (var monitor in this.Monitors)
@@ -522,7 +522,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 return false;
             }
 
-            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
+            if (this.Runtime.Configuration.EnableCycleReplaying)
             {
                 ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
                 if (nextStep.Type != ScheduleStepType.SchedulingChoice)
@@ -565,7 +565,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <returns>Boolean</returns>
         bool ISchedulingStrategy.GetNextBooleanChoice(int maxValue, out bool next)
         {
-            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
+            if (this.Runtime.Configuration.EnableCycleReplaying)
             {
                 ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
                 if ((nextStep.Type == ScheduleStepType.SchedulingChoice) || nextStep.BooleanChoice == null)
@@ -606,7 +606,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <returns>Boolean</returns>
         bool ISchedulingStrategy.GetNextIntegerChoice(int maxValue, out int next)
         {
-            if (this.Runtime.Configuration.EnableCycleReplayingStrategy)
+            if (this.Runtime.Configuration.EnableCycleReplaying)
             {
                 ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
                 if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||

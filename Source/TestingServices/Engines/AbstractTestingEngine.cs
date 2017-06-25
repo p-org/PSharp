@@ -270,7 +270,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
                     else if (line.Equals("--state-caching"))
                     {
-                        this.Configuration.CacheProgramState = true;
+                        this.Configuration.EnableProgramStateCaching = true;
                     }
                     else if (line.StartsWith("--liveness-temperature-threshold:"))
                     {
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Strategy = new MaceMCStrategy(this.Configuration);
                 this.Configuration.PerformFullExploration = false;
-                this.Configuration.CacheProgramState = false;
+                this.Configuration.EnableProgramStateCaching = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {

@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
                 CheckErrors(bfEngine, numExpectedErrors, expectedOutputs);
 
-                if (!configuration.EnableCycleReplayingStrategy && !configuration.CacheProgramState)
+                if (!configuration.EnableCycleReplaying && !configuration.EnableProgramStateCaching)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);
@@ -167,7 +167,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
                 CheckErrors(bfEngine, exceptionType);
 
-                if (!configuration.EnableCycleReplayingStrategy && !configuration.CacheProgramState)
+                if (!configuration.EnableCycleReplaying && !configuration.EnableProgramStateCaching)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);

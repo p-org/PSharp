@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Id);
             this.ScheduledMachine.ProgramCounter = 0;
 
-            if (this.Runtime.Configuration.CacheProgramState &&
+            if (this.Runtime.Configuration.EnableProgramStateCaching &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
             
-            if (this.Runtime.Configuration.CacheProgramState &&
+            if (this.Runtime.Configuration.EnableProgramStateCaching &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
@@ -273,7 +273,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
             
-            if (this.Runtime.Configuration.CacheProgramState &&
+            if (this.Runtime.Configuration.EnableProgramStateCaching &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());

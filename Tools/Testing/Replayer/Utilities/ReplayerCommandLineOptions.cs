@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/state-caching"))
             {
-                base.Configuration.CacheProgramState = true;
+                base.Configuration.EnableProgramStateCaching = true;
             }
             else
             {

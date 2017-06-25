@@ -73,8 +73,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionDefaultHandlerNoBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.EnableCycleReplayingStrategy = true;
+            configuration.EnableProgramStateCaching = true;
+            configuration.EnableCycleReplaying = true;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
@@ -90,8 +90,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionDefaultHandlerBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.EnableCycleReplayingStrategy = true;
+            configuration.EnableProgramStateCaching = true;
+            configuration.EnableCycleReplaying = true;
             configuration.MaxSchedulingSteps = 200;
 
             var test = new Action<PSharpRuntime>((r) => {

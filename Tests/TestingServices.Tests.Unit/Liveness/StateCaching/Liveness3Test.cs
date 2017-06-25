@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestLiveness3()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
+            configuration.EnableProgramStateCaching = true;
             configuration.SchedulingIterations = 100;
 
             var test = new Action<PSharpRuntime>((r) => {

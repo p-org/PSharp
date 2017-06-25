@@ -301,15 +301,11 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/state-caching"))
             {
-                base.Configuration.CacheProgramState = true;
+                base.Configuration.EnableProgramStateCaching = true;
             }
             else if (option.ToLower().Equals("/cycle-replay"))
             {
-                base.Configuration.EnableCycleReplayingStrategy = true;
-            }
-            else if (option.ToLower().Equals("/dynamic-event-reordering"))
-            {
-                base.Configuration.DynamicEventQueuePrioritization = true;
+                base.Configuration.EnableCycleReplaying = true;
             }
             else if (option.ToLower().Equals("/visualize"))
             {
@@ -377,14 +373,14 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void UpdateConfiguration()
         {
-            if (base.Configuration.EnableCycleReplayingStrategy)
+            if (base.Configuration.EnableCycleReplaying)
             {
-                base.Configuration.CacheProgramState = true;
+                base.Configuration.EnableProgramStateCaching = true;
             }
 
             if (base.Configuration.LivenessTemperatureThreshold == 0)
             {
-                if (base.Configuration.CacheProgramState)
+                if (base.Configuration.EnableProgramStateCaching)
                 {
                     base.Configuration.LivenessTemperatureThreshold = 100;
                 }

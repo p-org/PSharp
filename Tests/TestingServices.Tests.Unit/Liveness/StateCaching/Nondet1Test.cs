@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestNondet1()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
+            configuration.EnableProgramStateCaching = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.RandomSchedulingSeed = 96;
 
