@@ -778,7 +778,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
             configuration.RandomSchedulingSeed = 315;
-            configuration.SchedulingIterations = 2;
+            configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
