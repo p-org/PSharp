@@ -394,9 +394,9 @@ namespace Microsoft.PSharp.TestingServices
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
             }
 
-            Machine machine = this.CreateMachine(type, friendlyName);
-
             this.Scheduler.Schedule();
+
+            Machine machine = this.CreateMachine(type, friendlyName);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
             if (base.Configuration.EnableDataRaceDetection)
@@ -431,9 +431,9 @@ namespace Microsoft.PSharp.TestingServices
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
             }
 
-            Machine machine = this.CreateMachine(type, friendlyName);
-
             this.Scheduler.Schedule();
+
+            Machine machine = this.CreateMachine(type, friendlyName);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
             if (base.Configuration.EnableDataRaceDetection)

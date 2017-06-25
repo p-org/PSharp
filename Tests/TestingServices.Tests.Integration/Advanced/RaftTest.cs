@@ -1155,7 +1155,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = 16;
+            configuration.RandomSchedulingSeed = 963;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
