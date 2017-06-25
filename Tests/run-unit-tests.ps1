@@ -54,7 +54,7 @@ if (($test -eq "all") -or ($test -eq "shared-objects"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console.2.2.0\tools\xunit.console.exe $PSScriptRoot\SharedObjects.Tests.Unit\bin\$framework\Microsoft.PSharp.SharedObjects.Tests.Unit.dll -verbose"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\SharedObjects.Tests.Unit\bin\$framework\Microsoft.PSharp.SharedObjects.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "language-services"))
