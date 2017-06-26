@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 
                 lock (current)
                 {
-                    if (current.IsCompleted)
+                    if (!current.IsEventHandlerRunning)
                     {
                         return;
                     }
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    while (!info.HasStarted)
+                    while (!info.IsEventHandlerRunning)
                     {
                         System.Threading.Monitor.Wait(info);
                     }
@@ -334,7 +334,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             lock (info)
             {
-                info.HasStarted = true;
+                info.IsEventHandlerRunning = true;
                 System.Threading.Monitor.PulseAll(info);
                 while (!info.IsActive)
                 {
@@ -565,7 +565,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 machineInfo.IsActive = true;
                 machineInfo.IsEnabled = false;
 
-                if (!machineInfo.IsCompleted)
+                if (machineInfo.IsEventHandlerRunning)
                 {
                     lock (machineInfo)
                     {

@@ -35,11 +35,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool IsEnabled { get; internal set; }
 
         /// <summary>
-        /// Is machine completed.
-        /// </summary>
-        public bool IsCompleted { get; internal set; }
-
-        /// <summary>
         /// Type of the next operation of the machine.
         /// </summary>
         public OperationType NextOperationType { get; private set; }
@@ -80,9 +75,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool IsActive;
 
         /// <summary>
-        /// Has the machine started.
+        /// Is the event handler running.
         /// </summary>
-        internal bool HasStarted;
+        internal bool IsEventHandlerRunning;
 
         #endregion
 
@@ -97,8 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             IsEnabled = false;
             IsActive = false;
-            HasStarted = false;
-            IsCompleted = false;
+            IsEventHandlerRunning = false;
             OperationCount = 0;
             EventHandlerOperationCount = 0;
         }
@@ -129,8 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IsEnabled = true;
             IsWaitingToReceive = false;
             IsActive = false;
-            HasStarted = false;
-            IsCompleted = false;
+            IsEventHandlerRunning = false;
 
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
@@ -145,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal void NotifyEventHandlerCompleted()
         {
             IsEnabled = false;
-            IsCompleted = true;
+            IsEventHandlerRunning = false;
         }
 
         #endregion
