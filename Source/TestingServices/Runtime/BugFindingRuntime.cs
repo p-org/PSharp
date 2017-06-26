@@ -676,7 +676,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
                     (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
-                    this.Scheduler.Schedule(machine.Info.IsHalted ? OperationType.Stop : OperationType.Wait);
+                    this.Scheduler.Schedule(machine.Info.IsHalted ? OperationType.Stop : OperationType.Receive);
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{machine.Id}'.");
                 }
                 catch (ExecutionCanceledException)
@@ -1075,9 +1075,9 @@ namespace Microsoft.PSharp.TestingServices
         {
             // Skip `Receive` if the last operation exited the previous event handler,
             // to avoid scheduling duplicate `Receive` operations.
-            if ((machine.Info as SchedulableInfo).NextOperationType == OperationType.Wait &&
-                (machine.Info as SchedulableInfo).EventHandlerOperationCount > 0)
+            if ((machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint)
             {
+                (machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint = false;
                 this.Scheduler.Schedule(OperationType.Receive);
             }
 
@@ -1144,7 +1144,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
             machine.Info.IsWaitingToReceive = true;
             (machine.Info as SchedulableInfo).IsEnabled = false;
-            this.Scheduler.Schedule(OperationType.Wait);
+            this.Scheduler.Schedule(OperationType.Receive);
         }
 
         /// <summary>

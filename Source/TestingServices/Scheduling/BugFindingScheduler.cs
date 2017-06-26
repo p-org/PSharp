@@ -112,12 +112,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="operationType">OperationType</param>
         internal void Schedule(OperationType operationType)
         {
-            // If the operation type is receive, then return.
-            if (operationType == OperationType.Receive)
-            {
-                return;
-            }
-
             int? taskId = Task.CurrentId;
 
             // If the caller is the root task, then return.

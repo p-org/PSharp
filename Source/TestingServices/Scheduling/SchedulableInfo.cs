@@ -60,11 +60,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public ulong OperationCount { get; private set; }
 
-        /// <summary>
-        /// Monotonically increasing operation count for the current event handler.
-        /// </summary>
-        internal ulong EventHandlerOperationCount { get; private set; }
-
         #endregion
 
         #region fields
@@ -78,6 +73,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Is the event handler running.
         /// </summary>
         internal bool IsEventHandlerRunning;
+
+        /// <summary>
+        /// True if it should skip the next receive scheduling point,
+        /// because it was already called in the end of the previous
+        /// event handler.
+        /// </summary>
+        internal bool SkipNextReceiveSchedulingPoint;
 
         #endregion
 
@@ -93,8 +95,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IsEnabled = false;
             IsActive = false;
             IsEventHandlerRunning = false;
+            SkipNextReceiveSchedulingPoint = false;
             OperationCount = 0;
-            EventHandlerOperationCount = 0;
         }
 
         #endregion
@@ -109,7 +111,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             NextOperationType = operation;
             OperationCount++;
-            EventHandlerOperationCount++;
         }
 
         /// <summary>
@@ -129,7 +130,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             CurrentActionCalledTransitionStatement = false;
 
             ProgramCounter = 0;
-            EventHandlerOperationCount = 0;
         }
 
         /// <summary>
@@ -139,6 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             IsEnabled = false;
             IsEventHandlerRunning = false;
+            SkipNextReceiveSchedulingPoint = true;
         }
 
         #endregion

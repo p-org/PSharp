@@ -41,11 +41,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         Receive,
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
-        /// waits for an event.
-        /// </summary>
-        Wait,
-        /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
         /// stops executing.
         /// </summary>
         Stop
