@@ -110,7 +110,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Schedules the next <see cref="ISchedulable"/> operation to execute.
         /// </summary>
         /// <param name="operationType">OperationType</param>
-        internal void Schedule(OperationType operationType)
+        /// <param name="targetType">OperationTargetType</param>
+        /// <param name="targetId">ulong</param>
+        internal void Schedule(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
             int? taskId = Task.CurrentId;
 
@@ -132,7 +134,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.CheckIfSchedulingStepsBoundIsReached();
 
             SchedulableInfo current = this.ScheduledMachine;
-            current.SetNextOperation(operationType);
+            current.SetNextOperation(operationType, targetType, targetId);
 
             // Get and order the schedulable choices by their id.
             var choices = this.SchedulableInfoMap.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();

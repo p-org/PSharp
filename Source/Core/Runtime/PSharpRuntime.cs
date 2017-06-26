@@ -588,8 +588,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
+        /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyDefaultHandlerFired()
+        internal virtual void NotifyDefaultHandlerFired(Machine machine)
         {
             // Override to implement the notification.
         }

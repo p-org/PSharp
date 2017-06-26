@@ -731,19 +731,20 @@ namespace Microsoft.PSharp
                     base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
                 }
 
+                // If the default event was handled, then notify the runtime.
+                // This is only used during bug-finding, because the runtime
+                // has to schedule a machine between default handlers.
+                if (defaultHandling)
+                {
+                    base.Runtime.NotifyDefaultHandlerFired(this);
+                }
+
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
 
-                // If the default event was handled, then notify the runtime.
-                // This is only used during bug-finding, because the runtime
-                // has to schedule a machine between default handlers.
-                if (defaultHandling)
-                {
-                    base.Runtime.NotifyDefaultHandlerFired();
-                }
 
                 // Return after handling the first event?
                 if (returnEarly)

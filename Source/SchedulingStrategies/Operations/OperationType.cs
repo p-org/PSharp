@@ -41,6 +41,11 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         Receive,
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
+        /// processes a default event.
+        /// </summary>
+        DefaultEvent,
+        /// <summary>
+        /// Operation used when an <see cref="ISchedulable"/>
         /// stops executing.
         /// </summary>
         Stop

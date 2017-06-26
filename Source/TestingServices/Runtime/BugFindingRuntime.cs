@@ -370,7 +370,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of the test harness machine.");
                     (harness.Info as SchedulableInfo).NotifyEventHandlerCompleted();
-                    this.Scheduler.Schedule(OperationType.Stop);
+                    this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, harness.Info.Id);
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of the test harness machine.");
                 }
                 catch (ExecutionCanceledException)
@@ -406,7 +406,9 @@ namespace Microsoft.PSharp.TestingServices
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
             }
 
-            this.Scheduler.Schedule(OperationType.Create);
+            // Use MaxValue because a Create operation cannot specify the id of its target
+            // because the id does not exist yet.
+            this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(type, friendlyName);
 
@@ -443,7 +445,9 @@ namespace Microsoft.PSharp.TestingServices
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
             }
 
-            this.Scheduler.Schedule(OperationType.Create);
+            // Use MaxValue because a Create operation cannot specify the id of its target
+            // because the id does not exist yet.
+            this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(type, friendlyName);
 
@@ -533,7 +537,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.Scheduler.Schedule(OperationType.Send);
+            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
 
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
@@ -567,7 +571,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.Scheduler.Schedule(OperationType.Send);
+            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
 
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
@@ -676,7 +680,14 @@ namespace Microsoft.PSharp.TestingServices
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
                     (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
-                    this.Scheduler.Schedule(machine.Info.IsHalted ? OperationType.Stop : OperationType.Receive);
+                    if (machine.Info.IsHalted)
+                    {
+                        this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, machine.Info.Id);
+                    }
+                    else
+                    {
+                        this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+                    }
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{machine.Id}'.");
                 }
                 catch (ExecutionCanceledException)
@@ -1078,7 +1089,7 @@ namespace Microsoft.PSharp.TestingServices
             if ((machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint)
             {
                 (machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint = false;
-                this.Scheduler.Schedule(OperationType.Receive);
+                this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
             }
 
             this.Log($"<DequeueLog> Machine '{machine.Id}' dequeued event '{eventInfo.EventName}'.");
@@ -1149,7 +1160,7 @@ namespace Microsoft.PSharp.TestingServices
                 (machine.Info as SchedulableInfo).IsEnabled = false;
             }
 
-            this.Scheduler.Schedule(OperationType.Receive);
+            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
         }
 
         /// <summary>
@@ -1179,9 +1190,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
-        internal override void NotifyDefaultHandlerFired()
+        /// <param name="machine">Machine</param>
+        internal override void NotifyDefaultHandlerFired(Machine machine)
         {
-            this.Scheduler.Schedule(OperationType.Send);
+            this.Scheduler.Schedule(OperationType.DefaultEvent, OperationTargetType.Inbox, machine.Info.Id);
         }
 
         #endregion

@@ -96,6 +96,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IsActive = false;
             IsEventHandlerRunning = false;
             SkipNextReceiveSchedulingPoint = false;
+            NextOperationType = OperationType.Start;
+            NextTargetType = OperationTargetType.Schedulable;
+            NextTargetId = mid.Value;
             OperationCount = 0;
         }
 
@@ -107,9 +110,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Sets the next operation to schedule.
         /// </summary>
         /// <param name="operation">OperationType</param>
-        internal void SetNextOperation(OperationType operation)
+        /// <param name="targetType">OperationTargetType</param>
+        /// <param name="targetId">ulong</param>
+        internal void SetNextOperation(OperationType operation, OperationTargetType targetType, ulong targetId)
         {
             NextOperationType = operation;
+            NextTargetType = targetType;
+            NextTargetId = targetId;
             OperationCount++;
         }
 
