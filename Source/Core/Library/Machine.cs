@@ -566,8 +566,9 @@ namespace Microsoft.PSharp
         /// Dequeues the next available <see cref="EventInfo"/> from the
         /// inbox if there is one available, else returns null.
         /// </summary>
+        /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
         /// <returns>EventInfo</returns>
-        private EventInfo TryDequeueEvent()
+        internal EventInfo TryDequeueEvent(bool checkOnly = false)
         {
             EventInfo nextEventInfo = null;
 
@@ -592,16 +593,24 @@ namespace Microsoft.PSharp
 
                     if (ignored)
                     {
-                        this.Inbox.RemoveAt(idx);
-                        idx--;
+                        if (!checkOnly)
+                        {
+                            this.Inbox.RemoveAt(idx);
+                            idx--;
+                        }
+                        
                         continue;
                     }
                 }
 
                 if (this.IsIgnored(this.Inbox[idx].EventType))
                 {
-                    this.Inbox.RemoveAt(idx);
-                    idx--;
+                    if (!checkOnly)
+                    {
+                        this.Inbox.RemoveAt(idx);
+                        idx--;
+                    }
+
                     continue;
                 }
 
@@ -609,7 +618,11 @@ namespace Microsoft.PSharp
                 if (!this.IsDeferred(this.Inbox[idx].EventType))
                 {
                     nextEventInfo = this.Inbox[idx];
-                    this.Inbox.RemoveAt(idx);
+                    if (!checkOnly)
+                    {
+                        this.Inbox.RemoveAt(idx);
+                    }
+
                     break;
                 }
             }

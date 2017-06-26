@@ -537,7 +537,7 @@ namespace Microsoft.PSharp.TestingServices
 
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
-            if (runNewHandler)
+            if (runNewHandler && machine.TryDequeueEvent(true) != null)
             {
                 this.RunMachineEventHandler(machine, null, false, false);
             }
@@ -571,7 +571,7 @@ namespace Microsoft.PSharp.TestingServices
 
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, ref runNewHandler);
-            if (runNewHandler)
+            if (runNewHandler && machine.TryDequeueEvent(true) != null)
             {
                 this.RunMachineEventHandler(machine, null, false, true);
             }
