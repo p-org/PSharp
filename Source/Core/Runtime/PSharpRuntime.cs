@@ -558,7 +558,8 @@ namespace Microsoft.PSharp
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal virtual void NotifyWaitEvents(Machine machine)
+        /// <param name="eventExistsInInbox">Is event in the inbox?</param>
+        internal virtual void NotifyWaitEvents(Machine machine, bool eventExistsInInbox)
         {
             // Override to implement the notification.
         }

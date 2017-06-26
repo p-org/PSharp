@@ -1137,13 +1137,18 @@ namespace Microsoft.PSharp.TestingServices
         /// or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyWaitEvents(Machine machine)
+        /// <param name="eventExistsInInbox">Is event in the inbox?</param>
+        internal override void NotifyWaitEvents(Machine machine, bool eventExistsInInbox)
         {
-            string events = machine.GetEventWaitHandlerNames();
-            this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);            
-            this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
-            machine.Info.IsWaitingToReceive = true;
-            (machine.Info as SchedulableInfo).IsEnabled = false;
+            if (!eventExistsInInbox)
+            {
+                string events = machine.GetEventWaitHandlerNames();
+                this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
+                this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
+                machine.Info.IsWaitingToReceive = true;
+                (machine.Info as SchedulableInfo).IsEnabled = false;
+            }
+
             this.Scheduler.Schedule(OperationType.Receive);
         }
 

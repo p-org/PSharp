@@ -1120,7 +1120,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         private Task<Event> WaitOnEvent()
         {
-            bool isWaiting = true;
+            bool eventExistsInInbox = false;
             lock (this.Inbox)
             {
                 // Iterates through the events in the inbox.
@@ -1139,16 +1139,13 @@ namespace Microsoft.PSharp
                         this.EventWaitHandlers.Clear();
                         this.ReceiveCompletionSource.SetResult(this.Inbox[idx].Event);
                         this.Inbox.RemoveAt(idx);
-                        isWaiting = false;
+                        eventExistsInInbox = true;
                         break;
                     }
                 }
             }
 
-            if (isWaiting)
-            {
-                base.Runtime.NotifyWaitEvents(this);
-            }
+            base.Runtime.NotifyWaitEvents(this, eventExistsInInbox);
 
             return this.ReceiveCompletionSource.Task;
         }
