@@ -112,6 +112,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
                 }
+                else if (scheduler.ToLower().Equals("dpor"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
+                }
                 else if (scheduler.StartsWith("db"))
                 {
                     int i = 0;
@@ -333,6 +337,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.DPOR &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding)
             {
