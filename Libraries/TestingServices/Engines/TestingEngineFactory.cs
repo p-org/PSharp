@@ -27,15 +27,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Runs a P# tests.
         /// </summary>
-        /// <param name="args">Flags to PSharpTester</param>
+        /// <param name="configuration">Testing configuration</param>
         /// <param name="action">Test method</param>
         /// <returns>TestReport</returns>
-        public static TestReport RunTester(string args, Action<PSharpRuntime> action)
+        public static TestReport RunTester(Configuration configuration, Action<PSharpRuntime> action)
         {
-            args += " /test:program"; // dummy argument
-
-            var configuration = new Utilities.TesterCommandLineOptions(
-                args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)).Parse();
+            configuration.AssemblyToBeAnalyzed = "program"; // dummy argument
 
             var parallel = configuration.ParallelBugFindingTasks;
 

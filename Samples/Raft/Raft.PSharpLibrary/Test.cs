@@ -47,10 +47,17 @@ namespace Raft.PSharpLibrary
         [TestMethod]
         public void UnitTest()
         {
-            var report =
-                TestingEngineFactory.RunTester("/i:10 /max-steps:100", Program.Execute);
+            // Flags: /i:100 /max-steps:100
+            var config = Configuration.Create()
+                .WithNumberOfIterations(100) 
+                .WithMaxSteps(100);
 
-            Assert.IsTrue(true); 
+            config.RandomSchedulingSeed = 991;
+
+            var report =
+                TestingEngineFactory.RunTester(config, Program.Execute);
+
+            Assert.IsTrue(report.NumOfFoundBugs > 0); 
         }
     }
 }

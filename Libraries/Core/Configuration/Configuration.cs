@@ -559,6 +559,33 @@ namespace Microsoft.PSharp
             return this;
         }
 
+        /// <summary>
+        /// Sets max-steps option
+        /// </summary>
+        /// <param name="steps">Max number of steps per iteration</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithMaxSteps(int steps)
+        {
+            this.MaxFairSchedulingSteps = steps * 10;
+            this.MaxUnfairSchedulingSteps = steps;
+            this.LivenessTemperatureThreshold = steps * 5;
+
+            this.UserExplicitlySetMaxFairSchedulingSteps = true;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets number of parallel tasks to use for testing
+        /// </summary>
+        /// <param name="parallel">Number of parallel tasks</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithParallelTasks(uint parallel)
+        {
+            this.ParallelBugFindingTasks = parallel;
+            return this;
+        }
+
         #endregion
     }
 }
