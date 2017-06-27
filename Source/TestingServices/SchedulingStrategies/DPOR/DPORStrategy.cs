@@ -60,6 +60,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
+            int currentSchedulableId = (int) current.Id;
             // "Yield" and "Waiting for quiescence" hack.
             if (choices.TrueForAll(info => !info.IsEnabled))
             {
@@ -86,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            bool added = Stack.Push(choices, (int) current.Id);
+            bool added = Stack.Push(choices, currentSchedulableId);
             TidEntryList top = Stack.GetTop();
 
             if (added)
@@ -110,11 +111,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    top.AddFirstEnabledNotSleptToBacktrack((int) current.Id, Asserter);
+                    top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Asserter);
                 }
             }
 
-            int nextTidIndex = Stack.GetSelectedOrFirstBacktrackNotSlept((int) current.Id);
+            int nextTidIndex = Stack.GetSelectedOrFirstBacktrackNotSlept(currentSchedulableId);
 
             if (nextTidIndex < 0)
             {
@@ -130,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 nextTidEntry.Selected = true;
             }
-
+            Asserter.Assert(nextTidEntry.Id < choices.Count);
             next = choices[nextTidEntry.Id];
 
             // TODO: Part of yield hack.
@@ -186,7 +187,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            throw new System.NotImplementedException();
+            return StepLimit >= 0 && Stack.GetNumSteps() >= StepLimit;
         }
 
         /// <summary>
@@ -195,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
-            throw new System.NotImplementedException();
+            return false;
         }
 
         /// <summary>
@@ -215,7 +216,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            throw new System.NotImplementedException();
+            Stack.Clear();
         }
 
         /// <summary>
@@ -224,7 +225,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            throw new System.NotImplementedException();
+            return "DPOR";
         }
 
         #endregion

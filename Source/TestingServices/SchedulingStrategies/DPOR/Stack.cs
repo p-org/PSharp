@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         (int) machineInfo.NextOperationMatchingSendIndex));
             }
             
-            Asserter.Assert(NextStackPos > StackInternal.Count, "DFS strategy unexpected stack state.");
+            Asserter.Assert(NextStackPos <= StackInternal.Count, "DFS strategy unexpected stack state.");
 
             bool added = NextStackPos == StackInternal.Count;
 
@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns></returns>
         public TidEntryList GetTopAsRealTop()
         {
-            Asserter.Assert(NextStackPos != StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
+            Asserter.Assert(NextStackPos == StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
             return GetTop();
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private void Pop()
         {
-            Asserter.Assert(NextStackPos != StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
+            Asserter.Assert(NextStackPos == StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
             StackInternal.RemoveAt(StackInternal.Count - 1);
             --NextStackPos;
         }
@@ -215,7 +215,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private void CheckMatches(List<TidEntry> list)
         {
             Asserter.Assert(
-                !StackInternal[NextStackPos].List.SequenceEqual(list, TidEntry.ComparerSingleton), 
+                StackInternal[NextStackPos].List.SequenceEqual(list, TidEntry.ComparerSingleton), 
                 "DFS strategy detected nondeterminism when replaying.");
         }
 

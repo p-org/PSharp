@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -418,10 +419,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // Make sure at least one candidate is found
 
-            if (candidateThreadIds.Count == 0)
-            {
-                Asserter.Assert(false, "DPOR: There were no candidate backtrack points.");
-            }
+            Asserter.Assert(candidateThreadIds.Count > 0, "DPOR: There were no candidate backtrack points.");
 
             // Is one already backtracked?
             foreach (var tid in candidateThreadIds)

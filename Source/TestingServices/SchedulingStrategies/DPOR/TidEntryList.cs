@@ -49,6 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 if (tidEntry.Enabled)
                 {
                     tidEntry.Backtrack = true;
+                    // TODO: Remove?
                     asserter.Assert(tidEntry.Enabled);
                 }
             }
@@ -283,6 +284,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     !List[i].Sleep)
                 {
                     List[i].Backtrack = true;
+                    // TODO: Remove?
                     asserter.Assert(List[i].Enabled);
                     return;
                 }
