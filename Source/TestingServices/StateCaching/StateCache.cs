@@ -69,12 +69,15 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// Captures a snapshot of the program state.
         /// </summary>
         /// <param name="state">Captured state</param>
+        /// <param name="fingerprint">Fingerprint</param>
+        /// <param name="fingerprintIndexMap">Fingerprint to schedule step index map</param>
         /// <param name="scheduleStep">ScheduleStep</param>
         /// <param name="monitors">List of monitors</param>
         /// <returns>True if state already exists</returns>
-        internal bool CaptureState(out State state, ScheduleStep scheduleStep, List<Monitor> monitors)
+        internal bool CaptureState(out State state, out Fingerprint fingerprint, Dictionary<Fingerprint, List<int>> fingerprintIndexMap,
+            ScheduleStep scheduleStep, List<Monitor> monitors)
         {
-            var fingerprint = Runtime.GetProgramState();
+            fingerprint = Runtime.GetProgramState();
             var enabledMachineIds = Runtime.Scheduler.GetEnabledSchedulableIds();
             state = new State(fingerprint, enabledMachineIds, GetMonitorStatus(monitors));
 
@@ -101,12 +104,21 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
                     "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
             }
-            
-            //var stateExists = StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
-            var stateExists = Fingerprints.Any(val => val.Equals(fingerprint));
+
+            var stateExists = Fingerprints.Contains(fingerprint);
 
             StateMap.Add(scheduleStep, state);
             Fingerprints.Add(fingerprint);
+
+            if (!fingerprintIndexMap.ContainsKey(fingerprint))
+            {
+                var hs = new List<int>() { scheduleStep.Index };
+                fingerprintIndexMap.Add(fingerprint, hs);
+            }
+            else 
+            {
+                fingerprintIndexMap[fingerprint].Add(scheduleStep.Index);
+            }
 
             return stateExists;
         }

@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -1400,14 +1401,14 @@ namespace Microsoft.PSharp.TestingServices
             {
                 int hash = 19;
 
-                foreach (var machine in this.MachineMap.Values)
+                foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
-                    hash = hash + 31 * machine.GetCachedState();
+                    hash = hash * 31 + machine.GetCachedState();
                 }
 
                 foreach (var monitor in this.Monitors)
                 {
-                    hash = hash + 31 * monitor.GetCachedState();
+                    hash = hash * 31 + monitor.GetCachedState();
                 }
 
                 fingerprint = new Fingerprint(hash);

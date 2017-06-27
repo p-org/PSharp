@@ -192,7 +192,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// User-defined hashed state of the machine. Override to improve the
-        /// accuracy of liveness checking when state caching is enabled.
+        /// accuracy of liveness checking when state-caching is enabled.
         /// </summary>
         protected virtual int HashedState => 0;
 
@@ -1236,15 +1236,18 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * base.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
+                hash = hash * 31 + this.GetType().GetHashCode();
+                hash = hash * 31 + base.Id.Value.GetHashCode();
+                hash = hash * 31 + this.IsRunning.GetHashCode();
 
-                hash = hash + 31 * this.Info.IsHalted.GetHashCode();
-                hash = hash + 31 * this.Info.ProgramCounter;
-                
-                // Adds the user-defined hashed state.
-                hash = hash + 31 * this.HashedState;
+                hash = hash * 31 + this.Info.IsHalted.GetHashCode();
+                hash = hash * 31 + this.Info.ProgramCounter;
+
+                if (this.HashedState > 0)
+                {
+                    // Adds the user-defined hashed machine state.
+                    hash = hash * 31 + HashedState;
+                }
 
                 foreach (var state in this.StateStack)
                 {
@@ -1254,6 +1257,11 @@ namespace Microsoft.PSharp
                 foreach (var e in this.Inbox)
                 {
                     hash = hash * 31 + e.EventType.GetHashCode();
+                    if (e.Event.HashedState > 0)
+                    {
+                        // Adds the user-defined hashed event state.
+                        hash = hash * 31 + e.Event.HashedState;
+                    }
                 }
 
                 return hash;

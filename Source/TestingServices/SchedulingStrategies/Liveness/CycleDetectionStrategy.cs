@@ -86,6 +86,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private IRandomNumberGenerator Random;
 
         /// <summary>
+        /// Map of fingerprints to schedule step indexes.
+        /// </summary>
+        private Dictionary<Fingerprint, List<int>> FingerprintIndexMap;
+
+        /// <summary>
         /// Creates a liveness strategy that checks the specific monitors
         /// for liveness property violations, and uses the specified
         /// strategy for scheduling decisions.
@@ -111,6 +116,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             Seed = Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             Random = new DefaultRandomNumberGenerator(Seed);
+
+            FingerprintIndexMap = new Dictionary<Fingerprint, List<int>>();
         }
 
         /// <summary>
@@ -245,6 +252,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public override void PrepareForNextChoice()
         {
+            if (this.ScheduleTrace.Count == 0)
+            {
+                return;
+            }
+
             CaptureProgramState();
 
             if (PotentialCycle.Count > 0)
@@ -331,11 +343,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (Configuration.SafetyPrefixBound <= GetExploredSteps())
             {
                 State capturedState = null;
-                bool stateExists = StateCache.CaptureState(out capturedState, ScheduleTrace.Peek(), Monitors);
+                Fingerprint fingerprint = null;
+                bool stateExists = StateCache.CaptureState(out capturedState, out fingerprint,
+                    FingerprintIndexMap, ScheduleTrace.Peek(), Monitors);
                 if (stateExists)
                 {
                     Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
-                    CheckLivenessAtTraceCycle(capturedState.Fingerprint);
+                    CheckLivenessAtTraceCycle(capturedState.Fingerprint, FingerprintIndexMap[fingerprint]);
                 }
             }
         }
@@ -404,7 +418,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Checks liveness at a schedule trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
-        internal void CheckLivenessAtTraceCycle(Fingerprint root)
+        /// <param name="indices">Indices corresponding to the fingerprint of root</param>
+        internal void CheckLivenessAtTraceCycle(Fingerprint root, List<int> indices)
         {
             // If there is a potential cycle found, do not create a new one until the
             // liveness checker has finished exploring the current cycle.
@@ -413,79 +428,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return;
             }
 
-            List<int> checkIndex = new List<int>();
-            for (int i = ScheduleTrace.Count - 1; i >= 0; i--)
-            {
-                if (ScheduleTrace.Peek().Equals(ScheduleTrace[i]))
-                {
-                    continue;
-                }
-
-                if (StateCache[ScheduleTrace[i]].Fingerprint.Equals(root))
-                {
-                    checkIndex.Add(ScheduleTrace[i].Index);
-                }
-            }
-
-            var checkIndexRand = checkIndex.First();
+            var checkIndexRand = indices[indices.Count - 2];
             var index = ScheduleTrace.Count - 1;
 
-            do
+            for (int i = checkIndexRand + 1; i <= index; i++)
             {
-                var scheduleStep = ScheduleTrace[index];
-                index--;
+                var scheduleStep = ScheduleTrace[i];
                 var state = StateCache[scheduleStep];
-                PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
+                PotentialCycle.Add(Tuple.Create(scheduleStep, state));
 
                 Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
                     scheduleStep.Type, state.Fingerprint.ToString());
             }
-            while (index > 0 && ScheduleTrace[index] != null &&
-                ScheduleTrace[index].Index != checkIndexRand);
 
-            if (Configuration.EnableDebugging)
-            {
-                Debug.WriteLine("<LivenessDebug> ------------ SCHEDULE ------------.");
-
-                foreach (var x in ScheduleTrace)
-                {
-                    if (x.Type == ScheduleStepType.SchedulingChoice)
-                    {
-                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.ScheduledMachineId} :: {StateCache[x].Fingerprint}");
-                    }
-                    else if (x.BooleanChoice != null)
-                    {
-                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.BooleanChoice.Value} :: {StateCache[x].Fingerprint}");
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.IntegerChoice.Value} :: {StateCache[x].Fingerprint}");
-                    }
-                }
-
-                Debug.WriteLine("<LivenessDebug> ----------------------------------.");
-                Debug.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
-
-                foreach (var x in PotentialCycle)
-                {
-                    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
-                    {
-                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
-                    }
-                    else if (x.Item1.BooleanChoice != null)
-                    {
-                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
-                    }
-
-                    x.Item2.PrettyPrint();
-                }
-
-                Debug.WriteLine("<LivenessDebug> ----------------------------------.");
-            }
+            DebugPrintScheduleTrace();
+            DebugPrintPotentialCycle();
 
             if (!IsSchedulingFair(PotentialCycle))
             {
@@ -501,25 +458,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (PotentialCycle.Count == 0)
             {
                 bool isFairCycleFound = false;
-                int counter = Math.Min(checkIndex.Count, 5);
+                int counter = Math.Min(indices.Count - 1, 3);
                 while (!isFairCycleFound && counter > 0)
                 {
-                    var randInd = Random.Next(checkIndex.Count - 1);
-                    checkIndexRand = checkIndex[randInd];
+                    var randInd = Random.Next(indices.Count - 2);
+                    checkIndexRand = indices[randInd];
 
                     index = ScheduleTrace.Count - 1;
-                    do
+                    for (int i = checkIndexRand + 1; i <= index; i++)
                     {
-                        var scheduleStep = ScheduleTrace[index];
-                        index--;
+                        var scheduleStep = ScheduleTrace[i];
                         var state = StateCache[scheduleStep];
-                        PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
+                        PotentialCycle.Add(Tuple.Create(scheduleStep, state));
 
                         Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
                             scheduleStep.Type, state.Fingerprint.ToString());
                     }
-                    while (index > 0 && ScheduleTrace[index] != null &&
-                        ScheduleTrace[index].Index != checkIndexRand);
 
                     if (IsSchedulingFair(PotentialCycle) && IsNondeterminismFair(PotentialCycle))
                     {
@@ -536,7 +490,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (!isFairCycleFound)
                 {
-                    Debug.WriteLine("<LivenessDebug> Scheduling in cycle is unfair.");
                     PotentialCycle.Clear();
                     return;
                 }
@@ -670,6 +623,68 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             CurrentCycleIndex = 0;
 
             IsReplayingCycle = false;
+        }
+
+        /// <summary>
+        /// Prints the program schedule trace. Works only
+        /// if debug mode is enabled.
+        /// </summary>
+        private void DebugPrintScheduleTrace()
+        {
+            if (Configuration.EnableDebugging)
+            {
+                Debug.WriteLine("<LivenessDebug> ------------ SCHEDULE ------------.");
+
+                foreach (var x in ScheduleTrace)
+                {
+                    if (x.Type == ScheduleStepType.SchedulingChoice)
+                    {
+                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.ScheduledMachineId} :: {StateCache[x].Fingerprint}");
+                    }
+                    else if (x.BooleanChoice != null)
+                    {
+                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.BooleanChoice.Value} :: {StateCache[x].Fingerprint}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"{x.Index} :: {x.Type} :: {x.IntegerChoice.Value} :: {StateCache[x].Fingerprint}");
+                    }
+                }
+
+                Debug.WriteLine("<LivenessDebug> ----------------------------------.");
+            }
+        }
+
+        /// <summary>
+        /// Prints the potential cycle. Works only if
+        /// debug mode is enabled.
+        /// </summary>
+        private void DebugPrintPotentialCycle()
+        {
+            if (Configuration.EnableDebugging)
+            {
+                Debug.WriteLine("<LivenessDebug> ------------- CYCLE --------------.");
+
+                foreach (var x in PotentialCycle)
+                {
+                    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
+                    {
+                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.ScheduledMachineId}");
+                    }
+                    else if (x.Item1.BooleanChoice != null)
+                    {
+                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.BooleanChoice.Value}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"{x.Item1.Index} :: {x.Item1.Type} :: {x.Item1.IntegerChoice.Value}");
+                    }
+
+                    x.Item2.PrettyPrint();
+                }
+
+                Debug.WriteLine("<LivenessDebug> ----------------------------------.");
+            }
         }
     }
 }

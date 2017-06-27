@@ -136,6 +136,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            this.Strategy.PrepareForNextChoice();
+
             SchedulableInfo current = this.ScheduledMachine;
             current.SetNextOperation(operationType);
 
@@ -156,7 +158,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.ScheduledMachine = next as SchedulableInfo;
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Id);
-            this.Strategy.PrepareForNextChoice();
 
             Debug.WriteLine($"<ScheduleDebug> Schedule '{next.Name}' with task id '{this.ScheduledMachine.TaskId}'.");
 
@@ -205,6 +206,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            this.Strategy.PrepareForNextChoice();
+
             var choice = false;
             if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
             {
@@ -220,9 +223,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
-
-            this.Strategy.PrepareForNextChoice();
-
+            
             return choice;
         }
 
@@ -239,6 +240,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
+            this.Strategy.PrepareForNextChoice();
+
             var choice = 0;
             if (!this.Strategy.GetNextIntegerChoice(maxValue, out choice))
             {
@@ -247,7 +250,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
-            this.Strategy.PrepareForNextChoice();
 
             return choice;
         }

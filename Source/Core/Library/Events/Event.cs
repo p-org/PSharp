@@ -28,7 +28,6 @@ namespace Microsoft.PSharp
         /// Specifies that there must not be more than k instances
         /// of e in the input queue of any machine.
         /// </summary>
-        [DataMember]
         protected internal readonly int Assert;
 
         /// <summary>
@@ -36,8 +35,13 @@ namespace Microsoft.PSharp
         /// the cardinality of e beyond k in some queue must not be
         /// generated.
         /// </summary>
-        [DataMember]
         protected internal readonly int Assume;
+
+        /// <summary> 
+        /// User-defined hash of the event payload. Override to improve the
+        /// accuracy of liveness checking when state-caching is enabled.
+        /// </summary> 
+        protected internal virtual int HashedState => 0;
 
         #endregion
 
