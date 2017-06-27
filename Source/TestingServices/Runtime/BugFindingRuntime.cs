@@ -383,7 +383,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             });
 
-            (harness.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id);
+            (harness.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id, 0);
             this.Scheduler.NotifyEventHandlerCreated(harness.Info as SchedulableInfo);
 
             task.Start();
@@ -423,7 +423,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            this.RunMachineEventHandler(machine, e, true, false);
+            this.RunMachineEventHandler(machine, e, true, false, null);
 
             return machine.Id;
         }
@@ -462,7 +462,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            this.RunMachineEventHandler(machine, e, true, true);
+            this.RunMachineEventHandler(machine, e, true, true, null);
 
             return await Task.FromResult(machine.Id);
         }
@@ -538,12 +538,12 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
-
+            
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, ref runNewHandler);
+            EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler && machine.TryDequeueEvent(true) != null)
             {
-                this.RunMachineEventHandler(machine, null, false, false);
+                this.RunMachineEventHandler(machine, null, false, false, eventInfo);
             }
         }
 
@@ -574,10 +574,10 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, ref runNewHandler);
+            EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, ref runNewHandler);
             if (runNewHandler && machine.TryDequeueEvent(true) != null)
             {
-                this.RunMachineEventHandler(machine, null, false, true);
+                this.RunMachineEventHandler(machine, null, false, true, eventInfo);
             }
 
             await Task.CompletedTask;
@@ -602,7 +602,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, ref bool runNewHandler)
+        /// <returns>EventInfo</returns>
+        private EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, ref bool runNewHandler)
         {
             if (sender != null && sender is Machine)
             {
@@ -621,7 +622,7 @@ namespace Microsoft.PSharp.TestingServices
                 originInfo = new EventOriginInfo(null, "Env", "Env");
             }
 
-            EventInfo eventInfo = new EventInfo(e, originInfo);
+            EventInfo eventInfo = new EventInfo(e, originInfo, Scheduler.ExploredSteps);
 
             if (sender != null)
             {
@@ -645,6 +646,8 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             machine.Enqueue(eventInfo, ref runNewHandler);
+
+            return eventInfo;
         }
 
         /// <summary>
@@ -652,10 +655,11 @@ namespace Microsoft.PSharp.TestingServices
         /// This is a fire and forget invocation.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
+        /// <param name="initialEvent">Event</param>
         /// <param name="isFresh">Is a new machine</param>
-        /// <param name="executeSynchronously">If true, this operation executes synchronously</param> 
-        private void RunMachineEventHandler(Machine machine, Event e, bool isFresh, bool executeSynchronously)
+        /// <param name="executeSynchronously">If true, this operation executes synchronously</param>
+        /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param> 
+        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, bool executeSynchronously, EventInfo enablingEvent)
         {
             Task task = new Task(async () =>
             {
@@ -667,7 +671,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (isFresh)
                     {
-                        await machine.GotoStartState(e);
+                        await machine.GotoStartState(initialEvent);
                     }
 
                     await machine.RunEventHandler(executeSynchronously);
@@ -702,7 +706,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TaskMap.TryAdd(task.Id, machine);
 
-            (machine.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id);
+            (machine.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id, enablingEvent?.SendStep ?? 0);
             this.Scheduler.NotifyEventHandlerCreated(machine.Info as SchedulableInfo);
 
             task.Start(this.TaskScheduler);
@@ -1089,6 +1093,10 @@ namespace Microsoft.PSharp.TestingServices
             if ((machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint)
             {
                 (machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint = false;
+            }
+            else
+            {
+                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
                 this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
             }
 

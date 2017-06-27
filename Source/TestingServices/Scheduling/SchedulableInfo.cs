@@ -125,14 +125,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// run on the specified task id.
         /// </summary>
         /// <param name="taskId">TaskId</param>
-        internal void NotifyEventHandlerCreated(int taskId)
+        /// <param name="sendStep">The step of the send that caused the event handler to be restarted, or 0 if this does not apply.</param>
+        internal void NotifyEventHandlerCreated(int taskId, int sendStep)
         {
             TaskId = taskId;
             IsEnabled = true;
             IsWaitingToReceive = false;
             IsActive = false;
             IsEventHandlerRunning = false;
-
+            NextOperationMatchingSendIndex = (ulong) sendStep;
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
 

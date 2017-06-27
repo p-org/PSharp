@@ -43,6 +43,11 @@ namespace Microsoft.PSharp
         internal string EventName { get; private set; }
 
         /// <summary>
+        /// The step from which this event was sent.
+        /// </summary>
+        internal int SendStep { get; }
+
+        /// <summary>
         /// Information regarding the event origin.
         /// </summary>
         [DataMember]
@@ -68,12 +73,20 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">Event</param>
         /// <param name="originInfo">EventOriginInfo</param>
-        internal EventInfo(Event e, EventOriginInfo originInfo)
+        internal EventInfo(Event e, EventOriginInfo originInfo) : this(e)
         {
-            this.Event = e;
-            this.EventType = e.GetType();
-            this.EventName = this.EventType.FullName;
             this.OriginInfo = originInfo;
+        }
+
+        /// <summary>
+        /// Construtor.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <param name="originInfo">EventOriginInfo</param>
+        /// <param name="sendStep">int</param>
+        internal EventInfo(Event e, EventOriginInfo originInfo, int sendStep) : this(e, originInfo)
+        {
+            this.SendStep = sendStep;
         }
 
         #endregion
