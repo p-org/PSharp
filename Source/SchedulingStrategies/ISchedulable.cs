@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Is the entity enabled.
         /// </summary>
-        bool IsEnabled { get; }
+        bool IsEnabled { get; set; }
 
         /// <summary>
         /// Type of the next operation of the entity.

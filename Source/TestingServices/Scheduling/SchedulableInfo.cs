@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Is machine enabled.
         /// </summary>
-        public bool IsEnabled { get; internal set; }
+        public bool IsEnabled { get; set; }
 
         /// <summary>
         /// Type of the next operation of the machine.

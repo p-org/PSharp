@@ -48,6 +48,22 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// Operation used when an <see cref="ISchedulable"/>
         /// stops executing.
         /// </summary>
-        Stop
+        Stop,
+        /// <summary>
+        /// Operation used when an <see cref="ISchedulable"/>
+        /// yields.
+        /// </summary>
+        Yield,
+        /// <summary>
+        /// Operation used when an <see cref="ISchedulable"/>
+        /// wants to wait for quiescence.
+        /// </summary>
+        WaitForQuiescence,
+        /// <summary>
+        /// Operation used when an <see cref="ISchedulable"/>
+        /// wants to wait for another <see cref="ISchedulable"/>
+        /// to Stop.
+        /// </summary>
+        Join
     }
 }
