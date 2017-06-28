@@ -19,7 +19,7 @@ using System.Linq;
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// The stack datastructure used by<see cref="DPORStrategy"/> to perform the
+    /// The stack datastructure used by <see cref="DPORStrategy"/> to perform the
     /// depth-first search.
     /// </summary>
     public class Stack

@@ -20,23 +20,120 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// The actual DPOR algorithm used by <see cref="DPORStrategy"/>.
+    /// 
+    /// This is actually the "Source DPOR" algorithm.
+    /// 
+    /// Implementation notes:
+    /// 
+    /// 
+    /// Note that when we store indexes, they start at 1.
+    /// This allows 0 to mean: null / not yet seen.
+    /// Thus, when accessing e.g. Vcs, we must subtract 1.
+    /// But most accesses should be done via a method to hide this.
+    /// 
+    /// The happens-before relation (HBR) is assigned as follows:
+    /// - create, start, stop with the same target id are totally-ordered
+    /// - operations from the same thread are totally ordered.
+    /// - corresponding send-receive operation pairs are ordered.
+    /// - sends to the same target id are totally-ordered.
+    /// 
+    /// That last one is expected, but a bit annoying when doing random DPOR
+    /// because it limits the races (see below) between send operations to the same target id.
+    /// 
+    /// The HBR is tracked using vector clocks (VCs).
+    /// 
+    /// A pair of operations A and B is a race iff:
+    /// - A happens-before B 
+    /// - and A and B are from different threads
+    /// - and there does not exist an operation C such that A happens-before C happens-before B.
+    /// 
+    /// In other words, A and B must be directly related in the HBR with no intervening operation
+    /// connecting them. They do not need to be adjacent though 
+    /// (i.e. in a schedule, ACB, A and B might still be a race, unless A hb C hb B).
+    /// We check this in the code by checking if A hb B *before* we update the 
+    /// VC of B to include the A-B edge; if A already happens-before B then this is not a race.
+    /// 
     /// </summary>
     public class DPORAlgorithm
     {
+        /// <summary>
+        /// An upper bound of the number of threads (schedulables).
+        /// Will be increased as needed.
+        /// </summary>
         private int NumThreads;
+
+        /// <summary>
+        /// The total number of steps (visible operations).
+        /// Will be increased as needed.
+        /// </summary>
         private int NumSteps;
         
-        private int[] ThreadIdToLastOpIndex; 
+        /// <summary>
+        /// A map from thread id to the index of the last op
+        /// performed by the thread.
+        /// </summary>
+        private int[] ThreadIdToLastOpIndex;
+
+        /// <summary>
+        /// A map from target id to the last create, start or stop operation.
+        /// Used to update the HBR/VCs.
+        /// </summary>
         private int[] TargetIdToLastCreateStartEnd;
+
+        /// <summary>
+        /// A map from target id to the last send (*to* this target).
+        /// Used to update the HBR/VCs.
+        /// </summary>
         private int[] TargetIdToLastSend;
+
+        /// <summary>
+        /// A map from target id to the first send (*to* this target).
+        /// TODO: Used in random DPOR to slightly limit the search
+        /// of prior sends that could race with the current send.
+        /// </summary>
+        private int[] TargetIdToFirstSend;
+
+        /// <summary>
+        /// The list of vector clocks (VCs).
+        /// We store a VC for each visible operation.
+        /// Thus, this is a map from a step index to the operation's VC.
+        /// Given a step index i and thread id c:
+        ///   Vcs[(i-1)*NumThreads + c] == the vector clock of thread c.
+        /// </summary>
         private int[] Vcs;
 
+        /// <summary>
+        /// A way for the ISchedulable to assert conditions.
+        /// </summary>
         private readonly IAsserter Asserter;
 
+        /// <summary>
+        /// Whether to perform random DPOR.
+        /// </summary>
+        private readonly bool DoRandomDPOR;
+
+        /// <summary>
+        /// A list of all races.
+        /// Only used when performing random DPOR.
+        /// </summary>
         private readonly List<Race> Races;
 
         /// <summary>
-        /// When performing randomized DPOR,
+        /// The missing thread ids when replaying a reversed race.
+        /// When performing random DPOR,
+        /// we pick a race, reverse it, and "replay" it.
+        /// In the replay, some threads may not get created
+        /// (because the replay is different)
+        /// and we must be careful when writing the RaceReplaySuffix,
+        /// subtracting 1 for every missing thread that is less than
+        /// the thread id we want to record.
+        /// This field tracks those threads.
+        /// It is a list of thread ids (not a map).
+        /// </summary>
+        private readonly List<int> MissingThreadIds;
+
+        /// <summary>
+        /// When performing random DPOR,
         /// this field gives the schedule (as a list of thread ids)
         /// that should be followed in order to reverse a randomly chosen race.
         /// </summary>
@@ -48,14 +145,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public int ReplayRaceIndex;
 
-        private readonly List<int> MissingThreadIds;
-
         /// <summary>
         /// Construct the DPOR algorithm.
         /// </summary>
-        public DPORAlgorithm(IAsserter asserter)
+        public DPORAlgorithm(IAsserter asserter, bool doRandomDPOR)
         {
             Asserter = asserter;
+            DoRandomDPOR = doRandomDPOR;
             // initial estimates
             NumThreads = 4;
             NumSteps = 1 << 8;
@@ -63,6 +159,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             ThreadIdToLastOpIndex = new int[NumThreads];
             TargetIdToLastCreateStartEnd = new int[NumThreads];
             TargetIdToLastSend = new int[NumThreads];
+            TargetIdToFirstSend = new int[NumThreads];
             Vcs = new int[NumSteps * NumThreads];
             Races = new List<Race>(NumSteps);
             RaceReplaySuffix = new List<int>();
@@ -511,12 +608,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 ThreadIdToLastOpIndex = new int[temp];
                 TargetIdToLastCreateStartEnd = new int[temp];
                 TargetIdToLastSend = new int[temp];
+                TargetIdToFirstSend = new int[temp];
             }
             else
             {
                 Array.Clear(ThreadIdToLastOpIndex, 0, ThreadIdToLastOpIndex.Length);
                 Array.Clear(TargetIdToLastCreateStartEnd, 0, TargetIdToLastCreateStartEnd.Length);
                 Array.Clear(TargetIdToLastSend, 0, TargetIdToLastSend.Length);
+                Array.Clear(TargetIdToFirstSend, 0, TargetIdToFirstSend.Length);
             }
 
             int numClocks = NumThreads * NumSteps;

@@ -23,11 +23,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     public class DPORStrategy : ISchedulingStrategy
     {
+        /// <summary>
+        /// The stack datastructure used to perform the
+        /// depth-first search.
+        /// </summary>
         private readonly Stack Stack;
+
+        /// <summary>
+        /// The actual DPOR algorithm implementation.
+        /// </summary>
         private readonly DPORAlgorithm Dpor;
+
+        /// <summary>
+        /// Whether to use sleep sets.
+        /// See <see cref="SleepSets"/>.
+        /// </summary>
         private readonly bool UseSleepSets;
+
+        /// <summary>
+        /// If non-null, we perform random DPOR
+        /// using this RNG.
+        /// </summary>
         private readonly Random Rand;
+
+        /// <summary>
+        /// A way for the ISchedulable to assert conditions.
+        /// </summary>
         private readonly IAsserter Asserter;
+
+        // TODO: implement the step limit.
+        /// <summary>
+        /// The step limit.
+        /// </summary>
         private readonly int StepLimit;
 
         /// <summary>
@@ -44,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             Rand = rand;
             StepLimit = stepLimit;
             Stack = new Stack(rand, Asserter);
-            Dpor = dpor ? new DPORAlgorithm(Asserter) : null;
+            Dpor = dpor ? new DPORAlgorithm(Asserter, Rand != null) : null;
             UseSleepSets = rand == null && useSleepSets;
             Reset();
         }
