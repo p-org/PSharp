@@ -321,6 +321,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Notify that a monitor was registered.
+        /// </summary>
+        /// <param name="info">SchedulableInfo</param>
+        internal void NotifyMonitorCreated(SchedulableInfo info)
+        {
+            // TODO: assert !this.Infos.ContainsKey(info.Id);
+            this.Infos.Add(info.Id, info);
+            Debug.WriteLine($"<ScheduleDebug> Created monitor of '{info.Name}'.");
+        }
+
+        /// <summary>
         /// Notify that the event handler has started.
         /// </summary>
         /// <param name="info">SchedulableInfo</param>

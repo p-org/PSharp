@@ -737,6 +737,10 @@ namespace Microsoft.PSharp.TestingServices
                 "is not a subclass of Monitor.\n");
 
             MachineId mid = new MachineId(type, null, this);
+
+            SchedulableInfo info = new SchedulableInfo(mid);
+            Scheduler.NotifyMonitorCreated(info);
+
             Monitor monitor = Activator.CreateInstance(type) as Monitor;
             monitor.Initialize(mid);
             monitor.InitializeStateInformation();
