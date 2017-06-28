@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             AssertSucceeded(configuration, test);
         }
 
-        protected void AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
+        internal BugFindingEngine AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
         {
             InMemoryLogger logger = new InMemoryLogger();
 
@@ -44,10 +44,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
                 var numErrors = engine.TestReport.NumOfFoundBugs;
                 Assert.True(numErrors == 0, GetBugReport(engine));
+                return engine;
             }
             catch (Exception ex)
             {
                 Assert.False(true, ex.Message + "\n" + ex.StackTrace);
+                return null;
             }
             finally
             {
