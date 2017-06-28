@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private static TidEntryList GetThreadsAt(Stack stack, int index)
         {
-            return stack.StackInternal[(int)index - 1];
+            return stack.StackInternal[index - 1];
         }
 
 
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     ClearVC(i);
                 }
-                ForVCSetClockToValue(i, (int) step.Id, i);
+                ForVCSetClockToValue(i, step.Id, i);
                 ThreadIdToLastOpIndex[step.Id] = i;
 
                 int targetId = step.TargetId;
@@ -228,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
                     case OperationType.Receive:
                     {
-                        lastAccessIndex = (int) step.SendStepIndex;
+                        lastAccessIndex = step.SendStepIndex;
                         break;
                     }
                     case OperationType.WaitForQuiescence:
@@ -276,13 +276,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Add to RaceReplaySuffix: all steps between a and b that do not h.a. a.
             for (int i = race.A; i < race.B; ++i)
             {
-                if (HB(stack, (int) race.A, (int) i))
+                if (HB(stack, race.A, i))
                 {
                     // Skip it.
                     // But track the missing thread id if this is a create operation.
-                    if (GetSelectedTidEntry(stack, (int) i).OpType == OperationType.Create)
+                    if (GetSelectedTidEntry(stack, i).OpType == OperationType.Create)
                     {
-                        var missingThreadId = GetThreadsAt(stack, (int) i).List.Count;
+                        var missingThreadId = GetThreadsAt(stack, i).List.Count;
                         var index = MissingThreadIds.BinarySearch(missingThreadId);
                         // We should not find it.
                         Asserter.Assert(index < 0);
@@ -296,12 +296,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     // Add thread id to the RaceReplaySuffix, but adjust
                     // it for missing thread ids.
-                    AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, (int) i).Id);
+                    AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, i).Id);
                 }
             }
 
-            AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, (int) race.B).Id);
-            AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, (int) race.A).Id);
+            AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, race.B).Id);
+            AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, race.A).Id);
 
             // Remove steps from a onwards. Indexes start at one so we must subtract 1.
             stack.StackInternal.RemoveRange(race.A - 1, stack.StackInternal.Count - (race.A - 1));
@@ -373,14 +373,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (aTidEntries.List.Count > step.Id && 
                 (aTidEntries.List[step.Id].Enabled || aTidEntries.List[step.Id].OpType == OperationType.Yield))
             {
-                candidateThreadIds.Add((int) step.Id);
+                candidateThreadIds.Add(step.Id);
             }
             var lookingFor = new HashSet<int>();
             for (int j = 0; j < aTidEntries.List.Count; ++j)
             {
                 if (j != a.Id &&
                     j != step.Id &&
-                    (aTidEntries.List[(int) j].Enabled || aTidEntries.List[(int)j].OpType == OperationType.Yield))
+                    (aTidEntries.List[j].Enabled || aTidEntries.List[(int)j].OpType == OperationType.Yield))
                 {
                     lookingFor.Add(j);
                 }
@@ -393,9 +393,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 for (int k = lastAccessIndex + 1; k < i; ++k)
                 {
                     var kEntry = GetSelectedTidEntry(stack, k);
-                    if (!lookingFor.Contains((int) kEntry.Id)) continue;
+                    if (!lookingFor.Contains(kEntry.Id)) continue;
 
-                    lookingFor.Remove((int) kEntry.Id);
+                    lookingFor.Remove(kEntry.Id);
                     bool doesHaAnother = false;
                     for (int t = 0; t < NumThreads; ++t)
                     {
@@ -408,7 +408,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
                     if (!doesHaAnother)
                     {
-                        candidateThreadIds.Add((int) kEntry.Id);
+                        candidateThreadIds.Add(kEntry.Id);
                     }
                     if (lookingFor.Count == 0)
                     {
@@ -424,7 +424,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Is one already backtracked?
             foreach (var tid in candidateThreadIds)
             {
-                if (aTidEntries.List[(int) tid].Backtrack)
+                if (aTidEntries.List[tid].Backtrack)
                 {
                     return;
                 }
@@ -434,7 +434,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Try to pick one that is slept first.
             // Start from thread b.tid:
             {
-                int sleptThread = (int) step.Id;
+                int sleptThread = step.Id;
                 for (int k = 0; k < NumThreads; ++k)
                 {
                     if (candidateThreadIds.Contains(sleptThread) &&
@@ -459,9 +459,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 for (int k = 0; k < NumThreads; ++k)
                 {
                     if (candidateThreadIds.Contains(backtrackThread) &&
-                        aTidEntries.List[(int) backtrackThread].Enabled)
+                        aTidEntries.List[backtrackThread].Enabled)
                     {
-                        aTidEntries.List[(int) backtrackThread].Backtrack = true;
+                        aTidEntries.List[backtrackThread].Backtrack = true;
                         return;
                     }
                     ++backtrackThread;
@@ -497,8 +497,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private void UpdateFieldsAndRealocateDatastructuresIfNeeded(Stack stack)
         {
-            NumThreads = (int) stack.GetTopAsRealTop().List.Count;
-            NumSteps = (int) stack.StackInternal.Count;
+            NumThreads = stack.GetTopAsRealTop().List.Count;
+            NumSteps = stack.StackInternal.Count;
 
             int temp = ThreadIdToLastOpIndex.Length;
             while (temp < NumThreads)
