@@ -12,7 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -30,6 +32,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public readonly List<TidEntry> List;
 
+        private int SelectedEntry;
+
+        /// <summary>
+        /// A list of random choices made by the <see cref="SelectedEntry"/> thread as part of its
+        /// visible operation.
+        /// Can be null.
+        /// </summary>
+        public List<NonDetChoice> NondetChoices;
+
         /// <summary>
         /// Construct a TidEntryList.
         /// </summary>
@@ -37,6 +48,50 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public TidEntryList(List<TidEntry> list)
         {
             List = list;
+            SelectedEntry = -1;
+            NondetChoices = null;
+        }
+
+        /// <summary>
+        /// Add a nondet choice outcome to the list of nondet choices made by this thread.
+        /// </summary>
+        /// <param name="isBoolChoice"></param>
+        /// <param name="choice"></param>
+        public void AddNondetChoice(bool isBoolChoice, int choice)
+        {
+            if (NondetChoices == null)
+            {
+                NondetChoices = new List<NonDetChoice>();
+            }
+            NonDetChoice nondetChoice = new NonDetChoice
+            {
+                IsBoolChoice = isBoolChoice,
+                Choice = choice
+            };
+            NondetChoices.Add(nondetChoice);
+        }
+
+        /// <summary>
+        /// Did the selected thread make some nondet choices?
+        /// </summary>
+        /// <returns></returns>
+        public bool HasNondetChoice()
+        {
+            return NondetChoices != null && NondetChoices.Count > 0;
+        }
+
+        /// <summary>
+        /// Pop off the last nondet choice made by the selected
+        /// thread.
+        /// </summary>
+        /// <param name="asserter"></param>
+        /// <returns></returns>
+        public NonDetChoice PopNonDetChoice(IAsserter asserter)
+        {
+            asserter.Assert(HasNondetChoice());
+            NonDetChoice res = NondetChoices[NondetChoices.Count - 1];
+            NondetChoices.RemoveAt(NondetChoices.Count - 1);
+            return res;
         }
 
         /// <summary>
@@ -69,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     continue;
                 }
-                if (tidEntry.Selected)
+                if (tidEntry.Id == SelectedEntry)
                 {
                     sb.Append("*");
                 }
@@ -98,8 +153,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return "-";
             }
+
+
             TidEntry selected = List[selectedIndex];
-            return $"({selected.Id}, {selected.OpType}, {selected.TargetType}, {selected.TargetId})";
+            int priorSend = selected.OpType == OperationType.Receive
+                ? selected.SendStepIndex
+                : -1;
+            return $"({selected.Id}, {selected.OpType}, {selected.TargetType}, {selected.TargetId}, {priorSend})";
 
         }
 
@@ -117,7 +177,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     continue;
                 }
-                if (tidEntry.Selected)
+                if (tidEntry.Id == SelectedEntry)
                 {
                     sb.Append("*");
                 }
@@ -176,7 +236,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 if (List[i].Backtrack &&
                     !List[i].Sleep &&
-                    !List[i].Selected)
+                    List[i].Id != SelectedEntry)
                 {
                     asserter.Assert(List[i].Enabled);
                     res.Add(i);
@@ -195,7 +255,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 if (t.Backtrack &&
                     !t.Sleep &&
-                    !t.Selected)
+                    t.Id != SelectedEntry)
                 {
                     return true;
                 }
@@ -226,18 +286,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>The selected thread index or -1 if no thread is selected.</returns>
         public int TryGetSelected(IAsserter asserter)
         {
-            int res = -1;
-            for (int i = 0; i < List.Count; ++i)
-            {
-                if (List[i].Selected)
-                {
-                    asserter.Assert(res == -1, "DFS Strategy: More than one selected tid entry!");
-                    res = i;
-                }
-            }
-            
-
-            return res;
+            return SelectedEntry;
         }
 
         /// <summary>
@@ -266,7 +315,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void ClearSelected(IAsserter asserter)
         {
-            List[GetSelected(asserter)].Selected = false;
+            SelectedEntry = -1;
         }
 
         /// <summary>
@@ -294,6 +343,33 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     i = 0;
                 }
             }
+        }
+
+        /// <summary>
+        /// Add a random enabled and not slept thread to the backtrack set.
+        /// </summary>
+        /// <param name="rand"></param>
+        public void AddRandomEnabledNotSleptToBacktrack(Random rand)
+        {
+            var enabledNotSlept = List.Where(e => e.Enabled && !e.Sleep).ToList();
+            if (enabledNotSlept.Count > 0)
+            {
+                int choice = rand.Next(enabledNotSlept.Count);
+                enabledNotSlept[choice].Backtrack = true;
+            }
+        }
+
+        /// <summary>
+        /// Sets the selected thread id.
+        /// There must not already be a selected thread id.
+        /// </summary>
+        /// <param name="tid">thread id to be set to selected</param>
+        /// <param name="asserter">IAsserter</param>
+        public void SetSelected(int tid, IAsserter asserter)
+        {
+            asserter.Assert(SelectedEntry < 0);
+            asserter.Assert(tid >= 0 && tid < List.Count);
+            SelectedEntry = tid;
         }
     }
 }

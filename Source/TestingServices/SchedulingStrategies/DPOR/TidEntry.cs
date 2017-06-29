@@ -33,11 +33,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool Enabled;
 
         /// <summary>
-        /// Is the thread selected for exploration?
-        /// </summary>
-        public bool Selected;
-
-        /// <summary>
         /// Skip exploring this thread from here.
         /// </summary>
         public bool Sleep;
@@ -81,7 +76,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             Id = id;
             Enabled = enabled;
-            Selected = false;
             Sleep = false;
             Backtrack = false;
             OpType = opType;

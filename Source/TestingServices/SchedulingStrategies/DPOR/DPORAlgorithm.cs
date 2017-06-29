@@ -108,11 +108,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private readonly IAsserter Asserter;
 
         /// <summary>
-        /// Whether to perform random DPOR.
-        /// </summary>
-        private readonly bool DoRandomDPOR;
-
-        /// <summary>
         /// A list of all races.
         /// Only used when performing random DPOR.
         /// </summary>
@@ -148,10 +143,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Construct the DPOR algorithm.
         /// </summary>
-        public DPORAlgorithm(IAsserter asserter, bool doRandomDPOR)
+        public DPORAlgorithm(IAsserter asserter)
         {
             Asserter = asserter;
-            DoRandomDPOR = doRandomDPOR;
             // initial estimates
             NumThreads = 4;
             NumSteps = 1 << 8;
@@ -227,15 +221,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             return res;
         }
 
-        private bool HB(Stack stack, int vc1, int vc2)
+        private bool HB(int threadIdOfA, int vca, int vcb)
         {
             // A hb B
             // iff:
             // A's index <= B.VC[A's tid]
 
-            TidEntry aStep = GetSelectedTidEntry(stack, vc1);
+            // TidEntry aStep = GetSelectedTidEntry(stack, vca);
 
-            return vc1 <= ForVCGetClock(vc2, aStep.Id);
+            return vca <= ForVCGetClock(vcb, /*aStep.Id*/ threadIdOfA);
         }
 
 
@@ -321,6 +315,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     {
                         lastAccessIndex = TargetIdToLastSend[targetId];
                         TargetIdToLastSend[targetId] = i;
+                        if (TargetIdToFirstSend[targetId] == 0)
+                        {
+                            TargetIdToFirstSend[targetId] = i;
+                        }
                         break;
                     }
                     case OperationType.Receive:
@@ -343,6 +341,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     case OperationType.Yield:
                         // Nothing.
                         break;
+                    case OperationType.DefaultEvent:
+                        // TODO: How should we handle this?
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -350,9 +351,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     
                 if (lastAccessIndex > 0)
                 {
-                    AddBacktrack(stack, lastAccessIndex, i, step);
+                    AddBacktrack(stack, rand != null, lastAccessIndex, i, step);
 
-                    ForVCJoinFromVC(i, lastAccessIndex);
+                    // Random DPOR skips joining for sends.
+                    if (!(rand != null && step.OpType == OperationType.Send))
+                    {
+                        ForVCJoinFromVC(i, lastAccessIndex);
+                    }
                 }
             }
 
@@ -366,14 +371,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private void DoRandomRaceReverse(Stack stack, Random rand)
         {
             int raceIndex = rand.Next(Races.Count);
+            if (raceIndex == 0)
+            {
+                return;
+            }
             Race race = Races[raceIndex];
 
             Asserter.Assert(RaceReplaySuffix.Count == 0, "Tried to reverse race but replay suffix was not empty!");
 
+            int threadIdOfA = GetSelectedTidEntry(stack, race.A).Id;
+
             // Add to RaceReplaySuffix: all steps between a and b that do not h.a. a.
             for (int i = race.A; i < race.B; ++i)
             {
-                if (HB(stack, race.A, i))
+                if (HB(threadIdOfA, race.A, i))
                 {
                     // Skip it.
                     // But track the missing thread id if this is a create operation.
@@ -427,17 +438,73 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             RaceReplaySuffix.Add(threadId - index);
         }
 
+
+        private void DoRandomDPORAddRaces(Stack stack,
+            int lastAccessIndex,
+            int i,
+            TidEntry step)
+        {
+
+            // Note: Only sends are reversible
+            // so we will only get here if step.OpType is a send
+            // so the if below is redundant.
+            // But I am leaving this here in case we end up with more reversible types.
+            // The following assert will then fail and more thought will be needed.
+            // The if below is probably sufficient though, so the assert can probably just be removed.
+
+            Asserter.Assert(step.OpType == OperationType.Send);
+
+            // Easy case (non-sends).
+            if (step.OpType != OperationType.Send)
+            {
+                Races.Add(new Race(lastAccessIndex, i));
+                return;
+            }
+
+            // Harder case (sends).
+
+            // In random DPOR, we don't just want the last race;
+            // we want all races.
+            // In random DPOR, we don't join the VCs of sends,
+            // so a send will potentially race with many prior sends to the 
+            // same mailbox. 
+            // We scan the stack looking for concurrent sends.
+            // We only need to start scanning from the first send to this mailbox.
+            int firstSend = TargetIdToFirstSend[step.TargetId];
+            Asserter.Assert(
+                firstSend > 0, 
+                "We should only get here if a send races with a prior send, but it does not.");
+
+            for (int j = firstSend; j < i; j++)
+            {
+                var entry = GetSelectedTidEntry(stack, j);
+                if (entry.OpType != OperationType.Send
+                    || entry.Id == step.Id
+                    || HB(entry.Id, j, i))
+                {
+                    continue;
+                }
+                
+                Races.Add(new Race(j, i));
+            }
+        }
+
         private void AddBacktrack(Stack stack,
+            bool doRandomDPOR,
             int lastAccessIndex,
             int i,
             TidEntry step)
         {
             var aTidEntries = GetThreadsAt(stack, lastAccessIndex);
             var a = GetSelectedTidEntry(stack, lastAccessIndex);
-            if (HB(stack, lastAccessIndex, i) ||
+            if (HB(a.Id, lastAccessIndex, i) ||
                 !Reversible(stack, lastAccessIndex, i)) return;
 
-            Races.Add(new Race((int)lastAccessIndex, (int)i));
+            if (doRandomDPOR)
+            {
+                DoRandomDPORAddRaces(stack, lastAccessIndex, i, step);
+                return;
+            }
 
             // PSEUDOCODE: Find candidates.
             //  There is a race between `a` and `b`.
@@ -477,7 +544,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 if (j != a.Id &&
                     j != step.Id &&
-                    (aTidEntries.List[j].Enabled || aTidEntries.List[(int)j].OpType == OperationType.Yield))
+                    (aTidEntries.List[j].Enabled || aTidEntries.List[j].OpType == OperationType.Yield))
                 {
                     lookingFor.Add(j);
                 }
@@ -535,9 +602,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 for (int k = 0; k < NumThreads; ++k)
                 {
                     if (candidateThreadIds.Contains(sleptThread) &&
-                        aTidEntries.List[(int)sleptThread].Sleep)
+                        aTidEntries.List[sleptThread].Sleep)
                     {
-                        aTidEntries.List[(int)sleptThread].Backtrack = true;
+                        aTidEntries.List[sleptThread].Backtrack = true;
                         return;
                     }
                     ++sleptThread;
@@ -552,7 +619,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Avoid picking threads that are disabled (due to yield hack)
             // Start from thread b.tid:
             {
-                int backtrackThread = (int)step.Id;
+                int backtrackThread = step.Id;
                 for (int k = 0; k < NumThreads; ++k)
                 {
                     if (candidateThreadIds.Contains(backtrackThread) &&
@@ -572,12 +639,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // None are slept and enabled.
             // Start from thread b.tid:
             {
-                int backtrackThread = (int)step.Id;
+                int backtrackThread = step.Id;
                 for (int k = 0; k < NumThreads; ++k)
                 {
                     if (candidateThreadIds.Contains(backtrackThread))
                     {
-                        aTidEntries.List[(int)backtrackThread].Backtrack = true;
+                        aTidEntries.List[backtrackThread].Backtrack = true;
                         return;
                     }
                     ++backtrackThread;

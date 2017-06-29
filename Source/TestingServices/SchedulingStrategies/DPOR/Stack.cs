@@ -31,9 +31,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private int NextStackPos;
 
-        private Random Rand;
+        private readonly Random Rand;
 
-        private IAsserter Asserter;
+        private readonly IAsserter Asserter;
 
         /// <summary>
         /// If no thread id can be chosen,

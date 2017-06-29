@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -57,6 +58,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private readonly int StepLimit;
 
+
+        private int NumIterations;
+
         /// <summary>
         /// Creates the DPOR strategy.
         /// </summary>
@@ -71,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             Rand = rand;
             StepLimit = stepLimit;
             Stack = new Stack(rand, Asserter);
-            Dpor = dpor ? new DPORAlgorithm(Asserter, Rand != null) : null;
+            Dpor = dpor ? new DPORAlgorithm(Asserter) : null;
             UseSleepSets = rand == null && useSleepSets;
             Reset();
         }
@@ -138,13 +142,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Asserter);
+                    // top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Asserter);
+                    top.AddRandomEnabledNotSleptToBacktrack(Rand);
                 }
             }
 
-            int nextTidIndex = Stack.GetSelectedOrFirstBacktrackNotSlept(currentSchedulableId);
+            int nextTid = Stack.GetSelectedOrFirstBacktrackNotSlept(currentSchedulableId);
 
-            if (nextTidIndex < 0)
+            if (nextTid < 0)
             {
                 next = null;
                 // TODO: if nextTidIndex == DPORAlgorithm.SLEEP_SET_BLOCKED then let caller know that this is the case.
@@ -152,14 +157,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            TidEntry nextTidEntry = Stack.GetTop().List[nextTidIndex];
-
-            if (!nextTidEntry.Selected)
+            if (top.TryGetSelected(Asserter) != nextTid)
             {
-                nextTidEntry.Selected = true;
+                top.SetSelected(nextTid, Asserter);
             }
-            Asserter.Assert(nextTidEntry.Id < choices.Count);
-            next = choices[nextTidEntry.Id];
+            Asserter.Assert(nextTid < choices.Count);
+            next = choices[nextTid];
 
             // TODO: Part of yield hack.
             if (!next.IsEnabled &&
@@ -184,6 +187,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
+            if (Rand != null)
+            {
+                next = Rand.Next(2) == 0;
+                return true;
+            }
             throw new System.NotImplementedException();
         }
 
@@ -232,10 +240,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>False if all schedules have been explored</returns>
         public bool PrepareForNextIteration()
         {
+            ++NumIterations;
             Dpor?.DoDPOR(Stack, Rand);
 
             Stack.PrepareForNextSchedule();
-            return Stack.GetInternalSize() != 0;
+            return Rand != null || Stack.GetInternalSize() != 0;
         }
 
         /// <summary>
@@ -244,6 +253,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             Stack.Clear();
+            NumIterations = 0;
         }
 
         /// <summary>
