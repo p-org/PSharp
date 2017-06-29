@@ -522,6 +522,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="sender">Sender machine</param>
         internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender)
         {
+            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
@@ -536,8 +537,6 @@ namespace Microsoft.PSharp.TestingServices
 
                 return;
             }
-
-            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             
             bool runNewHandler = false;
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, ref runNewHandler);
@@ -556,6 +555,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="sender">Sender machine</param>
         internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender)
         {
+            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
@@ -570,8 +570,6 @@ namespace Microsoft.PSharp.TestingServices
 
                 return;
             }
-
-            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
 
             bool runNewHandler = false;
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, ref runNewHandler);
