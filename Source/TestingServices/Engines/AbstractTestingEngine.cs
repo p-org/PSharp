@@ -268,9 +268,9 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         isFair = true;
                     }
-                    else if (line.Equals("--state-caching"))
+                    else if (line.Equals("--cycle-detection"))
                     {
-                        this.Configuration.CacheProgramState = true;
+                        this.Configuration.EnableCycleDetection = true;
                     }
                     else if (line.StartsWith("--liveness-temperature-threshold:"))
                     {
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Strategy = new MaceMCStrategy(this.Configuration);
                 this.Configuration.PerformFullExploration = false;
-                this.Configuration.CacheProgramState = false;
+                this.Configuration.EnableCycleDetection = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {

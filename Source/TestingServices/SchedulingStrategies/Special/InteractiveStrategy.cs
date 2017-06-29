@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             next = null;
 
@@ -330,6 +330,35 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
+        /// </summary>
+        public void PrepareForNextChoice() { }
+
+        /// <summary>
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
+        /// </summary>
+        /// <returns>True to start the next iteration</returns>
+        public bool PrepareForNextIteration()
+        {
+            this.ExploredSteps = 0;
+            return true;
+        }
+
+        /// <summary>
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
+        /// </summary>
+        public void Reset()
+        {
+            this.InputCache.Clear();
+            this.ExploredSteps = 0;
+        }
+
+        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
@@ -357,31 +386,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Checks if this a fair scheduling strategy.
+        /// Checks if this is a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
             return false;
-        }
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
-        public bool PrepareForNextIteration()
-        {
-            this.ExploredSteps = 0;
-            return true;
-        }
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        public void Reset()
-        {
-            this.InputCache.Clear();
-            this.ExploredSteps = 0;
         }
 
         /// <summary>

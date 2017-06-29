@@ -51,19 +51,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>Depth bound</returns>
-        public new bool HasReachedMaxSchedulingSteps()
-        {
-            return base.ExploredSteps == this.CurrentDepth;
-        }
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
+        /// <returns>True to start the next iteration</returns>
         public override bool PrepareForNextIteration()
         {
             bool doNext = base.PrepareForNextIteration();
@@ -79,6 +71,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             return doNext;
+        }
+
+        /// <summary>
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
+        /// </summary>
+        /// <returns>Depth bound</returns>
+        public new bool HasReachedMaxSchedulingSteps()
+        {
+            return base.ExploredSteps == this.CurrentDepth;
         }
 
         /// <summary>

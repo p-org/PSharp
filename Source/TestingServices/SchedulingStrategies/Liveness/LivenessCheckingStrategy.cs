@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs">
+// <copyright file="LivenessCheckingStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,55 +12,51 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// Class representing a random-walk scheduling strategy.
+    /// Abstract strategy for detecting liveness property violations. It
+    /// contains a nested <see cref="ISchedulingStrategy"/> that is used
+    /// for scheduling decisions.
     /// </summary>
-    public sealed class RandomStrategy : ISchedulingStrategy
+    internal abstract class LivenessCheckingStrategy : ISchedulingStrategy
     {
         #region fields
 
         /// <summary>
         /// The configuration.
         /// </summary>
-        private Configuration Configuration;
+        protected Configuration Configuration;
 
         /// <summary>
-        /// Nondeterminitic seed.
+        /// List of monitors in the program.
         /// </summary>
-        private int Seed;
+        protected List<Monitor> Monitors;
 
         /// <summary>
-        /// Randomizer.
+        /// Strategy used for scheduling decisions.
         /// </summary>
-        private IRandomNumberGenerator Random;
-
-        /// <summary>
-        /// The number of explored steps.
-        /// </summary>
-        private int ExploredSteps;
+        protected ISchedulingStrategy SchedulingStrategy;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor.
+        /// Creates a liveness strategy that checks the specific monitors
+        /// for liveness property violations, and uses the specified
+        /// strategy for scheduling decisions.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        public RandomStrategy(Configuration configuration)
+        /// <param name="monitors">List of monitors</param>
+        /// <param name="strategy">ISchedulingStrategy</param>
+        internal LivenessCheckingStrategy(Configuration configuration, List<Monitor> monitors, ISchedulingStrategy strategy)
         {
-            this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.ExploredSteps = 0;
+            Configuration = configuration;
+            Monitors = monitors;
+            SchedulingStrategy = strategy;
         }
 
         /// <summary>
@@ -70,22 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
-        {
-            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-            if (enabledChoices.Count == 0)
-            {
-                next = null;
-                return false;
-            }
-
-            int idx = this.Random.Next(enabledChoices.Count);
-            next = enabledChoices[idx];
-
-            this.ExploredSteps++;
-
-            return true;
-        }
+        public abstract bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
 
         /// <summary>
         /// Returns the next boolean choice.
@@ -93,18 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextBooleanChoice(int maxValue, out bool next)
-        {
-            next = false;
-            if (this.Random.Next(maxValue) == 0)
-            {
-                next = true;
-            }
-
-            this.ExploredSteps++;
-
-            return true;
-        }
+        public abstract bool GetNextBooleanChoice(int maxValue, out bool next);
 
         /// <summary>
         /// Returns the next integer choice.
@@ -112,19 +82,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public bool GetNextIntegerChoice(int maxValue, out int next)
-        {
-            next = this.Random.Next(maxValue);
-            this.ExploredSteps++;
-            return true;
-        }
+        public abstract bool GetNextIntegerChoice(int maxValue, out int next);
 
         /// <summary>
         /// Prepares for the next scheduling choice. This is invoked
         /// directly after a scheduling choice has been chosen, and
         /// can be used to invoke specialised post-choice actions.
         /// </summary>
-        public void PrepareForNextChoice() { }
+        public abstract void PrepareForNextChoice();
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -132,70 +97,55 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// if the scheduling strategy should stop exploring.
         /// </summary>
         /// <returns>True to start the next iteration</returns>
-        public bool PrepareForNextIteration()
+        public virtual bool PrepareForNextIteration()
         {
-            this.ExploredSteps = 0;
-            if (this.Configuration.IncrementalSchedulingSeed)
-            {
-                this.Random.IncrementSeed();
-            }
-
-            return true;
+            return SchedulingStrategy.PrepareForNextIteration();
         }
 
         /// <summary>
         /// Resets the scheduling strategy. This is typically invoked by
         /// parent strategies to reset child strategies.
         /// </summary>
-        public void Reset()
+        public virtual void Reset()
         {
-            this.ExploredSteps = 0;
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
+            SchedulingStrategy.Reset();
         }
 
         /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        public virtual int GetExploredSteps()
         {
-            return this.ExploredSteps;
+            return SchedulingStrategy.GetExploredSteps();
         }
-        
+
         /// <summary>
-        /// True if the scheduling strategy has reached the depth
-        /// bound for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
         /// </summary>
         /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
+        public virtual bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
-
-            if (bound == 0)
-            {
-                return false;
-            }
-
-            return this.ExploredSteps >= bound;
+            return SchedulingStrategy.HasReachedMaxSchedulingSteps();
         }
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
-        public bool IsFair()
+        public virtual bool IsFair()
         {
-            return true;
+            return SchedulingStrategy.IsFair();
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        public string GetDescription()
+        public virtual string GetDescription()
         {
-            return "Random seed '" + this.Random.Seed + "'.";
+            return SchedulingStrategy.GetDescription();
         }
 
         #endregion

@@ -355,12 +355,11 @@ namespace Microsoft.PSharp.TestingServices
                     runtime.Scheduler.NotifyAssertionFailure(message, false);
                 }
 
-                // Checks for any liveness property violations. Requires
-                // that the program has terminated and no safety property
-                // violations have been found.
+                // Checks that no monitor is in a hot state at termination. Only
+                // checked if no safety property violations have been found.
                 if (!runtime.Scheduler.BugFound)
                 {
-                    runtime.LivenessChecker.CheckLivenessAtTermination();
+                    runtime.AssertNoMonitorInHotStateAtTermination();
                 }
 
                 this.GatherIterationStatistics(runtime);
@@ -428,9 +427,9 @@ namespace Microsoft.PSharp.TestingServices
                 stringBuilder.Append("--fair-scheduling").Append(Environment.NewLine);
             }
 
-            if (base.Configuration.CacheProgramState)
+            if (base.Configuration.EnableCycleDetection)
             {
-                stringBuilder.Append("--state-caching").Append(Environment.NewLine);
+                stringBuilder.Append("--cycle-detection").Append(Environment.NewLine);
                 stringBuilder.Append("--liveness-temperature-threshold:" +
                     base.Configuration.LivenessTemperatureThreshold).
                     Append(Environment.NewLine);

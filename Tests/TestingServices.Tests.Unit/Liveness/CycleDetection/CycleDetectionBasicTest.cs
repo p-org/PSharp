@@ -75,8 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionBasicNoBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.EnableCycleReplayingStrategy = true;
+            configuration.EnableCycleDetection = true;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
@@ -92,8 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionBasicBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.EnableCycleReplayingStrategy = true;
+            configuration.EnableCycleDetection = true;
             configuration.MaxSchedulingSteps = 200;
 
             var test = new Action<PSharpRuntime>((r) => {

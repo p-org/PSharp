@@ -46,9 +46,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Prepares the next scheduling iteration.
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
         /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
+        public override void PrepareForNextChoice() { }
+
+        /// <summary>
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
+        /// </summary>
+        /// <returns>True to start the next iteration</returns>
         public override bool PrepareForNextIteration()
         {
             base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
@@ -77,7 +86,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Resets the scheduling strategy.
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
         /// </summary>
         public override void Reset()
         {

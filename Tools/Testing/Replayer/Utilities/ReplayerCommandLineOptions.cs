@@ -64,9 +64,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AttachDebugger = true;
             }
-            else if (option.ToLower().Equals("/state-caching"))
+            else if (option.ToLower().Equals("/cycle-detection"))
             {
-                base.Configuration.CacheProgramState = true;
+                base.Configuration.EnableCycleDetection = true;
             }
             else
             {

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FairNondet1Test.cs">
+// <copyright file="Nondet1Test.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class FairNondet1Test : BaseTest
+    public class Nondet1Test : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
-                if (this.FairRandom())
+                if (this.Random())
                 {
                     this.Send(this.Id, new Done());
                 }
@@ -85,20 +85,20 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestFairNondet1()
+        public void TestNondet1()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.LivenessTemperatureThreshold = 0;
+            configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            configuration.MaxSchedulingSteps = 300;
+            configuration.RandomSchedulingSeed = 96;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
             });
 
-            base.AssertSucceeded(configuration, test);
+            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
+            base.AssertFailed(configuration, test, bugReport);
         }
     }
 }

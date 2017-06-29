@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public virtual bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public virtual bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var currentMachineIdx = choices.IndexOf(current);
             var orderedMachines = choices.GetRange(currentMachineIdx, choices.Count - currentMachineIdx);
@@ -156,6 +156,33 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Prepares for the next scheduling choice. This is invoked
+        /// directly after a scheduling choice has been chosen, and
+        /// can be used to invoke specialised post-choice actions.
+        /// </summary>
+        public abstract void PrepareForNextChoice();
+
+        /// <summary>
+        /// Prepares for the next scheduling iteration. This is invoked
+        /// at the end of a scheduling iteration. It must return false
+        /// if the scheduling strategy should stop exploring.
+        /// </summary>
+        /// <returns>True to start the next iteration</returns>
+        public abstract bool PrepareForNextIteration();
+
+        /// <summary>
+        /// Resets the scheduling strategy. This is typically invoked by
+        /// parent strategies to reset child strategies.
+        /// </summary>
+        public virtual void Reset()
+        {
+            this.Random = new DefaultRandomNumberGenerator(this.Seed);
+            this.MaxExploredSteps = 0;
+            this.ExploredSteps = 0;
+            this.RemainingDelays.Clear();
+        }
+
+        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
@@ -183,29 +210,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Checks if this a fair scheduling strategy.
+        /// Checks if this is a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
             return false;
-        }
-
-        /// <summary>
-        /// Prepares the next scheduling iteration.
-        /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
-        public abstract bool PrepareForNextIteration();
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        public virtual void Reset()
-        {
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.MaxExploredSteps = 0;
-            this.ExploredSteps = 0;
-            this.RemainingDelays.Clear();
         }
 
         /// <summary>

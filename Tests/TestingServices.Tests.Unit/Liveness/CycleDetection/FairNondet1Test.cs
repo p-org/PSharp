@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Liveness2Test.cs">
+// <copyright file="FairNondet1Test.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,11 +20,12 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class Liveness2Test : BaseTest
+    public class FairNondet1Test : BaseTest
     {
         class Unit : Event { }
         class UserEvent : Event { }
         class Done : Event { }
+        class Loop : Event { }
         class Waiting : Event { }
         class Computing : Event { }
 
@@ -51,13 +52,21 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(HandleEventOnEntry))]
-            [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
+            [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
+            [OnEventGotoState(typeof(Loop), typeof(HandleEvent))]
             class HandleEvent : MachineState { }
 
             void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
-                this.Send(this.Id, new Done());
+                if (this.FairRandom())
+                {
+                    this.Send(this.Id, new Done());
+                }
+                else
+                {
+                    this.Send(this.Id, new Loop());
+                }
             }
         }
 
@@ -76,19 +85,20 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestLiveness2()
+        public void TestFairNondet1()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
+            configuration.EnableCycleDetection = true;
+            configuration.LivenessTemperatureThreshold = 0;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
+            configuration.MaxSchedulingSteps = 300;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
             });
 
-            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport);
+            base.AssertSucceeded(configuration, test);
         }
     }
 }

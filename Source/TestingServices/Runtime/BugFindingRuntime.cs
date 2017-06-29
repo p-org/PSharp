@@ -15,11 +15,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.TestingServices.Coverage;
-using Microsoft.PSharp.TestingServices.Liveness;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
@@ -39,11 +39,6 @@ namespace Microsoft.PSharp.TestingServices
         /// The bug-finding scheduler.
         /// </summary>
         internal BugFindingScheduler Scheduler;
-
-        /// <summary>
-        /// The P# liveness checker.
-        /// </summary>
-        internal LivenessChecker LivenessChecker;
 
         /// <summary>
         /// The asynchronous task scheduler.
@@ -113,12 +108,25 @@ namespace Microsoft.PSharp.TestingServices
 
             this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
-
-            this.Scheduler = new BugFindingScheduler(this, strategy);
-            this.LivenessChecker = new LivenessChecker(this, strategy);
-            this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.StateCache = new StateCache(this);
+
+            this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.CoverageInfo = new CoverageInfo();
+
+            if (configuration.EnableLivenessChecking && configuration.EnableCycleDetection)
+            {
+                this.Scheduler = new BugFindingScheduler(this, new CycleDetectionStrategy(
+                    configuration, this.StateCache, this.ScheduleTrace, this.Monitors, strategy));
+            }
+            else if (configuration.EnableLivenessChecking)
+            {
+                this.Scheduler = new BugFindingScheduler(this, new TemperatureCheckingStrategy(
+                    configuration, this.Monitors, strategy));
+            }
+            else
+            {
+                this.Scheduler = new BugFindingScheduler(this, strategy);
+            }
         }
 
         /// <summary>
@@ -723,8 +731,7 @@ namespace Microsoft.PSharp.TestingServices
             this.BugTrace.AddCreateMonitorStep(mid);
 
             this.Monitors.Add(monitor);
-            this.LivenessChecker.RegisterMonitor(monitor);
-            
+
             monitor.GotoStartState();
         }
 
@@ -810,6 +817,31 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call API '{1}' " +
                 "after calling raise/goto/pop in the same action.", machine.Id.Name, calledAPI);
+        }
+
+        /// <summary>
+        /// Checks that no monitor is in a hot state upon program termination.
+        /// If the program is still running, then this method returns without
+        /// performing a check.
+        /// </summary>
+        internal void AssertNoMonitorInHotStateAtTermination()
+        {
+            if (!this.Scheduler.HasFullyExploredSchedule)
+            {
+                return;
+            }
+
+            foreach (var monitor in this.Monitors)
+            {
+                string stateName = "";
+                if (monitor.IsInHotState(out stateName))
+                {
+                    string message = IO.Utilities.Format("Monitor '{0}' detected liveness bug " +
+                        "in hot state '{1}' at the end of program execution.",
+                        monitor.GetType().Name, stateName);
+                    this.Scheduler.NotifyAssertionFailure(message, false);
+                }
+            }
         }
 
         #endregion
@@ -1369,14 +1401,14 @@ namespace Microsoft.PSharp.TestingServices
             {
                 int hash = 19;
 
-                foreach (var machine in this.MachineMap.Values)
+                foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
-                    hash = hash + 31 * machine.GetCachedState();
+                    hash = hash * 31 + machine.GetCachedState();
                 }
 
                 foreach (var monitor in this.Monitors)
                 {
-                    hash = hash + 31 * monitor.GetCachedState();
+                    hash = hash * 31 + monitor.GetCachedState();
                 }
 
                 fingerprint = new Fingerprint(hash);
@@ -1429,7 +1461,6 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineMap.Clear();
             this.TaskMap.Clear();
             this.MachineActionTraceMap.Clear();
-
             base.Dispose();
         }
 

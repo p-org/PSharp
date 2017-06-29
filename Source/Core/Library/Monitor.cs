@@ -513,6 +513,20 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Checks the liveness temperature of the monitor and report
+        /// a potential liveness bug if the temperature passes the
+        /// specified threshold. Only works in a liveness monitor.
+        /// </summary>
+        internal void CheckLivenessTemperature(int livenessTemperature)
+        {
+            if (livenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
+            {
+                this.Runtime.Assert(livenessTemperature <= this.Runtime.Configuration.LivenessTemperatureThreshold,
+                    $"Monitor '{this.GetType().Name}' detected infinite execution that violates a liveness property.");
+            }
+        }
+
+        /// <summary>
         /// Returns true if the monitor is in a hot state.
         /// </summary>
         /// <returns>Boolean</returns>
@@ -577,11 +591,11 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * this.CurrentState.GetHashCode();
+                hash = hash * 31 + this.GetType().GetHashCode();
+                hash = hash * 31 + this.CurrentState.GetHashCode();
 
                 // Adds the user-defined hashed state.
-                hash = hash + 31 * this.GetHashedState(); 
+                hash = hash * 31 + this.GetHashedState(); 
 
                 return hash;
             }

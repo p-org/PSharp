@@ -253,10 +253,10 @@ namespace Microsoft.PSharp
         public int SafetyPrefixBound;
 
         /// <summary>
-        /// Attaches the debugger during trace replay.
+        /// Enables liveness checking during bug-finding.
         /// </summary>
         [DataMember]
-        public bool AttachDebugger;
+        public bool EnableLivenessChecking;
 
         /// <summary>
         /// The liveness temperature threshold. If it is 0
@@ -266,30 +266,23 @@ namespace Microsoft.PSharp
         public int LivenessTemperatureThreshold;
 
         /// <summary>
-        /// If true, then the P# tester will perform state-caching
-        /// when checking liveness properties.
+        /// Enables cycle-detection using state-caching
+        /// for liveness checking.
         /// </summary>
         [DataMember]
-        public bool CacheProgramState;
+        public bool EnableCycleDetection;
 
         /// <summary>
-        /// Enables the cycle-replaying strategy when using
-        /// state-caching for liveness checking.
-        /// </summary>
-        [DataMember]
-        public bool EnableCycleReplayingStrategy;
-
-        /// <summary>
-        /// If true, the runtime can reorder events in machine
-        /// queues dynamically, depending on priorities.
-        /// </summary>
-        public bool DynamicEventQueuePrioritization;
-
-        /// <summary>
-        /// Enable monitors (safety) with production runtime.
+        /// Enables (safety) monitors in the production runtime.
         /// </summary>
         [DataMember]
         public bool EnableMonitorsInProduction;
+
+        /// <summary>
+        /// Attaches the debugger during trace replay.
+        /// </summary>
+        [DataMember]
+        public bool AttachDebugger;
 
         #endregion
 
@@ -467,13 +460,12 @@ namespace Microsoft.PSharp
             this.CoinFlipBound = 0;
             this.SafetyPrefixBound = 0;
 
-            this.AttachDebugger = false;
+            this.EnableLivenessChecking = true;
             this.LivenessTemperatureThreshold = 0;
-            this.CacheProgramState = false;
-            this.EnableCycleReplayingStrategy = false;
-            this.DynamicEventQueuePrioritization = false;
-
+            this.EnableCycleDetection = false;
             this.EnableMonitorsInProduction = false;
+
+            this.AttachDebugger = false;
 
             this.ScheduleFile = "";
             this.ScheduleTrace = "";

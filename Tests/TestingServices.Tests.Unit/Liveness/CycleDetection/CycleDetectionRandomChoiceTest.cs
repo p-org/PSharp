@@ -90,8 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionRandomChoiceNoBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.EnableCycleReplayingStrategy = true;
+            configuration.EnableCycleDetection = true;
             configuration.RandomSchedulingSeed = 906;
             configuration.SchedulingIterations = 7;
             configuration.MaxSchedulingSteps = 200;
@@ -108,8 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCycleDetectionRandomChoiceBug()
         {
             var configuration = base.GetConfiguration();
-            configuration.CacheProgramState = true;
-            configuration.EnableCycleReplayingStrategy = true;
+            configuration.EnableCycleDetection = true;
             configuration.RandomSchedulingSeed = 906;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
