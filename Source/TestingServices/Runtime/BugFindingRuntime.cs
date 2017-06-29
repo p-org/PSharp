@@ -693,7 +693,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
-        internal void Wait() => this.Scheduler.Wait();
+        internal void Wait()
+        {
+            this.Scheduler.Wait();
+            base.IsRunning = false;
+        }
 
         #endregion
 
@@ -1425,11 +1429,6 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineMap.Clear();
             this.TaskMap.Clear();
             this.MachineActionTraceMap.Clear();
-
-            this.LivenessChecker = null;
-            this.StateCache = null;
-            this.ScheduleTrace = null;
-            this.BugTrace = null;
 
             base.Dispose();
         }
