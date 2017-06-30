@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public bool TryGetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             int currentSchedulableId = (int) current.Id;
             // "Yield" and "Waiting for quiescence" hack.
@@ -219,6 +219,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             // TODO: 
             throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// Prepares for the next scheduling choice.
+        /// </summary>
+        public void PrepareForNextChoice()
+        {
+            // Nothing
         }
 
         /// <summary>
