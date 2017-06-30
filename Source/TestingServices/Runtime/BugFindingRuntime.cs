@@ -1198,12 +1198,26 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Notifies that the Inbox is about to be checked
+        /// to see if the default event handler should fire.
+        /// </summary>
+        internal override void NotifyDefaultEventHandlerCheck(Machine machine)
+        {
+            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, machine.Info.Id);
+            // If the default event handler fires, the next receive in NotifyDefaultHandlerFired
+            // will use this as its NextOperationMatchingSendIndex.
+            // If it does not fire, NextOperationMatchingSendIndex will be overwritten.
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) this.Scheduler.ExploredSteps;
+        }
+
+        /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
         /// <param name="machine">Machine</param>
         internal override void NotifyDefaultHandlerFired(Machine machine)
         {
-            this.Scheduler.Schedule(OperationType.DefaultEvent, OperationTargetType.Inbox, machine.Info.Id);
+            // NextOperationMatchingSendIndex is set in NotifyDefaultEventHandlerCheck.
+            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
         }
 
         #endregion

@@ -148,6 +148,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IsEnabled = false;
             IsEventHandlerRunning = false;
             SkipNextReceiveSchedulingPoint = true;
+            NextOperationMatchingSendIndex = 0;
         }
 
         #endregion

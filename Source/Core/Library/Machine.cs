@@ -654,22 +654,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns the default <see cref="EventInfo"/> if
-        /// there is one available, else returns null.
+        /// Returns the default <see cref="EventInfo"/>.
         /// </summary>
         /// <returns>EventInfo</returns>
-        private EventInfo TryGetDefaultEvent()
+        private EventInfo GetDefaultEvent()
         {
-            EventInfo defaultEventInfo = null;
-            if (this.HasDefaultHandler())
-            {
-                base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' is executing the " +
-                    $"default handler in state '{this.CurrentStateName}'.");
-                defaultEventInfo = new EventInfo(new Default(), new EventOriginInfo(
-                    base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-            }
-
-            return defaultEventInfo;
+            base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' is executing the " +
+                $"default handler in state '{this.CurrentStateName}'.");
+            return new EventInfo(new Default(), new EventOriginInfo(
+                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
         }
 
         #endregion
@@ -688,55 +681,61 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            EventInfo nextEventInfo = null;
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
                 var dequeued = false;
-                lock (this.Inbox)
+
+                // Try to get the raised event, if there is one. Raised events
+                // have priority over the events in the inbox.
+                EventInfo nextEventInfo = this.TryGetRaisedEvent();
+
+                if (nextEventInfo == null)
                 {
-                    // Try get the raised event, if there is one. Raised events
-                    // have priority over the events in the inbox.
-                    nextEventInfo = this.TryGetRaisedEvent();
-                    if (nextEventInfo == null)
+                    var hasDefaultHandler = HasDefaultHandler();
+                    if (hasDefaultHandler)
                     {
-                        // Try dequeue the next event, if there is one.
-                        nextEventInfo = this.TryDequeueEvent();
-                        dequeued = nextEventInfo != null;
+                        base.Runtime.NotifyDefaultEventHandlerCheck(this);
                     }
 
-                    if (nextEventInfo == null)
+                    lock (this.Inbox)
                     {
-                        // Try get default event, if there is one.
-                        nextEventInfo = this.TryGetDefaultEvent();
+                        // Try to dequeue the next event, if there is one.
+                        nextEventInfo = this.TryDequeueEvent();
+                        dequeued = nextEventInfo != null;
+
+                        if (nextEventInfo == null && hasDefaultHandler)
+                        {
+                            // Get default event.
+                            nextEventInfo = this.GetDefaultEvent();
+                            defaultHandling = true;
+                        }
+
                         if (nextEventInfo == null)
                         {
                             this.IsRunning = false;
                             break;
                         }
-
-                        defaultHandling = true;
                     }
                 }
 
-                // Notifies the runtime for a new event to handle. This is only used
-                // during bug-finding and operation bounding, because the runtime has
-                // to schedule a machine when a new operation is dequeued.
                 if (dequeued)
                 {
+                    // Notifies the runtime for a new event to handle. This is only used
+                    // during bug-finding and operation bounding, because the runtime has
+                    // to schedule a machine when a new operation is dequeued.
                     base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                }
+                else if (defaultHandling)
+                {
+                    // If the default event was handled, then notify the runtime.
+                    // This is only used during bug-finding, because the runtime
+                    // has to schedule a machine between default handlers.
+                    base.Runtime.NotifyDefaultHandlerFired(this);
                 }
                 else
                 {
                     base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
-                }
-
-                // If the default event was handled, then notify the runtime.
-                // This is only used during bug-finding, because the runtime
-                // has to schedule a machine between default handlers.
-                if (defaultHandling)
-                {
-                    base.Runtime.NotifyDefaultHandlerFired(this);
                 }
 
                 // Assigns the received event.

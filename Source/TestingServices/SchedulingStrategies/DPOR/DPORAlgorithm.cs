@@ -341,9 +341,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     case OperationType.Yield:
                         // Nothing.
                         break;
-                    case OperationType.DefaultEvent:
-                        // TODO: How should we handle this?
-                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

@@ -41,28 +41,31 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         Receive,
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
-        /// processes a default event.
-        /// </summary>
-        DefaultEvent,
-        /// <summary>
-        /// Operation used when an <see cref="ISchedulable"/>
         /// stops executing.
         /// </summary>
         Stop,
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
-        /// yields.
+        /// yields. This signals to the scheduler that the current
+        /// <see cref="ISchedulable"/> is not making progress.
+        /// An unfair scheduler could disable such <see cref="ISchedulable"/>s
+        /// until quiescence, then re-enable them.
+        /// Not currently supported in P#.
         /// </summary>
         Yield,
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
         /// wants to wait for quiescence.
+        /// A scheduler could disable the <see cref="ISchedulable"/>
+        /// until quiescence and then re-enable the <see cref="ISchedulable"/>.
+        /// Not currently supported in P#.
         /// </summary>
         WaitForQuiescence,
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
         /// wants to wait for another <see cref="ISchedulable"/>
         /// to Stop.
+        /// Not currently supported in P#.
         /// </summary>
         Join
     }

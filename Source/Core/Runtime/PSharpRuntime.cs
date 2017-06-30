@@ -586,6 +586,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that the Inbox is about to be checked
+        /// to see if the default event handler should fire.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyDefaultEventHandlerCheck(Machine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
         /// <param name="machine">Machine</param>
