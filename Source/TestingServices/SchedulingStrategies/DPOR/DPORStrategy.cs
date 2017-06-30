@@ -134,17 +134,35 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else if (Dpor.RaceReplaySuffix.Count > 0 && Dpor.ReplayRaceIndex < Dpor.RaceReplaySuffix.Count)
                 {
-                    // replaying a race
-                    var tid = Dpor.RaceReplaySuffix[Dpor.ReplayRaceIndex];
-                    top.List[tid].Backtrack = true;
-                    Asserter.Assert(top.List[tid].Enabled || top.List[tid].OpType == OperationType.Yield);
+                    // Replaying a race:
+                    var tidReplay = Dpor.RaceReplaySuffix[Dpor.ReplayRaceIndex];
+                    // Restore the nondet choices on the top of stack.
+                    top.NondetChoices = tidReplay.NondetChoices;
+                    // Add the replay tid to the backtrack set.
+                    top.List[tidReplay.Id].Backtrack = true;
+                    Asserter.Assert(
+                        top.List[tidReplay.Id].Enabled 
+                        || top.List[tidReplay.Id].OpType == OperationType.Yield);
                     ++Dpor.ReplayRaceIndex;
                 }
                 else
                 {
-                    // top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Asserter);
-                    top.AddRandomEnabledNotSleptToBacktrack(Rand);
+                    // TODO: Here is where we can combine with another scheduler:
+                    // For now, we just do round-robin when doing DPOR and random when doing random DPOR.
+                    if (Rand == null)
+                    {
+                        top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Asserter);
+                    }
+                    else
+                    {
+                        top.AddRandomEnabledNotSleptToBacktrack(Rand);
+                    }
                 }
+            }
+            else if (Rand != null)
+            {
+                // When doing random DPOR: we are replaying a schedule prefix so rewind the nondet choices now.
+                top.RewindNondetChoicesForReplay();
             }
 
             int nextTid = Stack.GetSelectedOrFirstBacktrackNotSlept(currentSchedulableId);
@@ -187,12 +205,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            if (Rand != null)
-            {
-                next = Rand.Next(2) == 0;
-                return true;
-            }
-            throw new System.NotImplementedException();
+            next = Stack.GetTop().MakeOrReplayNondetChoice(true, Rand, Asserter) == 1;
+            return true;
         }
 
         /// <summary>
@@ -203,6 +217,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
+            // TODO: 
             throw new System.NotImplementedException();
         }
 
@@ -222,7 +237,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            return StepLimit >= 0 && Stack.GetNumSteps() >= StepLimit;
+            return StepLimit > 0 && Stack.GetNumSteps() >= StepLimit;
         }
 
         /// <summary>

@@ -26,11 +26,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
         class SenderInitEvent : Event
         {
-            public MachineId WaiterMachineId;
+            public readonly MachineId WaiterMachineId;
+            public readonly bool SendPing;
+            public readonly bool DoNonDet;
 
-            public SenderInitEvent(MachineId waiter)
+            public SenderInitEvent(MachineId waiter, bool sendPing = false, bool doNonDet = false)
             {
                 WaiterMachineId = waiter;
+                SendPing = sendPing;
+                DoNonDet = doNonDet;
             }
         }
 
@@ -51,7 +55,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
         class Sender : Machine
         {
-            private MachineId WaiterMachineId;
+            private SenderInitEvent initEvent;
+
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(Ping), nameof(SendPing))]
@@ -61,13 +66,22 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             private void Initialize()
             {
-                WaiterMachineId = ((SenderInitEvent)ReceivedEvent).WaiterMachineId;
+                initEvent = ((SenderInitEvent)ReceivedEvent);
 
             }
 
             private void SendPing()
             {
-//                 Send(WaiterMachineId, new Ping());
+                if (initEvent.SendPing)
+                {
+                    Send(initEvent.WaiterMachineId, new Ping());
+                }
+
+                if (initEvent.DoNonDet)
+                {
+                    Random();
+                    Random();
+                }
             }
 
         }
@@ -75,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestDPOR1Reduces()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<PSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
@@ -101,5 +115,32 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             Assert.True(runtime.TestReport.NumOfExploredUnfairSchedules >= 6);
 
         }
+
+        [Fact]
+        public void TestDPOR2NonDet()
+        {
+            var test = new Action<PSharpRuntime>(r =>
+            {
+                MachineId waiter = r.CreateMachine(typeof(Waiter));
+                MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter, false, true));
+                MachineId sender2 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
+                MachineId sender3 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
+                r.SendEvent(sender1, new Ping());
+                r.SendEvent(sender2, new Ping());
+                r.SendEvent(sender3, new Ping());
+            });
+
+
+            var configuration = GetConfiguration();
+            configuration.SchedulingIterations = 10;
+
+            // DPOR: 4 schedules because there are 2 nondet choices.
+            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
+            var runtime = AssertSucceeded(configuration, test);
+            Assert.Equal(4, runtime.TestReport.NumOfExploredUnfairSchedules);
+
+        }
     }
+
+
 }

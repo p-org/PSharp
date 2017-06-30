@@ -42,6 +42,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public List<NonDetChoice> NondetChoices;
 
         /// <summary>
+        /// When replaying/adding nondet choices,
+        /// this is the index of the next nondet choice.
+        /// </summary>
+        private int NextNondetChoiceIndex;
+
+        /// <summary>
         /// Construct a TidEntryList.
         /// </summary>
         /// <param name="list"></param>
@@ -50,48 +56,95 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             List = list;
             SelectedEntry = -1;
             NondetChoices = null;
+            NextNondetChoiceIndex = 0;
         }
 
+
         /// <summary>
-        /// Add a nondet choice outcome to the list of nondet choices made by this thread.
+        /// Get a nondet choice.
+        /// This may replay a nondet choice or make (and record) a new nondet choice.
         /// </summary>
-        /// <param name="isBoolChoice"></param>
-        /// <param name="choice"></param>
-        public void AddNondetChoice(bool isBoolChoice, int choice)
+        /// <param name="isBoolChoice">If true, a boolean choice; otherwise, an int choice.</param>
+        /// <param name="rand">Random</param>
+        /// <param name="asserter">IAsserter</param>
+        /// <returns></returns>
+        public int MakeOrReplayNondetChoice(bool isBoolChoice, Random rand, IAsserter asserter)
         {
+            asserter.Assert(
+                rand != null || isBoolChoice,
+                "A DFS DPOR exploration of int nondeterminstic choices " +
+                "is not currently supported because this won't scale.");
+
             if (NondetChoices == null)
             {
                 NondetChoices = new List<NonDetChoice>();
             }
-            NonDetChoice nondetChoice = new NonDetChoice
+
+
+            if (NextNondetChoiceIndex < NondetChoices.Count)
+            {
+                // Replay:
+                NonDetChoice choice = NondetChoices[NextNondetChoiceIndex];
+                ++NextNondetChoiceIndex;
+                asserter.Assert(choice.IsBoolChoice == isBoolChoice);
+                return choice.Choice;
+            }
+
+            // Adding a choice.
+            asserter.Assert(NextNondetChoiceIndex == NondetChoices.Count);
+            NonDetChoice ndc = new NonDetChoice
             {
                 IsBoolChoice = isBoolChoice,
-                Choice = choice
+                Choice = rand == null ? 0 : (isBoolChoice ? rand.Next(2) : rand.Next())
             };
-            NondetChoices.Add(nondetChoice);
+            NondetChoices.Add(ndc);
+            ++NextNondetChoiceIndex;
+            return ndc.Choice;
         }
 
         /// <summary>
-        /// Did the selected thread make some nondet choices?
+        /// This method is used in a DFS exploration of nondet choice.
+        /// It will pop off bool choices that are 1 until
+        /// it reaches a 0 that will then be changed to a 1.
+        /// The NextNondetChoiceIndex will be reset ready for replay.
         /// </summary>
-        /// <returns></returns>
-        public bool HasNondetChoice()
+        /// <returns>false if there are no more nondet choices to explore</returns>
+        public bool BacktrackNondetChoices(IAsserter asserter)
         {
-            return NondetChoices != null && NondetChoices.Count > 0;
+            if (NondetChoices == null)
+            {
+                return false;
+            }
+
+            asserter.Assert(NextNondetChoiceIndex == NondetChoices.Count);
+
+            NextNondetChoiceIndex = 0;
+
+            while (NondetChoices.Count > 0)
+            {
+                NonDetChoice choice = NondetChoices[NondetChoices.Count - 1];
+                asserter.Assert(choice.IsBoolChoice, "DFS DPOR only supports bool choices.");
+                if (choice.Choice == 0)
+                {
+                    choice.Choice = 1;
+                    NondetChoices[NondetChoices.Count - 1] = choice;
+                    return true;
+                }
+                asserter.Assert(choice.Choice == 1, "Unexpected choice value.");
+                NondetChoices.RemoveAt(NondetChoices.Count - 1);
+            }
+
+            return false;
         }
 
         /// <summary>
-        /// Pop off the last nondet choice made by the selected
-        /// thread.
+        /// Prepares the list of nondet choices for replay.
+        /// This is used by random DPOR, which does not need to
+        /// backtrack individual nondet choices, but may need to replay all of them.
         /// </summary>
-        /// <param name="asserter"></param>
-        /// <returns></returns>
-        public NonDetChoice PopNonDetChoice(IAsserter asserter)
+        public void RewindNondetChoicesForReplay()
         {
-            asserter.Assert(HasNondetChoice());
-            NonDetChoice res = NondetChoices[NondetChoices.Count - 1];
-            NondetChoices.RemoveAt(NondetChoices.Count - 1);
-            return res;
+            NextNondetChoiceIndex = 0;
         }
 
         /// <summary>

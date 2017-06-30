@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// this field gives the schedule (as a list of thread ids)
         /// that should be followed in order to reverse a randomly chosen race.
         /// </summary>
-        public readonly List<int> RaceReplaySuffix;
+        public readonly List<TidForRaceReplay> RaceReplaySuffix;
 
         /// <summary>
         /// An index for the <see cref="RaceReplaySuffix"/> (for convenience) to be used 
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             TargetIdToFirstSend = new int[NumThreads];
             Vcs = new int[NumSteps * NumThreads];
             Races = new List<Race>(NumSteps);
-            RaceReplaySuffix = new List<int>();
+            RaceReplaySuffix = new List<TidForRaceReplay>();
             MissingThreadIds = new List<int>();
             ReplayRaceIndex = 0;
         }
@@ -404,24 +404,26 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     // Add thread id to the RaceReplaySuffix, but adjust
                     // it for missing thread ids.
-                    AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, i).Id);
+                    AddThreadIdToRaceReplaySuffix(GetThreadsAt(stack, i));
                 }
             }
 
-            AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, race.B).Id);
-            AddThreadIdToRaceReplaySuffix(GetSelectedTidEntry(stack, race.A).Id);
+            AddThreadIdToRaceReplaySuffix(GetThreadsAt(stack, race.B));
+            AddThreadIdToRaceReplaySuffix(GetThreadsAt(stack, race.A));
 
             // Remove steps from a onwards. Indexes start at one so we must subtract 1.
             stack.StackInternal.RemoveRange(race.A - 1, stack.StackInternal.Count - (race.A - 1));
 
         }
 
-        private void AddThreadIdToRaceReplaySuffix(int threadId)
+        private void AddThreadIdToRaceReplaySuffix(TidEntryList tidEntryList)
         {
             // Add thread id to the RaceReplaySuffix, but adjust
             // it for missing thread ids.
 
-            var index = MissingThreadIds.BinarySearch(threadId);
+            int tid = tidEntryList.GetSelected(Asserter);
+
+            var index = MissingThreadIds.BinarySearch(tid);
             // Make it so index is the number of missing thread ids before and including threadId.
             // e.g. if missingThreadIds = [3,6,9]
             // 3 => index + 1  = 1
@@ -435,7 +437,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 index = ~index;
             }
 
-            RaceReplaySuffix.Add(threadId - index);
+            RaceReplaySuffix.Add(new TidForRaceReplay(tid - index, tidEntryList.NondetChoices));
         }
 
 
@@ -661,6 +663,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private void UpdateFieldsAndRealocateDatastructuresIfNeeded(Stack stack)
         {
+            // GetTop will throw if 0 steps have been performed but this should never happen.
             NumThreads = stack.GetTopAsRealTop().List.Count;
             NumSteps = stack.StackInternal.Count;
 

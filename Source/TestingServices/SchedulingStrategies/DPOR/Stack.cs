@@ -191,6 +191,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             while (StackInternal.Count > 0)
             {
                 TidEntryList top = GetTopAsRealTop();
+
+                if (top.BacktrackNondetChoices(Asserter))
+                {
+                    break;
+                }
+
                 top.SetSelectedToSleep(Asserter);
                 top.ClearSelected(Asserter);
 
