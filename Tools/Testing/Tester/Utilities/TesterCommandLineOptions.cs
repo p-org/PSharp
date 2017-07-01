@@ -299,6 +299,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.EnableCycleDetection = true;
             }
+            else if (option.ToLower().Equals("/custom-state-hashing"))
+            {
+                base.Configuration.EnableUserDefinedStateHashing = true;
+            }
             else if (option.ToLower().Equals("/visualize"))
             {
                 Error.ReportAndExit("Command line option '/visualize' is deprecated. " +
