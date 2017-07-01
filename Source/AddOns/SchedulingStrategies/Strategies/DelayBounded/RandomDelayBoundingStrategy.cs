@@ -15,41 +15,42 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Class representing a random delay-bounding scheduling strategy.
+    /// A randomized delay-bounding scheduling strategy.
     /// </summary>
     public sealed class RandomDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
-        #region fields
-
         /// <summary>
         /// Delays during this iteration.
         /// </summary>
         private List<int> CurrentIterationDelays;
 
-        #endregion
-
-        #region public API
+        /// <summary>
+        /// Creates a randomized delay-bounding strategy that uses the default
+        /// random number generator (seed is based on current time).
+        /// </summary>
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="maxDelays">Max number of delays</param>
+        /// <param name="logger">ILogger</param>
+        public RandomDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger)
+            : this(maxSteps, maxDelays, logger, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
+        { }
 
         /// <summary>
-        /// Constructor.
+        /// Creates a randomized delay-bounding strategy that uses
+        /// the specified random number generator.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="delays">Max number of delays</param>
-        public RandomDelayBoundingStrategy(Configuration configuration, int delays)
-            : base(configuration, delays)
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="maxDelays">Max number of delays</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="random">IRandomNumberGenerator</param>
+        public RandomDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger, IRandomNumberGenerator random)
+            : base(maxSteps, maxDelays, logger, random)
         {
-            this.CurrentIterationDelays = new List<int>();
+            CurrentIterationDelays = new List<int>();
         }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public override void PrepareForNextChoice() { }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -59,30 +60,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public override bool PrepareForNextIteration()
         {
-            base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
-            base.ExploredSteps = 0;
+            ScheduleLength = Math.Max(ScheduleLength, ScheduledSteps);
+            ScheduledSteps = 0;
 
-            base.RemainingDelays.Clear();
-            for (int idx = 0; idx < base.MaxDelays; idx++)
+            RemainingDelays.Clear();
+            for (int idx = 0; idx < MaxDelays; idx++)
             {
-                base.RemainingDelays.Add(base.Random.Next(base.MaxExploredSteps));
+                RemainingDelays.Add(RandomNumberGenerator.Next(ScheduleLength));
             }
 
-            base.RemainingDelays.Sort();
+            RemainingDelays.Sort();
 
-            this.CurrentIterationDelays.Clear();
-            this.CurrentIterationDelays.AddRange(base.RemainingDelays);
+            CurrentIterationDelays.Clear();
+            CurrentIterationDelays.AddRange(RemainingDelays);
 
             return true;
-        }
-
-        /// <summary>
-        /// Resets the scheduling strategy. This is typically invoked by
-        /// parent strategies to reset child strategies.
-        /// </summary>
-        public override void Reset()
-        {
-            base.Reset();
         }
 
         /// <summary>
@@ -91,20 +83,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            var text = "Random seed '" + base.Seed + "', '" + base.MaxDelays + "' delays, delays '[";
-            for (int idx = 0; idx < this.CurrentIterationDelays.Count; idx++)
+            var text = "Random seed '" + RandomNumberGenerator.Seed + "', '" + MaxDelays + "' delays, delays '[";
+            for (int idx = 0; idx < CurrentIterationDelays.Count; idx++)
             {
-                text += this.CurrentIterationDelays[idx];
-                if (idx < this.CurrentIterationDelays.Count - 1)
+                text += CurrentIterationDelays[idx];
+                if (idx < CurrentIterationDelays.Count - 1)
                 {
                     text += ", ";
                 }
             }
 
-            text += "]'.";
+            text += "]'";
             return text;
         }
-
-        #endregion
     }
 }

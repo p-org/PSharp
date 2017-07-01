@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IRandomNumberGenerator.cs">
+// <copyright file="OperationTargetType.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,32 +12,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.Utilities
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Interface for random number generators.
+    /// The target of an operation used during scheduling.
     /// </summary>
-    public interface IRandomNumberGenerator
+    public enum OperationTargetType
     {
         /// <summary>
-        /// The seed currently used by the generator.
+        /// The target of the operation is an <see cref="ISchedulable"/>.
+        /// For example, 'Create', 'Start' and 'Stop' are operations that
+        /// act upon an <see cref="ISchedulable"/>.
         /// </summary>
-        int Seed { get; }
-
+        Schedulable = 0,
         /// <summary>
-        /// Returns a non-negative random number.
+        /// The target of the operation is the inbox of an <see cref="ISchedulable"/>.
+        /// For example, 'Send' and 'Receive' are operations that act upon the
+        /// inbox of an <see cref="ISchedulable"/>.
         /// </summary>
-        int Next();
-
-        /// <summary>
-        /// Returns a non-negative random number less than maxValue.
-        /// </summary>
-        /// <param name="maxValue">Exclusive upper bound</param>
-        int Next(int maxValue);
-
-        /// <summary>
-        /// Increments the seed used by the generator.
-        /// </summary>
-        void IncrementSeed();
+        Inbox
     }
 }

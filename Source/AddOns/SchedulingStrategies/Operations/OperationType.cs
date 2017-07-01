@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// An operation used during scheduling.

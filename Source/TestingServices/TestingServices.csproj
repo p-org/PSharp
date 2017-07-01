@@ -15,5 +15,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\AddOns\SchedulingStrategies\SchedulingStrategies.csproj" />
   </ItemGroup>
 </Project>

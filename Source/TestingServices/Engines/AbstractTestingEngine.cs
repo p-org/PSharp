@@ -24,6 +24,7 @@ using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -70,25 +71,30 @@ namespace Microsoft.PSharp.TestingServices
         internal Action<PSharpRuntime> TestAction;
 
         /// <summary>
-        /// The bug-finding scheduling strategy.
-        /// </summary>
-        protected ISchedulingStrategy Strategy;
-
-        /// <summary>
         /// Set of callbacks to invoke at the end
         /// of each iteration.
         /// </summary>
         protected ISet<Action<int>> PerIterationCallbacks;
 
         /// <summary>
-        /// A guard for printing info.
-        /// </summary>
-        protected int PrintGuard;
-
-        /// <summary>
         /// The installed logger.
         /// </summary>
-        protected ILogger Logger;
+        protected IO.ILogger Logger;
+
+        /// <summary>
+        /// The bug-finding scheduling strategy.
+        /// </summary>
+        protected ISchedulingStrategy Strategy;
+
+        /// <summary>
+        /// Random number generator used by the scheduling strategies.
+        /// </summary>
+        protected IRandomNumberGenerator RandomNumberGenerator;
+
+        /// <summary>
+        /// The logger used by the scheduling strategies.
+        /// </summary>
+        protected SchedulingStrategyLogger SchedulingStrategyLogger;
 
         /// <summary>
         /// The error reporter.
@@ -104,6 +110,11 @@ namespace Microsoft.PSharp.TestingServices
         /// The testing task cancellation token source.
         /// </summary>
         protected CancellationTokenSource CancellationTokenSource;
+
+        /// <summary>
+        /// A guard for printing info.
+        /// </summary>
+        protected int PrintGuard;
 
         #endregion
 
@@ -230,10 +241,12 @@ namespace Microsoft.PSharp.TestingServices
             this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
             this.Profiler = new Profiler();
 
-            this.CancellationTokenSource = new CancellationTokenSource();
+            // Initializes scheduling strategy specific components.
+            this.SchedulingStrategyLogger = new SchedulingStrategyLogger(this.Configuration);
+            this.SetRandomNumberGenerator();
 
             this.TestReport = new TestReport(this.Configuration);
-
+            this.CancellationTokenSource = new CancellationTokenSource();
             this.PrintGuard = 1;
 
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)
@@ -256,7 +269,6 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 bool isFair = false;
-
                 foreach (var line in scheduleDump)
                 {
                     if (!line.StartsWith("--"))
@@ -289,48 +301,47 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
-                this.Strategy = new RandomStrategy(this.Configuration);
+                this.Strategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
             {
-                this.Strategy = new ProbabilisticRandomStrategy(this.Configuration,
-                    this.Configuration.CoinFlipBound);
+                this.Strategy = new ProbabilisticRandomStrategy(this.Configuration.MaxFairSchedulingSteps,
+                    this.Configuration.CoinFlipBound, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
+            {
+                this.Strategy = new PCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound,
+                    this.SchedulingStrategyLogger, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT)
+            {
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new PCTStrategy(prefixLength, this.Configuration.PrioritySwitchBound,
+                    this.SchedulingStrategyLogger, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
             {
-                this.Strategy = new DFSStrategy(this.Configuration);
+                this.Strategy = new DFSStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.SchedulingStrategyLogger);
                 this.Configuration.PerformFullExploration = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.IDDFS)
             {
-                this.Strategy = new IterativeDeepeningDFSStrategy(this.Configuration);
+                this.Strategy = new IterativeDeepeningDFSStrategy(this.Configuration.MaxUnfairSchedulingSteps,
+                    this.SchedulingStrategyLogger);
                 this.Configuration.PerformFullExploration = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
             {
-                this.Strategy = new ExhaustiveDelayBoundingStrategy(this.Configuration,
-                    this.Configuration.DelayBound);
+                this.Strategy = new ExhaustiveDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
+                    this.Configuration.DelayBound, this.SchedulingStrategyLogger, this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
             {
-                this.Strategy = new RandomDelayBoundingStrategy(this.Configuration,
-                    this.Configuration.DelayBound);
-            }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
-            {
-                this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.PrioritySwitchBound);
-            }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT)
-            {
-                var strategy1 = new PCTStrategy(this.Configuration, this.Configuration.PrioritySwitchBound);
-                var strategy2 = new RandomStrategy(this.Configuration);
-                this.Strategy = new ComboStrategy(this.Configuration, strategy1, strategy2);
-            }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
-            {
-                this.Strategy = new MaceMCStrategy(this.Configuration);
-                this.Configuration.PerformFullExploration = false;
-                this.Configuration.EnableCycleDetection = false;
+                this.Strategy = new RandomDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
+                    this.Configuration.DelayBound, this.SchedulingStrategyLogger, this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
@@ -595,10 +606,10 @@ namespace Microsoft.PSharp.TestingServices
         #region logging
 
         /// <summary>
-        /// Installs the specified <see cref="ILogger"/>.
+        /// Installs the specified <see cref="IO.ILogger"/>.
         /// </summary>
         /// <param name="logger">ILogger</param>
-        public void SetLogger(ILogger logger)
+        public void SetLogger(IO.ILogger logger)
         {
             if (logger == null)
             {
@@ -608,6 +619,15 @@ namespace Microsoft.PSharp.TestingServices
             this.Logger.Dispose();
             this.Logger = logger;
             this.ErrorReporter.Logger = logger;
+        }
+
+        /// <summary>
+        /// Sets the random number generator to be used by the scheduling strategy.
+        /// </summary>
+        private void SetRandomNumberGenerator()
+        {
+            int seed = Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            this.RandomNumberGenerator = new DefaultRandomNumberGenerator(seed);
         }
 
         #endregion

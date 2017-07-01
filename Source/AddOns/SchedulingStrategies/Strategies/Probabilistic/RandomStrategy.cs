@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="LivenessCheckingStrategy.cs">
+// <copyright file="RandomStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,52 +12,51 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
-using Microsoft.TestingServices.SchedulingStrategies;
+using System.Linq;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Abstract strategy for detecting liveness property violations. It
-    /// contains a nested <see cref="ISchedulingStrategy"/> that is used
-    /// for scheduling decisions.
+    /// A simple (but effective) randomized scheduling strategy.
     /// </summary>
-    internal abstract class LivenessCheckingStrategy : ISchedulingStrategy
+    public class RandomStrategy : ISchedulingStrategy
     {
-        #region fields
+        /// <summary>
+        /// Random number generator.
+        /// </summary>
+        protected IRandomNumberGenerator RandomNumberGenerator;
 
         /// <summary>
-        /// The configuration.
+        /// The maximum number of steps to schedule.
         /// </summary>
-        protected Configuration Configuration;
+        protected int MaxScheduledSteps;
 
         /// <summary>
-        /// List of monitors in the program.
+        /// The number of scheduled steps.
         /// </summary>
-        protected List<Monitor> Monitors;
+        protected int ScheduledSteps;
 
         /// <summary>
-        /// Strategy used for scheduling decisions.
+        /// Creates a random strategy that uses the default random
+        /// number generator (seed is based on current time).
         /// </summary>
-        protected ISchedulingStrategy SchedulingStrategy;
-
-        #endregion
-
-        #region public API
+        /// <param name="maxSteps">Max scheduling steps</param>
+        public RandomStrategy(int maxSteps)
+            : this(maxSteps, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
+        { }
 
         /// <summary>
-        /// Creates a liveness strategy that checks the specific monitors
-        /// for liveness property violations, and uses the specified
-        /// strategy for scheduling decisions.
+        /// Creates a random strategy that uses the specified random number generator.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="monitors">List of monitors</param>
-        /// <param name="strategy">ISchedulingStrategy</param>
-        internal LivenessCheckingStrategy(Configuration configuration, List<Monitor> monitors, ISchedulingStrategy strategy)
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="random">IRandomNumberGenerator</param>
+        public RandomStrategy(int maxSteps, IRandomNumberGenerator random)
         {
-            Configuration = configuration;
-            Monitors = monitors;
-            SchedulingStrategy = strategy;
+            RandomNumberGenerator = random;
+            MaxScheduledSteps = maxSteps;
+            ScheduledSteps = 0;
         }
 
         /// <summary>
@@ -67,7 +66,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public abstract bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
+        public virtual bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
+            {
+                next = null;
+                return false;
+            }
+
+            int idx = RandomNumberGenerator.Next(enabledChoices.Count);
+            next = enabledChoices[idx];
+
+            ScheduledSteps++;
+
+            return true;
+        }
 
         /// <summary>
         /// Returns the next boolean choice.
@@ -75,7 +89,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public abstract bool GetNextBooleanChoice(int maxValue, out bool next);
+        public virtual bool GetNextBooleanChoice(int maxValue, out bool next)
+        {
+            next = false;
+            if (RandomNumberGenerator.Next(maxValue) == 0)
+            {
+                next = true;
+            }
+
+            ScheduledSteps++;
+
+            return true;
+        }
 
         /// <summary>
         /// Returns the next integer choice.
@@ -83,7 +108,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
-        public abstract bool GetNextIntegerChoice(int maxValue, out int next);
+        public virtual bool GetNextIntegerChoice(int maxValue, out int next)
+        {
+            next = RandomNumberGenerator.Next(maxValue);
+            ScheduledSteps++;
+            return true;
+        }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -93,7 +123,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public virtual bool PrepareForNextIteration()
         {
-            return SchedulingStrategy.PrepareForNextIteration();
+            ScheduledSteps = 0;
+            return true;
         }
 
         /// <summary>
@@ -102,35 +133,40 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public virtual void Reset()
         {
-            SchedulingStrategy.Reset();
+            ScheduledSteps = 0;
         }
 
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
         /// <returns>Scheduled steps</returns>
-        public virtual int GetScheduledSteps()
+        public int GetScheduledSteps()
         {
-            return SchedulingStrategy.GetScheduledSteps();
+            return ScheduledSteps;
         }
-
+        
         /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the depth
+        /// bound for the given scheduling iteration.
         /// </summary>
         /// <returns>Boolean</returns>
-        public virtual bool HasReachedMaxSchedulingSteps()
+        public bool HasReachedMaxSchedulingSteps()
         {
-            return SchedulingStrategy.HasReachedMaxSchedulingSteps();
+            if (MaxScheduledSteps == 0)
+            {
+                return false;
+            }
+
+            return ScheduledSteps >= MaxScheduledSteps;
         }
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
         /// <returns>Boolean</returns>
-        public virtual bool IsFair()
+        public bool IsFair()
         {
-            return SchedulingStrategy.IsFair();
+            return true;
         }
 
         /// <summary>
@@ -139,9 +175,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public virtual string GetDescription()
         {
-            return SchedulingStrategy.GetDescription();
+            return $"Random[seed '{RandomNumberGenerator.Seed}']";
         }
-
-        #endregion
     }
 }

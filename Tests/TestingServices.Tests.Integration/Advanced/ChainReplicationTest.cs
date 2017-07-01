@@ -1446,8 +1446,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
-            configuration.MaxUnfairSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = 389;
+            configuration.MaxSchedulingSteps = 100;
+            configuration.RandomSchedulingSeed = 624;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {

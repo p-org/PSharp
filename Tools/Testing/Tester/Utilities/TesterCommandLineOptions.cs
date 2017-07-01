@@ -138,10 +138,6 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
                     base.Configuration.DelayBound = i;
                 }
-                else if (scheduler.ToLower().Equals("macemc"))
-                {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
-                }
                 else
                 {
                     Error.ReportAndExit("Please give a valid scheduling strategy " +
@@ -329,13 +325,12 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Portfolio &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.ProbabilisticRandom &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding)
             {
                 Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'/sch:[x]', where [x] is 'random' or 'pct' (other experimental " +

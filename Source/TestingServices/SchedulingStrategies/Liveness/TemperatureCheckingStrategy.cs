@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -45,6 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
+            CheckLivenessTemperature();
             return SchedulingStrategy.GetNext(out next, choices, current);
         }
 
@@ -56,6 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
+            CheckLivenessTemperature();
             return SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
         }
 
@@ -67,17 +70,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            return SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
-        }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public override void PrepareForNextChoice()
-        {
             CheckLivenessTemperature();
+            return SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
         }
 
         /// <summary>

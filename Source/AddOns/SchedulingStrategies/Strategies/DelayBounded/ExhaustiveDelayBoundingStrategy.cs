@@ -16,41 +16,42 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Class representing an exhaustive delay-bounding scheduling strategy.
+    /// An exhaustive delay-bounding scheduling strategy.
     /// </summary>
     public sealed class ExhaustiveDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
-        #region fields
-
         /// <summary>
         /// Cache of delays across iterations.
         /// </summary>
         private List<int> DelaysCache;
 
-        #endregion
-
-        #region public API
+        /// <summary>
+        /// Creates an exhaustive delay-bounding strategy that uses the default
+        /// random number generator (seed is based on current time).
+        /// </summary>
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="maxDelays">Max number of delays</param>
+        /// <param name="logger">ILogger</param>
+        public ExhaustiveDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger)
+            : this(maxSteps, maxDelays, logger, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
+        { }
 
         /// <summary>
-        /// Constructor.
+        /// Creates an exhaustive delay-bounding strategy that uses
+        /// the specified random number generator.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="delays">Max number of delays</param>
-        public ExhaustiveDelayBoundingStrategy(Configuration configuration, int delays)
-            : base(configuration, delays)
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="maxDelays">Max number of delays</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="random">IRandomNumberGenerator</param>
+        public ExhaustiveDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger, IRandomNumberGenerator random)
+            : base(maxSteps, maxDelays, logger, random)
         {
-            this.DelaysCache = Enumerable.Repeat(0, base.MaxDelays).ToList();
+            DelaysCache = Enumerable.Repeat(0, MaxDelays).ToList();
         }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public override void PrepareForNextChoice() { }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -60,27 +61,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public override bool PrepareForNextIteration()
         {
-            base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
-            base.ExploredSteps = 0;
+            ScheduleLength = Math.Max(ScheduleLength, ScheduledSteps);
+            ScheduledSteps = 0;
 
-            var bound = Math.Min(
-                (base.IsFair() ? base.Configuration.MaxFairSchedulingSteps :
-                base.Configuration.MaxUnfairSchedulingSteps),
-                base.MaxExploredSteps);
-            for (var idx = 0; idx < base.MaxDelays; idx++)
+            var bound = Math.Min(MaxScheduledSteps, ScheduleLength);
+            for (var idx = 0; idx < MaxDelays; idx++)
             {
-                if (this.DelaysCache[idx] < bound)
+                if (DelaysCache[idx] < bound)
                 {
-                    this.DelaysCache[idx] = this.DelaysCache[idx] + 1;
+                    DelaysCache[idx] = DelaysCache[idx] + 1;
                     break;
                 }
 
-                this.DelaysCache[idx] = 0;
+                DelaysCache[idx] = 0;
             }
 
-            base.RemainingDelays.Clear();
-            base.RemainingDelays.AddRange(this.DelaysCache);
-            base.RemainingDelays.Sort();
+            RemainingDelays.Clear();
+            RemainingDelays.AddRange(DelaysCache);
+            RemainingDelays.Sort();
 
             return true;
         }
@@ -91,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public override void Reset()
         {
-            this.DelaysCache = Enumerable.Repeat(0, base.MaxDelays).ToList();
+            DelaysCache = Enumerable.Repeat(0, MaxDelays).ToList();
             base.Reset();
         }
 
@@ -101,20 +99,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            var text = base.MaxDelays + "' delays, delays '[";
-            for (int idx = 0; idx < this.DelaysCache.Count; idx++)
+            var text = MaxDelays + "' delays, delays '[";
+            for (int idx = 0; idx < DelaysCache.Count; idx++)
             {
-                text += this.DelaysCache[idx];
-                if (idx < this.DelaysCache.Count - 1)
+                text += DelaysCache[idx];
+                if (idx < DelaysCache.Count - 1)
                 {
                     text += ", ";
                 }
             }
 
-            text += "]'.";
+            text += "]'";
             return text;
         }
-
-        #endregion
     }
 }

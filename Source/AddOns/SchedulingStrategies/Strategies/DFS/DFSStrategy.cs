@@ -15,21 +15,27 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.IO;
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Class representing a depth-first search scheduling strategy.
+    /// A depth-first search scheduling strategy.
     /// </summary>
     public class DFSStrategy : ISchedulingStrategy
     {
-        #region fields
+        /// <summary>
+        /// Logger used by the strategy.
+        /// </summary>
+        protected ILogger Logger;
 
         /// <summary>
-        /// The configuration.
+        /// The maximum number of steps to schedule.
         /// </summary>
-        protected Configuration Configuration;
+        protected int MaxScheduledSteps;
+
+        /// <summary>
+        /// The number of scheduled steps.
+        /// </summary>
+        protected int ScheduledSteps;
 
         /// <summary>
         /// Stack of scheduling choices.
@@ -57,27 +63,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private int NondetIndex;
 
         /// <summary>
-        /// The number of explored steps.
+        /// Creates a DFS strategy.
         /// </summary>
-        protected int ExploredSteps;
-
-        #endregion
-
-        #region public API
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        public DFSStrategy(Configuration configuration)
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="logger">ILogger</param>
+        public DFSStrategy(int maxSteps, ILogger logger)
         {
-            this.Configuration = configuration;
-            this.ScheduleStack = new List<List<SChoice>>();
-            this.BoolNondetStack = new List<List<NondetBooleanChoice>>();
-            this.IntNondetStack = new List<List<NondetIntegerChoice>>();
-            this.SchIndex = 0;
-            this.NondetIndex = 0;
-            this.ExploredSteps = 0;
+            Logger = logger;
+            MaxScheduledSteps = maxSteps;
+            ScheduledSteps = 0;
+            SchIndex = 0;
+            NondetIndex = 0;
+            ScheduleStack = new List<List<SChoice>>();
+            BoolNondetStack = new List<List<NondetBooleanChoice>>();
+            IntNondetStack = new List<List<NondetIntegerChoice>>();
         }
 
         /// <summary>
@@ -99,9 +98,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             SChoice nextChoice = null;
             List<SChoice> scs = null;
 
-            if (this.SchIndex < this.ScheduleStack.Count)
+            if (SchIndex < ScheduleStack.Count)
             {
-                scs = this.ScheduleStack[this.SchIndex];
+                scs = ScheduleStack[SchIndex];
             }
             else
             {
@@ -111,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     scs.Add(new SChoice(task.Id));
                 }
 
-                this.ScheduleStack.Add(scs);
+                ScheduleStack.Add(scs);
             }
 
             nextChoice = scs.FirstOrDefault(val => !val.IsDone);
@@ -121,22 +120,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            if (this.SchIndex > 0)
+            if (SchIndex > 0)
             {
-                var previousChoice = this.ScheduleStack[this.SchIndex - 1].Last(val => val.IsDone);
+                var previousChoice = ScheduleStack[SchIndex - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
             
             next = enabledChoices.Find(task => task.Id == nextChoice.Id);
             nextChoice.IsDone = true;
-            this.SchIndex++;
+            SchIndex++;
 
             if (next == null)
             {
                 return false;
             }
 
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
@@ -152,9 +151,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             NondetBooleanChoice nextChoice = null;
             List<NondetBooleanChoice> ncs = null;
 
-            if (this.NondetIndex < this.BoolNondetStack.Count)
+            if (NondetIndex < BoolNondetStack.Count)
             {
-                ncs = this.BoolNondetStack[this.NondetIndex];
+                ncs = BoolNondetStack[NondetIndex];
             }
             else
             {
@@ -162,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 ncs.Add(new NondetBooleanChoice(false));
                 ncs.Add(new NondetBooleanChoice(true));
 
-                this.BoolNondetStack.Add(ncs);
+                BoolNondetStack.Add(ncs);
             }
 
             nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
@@ -172,17 +171,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            if (this.NondetIndex > 0)
+            if (NondetIndex > 0)
             {
-                var previousChoice = this.BoolNondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
+                var previousChoice = BoolNondetStack[NondetIndex - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
 
             next = nextChoice.Value;
             nextChoice.IsDone = true;
-            this.NondetIndex++;
+            NondetIndex++;
 
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
@@ -198,9 +197,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             NondetIntegerChoice nextChoice = null;
             List<NondetIntegerChoice> ncs = null;
 
-            if (this.NondetIndex < this.IntNondetStack.Count)
+            if (NondetIndex < IntNondetStack.Count)
             {
-                ncs = this.IntNondetStack[this.NondetIndex];
+                ncs = IntNondetStack[NondetIndex];
             }
             else
             {
@@ -210,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     ncs.Add(new NondetIntegerChoice(value));
                 }
 
-                this.IntNondetStack.Add(ncs);
+                IntNondetStack.Add(ncs);
             }
 
             nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
@@ -220,27 +219,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            if (this.NondetIndex > 0)
+            if (NondetIndex > 0)
             {
-                var previousChoice = this.IntNondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
+                var previousChoice = IntNondetStack[NondetIndex - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
 
             next = nextChoice.Value;
             nextChoice.IsDone = true;
-            this.NondetIndex++;
+            NondetIndex++;
 
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public void PrepareForNextChoice() { }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -250,75 +242,75 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public virtual bool PrepareForNextIteration()
         {
-            if (this.ScheduleStack.All(scs => scs.All(val => val.IsDone)))
+            if (ScheduleStack.All(scs => scs.All(val => val.IsDone)))
             {
                 return false;
             }
 
-            //this.PrintSchedule();
+            //PrintSchedule();
 
-            this.ExploredSteps = 0;
+            ScheduledSteps = 0;
 
-            this.SchIndex = 0;
-            this.NondetIndex = 0;
+            SchIndex = 0;
+            NondetIndex = 0;
 
-            for (int idx = this.BoolNondetStack.Count - 1; idx > 0; idx--)
+            for (int idx = BoolNondetStack.Count - 1; idx > 0; idx--)
             {
-                if (!this.BoolNondetStack[idx].All(val => val.IsDone))
+                if (!BoolNondetStack[idx].All(val => val.IsDone))
                 {
                     break;
                 }
 
-                var previousChoice = this.BoolNondetStack[idx - 1].First(val => !val.IsDone);
+                var previousChoice = BoolNondetStack[idx - 1].First(val => !val.IsDone);
                 previousChoice.IsDone = true;
 
-                this.BoolNondetStack.RemoveAt(idx);
+                BoolNondetStack.RemoveAt(idx);
             }
 
-            for (int idx = this.IntNondetStack.Count - 1; idx > 0; idx--)
+            for (int idx = IntNondetStack.Count - 1; idx > 0; idx--)
             {
-                if (!this.IntNondetStack[idx].All(val => val.IsDone))
+                if (!IntNondetStack[idx].All(val => val.IsDone))
                 {
                     break;
                 }
 
-                var previousChoice = this.IntNondetStack[idx - 1].First(val => !val.IsDone);
+                var previousChoice = IntNondetStack[idx - 1].First(val => !val.IsDone);
                 previousChoice.IsDone = true;
 
-                this.IntNondetStack.RemoveAt(idx);
+                IntNondetStack.RemoveAt(idx);
             }
 
-            if (this.BoolNondetStack.Count > 0 &&
-                this.BoolNondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
+            if (BoolNondetStack.Count > 0 &&
+                BoolNondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
             {
-                this.BoolNondetStack.Clear();
+                BoolNondetStack.Clear();
             }
 
-            if (this.IntNondetStack.Count > 0 &&
-                this.IntNondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
+            if (IntNondetStack.Count > 0 &&
+                IntNondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
             {
-                this.IntNondetStack.Clear();
+                IntNondetStack.Clear();
             }
 
-            if (this.BoolNondetStack.Count == 0 &&
-                this.IntNondetStack.Count == 0)
+            if (BoolNondetStack.Count == 0 &&
+                IntNondetStack.Count == 0)
             {
-                for (int idx = this.ScheduleStack.Count - 1; idx > 0; idx--)
+                for (int idx = ScheduleStack.Count - 1; idx > 0; idx--)
                 {
-                    if (!this.ScheduleStack[idx].All(val => val.IsDone))
+                    if (!ScheduleStack[idx].All(val => val.IsDone))
                     {
                         break;
                     }
 
-                    var previousChoice = this.ScheduleStack[idx - 1].First(val => !val.IsDone);
+                    var previousChoice = ScheduleStack[idx - 1].First(val => !val.IsDone);
                     previousChoice.IsDone = true;
 
-                    this.ScheduleStack.RemoveAt(idx);
+                    ScheduleStack.RemoveAt(idx);
                 }
             }
             else
             {
-                var previousChoice = this.ScheduleStack.Last().LastOrDefault(val => val.IsDone);
+                var previousChoice = ScheduleStack.Last().LastOrDefault(val => val.IsDone);
                 if (previousChoice != null)
                 {
                     previousChoice.IsDone = false;
@@ -334,21 +326,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.ScheduleStack.Clear();
-            this.BoolNondetStack.Clear();
-            this.IntNondetStack.Clear();
-            this.SchIndex = 0;
-            this.NondetIndex = 0;
-            this.ExploredSteps = 0;
+            ScheduleStack.Clear();
+            BoolNondetStack.Clear();
+            IntNondetStack.Clear();
+            SchIndex = 0;
+            NondetIndex = 0;
+            ScheduledSteps = 0;
         }
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        /// <returns>Scheduled steps</returns>
+        public int GetScheduledSteps()
         {
-            return this.ExploredSteps;
+            return ScheduledSteps;
         }
 
         /// <summary>
@@ -358,15 +350,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
-
-            if (bound == 0)
+            if (MaxScheduledSteps == 0)
             {
                 return false;
             }
 
-            return this.ExploredSteps >= bound;
+            return ScheduledSteps >= MaxScheduledSteps;
         }
 
         /// <summary>
@@ -384,55 +373,51 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "";
+            return "DFS";
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Prints the schedule.
         /// </summary>
         private void PrintSchedule()
         {
-            Debug.WriteLine("*******************");
-            Debug.WriteLine("Schedule stack size: " + this.ScheduleStack.Count);
-            for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
+            Logger.WriteLine("*******************");
+            Logger.WriteLine("Schedule stack size: " + ScheduleStack.Count);
+            for (int idx = 0; idx < ScheduleStack.Count; idx++)
             {
-                Debug.WriteLine("Index: " + idx);
-                foreach (var sc in this.ScheduleStack[idx])
+                Logger.WriteLine("Index: " + idx);
+                foreach (var sc in ScheduleStack[idx])
                 {
-                    Debug.Write(sc.Id + " [" + sc.IsDone + "], ");
+                    Logger.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
-                Debug.WriteLine("");
+                Logger.WriteLine("");
             }
 
-            Debug.WriteLine("*******************");
-            Debug.WriteLine("Random bool stack size: " + this.BoolNondetStack.Count);
-            for (int idx = 0; idx < this.BoolNondetStack.Count; idx++)
+            Logger.WriteLine("*******************");
+            Logger.WriteLine("Random bool stack size: " + BoolNondetStack.Count);
+            for (int idx = 0; idx < BoolNondetStack.Count; idx++)
             {
-                Debug.WriteLine("Index: " + idx);
-                foreach (var nc in this.BoolNondetStack[idx])
+                Logger.WriteLine("Index: " + idx);
+                foreach (var nc in BoolNondetStack[idx])
                 {
-                    Debug.Write(nc.Value + " [" + nc.IsDone + "], ");
+                    Logger.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                Debug.WriteLine("");
+                Logger.WriteLine("");
             }
-            Debug.WriteLine("*******************");
 
-            Debug.WriteLine("*******************");
-            Debug.WriteLine("Random int stack size: " + this.IntNondetStack.Count);
-            for (int idx = 0; idx < this.IntNondetStack.Count; idx++)
+            Logger.WriteLine("*******************");
+            Logger.WriteLine("Random int stack size: " + IntNondetStack.Count);
+            for (int idx = 0; idx < IntNondetStack.Count; idx++)
             {
-                Debug.WriteLine("Index: " + idx);
-                foreach (var nc in this.IntNondetStack[idx])
+                Logger.WriteLine("Index: " + idx);
+                foreach (var nc in IntNondetStack[idx])
                 {
-                    Debug.Write(nc.Value + " [" + nc.IsDone + "], ");
+                    Logger.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                Debug.WriteLine("");
+                Logger.WriteLine("");
             }
-            Debug.WriteLine("*******************");
+
+            Logger.WriteLine("*******************");
         }
 
         /// <summary>
@@ -450,8 +435,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             /// <param name="id">Id</param>
             internal SChoice(ulong id)
             {
-                this.Id = id;
-                this.IsDone = false;
+                Id = id;
+                IsDone = false;
             }
         }
 
@@ -471,8 +456,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             /// <param name="value">Value</param>
             internal NondetBooleanChoice(bool value)
             {
-                this.Value = value;
-                this.IsDone = false;
+                Value = value;
+                IsDone = false;
             }
         }
 
@@ -492,11 +477,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             /// <param name="value">Value</param>
             internal NondetIntegerChoice(int value)
             {
-                this.Value = value;
-                this.IsDone = false;
+                Value = value;
+                IsDone = false;
             }
         }
-
-        #endregion
     }
 }

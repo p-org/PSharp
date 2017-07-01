@@ -14,7 +14,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// Interface of a generic scheduling strategy.
@@ -47,13 +47,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         bool GetNextIntegerChoice(int maxValue, out int next);
 
         /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        void PrepareForNextChoice();
-
-        /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
@@ -68,10 +61,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         void Reset();
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        int GetExploredSteps();
+        /// <returns>Scheduled steps</returns>
+        int GetScheduledSteps();
 
         /// <summary>
         /// True if the scheduling strategy has reached the max

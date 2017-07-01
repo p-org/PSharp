@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.TestingServices.SchedulingStrategies;
+
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>

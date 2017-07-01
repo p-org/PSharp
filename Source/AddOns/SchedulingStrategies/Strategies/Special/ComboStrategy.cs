@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs">
+// <copyright file="ComboStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,55 +12,35 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
-using Microsoft.PSharp.Utilities;
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Class representing a random-walk scheduling strategy.
+    /// This strategy combines two given strategies, using them to schedule
+    /// the prefix and suffix of an execution.
     /// </summary>
-    public sealed class RandomStrategy : ISchedulingStrategy
+    public sealed class ComboStrategy : ISchedulingStrategy
     {
-        #region fields
+        /// <summary>
+        /// The prefix strategy.
+        /// </summary>
+        private ISchedulingStrategy PrefixStrategy;
 
         /// <summary>
-        /// The configuration.
+        /// The suffix strategy.
         /// </summary>
-        private Configuration Configuration;
+        private ISchedulingStrategy SuffixStrategy;
 
         /// <summary>
-        /// Nondeterminitic seed.
+        /// Creates a combo strategy that uses the two specified strategies.
         /// </summary>
-        private int Seed;
-
-        /// <summary>
-        /// Randomizer.
-        /// </summary>
-        private IRandomNumberGenerator Random;
-
-        /// <summary>
-        /// The number of explored steps.
-        /// </summary>
-        private int ExploredSteps;
-
-        #endregion
-
-        #region public API
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        public RandomStrategy(Configuration configuration)
+        /// <param name="prefixStrategy">Prefix strategy </param>
+        /// <param name="suffixStrategy">Suffix strategy</param>
+        public ComboStrategy(ISchedulingStrategy prefixStrategy, ISchedulingStrategy suffixStrategy)
         {
-            this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.ExploredSteps = 0;
+            this.PrefixStrategy = prefixStrategy;
+            this.SuffixStrategy = suffixStrategy;
         }
 
         /// <summary>
@@ -72,19 +52,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-            if (enabledChoices.Count == 0)
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
             {
-                next = null;
-                return false;
+                return this.SuffixStrategy.GetNext(out next, choices, current);
             }
-
-            int idx = this.Random.Next(enabledChoices.Count);
-            next = enabledChoices[idx];
-
-            this.ExploredSteps++;
-
-            return true;
+            else
+            {
+                return this.PrefixStrategy.GetNext(out next, choices, current);
+            }
         }
 
         /// <summary>
@@ -95,15 +70,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            next = false;
-            if (this.Random.Next(maxValue) == 0)
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
             {
-                next = true;
+                return this.SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
             }
-
-            this.ExploredSteps++;
-
-            return true;
+            else
+            {
+                return this.PrefixStrategy.GetNextBooleanChoice(maxValue, out next);
+            }
         }
 
         /// <summary>
@@ -114,17 +88,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            next = this.Random.Next(maxValue);
-            this.ExploredSteps++;
-            return true;
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
+            {
+                return this.SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
+            }
+            else
+            {
+                return this.PrefixStrategy.GetNextIntegerChoice(maxValue, out next);
+            }
         }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public void PrepareForNextChoice() { }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -134,13 +106,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
-            this.ExploredSteps = 0;
-            if (this.Configuration.IncrementalSchedulingSeed)
-            {
-                this.Random.IncrementSeed();
-            }
-
-            return true;
+            bool doNext = this.PrefixStrategy.PrepareForNextIteration();
+            doNext = doNext | this.SuffixStrategy.PrepareForNextIteration();
+            return doNext;
         }
 
         /// <summary>
@@ -149,35 +117,34 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.ExploredSteps = 0;
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
+            this.PrefixStrategy.Reset();
+            this.SuffixStrategy.Reset();
         }
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        /// <returns>Scheduled steps</returns>
+        public int GetScheduledSteps()
         {
-            return this.ExploredSteps;
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
+            {
+                return this.SuffixStrategy.GetScheduledSteps() + this.PrefixStrategy.GetScheduledSteps();
+            }
+            else
+            {
+                return this.PrefixStrategy.GetScheduledSteps();
+            }
         }
-        
+
         /// <summary>
-        /// True if the scheduling strategy has reached the depth
-        /// bound for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
-
-            if (bound == 0)
-            {
-                return false;
-            }
-
-            return this.ExploredSteps >= bound;
+            return this.SuffixStrategy.HasReachedMaxSchedulingSteps();
         }
 
         /// <summary>
@@ -186,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
-            return true;
+            return this.SuffixStrategy.IsFair();
         }
 
         /// <summary>
@@ -195,9 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random seed '" + this.Random.Seed + "'.";
+            return string.Format("Combo[{0},{1}]", PrefixStrategy.GetDescription(), SuffixStrategy.GetDescription());
         }
-
-        #endregion
     }
 }

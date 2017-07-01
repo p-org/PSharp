@@ -12,13 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -45,12 +47,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// for the duration of the latest found
         /// potential cycle.
         /// </summary>
-        private ISet<Monitor> HotMonitors;
+        private HashSet<Monitor> HotMonitors;
 
         /// <summary>
         /// The latest found potential cycle.
         /// </summary>
-        private IList<Tuple<ScheduleStep, State>> PotentialCycle;
+        private List<Tuple<ScheduleStep, State>> PotentialCycle;
 
         /// <summary>
         /// Is strategy trying to replay a potential cycle.
@@ -129,6 +131,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
+            CaptureAndCheckProgramState();
+
             if (IsReplayingCycle)
             {
                 var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
@@ -178,6 +182,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
+            CaptureAndCheckProgramState();
+
             if (IsReplayingCycle)
             {
                 ScheduleStep nextStep = PotentialCycle[CurrentCycleIndex].Item1;
@@ -215,6 +221,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNextIntegerChoice(int maxValue, out int next)
         {
+            CaptureAndCheckProgramState();
+
             if (IsReplayingCycle)
             {
                 ScheduleStep nextStep = PotentialCycle[CurrentCycleIndex].Item1;
@@ -242,28 +250,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             else
             {
                 return SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
-            }
-        }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public override void PrepareForNextChoice()
-        {
-            if (this.ScheduleTrace.Count == 0)
-            {
-                return;
-            }
-
-            CaptureProgramState();
-
-            if (PotentialCycle.Count > 0)
-            {
-                // Only check for a liveness property violation
-                // if there is a potential cycle.
-                CheckLivenessTemperature();
             }
         }
 
@@ -336,11 +322,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Captures the current program state.
+        /// Captures the program state and checks for liveness violations.
         /// </summary>
-        private void CaptureProgramState()
+        private void CaptureAndCheckProgramState()
         {
-            if (Configuration.SafetyPrefixBound <= GetExploredSteps())
+            if (this.ScheduleTrace.Count == 0)
+            {
+                return;
+            }
+
+            if (Configuration.SafetyPrefixBound <= GetScheduledSteps())
             {
                 State capturedState = null;
                 Fingerprint fingerprint = null;
@@ -351,6 +342,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
                     CheckLivenessAtTraceCycle(capturedState.Fingerprint, FingerprintIndexMap[fingerprint]);
                 }
+            }
+
+            if (PotentialCycle.Count > 0)
+            {
+                // Only check for a liveness property violation
+                // if there is a potential cycle.
+                CheckLivenessTemperature();
             }
         }
 

@@ -210,10 +210,9 @@ namespace Microsoft.PSharp.TestingServices
             string options = "";
             if (base.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
+                base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
             {
                 options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
             }
@@ -250,6 +249,13 @@ namespace Microsoft.PSharp.TestingServices
                         if (!base.Strategy.PrepareForNextIteration())
                         {
                             break;
+                        }
+
+                        if (this.RandomNumberGenerator != null && Configuration.IncrementalSchedulingSeed)
+                        {
+                            // Increments the seed in the random number generator (if one is used), to
+                            // capture the seed used by the scheduling strategy in the next iteration.
+                            this.RandomNumberGenerator.Seed = this.RandomNumberGenerator.Seed + 1;
                         }
 
                         // Increases iterations if there is a specified timeout
@@ -312,6 +318,9 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     runtimeLogger = new InMemoryLogger();
                     runtime.SetLogger(runtimeLogger);
+
+                    // Sets the scheduling strategy logger to the in-memory logger.
+                    base.SchedulingStrategyLogger.SetLogger(runtimeLogger);
 
                     var writer = new LogWriter(new DisposingLogger());
                     Console.SetOut(writer);
@@ -391,6 +400,9 @@ namespace Microsoft.PSharp.TestingServices
                         $"triggered bug #{base.TestReport.NumOfFoundBugs} " +
                         $"[task-{this.Configuration.TestingProcessId}]");
                 }
+
+                // Resets the scheduling strategy logger to the default logger.
+                base.SchedulingStrategyLogger.ResetToDefaultLogger();
 
                 // Cleans up the runtime before the next iteration starts.
                 runtimeLogger?.Dispose();
