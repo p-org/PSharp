@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void WaitForUserOnEntry()
             {
-                this.Monitor<WatchDog>(new Waiting());
+                this.Monitor<LivenessMonitor>(new Waiting());
                 this.Send(this.Id, new UserEvent());
             }
 
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void HandleEventOnEntry()
             {
-                this.Monitor<WatchDog>(new Computing());
+                this.Monitor<LivenessMonitor>(new Computing());
             }
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
-        class WatchDog : Monitor
+        class LivenessMonitor : Monitor
         {
             [Start]
             [Cold]
@@ -89,15 +89,17 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestLiveness2LoopMachine()
         {
             var configuration = base.GetConfiguration();
-            configuration.SchedulingIterations = 100;
             configuration.LivenessTemperatureThreshold = 200;
+            configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
-                r.RegisterMonitor(typeof(WatchDog));
+                r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(EventHandler));
             });
 
-            base.AssertFailed(configuration, test, 1);
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
+                "'Microsoft.PSharp.TestingServices.Tests.Unit.Liveness2LoopMachineTest+LivenessMonitor.CannotGetUserInput'.";
+            base.AssertFailed(configuration, test, bugReport);
         }
     }
 }

@@ -18,6 +18,7 @@ using System.Linq;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -39,20 +40,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private ScheduleTrace ScheduleTrace;
 
         /// <summary>
-        /// The maximum number of explored steps.
-        /// </summary>
-        private int MaxExploredSteps;
-
-        /// <summary>
-        /// The number of explored steps.
-        /// </summary>
-        private int ExploredSteps;
-
-        /// <summary>
         /// Is the scheduler that produced the
         /// schedule trace fair?
         /// </summary>
         private bool IsSchedulerFair;
+
+        /// <summary>
+        /// The number of scheduled steps.
+        /// </summary>
+        private int ScheduledSteps;
 
         /// <summary>
         /// Text describing a replay error.
@@ -71,12 +67,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="isFair">Is scheduler fair</param>
         public ReplayStrategy(Configuration configuration, ScheduleTrace trace, bool isFair)
         {
-            this.Configuration = configuration;
-            this.ScheduleTrace = trace;
-            this.MaxExploredSteps = 0;
-            this.ExploredSteps = 0;
-            this.IsSchedulerFair = isFair;
-            this.ErrorText = "";
+            Configuration = configuration;
+            ScheduleTrace = trace;
+            ScheduledSteps = 0;
+            IsSchedulerFair = isFair;
+            ErrorText = "";
         }
 
         /// <summary>
@@ -97,29 +92,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             try
             {
-                if (this.ExploredSteps >= this.ScheduleTrace.Count)
+                if (ScheduledSteps >= ScheduleTrace.Count)
                 {
-                    this.ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                    throw new InvalidOperationException(ErrorText);
                 }
 
-                ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
+                ScheduleStep nextStep = ScheduleTrace[ScheduledSteps];
                 if (nextStep.Type != ScheduleStepType.SchedulingChoice)
                 {
-                    this.ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
+                    throw new InvalidOperationException(ErrorText);
                 }
                 
                 next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
                 if (next == null)
                 {
-                    this.ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
+                    throw new InvalidOperationException(ErrorText);
                 }
             }
             catch (InvalidOperationException ex)
             {
-                if (!this.Configuration.DisableEnvironmentExit)
+                if (!Configuration.DisableEnvironmentExit)
                 {
                     Error.ReportAndExit(ex.Message);
                 }
@@ -128,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
@@ -145,28 +140,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             try
             {
-                if (this.ExploredSteps >= this.ScheduleTrace.Count)
+                if (ScheduledSteps >= ScheduleTrace.Count)
                 {
-                    this.ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                    throw new InvalidOperationException(ErrorText);
                 }
 
-                nextStep = this.ScheduleTrace[this.ExploredSteps];
+                nextStep = ScheduleTrace[ScheduledSteps];
                 if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
                 {
-                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
+                    throw new InvalidOperationException(ErrorText);
                 }
 
                 if (nextStep.BooleanChoice == null)
                 {
-                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
+                    throw new InvalidOperationException(ErrorText);
                 }
             }
             catch (InvalidOperationException ex)
             {
-                if (!this.Configuration.DisableEnvironmentExit)
+                if (!Configuration.DisableEnvironmentExit)
                 {
                     Error.ReportAndExit(ex.Message);
                 }
@@ -176,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             next = nextStep.BooleanChoice.Value;
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
@@ -193,28 +188,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             try
             {
-                if (this.ExploredSteps >= this.ScheduleTrace.Count)
+                if (ScheduledSteps >= ScheduleTrace.Count)
                 {
-                    this.ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                    throw new InvalidOperationException(ErrorText);
                 }
 
-                nextStep = this.ScheduleTrace[this.ExploredSteps];
+                nextStep = ScheduleTrace[ScheduledSteps];
                 if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
                 {
-                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
+                    throw new InvalidOperationException(ErrorText);
                 }
 
                 if (nextStep.IntegerChoice == null)
                 {
-                    this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
-                    throw new InvalidOperationException(this.ErrorText);
+                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
+                    throw new InvalidOperationException(ErrorText);
                 }
             }
             catch (InvalidOperationException ex)
             {
-                if (!this.Configuration.DisableEnvironmentExit)
+                if (!Configuration.DisableEnvironmentExit)
                 {
                     Error.ReportAndExit(ex.Message);
                 }
@@ -224,17 +219,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             next = nextStep.IntegerChoice.Value;
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public void PrepareForNextChoice() { }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -244,8 +232,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
-            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
-            this.ExploredSteps = 0;
+            ScheduledSteps = 0;
             return false;
         }
 
@@ -255,17 +242,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.MaxExploredSteps = 0;
-            this.ExploredSteps = 0;
+            ScheduledSteps = 0;
         }
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        /// <returns>Scheduled steps</returns>
+        public int GetScheduledSteps()
         {
-            return this.ExploredSteps;
+            return ScheduledSteps;
         }
 
         /// <summary>
@@ -275,15 +261,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
-
-            if (bound == 0)
-            {
-                return false;
-            }
-
-            return this.ExploredSteps >= bound;
+            return false;
         }
 
         /// <summary>
@@ -292,7 +270,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
-            return this.IsSchedulerFair;
+            return IsSchedulerFair;
         }
 
         /// <summary>
@@ -301,7 +279,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "";
+            return "Replay";
         }
 
         #endregion

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -35,7 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The installed logger.
         /// </summary>
-        private ILogger Logger;
+        private IO.ILogger Logger;
 
         /// <summary>
         /// The input cache.
@@ -56,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="logger">ILogger</param>
-        public InteractiveStrategy(Configuration configuration, ILogger logger)
+        public InteractiveStrategy(Configuration configuration, IO.ILogger logger)
         {
             this.Logger = logger ?? new ConsoleLogger();
             this.Configuration = configuration;
@@ -330,13 +331,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public void PrepareForNextChoice() { }
-
-        /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
@@ -359,10 +353,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        /// <returns>Scheduled steps</returns>
+        public int GetScheduledSteps()
         {
             return this.ExploredSteps;
         }

@@ -12,18 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Class representing a depth-first search scheduling strategy
-    /// that incorporates iterative deepening.
+    /// A depth-first search scheduling strategy that uses iterative deepening.
     /// </summary>
     public sealed class IterativeDeepeningDFSStrategy : DFSStrategy, ISchedulingStrategy
     {
-        #region fields
-
         /// <summary>
         /// The max depth.
         /// </summary>
@@ -34,20 +29,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private int CurrentDepth;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Creates a DFS strategy that uses iterative deepening.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        public IterativeDeepeningDFSStrategy(Configuration configuration)
-            : base(configuration)
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="logger">ILogger</param>
+        public IterativeDeepeningDFSStrategy(int maxSteps, ILogger logger)
+            : base(maxSteps, logger)
         {
-            this.MaxDepth = base.IsFair() ? configuration.MaxFairSchedulingSteps :
-                configuration.MaxUnfairSchedulingSteps;
-            this.CurrentDepth = 1;
+            MaxDepth = maxSteps;
+            CurrentDepth = 1;
         }
 
         /// <summary>
@@ -58,14 +49,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public override bool PrepareForNextIteration()
         {
-            bool doNext = base.PrepareForNextIteration();
+            bool doNext = PrepareForNextIteration();
             if (!doNext)
             {
-                base.Reset();
-                this.CurrentDepth++;
-                if (this.CurrentDepth <= this.MaxDepth)
+                Reset();
+                CurrentDepth++;
+                if (CurrentDepth <= MaxDepth)
                 {
-                    Debug.WriteLine($"<IterativeDeepeningDFSLog> Depth bound increased to {this.CurrentDepth} (max is {this.MaxDepth}).");
+                    Logger.WriteLine($"<IterativeDeepeningDFSLog> Depth bound increased to {CurrentDepth} (max is {MaxDepth}).");
                     doNext = true;
                 }
             }
@@ -80,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Depth bound</returns>
         public new bool HasReachedMaxSchedulingSteps()
         {
-            return base.ExploredSteps == this.CurrentDepth;
+            return ScheduledSteps == CurrentDepth;
         }
 
         /// <summary>
@@ -89,9 +80,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public new string GetDescription()
         {
-            return $"DFS with iterative deepening (max depth is {this.MaxDepth})";
+            return $"DFS with iterative deepening (max depth is {MaxDepth})";
         }
-
-        #endregion
     }
 }

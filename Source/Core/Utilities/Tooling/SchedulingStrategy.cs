@@ -48,6 +48,16 @@ namespace Microsoft.PSharp.Utilities
         [EnumMember(Value = "ProbabilisticRandom")]
         ProbabilisticRandom,
         /// <summary>
+        /// Prioritized scheduling.
+        /// </summary>
+        [EnumMember(Value = "PCT")]
+        PCT,
+        /// <summary>
+        /// Prioritized scheduling with Random tail.
+        /// </summary>
+        [EnumMember(Value = "FairPCT")]
+        FairPCT,
+        /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
         [EnumMember(Value = "DFS")]
@@ -67,22 +77,6 @@ namespace Microsoft.PSharp.Utilities
         /// Random delay-bounding scheduling.
         /// </summary>
         [EnumMember(Value = "RandomDelayBounding")]
-        RandomDelayBounding,
-        /// <summary>
-        /// Prioritized scheduling.
-        /// </summary>
-        [EnumMember(Value = "PCT")]
-        PCT,
-        /// <summary>
-        /// Prioritized scheduling with Random tail.
-        /// </summary>
-        [EnumMember(Value = "FairPCT")]
-        FairPCT,
-        /// <summary>
-        /// MaceMC based search scheduling to detect
-        /// potential liveness violations.
-        /// </summary>
-        [EnumMember(Value = "MaceMC")]
-        MaceMC
+        RandomDelayBounding
     }
 }

@@ -68,6 +68,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.EnableCycleDetection = true;
             }
+            else if (option.ToLower().Equals("/custom-state-hashing"))
+            {
+                base.Configuration.EnableUserDefinedStateHashing = true;
+            }
             else
             {
                 base.ParseOption(option);

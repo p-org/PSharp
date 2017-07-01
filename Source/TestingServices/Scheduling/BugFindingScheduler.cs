@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -62,9 +63,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal SchedulableInfo ScheduledMachine { get; private set; }
 
         /// <summary>
-        /// Number of explored steps.
+        /// Number of scheduled steps.
         /// </summary>
-        internal int ExploredSteps => this.Strategy.GetExploredSteps();
+        internal int ScheduledSteps => this.Strategy.GetScheduledSteps();
 
         /// <summary>
         /// Checks if the schedule has been fully explored.
@@ -136,8 +137,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            this.Strategy.PrepareForNextChoice();
-
             SchedulableInfo current = this.ScheduledMachine;
             current.SetNextOperation(operationType);
 
@@ -206,8 +205,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            this.Strategy.PrepareForNextChoice();
-
             var choice = false;
             if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
             {
@@ -239,8 +236,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
-
-            this.Strategy.PrepareForNextChoice();
 
             var choice = 0;
             if (!this.Strategy.GetNextIntegerChoice(maxValue, out choice))
@@ -434,24 +429,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     report.MaxFairStepsHitInFairTests++;
                 }
 
-                if (this.ExploredSteps >= report.Configuration.MaxUnfairSchedulingSteps)
+                if (this.ScheduledSteps >= report.Configuration.MaxUnfairSchedulingSteps)
                 {
                     report.MaxUnfairStepsHitInFairTests++;
                 }
 
                 if (!this.Strategy.HasReachedMaxSchedulingSteps())
                 {
-                    report.TotalExploredFairSteps += this.ExploredSteps;
+                    report.TotalExploredFairSteps += this.ScheduledSteps;
 
                     if (report.MinExploredFairSteps < 0 ||
-                        report.MinExploredFairSteps > this.ExploredSteps)
+                        report.MinExploredFairSteps > this.ScheduledSteps)
                     {
-                        report.MinExploredFairSteps = this.ExploredSteps;
+                        report.MinExploredFairSteps = this.ScheduledSteps;
                     }
 
-                    if (report.MaxExploredFairSteps < this.ExploredSteps)
+                    if (report.MaxExploredFairSteps < this.ScheduledSteps)
                     {
-                        report.MaxExploredFairSteps = this.ExploredSteps;
+                        report.MaxExploredFairSteps = this.ScheduledSteps;
                     }
                 }
             }

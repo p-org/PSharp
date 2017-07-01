@@ -16,42 +16,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Utilities;
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Class representing an abstract delay-bounding scheduling strategy.
+    /// An abstract delay-bounding scheduling strategy.
     /// </summary>
     public abstract class DelayBoundingStrategy : ISchedulingStrategy
     {
-        #region fields
+        /// <summary>
+        /// Logger used by the strategy.
+        /// </summary>
+        protected ILogger Logger;
 
         /// <summary>
-        /// The configuration.
+        /// Random number generator.
         /// </summary>
-        protected Configuration Configuration;
+        protected IRandomNumberGenerator RandomNumberGenerator;
 
         /// <summary>
-        /// Nondeterminitic seed.
+        /// The maximum number of steps to schedule.
         /// </summary>
-        protected int Seed;
+        protected int MaxScheduledSteps;
 
         /// <summary>
-        /// Randomizer.
+        /// The number of scheduled steps.
         /// </summary>
-        protected IRandomNumberGenerator Random;
+        protected int ScheduledSteps;
 
         /// <summary>
-        /// The maximum number of explored steps.
+        /// Length of the explored schedule across all iterations.
         /// </summary>
-        protected int MaxExploredSteps;
-
-        /// <summary>
-        /// The number of explored steps.
-        /// </summary>
-        protected int ExploredSteps;
+        protected int ScheduleLength;
 
         /// <summary>
         /// The maximum number of delays.
@@ -63,24 +58,33 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         protected List<int> RemainingDelays;
 
-        #endregion
-
-        #region public API
+        /// <summary>
+        /// Creates a delay-bounding strategy that uses the default random
+        /// number generator (seed is based on current time).
+        /// </summary>
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="maxDelays">Max number of delays</param>
+        /// <param name="logger">ILogger</param>
+        public DelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger)
+            : this(maxSteps, maxDelays, logger, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
+        { }
 
         /// <summary>
-        /// Constructor.
+        /// Creates a delay-bounding strategy that uses the specified random number generator.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="delays">Max number of delays</param>
-        public DelayBoundingStrategy(Configuration configuration, int delays)
+        /// <param name="maxSteps">Max scheduling steps</param>
+        /// <param name="maxDelays">Max number of delays</param>
+        /// <param name="logger">ILogger</param>
+        /// <param name="random">IRandomNumberGenerator</param>
+        public DelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger, IRandomNumberGenerator random)
         {
-            this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.MaxExploredSteps = 0;
-            this.ExploredSteps = 0;
-            this.MaxDelays = delays;
-            this.RemainingDelays = new List<int>();
+            Logger = logger;
+            RandomNumberGenerator = random;
+            MaxScheduledSteps = maxSteps;
+            ScheduledSteps = 0;
+            MaxDelays = maxDelays;
+            ScheduleLength = 0;
+            RemainingDelays = new List<int>();
         }
 
         /// <summary>
@@ -107,16 +111,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             int idx = 0;
-            while (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
+            while (RemainingDelays.Count > 0 && ScheduledSteps == RemainingDelays[0])
             {
                 idx = (idx + 1) % enabledChoices.Count;
-                this.RemainingDelays.RemoveAt(0);
-                Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                RemainingDelays.RemoveAt(0);
+                Logger.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", RemainingDelays.Count);
             }
 
             next = enabledChoices[idx];
 
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
@@ -130,14 +134,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public virtual bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
-            if (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
+            if (RemainingDelays.Count > 0 && ScheduledSteps == RemainingDelays[0])
             {
                 next = true;
-                this.RemainingDelays.RemoveAt(0);
-                Debug.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                RemainingDelays.RemoveAt(0);
+                Logger.WriteLine("<DelayLog> Inserted delay, '{0}' remaining.", RemainingDelays.Count);
             }
 
-            this.ExploredSteps++;
+            ScheduledSteps++;
 
             return true;
         }
@@ -150,17 +154,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public virtual bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            next = this.Random.Next(maxValue);
-            this.ExploredSteps++;
+            next = RandomNumberGenerator.Next(maxValue);
+            ScheduledSteps++;
             return true;
         }
-
-        /// <summary>
-        /// Prepares for the next scheduling choice. This is invoked
-        /// directly after a scheduling choice has been chosen, and
-        /// can be used to invoke specialised post-choice actions.
-        /// </summary>
-        public abstract void PrepareForNextChoice();
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
@@ -176,19 +173,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public virtual void Reset()
         {
-            this.Random = new DefaultRandomNumberGenerator(this.Seed);
-            this.MaxExploredSteps = 0;
-            this.ExploredSteps = 0;
-            this.RemainingDelays.Clear();
+            ScheduleLength = 0;
+            ScheduledSteps = 0;
+            RemainingDelays.Clear();
         }
 
         /// <summary>
-        /// Returns the explored steps.
+        /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        /// <returns>Scheduled steps</returns>
+        public int GetScheduledSteps()
         {
-            return this.ExploredSteps;
+            return ScheduledSteps;
         }
 
         /// <summary>
@@ -198,15 +194,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
-
-            if (bound == 0)
+            if (MaxScheduledSteps == 0)
             {
                 return false;
             }
-            
-            return this.ExploredSteps >= bound;
+
+            return ScheduledSteps >= MaxScheduledSteps;
         }
 
         /// <summary>
@@ -223,7 +216,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <returns>String</returns>
         public abstract string GetDescription();
-
-        #endregion
     }
 }

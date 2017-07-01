@@ -273,6 +273,14 @@ namespace Microsoft.PSharp
         public bool EnableCycleDetection;
 
         /// <summary>
+        /// If this option is enabled, then all <see cref="Machine.HashedState"/>
+        /// and <see cref="Event.HashedState"/> state-hashing methods are used
+        /// to improve the accurracy of state-caching for liveness checking.
+        /// </summary>
+        [DataMember]
+        public bool EnableUserDefinedStateHashing;
+
+        /// <summary>
         /// Enables (safety) monitors in the production runtime.
         /// </summary>
         [DataMember]
@@ -463,6 +471,7 @@ namespace Microsoft.PSharp
             this.EnableLivenessChecking = true;
             this.LivenessTemperatureThreshold = 0;
             this.EnableCycleDetection = false;
+            this.EnableUserDefinedStateHashing = false;
             this.EnableMonitorsInProduction = false;
 
             this.AttachDebugger = false;

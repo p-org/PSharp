@@ -14,10 +14,11 @@
 
 using System;
 
-namespace Microsoft.PSharp.Utilities
+namespace Microsoft.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Default random number generator that uses the System.Random generator.
+    /// Default random number generator that uses the
+    /// <see cref="System.Random"/> generator.
     /// </summary>
     public class DefaultRandomNumberGenerator : IRandomNumberGenerator
     {
@@ -29,15 +30,29 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// The seed currently used by the generator.
         /// </summary>
-        public int Seed { get; private set; }
+        private int RandomSeed;
+
+        /// <summary>
+        /// The seed currently used by the generator.
+        /// </summary>
+        public int Seed
+        {
+            get => RandomSeed;
+
+            set
+            {
+                RandomSeed = value;
+                Random = new Random(RandomSeed);
+            }
+        }
 
         /// <summary>
         /// Initializes with a time-dependent seed.
         /// </summary>
         public DefaultRandomNumberGenerator()
         {
-            Seed = DateTime.Now.Millisecond;
-            Random = new Random(Seed);
+            RandomSeed = DateTime.Now.Millisecond;
+            Random = new Random(RandomSeed);
         }
 
         /// <summary>
@@ -46,7 +61,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="seed">Seed value</param>
         public DefaultRandomNumberGenerator(int seed)
         {
-            Seed = seed;
+            RandomSeed = seed;
             Random = new Random(seed);
         }
 
@@ -65,15 +80,6 @@ namespace Microsoft.PSharp.Utilities
         public int Next(int maxValue)
         {
             return Random.Next(maxValue);
-        }
-
-        /// <summary>
-        /// Increments the seed used by the generator.
-        /// </summary>
-        public void IncrementSeed()
-        {
-            Seed++;
-            Random = new Random(Seed);
         }
     }
 }
