@@ -5,7 +5,8 @@
     <AssemblyName>Microsoft.PSharp</AssemblyName>
     <Description>The P# framework core libraries and runtime.</Description>
     <AssemblyTitle>Microsoft.PSharp</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <!-- TODO: Temporarily changed to singular TargetFramework to avoid 'BuiltProjectOutputGroup not found' error; VS fix pending -->
+    <TargetFramework>net46</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
