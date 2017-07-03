@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// An abstract delay-bounding scheduling strategy.

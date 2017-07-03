@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// Default random number generator that uses the

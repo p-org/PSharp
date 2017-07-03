@@ -15,12 +15,12 @@
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Logger for scheduling strategies. In essense, this is a converter from an <see cref="ILogger"/>
-    /// to an <see cref="Microsoft.TestingServices.SchedulingStrategies.ILogger"/>. By default it uses
-    /// the <see cref="ConsoleLogger"/> if debugging is enabled, or the <see cref="DisposingLogger"/>
-    /// if debugging is disabled.
+    /// Logger for scheduling strategies. This is a converter from an <see cref="ILogger"/> to
+    /// an <see cref="TestingServices.SchedulingStrategies.ILogger"/>. If debugging is enabled,
+    /// it uses the <see cref="ConsoleLogger"/>, or the <see cref="DisposingLogger"/> if
+    /// debugging is disabled.
     /// </summary>
-    internal sealed class SchedulingStrategyLogger : Microsoft.TestingServices.SchedulingStrategies.ILogger
+    internal sealed class SchedulingStrategyLogger : TestingServices.SchedulingStrategies.ILogger
     {
         /// <summary>
         /// Default logger.
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.IO
 
         /// <summary>
         /// Creates a new logger that converts logs from an <see cref="ILogger"/> to
-        /// an <see cref="Microsoft.TestingServices.SchedulingStrategies.ILogger"/>.
+        /// an <see cref="TestingServices.SchedulingStrategies.ILogger"/>.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         public SchedulingStrategyLogger(Configuration configuration)

@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\Build\key.props" />
+  <Import Project="..\..\Build\common.props" />
+  <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.TestingServices.SchedulingStrategies</AssemblyName>
+    <AssemblyName>Microsoft.PSharp.TestingServices.SchedulingStrategies</AssemblyName>
     <Description>Scheduling strategies for testing actor-based systems.</Description>
-    <AssemblyTitle>Microsoft.TestingServices.SchedulingStrategies</AssemblyTitle>
+    <AssemblyTitle>Microsoft.PSharp.TestingServices.SchedulingStrategies</AssemblyTitle>
     <TargetFrameworks>net46</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>testing;scheduling-strategies;dotnet;csharp</PackageTags>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\bin\</OutputPath>
+    <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
 </Project>

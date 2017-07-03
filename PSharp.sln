@@ -65,7 +65,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedObjects", "Source\Sha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedObjects.Tests.Unit", "Tests\SharedObjects.Tests.Unit\SharedObjects.Tests.Unit.csproj", "{4240DE34-A775-4B3E-A67A-37E50AC9850B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchedulingStrategies", "Source\AddOns\SchedulingStrategies\SchedulingStrategies.csproj", "{0ED1341F-D8C0-4266-A040-641507917150}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchedulingStrategies", "Source\SchedulingStrategies\SchedulingStrategies.csproj", "{2A3D4399-787C-4F97-8591-6A8021775AE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,10 +153,10 @@ Global
 		{4240DE34-A775-4B3E-A67A-37E50AC9850B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4240DE34-A775-4B3E-A67A-37E50AC9850B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4240DE34-A775-4B3E-A67A-37E50AC9850B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0ED1341F-D8C0-4266-A040-641507917150}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0ED1341F-D8C0-4266-A040-641507917150}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0ED1341F-D8C0-4266-A040-641507917150}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0ED1341F-D8C0-4266-A040-641507917150}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A3D4399-787C-4F97-8591-6A8021775AE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A3D4399-787C-4F97-8591-6A8021775AE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A3D4399-787C-4F97-8591-6A8021775AE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A3D4399-787C-4F97-8591-6A8021775AE0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -186,6 +186,6 @@ Global
 		{DABC68C1-79D3-4324-A750-7CF72E0A0ACF} = {2012300C-6E5D-47A0-9D57-B3F0A73AA1D4}
 		{B1A04084-448F-4765-9068-C8C7D5F0C6C6} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
 		{4240DE34-A775-4B3E-A67A-37E50AC9850B} = {2012300C-6E5D-47A0-9D57-B3F0A73AA1D4}
-		{0ED1341F-D8C0-4266-A040-641507917150} = {65338B9B-4990-4C3A-9BB1-2B9E30115157}
+		{2A3D4399-787C-4F97-8591-6A8021775AE0} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
 	EndGlobalSection
 EndGlobal

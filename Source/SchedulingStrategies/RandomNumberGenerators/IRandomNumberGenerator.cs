@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// Interface for random number generators.

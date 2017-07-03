@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ExhaustiveDelayBoundingStrategy.cs">
+// <copyright file="RandomDelayBoundingStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -14,43 +14,42 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// An exhaustive delay-bounding scheduling strategy.
+    /// A randomized delay-bounding scheduling strategy.
     /// </summary>
-    public sealed class ExhaustiveDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
+    public sealed class RandomDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
         /// <summary>
-        /// Cache of delays across iterations.
+        /// Delays during this iteration.
         /// </summary>
-        private List<int> DelaysCache;
+        private List<int> CurrentIterationDelays;
 
         /// <summary>
-        /// Creates an exhaustive delay-bounding strategy that uses the default
+        /// Creates a randomized delay-bounding strategy that uses the default
         /// random number generator (seed is based on current time).
         /// </summary>
         /// <param name="maxSteps">Max scheduling steps</param>
         /// <param name="maxDelays">Max number of delays</param>
         /// <param name="logger">ILogger</param>
-        public ExhaustiveDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger)
+        public RandomDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger)
             : this(maxSteps, maxDelays, logger, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
         { }
 
         /// <summary>
-        /// Creates an exhaustive delay-bounding strategy that uses
+        /// Creates a randomized delay-bounding strategy that uses
         /// the specified random number generator.
         /// </summary>
         /// <param name="maxSteps">Max scheduling steps</param>
         /// <param name="maxDelays">Max number of delays</param>
         /// <param name="logger">ILogger</param>
         /// <param name="random">IRandomNumberGenerator</param>
-        public ExhaustiveDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger, IRandomNumberGenerator random)
+        public RandomDelayBoundingStrategy(int maxSteps, int maxDelays, ILogger logger, IRandomNumberGenerator random)
             : base(maxSteps, maxDelays, logger, random)
         {
-            DelaysCache = Enumerable.Repeat(0, MaxDelays).ToList();
+            CurrentIterationDelays = new List<int>();
         }
 
         /// <summary>
@@ -64,33 +63,18 @@ namespace Microsoft.TestingServices.SchedulingStrategies
             ScheduleLength = Math.Max(ScheduleLength, ScheduledSteps);
             ScheduledSteps = 0;
 
-            var bound = Math.Min(MaxScheduledSteps, ScheduleLength);
-            for (var idx = 0; idx < MaxDelays; idx++)
+            RemainingDelays.Clear();
+            for (int idx = 0; idx < MaxDelays; idx++)
             {
-                if (DelaysCache[idx] < bound)
-                {
-                    DelaysCache[idx] = DelaysCache[idx] + 1;
-                    break;
-                }
-
-                DelaysCache[idx] = 0;
+                RemainingDelays.Add(RandomNumberGenerator.Next(ScheduleLength));
             }
 
-            RemainingDelays.Clear();
-            RemainingDelays.AddRange(DelaysCache);
             RemainingDelays.Sort();
 
-            return true;
-        }
+            CurrentIterationDelays.Clear();
+            CurrentIterationDelays.AddRange(RemainingDelays);
 
-        /// <summary>
-        /// Resets the scheduling strategy. This is typically invoked by
-        /// parent strategies to reset child strategies.
-        /// </summary>
-        public override void Reset()
-        {
-            DelaysCache = Enumerable.Repeat(0, MaxDelays).ToList();
-            base.Reset();
+            return true;
         }
 
         /// <summary>
@@ -99,11 +83,11 @@ namespace Microsoft.TestingServices.SchedulingStrategies
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            var text = MaxDelays + "' delays, delays '[";
-            for (int idx = 0; idx < DelaysCache.Count; idx++)
+            var text = "Random seed '" + RandomNumberGenerator.Seed + "', '" + MaxDelays + "' delays, delays '[";
+            for (int idx = 0; idx < CurrentIterationDelays.Count; idx++)
             {
-                text += DelaysCache[idx];
-                if (idx < DelaysCache.Count - 1)
+                text += CurrentIterationDelays[idx];
+                if (idx < CurrentIterationDelays.Count - 1)
                 {
                     text += ", ";
                 }

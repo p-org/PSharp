@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// A depth-first search scheduling strategy that uses iterative deepening.

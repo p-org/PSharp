@@ -14,7 +14,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// This strategy combines two given strategies, using them to schedule

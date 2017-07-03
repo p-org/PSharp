@@ -22,9 +22,9 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
+using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
-using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices
 {

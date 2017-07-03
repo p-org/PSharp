@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// Interface for a logger that can be used by a scheduling strategy.

@@ -14,7 +14,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.TestingServices.SchedulingStrategies
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// Interface of a generic scheduling strategy.

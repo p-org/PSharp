@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.TestingServices.SchedulingStrategies;
+using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
