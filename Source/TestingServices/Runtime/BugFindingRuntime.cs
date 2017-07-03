@@ -1158,16 +1158,21 @@ namespace Microsoft.PSharp.TestingServices
         /// or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="eventExistsInInbox">Is event in the inbox?</param>
-        internal override void NotifyWaitEvents(Machine machine, bool eventExistsInInbox)
+        /// <param name="eventInfoInInbox">The EventInfo of the event
+        /// if it is in the Inbox. Otherwise, null.</param>
+        internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
-            if (!eventExistsInInbox)
+            if (eventInfoInInbox == null)
             {
                 string events = machine.GetEventWaitHandlerNames();
                 this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
                 this.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting on events:{events}.");
                 machine.Info.IsWaitingToReceive = true;
                 (machine.Info as SchedulableInfo).IsEnabled = false;
+            }
+            else
+            {
+                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfoInInbox.SendStep;
             }
 
             this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
@@ -1184,6 +1189,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Log($"<ReceiveLog> Machine '{machine.Id}' received event '{eventInfo.EventName}' and unblocked.");
             machine.Info.IsWaitingToReceive = false;
             (machine.Info as SchedulableInfo).IsEnabled = true;
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
         }
 
         /// <summary>

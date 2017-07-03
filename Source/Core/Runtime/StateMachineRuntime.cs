@@ -783,10 +783,11 @@ namespace Microsoft.PSharp
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="eventExistsInInbox">Is event in the inbox?</param>
-        internal override void NotifyWaitEvents(Machine machine, bool eventExistsInInbox)
+        /// <param name="eventInfoInInbox">The EventInfo of the event
+        /// if it is in the Inbox. Otherwise, null.</param>
+        internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
-            if (!eventExistsInInbox)
+            if (eventInfoInInbox == null)
             {
                 base.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting to receive an event.");
                 machine.Info.IsWaitingToReceive = true;
