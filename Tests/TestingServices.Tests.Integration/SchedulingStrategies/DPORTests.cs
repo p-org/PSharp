@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-
+using System.Threading.Tasks;
 using Microsoft.PSharp.Utilities;
 
 using Xunit;
@@ -37,6 +37,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 DoNonDet = doNonDet;
             }
         }
+
+        class InitEvent : Event { }
 
         class Waiter : Machine
         {
@@ -84,6 +86,72 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 }
             }
 
+        }
+
+
+        class ReceiverAddressEvent : Event
+        {
+            public readonly MachineId Receiver;
+
+            public ReceiverAddressEvent(MachineId receiver)
+            {
+                Receiver = receiver;
+            }
+        }
+
+        class LevelOne : Machine
+        {
+            [Start]
+            [OnEntry(nameof(Initialize))]
+            private class Init : MachineState
+            {
+            }
+
+            private void Initialize()
+            {
+                var r = (ReceiverAddressEvent) ReceivedEvent;
+                CreateMachine(typeof(LevelTwo), r);
+                CreateMachine(typeof(LevelTwo), r);
+
+            }
+        }
+
+        class LevelTwo : Machine
+        {
+            [Start]
+            [OnEntry(nameof(Initialize))]
+            private class Init : MachineState
+            {
+            }
+
+            private void Initialize()
+            {
+                var r = (ReceiverAddressEvent) ReceivedEvent;
+                var a = CreateMachine(typeof(Sender),
+                    new SenderInitEvent(r.Receiver, true));
+                Send(a, new Ping());
+                var b = CreateMachine(typeof(Sender),
+                    new SenderInitEvent(r.Receiver, true));
+                Send(b, new Ping());
+            }
+        }
+
+
+        class ReceiveWaiter : Machine
+        {
+            [Start]
+            [OnEntry(nameof(Initialize))]
+            private class Init : MachineState
+            {
+            }
+
+            private async Task Initialize()
+            {
+                
+                await Receive(typeof(Ping));
+
+                await Receive(typeof(Ping));
+            }
         }
 
         [Fact]
@@ -140,6 +208,52 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             Assert.Equal(4, runtime.TestReport.NumOfExploredUnfairSchedules);
 
         }
+
+        [Fact]
+        public void TestDPOR3CreatingMany()
+        {
+            var test = new Action<PSharpRuntime>(r =>
+            {
+                MachineId waiter = r.CreateMachine(typeof(Waiter));
+
+                r.CreateMachine(typeof(LevelOne),
+                    new ReceiverAddressEvent(waiter));
+                r.CreateMachine(typeof(LevelOne),
+                    new ReceiverAddressEvent(waiter));
+            });
+
+
+            var configuration = GetConfiguration();
+            configuration.SchedulingIterations = 10;
+
+            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
+            AssertSucceeded(configuration, test);
+        }
+
+        [Fact]
+        public void TestDPOR4UseReceive()
+        {
+            var test = new Action<PSharpRuntime>(r =>
+            {
+                MachineId waiter = r.CreateMachine(typeof(ReceiveWaiter));
+
+                var a = r.CreateMachine(typeof(Sender),
+                    new SenderInitEvent(waiter, true));
+                r.SendEvent(a, new Ping());
+                var b = r.CreateMachine(typeof(Sender),
+                    new SenderInitEvent(waiter, true));
+                r.SendEvent(b, new Ping());
+            });
+
+
+            var configuration = GetConfiguration();
+            configuration.SchedulingIterations = 1000;
+
+            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
+            AssertSucceeded(configuration, test);
+        }
+
+
     }
 
 
