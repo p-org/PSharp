@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -222,18 +223,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Prepares for the next scheduling choice.
-        /// </summary>
-        public void PrepareForNextChoice()
-        {
-            // Nothing
-        }
-
-        /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
-        public int GetExploredSteps()
+        public int GetScheduledSteps()
         {
             return Stack.GetNumSteps();
         }

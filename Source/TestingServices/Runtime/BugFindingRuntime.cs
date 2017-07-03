@@ -620,7 +620,7 @@ namespace Microsoft.PSharp.TestingServices
                 originInfo = new EventOriginInfo(null, "Env", "Env");
             }
 
-            EventInfo eventInfo = new EventInfo(e, originInfo, Scheduler.ExploredSteps);
+            EventInfo eventInfo = new EventInfo(e, originInfo, Scheduler.ScheduledSteps);
 
             if (sender != null)
             {
@@ -1207,7 +1207,7 @@ namespace Microsoft.PSharp.TestingServices
             // If the default event handler fires, the next receive in NotifyDefaultHandlerFired
             // will use this as its NextOperationMatchingSendIndex.
             // If it does not fire, NextOperationMatchingSendIndex will be overwritten.
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) this.Scheduler.ExploredSteps;
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) this.Scheduler.ScheduledSteps;
         }
 
         /// <summary>

@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
