@@ -706,7 +706,7 @@ namespace Microsoft.PSharp
 
                         if (nextEventInfo == null && hasDefaultHandler)
                         {
-                            // Get default event.
+                            // Else, get the default event.
                             nextEventInfo = this.GetDefaultEvent();
                             defaultHandling = true;
                         }

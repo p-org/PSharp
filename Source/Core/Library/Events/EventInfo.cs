@@ -24,8 +24,6 @@ namespace Microsoft.PSharp
     [DataContract]
     internal class EventInfo
     {
-        #region fields
-
         /// <summary>
         /// Contained event.
         /// </summary>
@@ -43,9 +41,9 @@ namespace Microsoft.PSharp
         internal string EventName { get; private set; }
 
         /// <summary>
-        /// The step from which this event was sent.
+        /// The index of the scheduling step from which this event was sent.
         /// </summary>
-        internal int SendStep { get; }
+        internal int SendSchedulingStepIndex { get; }
 
         /// <summary>
         /// Information regarding the event origin.
@@ -53,19 +51,15 @@ namespace Microsoft.PSharp
         [DataMember]
         internal EventOriginInfo OriginInfo { get; private set; }
 
-        #endregion
-
-        #region constructor
-
         /// <summary>
-        /// Constructor.
+        /// Creates a new <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="e">Event</param>
         internal EventInfo(Event e)
         {
-            this.Event = e;
-            this.EventType = e.GetType();
-            this.EventName = this.EventType.FullName;
+            Event = e;
+            EventType = e.GetType();
+            EventName = EventType.FullName;
         }
 
         /// <summary>
@@ -75,7 +69,7 @@ namespace Microsoft.PSharp
         /// <param name="originInfo">EventOriginInfo</param>
         internal EventInfo(Event e, EventOriginInfo originInfo) : this(e)
         {
-            this.OriginInfo = originInfo;
+            OriginInfo = originInfo;
         }
 
         /// <summary>
@@ -83,12 +77,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">Event</param>
         /// <param name="originInfo">EventOriginInfo</param>
-        /// <param name="sendStep">int</param>
-        internal EventInfo(Event e, EventOriginInfo originInfo, int sendStep) : this(e, originInfo)
+        /// <param name="sendSchedulingStepIndex">Index of the send scheduling step</param>
+        internal EventInfo(Event e, EventOriginInfo originInfo, int sendSchedulingStepIndex)
+            : this(e, originInfo)
         {
-            this.SendStep = sendStep;
+            SendSchedulingStepIndex = sendSchedulingStepIndex;
         }
-
-        #endregion
     }
 }

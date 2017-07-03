@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DPORTests.cs">
+// <copyright file="DPORTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Integration
 {
-    public class DPORTests : BaseTest
+    public class DPORTest : BaseTest
     {
         class Ping : Event { }
 
@@ -44,15 +44,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         {
             [Start]
             [OnEventDoAction(typeof(Ping), nameof(Nothing))]
-            private class Init : MachineState
-            {
-            }
+            private class Init : MachineState { }
 
-            private void Nothing()
-            {
-
-            }
-
+            private void Nothing() { }
         }
 
         class Sender : Machine
@@ -62,14 +56,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(Ping), nameof(SendPing))]
-            private class Init : MachineState
-            {
-            }
+            private class Init : MachineState { }
 
             private void Initialize()
             {
                 initEvent = ((SenderInitEvent)ReceivedEvent);
-
             }
 
             private void SendPing()
@@ -85,9 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                     Random();
                 }
             }
-
         }
-
 
         class ReceiverAddressEvent : Event
         {
@@ -103,16 +92,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            private class Init : MachineState
-            {
-            }
+            private class Init : MachineState { }
 
             private void Initialize()
             {
                 var r = (ReceiverAddressEvent) ReceivedEvent;
                 CreateMachine(typeof(LevelTwo), r);
                 CreateMachine(typeof(LevelTwo), r);
-
             }
         }
 
@@ -120,9 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            private class Init : MachineState
-            {
-            }
+            private class Init : MachineState { }
 
             private void Initialize()
             {
@@ -136,20 +120,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-
         class ReceiveWaiter : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            private class Init : MachineState
-            {
-            }
+            private class Init : MachineState { }
 
             private async Task Initialize()
             {
-                
                 await Receive(typeof(Ping));
-
                 await Receive(typeof(Ping));
             }
         }
@@ -168,7 +147,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 r.SendEvent(sender3, new Ping());
             });
 
-
             var configuration = GetConfiguration();
             configuration.SchedulingIterations = 10;
 
@@ -181,7 +159,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             runtime = AssertSucceeded(configuration, test);
             Assert.True(runtime.TestReport.NumOfExploredUnfairSchedules >= 6);
-
         }
 
         [Fact]
@@ -198,7 +175,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 r.SendEvent(sender3, new Ping());
             });
 
-
             var configuration = GetConfiguration();
             configuration.SchedulingIterations = 10;
 
@@ -206,7 +182,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
             var runtime = AssertSucceeded(configuration, test);
             Assert.Equal(4, runtime.TestReport.NumOfExploredUnfairSchedules);
-
         }
 
         [Fact]
@@ -215,13 +190,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             var test = new Action<PSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
-
                 r.CreateMachine(typeof(LevelOne),
                     new ReceiverAddressEvent(waiter));
                 r.CreateMachine(typeof(LevelOne),
                     new ReceiverAddressEvent(waiter));
             });
-
 
             var configuration = GetConfiguration();
             configuration.SchedulingIterations = 10;
@@ -245,16 +218,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 r.SendEvent(b, new Ping());
             });
 
-
             var configuration = GetConfiguration();
             configuration.SchedulingIterations = 1000;
 
             configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
             AssertSucceeded(configuration, test);
         }
-
-
     }
-
-
 }

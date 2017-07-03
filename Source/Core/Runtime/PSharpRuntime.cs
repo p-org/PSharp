@@ -558,8 +558,7 @@ namespace Microsoft.PSharp
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="eventInfoInInbox">The EventInfo of the event
-        /// if it is in the Inbox. Otherwise, null.</param>
+        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
         internal virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
             // Override to implement the notification.
@@ -587,8 +586,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that the Inbox is about to be checked
-        /// to see if the default event handler should fire.
+        /// Notifies that the inbox of the specified machine is about to be
+        /// checked to see if the default event handler should fire.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDefaultEventHandlerCheck(Machine machine)
@@ -597,7 +596,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a default handler has been used.
+        /// Notifies that the default handler of the specified machine has been fired.
         /// </summary>
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

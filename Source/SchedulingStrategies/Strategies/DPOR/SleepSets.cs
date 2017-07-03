@@ -12,16 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-
-using Microsoft.TestingServices.SchedulingStrategies;
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
 {
     /// <summary>
     /// Sleep sets is a reduction technique that can be in addition to DPOR
     /// or on its own.
     /// </summary>
-    public static class SleepSets
+    internal static class SleepSets
     {
         /// <summary>
         /// Update the sleep sets for the top operation on the stack.
@@ -29,9 +26,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// and copy forward the sleep set, excluding threads that are dependent
         /// with the executed operation.
         /// </summary>
-        /// <param name="stack"></param>
-        /// <param name="asserter">IAsserter</param>
-        public static void UpdateSleepSets(Stack stack, IAsserter asserter)
+        /// <param name="stack">Stack</param>
+        /// <param name="contract">IContract</param>
+        internal static void UpdateSleepSets(Stack stack, IContract contract)
         {
             if (stack.GetNumSteps() <= 1)
             {
@@ -39,7 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             TidEntryList prevTop = stack.GetSecondFromTop();
-            TidEntry prevSelected = prevTop.List[prevTop.GetSelected(asserter)];
+            TidEntry prevSelected = prevTop.List[prevTop.GetSelected(contract)];
 
             TidEntryList currTop = stack.GetTop();
 
@@ -60,7 +57,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     currTop.List[i].Sleep = true;
                 }
             }
-            
         }
 
         /// <summary>
@@ -71,10 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// even though this is not always the case:
         /// Create and Start, Send and Receive.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static bool IsDependent(TidEntry a, TidEntry b)
+        internal static bool IsDependent(TidEntry a, TidEntry b)
         {
             // This method will not detect the dependency between 
             // Create and Start (because Create's target id is always -1), 
@@ -84,7 +77,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // because the Send would need to enable the Receive to be dependent.
             // Receives are independent as they will always be from different threads,
             // but they should always have different target ids anyway.
-            
 
             if (
                 a.TargetId != b.TargetId || 

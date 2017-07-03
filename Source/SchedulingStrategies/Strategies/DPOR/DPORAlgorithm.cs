@@ -14,10 +14,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.TestingServices.SchedulingStrategies;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
 {
     /// <summary>
     /// The actual DPOR algorithm used by <see cref="DPORStrategy"/>.
@@ -55,7 +53,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// VC of B to include the A-B edge; if A already happens-before B then this is not a race.
     /// 
     /// </summary>
-    public class DPORAlgorithm
+    internal class DPORAlgorithm
     {
         /// <summary>
         /// An upper bound of the number of threads (schedulables).
@@ -106,7 +104,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// A way for the ISchedulable to assert conditions.
         /// </summary>
-        private readonly IAsserter Asserter;
+        private readonly IContract Contract;
 
         /// <summary>
         /// A list of all races.
@@ -133,20 +131,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// this field gives the schedule (as a list of thread ids)
         /// that should be followed in order to reverse a randomly chosen race.
         /// </summary>
-        public readonly List<TidForRaceReplay> RaceReplaySuffix;
+        internal readonly List<TidForRaceReplay> RaceReplaySuffix;
 
         /// <summary>
         /// An index for the <see cref="RaceReplaySuffix"/> (for convenience) to be used 
         /// when replaying a reversed race.
         /// </summary>
-        public int ReplayRaceIndex;
+        internal int ReplayRaceIndex;
 
         /// <summary>
         /// Construct the DPOR algorithm.
         /// </summary>
-        public DPORAlgorithm(IAsserter asserter)
+        internal DPORAlgorithm(IContract contract)
         {
-            Asserter = asserter;
+            Contract = contract;
             // initial estimates
             NumThreads = 4;
             NumSteps = 1 << 8;
@@ -161,7 +159,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             MissingThreadIds = new List<int>();
             ReplayRaceIndex = 0;
         }
-
 
         private void FromVCSetVC(int from, int to)
         {
@@ -237,7 +234,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private TidEntry GetSelectedTidEntry(Stack stack, int index)
         {
             var list = GetThreadsAt(stack, index);
-            return list.List[list.GetSelected(Asserter)];
+            return list.List[list.GetSelected(Contract)];
         }
 
         /// <summary>
@@ -261,13 +258,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             return stack.StackInternal[index - 1];
         }
 
-
         /// <summary>
         /// The main entry point to the DPOR algorithm.
         /// </summary>
         /// <param name="stack">Should contain a terminal schedule.</param>
         /// <param name="rand">If non-null, then a randomized DPOR algorithm will be used.</param>
-        public void DoDPOR(Stack stack, Random rand)
+        internal void DoDPOR(Stack stack, Random rand)
         {
             UpdateFieldsAndRealocateDatastructuresIfNeeded(stack);
             
@@ -363,7 +359,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 DoRandomRaceReverse(stack, rand);
             }
-
         }
 
         private void DoRandomRaceReverse(Stack stack, Random rand)
@@ -375,7 +370,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
             Race race = Races[raceIndex];
 
-            Asserter.Assert(RaceReplaySuffix.Count == 0, "Tried to reverse race but replay suffix was not empty!");
+            Contract.Assert(RaceReplaySuffix.Count == 0, "Tried to reverse race but replay suffix was not empty!");
 
             int threadIdOfA = GetSelectedTidEntry(stack, race.A).Id;
 
@@ -391,7 +386,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         var missingThreadId = GetThreadsAt(stack, i).List.Count;
                         var index = MissingThreadIds.BinarySearch(missingThreadId);
                         // We should not find it.
-                        Asserter.Assert(index < 0);
+                        Contract.Assert(index < 0);
                         // Get the next largest index (see BinarySearch).
                         index = ~index;
                         // Insert before the next largest item.
@@ -411,7 +406,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // Remove steps from a onwards. Indexes start at one so we must subtract 1.
             stack.StackInternal.RemoveRange(race.A - 1, stack.StackInternal.Count - (race.A - 1));
-
         }
 
         private void AddThreadIdToRaceReplaySuffix(TidEntryList tidEntryList)
@@ -419,7 +413,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Add thread id to the RaceReplaySuffix, but adjust
             // it for missing thread ids.
 
-            int tid = tidEntryList.GetSelected(Asserter);
+            int tid = tidEntryList.GetSelected(Contract);
 
             var index = MissingThreadIds.BinarySearch(tid);
             // Make it so index is the number of missing thread ids before and including threadId.
@@ -438,13 +432,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             RaceReplaySuffix.Add(new TidForRaceReplay(tid - index, tidEntryList.NondetChoices));
         }
 
-
         private void DoRandomDPORAddRaces(Stack stack,
             int lastAccessIndex,
             int i,
             TidEntry step)
         {
-
             // Note: Only sends are reversible
             // so we will only get here if step.OpType is a send
             // so the if below is redundant.
@@ -452,7 +444,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // The following assert will then fail and more thought will be needed.
             // The if below is probably sufficient though, so the assert can probably just be removed.
 
-            Asserter.Assert(step.OpType == OperationType.Send);
+            Contract.Assert(step.OpType == OperationType.Send);
 
             // Easy case (non-sends).
             if (step.OpType != OperationType.Send)
@@ -471,7 +463,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // We scan the stack looking for concurrent sends.
             // We only need to start scanning from the first send to this mailbox.
             int firstSend = TargetIdToFirstSend[step.TargetId];
-            Asserter.Assert(
+            Contract.Assert(
                 firstSend > 0, 
                 "We should only get here if a send races with a prior send, but it does not.");
 
@@ -531,7 +523,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             //   if lookingFor is empty:
             //     break
 
-
             var candidateThreadIds = new HashSet<int>();
             
             if (aTidEntries.List.Count > step.Id && 
@@ -583,7 +574,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // Make sure at least one candidate is found
 
-            Asserter.Assert(candidateThreadIds.Count > 0, "DPOR: There were no candidate backtrack points.");
+            Contract.Assert(candidateThreadIds.Count > 0, "DPOR: There were no candidate backtrack points.");
 
             // Is one already backtracked?
             foreach (var tid in candidateThreadIds)
@@ -655,9 +646,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            Asserter.Assert(false, "DPOR: Did not manage to add backtrack point.");
+            Contract.Assert(false, "DPOR: Did not manage to add backtrack point.");
         }
-
 
         private void UpdateFieldsAndRealocateDatastructuresIfNeeded(Stack stack)
         {
@@ -704,8 +694,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             RaceReplaySuffix.Clear();
             MissingThreadIds.Clear();
             ReplayRaceIndex = 0;
-
         }
-
     }
 }

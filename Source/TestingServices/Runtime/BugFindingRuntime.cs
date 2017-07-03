@@ -406,8 +406,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
             }
 
-            // Use MaxValue because a Create operation cannot specify the id of its target
-            // because the id does not exist yet.
+            // Using ulong.MaxValue because a 'Create' operation cannot specify
+            // the id of its target, because the id does not exist yet.
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(type, friendlyName);
@@ -445,8 +445,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
             }
 
-            // Use MaxValue because a Create operation cannot specify the id of its target
-            // because the id does not exist yet.
+            // Using ulong.MaxValue because a 'Create' operation cannot specify
+            // the id of its target, because the id does not exist yet.
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(type, friendlyName);
@@ -523,6 +523,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender)
         {
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
+
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
@@ -556,6 +557,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender)
         {
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
+
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
             {
@@ -652,12 +654,13 @@ namespace Microsoft.PSharp.TestingServices
         /// Runs a new asynchronous machine event handler.
         /// This is a fire and forget invocation.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="initialEvent">Event</param>
-        /// <param name="isFresh">Is a new machine</param>
-        /// <param name="executeSynchronously">If true, this operation executes synchronously</param>
+        /// <param name="machine">Machine that executes this event handler.</param>
+        /// <param name="initialEvent">Event for initializing the machine.</param>
+        /// <param name="isFresh">If true, then this is a new machine.</param>
+        /// <param name="executeSynchronously">If true, this operation executes synchronously.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param> 
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, bool executeSynchronously, EventInfo enablingEvent)
+        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
+            bool executeSynchronously, EventInfo enablingEvent)
         {
             Task task = new Task(async () =>
             {
@@ -682,6 +685,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
                     (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
+
                     if (machine.Info.IsHalted)
                     {
                         this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, machine.Info.Id);
@@ -690,6 +694,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
                     }
+
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{machine.Id}'.");
                 }
                 catch (ExecutionCanceledException)
@@ -704,7 +709,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TaskMap.TryAdd(task.Id, machine);
 
-            (machine.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id, enablingEvent?.SendStep ?? 0);
+            (machine.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id, enablingEvent?.SendSchedulingStepIndex ?? 0);
             this.Scheduler.NotifyEventHandlerCreated(machine.Info as SchedulableInfo);
 
             task.Start(this.TaskScheduler);
@@ -737,7 +742,7 @@ namespace Microsoft.PSharp.TestingServices
             MachineId mid = new MachineId(type, null, this);
 
             SchedulableInfo info = new SchedulableInfo(mid);
-            Scheduler.NotifyMonitorCreated(info);
+            Scheduler.NotifyMonitorRegistered(info);
 
             Monitor monitor = Activator.CreateInstance(type) as Monitor;
             monitor.Initialize(mid);
@@ -1098,7 +1103,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
+                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendSchedulingStepIndex;
                 this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
             }
 
@@ -1154,12 +1159,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive one
-        /// or more events.
+        /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="eventInfoInInbox">The EventInfo of the event
-        /// if it is in the Inbox. Otherwise, null.</param>
+        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
         internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
             if (eventInfoInInbox == null)
@@ -1172,7 +1175,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfoInInbox.SendStep;
+                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfoInInbox.SendSchedulingStepIndex;
             }
 
             this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
@@ -1189,7 +1192,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Log($"<ReceiveLog> Machine '{machine.Id}' received event '{eventInfo.EventName}' and unblocked.");
             machine.Info.IsWaitingToReceive = false;
             (machine.Info as SchedulableInfo).IsEnabled = true;
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendSchedulingStepIndex;
         }
 
         /// <summary>
@@ -1204,8 +1207,8 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that the Inbox is about to be checked
-        /// to see if the default event handler should fire.
+        /// Notifies that the inbox of the specified machine is about to be
+        /// checked to see if the default event handler should fire.
         /// </summary>
         internal override void NotifyDefaultEventHandlerCheck(Machine machine)
         {
@@ -1217,7 +1220,7 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that a default handler has been used.
+        /// Notifies that the default handler of the specified machine has been fired.
         /// </summary>
         /// <param name="machine">Machine</param>
         internal override void NotifyDefaultHandlerFired(Machine machine)

@@ -327,15 +327,15 @@ namespace Microsoft.PSharp.TestingServices
                 this.Strategy = new DFSStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.SchedulingStrategyLogger);
                 this.Configuration.PerformFullExploration = false;
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DPOR)
-            {
-                this.Strategy = new DPORStrategy(new ContractAsserter());
-                this.Configuration.PerformFullExploration = false;
-            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.IDDFS)
             {
                 this.Strategy = new IterativeDeepeningDFSStrategy(this.Configuration.MaxUnfairSchedulingSteps,
                     this.SchedulingStrategyLogger);
+                this.Configuration.PerformFullExploration = false;
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DPOR)
+            {
+                this.Strategy = new DPORStrategy(new ContractAsserter());
                 this.Configuration.PerformFullExploration = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)

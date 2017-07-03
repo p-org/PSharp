@@ -15,26 +15,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.TestingServices.SchedulingStrategies;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
 {
     /// <summary>
     /// The stack datastructure used by <see cref="DPORStrategy"/> to perform the
     /// depth-first search.
     /// </summary>
-    public class Stack
+    internal class Stack
     {
         /// <summary>
         /// The actual stack.
         /// </summary>
-        public readonly List<TidEntryList> StackInternal = new List<TidEntryList>();
+        internal readonly List<TidEntryList> StackInternal = new List<TidEntryList>();
 
         private int NextStackPos;
 
         private readonly Random Rand;
 
-        private readonly IAsserter Asserter;
+        private readonly IContract Contract;
 
         /// <summary>
         /// If no thread id can be chosen,
@@ -42,18 +41,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// This indicates that some threads
         /// were enabled, but they were all slept (due to <see cref="SleepSets"/>).
         /// </summary>
-        public const int SLEEP_SET_BLOCKED = -2;
+        internal const int SLEEP_SET_BLOCKED = -2;
 
         /// <summary>
         /// Construct the stack.
         /// </summary>
         /// <param name="rand">If non-null, then randomized DPOR is assumed.
         /// The stack will not be backtracked in <see cref="PrepareForNextSchedule"/>.</param>
-        /// <param name="asserter"></param>
-        public Stack(Random rand, IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal Stack(Random rand, IContract contract)
         {
             Rand = rand;
-            Asserter = asserter;
+            Contract = contract;
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="machines"></param>
         /// <param name="prevThreadIndex"></param>
         /// <returns>true if a new element was added to the stack, otherwise the existing entry was verified</returns>
-        public bool Push(List<ISchedulable> machines, int prevThreadIndex)
+        internal bool Push(List<ISchedulable> machines, int prevThreadIndex)
         {
             List<TidEntry> list = new List<TidEntry>();
 
@@ -80,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         (int) machineInfo.NextOperationMatchingSendIndex));
             }
             
-            Asserter.Assert(NextStackPos <= StackInternal.Count, "DFS strategy unexpected stack state.");
+            Contract.Assert(NextStackPos <= StackInternal.Count, "DFS strategy unexpected stack state.");
 
             bool added = NextStackPos == StackInternal.Count;
 
@@ -92,6 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 CheckMatches(list);
             }
+
             ++NextStackPos;
 
             return added;
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// (not including those that are yet to be replayed).
         /// </summary>
         /// <returns></returns>
-        public int GetNumSteps()
+        internal int GetNumSteps()
         {
             return NextStackPos;
         }
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// (including entries that are yet to be replayed).
         /// </summary>
         /// <returns></returns>
-        public int GetInternalSize()
+        internal int GetInternalSize()
         {
             return StackInternal.Count;
         }
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Get the top entry of the stack.
         /// </summary>
         /// <returns></returns>
-        public TidEntryList GetTop()
+        internal TidEntryList GetTop()
         {
             return StackInternal[NextStackPos - 1];
         }
@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Get the second from top entry of the stack.
         /// </summary>
         /// <returns></returns>
-        public TidEntryList GetSecondFromTop()
+        internal TidEntryList GetSecondFromTop()
         {
             return StackInternal[NextStackPos - 2];
         }
@@ -139,9 +139,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Gets the top of stack and also ensures that this is the real top of stack.
         /// </summary>
         /// <returns></returns>
-        public TidEntryList GetTopAsRealTop()
+        internal TidEntryList GetTopAsRealTop()
         {
-            Asserter.Assert(NextStackPos == StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
+            Contract.Assert(NextStackPos == StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
             return GetTop();
         }
 
@@ -150,26 +150,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// from the current schedule prefix that we are replaying or the first
         /// suitable thread entry from the real top of the stack.
         /// </summary>
-        /// <returns></returns>
-        public int GetSelectedOrFirstBacktrackNotSlept(int startingFrom)
+        internal int GetSelectedOrFirstBacktrackNotSlept(int startingFrom)
         {
             var top = GetTop();
 
             if (StackInternal.Count > NextStackPos)
             {
-                return top.GetSelected(Asserter);
+                return top.GetSelected(Contract);
             }
 
-            int res = top.TryGetSelected(Asserter);
+            int res = top.TryGetSelected(Contract);
             return res >= 0 ? res : top.GetFirstBacktrackNotSlept(startingFrom);
-
         }
 
         /// <summary>
         /// Prepare for the next schedule by popping entries from the stack
         /// until we find some tid entries that are not slept.
         /// </summary>
-        public void PrepareForNextSchedule()
+        internal void PrepareForNextSchedule()
         {
             if (Rand != null)
             {
@@ -177,11 +175,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return;
 
             }
+
             // Deadlock / sleep set blocked; no selected tid entry.
             {
                 TidEntryList top = GetTopAsRealTop();
                 
-                if (top.IsNoneSelected(Asserter))
+                if (top.IsNoneSelected(Contract))
                 {
                     Pop();
                 }
@@ -193,13 +192,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 TidEntryList top = GetTopAsRealTop();
 
-                if (top.BacktrackNondetChoices(Asserter))
+                if (top.BacktrackNondetChoices(Contract))
                 {
                     break;
                 }
 
-                top.SetSelectedToSleep(Asserter);
-                top.ClearSelected(Asserter);
+                top.SetSelectedToSleep(Contract);
+                top.ClearSelected(Contract);
 
                 if (!top.AllDoneOrSlept())
                 {
@@ -214,14 +213,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private void Pop()
         {
-            Asserter.Assert(NextStackPos == StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
+            Contract.Assert(NextStackPos == StackInternal.Count, "DFS Strategy: top of stack is not aligned.");
             StackInternal.RemoveAt(StackInternal.Count - 1);
             --NextStackPos;
         }
 
         private void CheckMatches(List<TidEntry> list)
         {
-            Asserter.Assert(
+            Contract.Assert(
                 StackInternal[NextStackPos].List.SequenceEqual(list, TidEntry.ComparerSingleton), 
                 "DFS strategy detected nondeterminism when replaying.");
         }
@@ -229,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Clear the stack.
         /// </summary>
-        public void Clear()
+        internal void Clear()
         {
             StackInternal.Clear();
         }

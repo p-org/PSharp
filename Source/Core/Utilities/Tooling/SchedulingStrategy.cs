@@ -63,16 +63,16 @@ namespace Microsoft.PSharp.Utilities
         [EnumMember(Value = "DFS")]
         DFS,
         /// <summary>
-        /// Dynamic partial-order reduction (DPOR) scheduling.
-        /// </summary>
-        [EnumMember(Value = "DPOR")]
-        DPOR,
-        /// <summary>
         /// Depth-first search scheduling with
         /// iterative deepening.
         /// </summary>
         [EnumMember(Value = "IDDFS")]
         IDDFS,
+        /// <summary>
+        /// Dynamic partial-order reduction (DPOR) scheduling.
+        /// </summary>
+        [EnumMember(Value = "DPOR")]
+        DPOR,
         /// <summary>
         /// Delay-bounding scheduling.
         /// </summary>

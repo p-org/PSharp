@@ -109,9 +109,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Schedules the next <see cref="ISchedulable"/> operation to execute.
         /// </summary>
-        /// <param name="operationType">OperationType</param>
-        /// <param name="targetType">OperationTargetType</param>
-        /// <param name="targetId">ulong</param>
+        /// <param name="operationType">Type of the operation.</param>
+        /// <param name="targetType">Type of the target of the operation.</param>
+        /// <param name="targetId">Id of the target.</param>
         internal void Schedule(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
             int? taskId = Task.CurrentId;
@@ -324,7 +324,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Notify that a monitor was registered.
         /// </summary>
         /// <param name="info">SchedulableInfo</param>
-        internal void NotifyMonitorCreated(SchedulableInfo info)
+        internal void NotifyMonitorRegistered(SchedulableInfo info)
         {
             SchedulableInfoMap.Add(info.Id, info);
             Debug.WriteLine($"<ScheduleDebug> Created monitor of '{info.Name}'.");

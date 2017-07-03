@@ -12,13 +12,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Allows the caller to assert a condition that should be true.
+    /// Interface for a contract that can be used to assert that
+    /// a condition in a scheduling strategy should be true.
     /// </summary>
-    public interface IAsserter
+    public interface IContract
     {
         /// <summary>
         /// Assert a condition that should be true.

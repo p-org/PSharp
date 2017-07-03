@@ -14,10 +14,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.TestingServices.SchedulingStrategies;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+using Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR;
+
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// Dynamic partial-order reduction (DPOR) scheduling strategy.
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// A way for the ISchedulable to assert conditions.
         /// </summary>
-        private readonly IAsserter Asserter;
+        private readonly IContract Contract;
 
         // TODO: implement the step limit.
         /// <summary>
@@ -59,29 +59,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private readonly int StepLimit;
 
-
+        /// <summary>
+        /// Number of iterations.
+        /// </summary>
         private int NumIterations;
 
         /// <summary>
         /// Creates the DPOR strategy.
         /// </summary>
-        /// <param name="asserter"></param>
-        /// <param name="rand"></param>
-        /// <param name="stepLimit"></param>
-        /// <param name="useSleepSets"></param>
-        /// <param name="dpor"></param>
-        public DPORStrategy(IAsserter asserter, Random rand = null, int stepLimit = -1, bool useSleepSets = true, bool dpor = true)
+        public DPORStrategy(IContract contract, Random rand = null, int stepLimit = -1, bool useSleepSets = true, bool dpor = true)
         {
-            Asserter = asserter;
+            Contract = contract;
             Rand = rand;
             StepLimit = stepLimit;
-            Stack = new Stack(rand, Asserter);
-            Dpor = dpor ? new DPORAlgorithm(Asserter) : null;
+            Stack = new Stack(rand, Contract);
+            Dpor = dpor ? new DPORAlgorithm(Contract) : null;
             UseSleepSets = rand == null && useSleepSets;
             Reset();
         }
-
-        #region Implementation of ISchedulingStrategy
 
         /// <summary>
         /// Returns the next choice to schedule.
@@ -126,12 +121,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 if (UseSleepSets)
                 {
-                    SleepSets.UpdateSleepSets(Stack, Asserter);
+                    SleepSets.UpdateSleepSets(Stack, Contract);
                 }
 
                 if (Dpor == null)
                 {
-                    top.SetAllEnabledToBeBacktracked(Asserter);
+                    top.SetAllEnabledToBeBacktracked(Contract);
                 }
                 else if (Dpor.RaceReplaySuffix.Count > 0 && Dpor.ReplayRaceIndex < Dpor.RaceReplaySuffix.Count)
                 {
@@ -141,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     top.NondetChoices = tidReplay.NondetChoices;
                     // Add the replay tid to the backtrack set.
                     top.List[tidReplay.Id].Backtrack = true;
-                    Asserter.Assert(
+                    Contract.Assert(
                         top.List[tidReplay.Id].Enabled 
                         || top.List[tidReplay.Id].OpType == OperationType.Yield);
                     ++Dpor.ReplayRaceIndex;
@@ -152,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     // For now, we just do round-robin when doing DPOR and random when doing random DPOR.
                     if (Rand == null)
                     {
-                        top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Asserter);
+                        top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Contract);
                     }
                     else
                     {
@@ -176,11 +171,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            if (top.TryGetSelected(Asserter) != nextTid)
+            if (top.TryGetSelected(Contract) != nextTid)
             {
-                top.SetSelected(nextTid, Asserter);
+                top.SetSelected(nextTid, Contract);
             }
-            Asserter.Assert(nextTid < choices.Count);
+
+            Contract.Assert(nextTid < choices.Count);
             next = choices[nextTid];
 
             // TODO: Part of yield hack.
@@ -194,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 next.IsEnabled = true;
             }
 
-            Asserter.Assert(next.IsEnabled);
+            Contract.Assert(next.IsEnabled);
             return true;
         }
 
@@ -206,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            next = Stack.GetTop().MakeOrReplayNondetChoice(true, Rand, Asserter) == 1;
+            next = Stack.GetTop().MakeOrReplayNondetChoice(true, Rand, Contract) == 1;
             return true;
         }
 
@@ -280,7 +276,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             return "DPOR";
         }
-
-        #endregion
     }
 }

@@ -13,56 +13,54 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.TestingServices.SchedulingStrategies;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
 {
     /// <summary>
     /// Thread entry stored on the stack of a depth-first search to track which threads existed
     /// and whether they have been executed already, etc.
     /// </summary>
-    public class TidEntry
+    internal class TidEntry
     {
         /// <summary>
         /// The id/index of this thread in the original thread creation order list of threads.
         /// </summary>
-        public int Id;
+        internal int Id;
 
         /// <summary>
         /// Is the thread enabled?
         /// </summary>
-        public bool Enabled;
+        internal bool Enabled;
 
         /// <summary>
         /// Skip exploring this thread from here.
         /// </summary>
-        public bool Sleep;
+        internal bool Sleep;
 
         /// <summary>
         /// Backtrack to this transition?
         /// </summary>
-        public bool Backtrack;
+        internal bool Backtrack;
 
         /// <summary>
         /// Operation type.
         /// </summary>
-        public OperationType OpType;
+        internal OperationType OpType;
 
         /// <summary>
         /// Target type. E.g. thread, queue, mutex, variable.
         /// </summary>
-        public OperationTargetType TargetType;
+        internal OperationTargetType TargetType;
 
         /// <summary>
         /// Target of the operation.
         /// </summary>
-        public int TargetId;
+        internal int TargetId;
 
         /// <summary>
         /// For a receive operation: the step of the corresponding send.
         /// </summary>
-        public int SendStepIndex;
-
+        internal int SendStepIndex;
 
         /// <summary>
         /// 
@@ -73,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="targetType"></param>
         /// <param name="targetId"></param>
         /// <param name="sendStepIndex"></param>
-        public TidEntry(int id, bool enabled, OperationType opType, OperationTargetType targetType, int targetId, int sendStepIndex)
+        internal TidEntry(int id, bool enabled, OperationType opType, OperationTargetType targetType, int targetId, int sendStepIndex)
         {
             Id = id;
             Enabled = enabled;
@@ -83,19 +81,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             TargetType = targetType;
             TargetId = targetId;
             SendStepIndex = sendStepIndex;
-
-
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static readonly Comparer ComparerSingleton = new Comparer();
+        internal static readonly Comparer ComparerSingleton = new Comparer();
 
         /// <summary>
         /// 
         /// </summary>
-        public class Comparer : IEqualityComparer<TidEntry>
+        internal class Comparer : IEqualityComparer<TidEntry>
         {
             #region Implementation of IEqualityComparer<in Comparer>
 

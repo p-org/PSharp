@@ -109,12 +109,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Sets the next operation to schedule.
         /// </summary>
-        /// <param name="operation">OperationType</param>
-        /// <param name="targetType">OperationTargetType</param>
-        /// <param name="targetId">ulong</param>
-        internal void SetNextOperation(OperationType operation, OperationTargetType targetType, ulong targetId)
+        /// <param name="operationType">Type of the operation.</param>
+        /// <param name="targetType">Type of the target of the operation.</param>
+        /// <param name="targetId">Id of the target.</param>
+        internal void SetNextOperation(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
-            NextOperationType = operation;
+            NextOperationType = operationType;
             NextTargetType = targetType;
             NextTargetId = targetId;
             OperationCount++;
@@ -125,18 +125,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// run on the specified task id.
         /// </summary>
         /// <param name="taskId">TaskId</param>
-        /// <param name="sendStep">The step of the send that caused the event handler to be restarted, or 0 if this does not apply.</param>
-        internal void NotifyEventHandlerCreated(int taskId, int sendStep)
+        /// <param name="sendIndex">The index of the send that caused the event handler to be restarted, or 0 if this does not apply.</param>
+        internal void NotifyEventHandlerCreated(int taskId, int sendIndex)
         {
             TaskId = taskId;
             IsEnabled = true;
             IsWaitingToReceive = false;
             IsActive = false;
             IsEventHandlerRunning = false;
-            NextOperationMatchingSendIndex = (ulong) sendStep;
+            NextOperationMatchingSendIndex = (ulong)sendIndex;
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
-
             ProgramCounter = 0;
         }
 

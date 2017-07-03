@@ -16,9 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.TestingServices.SchedulingStrategies;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
 {
     /// <summary>
     /// The elements of the <see cref="Stack"/> 
@@ -26,12 +25,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// Stores a list of <see cref="TidEntry"/>;
     /// one for each <see cref="ISchedulable"/>.
     /// </summary>
-    public class TidEntryList
+    internal class TidEntryList
     {
         /// <summary>
         /// The actual list.
         /// </summary>
-        public readonly List<TidEntry> List;
+        internal readonly List<TidEntry> List;
 
         private int SelectedEntry;
 
@@ -40,7 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// visible operation.
         /// Can be null.
         /// </summary>
-        public List<NonDetChoice> NondetChoices;
+        internal List<NonDetChoice> NondetChoices;
 
         /// <summary>
         /// When replaying/adding nondet choices,
@@ -52,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Construct a TidEntryList.
         /// </summary>
         /// <param name="list"></param>
-        public TidEntryList(List<TidEntry> list)
+        internal TidEntryList(List<TidEntry> list)
         {
             List = list;
             SelectedEntry = -1;
@@ -60,18 +59,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             NextNondetChoiceIndex = 0;
         }
 
-
         /// <summary>
         /// Get a nondet choice.
         /// This may replay a nondet choice or make (and record) a new nondet choice.
         /// </summary>
         /// <param name="isBoolChoice">If true, a boolean choice; otherwise, an int choice.</param>
         /// <param name="rand">Random</param>
-        /// <param name="asserter">IAsserter</param>
-        /// <returns></returns>
-        public int MakeOrReplayNondetChoice(bool isBoolChoice, Random rand, IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal int MakeOrReplayNondetChoice(bool isBoolChoice, Random rand, IContract contract)
         {
-            asserter.Assert(
+            contract.Assert(
                 rand != null || isBoolChoice,
                 "A DFS DPOR exploration of int nondeterminstic choices " +
                 "is not currently supported because this won't scale.");
@@ -87,12 +84,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 // Replay:
                 NonDetChoice choice = NondetChoices[NextNondetChoiceIndex];
                 ++NextNondetChoiceIndex;
-                asserter.Assert(choice.IsBoolChoice == isBoolChoice);
+                contract.Assert(choice.IsBoolChoice == isBoolChoice);
                 return choice.Choice;
             }
 
             // Adding a choice.
-            asserter.Assert(NextNondetChoiceIndex == NondetChoices.Count);
+            contract.Assert(NextNondetChoiceIndex == NondetChoices.Count);
             NonDetChoice ndc = new NonDetChoice
             {
                 IsBoolChoice = isBoolChoice,
@@ -109,29 +106,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// it reaches a 0 that will then be changed to a 1.
         /// The NextNondetChoiceIndex will be reset ready for replay.
         /// </summary>
+        /// <param name="contract">IContract</param>
         /// <returns>false if there are no more nondet choices to explore</returns>
-        public bool BacktrackNondetChoices(IAsserter asserter)
+        internal bool BacktrackNondetChoices(IContract contract)
         {
             if (NondetChoices == null)
             {
                 return false;
             }
 
-            asserter.Assert(NextNondetChoiceIndex == NondetChoices.Count);
+            contract.Assert(NextNondetChoiceIndex == NondetChoices.Count);
 
             NextNondetChoiceIndex = 0;
 
             while (NondetChoices.Count > 0)
             {
                 NonDetChoice choice = NondetChoices[NondetChoices.Count - 1];
-                asserter.Assert(choice.IsBoolChoice, "DFS DPOR only supports bool choices.");
+                contract.Assert(choice.IsBoolChoice, "DFS DPOR only supports bool choices.");
                 if (choice.Choice == 0)
                 {
                     choice.Choice = 1;
                     NondetChoices[NondetChoices.Count - 1] = choice;
                     return true;
                 }
-                asserter.Assert(choice.Choice == 1, "Unexpected choice value.");
+                contract.Assert(choice.Choice == 1, "Unexpected choice value.");
                 NondetChoices.RemoveAt(NondetChoices.Count - 1);
             }
 
@@ -143,7 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// This is used by random DPOR, which does not need to
         /// backtrack individual nondet choices, but may need to replay all of them.
         /// </summary>
-        public void RewindNondetChoicesForReplay()
+        internal void RewindNondetChoicesForReplay()
         {
             NextNondetChoiceIndex = 0;
         }
@@ -151,7 +149,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Add all enabled threads to the backtrack set.
         /// </summary>
-        public void SetAllEnabledToBeBacktracked(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal void SetAllEnabledToBeBacktracked(IContract contract)
         {
             foreach (var tidEntry in List)
             {
@@ -159,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     tidEntry.Backtrack = true;
                     // TODO: Remove?
-                    asserter.Assert(tidEntry.Enabled);
+                    contract.Assert(tidEntry.Enabled);
                 }
             }
         }
@@ -168,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Utility method to show the enabled threads.
         /// </summary>
         /// <returns>string</returns>
-        public string ShowEnabled()
+        internal string ShowEnabled()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("[");
@@ -192,6 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 sb.Append(tidEntry.TargetId);
                 sb.Append(") ");
             }
+
             sb.Append("]");
             return sb.ToString();
         }
@@ -199,29 +199,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Utility method to show the selected thread.
         /// </summary>
-        /// <returns>string</returns>
-        public string ShowSelected(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal string ShowSelected(IContract contract)
         {
-            int selectedIndex = TryGetSelected(asserter);
+            int selectedIndex = TryGetSelected(contract);
             if (selectedIndex < 0)
             {
                 return "-";
             }
 
-
             TidEntry selected = List[selectedIndex];
             int priorSend = selected.OpType == OperationType.Receive
                 ? selected.SendStepIndex
                 : -1;
-            return $"({selected.Id}, {selected.OpType}, {selected.TargetType}, {selected.TargetId}, {priorSend})";
 
+            return $"({selected.Id}, {selected.OpType}, {selected.TargetType}, {selected.TargetId}, {priorSend})";
         }
 
         /// <summary>
         /// Utility method to show the threads in the backtrack set.
         /// </summary>
         /// <returns>string</returns>
-        public string ShowBacktrack()
+        internal string ShowBacktrack()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("[");
@@ -245,6 +244,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 sb.Append(tidEntry.TargetId);
                 sb.Append(") ");
             }
+
             sb.Append("]");
             return sb.ToString();
         }
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Gets the first thread in backtrack that is not slept.
         /// </summary>
         /// <returns></returns>
-        public int GetFirstBacktrackNotSlept(int startingFrom)
+        internal int GetFirstBacktrackNotSlept(int startingFrom)
         {
             int size = List.Count;
             int i = startingFrom;
@@ -282,8 +282,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Gets all threads in backtrack that are not slept and not selected.
         /// </summary>
-        /// <returns></returns>
-        public List<int> GetAllBacktrackNotSleptNotSelected(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal List<int> GetAllBacktrackNotSleptNotSelected(IContract contract)
         {
             List<int> res = new List<int>();
             for (int i = 0; i < List.Count; ++i)
@@ -292,10 +292,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     !List[i].Sleep &&
                     List[i].Id != SelectedEntry)
                 {
-                    asserter.Assert(List[i].Enabled);
+                    contract.Assert(List[i].Enabled);
                     res.Add(i);
                 }
             }
+
             return res;
         }
 
@@ -303,7 +304,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// 
         /// </summary>
         /// <returns>true if some threads are: in backtrack and not slept and not selected.</returns>
-        public bool HasBacktrackNotSleptNotSelected()
+        internal bool HasBacktrackNotSleptNotSelected()
         {
             foreach (TidEntry t in List)
             {
@@ -314,22 +315,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     return true;
                 }
             }
+
             return false;
         }
 
         /// <summary>
         /// Sets the selected thread to be slept.
         /// </summary>
-        public void SetSelectedToSleep(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal void SetSelectedToSleep(IContract contract)
         {
-            List[GetSelected(asserter)].Sleep = true;
+            List[GetSelected(contract)].Sleep = true;
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns>true if all threads are done or slept.</returns>
-        public bool AllDoneOrSlept()
+        internal bool AllDoneOrSlept()
         {
             return GetFirstBacktrackNotSlept(0) < 0;
         }
@@ -337,8 +340,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Tries to get the single selected thread.
         /// </summary>
+        /// <param name="contract">IContract</param>
         /// <returns>The selected thread index or -1 if no thread is selected.</returns>
-        public int TryGetSelected(IAsserter asserter)
+        internal int TryGetSelected(IContract contract)
         {
             return SelectedEntry;
         }
@@ -346,28 +350,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Are no threads selected?
         /// </summary>
-        /// <returns>bool</returns>
-        public bool IsNoneSelected(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal bool IsNoneSelected(IContract contract)
         {
-            return TryGetSelected(asserter) < 0;
+            return TryGetSelected(contract) < 0;
         }
 
         /// <summary>
         /// Gets the selected thread.
         /// Asserts that there is a selected thread.
         /// </summary>
-        /// <returns></returns>
-        public int GetSelected(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal int GetSelected(IContract contract)
         {
-            int res = TryGetSelected(asserter);
-            asserter.Assert(res != -1, "DFS Strategy: No selected tid entry!");
+            int res = TryGetSelected(contract);
+            contract.Assert(res != -1, "DFS Strategy: No selected tid entry!");
             return res;
         }
 
         /// <summary>
         /// Deselect the selected thread.
         /// </summary>
-        public void ClearSelected(IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal void ClearSelected(IContract contract)
         {
             SelectedEntry = -1;
         }
@@ -376,8 +381,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Add the first enabled and not slept thread to the backtrack set.
         /// </summary>
         /// <param name="startingFrom">a thread id to start from</param>
-        /// <param name="asserter">IAsserter</param>
-        public void AddFirstEnabledNotSleptToBacktrack(int startingFrom, IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal void AddFirstEnabledNotSleptToBacktrack(int startingFrom, IContract contract)
         {
             int size = List.Count;
             int i = startingFrom;
@@ -388,7 +393,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     List[i].Backtrack = true;
                     // TODO: Remove?
-                    asserter.Assert(List[i].Enabled);
+                    contract.Assert(List[i].Enabled);
                     return;
                 }
                 ++i;
@@ -403,7 +408,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Add a random enabled and not slept thread to the backtrack set.
         /// </summary>
         /// <param name="rand"></param>
-        public void AddRandomEnabledNotSleptToBacktrack(Random rand)
+        internal void AddRandomEnabledNotSleptToBacktrack(Random rand)
         {
             var enabledNotSlept = List.Where(e => e.Enabled && !e.Sleep).ToList();
             if (enabledNotSlept.Count > 0)
@@ -418,11 +423,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// There must not already be a selected thread id.
         /// </summary>
         /// <param name="tid">thread id to be set to selected</param>
-        /// <param name="asserter">IAsserter</param>
-        public void SetSelected(int tid, IAsserter asserter)
+        /// <param name="contract">IContract</param>
+        internal void SetSelected(int tid, IContract contract)
         {
-            asserter.Assert(SelectedEntry < 0);
-            asserter.Assert(tid >= 0 && tid < List.Count);
+            contract.Assert(SelectedEntry < 0);
+            contract.Assert(tid >= 0 && tid < List.Count);
             SelectedEntry = tid;
         }
     }

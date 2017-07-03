@@ -32,29 +32,30 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             AssertSucceeded(configuration, test);
         }
 
-        internal BugFindingEngine AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
+        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
         {
             InMemoryLogger logger = new InMemoryLogger();
+            BugFindingEngine engine = null;
 
             try
             {
-                BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
+                engine = BugFindingEngine.Create(configuration, test);
                 engine.SetLogger(logger);
                 engine.Run();
 
                 var numErrors = engine.TestReport.NumOfFoundBugs;
                 Assert.True(numErrors == 0, GetBugReport(engine));
-                return engine;
             }
             catch (Exception ex)
             {
                 Assert.False(true, ex.Message + "\n" + ex.StackTrace);
-                return null;
             }
             finally
             {
                 logger.Dispose();
             }
+
+            return engine;
         }
 
         #endregion

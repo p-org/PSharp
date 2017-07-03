@@ -12,30 +12,30 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
 {
     /// <summary>
-    /// Represents a race (two visible operation that are concurrent 
-    /// but dependent) that can be reversed to reach a different terminal state.
+    /// Represents a race (two visible operation that are concurrent but dependent)
+    /// that can be reversed to reach a different terminal state.
     /// </summary>
-    public class Race
+    internal class Race
     {
         /// <summary>
         /// The index of the first racing visible operation.
         /// </summary>
-        public int A;
+        internal int A;
 
         /// <summary>
         /// The index of the second racing visible operation.
         /// </summary>
-        public int B;
+        internal int B;
 
         /// <summary>
         /// Construct a race.
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        public Race(int a, int b)
+        internal Race(int a, int b)
         {
             A = a;
             B = b;
