@@ -40,6 +40,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
         class InitEvent : Event { }
 
+        class DummyEvent : Event { }
+
         class Waiter : Machine
         {
             [Start]
@@ -56,6 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(Ping), nameof(SendPing))]
+            [OnEventDoAction(typeof(DummyEvent), nameof(Nothing))]
             private class Init : MachineState { }
 
             private void Initialize()
@@ -75,6 +78,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                     Random();
                     Random();
                 }
+
+                Send(Id, new DummyEvent());
+            }
+
+            private void Nothing()
+            {
+                
             }
         }
 
