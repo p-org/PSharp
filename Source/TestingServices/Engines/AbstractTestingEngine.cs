@@ -354,7 +354,7 @@ namespace Microsoft.PSharp.TestingServices
                     "available in parallel testing.");
             }
 
-            if (!(Strategy is DPORStrategy))
+            if (!(Strategy is DPORStrategy) && !(Strategy is ReplayStrategy))
             {
                 Strategy = new BasicReductionStrategy(Strategy, BasicReductionStrategy.ReductionStrategy.ForceSchedule);
             }
