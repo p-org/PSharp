@@ -541,7 +541,7 @@ namespace Microsoft.PSharp.TestingServices
             
             bool runNewHandler = false;
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, ref runNewHandler);
-            if (runNewHandler && machine.TryDequeueEvent(true) != null)
+            if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, false, eventInfo);
             }
@@ -575,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices
 
             bool runNewHandler = false;
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, ref runNewHandler);
-            if (runNewHandler && machine.TryDequeueEvent(true) != null)
+            if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, true, eventInfo);
             }
@@ -724,6 +724,20 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Scheduler.Wait();
             base.IsRunning = false;
+        }
+
+        /// <summary>
+        /// Checks that a machine can start its event handler.
+        /// Returns false if the event handler should not be started.
+        /// The bug finding runtime may return false
+        /// because it knows that there are currently no events 
+        /// in the Inbox that can be handled.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <returns>bool</returns>
+        internal override bool CheckStartEventHandler(Machine machine)
+        {
+            return machine.TryDequeueEvent(true) != null;
         }
 
         #endregion

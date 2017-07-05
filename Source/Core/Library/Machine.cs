@@ -554,7 +554,7 @@ namespace Microsoft.PSharp
                         $"in the input queue of machine '{this}'");
                 }
 
-                if (!this.IsRunning)
+                if (!this.IsRunning && base.Runtime.CheckStartEventHandler(this))
                 {
                     this.IsRunning = true;
                     runNewHandler = true;

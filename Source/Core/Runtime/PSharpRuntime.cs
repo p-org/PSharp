@@ -341,6 +341,21 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender);
 
+        /// <summary>
+        /// Checks that a machine can start its event handler.
+        /// Returns false if the event handler should not be started.
+        /// The bug finding runtime may return false
+        /// because it knows that there are currently no events 
+        /// in the Inbox that can be handled.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <returns>bool</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual bool CheckStartEventHandler(Machine machine)
+        {
+            return true;
+        }
+
         #endregion
 
         #region specifications and error checking
@@ -721,5 +736,6 @@ namespace Microsoft.PSharp
         }
 
         #endregion
+
     }
 }
