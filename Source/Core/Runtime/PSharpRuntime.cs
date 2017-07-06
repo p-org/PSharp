@@ -207,7 +207,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public abstract void SendEvent(MachineId target, Event e);
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        public abstract void SendEvent(MachineId target, Event e, bool isStarter = false);
 
         /// <summary>
         /// Synchronously delivers an <see cref="Event"/> to a machine and
@@ -215,14 +216,16 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public abstract Task SendEventAndExecute(MachineId target, Event e);
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        public abstract Task SendEventAndExecute(MachineId target, Event e, bool isStarter = false);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public abstract void RemoteSendEvent(MachineId target, Event e);
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        public abstract void RemoteSendEvent(MachineId target, Event e, bool isStarter = false);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -322,7 +325,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender);
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine and
@@ -331,7 +335,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender);
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -339,7 +344,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender);
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
 
         #endregion
 
@@ -495,8 +501,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, bool isStarter)
         {
             // Override to implement the notification.
         }

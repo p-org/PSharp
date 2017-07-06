@@ -299,7 +299,7 @@ namespace Microsoft.PSharp
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEvent(mid, e, this);
+            base.Runtime.SendEvent(mid, e, this, false);
         }
 
         /// <summary>
@@ -313,7 +313,7 @@ namespace Microsoft.PSharp
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEventRemotely(mid, e, this);
+            base.Runtime.SendEventRemotely(mid, e, this, false);
         }
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace Microsoft.PSharp
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
                 base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent);
+            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent, false);
         }
 
         /// <summary>

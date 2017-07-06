@@ -24,8 +24,6 @@ namespace Microsoft.PSharp
     [DataContract]
     internal class EventInfo
     {
-        #region fields
-
         /// <summary>
         /// Contained event.
         /// </summary>
@@ -48,9 +46,10 @@ namespace Microsoft.PSharp
         [DataMember]
         internal EventOriginInfo OriginInfo { get; private set; }
 
-        #endregion
-
-        #region constructor
+        /// <summary>
+        /// The operation group id associated with this event.
+        /// </summary>
+        internal ulong OperationGroupId { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -76,6 +75,13 @@ namespace Microsoft.PSharp
             this.OriginInfo = originInfo;
         }
 
-        #endregion
+        /// <summary>
+        /// Sets the operation group id associated with this event.
+        /// </summary>
+        /// <param name="operationGroupId">Operation group id.</param>
+        internal void SetOperationGroupId(ulong operationGroupId)
+        {
+            this.OperationGroupId = operationGroupId;
+        }
     }
 }
