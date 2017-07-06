@@ -66,6 +66,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public ulong OperationCount { get; private set; }
 
         /// <summary>
+        /// Unique id of the group of operations that
+        /// contains the next operation.
+        /// </summary>
+        public ulong NextOperationGroupId { get; private set; }
+
+        /// <summary>
         /// Monotonically increasing operation count for the current event handler.
         /// </summary>
         internal ulong EventHandlerOperationCount { get; private set; }
@@ -100,6 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             HasStarted = false;
             IsCompleted = false;
             OperationCount = 0;
+            NextOperationGroupId = 0;
             EventHandlerOperationCount = 0;
         }
 
@@ -116,6 +123,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             NextOperationType = operation;
             OperationCount++;
             EventHandlerOperationCount++;
+        }
+
+        /// <summary>
+        /// Sets the operation group id associated with this schedulable info.
+        /// </summary>
+        /// <param name="operationGroupId">Operation group id.</param>
+        internal void SetNextOperationGroupId(ulong operationGroupId)
+        {
+            this.NextOperationGroupId = operationGroupId;
         }
 
         /// <summary>

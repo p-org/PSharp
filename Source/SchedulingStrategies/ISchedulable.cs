@@ -64,5 +64,11 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// Monotonically increasing operation count.
         /// </summary>
         ulong OperationCount { get; }
+
+        /// <summary>
+        /// Unique id of the group of operations that is
+        /// associated with the next operation.
+        /// </summary>
+        ulong NextOperationGroupId { get; }
     }
 }
