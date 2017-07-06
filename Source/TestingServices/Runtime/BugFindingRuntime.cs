@@ -114,20 +114,39 @@ namespace Microsoft.PSharp.TestingServices
             this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.CoverageInfo = new CoverageInfo();
 
+            bool reduce = !(strategy is DPORStrategy ||
+                           strategy is ReplayStrategy);
+
+            // Wrap strategy with liveness checking strategy.
             if (configuration.EnableLivenessChecking && configuration.EnableCycleDetection)
             {
-                this.Scheduler = new BugFindingScheduler(this, new CycleDetectionStrategy(
-                    configuration, this.StateCache, this.ScheduleTrace, this.Monitors, strategy));
+                strategy = new CycleDetectionStrategy(
+                    configuration,
+                    this.StateCache,
+                    this.ScheduleTrace,
+                    this.Monitors,
+                    strategy
+                );
             }
             else if (configuration.EnableLivenessChecking)
             {
-                this.Scheduler = new BugFindingScheduler(this, new TemperatureCheckingStrategy(
-                    configuration, this.Monitors, strategy));
+                strategy = new TemperatureCheckingStrategy(
+                    configuration,
+                    this.Monitors,
+                    strategy
+                );
             }
-            else
+
+            // Wrap strategy (including liveness checker strategy) with reduction strategy.
+            if (reduce)
             {
-                this.Scheduler = new BugFindingScheduler(this, strategy);
+                strategy = new BasicReductionStrategy(
+                    strategy,
+                    BasicReductionStrategy.ReductionStrategy.ForceSchedule
+                );
             }
+
+            this.Scheduler = new BugFindingScheduler(this, strategy);
         }
 
         /// <summary>
