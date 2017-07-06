@@ -718,26 +718,24 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Checks that a machine can start its event handler. Returns false if the event
+        /// handler should not be started. The bug finding runtime may return false because
+        /// it knows that there are currently no events in the inbox that can be handled.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <returns>Boolean</returns>
+        internal override bool CheckStartEventHandler(Machine machine)
+        {
+            return machine.TryDequeueEvent(true) != null;
+        }
+
+        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
         internal void Wait()
         {
             this.Scheduler.Wait();
             base.IsRunning = false;
-        }
-
-        /// <summary>
-        /// Checks that a machine can start its event handler.
-        /// Returns false if the event handler should not be started.
-        /// The bug finding runtime may return false
-        /// because it knows that there are currently no events 
-        /// in the Inbox that can be handled.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <returns>bool</returns>
-        internal override bool CheckStartEventHandler(Machine machine)
-        {
-            return machine.TryDequeueEvent(true) != null;
         }
 
         #endregion

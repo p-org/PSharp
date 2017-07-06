@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ReductionStrategy.cs">
+// <copyright file="BasicReductionStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,26 +19,26 @@ using System.Linq;
 namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// This strategy uses basic partial-order reduction
-    /// to reduce the choice-space for a provided child strategy.
+    /// This strategy uses basic partial-order reduction to reduce
+    /// the choice-space for a provided child strategy.
     /// </summary>
     public sealed class BasicReductionStrategy : ISchedulingStrategy
     {
         /// <summary>
-        /// 
+        /// Type of reduction strategy.
         /// </summary>
         public enum ReductionStrategy
         {
             /// <summary>
-            /// 
+            /// No reduction.
             /// </summary>
             None,
             /// <summary>
-            /// 
+            /// Reduction strategy that omits scheduling points.
             /// </summary>
             OmitSchedulingPoints,
             /// <summary>
-            /// 
+            /// Reduction strategy that forces scheduling points.
             /// </summary>
             ForceSchedule
         }
@@ -49,14 +49,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         private readonly ISchedulingStrategy ChildStrategy;
 
         /// <summary>
-        /// 
+        /// The reduction strategy.
         /// </summary>
         private readonly ReductionStrategy Reduction;
 
         /// <summary>
         /// Creates a reduction strategy that reduces the choice-space for a child strategy.
         /// </summary>
-        /// <param name="childStrategy">Child strategy</param>
+        /// <param name="childStrategy">Child strategy.</param>
         /// <param name="reductionStrategy">The reduction strategy used.</param>
         public BasicReductionStrategy(
             ISchedulingStrategy childStrategy,
@@ -114,7 +114,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
         }
 
         /// <summary>
@@ -195,7 +194,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         {
             return $"{ChildStrategy.GetDescription()}  w/ {Reduction}";
         }
-
 
         private static bool IsPartialOrderOperation(OperationType operationType)
         {

@@ -39,7 +39,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         }
 
         class InitEvent : Event { }
-
         class DummyEvent : Event { }
 
         class Waiter : Machine
@@ -82,10 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 Send(Id, new DummyEvent());
             }
 
-            private void Nothing()
-            {
-                
-            }
+            private void Nothing() { }
         }
 
         class ReceiverAddressEvent : Event
