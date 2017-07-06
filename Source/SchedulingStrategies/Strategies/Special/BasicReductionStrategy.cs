@@ -53,17 +53,28 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         private readonly ReductionStrategy Reduction;
 
+        private int ScheduledSteps;
+
+        private readonly int StepLimit;
+
+        private readonly bool ReportActualScheduledSteps;
+
         /// <summary>
         /// Creates a reduction strategy that reduces the choice-space for a child strategy.
         /// </summary>
         /// <param name="childStrategy">Child strategy.</param>
         /// <param name="reductionStrategy">The reduction strategy used.</param>
+        /// <param name="stepLimit">The step limit.</param>
         public BasicReductionStrategy(
             ISchedulingStrategy childStrategy,
-            ReductionStrategy reductionStrategy)
+            ReductionStrategy reductionStrategy,
+            int stepLimit = 0)
         {
             ChildStrategy = childStrategy;
             Reduction = reductionStrategy;
+            ScheduledSteps = 0;
+            StepLimit = stepLimit;
+            ReportActualScheduledSteps = StepLimit != 0;
         }
 
         /// <summary>
@@ -75,6 +86,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
+            ++ScheduledSteps;
             switch (Reduction)
             {
                 case ReductionStrategy.ForceSchedule:
@@ -124,6 +136,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
+            ++ScheduledSteps;
             return ChildStrategy.GetNextBooleanChoice(maxValue, out next);
         }
 
@@ -135,6 +148,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
+            ++ScheduledSteps;
             return ChildStrategy.GetNextIntegerChoice(maxValue, out next);
         }
 
@@ -146,6 +160,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
+            ScheduledSteps = 0;
             return ChildStrategy.PrepareForNextIteration();
         }
 
@@ -155,6 +170,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public void Reset()
         {
+            ScheduledSteps = 0;
             ChildStrategy.Reset();
         }
 
@@ -164,7 +180,9 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Scheduled steps</returns>
         public int GetScheduledSteps()
         {
-            return ChildStrategy.GetScheduledSteps();
+            return ReportActualScheduledSteps
+                ? ScheduledSteps
+                : ChildStrategy.GetScheduledSteps();
         }
 
         /// <summary>
@@ -174,7 +192,9 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            return ChildStrategy.HasReachedMaxSchedulingSteps();
+            return ReportActualScheduledSteps
+                ? (StepLimit > 0 && ScheduledSteps >= StepLimit)
+                : ChildStrategy.HasReachedMaxSchedulingSteps();
         }
 
         /// <summary>
