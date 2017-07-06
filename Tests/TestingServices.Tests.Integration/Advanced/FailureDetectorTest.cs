@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                     this.Nodes.Add(node);
                 }
 
-                this.Monitor<Liveness>(new Liveness.RegisterNodes(this.Nodes));
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.RegisterNodes(this.Nodes));
 
                 this.FailureDetector = this.CreateMachine(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
                 this.Send(this.FailureDetector, new RegisterClient(this.Id));
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             void NodeFailedAction()
             {
-                this.Monitor<Liveness>(this.ReceivedEvent);
+                this.Monitor<LivenessMonitor>(this.ReceivedEvent);
             }
         }
 
@@ -434,7 +434,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        class Liveness : Monitor
+        class LivenessMonitor : Monitor
         {
             internal class RegisterNodes : Event
             {
@@ -507,13 +507,33 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
-                r.RegisterMonitor(typeof(Liveness));
+                r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
-            var bugReport = "Monitor 'Liveness' detected potential liveness bug in hot state " +
-                "'Microsoft.PSharp.TestingServices.Tests.Integration.FailureDetectorTest+Liveness.Wait'.";
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
+                "'Microsoft.PSharp.TestingServices.Tests.Integration.FailureDetectorTest+LivenessMonitor.Wait'.";
             base.AssertFailed(configuration, test, bugReport);
+        }
+
+        [Fact]
+        public void TestFailureDetectorLivenessBugWithCycleReplay()
+        {
+            var configuration = GetConfiguration();
+            configuration.EnableCycleDetection = true;
+            configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
+            configuration.PrioritySwitchBound = 1;
+            configuration.MaxSchedulingSteps = 100;
+            configuration.RandomSchedulingSeed = 82;
+            configuration.SchedulingIterations = 1;
+
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                r.CreateMachine(typeof(Driver), new Driver.Config(2));
+            });
+
+            var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
+            AssertFailed(configuration, test, bugReport);
         }
     }
 }

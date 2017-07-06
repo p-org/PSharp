@@ -789,5 +789,27 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 "'Microsoft.PSharp.TestingServices.Tests.Integration.ReplicatingStorageTest+LivenessMonitor.Repairing'.";
             base.AssertFailed(configuration, test, bugReport);
         }
+
+        [Fact]
+        public void TestReplicatingStorageLivenessBugWithCycleReplay()
+        {
+            var configuration = GetConfiguration();
+            configuration.EnableCycleDetection = true;
+            configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
+            configuration.PrioritySwitchBound = 1;
+            configuration.MaxUnfairSchedulingSteps = 100;
+            configuration.MaxFairSchedulingSteps = 1000;
+            configuration.LivenessTemperatureThreshold = 500;
+            configuration.RandomSchedulingSeed = 867;
+            configuration.SchedulingIterations = 1;
+
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                r.CreateMachine(typeof(Environment));
+            });
+
+            var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
+            AssertFailed(configuration, test, bugReport);
+        }
     }
 }
