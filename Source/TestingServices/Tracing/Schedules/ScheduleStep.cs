@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.TestingServices.StateCaching;
+
 namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 {
     /// <summary>
@@ -19,8 +21,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
     /// </summary>
     internal sealed class ScheduleStep
     {
-        #region fields
-
         /// <summary>
         /// The unique index of this schedule step.
         /// </summary>
@@ -65,9 +65,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// </summary>
         internal ScheduleStep Next;
 
-        #endregion
-
-        #region internal methods
+        /// <summary>
+        /// Snapshot of the program state in this schedule step.
+        /// </summary>
+        internal State State;
 
         /// <summary>
         /// Creates a schedule step.
@@ -162,10 +163,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             return scheduleStep;
         }
 
-        #endregion
-
-        #region generic public and override methods
-
         /// <summary>
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
@@ -185,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
                 return false;
             }
 
-            return this.Index == step.Index;
+            return Index == step.Index;
         }
 
         /// <summary>
@@ -194,9 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return this.Index.GetHashCode();
+            return Index.GetHashCode();
         }
-
-        #endregion
     }
 }

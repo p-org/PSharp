@@ -22,16 +22,10 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
     /// </summary>
     internal sealed class Fingerprint
     {
-        #region fields
-
         /// <summary>
         /// The hash value of the fingerprint.
         /// </summary>
         private int HashValue;
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Constructor.
@@ -39,12 +33,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <param name="hash">HashValue</param>
         internal Fingerprint(int hash)
         {
-            this.HashValue = hash;
+            HashValue = hash;
         }
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Returns true if the fingerprint is equal to
@@ -58,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             var result = false;
 
             if (fingerprint != null &&
-                this.HashValue == fingerprint.HashValue)
+                HashValue == fingerprint.HashValue)
             {
                 result = true;
             }
@@ -72,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <returns>HashCode</returns>
         public override int GetHashCode()
         {
-            return this.HashValue;
+            return HashValue;
         }
 
         /// <summary>
@@ -82,9 +72,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         public override string ToString()
         {
             return String.Format(CultureInfo.InvariantCulture,
-                "fingerprint['{0}']", this.HashValue);
+                "fingerprint['{0}']", HashValue);
         }
-
-        #endregion
     }
 }

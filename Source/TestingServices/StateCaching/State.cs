@@ -19,12 +19,10 @@ using Microsoft.PSharp.IO;
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
     /// <summary>
-    /// Class implementing a P# program state.
+    /// Represents a snapshot of the program state.
     /// </summary>
     internal sealed class State
     {
-        #region fields
-
         /// <summary>
         /// The fingerprint of the trace step.
         /// </summary>
@@ -40,10 +38,6 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// if this is a scheduling trace step.
         /// </summary>
         internal HashSet<ulong> EnabledMachineIds;
-
-        #endregion
-
-        #region method
 
         /// <summary>
         /// Constructor.
@@ -74,7 +68,5 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 Debug.WriteLine($"  Monitor status: {m.Key.Id} is {m.Value}");
             }
         }
-
-        #endregion
     }
 }

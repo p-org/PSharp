@@ -110,6 +110,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
             StateMap.Add(scheduleStep, state);
             Fingerprints.Add(fingerprint);
 
+            scheduleStep.State = state;
+
             if (!fingerprintIndexMap.ContainsKey(fingerprint))
             {
                 var hs = new List<int>() { scheduleStep.Index };
