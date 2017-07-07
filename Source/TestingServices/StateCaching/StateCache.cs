@@ -66,6 +66,15 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         }
 
         /// <summary>
+        /// Clear the state cache.
+        /// </summary>
+        internal void Clear()
+        {
+            StateMap.Clear();
+            Fingerprints.Clear();
+        }
+
+        /// <summary>
         /// Captures a snapshot of the program state.
         /// </summary>
         /// <param name="state">Captured state</param>

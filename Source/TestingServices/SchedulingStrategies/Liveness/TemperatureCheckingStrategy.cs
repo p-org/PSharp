@@ -58,7 +58,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            CheckLivenessTemperature();
             return SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
         }
 
@@ -70,7 +69,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            CheckLivenessTemperature();
             return SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
         }
 
