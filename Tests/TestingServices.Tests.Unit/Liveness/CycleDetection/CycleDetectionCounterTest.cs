@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport);
+            base.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Fact]
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport);
+            base.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

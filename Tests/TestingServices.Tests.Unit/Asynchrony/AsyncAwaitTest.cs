@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Detected synchronization context that is not controlled by the P# runtime.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
     }
 }

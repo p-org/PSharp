@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Server)); });
             var bugReport = "Livelock detected. 'Microsoft.PSharp.TestingServices.Tests.Unit.ReceiveEventFailTest+" +
                 "Client()' is waiting for an event, but no other schedulable choices are enabled.";
-            base.AssertFailed(configuration, test, bugReport);
+            base.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Fact]
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var bugReport = "Livelock detected. 'Microsoft.PSharp.TestingServices.Tests.Unit.ReceiveEventFailTest+" +
                 "Client()' and 'Microsoft.PSharp.TestingServices.Tests.Unit.ReceiveEventFailTest+Client()' " +
                 "are waiting for an event, but no other schedulable choices are enabled.";
-            base.AssertFailed(configuration, test, bugReport);
+            base.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Fact]
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 "Client()', 'Microsoft.PSharp.TestingServices.Tests.Unit.ReceiveEventFailTest+Client()' " +
                 "and 'Microsoft.PSharp.TestingServices.Tests.Unit.ReceiveEventFailTest+Client()' " +
                 "are waiting for an event, but no other schedulable choices are enabled.";
-            base.AssertFailed(configuration, test, bugReport);
+            base.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

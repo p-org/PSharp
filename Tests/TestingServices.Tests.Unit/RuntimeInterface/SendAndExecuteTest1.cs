@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(A), new Configure(true));
             });
 
-            base.AssertFailed(config, test, "Machine 'B()' called receive while executing synchronously.");
+            base.AssertFailed(config, test, "Machine 'B()' called receive while executing synchronously.", true);
         }
     }
 }

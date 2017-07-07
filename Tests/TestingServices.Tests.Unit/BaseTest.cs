@@ -60,35 +60,35 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         #region tests that fail an assertion
 
-        protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors)
+        protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors);
+            AssertFailed(configuration, test, numExpectedErrors, replay);
         }
 
-        protected void AssertFailed(Action<PSharpRuntime> test, string expectedOutput)
+        protected void AssertFailed(Action<PSharpRuntime> test, string expectedOutput, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
+            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
-        protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs)
+        protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, expectedOutputs);
+            AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors)
+        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, bool replay)
         {
-            AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>());
+            AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, string expectedOutput)
+        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, string expectedOutput, bool replay)
         {
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
+            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs)
+        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
         {
             InMemoryLogger logger = new InMemoryLogger();
 
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
                 CheckErrors(bfEngine, numExpectedErrors, expectedOutputs);
 
-                if (!configuration.EnableCycleDetection)
+                if (replay && !configuration.EnableCycleDetection)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);
@@ -145,13 +145,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         #region tests that throw an exception
 
-        protected void AssertFailedWithException(Action<PSharpRuntime> test, Type exceptionType)
+        protected void AssertFailedWithException(Action<PSharpRuntime> test, Type exceptionType, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailedWithException(configuration, test, exceptionType);
+            AssertFailedWithException(configuration, test, exceptionType, replay);
         }
 
-        protected void AssertFailedWithException(Configuration configuration, Action<PSharpRuntime> test, Type exceptionType)
+        protected void AssertFailedWithException(Configuration configuration, Action<PSharpRuntime> test, Type exceptionType, bool replay)
         {
             Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
                 $"Type '{exceptionType}' is not an exception type.");
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
                 CheckErrors(bfEngine, exceptionType);
 
-                if (!configuration.EnableCycleDetection)
+                if (replay && !configuration.EnableCycleDetection)
                 {
                     var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
                     rEngine.SetLogger(logger);

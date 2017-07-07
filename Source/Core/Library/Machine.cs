@@ -1366,6 +1366,11 @@ namespace Microsoft.PSharp
                     foreach (var type in StateTypeMap[machineType])
                     {
                         Type stateType = type;
+                        if (type.IsAbstract)
+                        {
+                            continue;
+                        }
+
                         if (type.IsGenericType)
                         {
                             // If the state type is generic (only possible if inherited by a
@@ -1392,7 +1397,15 @@ namespace Microsoft.PSharp
                             Expression.New(constructor)).Compile();
                         MachineState state = lambda();
 
-                        state.InitializeState();
+                        try
+                        {
+                            state.InitializeState();
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
+                        }
+                        
                         StateMap[machineType].Add(state);
                     }
                 }

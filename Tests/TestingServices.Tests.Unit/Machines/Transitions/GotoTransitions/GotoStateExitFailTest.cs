@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program));
             });
 
-            base.AssertFailed(test, 1);
+            base.AssertFailed(test, 1, true);
         }
     }
 }

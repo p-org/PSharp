@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M)); });
             string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
             string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
     }
 }
