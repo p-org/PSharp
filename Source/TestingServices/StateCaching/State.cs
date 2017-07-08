@@ -31,13 +31,13 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Map from monitors to their liveness status.
         /// </summary>
-        internal Dictionary<Monitor, MonitorStatus> MonitorStatus;
+        internal readonly Dictionary<Monitor, MonitorStatus> MonitorStatus;
 
         /// <summary>
         /// Ids of the enabled machines. Only relevant
         /// if this is a scheduling trace step.
         /// </summary>
-        internal HashSet<ulong> EnabledMachineIds;
+        internal readonly HashSet<ulong> EnabledMachineIds;
 
         /// <summary>
         /// Constructor.
