@@ -855,5 +855,23 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 "'Microsoft.PSharp.TestingServices.Tests.Integration.ChordTest+LivenessMonitor.Requested'.";
             base.AssertFailed(configuration, test, bugReport);
         }
+
+        [Fact]
+        public void TestLivenessBugInChordProtocolWithCycleReplay()
+        {
+            var configuration = base.GetConfiguration();
+            configuration.EnableCycleDetection = true;
+            configuration.MaxSchedulingSteps = 100;
+            configuration.RandomSchedulingSeed = 211;
+            configuration.SchedulingIterations = 1;
+
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                r.CreateMachine(typeof(ClusterManager));
+            });
+
+            var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
+            base.AssertFailed(configuration, test, bugReport);
+        }
     }
 }

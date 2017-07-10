@@ -19,12 +19,10 @@ using Microsoft.PSharp.IO;
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
     /// <summary>
-    /// Class implementing a P# program state.
+    /// Represents a snapshot of the program state.
     /// </summary>
     internal sealed class State
     {
-        #region fields
-
         /// <summary>
         /// The fingerprint of the trace step.
         /// </summary>
@@ -33,17 +31,13 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Map from monitors to their liveness status.
         /// </summary>
-        internal Dictionary<Monitor, MonitorStatus> MonitorStatus;
+        internal readonly Dictionary<Monitor, MonitorStatus> MonitorStatus;
 
         /// <summary>
         /// Ids of the enabled machines. Only relevant
         /// if this is a scheduling trace step.
         /// </summary>
-        internal HashSet<ulong> EnabledMachineIds;
-
-        #endregion
-
-        #region method
+        internal readonly HashSet<ulong> EnabledMachineIds;
 
         /// <summary>
         /// Constructor.
@@ -74,7 +68,5 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 Debug.WriteLine($"  Monitor status: {m.Key.Id} is {m.Value}");
             }
         }
-
-        #endregion
     }
 }

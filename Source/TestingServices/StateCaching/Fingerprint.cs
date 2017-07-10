@@ -12,9 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Globalization;
-
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
     /// <summary>
@@ -22,16 +19,10 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
     /// </summary>
     internal sealed class Fingerprint
     {
-        #region fields
-
         /// <summary>
         /// The hash value of the fingerprint.
         /// </summary>
-        private int HashValue;
-
-        #endregion
-
-        #region internal API
+        private readonly int HashValue;
 
         /// <summary>
         /// Constructor.
@@ -39,12 +30,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <param name="hash">HashValue</param>
         internal Fingerprint(int hash)
         {
-            this.HashValue = hash;
+            HashValue = hash;
         }
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Returns true if the fingerprint is equal to
@@ -55,15 +42,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         public override bool Equals(object obj)
         {
             var fingerprint = obj as Fingerprint;
-            var result = false;
-
-            if (fingerprint != null &&
-                this.HashValue == fingerprint.HashValue)
-            {
-                result = true;
-            }
-
-            return result;
+            return fingerprint != null && HashValue == fingerprint.HashValue;
         }
 
         /// <summary>
@@ -72,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <returns>HashCode</returns>
         public override int GetHashCode()
         {
-            return this.HashValue;
+            return HashValue;
         }
 
         /// <summary>
@@ -81,10 +60,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <returns>Text</returns>
         public override string ToString()
         {
-            return String.Format(CultureInfo.InvariantCulture,
-                "fingerprint['{0}']", this.HashValue);
+            return $"fingerprint['{HashValue}']";
         }
-
-        #endregion
     }
 }

@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -165,13 +164,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public override void SendEvent(MachineId target, Event e)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        public override void SendEvent(MachineId target, Event e, bool isStarter = false)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEvent(target, e, null);
+            this.SendEvent(target, e, null, isStarter);
         }
 
         /// <summary>
@@ -180,13 +180,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public override Task SendEventAndExecute(MachineId target, Event e)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        public override Task SendEventAndExecute(MachineId target, Event e, bool isStarter = false)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, null);
+            return this.SendEventAndExecute(target, e, null, isStarter);
         }
 
         /// <summary>
@@ -194,13 +195,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public override void RemoteSendEvent(MachineId target, Event e)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        public override void RemoteSendEvent(MachineId target, Event e, bool isStarter = false)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEventRemotely(target, e, null);
+            this.SendEventRemotely(target, e, null, isStarter);
         }
 
         /// <summary>
@@ -317,7 +319,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -349,7 +352,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -380,7 +384,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
         {
             base.NetworkProvider.RemoteSend(mid, e);
         }
@@ -742,7 +747,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, bool isStarter)
         {
             if (base.Configuration.Verbose <= 1)
             {
