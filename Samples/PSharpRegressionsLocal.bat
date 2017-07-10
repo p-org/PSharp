@@ -1,11 +1,11 @@
 @echo off
 if not exist ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe (
 	echo ERROR: Can't find PSharpBatchTester.exe
-	exit
+	goto DONE
 )
 if not exist .\PSharpBatch.config (
 	echo ERROR: Can't find .\PSharpBatch.config
-	exit
+	goto DONE
 )
 ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe /config:.\PSharpBatch.config /local
 
@@ -39,3 +39,5 @@ for /D %%s in (.\*) do (
 )
 
 ::for /f "tokens=3" %%i in ("!mystr3_%%s!") do set Name_%%s=%%i
+
+:DONE

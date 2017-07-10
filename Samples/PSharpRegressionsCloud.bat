@@ -1,15 +1,15 @@
 @echo off
 if not exist ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe (
 	echo ERROR: Can't find PSharpBatchTester.exe
-	exit
+	goto DONE
 )
 if not exist .\PSharpBatch.config (
 	echo ERROR: Can't find PSharpBatch.config
-	exit
+	goto DONE
 )
 if not exist .\PSharpBatchAuth.config (
 	echo ERROR: Can't find PSharpBatchAuth.config
-	exit
+	goto DONE
 )
 ..\..\PSharpBatchTesting\Binaries\PSharpBatchTester.exe /config:.\PSharpBatch.config /auth:.\PSharpBatchAuth.config
 
@@ -41,3 +41,5 @@ for /D %%s in (.\*) do (
 	echo !Bmk_%%s!				!Bug_%%s!		!Time_%%s!		>> .\PSharpSafetyResults_Cloud.txt
 	cd .\Output
 )
+
+:DONE
