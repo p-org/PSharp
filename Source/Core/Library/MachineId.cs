@@ -80,7 +80,7 @@ namespace Microsoft.PSharp
             this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
             
             // Atomically increments and safely wraps into an unsigned long.
-            this.Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter);
+            this.Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
 
             // Checks for overflow.
             Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
