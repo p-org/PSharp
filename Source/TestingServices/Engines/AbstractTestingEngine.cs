@@ -364,6 +364,11 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit("Portfolio testing strategy in only " +
                     "available in parallel testing.");
             }
+
+            if (!(Strategy is DPORStrategy) && !(Strategy is ReplayStrategy))
+            {
+                Strategy = new BasicReductionStrategy(Strategy, BasicReductionStrategy.ReductionStrategy.ForceSchedule);
+            }
         }
 
         #endregion
