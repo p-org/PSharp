@@ -333,6 +333,22 @@ namespace Microsoft.PSharp.TestingServices
                     this.SchedulingStrategyLogger);
                 this.Configuration.PerformFullExploration = false;
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DPOR)
+            {
+                this.Strategy = new DPORStrategy(
+                    new ContractAsserter(),
+                    null,
+                    -1,
+                    this.Configuration.MaxUnfairSchedulingSteps);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RDPOR)
+            {
+                this.Strategy = new DPORStrategy(
+                    new ContractAsserter(), 
+                    this.RandomNumberGenerator,
+                    -1,
+                    this.Configuration.MaxFairSchedulingSteps);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
             {
                 this.Strategy = new ExhaustiveDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
