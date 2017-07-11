@@ -417,10 +417,10 @@ namespace Microsoft.PSharp
         /// Runs a new asynchronous machine event handler.
         /// This is a fire and forget invocation.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        /// <param name="isFresh">Is a new machine</param>
-        private void RunMachineEventHandler(Machine machine, Event e, bool isFresh)
+        /// <param name="machine">Machine that executes this event handler.</param>
+        /// <param name="initialEvent">Event for initializing the machine.</param>
+        /// <param name="isFresh">If true, then this is a new machine.</param>
+        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
         {
             Task.Run(async () =>
             {
@@ -428,7 +428,7 @@ namespace Microsoft.PSharp
                 {
                     if (isFresh)
                     {
-                        await machine.GotoStartState(e);
+                        await machine.GotoStartState(initialEvent);
                     }
 
                     await machine.RunEventHandler();
@@ -448,16 +448,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Runs a new asynchronous machine event handler.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        /// <param name="isFresh">Is a new machine</param>
-        private async Task RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh)
+        /// <param name="machine">Machine that executes this event handler.</param>
+        /// <param name="initialEvent">Event for initializing the machine.</param>
+        /// <param name="isFresh">If true, then this is a new machine.</param>
+        private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
         {
             try
             {
                 if (isFresh)
                 {
-                    await machine.GotoStartState(e);
+                    await machine.GotoStartState(initialEvent);
                 }
 
                 await machine.RunEventHandler(true);
@@ -789,10 +789,14 @@ namespace Microsoft.PSharp
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyWaitEvents(Machine machine)
+        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
+        internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
-            base.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting to receive an event.");
-            machine.Info.IsWaitingToReceive = true;
+            if (eventInfoInInbox == null)
+            {
+                base.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting to receive an event.");
+                machine.Info.IsWaitingToReceive = true;
+            }
         }
 
         /// <summary>

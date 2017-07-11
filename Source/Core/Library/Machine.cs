@@ -554,7 +554,7 @@ namespace Microsoft.PSharp
                         $"in the input queue of machine '{this}'");
                 }
 
-                if (!this.IsRunning)
+                if (!this.IsRunning && base.Runtime.CheckStartEventHandler(this))
                 {
                     this.IsRunning = true;
                     runNewHandler = true;
@@ -563,80 +563,106 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Gets the next available <see cref="EventInfo"/>. It gives priority to raised
-        /// events, else deqeues from the inbox. Returns false if the next event was not
-        /// dequeued. It returns a null event if no event is available.
+        /// Dequeues the next available <see cref="EventInfo"/> from the
+        /// inbox if there is one available, else returns null.
         /// </summary>
-        /// <param name="nextEventInfo">EventInfo</param>
-        /// <returns>Boolean</returns>
-        private bool GetNextEvent(out EventInfo nextEventInfo)
+        /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
+        /// <returns>EventInfo</returns>
+        internal EventInfo TryDequeueEvent(bool checkOnly = false)
         {
-            bool dequeued = false;
-            nextEventInfo = null;
+            EventInfo nextEventInfo = null;
 
-            // Raised events have priority.
-            if (this.RaisedEvent != null)
+            // Iterates through the events in the inbox.
+            for (int idx = 0; idx < this.Inbox.Count; idx++)
             {
-                nextEventInfo = this.RaisedEvent;
-
-                this.RaisedEvent = null;
-
-                // Checks if the raised event is ignored.
-                if (this.IsIgnored(nextEventInfo.EventType))
+                // Removes an ignored event.
+                if (this.Inbox[idx].EventType.IsGenericType)
                 {
-                    nextEventInfo = null;
-                }
-            }
-
-            // If there is no raised event, then dequeue.
-            if (nextEventInfo == null && this.Inbox.Count > 0)
-            {
-                // Iterates through the events in the inbox.
-                for (int idx = 0; idx < this.Inbox.Count; idx++)
-                {
-                    // Removes an ignored event.
-                    if (this.Inbox[idx].EventType.IsGenericType)
+                    var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
+                    var ignored = false;
+                    foreach (var tup in this.CurrentActionHandlerMap)
                     {
-                        var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
-                        var ignored = false;
-                        foreach (var tup in this.CurrentActionHandlerMap)
+                        if (!(tup.Value is IgnoreAction)) continue;
+                        if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
+                            genericTypeDefinition.GetGenericTypeDefinition()))
                         {
-                            if (!(tup.Value is IgnoreAction)) continue;
-                            if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
-                                genericTypeDefinition.GetGenericTypeDefinition()))
-                            {
-                                ignored = true;
-                                break;
-                            }
+                            ignored = true;
+                            break;
                         }
+                    }
 
-                        if (ignored)
+                    if (ignored)
+                    {
+                        if (!checkOnly)
                         {
                             this.Inbox.RemoveAt(idx);
                             idx--;
-                            continue;
                         }
+                        
+                        continue;
                     }
+                }
 
-                    if (this.IsIgnored(this.Inbox[idx].EventType))
+                if (this.IsIgnored(this.Inbox[idx].EventType))
+                {
+                    if (!checkOnly)
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
-                        continue;
                     }
 
-                    // Dequeues the first event that is not deferred.
-                    if (!this.IsDeferred(this.Inbox[idx].EventType))
+                    continue;
+                }
+
+                // Dequeues the first event that is not deferred.
+                if (!this.IsDeferred(this.Inbox[idx].EventType))
+                {
+                    nextEventInfo = this.Inbox[idx];
+                    if (!checkOnly)
                     {
-                        nextEventInfo = this.Inbox[idx];
                         this.Inbox.RemoveAt(idx);
-                        dequeued = true;
-                        break;
                     }
+
+                    break;
                 }
             }
 
-            return dequeued;
+            return nextEventInfo;
+        }
+
+        /// <summary>
+        /// Returns the raised <see cref="EventInfo"/> if
+        /// there is one available, else returns null.
+        /// </summary>
+        /// <returns>EventInfo</returns>
+        private EventInfo TryGetRaisedEvent()
+        {
+            EventInfo raisedEventInfo = null;
+            if (this.RaisedEvent != null)
+            {
+                raisedEventInfo = this.RaisedEvent;
+                this.RaisedEvent = null;
+
+                // Checks if the raised event is ignored.
+                if (this.IsIgnored(raisedEventInfo.EventType))
+                {
+                    raisedEventInfo = null;
+                }
+            }
+
+            return raisedEventInfo;
+        }
+
+        /// <summary>
+        /// Returns the default <see cref="EventInfo"/>.
+        /// </summary>
+        /// <returns>EventInfo</returns>
+        private EventInfo GetDefaultEvent()
+        {
+            base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' is executing the " +
+                $"default handler in state '{this.CurrentStateName}'.");
+            return new EventInfo(new Default(), new EventOriginInfo(
+                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
         }
 
         #endregion
@@ -655,29 +681,37 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            EventInfo nextEventInfo = null;
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
                 var dequeued = false;
-                lock (this.Inbox)
+
+                // Try to get the raised event, if there is one. Raised events
+                // have priority over the events in the inbox.
+                EventInfo nextEventInfo = this.TryGetRaisedEvent();
+
+                if (nextEventInfo == null)
                 {
-                    dequeued = this.GetNextEvent(out nextEventInfo);
-
-                    // Check if next event to process is null.
-                    if (nextEventInfo == null)
+                    var hasDefaultHandler = HasDefaultHandler();
+                    if (hasDefaultHandler)
                     {
-                        if (this.HasDefaultHandler())
-                        {
-                            base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' " +
-                                "is executing the default handler in state " +
-                                $"'{this.CurrentStateName}'.");
+                        base.Runtime.NotifyDefaultEventHandlerCheck(this);
+                    }
 
-                            nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
-                                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+                    lock (this.Inbox)
+                    {
+                        // Try to dequeue the next event, if there is one.
+                        nextEventInfo = this.TryDequeueEvent();
+                        dequeued = nextEventInfo != null;
+
+                        if (nextEventInfo == null && hasDefaultHandler)
+                        {
+                            // Else, get the default event.
+                            nextEventInfo = this.GetDefaultEvent();
                             defaultHandling = true;
                         }
-                        else
+
+                        if (nextEventInfo == null)
                         {
                             this.IsRunning = false;
                             break;
@@ -685,12 +719,19 @@ namespace Microsoft.PSharp
                     }
                 }
 
-                // Notifies the runtime for a new event to handle. This is only used
-                // during bug-finding and operation bounding, because the runtime has
-                // to schedule a machine when a new operation is dequeued.
                 if (dequeued)
                 {
+                    // Notifies the runtime for a new event to handle. This is only used
+                    // during bug-finding and operation bounding, because the runtime has
+                    // to schedule a machine when a new operation is dequeued.
                     base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                }
+                else if (defaultHandling)
+                {
+                    // If the default event was handled, then notify the runtime.
+                    // This is only used during bug-finding, because the runtime
+                    // has to schedule a machine between default handlers.
+                    base.Runtime.NotifyDefaultHandlerFired(this);
                 }
                 else
                 {
@@ -703,13 +744,6 @@ namespace Microsoft.PSharp
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
 
-                // If the default event was handled, then notify the runtime.
-                // This is only used during bug-finding, because the runtime
-                // has to schedule a machine between default handlers.
-                if (defaultHandling)
-                {
-                    base.Runtime.NotifyDefaultHandlerFired();
-                }
 
                 // Return after handling the first event?
                 if (returnEarly)
@@ -1120,7 +1154,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         private Task<Event> WaitOnEvent()
         {
-            bool isWaiting = true;
+            EventInfo eventInfoInInbox = null;
             lock (this.Inbox)
             {
                 // Iterates through the events in the inbox.
@@ -1138,17 +1172,14 @@ namespace Microsoft.PSharp
 
                         this.EventWaitHandlers.Clear();
                         this.ReceiveCompletionSource.SetResult(this.Inbox[idx].Event);
+                        eventInfoInInbox = this.Inbox[idx];
                         this.Inbox.RemoveAt(idx);
-                        isWaiting = false;
                         break;
                     }
                 }
             }
 
-            if (isWaiting)
-            {
-                base.Runtime.NotifyWaitEvents(this);
-            }
+            base.Runtime.NotifyWaitEvents(this, eventInfoInInbox);
 
             return this.ReceiveCompletionSource.Task;
         }

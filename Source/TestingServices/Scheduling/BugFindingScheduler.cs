@@ -109,15 +109,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Schedules the next <see cref="ISchedulable"/> operation to execute.
         /// </summary>
-        /// <param name="operationType">OperationType</param>
-        internal void Schedule(OperationType operationType)
+        /// <param name="operationType">Type of the operation.</param>
+        /// <param name="targetType">Type of the target of the operation.</param>
+        /// <param name="targetId">Id of the target.</param>
+        internal void Schedule(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
-            // If the operation type is receive, then return.
-            if (operationType == OperationType.Receive)
-            {
-                return;
-            }
-
             int? taskId = Task.CurrentId;
 
             // If the caller is the root task, then return.
@@ -138,7 +134,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.CheckIfSchedulingStepsBoundIsReached();
 
             SchedulableInfo current = this.ScheduledMachine;
-            current.SetNextOperation(operationType);
+            current.SetNextOperation(operationType, targetType, targetId);
 
             // Get and order the schedulable choices by their id.
             var choices = this.SchedulableInfoMap.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
@@ -171,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 
                 lock (current)
                 {
-                    if (current.IsCompleted)
+                    if (!current.IsEventHandlerRunning)
                     {
                         return;
                     }
@@ -264,7 +260,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    while (!info.HasStarted)
+                    while (!info.IsEventHandlerRunning)
                     {
                         System.Threading.Monitor.Wait(info);
                     }
@@ -325,6 +321,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Notify that a monitor was registered.
+        /// </summary>
+        /// <param name="info">SchedulableInfo</param>
+        internal void NotifyMonitorRegistered(SchedulableInfo info)
+        {
+            SchedulableInfoMap.Add(info.Id, info);
+            Debug.WriteLine($"<ScheduleDebug> Created monitor of '{info.Name}'.");
+        }
+
+        /// <summary>
         /// Notify that the event handler has started.
         /// </summary>
         /// <param name="info">SchedulableInfo</param>
@@ -334,7 +340,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             lock (info)
             {
-                info.HasStarted = true;
+                info.IsEventHandlerRunning = true;
                 System.Threading.Monitor.PulseAll(info);
                 while (!info.IsActive)
                 {
@@ -565,7 +571,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 machineInfo.IsActive = true;
                 machineInfo.IsEnabled = false;
 
-                if (!machineInfo.IsCompleted)
+                if (machineInfo.IsEventHandlerRunning)
                 {
                     lock (machineInfo)
                     {

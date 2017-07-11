@@ -37,11 +37,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         bool IsEnabled { get; }
 
         /// <summary>
-        /// Is the entity completed.
-        /// </summary>
-        bool IsCompleted { get; }
-
-        /// <summary>
         /// Type of the next operation of the entity.
         /// </summary>
         OperationType NextOperationType { get; }
