@@ -165,6 +165,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     return SchedulingStrategy.GetNext(out next, choices, current);
                 }
 
+                SchedulingStrategy.ForceNext(next, choices, current);
+
                 CurrentCycleIndex++;
                 if (CurrentCycleIndex == PotentialCycle.Count)
                 {
@@ -202,6 +204,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 Debug.WriteLine("<LivenessDebug> Replaying '{0}' '{1}'.", nextStep.Index, nextStep.BooleanChoice.Value);
 
                 next = nextStep.BooleanChoice.Value;
+
+                SchedulingStrategy.ForceNextBooleanChoice(maxValue, next);
 
                 CurrentCycleIndex++;
                 if (CurrentCycleIndex == PotentialCycle.Count)
@@ -241,6 +245,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 Debug.WriteLine("<LivenessDebug> Replaying '{0}' '{1}'.", nextStep.Index, nextStep.IntegerChoice.Value);
 
                 next = nextStep.IntegerChoice.Value;
+
+                SchedulingStrategy.ForceNextIntegerChoice(maxValue, next);
 
                 CurrentCycleIndex++;
                 if (CurrentCycleIndex == PotentialCycle.Count)
