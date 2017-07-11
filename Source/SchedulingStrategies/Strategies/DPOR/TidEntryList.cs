@@ -152,7 +152,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         /// </summary>
         public void ClearNondetChoicesFromNext()
         {
-            if (NextNondetChoiceIndex < NondetChoices.Count)
+            if (NondetChoices != null && NextNondetChoiceIndex < NondetChoices.Count)
             {
                 NondetChoices.RemoveRange(NextNondetChoiceIndex, NondetChoices.Count - NextNondetChoiceIndex);
             }

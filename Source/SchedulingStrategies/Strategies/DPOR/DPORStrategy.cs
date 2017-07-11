@@ -60,6 +60,19 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         private readonly int StepLimit;
 
         /// <summary>
+        /// When doing random DPOR, we do an initial execution 
+        /// and then try to reverse races.
+        /// This int specifies how many iterations of race reversing to perform
+        /// before performing a new initial iteration.
+        /// </summary>
+        private readonly int RaceReversalIterationsLimit;
+
+        /// <summary>
+        /// Counter for <see cref="RaceReversalIterationsLimit"/>.
+        /// </summary>
+        private int NumRaceReversalIterationsCounter;
+
+        /// <summary>
         /// Number of iterations.
         /// </summary>
         private int NumIterations;
@@ -67,7 +80,13 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Creates the DPOR strategy.
         /// </summary>
-        public DPORStrategy(IContract contract, IRandomNumberGenerator rand = null, int stepLimit = -1, bool useSleepSets = true, bool dpor = true)
+        public DPORStrategy(
+            IContract contract, 
+            IRandomNumberGenerator rand = null, 
+            int raceReversalIterationsLimit = -1, 
+            int stepLimit = -1, 
+            bool useSleepSets = true, 
+            bool dpor = true)
         {
             Contract = contract;
             Rand = rand;
@@ -75,6 +94,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             Stack = new Stack(rand, Contract);
             Dpor = dpor ? new DPORAlgorithm(Contract) : null;
             UseSleepSets = rand == null && useSleepSets;
+            RaceReversalIterationsLimit = raceReversalIterationsLimit;
             Reset();
         }
 
@@ -119,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             // Forced choice.
             if (next != null)
             {
-                AbdandonReplayDueToForcedChoice();
+                AbdandonReplay(false);
             }
 
             bool added = Stack.Push(choices, currentSchedulableId);
@@ -220,7 +240,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         {
             if (next != null)
             {
-                AbdandonReplayDueToForcedChoice();
+                AbdandonReplay(true);
                 return true;
             }
 
@@ -231,11 +251,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Abandon the replay of a schedule prefix and/or a race suffice.
         /// </summary>
-        private void AbdandonReplayDueToForcedChoice()
+        private void AbdandonReplay(bool clearNonDet)
         {
-            Contract.Assert(Rand == null, "DPOR: Forced choices are only supported with random DPOR.");
+            Contract.Assert(Rand != null, "DPOR: Forced choices are only supported with random DPOR.");
             // Abandon remaining stack entries and race replay.
-            Stack.GetTop().ClearNondetChoicesFromNext();
+            if (clearNonDet)
+            {
+                Stack.GetTop().ClearNondetChoicesFromNext();
+            }
             Stack.ClearAboveTop();
             Dpor.ReplayRaceIndex = Int32.MaxValue;
         }
@@ -360,6 +383,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             Dpor?.DoDPOR(Stack, Rand);
 
             Stack.PrepareForNextSchedule();
+
+            if (Rand != null && RaceReversalIterationsLimit >= 0)
+            {
+                ++NumRaceReversalIterationsCounter;
+                if (NumRaceReversalIterationsCounter >= RaceReversalIterationsLimit)
+                {
+                    NumRaceReversalIterationsCounter = 0;
+                    AbdandonReplay(false);
+                }
+            }
+
             return Rand != null || Stack.GetInternalSize() != 0;
         }
 
@@ -370,6 +404,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         {
             Stack.Clear();
             NumIterations = 0;
+            NumRaceReversalIterationsCounter = 0;
         }
 
         /// <summary>
