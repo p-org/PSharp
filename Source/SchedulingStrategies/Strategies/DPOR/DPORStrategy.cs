@@ -79,15 +79,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         }
 
         /// <summary>
-        /// Returns the next choice to schedule.
+        /// Returns or forces the next choice to schedule.
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
-        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        private bool GetNextHelper(
+            ref ISchedulable next,
+            List<ISchedulable> choices,
+            ISchedulable current)
         {
-            int currentSchedulableId = (int) current.Id;
+            int currentSchedulableId = (int)current.Id;
             // "Yield" and "Waiting for quiescence" hack.
             if (choices.TrueForAll(info => !info.IsEnabled))
             {
@@ -114,8 +116,16 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 }
             }
 
+            // Forced choice.
+            if (next != null)
+            {
+                AbdandonReplayDueToForcedChoice();
+            }
+
             bool added = Stack.Push(choices, currentSchedulableId);
             TidEntryList top = Stack.GetTop();
+
+            Contract.Assert(next == null || added, "DPOR: Forced choice implies we should have added to stack.");
 
             if (added)
             {
@@ -137,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                     // Add the replay tid to the backtrack set.
                     top.List[tidReplay.Id].Backtrack = true;
                     Contract.Assert(
-                        top.List[tidReplay.Id].Enabled 
+                        top.List[tidReplay.Id].Enabled
                         || top.List[tidReplay.Id].OpType == OperationType.Yield);
                     ++Dpor.ReplayRaceIndex;
                 }
@@ -145,7 +155,13 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 {
                     // TODO: Here is where we can combine with another scheduler:
                     // For now, we just do round-robin when doing DPOR and random when doing random DPOR.
-                    if (Rand == null)
+
+                    // If our choice is forced by parent scheduler:
+                    if (next != null)
+                    {
+                        top.AddToBacktrack((int) next.Id, Contract);
+                    }
+                    else if (Rand == null)
                     {
                         top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Contract);
                     }
@@ -183,15 +199,58 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             if (!next.IsEnabled &&
                 next.NextOperationType == OperationType.Yield)
             {
-//                // Uncomment to avoid waking a yielding thread.
-//                next = null;
-//                // TODO: let caller know that this is not deadlock.
-//                return false;
+                //                // Uncomment to avoid waking a yielding thread.
+                //                next = null;
+                //                // TODO: let caller know that this is not deadlock.
+                //                return false;
                 next.IsEnabled = true;
             }
 
             Contract.Assert(next.IsEnabled);
             return true;
+        }
+
+        /// <summary>
+        /// Returns or forces the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        private bool GetNextBooleanChoiceHelper(int maxValue, ref bool? next)
+        {
+            if (next != null)
+            {
+                AbdandonReplayDueToForcedChoice();
+                return true;
+            }
+
+            next = Stack.GetTop().MakeOrReplayNondetChoice(true, Rand, Contract) == 1;
+            return true;
+        }
+
+        /// <summary>
+        /// Abandon the replay of a schedule prefix and/or a race suffice.
+        /// </summary>
+        private void AbdandonReplayDueToForcedChoice()
+        {
+            Contract.Assert(Rand == null, "DPOR: Forced choices are only supported with random DPOR.");
+            // Abandon remaining stack entries and race replay.
+            Stack.GetTop().ClearNondetChoicesFromNext();
+            Stack.ClearAboveTop();
+            Dpor.ReplayRaceIndex = Int32.MaxValue;
+        }
+
+        /// <summary>
+        /// Returns the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            next = null;
+            return GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
@@ -202,7 +261,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            next = Stack.GetTop().MakeOrReplayNondetChoice(true, Rand, Contract) == 1;
+            bool? nextTemp = null;
+            GetNextBooleanChoiceHelper(maxValue, ref nextTemp);
+            Contract.Assert(nextTemp != null);
+            next = nextTemp.Value;
             return true;
         }
 
@@ -216,6 +278,48 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         {
             // TODO: 
             throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// Forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            ISchedulable temp = next;
+            bool res = GetNextHelper(ref temp, choices, current);
+            Contract.Assert(res, "DPOR scheduler refused to schedule a forced choice.");
+            Contract.Assert(temp == next, "DPOR scheduler changed forced next choice.");
+        }
+
+        /// <summary>
+        /// Forces the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextBooleanChoice(int maxValue, bool next)
+        {
+            bool? nextTemp = next;
+            bool res = GetNextBooleanChoiceHelper(maxValue, ref nextTemp);
+            Contract.Assert(res, "DPOR scheduler refused to schedule a forced boolean choice.");
+            Contract.Assert(
+                nextTemp.HasValue && nextTemp.Value == next, 
+                "DPOR scheduler changed forced next boolean choice.");
+        }
+
+        /// <summary>
+        /// Forces the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextIntegerChoice(int maxValue, int next)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

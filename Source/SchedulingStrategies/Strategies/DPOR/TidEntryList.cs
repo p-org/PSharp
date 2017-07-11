@@ -147,6 +147,18 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         }
 
         /// <summary>
+        /// Clears the list of nondet choices for replay from the next nondet choice onwards.
+        /// That is, nondet choices that have already been replayed remain in the list.
+        /// </summary>
+        public void ClearNondetChoicesFromNext()
+        {
+            if (NextNondetChoiceIndex < NondetChoices.Count)
+            {
+                NondetChoices.RemoveRange(NextNondetChoiceIndex, NondetChoices.Count - NextNondetChoiceIndex);
+            }
+        }
+
+        /// <summary>
         /// Add all enabled threads to the backtrack set.
         /// </summary>
         /// <param name="contract">IContract</param>
@@ -402,6 +414,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
                     i = 0;
                 }
             }
+        }
+
+        /// <summary>
+        /// Add a thread to the backtrack set.
+        /// </summary>
+        /// <param name="tid">a thread id to add</param>
+        /// <param name="contract">IContract</param>
+        public void AddToBacktrack(int tid, IContract contract)
+        {
+            List[tid].Backtrack = true;
+            contract.Assert(List[tid].Enabled);
         }
 
         /// <summary>

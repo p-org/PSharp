@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
@@ -84,6 +85,40 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
         public abstract bool GetNextIntegerChoice(int maxValue, out int next);
+
+        /// <summary>
+        /// Forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Forces the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextBooleanChoice(int maxValue, bool next)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Forces the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextIntegerChoice(int maxValue, int next)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked

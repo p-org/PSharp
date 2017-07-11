@@ -232,5 +232,13 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         {
             StackInternal.Clear();
         }
+
+        /// <summary>
+        /// Clear all entries beyond the current top of stack.
+        /// </summary>
+        public void ClearAboveTop()
+        {
+            StackInternal.RemoveRange(NextStackPos, StackInternal.Count - NextStackPos);
+        }
     }
 }
