@@ -40,7 +40,10 @@ namespace Microsoft.PSharp.SharedObjects
         {
             this.Runtime = Runtime;
             CounterMachine = Runtime.CreateMachine(typeof(SharedCounterMachine));
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.SetEvent(value));
+
+            var currentMachine = Runtime.GetCurrentMachine();
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
+            currentMachine.Receive(typeof(SharedCounterResponseEvent)).Wait();
         }
 
         /// <summary>
@@ -67,6 +70,46 @@ namespace Microsoft.PSharp.SharedObjects
         {
             var currentMachine = Runtime.GetCurrentMachine();
             Runtime.SendEvent(CounterMachine, SharedCounterEvent.GetEvent(currentMachine.Id));
+            var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
+            return (response as SharedCounterResponseEvent).Value;
+        }
+
+        /// <summary>
+        /// Adds a value to the counter atomically
+        /// </summary>
+        /// <param name="value">Value to add</param>
+        /// <returns>The new value of the counter</returns>
+        public int Add(int value)
+        {
+            var currentMachine = Runtime.GetCurrentMachine();
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.AddEvent(currentMachine.Id, value));
+            var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
+            return (response as SharedCounterResponseEvent).Value;
+        }
+
+        /// <summary>
+        /// Sets the counter to a value atomically
+        /// </summary>
+        /// <param name="value">Value to set</param>
+        /// <returns>The original value of the counter</returns>
+        public int Exchange(int value)
+        {
+            var currentMachine = Runtime.GetCurrentMachine();
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
+            var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
+            return (response as SharedCounterResponseEvent).Value;
+        }
+
+        /// <summary>
+        /// Sets the counter to a value atomically if it is equal to a given value
+        /// </summary>
+        /// <param name="value">Value to set</param>
+        /// <param name="comparand">Value to compare against</param>
+        /// <returns>The original value of the counter</returns>
+        public int CompareExchange(int value, int comparand)
+        {
+            var currentMachine = Runtime.GetCurrentMachine();
+            Runtime.SendEvent(CounterMachine, SharedCounterEvent.CasEvent(currentMachine.Id, value, comparand));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
         }

@@ -59,5 +59,36 @@ namespace Microsoft.PSharp.SharedObjects
         {
             return Counter;
         }
+
+        /// <summary>
+        /// Adds a value to the counter atomically
+        /// </summary>
+        /// <param name="value">Value to add</param>
+        /// <returns>The new value of the counter</returns>
+        public int Add(int value)
+        {
+            return Interlocked.Add(ref Counter, value);
+        }
+
+        /// <summary>
+        /// Sets the counter to a value atomically
+        /// </summary>
+        /// <param name="value">Value to set</param>
+        /// <returns>The original value of the counter</returns>
+        public int Exchange(int value)
+        {
+            return Interlocked.Exchange(ref Counter, value);
+        }
+
+        /// <summary>
+        /// Sets the counter to a value atomically if it is equal to a given value
+        /// </summary>
+        /// <param name="value">Value to set</param>
+        /// <param name="comparand">Value to compare against</param>
+        /// <returns>The original value of the counter</returns>
+        public int CompareExchange(int value, int comparand)
+        {
+            return Interlocked.CompareExchange(ref Counter, value, comparand);
+        }
     }
 }

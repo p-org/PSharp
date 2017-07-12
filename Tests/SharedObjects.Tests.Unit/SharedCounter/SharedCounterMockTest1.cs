@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedCounterMockTest.cs">
+// <copyright file="SharedCounterMockTest1.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedCounterMockTest : BaseTest
+    public class SharedCounterMockTest1 : BaseTest
     {
         class E : Event
         {

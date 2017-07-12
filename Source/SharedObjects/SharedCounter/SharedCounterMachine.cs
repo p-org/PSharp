@@ -48,7 +48,8 @@ namespace Microsoft.PSharp.SharedObjects
             var e = this.ReceivedEvent as SharedCounterEvent;
             switch (e.Operation)
             {
-                case SharedCounterEvent.SharedCounterOperation.SET:
+                case SharedCounterEvent.SharedCounterOperation.SET:                    
+                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
                     Counter = e.Value;
                     break;
                 case SharedCounterEvent.SharedCounterOperation.GET:
@@ -60,6 +61,19 @@ namespace Microsoft.PSharp.SharedObjects
                 case SharedCounterEvent.SharedCounterOperation.DEC:
                     Counter--;
                     break;
+                case SharedCounterEvent.SharedCounterOperation.ADD:
+                    Counter += e.Value;
+                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
+                    break;
+                case SharedCounterEvent.SharedCounterOperation.CAS:
+                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
+                    if (Counter == e.Comparand)
+                    {
+                        Counter = e.Value;
+                    }                    
+                    break;
+                default:
+                    throw new System.ArgumentOutOfRangeException("Unsupported SharedCounter operation: " + e.Operation);
             }
         }
     }

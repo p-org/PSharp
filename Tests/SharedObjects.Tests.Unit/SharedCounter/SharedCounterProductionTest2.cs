@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SharedCounterProductionTest.cs">
+// <copyright file="SharedCounterProductionTest2.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,8 +18,10 @@ using Xunit;
 
 namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
-    public class SharedCounterProductionTest : BaseTest
+    public class SharedCounterProductionTest2 : BaseTest
     {
+        const int N = 1000000;
+
         class E : Event
         {
             public ISharedCounter counter;
@@ -43,17 +45,19 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
                 var counter = (this.ReceivedEvent as E).counter;
                 var tcs = (this.ReceivedEvent as E).tcs;
 
-                for(int i = 0; i < 1000; i++)
+                for (int i = 0; i < N; i++)
                 {
-                    counter.Increment();
+                    int v;
 
-                    var v1 = counter.GetValue();
-                    this.Assert(v1 == 1 || v1 == 2);
+                    // Add 5
+                    do
+                    {
+                        v = counter.GetValue();
 
-                    counter.Decrement();
+                    } while (v != counter.CompareExchange(v + 5, v));
 
-                    var v2 = counter.GetValue();
-                    this.Assert(v2 == 0 || v2 == 1);
+                    counter.Add(15);
+                    counter.Add(-10);
                 }
 
                 tcs.SetResult(true);
@@ -81,6 +85,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             Task.WaitAll(tcs1.Task, tcs2.Task);
             Assert.False(failed);
+            Assert.True(counter.GetValue() == N * 20);
         }
     }
 }
