@@ -249,6 +249,23 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         }
 
         /// <summary>
+        /// Returns or forces the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        private bool GetNextIntegerChoiceHelper(int maxValue, ref int? next)
+        {
+            if (next != null)
+            {
+                AbdandonReplay(true);
+                return true;
+            }
+            next = Stack.GetTop().MakeOrReplayNondetChoice(false, Rand, Contract);
+            return true;
+        }
+
+        /// <summary>
         /// Abandon the replay of a schedule prefix and/or a race suffice.
         /// </summary>
         private void AbdandonReplay(bool clearNonDet)
@@ -299,8 +316,11 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            // TODO: 
-            throw new System.NotImplementedException();
+            int? nextTemp = null;
+            GetNextIntegerChoiceHelper(maxValue, ref nextTemp);
+            Contract.Assert(nextTemp != null);
+            next = nextTemp.Value;
+            return true;
         }
 
         /// <summary>
@@ -342,7 +362,12 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
-            throw new NotImplementedException();
+            int? nextTemp = next;
+            bool res = GetNextIntegerChoiceHelper(maxValue, ref nextTemp);
+            Contract.Assert(res, "DPOR scheduler refused to schedule a forced integer choice.");
+            Contract.Assert(
+                nextTemp.HasValue && nextTemp.Value == next,
+                "DPOR scheduler changed forced next integer choice.");
         }
 
         /// <summary>
