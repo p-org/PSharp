@@ -49,7 +49,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The operation group id associated with this event.
         /// </summary>
-        internal ulong OperationGroupId { get; private set; }
+        internal Guid OperationGroupId { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp
         /// Sets the operation group id associated with this event.
         /// </summary>
         /// <param name="operationGroupId">Operation group id.</param>
-        internal void SetOperationGroupId(ulong operationGroupId)
+        internal void SetOperationGroupId(Guid operationGroupId)
         {
             this.OperationGroupId = operationGroupId;
         }

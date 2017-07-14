@@ -89,11 +89,6 @@ namespace Microsoft.PSharp.TestingServices
         internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
 
         /// <summary>
-        /// Monotonically increasing operation group id counter.
-        /// </summary>
-        internal ulong OperationGroupIdCounter;
-
-        /// <summary>
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
@@ -144,8 +139,6 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
-
-            this.OperationGroupIdCounter = 0;
             this.RootTaskId = Task.CurrentId;
         }
 
@@ -280,14 +273,14 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        public override void SendEvent(MachineId target, Event e, bool isStarter = false)
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public override void SendEvent(MachineId target, Event e, Guid? operationGroupId = null)
         {
             // If the target machine is null then report an error and exit.
             this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            this.SendEvent(target, e, this.GetCurrentMachine(), isStarter);
+            this.SendEvent(target, e, this.GetCurrentMachine(), operationGroupId);
         }
 
         /// <summary>
@@ -296,14 +289,14 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        public override async Task SendEventAndExecute(MachineId target, Event e, bool isStarter = false)
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public override async Task SendEventAndExecute(MachineId target, Event e, Guid? operationGroupId = null)
         {
             // If the target machine is null then report an error and exit.
             this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            await this.SendEventAndExecute(target, e, this.GetCurrentMachine(), isStarter);
+            await this.SendEventAndExecute(target, e, this.GetCurrentMachine(), operationGroupId);
         }
 
         /// <summary>
@@ -312,10 +305,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        public override void RemoteSendEvent(MachineId target, Event e, bool isStarter = false)
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public override void RemoteSendEvent(MachineId target, Event e, Guid? operationGroupId = null)
         {
-            this.SendEvent(target, e, isStarter);
+            this.SendEvent(target, e, operationGroupId);
         }
 
         /// <summary>
@@ -528,8 +521,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        /// <param name="operationGroupId">Operation group id</param>
+        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -549,7 +542,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Send);
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, isStarter, ref runNewHandler);
+            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, false);
@@ -563,8 +556,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        /// <param name="operationGroupId">Operation group id</param>
+        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
             Machine machine = null;
             if (!this.MachineMap.TryGetValue(mid.Value, out machine))
@@ -584,7 +577,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Send);
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, isStarter, ref runNewHandler);
+            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false, true);
@@ -600,10 +593,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter)
+        /// <param name="operationGroupId">Operation group id</param>
+        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
-            this.SendEvent(mid, e, sender, isStarter);
+            this.SendEvent(mid, e, sender, operationGroupId);
         }
 
         /// <summary>
@@ -612,9 +605,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, bool isStarter, ref bool runNewHandler)
+        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid? operationGroupId, ref bool runNewHandler)
         {
             if (sender != null && sender is Machine)
             {
@@ -634,7 +627,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             EventInfo eventInfo = new EventInfo(e, originInfo);
-            this.SetOperationGroupIdForEvent(eventInfo, sender, isStarter);
+            this.SetOperationGroupIdForEvent(eventInfo, sender, operationGroupId);
 
             if (sender != null)
             {
@@ -1073,12 +1066,12 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, bool isStarter)
+        /// <param name="operationGroupId">Operation group id</param>
+        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
         {
             this.AssertTransitionStatement(machine);
 
-            this.SetOperationGroupIdForEvent(eventInfo, machine, isStarter);
+            this.SetOperationGroupIdForEvent(eventInfo, machine, operationGroupId);
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddRaiseEventStep(machine.Id, machineState, eventInfo);
@@ -1459,13 +1452,12 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        private void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, bool isStarter)
+        /// <param name="operationGroupId">Operation group id</param>
+        private void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, Guid? operationGroupId)
         {
-            if (isStarter)
+            if (operationGroupId.HasValue)
             {
-                this.OperationGroupIdCounter++;
-                eventInfo.SetOperationGroupId(this.OperationGroupIdCounter);
+                eventInfo.SetOperationGroupId(operationGroupId.Value);
             }
             else if (sender != null)
             {
@@ -1473,7 +1465,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                eventInfo.SetOperationGroupId(0);
+                eventInfo.SetOperationGroupId(Guid.Empty);
             }
         }
 

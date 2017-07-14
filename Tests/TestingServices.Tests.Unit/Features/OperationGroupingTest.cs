@@ -22,6 +22,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class OperationGroupingTest : BaseTest
     {
+        static Guid OperationGroup1 = Guid.NewGuid();
+        static Guid OperationGroup2 = Guid.NewGuid();
+
         class E : Event
         {
             public MachineId Id;
@@ -43,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 0, $"NextOperationGroupId is not '0', but {id}.");
+                Assert(id == Guid.Empty, $"NextOperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
 
@@ -62,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 0, $"NextOperationGroupId is not '0', but {id}.");
+                Assert(id == Guid.Empty, $"NextOperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
 
@@ -75,13 +78,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                Runtime.SendEvent(Id, new E(), true);
+                Runtime.SendEvent(Id, new E(), OperationGroup1);
             }
 
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
             }
         }
 
@@ -106,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 0, $"NextOperationGroupId is not '0', but {id}.");
+                Assert(id == Guid.Empty, $"NextOperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
 
@@ -132,7 +135,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 0, $"NextOperationGroupId is not '0', but {id}.");
+                Assert(id == Guid.Empty, $"NextOperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
 
@@ -145,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M6S));
-                Runtime.SendEvent(target, new E(), true);
+                Runtime.SendEvent(target, new E(), OperationGroup1);
             }
         }
 
@@ -158,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
             }
         }
 
@@ -172,13 +175,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8));
-                Runtime.SendEvent(target, new E(Id), true);
+                Runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
             }
         }
 
@@ -191,7 +194,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
                 Send((ReceivedEvent as E).Id, new E());
             }
         }
@@ -206,13 +209,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8S));
-                Runtime.SendEvent(target, new E(Id), true);
+                Runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 2, $"NextOperationGroupId is not '2', but {id}.");
+                Assert(id == OperationGroup2, $"NextOperationGroupId is not '{OperationGroup2}', but {id}.");
             }
         }
 
@@ -225,8 +228,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
-                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), true);
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
+                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -240,13 +243,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M10S));
-                Runtime.SendEvent(target, new E(Id), true);
+                Runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 2, $"NextOperationGroupId is not '2', but {id}.");
+                Assert(id == OperationGroup2, $"NextOperationGroupId is not '{OperationGroup2}', but {id}.");
             }
         }
 
@@ -260,8 +263,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var target = CreateMachine(typeof(M11S));
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
-                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), true);
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
+                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -274,7 +277,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
-                Assert(id == 1, $"NextOperationGroupId is not '1', but {id}.");
+                Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
             }
         }
 

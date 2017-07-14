@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
@@ -69,6 +71,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// Unique id of the group of operations that is
         /// associated with the next operation.
         /// </summary>
-        ulong NextOperationGroupId { get; }
+        Guid NextOperationGroupId { get; }
     }
 }

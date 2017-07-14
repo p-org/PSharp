@@ -207,8 +207,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        public abstract void SendEvent(MachineId target, Event e, bool isStarter = false);
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        public abstract void SendEvent(MachineId target, Event e, Guid? operationGroupId = null);
 
         /// <summary>
         /// Synchronously delivers an <see cref="Event"/> to a machine and
@@ -216,16 +216,16 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        public abstract Task SendEventAndExecute(MachineId target, Event e, bool isStarter = false);
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public abstract Task SendEventAndExecute(MachineId target, Event e, Guid? operationGroupId = null);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        public abstract void RemoteSendEvent(MachineId target, Event e, bool isStarter = false);
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public abstract void RemoteSendEvent(MachineId target, Event e, Guid? operationGroupId = null);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -325,8 +325,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
+        /// <param name="operationGroupId">Operation group id</param>
+        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine and
@@ -335,8 +335,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
+        /// <param name="operationGroupId">Operation group id</param>
+        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -344,8 +344,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
-        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, bool isStarter);
+        /// <param name="operationGroupId">Operation group id</param>
+        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId);
 
         #endregion
 
@@ -501,9 +501,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">True if the event is starting a new operation group.</param>
+        /// <param name="operationGroupId">Operation group id</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, bool isStarter)
+        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
         {
             // Override to implement the notification.
         }
