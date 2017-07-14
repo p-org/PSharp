@@ -153,6 +153,27 @@ namespace Microsoft.PSharp.Utilities
                         "experimental strategies also exist, but are not listed here).");
                 }
             }
+            else if (option.ToLower().StartsWith("/reduction:"))
+            {
+                string reduction = option.ToLower().Substring(11);
+                if (reduction.ToLower().Equals("none"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.None;
+                }
+                else if (reduction.ToLower().Equals("omit"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.OmitSchedulingPoints;
+                }
+                else if (reduction.ToLower().Equals("force"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.ForceSchedule;
+                }
+                else
+                {
+                    Error.ReportAndExit("Please give a valid reduction strategy " +
+                        "'/reduction:[x]', where [x] is 'none', 'omit' or 'force'.");
+                }
+            }
             else if (option.ToLower().StartsWith("/i:") && option.Length > 3)
             {
                 int i = 0;

@@ -114,6 +114,21 @@ namespace Microsoft.PSharp.TestingServices
             this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.CoverageInfo = new CoverageInfo();
 
+            if (!(strategy is DPORStrategy) && !(strategy is ReplayStrategy))
+            {
+                var reductionStrategy = BasicReductionStrategy.ReductionStrategy.None;
+                if (configuration.ReductionStrategy == Utilities.ReductionStrategy.OmitSchedulingPoints)
+                {
+                    reductionStrategy = BasicReductionStrategy.ReductionStrategy.OmitSchedulingPoints;
+                }
+                else if (configuration.ReductionStrategy == Utilities.ReductionStrategy.ForceSchedule)
+                {
+                    reductionStrategy = BasicReductionStrategy.ReductionStrategy.ForceSchedule;
+                }
+
+                strategy = new BasicReductionStrategy(strategy, reductionStrategy);
+            }
+
             if (configuration.EnableLivenessChecking && configuration.EnableCycleDetection)
             {
                 this.Scheduler = new BugFindingScheduler(this, new CycleDetectionStrategy(
