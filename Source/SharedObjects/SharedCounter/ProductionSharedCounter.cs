@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.SharedObjects
         }
 
         /// <summary>
-        /// Adds a value to the counter atomically
+        /// Adds a value to the counter atomically.
         /// </summary>
         /// <param name="value">Value to add</param>
         /// <returns>The new value of the counter</returns>
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.SharedObjects
         }
 
         /// <summary>
-        /// Sets the counter to a value atomically
+        /// Sets the counter to a value atomically.
         /// </summary>
         /// <param name="value">Value to set</param>
         /// <returns>The original value of the counter</returns>
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.SharedObjects
         }
 
         /// <summary>
-        /// Sets the counter to a value atomically if it is equal to a given value
+        /// Sets the counter to a value atomically if it is equal to a given value.
         /// </summary>
         /// <param name="value">Value to set</param>
         /// <param name="comparand">Value to compare against</param>
