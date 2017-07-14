@@ -153,6 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.ScheduledMachine = next as SchedulableInfo;
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Id);
+            (next as MachineInfo).ProgramCounter = 0;
 
             Debug.WriteLine($"<ScheduleDebug> Schedule '{next.Name}' with task id '{this.ScheduledMachine.TaskId}'.");
 

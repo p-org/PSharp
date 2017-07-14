@@ -920,6 +920,7 @@ namespace Microsoft.PSharp.TestingServices
             if (caller != null && caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
+                (caller as Machine).Info.ProgramCounter++;
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
@@ -950,6 +951,7 @@ namespace Microsoft.PSharp.TestingServices
             if (caller != null && caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
+                (caller as Machine).Info.ProgramCounter++;
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
@@ -1511,6 +1513,7 @@ namespace Microsoft.PSharp.TestingServices
                 foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
                     hash = hash * 31 + machine.GetCachedState();
+                    hash = hash * 31 + (int)(machine.Info as SchedulableInfo).NextOperationType;
                 }
 
                 foreach (var monitor in this.Monitors)
