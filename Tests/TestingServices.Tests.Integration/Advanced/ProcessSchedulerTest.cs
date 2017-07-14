@@ -581,12 +581,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = 684;
+            configuration.RandomSchedulingSeed = 16;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {

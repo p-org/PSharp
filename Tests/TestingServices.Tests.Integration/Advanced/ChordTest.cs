@@ -843,7 +843,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = 32;
+            configuration.RandomSchedulingSeed = 663;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
@@ -862,7 +862,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             var configuration = base.GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.MaxSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = 211;
+            configuration.RandomSchedulingSeed = 377;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
