@@ -86,46 +86,8 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            ++ScheduledSteps;
-            switch (Reduction)
-            {
-                case ReductionStrategy.ForceSchedule:
-                {
-                    var partialOrderChoices =
-                        choices
-                            .Where(choice => choice.IsEnabled && IsPartialOrderOperation(choice.NextOperationType))
-                            .ToList();
-
-                    if (partialOrderChoices.Count > 0)
-                    {
-                        next = partialOrderChoices[0];
-                        return true;
-                    }
-
-                    // Normal schedule:
-                    return ChildStrategy.GetNext(out next, choices, current);
-                }
-                case ReductionStrategy.OmitSchedulingPoints:
-                {
-                    // Otherwise, don't schedule before non-Send.
-                    if (current.IsEnabled &&
-                        IsPartialOrderOperation(current.NextOperationType))
-                    {
-                        next = current;
-                        return true;
-                    }
-
-                    // Normal schedule:
-                    return ChildStrategy.GetNext(out next, choices, current);
-                }
-                case ReductionStrategy.None:
-                {
-                    // Normal schedule:
-                    return ChildStrategy.GetNext(out next, choices, current);
-                }
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            next = null;
+            return GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
@@ -161,8 +123,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            ++ScheduledSteps;
-            ChildStrategy.ForceNext(next, choices, current);
+            GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
@@ -250,6 +211,101 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         public string GetDescription()
         {
             return $"{ChildStrategy.GetDescription()}  w/ {Reduction}";
+        }
+
+        /// <summary>
+        /// Returns or forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        private bool GetNextHelper(ref ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            ++ScheduledSteps;
+            switch (Reduction)
+            {
+                case ReductionStrategy.ForceSchedule:
+                    {
+                        var partialOrderChoices =
+                            choices
+                                .Where(choice => choice.IsEnabled && IsPartialOrderOperation(choice.NextOperationType))
+                                .ToList();
+
+                        // If we are being forced:
+                        if (next != null)
+                        {
+                            if (!partialOrderChoices.Contains(next))
+                            {
+                                // Tell child strategy that we were forced (to do a particular send).
+                                ChildStrategy.ForceNext(next, choices, current);
+                                return true;
+                            }
+
+                            // We would have forced this choice anyway so don't tell ChildStrategy.
+                            return true;
+                        }
+
+                        // Not being forced:
+                        if (partialOrderChoices.Count > 0)
+                        {
+                            // Force this non-send but don't tell ChildStrategy.
+                            next = partialOrderChoices[0];
+                            return true;
+                        }
+
+                        // Normal schedule:
+                        return ChildStrategy.GetNext(out next, choices, current);
+                    }
+
+                case ReductionStrategy.OmitSchedulingPoints:
+                    {
+                        // Otherwise, don't schedule before non-Send.
+
+                        bool continueWithCurrent =
+                            current.IsEnabled &&
+                            IsPartialOrderOperation(current.NextOperationType);
+
+                        // We are being forced:
+                        if (next != null)
+                        {
+                            // ...to do something different than we would have:
+                            if (continueWithCurrent && current != next)
+                            {
+                                // ...so tell child.
+                                ChildStrategy.ForceNext(next, choices, current);
+                                return true;
+                            }
+                            // Otherwise, don't tell child.
+                            return true;
+                        }
+
+                        // Not being forced:
+
+                        if (continueWithCurrent)
+                        {
+                            next = current;
+                            return true;
+                        }
+
+                        // Normal schedule:
+                        return ChildStrategy.GetNext(out next, choices, current);
+                    }
+
+                case ReductionStrategy.None:
+                    {
+                        // Normal schedule:
+                        if (next != null)
+                        {
+                            ChildStrategy.ForceNext(next, choices, current);
+                            return true;
+                        }
+                        return ChildStrategy.GetNext(out next, choices, current);
+                    }
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private static bool IsPartialOrderOperation(OperationType operationType)
