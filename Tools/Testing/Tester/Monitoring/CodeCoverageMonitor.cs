@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             Configuration = configuration;
-            RunMonitorProcess($"/start:coverage /output:{GetOutputName()}");
+            RunMonitorProcess(true);
             IsRunning = true;
         }
 
@@ -68,27 +68,24 @@ namespace Microsoft.PSharp.TestingServices
                 throw new InvalidOperationException("Process is not running.");
             }
 
-            RunMonitorProcess("/shutdown");
+            RunMonitorProcess(false);
             IsRunning = false;
         }
 
-        private static void RunMonitorProcess(string arguments)
+        private static void RunMonitorProcess(bool isStarting)
         {
-            var monitorProc = new Process();
-
-            try
+            using (var monitorProc = new Process())
             {
                 monitorProc.StartInfo.FileName = CodeCoverageInstrumentation.GetToolPath("VSPerfCmdToolPath", "VSPerfCmd");
-                monitorProc.StartInfo.Arguments = arguments;
+                monitorProc.StartInfo.Arguments = isStarting ? $"/start:coverage /output:{GetOutputName()}" : "/shutdown";
                 monitorProc.StartInfo.UseShellExecute = false;
                 monitorProc.StartInfo.RedirectStandardOutput = true;
                 monitorProc.StartInfo.RedirectStandardError = true;
                 monitorProc.Start();
-                monitorProc.WaitForExit();
-            }
-            finally
-            {
-                monitorProc.Close();
+                if (isStarting)
+                {
+                    monitorProc.WaitForExit();
+                }
             }
         }
 
