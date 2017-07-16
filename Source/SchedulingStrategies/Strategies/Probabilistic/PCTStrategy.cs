@@ -107,17 +107,8 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-            if (enabledChoices.Count == 0)
-            {
-                next = null;
-                return false;
-            }
-
-            next = GetPrioritizedChoice(enabledChoices, current);
-            ScheduledSteps++;
-
-            return true;
+            next = null;
+            return GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
@@ -150,6 +141,66 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             next = RandomNumberGenerator.Next(maxValue);
             ScheduledSteps++;
             return true;
+        }
+
+        /// <summary>
+        /// Forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            GetNextHelper(ref next, choices, current);
+        }
+
+        /// <summary>
+        /// Returns or forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        private bool GetNextHelper(ref ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+            if (enabledChoices.Count == 0)
+            {
+                return false;
+            }
+
+            ISchedulable highestEnabled = GetPrioritizedChoice(enabledChoices, current);
+            if (next == null)
+            {
+                next = highestEnabled;
+            }
+
+            ScheduledSteps++;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Forces the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextBooleanChoice(int maxValue, bool next)
+        {
+            ScheduledSteps++;
+        }
+
+        /// <summary>
+        /// Forces the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextIntegerChoice(int maxValue, int next)
+        {
+            ScheduledSteps++;
         }
 
         /// <summary>

@@ -34,12 +34,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Is machine enabled.
         /// </summary>
-        public bool IsEnabled { get; internal set; }
-
-        /// <summary>
-        /// Is machine completed.
-        /// </summary>
-        public bool IsCompleted { get; internal set; }
+        public bool IsEnabled { get; set; }
 
         /// <summary>
         /// Type of the next operation of the machine.
@@ -88,9 +83,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool IsActive;
 
         /// <summary>
-        /// Has the machine started.
+        /// Is the event handler running.
         /// </summary>
-        internal bool HasStarted;
+        internal bool IsEventHandlerRunning;
+
+        /// <summary>
+        /// True if it should skip the next receive scheduling point,
+        /// because it was already called in the end of the previous
+        /// event handler.
+        /// </summary>
+        internal bool SkipNextReceiveSchedulingPoint;
 
         #endregion
 
@@ -105,8 +107,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             IsEnabled = false;
             IsActive = false;
-            HasStarted = false;
-            IsCompleted = false;
+            IsEventHandlerRunning = false;
+            SkipNextReceiveSchedulingPoint = false;
+            NextOperationType = OperationType.Start;
+            NextTargetType = OperationTargetType.Schedulable;
+            NextTargetId = mid.Value;
             OperationCount = 0;
             NextOperationGroupId = Guid.Empty;
             EventHandlerOperationCount = 0;
@@ -119,10 +124,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Sets the next operation to schedule.
         /// </summary>
-        /// <param name="operation">OperationType</param>
-        internal void SetNextOperation(OperationType operation)
+        /// <param name="operationType">Type of the operation.</param>
+        /// <param name="targetType">Type of the target of the operation.</param>
+        /// <param name="targetId">Id of the target.</param>
+        internal void SetNextOperation(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
-            NextOperationType = operation;
+            NextOperationType = operationType;
+            NextTargetType = targetType;
+            NextTargetId = targetId;
             OperationCount++;
             EventHandlerOperationCount++;
         }
@@ -141,18 +150,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// run on the specified task id.
         /// </summary>
         /// <param name="taskId">TaskId</param>
-        internal void NotifyEventHandlerCreated(int taskId)
+        /// <param name="sendIndex">The index of the send that caused the event handler to be restarted, or 0 if this does not apply.</param>
+        internal void NotifyEventHandlerCreated(int taskId, int sendIndex)
         {
             TaskId = taskId;
             IsEnabled = true;
             IsWaitingToReceive = false;
             IsActive = false;
-            HasStarted = false;
-            IsCompleted = false;
-
+            IsEventHandlerRunning = false;
+            NextOperationMatchingSendIndex = (ulong)sendIndex;
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
-
             ProgramCounter = 0;
             EventHandlerOperationCount = 0;
         }
@@ -163,7 +171,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal void NotifyEventHandlerCompleted()
         {
             IsEnabled = false;
-            IsCompleted = true;
+            IsEventHandlerRunning = false;
+            SkipNextReceiveSchedulingPoint = true;
+            NextOperationMatchingSendIndex = 0;
         }
 
         #endregion

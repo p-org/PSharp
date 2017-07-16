@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
@@ -95,6 +96,61 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             else
             {
                 return this.PrefixStrategy.GetNextIntegerChoice(maxValue, out next);
+            }
+        }
+
+        /// <summary>
+        /// Forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
+            {
+                this.SuffixStrategy.ForceNext(next, choices, current);
+            }
+            else
+            {
+                this.PrefixStrategy.ForceNext(next, choices, current);
+            }
+        }
+
+        /// <summary>
+        /// Forces the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextBooleanChoice(int maxValue, bool next)
+        {
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
+            {
+                this.SuffixStrategy.ForceNextBooleanChoice(maxValue, next);
+            }
+            else
+            {
+                this.PrefixStrategy.ForceNextBooleanChoice(maxValue, next);
+            }
+        }
+
+        /// <summary>
+        /// Forces the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        public void ForceNextIntegerChoice(int maxValue, int next)
+        {
+            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
+            {
+                this.SuffixStrategy.ForceNextIntegerChoice(maxValue, next);
+            }
+            else
+            {
+                this.PrefixStrategy.ForceNextIntegerChoice(maxValue, next);
             }
         }
 

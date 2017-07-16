@@ -112,6 +112,14 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
                 }
+                else if (scheduler.ToLower().Equals("dpor"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
+                }
+                else if (scheduler.ToLower().Equals("rdpor"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RDPOR;
+                }
                 else if (scheduler.StartsWith("db"))
                 {
                     int i = 0;
@@ -143,6 +151,27 @@ namespace Microsoft.PSharp.Utilities
                     Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
                         "experimental strategies also exist, but are not listed here).");
+                }
+            }
+            else if (option.ToLower().StartsWith("/reduction:"))
+            {
+                string reduction = option.ToLower().Substring(11);
+                if (reduction.ToLower().Equals("none"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.None;
+                }
+                else if (reduction.ToLower().Equals("omit"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.OmitSchedulingPoints;
+                }
+                else if (reduction.ToLower().Equals("force"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.ForceSchedule;
+                }
+                else
+                {
+                    Error.ReportAndExit("Please give a valid reduction strategy " +
+                        "'/reduction:[x]', where [x] is 'none', 'omit' or 'force'.");
                 }
             }
             else if (option.ToLower().StartsWith("/i:") && option.Length > 3)
@@ -333,6 +362,8 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.DPOR &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RDPOR &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding)
             {

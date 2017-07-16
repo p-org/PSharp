@@ -126,6 +126,12 @@ namespace Microsoft.PSharp
         public SchedulingStrategy SchedulingStrategy;
 
         /// <summary>
+        /// Reduction strategy to use with the P# tester.
+        /// </summary>
+        [DataMember]
+        public ReductionStrategy ReductionStrategy;
+
+        /// <summary>
         /// Number of scheduling iterations.
         /// </summary>
         [DataMember]
@@ -449,6 +455,7 @@ namespace Microsoft.PSharp
             this.TestMethodName = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
+            this.ReductionStrategy = ReductionStrategy.ForceSchedule;
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
             this.IncrementalSchedulingSeed = false;

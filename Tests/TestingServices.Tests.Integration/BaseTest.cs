@@ -32,13 +32,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             AssertSucceeded(configuration, test);
         }
 
-        protected void AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
+        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
         {
             InMemoryLogger logger = new InMemoryLogger();
+            BugFindingEngine engine = null;
 
             try
             {
-                BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
+                engine = BugFindingEngine.Create(configuration, test);
                 engine.SetLogger(logger);
                 engine.Run();
 
@@ -53,6 +54,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 logger.Dispose();
             }
+
+            return engine;
         }
 
         #endregion

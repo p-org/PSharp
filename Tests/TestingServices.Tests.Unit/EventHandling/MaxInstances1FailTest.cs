@@ -141,6 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestMaxInstances1AssertionFailure()
         {
             var configuration = base.GetConfiguration();
+            configuration.ReductionStrategy = ReductionStrategy.None;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 6;
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(RealMachine)); });

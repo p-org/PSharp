@@ -47,6 +47,31 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         bool GetNextIntegerChoice(int maxValue, out int next);
 
         /// <summary>
+        /// Forces the next choice to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current);
+
+        /// <summary>
+        /// Forces the next boolean choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        void ForceNextBooleanChoice(int maxValue, bool next);
+
+        /// <summary>
+        /// Forces the next integer choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        void ForceNextIntegerChoice(int maxValue, int next);
+
+        /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
