@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Unique id of the group of operations that
         /// contains the next operation.
         /// </summary>
-        public Guid NextOperationGroupId { get; private set; }
+        public Guid NextOperationGroupId => OperationGroupId;
 
         /// <summary>
         /// Monotonically increasing operation count for the current event handler.
@@ -113,7 +113,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             NextTargetType = OperationTargetType.Schedulable;
             NextTargetId = mid.Value;
             OperationCount = 0;
-            NextOperationGroupId = Guid.Empty;
             EventHandlerOperationCount = 0;
         }
 
@@ -134,15 +133,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             NextTargetId = targetId;
             OperationCount++;
             EventHandlerOperationCount++;
-        }
-
-        /// <summary>
-        /// Sets the operation group id associated with this schedulable info.
-        /// </summary>
-        /// <param name="operationGroupId">Operation group id.</param>
-        internal void SetNextOperationGroupId(Guid operationGroupId)
-        {
-            this.NextOperationGroupId = operationGroupId;
         }
 
         /// <summary>

@@ -196,6 +196,12 @@ namespace Microsoft.PSharp
         /// </summary>
         protected virtual int HashedState => 0;
 
+        /// <summary>
+        /// Unique id of the group of operations that is
+        /// associated with the next operation.
+        /// </summary>
+        protected Guid OperationGroupId => Info.OperationGroupId;
+
         #endregion
 
         #region constructors

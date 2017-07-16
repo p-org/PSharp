@@ -275,6 +275,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns the operation group id of the specified machine. During testing,
+        /// the runtime asserts that the specified machine is currently executing.
+        /// </summary>
+        /// <param name="currentMachine">MachineId of the currently executing machine.</param>
+        /// <returns>Guid</returns>
+        public abstract Guid GetCurrentOperationGroupId(MachineId currentMachine);
+
+        /// <summary>
         /// Notifies each active machine to halt execution to allow the runtime
         /// to reach quiescence. This is an experimental feature, which should
         /// be used only for testing purposes.

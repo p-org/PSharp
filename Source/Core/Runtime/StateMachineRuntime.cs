@@ -227,6 +227,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns the operation group id of the specified machine. Returns <see cref="Guid.Empty"/>
+        /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
+        /// During testing, the runtime asserts that the specified machine is currently executing.
+        /// </summary>
+        /// <param name="currentMachine">MachineId of the currently executing machine.</param>
+        /// <returns>Guid</returns>
+        public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
+        {
+            Machine machine = null;
+            if (!this.MachineMap.TryGetValue(currentMachine.Value, out machine))
+            {
+                return Guid.Empty;
+            }
+
+            return machine.Info.OperationGroupId;
+        }
+
+        /// <summary>
         /// Notifies each active machine to halt execution to allow the runtime
         /// to reach quiescence. This is an experimental feature, which should
         /// be used only for testing purposes.

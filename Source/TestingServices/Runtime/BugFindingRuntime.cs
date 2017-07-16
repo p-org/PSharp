@@ -348,6 +348,27 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Returns the operation group id of the specified machine. Returns <see cref="Guid.Empty"/>
+        /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
+        /// During testing, the runtime asserts that the specified machine is currently executing.
+        /// </summary>
+        /// <param name="currentMachine">MachineId of the currently executing machine.</param>
+        /// <returns>Guid</returns>
+        public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
+        {
+            this.Assert(currentMachine == GetCurrentMachineId(), "Trying to access the operation group id of " +
+                $"'{currentMachine}', which is not the currently executing machine.");
+
+            Machine machine = null;
+            if (!this.MachineMap.TryGetValue(currentMachine.Value, out machine))
+            {
+                return Guid.Empty;
+            }
+
+            return machine.Info.OperationGroupId;
+        }
+
+        /// <summary>
         /// Notifies each active machine to halt execution to allow the runtime
         /// to reach quiescence. This is an experimental feature, which should
         /// be used only for testing purposes.
@@ -519,7 +540,7 @@ namespace Microsoft.PSharp.TestingServices
             machine.InitializeStateInformation();
 
             // The new machine inherits the operation group id of the creator.
-            (machine.Info as SchedulableInfo).SetNextOperationGroupId(this.Scheduler.ScheduledMachine.NextOperationGroupId);
+            machine.Info.OperationGroupId = this.Scheduler.ScheduledMachine.NextOperationGroupId;
 
             if (base.Configuration.ReportCodeCoverage && !isMachineTypeCached)
             {
@@ -1151,7 +1172,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
             // The machine inherits the operation group id of the dequeued event.
-            (machine.Info as SchedulableInfo).SetNextOperationGroupId(eventInfo.OperationGroupId);
+            machine.Info.OperationGroupId = eventInfo.OperationGroupId;
 
             // Skip `Receive` if the last operation exited the previous event handler,
             // to avoid scheduling duplicate `Receive` operations.

@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -48,6 +50,12 @@ namespace Microsoft.PSharp
         internal bool CurrentActionCalledTransitionStatement;
 
         /// <summary>
+        /// Unique id of the group of operations that the
+        /// machine is currently executing.
+        /// </summary>
+        internal Guid OperationGroupId;
+
+        /// <summary>
         /// Program counter used for state-caching. Distinguishes
         /// scheduling from non-deterministic choices.
         /// </summary>
@@ -82,6 +90,7 @@ namespace Microsoft.PSharp
             IsWaitingToReceive = false;
             IsInsideOnExit = false;
             CurrentActionCalledTransitionStatement = false;
+            OperationGroupId = Guid.Empty;
             ProgramCounter = 0;
         }
 
