@@ -221,9 +221,19 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         public override void InvokeMonitor<T>(Event e)
         {
+            this.InvokeMonitor(typeof(T), e);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="e">Event</param>
+        public override void InvokeMonitor(Type type, Event e)
+        {
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot monitor a null event.");
-            this.Monitor<T>(null, e);
+            this.Monitor(type, null, e);
         }
 
         /// <summary>
@@ -534,9 +544,9 @@ namespace Microsoft.PSharp
         /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="sender">Sender machine</param>
-        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
-        internal override void Monitor<T>(AbstractMachine sender, Event e)
+        internal override void Monitor(Type type, AbstractMachine sender, Event e)
         {
             if (!base.Configuration.EnableMonitorsInProduction)
             {
@@ -550,7 +560,7 @@ namespace Microsoft.PSharp
             {
                 foreach (var m in this.Monitors)
                 {
-                    if (m.GetType() == typeof(T))
+                    if (m.GetType() == type)
                     {
                         monitor = m;
                         break;
