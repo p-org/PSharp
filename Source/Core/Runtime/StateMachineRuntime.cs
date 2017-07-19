@@ -79,11 +79,12 @@ namespace Microsoft.PSharp
         /// used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(Type type, Event e = null)
+        public override MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachine(type, null, e, null);
+            return this.CreateMachine(type, null, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -93,11 +94,12 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null)
+        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachine(type, friendlyName, e, null);
+            return this.CreateMachine(type, friendlyName, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -107,11 +109,12 @@ namespace Microsoft.PSharp
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachineAndExecute(type, null, e, null);
+            return this.CreateMachineAndExecute(type, null, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -122,11 +125,12 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachineAndExecute(type, friendlyName, e, null);
+            return this.CreateMachineAndExecute(type, friendlyName, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -136,11 +140,12 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
+        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateRemoteMachine(type, null, endpoint, e, null);
+            return this.CreateRemoteMachine(type, null, endpoint, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -151,12 +156,13 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
         public override MachineId RemoteCreateMachine(Type type, string friendlyName,
-            string endpoint, Event e = null)
+            string endpoint, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateRemoteMachine(type, friendlyName, endpoint, e, null);
+            return this.CreateRemoteMachine(type, friendlyName, endpoint, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -274,11 +280,14 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event passed during machine construction</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator)
+        internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             Machine machine = this.CreateMachine(type, friendlyName);
+            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
+
             this.RunMachineEventHandler(machine, e, true);
             return machine.Id;
         }
@@ -291,11 +300,13 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event passed during machine construction</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator)
+        internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             Machine machine = this.CreateMachine(type, friendlyName);
+            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
             await this.RunMachineEventHandlerAsync(machine, e, true);
             return machine.Id;
         }
@@ -307,10 +318,11 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event passed during machine construction</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
         internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
-            Event e, Machine creator)
+            Event e, Machine creator, Guid? operationGroupId)
         {
             base.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
@@ -366,7 +378,7 @@ namespace Microsoft.PSharp
             }
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, ref runNewHandler);
+            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false);
@@ -399,7 +411,7 @@ namespace Microsoft.PSharp
             }
 
             bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, ref runNewHandler);
+            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
             if (runNewHandler)
             {
                 await this.RunMachineEventHandlerAsync(machine, null, false);
@@ -424,10 +436,12 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, ref bool runNewHandler)
+        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid? operationGroupId, ref bool runNewHandler)
         {
             EventInfo eventInfo = new EventInfo(e, null);
+            this.SetOperationGroupIdForEvent(eventInfo, sender, operationGroupId);
 
             if (sender != null)
             {
@@ -778,6 +792,8 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
         {
+            this.SetOperationGroupIdForEvent(eventInfo, machine, operationGroupId);
+
             if (base.Configuration.Verbose <= 1)
             {
                 return;
@@ -809,6 +825,9 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
+            // The machine inherits the operation group id of the dequeued event.
+            machine.Info.OperationGroupId = eventInfo.OperationGroupId;
+
             base.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
         }

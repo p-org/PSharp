@@ -141,8 +141,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
-        public abstract MachineId CreateMachine(Type type, Event e = null);
+        public abstract MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -151,9 +152,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public abstract MachineId CreateMachine(Type type, string friendlyName, Event e = null);
+        public abstract MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -163,8 +165,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
-        public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null);
+        public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -174,9 +177,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null);
+        public abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new remote machine of the specified <see cref="Type"/> and with
@@ -185,9 +189,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public abstract MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null);
+        public abstract MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new remote machine of the specified <see cref="Type"/> and name, and
@@ -197,10 +202,11 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
         public abstract MachineId RemoteCreateMachine(Type type, string friendlyName,
-            string endpoint, Event e = null);
+            string endpoint, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -305,10 +311,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator);
+        internal abstract MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
@@ -318,9 +325,10 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event passed during machine construction</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator);
+        internal abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Creates a new remote <see cref="Machine"/> of the specified <see cref="System.Type"/>.
@@ -328,11 +336,12 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
         internal abstract MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
-            Event e, Machine creator);
+            Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -677,6 +686,53 @@ namespace Microsoft.PSharp
         public void RemoveLogger()
         {
             this.Logger = new ConsoleLogger();
+        }
+
+        #endregion
+
+        #region Operation Group Id
+        /// <summary>
+        /// Sets the operation group id for the specified event.
+        /// </summary>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
+        internal void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, Guid? operationGroupId)
+        {
+            if (operationGroupId.HasValue)
+            {
+                eventInfo.SetOperationGroupId(operationGroupId.Value);
+            }
+            else if (sender != null)
+            {
+                eventInfo.SetOperationGroupId(sender.Info.OperationGroupId);
+            }
+            else
+            {
+                eventInfo.SetOperationGroupId(Guid.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Sets the operation group id for the specified machine.
+        /// </summary>
+        /// <param name="created">Machine created</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
+        internal void SetOperationGroupIdForMachine(Machine created, AbstractMachine sender, Guid? operationGroupId)
+        {
+            if (operationGroupId.HasValue)
+            {
+                created.Info.OperationGroupId = operationGroupId.Value;
+            }
+            else if (sender != null)
+            {
+                created.Info.OperationGroupId = sender.Info.OperationGroupId;
+            }
+            else
+            {
+                created.Info.OperationGroupId = Guid.Empty;
+            }
         }
 
         #endregion
