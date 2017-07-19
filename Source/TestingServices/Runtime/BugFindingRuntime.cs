@@ -167,9 +167,10 @@ namespace Microsoft.PSharp.TestingServices
         /// used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(Type type, Event e = null)
+        public override MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -177,7 +178,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateMachine(type, null, e, creator);
+            return this.CreateMachine(type, null, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -187,9 +188,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null)
+        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -197,7 +199,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateMachine(type, friendlyName, e, creator);
+            return this.CreateMachine(type, friendlyName, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -207,9 +209,10 @@ namespace Microsoft.PSharp.TestingServices
         /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -217,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateMachineAndExecute(type, null, e, creator);
+            return this.CreateMachineAndExecute(type, null, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -228,9 +231,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null)
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -238,7 +242,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateMachineAndExecute(type, friendlyName, e, creator);
+            return this.CreateMachineAndExecute(type, friendlyName, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -248,9 +252,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
+        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -258,7 +263,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateRemoteMachine(type, null, endpoint, e, creator);
+            return this.CreateRemoteMachine(type, null, endpoint, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -269,10 +274,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
         public override MachineId RemoteCreateMachine(Type type, string friendlyName,
-            string endpoint, Event e = null)
+            string endpoint, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -280,7 +286,7 @@ namespace Microsoft.PSharp.TestingServices
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateRemoteMachine(type, friendlyName, endpoint, e, creator);
+            return this.CreateRemoteMachine(type, friendlyName, endpoint, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -444,10 +450,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator)
+        internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             if (creator != null)
             {
@@ -459,6 +466,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(type, friendlyName);
+            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
             if (base.Configuration.EnableDataRaceDetection)
@@ -483,10 +491,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator)
+        internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             if (creator != null)
             {
@@ -498,6 +507,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(type, friendlyName);
+            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
             if (base.Configuration.EnableDataRaceDetection)
@@ -523,13 +533,14 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
         internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
-            Event e, Machine creator)
+            Event e, Machine creator, Guid? operationGroupId)
         {
-            return this.CreateMachine(type, friendlyName, e, creator);
+            return this.CreateMachine(type, friendlyName, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -548,9 +559,6 @@ namespace Microsoft.PSharp.TestingServices
 
             machine.Initialize(this, mid, new SchedulableInfo(mid));
             machine.InitializeStateInformation();
-
-            // The new machine inherits the operation group id of the creator.
-            machine.Info.OperationGroupId = this.Scheduler.ScheduledMachine.NextOperationGroupId;
 
             if (base.Configuration.ReportCodeCoverage && !isMachineTypeCached)
             {
@@ -1556,28 +1564,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return fingerprint;
-        }
-
-        /// <summary>
-        /// Sets the operation group id for the specified event.
-        /// </summary>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        private void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, Guid? operationGroupId)
-        {
-            if (operationGroupId.HasValue)
-            {
-                eventInfo.SetOperationGroupId(operationGroupId.Value);
-            }
-            else if (sender != null)
-            {
-                eventInfo.SetOperationGroupId((sender.Info as SchedulableInfo).NextOperationGroupId);
-            }
-            else
-            {
-                eventInfo.SetOperationGroupId(Guid.Empty);
-            }
         }
 
         #endregion
