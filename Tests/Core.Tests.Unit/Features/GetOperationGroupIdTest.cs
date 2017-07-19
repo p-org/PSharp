@@ -66,25 +66,6 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
 
-        class M3 : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
-            {
-                var target = CreateMachine(typeof(M4));
-                Runtime.GetCurrentOperationGroupId(target);
-            }
-        }
-
-        class M4 : Machine
-        {
-            [Start]
-            class Init : MachineState { }
-        }
-
         public void AssertSucceeded(Type machine)
         {
             var runtime = PSharpRuntime.Create();
@@ -102,26 +83,6 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             Assert.False(failed);
         }
 
-        public string AssertFailed(Type machine)
-        {
-            var runtime = PSharpRuntime.Create();
-            var failed = false;
-            var msg = "";
-            var tcs = new TaskCompletionSource<bool>();
-            runtime.OnFailure += delegate (Exception e)
-            {
-                failed = true;
-                msg = e.Message;
-                tcs.SetResult(true);
-            };
-
-            runtime.CreateMachine(machine);
-
-            tcs.Task.Wait(100);
-            Assert.True(failed);
-            return msg;
-        }
-
         [Fact]
         public void TestGetOperationGroupIdNotSet()
         {
@@ -132,13 +93,6 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         public void TestGetOperationGroupIdSet()
         {
             AssertSucceeded(typeof(M2));
-        }
-
-        [Fact]
-        public void TestGetOperationGroupIdOfNotCurrentMachine()
-        {
-            var msg = AssertFailed(typeof(M3));
-            Assert.True(msg.Equals("Trying to access the operation group id of 'Microsoft.PSharp.TestingServices.Tests.Unit.GetOperationGroupIdTest+M4()', which is not the currently executing machine."));
         }
     }
 }
