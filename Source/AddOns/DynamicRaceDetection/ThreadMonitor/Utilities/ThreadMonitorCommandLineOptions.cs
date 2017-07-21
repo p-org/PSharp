@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Utilities
 {
     public sealed class ThreadMonitorCommandLineOptions : BaseCommandLineOptions
@@ -46,10 +48,18 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.TestMethodName = option.Substring(8);
             }
+            else if (option.ToLower().Equals("/interactive"))
+            {
+                base.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
+            }
             else if (option.ToLower().StartsWith("/sch:"))
             {
                 string scheduler = option.ToLower().Substring(5);
-                if (scheduler.ToLower().Equals("random"))
+                if (scheduler.ToLower().Equals("portfolio"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.Portfolio;
+                }
+                else if (scheduler.ToLower().Equals("random"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
@@ -59,7 +69,7 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("probabilistic") ||
                         !int.TryParse(scheduler.Substring(14), out i) && i >= 0)
                     {
-                        IO.Error.ReportAndExit("Please give a valid number of coin " +
+                        Error.ReportAndExit("Please give a valid number of coin " +
                             "flip bound '/sch:probabilistic:[bound]', where [bound] >= 0.");
                     }
 
@@ -72,11 +82,24 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("pct") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
-                        IO.Error.ReportAndExit("Please give a valid number of priority " +
+                        Error.ReportAndExit("Please give a valid number of priority " +
                             "switch bound '/sch:pct:[bound]', where [bound] >= 0.");
                     }
 
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.PCT;
+                    base.Configuration.PrioritySwitchBound = i;
+                }
+                else if (scheduler.StartsWith("fairpct"))
+                {
+                    int i = 0;
+                    if (scheduler.Equals("fairpct") ||
+                        !int.TryParse(scheduler.Substring("fairpct:".Length), out i) && i >= 0)
+                    {
+                        Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '/sch:fairpct:[bound]', where [bound] >= 0.");
+                    }
+
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
                     base.Configuration.PrioritySwitchBound = i;
                 }
                 else if (scheduler.ToLower().Equals("dfs"))
@@ -87,13 +110,21 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
                 }
+                else if (scheduler.ToLower().Equals("dpor"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
+                }
+                else if (scheduler.ToLower().Equals("rdpor"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RDPOR;
+                }
                 else if (scheduler.StartsWith("db"))
                 {
                     int i = 0;
                     if (scheduler.Equals("db") ||
                         !int.TryParse(scheduler.Substring(3), out i) && i >= 0)
                     {
-                        IO.Error.ReportAndExit("Please give a valid delay " +
+                        Error.ReportAndExit("Please give a valid delay " +
                             "bound '/sch:db:[bound]', where [bound] >= 0.");
                     }
 
@@ -106,41 +137,39 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("rdb") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
-                        IO.Error.ReportAndExit("Please give a valid delay " +
+                        Error.ReportAndExit("Please give a valid delay " +
                             "bound '/sch:rdb:[bound]', where [bound] >= 0.");
                     }
 
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
                     base.Configuration.DelayBound = i;
                 }
-                else if (scheduler.ToLower().Equals("rob"))
+                else
                 {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomOperationBounding;
-                    base.Configuration.BoundOperations = true;
+                    Error.ReportAndExit("Please give a valid scheduling strategy " +
+                        "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
+                        "experimental strategies also exist, but are not listed here).");
                 }
-                else if (scheduler.StartsWith("pob"))
+            }
+            else if (option.ToLower().StartsWith("/reduction:"))
+            {
+                string reduction = option.ToLower().Substring(11);
+                if (reduction.ToLower().Equals("none"))
                 {
-                    int i = 0;
-                    if (scheduler.Equals("pob") ||
-                        !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
-                    {
-                        IO.Error.ReportAndExit("Please give a valid number of priority " +
-                            "switch points '/sch:pob:[x]', where [x] >= 0.");
-                    }
-
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.PrioritizedOperationBounding;
-                    base.Configuration.BoundOperations = true;
-                    base.Configuration.PrioritySwitchBound = i;
+                    base.Configuration.ReductionStrategy = ReductionStrategy.None;
                 }
-                else if (scheduler.ToLower().Equals("macemc"))
+                else if (reduction.ToLower().Equals("omit"))
                 {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
+                    base.Configuration.ReductionStrategy = ReductionStrategy.OmitSchedulingPoints;
+                }
+                else if (reduction.ToLower().Equals("force"))
+                {
+                    base.Configuration.ReductionStrategy = ReductionStrategy.ForceSchedule;
                 }
                 else
                 {
-                    IO.Error.ReportAndExit("Please give a valid scheduling strategy " +
-                        "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
-                        "experimental strategies also exist, but are not listed here).");
+                    Error.ReportAndExit("Please give a valid reduction strategy " +
+                        "'/reduction:[x]', where [x] is 'none', 'omit' or 'force'.");
                 }
             }
             else if (option.ToLower().StartsWith("/i:") && option.Length > 3)
@@ -148,26 +177,83 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0)
                 {
-                    IO.Error.ReportAndExit("Please give a valid number of iterations " +
-                        "'/i:[x]', where [x] > 0.");
+                    Error.ReportAndExit("Please give a valid number of " +
+                        "iterations '/i:[x]', where [x] > 0.");
                 }
 
                 base.Configuration.SchedulingIterations = i;
+            }
+            else if (option.ToLower().StartsWith("/parallel:") && option.Length > 10)
+            {
+                uint i = 0;
+                if (!uint.TryParse(option.Substring(10), out i) || i <= 1)
+                {
+                    Error.ReportAndExit("Please give a valid number of " +
+                        "parallel tasks '/parallel:[x]', where [x] > 1.");
+                }
+
+                base.Configuration.ParallelBugFindingTasks = i;
+            }
+            else if (option.ToLower().StartsWith("/run-as-parallel-testing-task"))
+            {
+                base.Configuration.RunAsParallelBugFindingTask = true;
+            }
+            else if (option.ToLower().StartsWith("/testing-scheduler-endpoint:") && option.Length > 28)
+            {
+                string endpoint = option.Substring(28);
+                if (endpoint.Length != 36)
+                {
+                    Error.ReportAndExit("Please give a valid testing scheduler endpoint " +
+                        "'/testing-scheduler-endpoint:[x]', where [x] is a unique GUID.");
+                }
+
+                base.Configuration.TestingSchedulerEndPoint = endpoint;
+            }
+            else if (option.ToLower().StartsWith("/testing-scheduler-process-id:") && option.Length > 30)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(30), out i) && i >= 0)
+                {
+                    Error.ReportAndExit("Please give a valid testing scheduler " +
+                        "process id '/testing-scheduler-process-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TestingSchedulerProcessId = i;
+            }
+            else if (option.ToLower().StartsWith("/testing-process-id:") && option.Length > 20)
+            {
+                uint i = 0;
+                if (!uint.TryParse(option.Substring(20), out i) && i >= 0)
+                {
+                    Error.ReportAndExit("Please give a valid testing " +
+                        "process id '/testing-process-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TestingProcessId = i;
             }
             else if (option.ToLower().Equals("/explore"))
             {
                 base.Configuration.PerformFullExploration = true;
             }
-            else if (option.ToLower().Equals("/keep-temp"))
+            else if (option.ToLower().Equals("/coverage-report"))
             {
-                base.Configuration.KeepTemporaryFiles = true;
+                base.Configuration.ReportCodeCoverage = true;
+            }
+            else if (option.ToLower().Equals("/coverage-debug"))
+            {
+                base.Configuration.ReportCodeCoverage = true;
+                base.Configuration.DebugCodeCoverage = true;
+            }
+            else if (option.ToLower().Equals("/detect-races"))
+            {
+                base.Configuration.EnableDataRaceDetection = true;
             }
             else if (option.ToLower().StartsWith("/sch-seed:") && option.Length > 10)
             {
                 int seed;
                 if (!int.TryParse(option.Substring(10), out seed))
                 {
-                    IO.Error.ReportAndExit("Please give a valid random scheduling " +
+                    Error.ReportAndExit("Please give a valid random scheduling " +
                         "seed '/sch-seed:[x]', where [x] is a signed 32-bit integer.");
                 }
 
@@ -180,14 +266,14 @@ namespace Microsoft.PSharp.Utilities
                 var tokens = option.Split(new char[] { ':' }, System.StringSplitOptions.RemoveEmptyEntries);
                 if (tokens.Length > 3 || tokens.Length <= 1)
                 {
-                    IO.Error.ReportAndExit("Invalid number of options supplied via '/max-steps'.");
+                    Error.ReportAndExit("Invalid number of options supplied via '/max-steps'.");
                 }
 
                 if (tokens.Length >= 2)
                 {
                     if (!int.TryParse(tokens[1], out i) && i >= 0)
                     {
-                        IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
+                        Error.ReportAndExit("Please give a valid number of max scheduling " +
                             " steps to explore '/max-steps:[x]', where [x] >= 0.");
                     }
                 }
@@ -196,7 +282,7 @@ namespace Microsoft.PSharp.Utilities
                 {
                     if (!int.TryParse(tokens[2], out j) && j >= 0)
                     {
-                        IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
+                        Error.ReportAndExit("Please give a valid number of max scheduling " +
                             " steps to explore '/max-steps:[x]:[y]', where [y] >= 0.");
                     }
 
@@ -219,27 +305,35 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(8), out i) && i >= 0)
                 {
-                    IO.Error.ReportAndExit("Please give a valid safety prefix " +
+                    Error.ReportAndExit("Please give a valid safety prefix " +
                         "bound '/prefix:[x]', where [x] >= 0.");
                 }
 
                 base.Configuration.SafetyPrefixBound = i;
             }
-            else if (option.ToLower().Equals("/tpl"))
+            else if (option.ToLower().StartsWith("/liveness-temperature-threshold:") && option.Length > 32)
             {
-                base.Configuration.ScheduleIntraMachineConcurrency = true;
+                int i = 0;
+                if (!int.TryParse(option.Substring(32), out i) && i >= 0)
+                {
+                    Error.ReportAndExit("Please give a valid liveness temperature threshold " +
+                        "'/liveness-temperature-threshold:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.LivenessTemperatureThreshold = i;
             }
-            else if (option.ToLower().Equals("/state-caching"))
+            else if (option.ToLower().Equals("/cycle-detection"))
             {
-                base.Configuration.CacheProgramState = true;
+                base.Configuration.EnableCycleDetection = true;
             }
-            else if (option.ToLower().Equals("/opbound"))
+            else if (option.ToLower().Equals("/custom-state-hashing"))
             {
-                base.Configuration.BoundOperations = true;
+                base.Configuration.EnableUserDefinedStateHashing = true;
             }
-            else if (option.ToLower().Equals("/dynamic-event-reordering"))
+            else if (option.ToLower().Equals("/visualize"))
             {
-                base.Configuration.DynamicEventQueuePrioritization = true;
+                Error.ReportAndExit("Command line option '/visualize' is deprecated. " +
+                    "Please use '/coverage-report' instead.");
             }
             else
             {
@@ -254,38 +348,44 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid path to a P# " +
+                Error.ReportAndExit("Please give a valid path to a P# " +
                     "program's dll using '/test:[x]'.");
             }
 
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.Portfolio &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.ProbabilisticRandom &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.DPOR &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RDPOR &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding)
             {
-                IO.Error.ReportAndExit("Please give a valid scheduling strategy " +
-                        "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
-                        "experimental strategies also exist, but are not listed here).");
+                Error.ReportAndExit("Please give a valid scheduling strategy " +
+                        "'/sch:[x]', where [x] is 'random' or 'pct' (other experimental " +
+                        "strategies also exist, but are not listed here).");
+            }
+
+            if (base.Configuration.MaxFairSchedulingSteps < base.Configuration.MaxUnfairSchedulingSteps)
+            {
+                Error.ReportAndExit("For the option '/max-steps:[N]:[M]', please make sure that [M] >= [N].");
             }
 
             if (base.Configuration.SafetyPrefixBound > 0 &&
                 base.Configuration.SafetyPrefixBound >= base.Configuration.MaxUnfairSchedulingSteps)
             {
-                IO.Error.ReportAndExit("Please give a safety prefix bound that is less than the " +
+                Error.ReportAndExit("Please give a safety prefix bound that is less than the " +
                     "max scheduling steps bound.");
             }
 
             if (base.Configuration.SchedulingStrategy.Equals("iddfs") &&
                 base.Configuration.MaxUnfairSchedulingSteps == 0)
             {
-                IO.Error.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
+                Error.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
                     "must have a max scheduling steps bound, which can be given using " +
                     "'/max-steps:[bound]', where [bound] > 0.");
             }

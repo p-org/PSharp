@@ -211,13 +211,13 @@ namespace Microsoft.PSharp
         /// The testing scheduler unique endpoint.
         /// </summary>
         [DataMember]
-        internal string TestingSchedulerEndPoint;
+        public string TestingSchedulerEndPoint;
 
         /// <summary>
         /// The testing scheduler process id.
         /// </summary>
         [DataMember]
-        internal int TestingSchedulerProcessId;
+        public int TestingSchedulerProcessId;
 
         /// <summary>
         /// The unique testing process id.

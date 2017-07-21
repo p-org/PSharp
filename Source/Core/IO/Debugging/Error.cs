@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.IO
     /// <summary>
     /// Static class implementing error reporting methods.
     /// </summary>
-    internal static class Error
+    public static class Error
     {
         #region internal methods
 
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.IO
         /// Reports a generic error to the user and exits.
         /// </summary>
         /// <param name="value">Text</param>
-        internal static void ReportAndExit(string value)
+        public static void ReportAndExit(string value)
         {
             Error.Write(ConsoleColor.Red, "Error: ");
             Error.Write(ConsoleColor.Yellow, value);
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Parameters</param>
-        internal static void ReportAndExit(string format, params object[] args)
+        public static void ReportAndExit(string format, params object[] args)
         {
             string message = Utilities.Format(format, args);
             Error.Write(ConsoleColor.Red, "Error: ");

@@ -601,7 +601,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Path</returns>
         protected string GetRuntimeTracesDirectory()
         {
-            return this.GetOutputDirectory() + Path.DirectorySeparatorChar +
+            return this.GetOutputDirectory() + 
                 "RuntimeTraces" + Path.DirectorySeparatorChar;
         }
 

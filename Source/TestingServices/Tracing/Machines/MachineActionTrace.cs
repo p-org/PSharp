@@ -95,8 +95,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         {
             var info = MachineActionInfo.CreateSendActionInfo(this.Count, this.MachineId,
                 targetMachineId, e, this.SendIdCounter);
-            this.SendIdCounter++;
             this.Push(info);
+            this.SendIdCounter++;
         }
 
         /// <summary>

@@ -66,9 +66,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ExtendedReflection, Version=0.14.40609.4, Culture=neutral, PublicKeyToken=76a274db078248c8, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.ExtendedReflection, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\MyProjects\Microsoft.ExtendedReflection.dll</HintPath>
+      <HintPath>..\ExtendedReflection\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
@@ -100,11 +100,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Core.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Project>{6debc6db-d866-46de-a55f-21daa3bc458d}</Project>
       <Name>Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\TestingServices\TestingServices.csproj">
-      <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
+      <Project>{31896f2d-63ae-4ac5-bba2-5de9be60892e}</Project>
       <Name>TestingServices</Name>
     </ProjectReference>
     <ProjectReference Include="..\FinalRaceDetector\FinalRaceDetector.csproj">

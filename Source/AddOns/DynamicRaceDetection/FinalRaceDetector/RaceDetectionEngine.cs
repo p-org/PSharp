@@ -1,4 +1,6 @@
-﻿using Microsoft.PSharp.TestingServices.Tracing.Machines;
+﻿using Microsoft.PSharp;
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.Utilities;
 using QuickGraph;
 using System;
@@ -53,7 +55,7 @@ namespace FinalRaceDetector
         /// </summary>
         public bool Start()
         {
-            IO.PrintLine(". Searching for data races");
+            Output.WriteLine(". Searching for data races");
 
             string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
                     Path.DirectorySeparatorChar + "Output";
@@ -100,6 +102,7 @@ namespace FinalRaceDetector
             //TODO: fix this            
             foreach (string fileName in mFileEntries)
             {
+                Output.WriteLine(". File name: " + fileName);
                 //chain decomposition
                 string fileNumberStart = fileName.Substring(fileName.LastIndexOf('_') + 1);
                 string fileNumber = fileNumberStart.Substring(0, fileNumberStart.IndexOf('.'));
@@ -128,7 +131,7 @@ namespace FinalRaceDetector
             if (this.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Graph construction runtime: '" +
+                Output.WriteLine("... Graph construction runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
 
@@ -142,7 +145,7 @@ namespace FinalRaceDetector
             if (this.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Graph prune runtime: '" +
+                Output.WriteLine("... Graph prune runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
 
@@ -154,7 +157,7 @@ namespace FinalRaceDetector
             if (this.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Topological sort runtime: '" +
+                Output.WriteLine("... Topological sort runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
 
@@ -166,7 +169,7 @@ namespace FinalRaceDetector
             if (this.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Race detection runtime: '" +
+                Output.WriteLine("... Race detection runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
 
@@ -202,8 +205,8 @@ namespace FinalRaceDetector
                     }
                     catch (Exception ex)
                     {
-                        IO.PrintLine("failed: " + this.VcCount + " " + info.TaskMachineId);
-                        IO.PrintLine(ex.ToString());
+                        Output.WriteLine("failed: " + this.VcCount + " " + info.TaskMachineId);
+                        Output.WriteLine(ex.ToString());
                         Environment.Exit(Environment.ExitCode);
                     }
                     this.CGraph.AddVertex(cn);
@@ -240,14 +243,14 @@ namespace FinalRaceDetector
 
                     try
                     {
-                        matching = this.AllThreadTraces.Where(item => item.MachineId == info.MachineId &&
+                        matching = this.AllThreadTraces.Where(item => item.MachineId == (int)info.MachineId &&
                             item.ActionId == info.ActionId).Single();
                     }
                     catch (Exception)
                     {
                         //TODO: check correctness
                         //In case entry and exit functions not defined.   
-                        //IO.PrintLine("Skipping entry/exit actions: " + mt.MachineId + " " + mt.ActionId + " " + mt.ActionName);          
+                        //Output.WriteLine("Skipping entry/exit actions: " + mt.MachineId + " " + mt.ActionId + " " + mt.ActionName);          
                         continue;
                     }
 
@@ -267,8 +270,8 @@ namespace FinalRaceDetector
                     }
                     catch (Exception ex)
                     {
-                        IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-                        IO.PrintLine(ex.ToString());
+                        Output.WriteLine("failed: " + this.VcCount + " " + info.MachineId);
+                        Output.WriteLine(ex.ToString());
                         Environment.Exit(Environment.ExitCode);
                     }
 
@@ -303,8 +306,8 @@ namespace FinalRaceDetector
                             }
                             catch (Exception ex)
                             {
-                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-                                IO.PrintLine(ex.ToString());
+                                Output.WriteLine("failed: " + this.VcCount + " " + info.MachineId);
+                                Output.WriteLine(ex.ToString());
                                 Environment.Exit(Environment.ExitCode);
                             }
 
@@ -318,12 +321,20 @@ namespace FinalRaceDetector
 
                         if (ins.IsSend)
                         {
+                            Output.WriteLine("Searching: " + ins.SendId);
+                            foreach(var m in machineTrace)
+                            {
+                                if(!string.IsNullOrEmpty(m.SendEventName) && (int)m.MachineId == matching.MachineId)
+                                {
+                                    Output.WriteLine("Available: " + m.SendId);
+                                }
+                            }
                             MachineActionInfo machineSend = machineTrace.Where(
-                                item => item.MachineId == matching.MachineId &&
+                                item => (int)item.MachineId == matching.MachineId &&
                                 item.SendId == ins.SendId).Single();
 
-                            cn1 = new SendEvent(machineSend.MachineId, machineSend.SendId,
-                                machineSend.TargetMachineId, machineSend.SendEventName, machineSend.EventId);
+                            cn1 = new SendEvent((int)machineSend.MachineId, machineSend.SendId,
+                                (int)machineSend.TargetMachineId, machineSend.SendEventName, machineSend.EventId);
                             cn1.VectorClock = new int[this.VcCount];
                             currentMachineVC++;
 
@@ -333,8 +344,8 @@ namespace FinalRaceDetector
                             }
                             catch (Exception ex)
                             {
-                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-                                IO.PrintLine(ex.ToString());
+                                Output.WriteLine("failed: " + this.VcCount + " " + info.MachineId);
+                                Output.WriteLine(ex.ToString());
                                 Environment.Exit(Environment.ExitCode);
                             }
 
@@ -356,8 +367,8 @@ namespace FinalRaceDetector
                             }
                             catch (Exception ex)
                             {
-                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-                                IO.PrintLine(ex.ToString());
+                                Output.WriteLine("failed: " + this.VcCount + " " + info.MachineId);
+                                Output.WriteLine(ex.ToString());
                                 Environment.Exit(Environment.ExitCode);
                             }
 
@@ -379,8 +390,8 @@ namespace FinalRaceDetector
                             }
                             catch (Exception ex)
                             {
-                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
-                                IO.PrintLine(ex.ToString());
+                                Output.WriteLine("failed: " + this.VcCount + " " + info.MachineId);
+                                Output.WriteLine(ex.ToString());
                                 Environment.Exit(Environment.ExitCode);
                             }
 
@@ -394,7 +405,7 @@ namespace FinalRaceDetector
                         else
                         {
                             ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location,
-                                ins.ObjHandle, ins.Offset, ins.SrcLocation, info.MachineId));
+                                ins.ObjHandle, ins.Offset, ins.SrcLocation, (int)info.MachineId));
                             cn1 = cn;
 
                         }
@@ -586,54 +597,54 @@ namespace FinalRaceDetector
         /// </summary>
         void PrintGraph(BidirectionalGraph<Node, Edge> graph)
         {
-            IO.PrintLine("Printing compressed graph");
+            Output.WriteLine("Printing compressed graph");
             foreach (Node n in graph.Vertices)
             {
                 if (n.GetType().ToString().Contains("CActBegin"))
                 {
-                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                    Output.WriteLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((CActBegin)n).MachineId + " " + ((CActBegin)n).ActionId +
                         " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask + " " + ((CActBegin)n).TaskId + " " + ((CActBegin)n).EventId
                         + " " + ((CActBegin)n).EventName);
-                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                    Output.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                     foreach (MemAccess m in ((CActBegin)n).Addresses)
                     {
-                        IO.PrintLine(m.IsWrite + " " + m.Location + " " + m.ObjHandle + " " + m.Offset + " " + m.SrcLocation);
+                        Output.WriteLine(m.IsWrite + " " + m.Location + " " + m.ObjHandle + " " + m.Offset + " " + m.SrcLocation);
                     }
                 }
                 else if (n.GetType().ToString().Contains("SendEvent"))
                 {
-                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                    Output.WriteLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((SendEvent)n).MachineId + " " + ((SendEvent)n).ToMachine + " " + ((SendEvent)n).SendEventId + " " + ((SendEvent)n).SendEventName);
-                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                    Output.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
                 else if (n.GetType().ToString().Contains("CreateMachine"))
                 {
-                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                    Output.WriteLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((CreateMachine)n).CreateMachineId);
-                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                    Output.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
                 else if (n.GetType().ToString().Contains("CreateTask"))
                 {
-                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                    Output.WriteLine(n.GetHashCode() + " " + n.ToString() + " " +
                         ((CreateTask)n).TaskId);
-                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                    Output.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
             }
 
-            IO.PrintLine();
+            Output.WriteLine("");
 
             foreach (Edge e in graph.Edges)
             {
-                IO.PrintLine(e.Source.GetHashCode() + " ---> " + e.Target.GetHashCode());
+                Output.WriteLine(e.Source.GetHashCode() + " ---> " + e.Target.GetHashCode());
             }
 
-            IO.PrintLine();
+            Output.WriteLine("");
         }
 
         void DetectRacesAgain()
         {
-            IO.PrintLine("\nDETECTING RACES");
+            Output.WriteLine("\nDETECTING RACES");
 
             List<Tuple<CActBegin, CActBegin>> checkRaces = new List<Tuple<CActBegin, CActBegin>>();
 
@@ -717,7 +728,7 @@ namespace FinalRaceDetector
 
                         if (m.ObjHandle == n.ObjHandle && m.Offset == n.Offset)
                         {
-                            IO.PrintLine("RACE: " + m.SrcLocation + ";" + m.IsWrite + " AND " +
+                            Output.WriteLine("RACE: " + m.SrcLocation + ";" + m.IsWrite + " AND " +
                                 n.SrcLocation + ";" + n.IsWrite);
                             reportedRaces.Add(new Tuple<string, string>(m.SrcLocation + ";" +
                                 m.IsWrite, n.SrcLocation + ";" + n.IsWrite));
@@ -729,7 +740,7 @@ namespace FinalRaceDetector
 
         bool DetectRacesFast()
         {
-            IO.PrintLine("\nDETECTING RACES");
+            Output.WriteLine("\nDETECTING RACES");
 
             if (this.CGraph.VertexCount == 0)
             {
@@ -827,11 +838,11 @@ namespace FinalRaceDetector
 
                         if (m.ObjHandle == n.ObjHandle && m.Offset == n.Offset)
                         {
-                            IO.PrintLine("RACE: " + m.SrcLocation + ";" + (m.IsWrite ? "write" : "read") + " AND " +
+                            Output.WriteLine("RACE: " + m.SrcLocation + ";" + (m.IsWrite ? "write" : "read") + " AND " +
                                 n.SrcLocation + ";" + (n.IsWrite ? "write" : "read"));
                             reportedRaces.Add(new Tuple<string, string>(m.SrcLocation + ";" + m.IsWrite,
                                 n.SrcLocation + ";" + n.IsWrite));
-                            IO.PrintLine();
+                            Output.WriteLine("");
                             return true;
                         }
                     }

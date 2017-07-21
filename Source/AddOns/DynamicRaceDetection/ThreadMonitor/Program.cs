@@ -22,6 +22,7 @@ using Microsoft.ExtendedReflection.Utilities.Safe;
 
 using Microsoft.PSharp.Utilities;
 using System.IO;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.Monitoring
 {
@@ -49,8 +50,8 @@ namespace Microsoft.PSharp.Monitoring
         private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            IO.Debug(ex.Message);
-            IO.Debug(ex.StackTrace);
+            Output.WriteLine(ex.Message);
+            Output.WriteLine(ex.StackTrace);
             IO.Error.ReportAndExit("internal failure: {0}: {1}, {2}",
                 ex.GetType().ToString(), ex.Message, ex.StackTrace);
         }

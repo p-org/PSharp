@@ -383,24 +383,6 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             {
                 this.IsExitActionCalled = true;
             }
-
-            else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send")) &&
-                !this.CallStack.Peek().FullName.Contains(".Main"))
-            {
-                this.DebugTrace.Add($"<ThreadMonitorLog> Send '{method.FullName}'.");
-                ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
-
-                if (SendIds.ContainsKey(this.CurrentMachineId))
-                {
-                    SendIds[this.CurrentMachineId]++;
-                }
-                else
-                {
-                    SendIds.Add(this.CurrentMachineId, 1);
-                }
-
-                obj.Accesses.Add(new ActionInstr(SendIds[this.CurrentMachineId]));
-            }
         }
 
         // Unable to cast from object to MachineId.

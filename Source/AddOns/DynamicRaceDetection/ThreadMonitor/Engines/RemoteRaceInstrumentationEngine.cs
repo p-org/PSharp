@@ -19,6 +19,8 @@ using Microsoft.ExtendedReflection.Collections;
 
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.IO;
+using System.IO;
 
 namespace Microsoft.PSharp.Monitoring
 {
@@ -67,17 +69,45 @@ namespace Microsoft.PSharp.Monitoring
             
             testingEngine.Run();
 
-            IO.Error.PrintLine(testingEngine.Report());
-            if (testingEngine.TestReport.NumOfFoundBugs > 0 ||
-                configuration.PrintTrace)
+            Output.WriteLine(testingEngine.Report());
+            if (testingEngine.TestReport.NumOfFoundBugs > 0)
             {
-                testingEngine.TryEmitTraces();
+                string file = Path.GetFileNameWithoutExtension(configuration.AssemblyToBeAnalyzed);
+                file += "_" + configuration.TestingProcessId;
+
+                string directoryPath;
+                string suffix = "";
+                
+                if (configuration.OutputFilePath != "")
+                {
+                    directoryPath = configuration.OutputFilePath + Path.DirectorySeparatorChar;
+                }
+                else
+                {
+                    var subpath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed);
+                    if (subpath == "")
+                    {
+                        subpath = ".";
+                    }
+
+                    directoryPath = subpath +
+                        Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+                }
+
+                if (suffix.Length > 0)
+                {
+                    directoryPath += suffix + Path.DirectorySeparatorChar;
+                }
+
+                Directory.CreateDirectory(directoryPath);
+                Output.WriteLine($"... Emitting task {configuration.TestingProcessId} traces:");
+                testingEngine.TryEmitTraces(directoryPath, file);
             }
 
-            if (configuration.ReportCodeCoverage)
-            {
-                testingEngine.TryEmitCoverageReport();
-            }
+            //if (configuration.ReportCodeCoverage)
+            //{
+            //    testingEngine.TryEmitCoverageReport();
+            //}
         }
 
         public override object InitializeLifetimeService()

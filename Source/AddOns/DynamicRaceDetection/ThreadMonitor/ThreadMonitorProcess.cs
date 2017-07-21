@@ -68,11 +68,11 @@ namespace Microsoft.PSharp.Monitoring
         {
             this.Configuration = configuration;
             configuration.EnableDataRaceDetection = true;
-            configuration.raceDetectionCallback = new Action(() => {
+            configuration.RaceDetectionCallback = new Action(() => {
                 bool result = new FinalRaceDetector.RaceDetectionEngine(configuration).Start();
                 if (result == true)
                 {
-                    configuration.raceFound = true;
+                    configuration.RaceFound = true;
                 }
             });
         }
