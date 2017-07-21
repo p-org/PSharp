@@ -908,6 +908,7 @@ namespace Microsoft.PSharp
             var cachedAction = this.ActionMap[actionName];
             base.Runtime.NotifyInvokedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
             await this.ExecuteAction(cachedAction);
+            base.Runtime.NotifyCompletedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
 
             if (this.IsPopInvoked)
             {
@@ -935,6 +936,7 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.NotifyInvokedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(entryAction);
+                base.Runtime.NotifyCompletedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
             }
 
             if (this.IsPopInvoked)
@@ -966,6 +968,7 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.NotifyInvokedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(exitAction);
+                base.Runtime.NotifyCompletedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
             }
 
             // Invokes the exit action of the event handler,
@@ -975,6 +978,7 @@ namespace Microsoft.PSharp
                 CachedAction eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                 base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(eventHandlerExitAction);
+                base.Runtime.NotifyCompletedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
             }
 
             base.Info.IsInsideOnExit = false;
@@ -1233,7 +1237,6 @@ namespace Microsoft.PSharp
                     if (eventWaitHandler != null)
                     {
                         base.Runtime.Logger.OnReceive(this.Id, this.CurrentStateName, currentEventInfo.EventName, wasBlocked: false);
-
                         this.EventWaitHandlers.Clear();
                         this.ReceiveCompletionSource.SetResult(currentEventInfo.Event);
                         eventInfoInInbox = currentEventInfo;

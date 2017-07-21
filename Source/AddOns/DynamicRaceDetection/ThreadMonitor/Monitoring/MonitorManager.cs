@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// The P# testing engine.
         /// </summary>
-        private ITestingEngine TestingEngine;
+        private IRegisterRuntimeOperation RaceDetectionEngine;
 
         /// <summary>
         /// Calls-only.
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.Monitoring
                 if (this.MonitorFactory == null)
                 {
                     this.MonitorFactory = new ThreadMonitorFactory(
-                        this.ThreadMonitorManager, this.TestingEngine, this.Configuration);
+                        this.ThreadMonitorManager, this.RaceDetectionEngine, this.Configuration);
                     this.ThreadMonitorManager.AddMonitorFactory(this.MonitorFactory);
                 }
 
@@ -79,12 +79,12 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="testingEngine">ITestingEngine</param>
+        /// <param name="raceDetectionEngine">ITestingEngine</param>
         /// <param name="configuration">Configuration</param>
-        public MonitorManager(ITestingEngine testingEngine, Configuration configuration)
+        public MonitorManager(IRegisterRuntimeOperation raceDetectionEngine, Configuration configuration)
             : base()
         {
-            this.TestingEngine = testingEngine;
+            this.RaceDetectionEngine = raceDetectionEngine;
             this.Configuration = configuration;
         }
 

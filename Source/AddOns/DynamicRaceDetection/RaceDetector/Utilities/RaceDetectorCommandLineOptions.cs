@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Utilities
 {
     public sealed class RaceDetectorCommandLineOptions : BaseCommandLineOptions
@@ -23,7 +25,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="args">Array of arguments</param>
         public RaceDetectorCommandLineOptions(string[] args)
-            : base (args)
+            : base(args)
         {
 
         }
@@ -116,7 +118,7 @@ namespace Microsoft.PSharp.Utilities
 
             help += "\n";
 
-            IO.PrettyPrintLine(help);
+            Output.WriteLine(help);
         }
 
         #endregion

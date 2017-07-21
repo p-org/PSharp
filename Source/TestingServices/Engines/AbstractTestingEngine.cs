@@ -126,6 +126,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public TestReport TestReport { get; set; }
 
+        /// <summary>
+        /// Interface for registering runtime operations.
+        /// </summary>
+        public IRegisterRuntimeOperation Reporter { get; protected set; }
+
         #endregion
 
         #region public API
@@ -324,7 +329,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
-                Error.ReportAndExit("Portfolio testing strategy in only " +
+                Error.ReportAndExit("Portfolio testing strategy is only " +
                     "available in parallel testing.");
             }
 
@@ -620,8 +625,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Path</returns>
         protected string GetRuntimeTracesDirectory()
         {
-            return this.GetOutputDirectory() + Path.DirectorySeparatorChar +
-                "RuntimeTraces" + Path.DirectorySeparatorChar;
+            return this.GetOutputDirectory() + Path.DirectorySeparatorChar;
         }
 
         /// <summary>

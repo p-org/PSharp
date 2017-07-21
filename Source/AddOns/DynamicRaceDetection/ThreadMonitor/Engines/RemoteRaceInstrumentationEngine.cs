@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="RemoteRaceInstrumentationEngine.cs">
 //      Copyright (c) 2016 Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -12,13 +12,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Reflection;
-
 using Microsoft.ExtendedReflection.Collections;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
-using Microsoft.PSharp.Utilities;
+using System;
+using System.IO;
+using System.Reflection;
 
 namespace Microsoft.PSharp.Monitoring
 {
@@ -35,7 +34,7 @@ namespace Microsoft.PSharp.Monitoring
         /// </summary>
         private static SafeDictionary<string, Assembly> Assemblies;
 
-        #endregion
+        #endregion fields
 
         #region constructors
 
@@ -47,7 +46,7 @@ namespace Microsoft.PSharp.Monitoring
             Assemblies = new SafeDictionary<string, Assembly>();
         }
 
-        #endregion
+        #endregion constructors
 
         #region public methods
 
@@ -61,23 +60,51 @@ namespace Microsoft.PSharp.Monitoring
             ITestingEngine testingEngine = TestingEngineFactory.CreateBugFindingEngine(configuration);
 
             var assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
-            new RaceInstrumentationEngine(testingEngine, configuration);
+            new RaceInstrumentationEngine(testingEngine.Reporter, configuration);
 
             this.TryLoadReferencedAssemblies(new[] { assembly });
-            
+
             testingEngine.Run();
 
-            IO.Error.PrintLine(testingEngine.Report());
-            if (testingEngine.TestReport.NumOfFoundBugs > 0 ||
-                configuration.PrintTrace)
+            Output.WriteLine(testingEngine.Report());
+            if (testingEngine.TestReport.NumOfFoundBugs > 0)
             {
-                testingEngine.TryEmitTraces();
+                string file = Path.GetFileNameWithoutExtension(configuration.AssemblyToBeAnalyzed);
+                file += "_" + configuration.TestingProcessId;
+
+                string directoryPath;
+                string suffix = "";
+
+                if (configuration.OutputFilePath != "")
+                {
+                    directoryPath = configuration.OutputFilePath + Path.DirectorySeparatorChar;
+                }
+                else
+                {
+                    var subpath = Path.GetDirectoryName(configuration.AssemblyToBeAnalyzed);
+                    if (subpath == "")
+                    {
+                        subpath = ".";
+                    }
+
+                    directoryPath = subpath +
+                        Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+                }
+
+                if (suffix.Length > 0)
+                {
+                    directoryPath += suffix + Path.DirectorySeparatorChar;
+                }
+
+                Directory.CreateDirectory(directoryPath);
+                Output.WriteLine($"... Emitting task {configuration.TestingProcessId} traces:");
+                testingEngine.TryEmitTraces(directoryPath, file);
             }
 
-            if (configuration.ReportCodeCoverage)
-            {
-                testingEngine.TryEmitCoverageReport();
-            }
+            //if (configuration.ReportCodeCoverage)
+            //{
+            //    testingEngine.TryEmitCoverageReport();
+            //}
         }
 
         public override object InitializeLifetimeService()
@@ -85,7 +112,7 @@ namespace Microsoft.PSharp.Monitoring
             return null;
         }
 
-        #endregion
+        #endregion public methods
 
         #region private methods
 
@@ -96,7 +123,7 @@ namespace Microsoft.PSharp.Monitoring
         private void TryLoadReferencedAssemblies(Assembly[] inputAssemblies)
         {
             var ws = new SafeDictionary<string, Assembly>();
-            
+
             foreach (Assembly a in inputAssemblies)
             {
                 if (a == null)
@@ -138,6 +165,6 @@ namespace Microsoft.PSharp.Monitoring
             }
         }
 
-        #endregion
+        #endregion private methods
     }
 }

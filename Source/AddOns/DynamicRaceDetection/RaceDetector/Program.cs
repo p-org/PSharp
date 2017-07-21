@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Program.cs">
 //      Copyright (c) 2016 Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -12,9 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
+using System;
 using System.IO;
 
 namespace Microsoft.PSharp
@@ -24,7 +24,7 @@ namespace Microsoft.PSharp
     /// </summary>
     public static class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
@@ -43,7 +43,6 @@ namespace Microsoft.PSharp
 
             // Creates and starts a dynamic race detection process.
             RaceDetectionProcess.Create(configuration).Start(args);
-            
         }
 
         /// <summary>
@@ -54,8 +53,8 @@ namespace Microsoft.PSharp
         private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            IO.Debug(ex.Message);
-            IO.Debug(ex.StackTrace);
+            Output.WriteLine(ex.Message);
+            Output.WriteLine(ex.StackTrace);
             IO.Error.ReportAndExit("internal failure: {0}: {1}, {2}",
                 ex.GetType().ToString(), ex.Message, ex.StackTrace);
         }

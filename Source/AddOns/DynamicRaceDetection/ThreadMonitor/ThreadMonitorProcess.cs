@@ -67,14 +67,14 @@ namespace Microsoft.PSharp.Monitoring
         private ThreadMonitorProcess(Configuration configuration)
         {
             this.Configuration = configuration;
-            configuration.EnableDataRaceDetection = true;
-            configuration.raceDetectionCallback = new Action(() => {
-                bool result = new FinalRaceDetector.RaceDetectionEngine(configuration).Start();
-                if (result == true)
-                {
-                    configuration.raceFound = true;
-                }
-            });
+            // configuration.EnableDataRaceDetection = true;
+            //configuration.RaceDetectionCallback = new Action(() => {
+            //    bool result = new FinalRaceDetector.RaceDetectionEngine(configuration).Start();
+            //    if (result == true)
+            //    {
+            //        configuration.RaceFound = true;
+            //    }
+            //});
         }
 
         /// <summary>

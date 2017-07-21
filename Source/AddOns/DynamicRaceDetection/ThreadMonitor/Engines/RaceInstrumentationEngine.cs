@@ -72,11 +72,11 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="testingEngine">ITestingEngine</param>
+        /// <param name="raceDetectionEngine">IRaceDetectionEngine</param>
         /// <param name="configuration">Configuration</param>
-        public RaceInstrumentationEngine(ITestingEngine testingEngine, Configuration configuration)
+        public RaceInstrumentationEngine(IRegisterRuntimeOperation raceDetectionEngine, Configuration configuration)
             : base(new Container(), new EngineOptions(),
-                  new MonitorManager(testingEngine, configuration),
+                  new MonitorManager(raceDetectionEngine, configuration),
                   new ThreadMonitorManager(configuration))
         {
             if (SingletonEngine != null)
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.Monitoring
 
             ((IMonitorManager)this.GetService<MonitorManager>()).RegisterThreadMonitor(
                new ThreadMonitorFactory(this.GetService<ThreadMonitorManager>(),
-               testingEngine, configuration));
+               raceDetectionEngine, configuration));
 
             ((IMonitorManager)this.GetService<MonitorManager>()).RegisterObjectAccessThreadMonitor();
 

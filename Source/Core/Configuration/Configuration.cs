@@ -339,6 +339,16 @@ namespace Microsoft.PSharp
         /// </summary>
         public bool RaceFound;
 
+        /// <summary>
+        /// Enables tracking line number information for reads and writes.
+        /// </summary>
+        public bool EnableReadWriteTracing = false;
+
+        /// <summary>
+        /// Enables race detector logging.
+        /// </summary>
+        public bool EnableRaceDetectorLogging = false;
+
         #endregion
 
         #region coverage options
