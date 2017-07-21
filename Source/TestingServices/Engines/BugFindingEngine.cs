@@ -23,8 +23,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.RaceDetection;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
-using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
@@ -162,6 +162,11 @@ namespace Microsoft.PSharp.TestingServices
         private BugFindingEngine(Configuration configuration)
             : base(configuration)
         {
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
+            }
+
             this.Initialize();
         }
 
@@ -173,6 +178,11 @@ namespace Microsoft.PSharp.TestingServices
         private BugFindingEngine(Configuration configuration, Assembly assembly)
             : base(configuration, assembly)
         {
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
+            }
+
             this.Initialize();
         }
 
@@ -184,6 +194,11 @@ namespace Microsoft.PSharp.TestingServices
         private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
             : base(configuration, action)
         {
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
+            }
+
             this.Initialize();
         }
 
@@ -194,6 +209,11 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.ReadableTrace = "";
             this.ReproducableTrace = "";
+
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                this.RegisterPerIterationCallBack((arg) => { this.Reporter.ClearAll(); });
+            }
         }
 
         #endregion
@@ -310,7 +330,13 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 // Creates a new instance of the bug-finding runtime.
-                runtime = new BugFindingRuntime(base.Configuration, base.Strategy);
+                runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+
+                if (base.Configuration.EnableDataRaceDetection)
+                {
+                    // Create a reporter to monitor interesting operations for race detection
+                    this.Reporter.SetRuntime(runtime);
+                }
 
                 // If verbosity is turned off, then intercept the program log, and also dispose
                 // the standard output and error streams.
@@ -338,11 +364,6 @@ namespace Microsoft.PSharp.TestingServices
                     base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
-                if (this.Configuration.EnableDataRaceDetection)
-                {
-                    this.EmitRaceInstrumentationTraces(runtime, iteration);
-                }
-
                 // Invokes user-provided cleanup for this iteration.
                 if (base.TestIterationDisposeMethod != null)
                 {
@@ -362,6 +383,10 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     string message = IO.Utilities.Format("Found a race");
                     runtime.Scheduler.NotifyAssertionFailure(message, false);
+                    foreach (var report in this.TestReport.BugReports)
+                    {
+                        runtime.Logger.WriteLine(report);
+                    }
                 }
 
                 // Checks that no monitor is in a hot state at termination. Only
@@ -483,45 +508,6 @@ namespace Microsoft.PSharp.TestingServices
             }
             
             this.ReproducableTrace = stringBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Emits race instrumentation traces.
-        /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        /// <param name="iteration">Iteration</param>
-        private void EmitRaceInstrumentationTraces(BugFindingRuntime runtime, int iteration)
-        {
-            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            name += "_" + base.Configuration.TestingProcessId;
-
-            string directoryPath = base.GetRuntimeTracesDirectory();
-            
-            foreach (var kvp in runtime.MachineActionTraceMap)
-            {
-                Debug.WriteLine($"<RaceTracing> Machine id '{kvp.Key}'");
-
-                foreach (var actionTrace in kvp.Value)
-                {
-                    if (actionTrace.Type == MachineActionType.InvocationAction)
-                    {
-                        Debug.WriteLine($"<RaceTracing> Action '{actionTrace.ActionName}' " +
-                            $"'{actionTrace.ActionId}'");
-                    }
-                }
-
-                if (kvp.Value.Count > 0)
-                {
-                    string path = directoryPath + name + "_iteration_" + iteration +
-                        "_machine_" + kvp.Key.GetHashCode() + ".osl";
-                    using (FileStream stream = File.Open(path, FileMode.Create))
-                    {
-                        DataContractSerializer serializer = new DataContractSerializer(kvp.Value.GetType());
-                        serializer.WriteObject(stream, kvp.Value);
-                        Debug.WriteLine($"..... Writing {path}");
-                    }
-                }
-            }
         }
 
         /// <summary>

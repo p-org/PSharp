@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="RaceDetectionProcess.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -12,16 +12,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.ExtendedReflection.Monitoring;
 using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Reflection;
-
-using Microsoft.ExtendedReflection.Monitoring;
-
-using Microsoft.PSharp.DynamicRaceDetection;
-using Microsoft.PSharp.Utilities;
-using System.IO;
 
 namespace Microsoft.PSharp
 {
@@ -37,12 +32,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private Configuration Configuration;
 
-        /// <summary>
-        /// The runtime profiler.
-        /// </summary>
-        private Profiler Profiler;
-
-        #endregion
+        #endregion fields
 
         #region API
 
@@ -63,6 +53,7 @@ namespace Microsoft.PSharp
         public void Start(string[] args)
         {
             StringCollection referencedAssemblies = new StringCollection();
+            StringCollection excludedAssemblies = new StringCollection();
             string input = this.Configuration.AssemblyToBeAnalyzed;
 
             Assembly assembly = Assembly.LoadFrom(input);
@@ -71,25 +62,22 @@ namespace Microsoft.PSharp
             AssemblyName[] assemblyName = assembly.GetReferencedAssemblies();
             foreach (AssemblyName item in assemblyName)
             {
-                if (item.Name.Contains("mscorlib") || item.Name.Contains("System") ||
+                if (item.Name.Contains("mscorlib") || item.Name.Contains("System") || item.Name.Contains("Microsoft.PSharp") ||
                     item.Name.Contains("NLog") || item.Name.Contains("System.Core"))
                 {
+                    Console.WriteLine("Excluding " + item.Name);
+                    excludedAssemblies.Add(item.Name);
                     continue;
                 }
-
+                Console.WriteLine("Including " + item.Name);
                 referencedAssemblies.Add(item.Name);
             }
 
             string[] includedAssemblies = new string[referencedAssemblies.Count];
+            string[] excluded = new string[excludedAssemblies.Count];
             referencedAssemblies.CopyTo(includedAssemblies, 0);
-
-            // Starts profiling the access monitor.
-            if (this.Configuration.EnableProfiling)
-            {
-                this.Profiler.StartMeasuringExecutionTime();
-            }
-
-            Profiler.StartMeasuringExecutionTime();
+            excludedAssemblies.CopyTo(excluded, 0);
+            string[] excludedNamespaces = new string[] { "Microsoft.PSharp", "Microsoft.PSharp.Monitors", "Microsoft.PSharp.IO" };
 
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
                 AppDomain.CurrentDomain.BaseDirectory + "\\ThreadMonitor.exe",
@@ -104,9 +92,9 @@ namespace Microsoft.PSharp
                 null, // types to monitor
                 null, // types to exclude monitor
                 null, // namespaces to monitor
-                null, // namespaces to exclude monitor
-                includedAssemblies,
-                null, //assembliesToExcludeMonitor to exclude monitor
+                excludedNamespaces, // namespaces to exclude monitor
+                includedAssemblies, // assemblies to monitor
+                excluded, //assemblies to exclude monitor
 
                 null, null, null, null, null, null,
 
@@ -122,38 +110,9 @@ namespace Microsoft.PSharp
             process.StartInfo = info;
             process.Start();
             process.WaitForExit();
-
-            // Stops profiling the access monitor.
-            if (this.Configuration.EnableProfiling)
-            {
-                this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Access monitoring runtime: '" +
-                    this.Profiler.Results() + "' seconds.");
-            }
-            string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
-                Path.DirectorySeparatorChar + "Output";
-            if (!Directory.Exists(directoryPath))
-            {
-                Environment.Exit(1);
-            }
-            // Starts profiling the race detection.
-            if (this.Configuration.EnableProfiling)
-            {
-                this.Profiler.StartMeasuringExecutionTime();
-            }
-
-            //new RaceDetectionEngine(this.Configuration).Start();
-
-            // Stops profiling the race detection.
-            if (this.Configuration.EnableProfiling)
-            {
-                this.Profiler.StopMeasuringExecutionTime();
-                IO.PrintLine("... Race detection runtime: '" +
-                    this.Profiler.Results() + "' seconds.");
-            }
         }
 
-        #endregion
+        #endregion API
 
         #region private methods
 
@@ -163,10 +122,9 @@ namespace Microsoft.PSharp
         /// <param name="configuration">Configuration</param>
         private RaceDetectionProcess(Configuration configuration)
         {
-            this.Profiler = new Profiler();
             this.Configuration = configuration;
         }
 
-        #endregion
+        #endregion private methods
     }
 }

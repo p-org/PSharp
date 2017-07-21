@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         /// </summary>
         private Configuration Configuration;
 
-        private ITestingEngine TestingEngine;
+        private IRegisterRuntimeOperation RaceDetectionEngine;
 
         /// <summary>
         /// Thread monitors.
@@ -62,12 +62,12 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         /// </summary>
         /// <param name="host">ICopComponent</param>
         /// <param name="configuration">Configuration</param>
-        public ThreadMonitorFactory(ICopComponent host, ITestingEngine testingEngine,
+        public ThreadMonitorFactory(ICopComponent host, IRegisterRuntimeOperation raceDetectionEngine,
             Configuration configuration)
             : base(host)
         {
             this.Configuration = configuration;
-            this.TestingEngine = testingEngine;
+            this.RaceDetectionEngine = raceDetectionEngine;
             this.ThreadMonitors = new ThreadMonitorCollection();
         }
 
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
             else
             {
                 monitor = new ThreadExecutionMonitorDispatcher(this.Host.Log,
-                    threadID, this, this.TestingEngine, this.Configuration);
+                    threadID, this, this.RaceDetectionEngine, this.Configuration);
                 return true;
             }
         }

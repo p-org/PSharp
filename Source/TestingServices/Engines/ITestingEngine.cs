@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         TestReport TestReport { get; }
 
+        /// <summary>
+        /// Interface for registering runtime operations.
+        /// </summary>
+        IRegisterRuntimeOperation Reporter { get; }
+
         #endregion
 
         #region methods

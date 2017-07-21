@@ -552,6 +552,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine completed invoking an action.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
         /// Notifies that a monitor invoked an action.
         /// </summary>
         /// <param name="monitor">Monitor</param>

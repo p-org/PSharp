@@ -24,7 +24,6 @@ using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
-using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 
 namespace Microsoft.PSharp.TestingServices
@@ -63,6 +62,11 @@ namespace Microsoft.PSharp.TestingServices
         internal CoverageInfo CoverageInfo;
 
         /// <summary>
+        /// Interface for registering runtime operations.
+        /// </summary>
+        internal IRegisterRuntimeOperation Reporter;
+
+        /// <summary>
         /// The P# program state cache.
         /// </summary>
         internal StateCache StateCache;
@@ -78,12 +82,6 @@ namespace Microsoft.PSharp.TestingServices
         private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
-        /// A map from unique machine ids to action traces.
-        /// Only used for dynamic data race detection.
-        /// </summary>
-        internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
-
-        /// <summary>
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
@@ -96,8 +94,9 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
+        /// <param name="reporter">Reporter to register runtime operations.</param>
         /// </summary>
-        internal BugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
+        internal BugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration)
         {
             this.Initialize();
@@ -108,6 +107,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.CoverageInfo = new CoverageInfo();
+            this.Reporter = reporter;
 
             if (!(strategy is DPORStrategy) && !(strategy is ReplayStrategy))
             {
@@ -148,7 +148,6 @@ namespace Microsoft.PSharp.TestingServices
             this.Monitors = new List<Monitor>();
             this.MachineMap = new ConcurrentDictionary<ulong, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
-            this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
             this.RootTaskId = Task.CurrentId;
         }
 
@@ -460,20 +459,10 @@ namespace Microsoft.PSharp.TestingServices
             // the id of its target, because the id does not exist yet.
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
-            Machine machine = this.CreateMachine(type, friendlyName);
+            Machine machine = this.CreateMachine(type, friendlyName, creator);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
-            if (base.Configuration.EnableDataRaceDetection)
-            {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap.Add(machine.Id, new MachineActionTrace(machine.Id));
-                if (creator != null && MachineActionTraceMap.Keys.Contains(creator.Id))
-                {
-                    this.MachineActionTraceMap[creator.Id].AddCreateMachineInfo(machine.Id);
-                }
-            }
-
             this.RunMachineEventHandler(machine, e, true, false, null);
 
             return machine.Id;
@@ -502,20 +491,10 @@ namespace Microsoft.PSharp.TestingServices
             // the id of its target, because the id does not exist yet.
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
-            Machine machine = this.CreateMachine(type, friendlyName);
+            Machine machine = this.CreateMachine(type, friendlyName, creator);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
-            if (base.Configuration.EnableDataRaceDetection)
-            {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap.Add(machine.Id, new MachineActionTrace(machine.Id));
-                if (creator != null && MachineActionTraceMap.Keys.Contains(creator.Id))
-                {
-                    this.MachineActionTraceMap[creator.Id].AddCreateMachineInfo(machine.Id);
-                }
-            }
-
             this.RunMachineEventHandler(machine, e, true, true, null);
 
             return await Task.FromResult(machine.Id);
@@ -543,10 +522,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="creator">The id of the machine that created the returned machine.</param>
         /// <returns>Machine</returns>
-        private Machine CreateMachine(Type type, string friendlyName)
+        private Machine CreateMachine(Type type, string friendlyName, Machine creator)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' is not a machine.");
 
@@ -566,6 +546,11 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(result, $"Machine '{mid}' was already created.");
 
             this.Logger.OnCreateMachine(mid);
+
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                Reporter.RegisterCreateMachine(creator?.Id, mid);
+            }
 
             return machine;
         }
@@ -677,8 +662,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.BugTrace.AddSendEventStep(sender.Id, stateName, eventInfo, machine.Id);
                 if (base.Configuration.EnableDataRaceDetection)
                 {
-                    // Traces machine actions, if data-race detection is enabled.
-                    this.MachineActionTraceMap[sender.Id].AddSendActionInfo(machine.Id, e);
+                    this.Reporter.RegisterEnqueue(sender.Id, machine.Id, e, (ulong)Scheduler.ScheduledSteps);
                 }
             }
 
@@ -1076,11 +1060,23 @@ namespace Microsoft.PSharp.TestingServices
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
 
             this.Logger.OnMachineAction(machine.Id, machineState, action.Name);
-
             if (base.Configuration.EnableDataRaceDetection)
             {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name, receivedEvent);
+                Reporter.InAction[machine.Id.Value] = true;
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine completed an action.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                Reporter.InAction[machine.Id.Value] = false;
             }
         }
 
@@ -1154,6 +1150,12 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
 
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, eventInfo.Event,
+                    (ulong)eventInfo.SendStep);
+            }
+
             this.BugTrace.AddDequeueEventStep(machine.Id, machine.CurrentStateName, eventInfo);
 
             if (base.Configuration.ReportActivityCoverage)
@@ -1223,6 +1225,14 @@ namespace Microsoft.PSharp.TestingServices
             else
             {
                 (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfoInInbox.SendStep;
+
+                // The event was already in the inbox when we executed a receive action.
+                // We've dequeued it by this point.
+                if (base.Configuration.EnableDataRaceDetection)
+                {
+                    Reporter.RegisterDequeue(eventInfoInInbox.OriginInfo?.SenderMachineId, machine.Id, 
+                        eventInfoInInbox.Event, (ulong)eventInfoInInbox.SendStep);
+                }
             }
 
             this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
@@ -1237,6 +1247,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked:true);
+
+            // A subsequent enqueue from m' unblocked the receive action of machine.
+            if (base.Configuration.EnableDataRaceDetection)
+            {
+                Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, eventInfo.Event, (ulong) eventInfo.SendStep);
+            }
+
             machine.Info.IsWaitingToReceive = false;
             (machine.Info as SchedulableInfo).IsEnabled = true;
             (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
@@ -1560,7 +1577,6 @@ namespace Microsoft.PSharp.TestingServices
             this.Monitors.Clear();
             this.MachineMap.Clear();
             this.TaskMap.Clear();
-            this.MachineActionTraceMap.Clear();
             base.Dispose();
         }
 
