@@ -44,7 +44,8 @@ namespace Microsoft.PSharp.TestingServices
             string directory = CodeCoverageInstrumentation.OutputDirectory;
             if (isDebug)
             {
-                directory += $"{Path.DirectorySeparatorChar}CoverageDebug";
+                directory += $"Debug{Path.DirectorySeparatorChar}";
+                Directory.CreateDirectory(directory);
             }
 
             EmitTestingCoverageOutputFiles(report, directory, file);
@@ -57,8 +58,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="assemblyPath">Path of input assembly</param>
         /// <param name="userOutputDir">User-provided output path</param>
         /// <param name="suffix">Optional suffix</param>
+        /// <param name="createDir">if true, create the directory</param>
         /// <returns>Path</returns>
-        internal static string GetOutputDirectory(string userOutputDir, string assemblyPath, string suffix = "")
+        internal static string GetOutputDirectory(string userOutputDir, string assemblyPath, string suffix = "", bool createDir = true)
         {
             string directoryPath;
 
@@ -75,7 +77,8 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 directoryPath = subpath +
-                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar + 
+                    Path.GetFileName(assemblyPath) + Path.DirectorySeparatorChar;
             }
 
             if (suffix.Length > 0)
@@ -83,7 +86,10 @@ namespace Microsoft.PSharp.TestingServices
                 directoryPath += suffix + Path.DirectorySeparatorChar;
             }
 
-            Directory.CreateDirectory(directoryPath);
+            if (createDir)
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
             return directoryPath;
         }
 
@@ -99,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="file">Output file name</param>
         private static void EmitTestingCoverageOutputFiles(TestReport report, string directory, string file)
         {
-            var codeCoverageReporter = new CodeCoverageReporter(report.CoverageInfo);
+            var codeCoverageReporter = new ActivityCoverageReporter(report.CoverageInfo);
             var filePath = $"{directory}{file}";
 
             string graphFilePath = $"{filePath}.dgml";

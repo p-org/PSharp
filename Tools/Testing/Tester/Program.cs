@@ -44,6 +44,12 @@ namespace Microsoft.PSharp
                 return;
             }
 
+            if (configuration.ReportCodeCoverage || configuration.ReportActivityCoverage)
+            {
+                // This has to be here because both forms of coverage require it.
+                CodeCoverageInstrumentation.SetOutputDirectory(configuration);
+            }
+
             if (configuration.ReportCodeCoverage)
             {
                 // Instruments the program under test for code coverage.

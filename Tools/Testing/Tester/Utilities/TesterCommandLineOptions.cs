@@ -240,11 +240,28 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/coverage"))
             {
                 base.Configuration.ReportCodeCoverage = true;
+                base.Configuration.ReportActivityCoverage = true;
             }
-            else if (option.ToLower().Equals("/coverage-debug"))
+            else if (option.ToLower().Equals("/coverage:code"))
             {
                 base.Configuration.ReportCodeCoverage = true;
-                base.Configuration.DebugCodeCoverage = true;
+            }
+            else if (option.ToLower().Equals("/coverage:activity"))
+            {
+                base.Configuration.ReportActivityCoverage = true;
+            }
+            else if (option.ToLower().Equals("/coverage:activity-debug"))
+            {
+                base.Configuration.ReportActivityCoverage = true;
+                base.Configuration.DebugActivityCoverage = true;
+            }
+            else if (option.ToLower().StartsWith("/instr:"))
+            {
+                base.Configuration.AdditionalCodeCoverageAssemblies[option.Substring(7)] = false;
+            }
+            else if (option.ToLower().StartsWith("/instr-list:"))
+            {
+                base.Configuration.AdditionalCodeCoverageAssemblies[option.Substring(12)] = true;
             }
             else if (option.ToLower().Equals("/detect-races"))
             {
@@ -294,7 +311,7 @@ namespace Microsoft.PSharp.Utilities
                 {
                     j = 10 * i;
                 }
-                
+
                 base.Configuration.MaxUnfairSchedulingSteps = i;
                 base.Configuration.MaxFairSchedulingSteps = j;
             }
@@ -441,7 +458,13 @@ namespace Microsoft.PSharp.Utilities
             help += "\n\n ---------------------------";
             help += "\n Testing code coverage options:";
             help += "\n ---------------------------";
-            help += "\n  /coverage\t Print code coverage statistics";
+            help += "\n  /coverage:code\t Generate code coverage statistics (via VS instrumentation)";
+            help += "\n  /coverage:activity\t Generate activity (machine, event, etc.) coverage statistics";
+            help += "\n  /coverage\t Generate both code and activity coverage statistics";
+            help += "\n  /coverage:activity-debug\t Print activity coverage statistics with debug info";
+            help += "\n  /instr:[filespec]\t Additional file spec(s) to instrument for /coverage:code; wildcards supported";
+            help += "\n  /instr-list:[listfilename]\t File containing the names of additional file(s), one per line,";
+            help += "\n         wildcards supported, to instrument for /coverage:code; lines starting with '//' are skipped";
 
             help += "\n";
 

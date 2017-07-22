@@ -65,19 +65,19 @@ namespace Microsoft.PSharp
             string name = OutputFilePrefix;
             string directoryPath = Environment.CurrentDirectory;
 
-            var codeCoverageReporter = new CodeCoverageReporter(cinfo);
+            var activityCoverageReporter = new ActivityCoverageReporter(cinfo);
 
             string[] graphFiles = Directory.GetFiles(directoryPath, name + "_*.dgml");
             string graphFilePath = Path.Combine(directoryPath, name + "_" + graphFiles.Length + ".dgml");
 
             Output.WriteLine($"... Writing {graphFilePath}");
-            codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
+            activityCoverageReporter.EmitVisualizationGraph(graphFilePath);
 
             string[] coverageFiles = Directory.GetFiles(directoryPath, name + "_*.coverage.txt");
             string coverageFilePath = Path.Combine(directoryPath, name + "_" + coverageFiles.Length + ".coverage.txt");
 
             Output.WriteLine($"... Writing {coverageFilePath}");
-            codeCoverageReporter.EmitCoverageReport(coverageFilePath);
+            activityCoverageReporter.EmitCoverageReport(coverageFilePath);
         }
 
 

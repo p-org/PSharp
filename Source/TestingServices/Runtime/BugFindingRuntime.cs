@@ -560,9 +560,9 @@ namespace Microsoft.PSharp.TestingServices
             machine.Initialize(this, mid, new SchedulableInfo(mid));
             machine.InitializeStateInformation();
 
-            if (base.Configuration.ReportCodeCoverage && !isMachineTypeCached)
+            if (base.Configuration.ReportActivityCoverage && !isMachineTypeCached)
             {
-                this.ReportCodeCoverageOfMachine(machine);
+                this.ReportActivityCoverageOfMachine(machine);
             }
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
@@ -826,7 +826,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
-            this.ReportCodeCoverageOfMonitor(monitor);
+            this.ReportActivityCoverageOfMonitor(monitor);
             this.BugTrace.AddCreateMonitorStep(mid);
 
             this.Monitors.Add(monitor);
@@ -851,10 +851,10 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (m.GetType() == type)
                 {
-                    if (base.Configuration.ReportCodeCoverage)
+                    if (base.Configuration.ReportActivityCoverage)
                     {
-                        this.ReportCodeCoverageOfMonitorEvent(sender, m, e);
-                        this.ReportCodeCoverageOfMonitorTransition(m, e);
+                        this.ReportActivityCoverageOfMonitorEvent(sender, m, e);
+                        this.ReportActivityCoverageOfMonitorTransition(m, e);
                     }
 
                     m.MonitorEvent(e);
@@ -1208,10 +1208,10 @@ namespace Microsoft.PSharp.TestingServices
 
             this.BugTrace.AddDequeueEventStep(machine.Id, machine.CurrentStateName, eventInfo);
 
-            if (base.Configuration.ReportCodeCoverage)
+            if (base.Configuration.ReportActivityCoverage)
             {
-                this.ReportCodeCoverageOfReceivedEvent(machine, eventInfo);
-                this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
+                this.ReportActivityCoverageOfReceivedEvent(machine, eventInfo);
+                this.ReportActivityCoverageOfStateTransition(machine, eventInfo);
             }
         }
 
@@ -1225,9 +1225,9 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Log($"<PopLog> Machine '{machine.Id}' invoked pop in state '{machine.CurrentStateName}'.");
 
-            if (base.Configuration.ReportCodeCoverage)
+            if (base.Configuration.ReportActivityCoverage)
             {
-                this.ReportCodeCoverageOfPopTransition(machine, machine.CurrentState, machine.GetStateTypeAtStackIndex(1));
+                this.ReportActivityCoverageOfPopTransition(machine, machine.CurrentState, machine.GetStateTypeAtStackIndex(1));
             }
         }
 
@@ -1249,9 +1249,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
         {
-            if (base.Configuration.ReportCodeCoverage)
+            if (base.Configuration.ReportActivityCoverage)
             {
-                this.ReportCodeCoverageOfStateTransition(machine, eventInfo);
+                this.ReportActivityCoverageOfStateTransition(machine, eventInfo);
             }
         }
 
@@ -1331,11 +1331,11 @@ namespace Microsoft.PSharp.TestingServices
         #region code coverage
 
         /// <summary>
-        /// Reports code coverage for the specified received event.
+        /// Reports coverage for the specified received event.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void ReportCodeCoverageOfReceivedEvent(Machine machine, EventInfo eventInfo)
+        private void ReportActivityCoverageOfReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             string originMachine = eventInfo.OriginInfo.SenderMachineName;
             string originState = eventInfo.OriginInfo.SenderStateName;
@@ -1347,12 +1347,12 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports code coverage for the specified monitor event.
+        /// Reports coverage for the specified monitor event.
         /// </summary>
         /// <param name="sender">Sender machine</param>
         /// <param name="monitor">Monitor</param>
         /// <param name="e">Event</param>
-        private void ReportCodeCoverageOfMonitorEvent(AbstractMachine sender, Monitor monitor, Event e)
+        private void ReportActivityCoverageOfMonitorEvent(AbstractMachine sender, Monitor monitor, Event e)
         {
             string originMachine = (sender == null) ? "Env" : sender.GetType().Name;
             string originState = (sender == null) ? "Env" :
@@ -1367,10 +1367,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports code coverage for the specified machine.
+        /// Reports coverage for the specified machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void ReportCodeCoverageOfMachine(Machine machine)
+        private void ReportActivityCoverageOfMachine(Machine machine)
         {
             var machineName = machine.GetType().Name;
 
@@ -1392,10 +1392,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports code coverage for the specified monitor.
+        /// Reports coverage for the specified monitor.
         /// </summary>
         /// <param name="monitor">Monitor</param>
-        private void ReportCodeCoverageOfMonitor(Monitor monitor)
+        private void ReportActivityCoverageOfMonitor(Monitor monitor)
         {
             var monitorName = monitor.GetType().Name;
 
@@ -1417,11 +1417,11 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports code coverage for the specified state transition.
+        /// Reports coverage for the specified state transition.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void ReportCodeCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
+        private void ReportActivityCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
             string originState = StateGroup.GetQualifiedStateName(machine.CurrentState);
@@ -1455,12 +1455,12 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports code coverage for a pop transition.
+        /// Reports coverage for a pop transition.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="fromState">Top of the stack state</param>
         /// <param name="toState">Next to top state of the stack</param>
-        private void ReportCodeCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
+        private void ReportActivityCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
         {
             string originMachine = machine.GetType().Name;
             string originState = StateGroup.GetQualifiedStateName(fromState);
@@ -1472,11 +1472,11 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports code coverage for the specified state transition.
+        /// Reports coverage for the specified state transition.
         /// </summary>
         /// <param name="monitor">Monitor</param>
         /// <param name="e">Event</param>
-        private void ReportCodeCoverageOfMonitorTransition(Monitor monitor, Event e)
+        private void ReportActivityCoverageOfMonitorTransition(Monitor monitor, Event e)
         {
             string originMachine = monitor.GetType().Name;
             string originState = StateGroup.GetQualifiedStateName(monitor.CurrentState);

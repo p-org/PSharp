@@ -451,13 +451,13 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            if (this.Configuration.ReportCodeCoverage)
+            if (this.Configuration.ReportActivityCoverage)
             {
                 Output.WriteLine($"... Emitting coverage reports:");
                 Reporter.EmitTestingCoverageReport(this.GlobalTestReport);
             }
 
-            if (this.Configuration.DebugCodeCoverage)
+            if (this.Configuration.DebugActivityCoverage)
             {
                 Output.WriteLine($"... Emitting debug coverage reports:");
                 foreach (var report in this.TestReports)
