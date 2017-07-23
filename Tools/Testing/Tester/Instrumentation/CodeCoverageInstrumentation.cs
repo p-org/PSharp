@@ -226,11 +226,20 @@ namespace Microsoft.PSharp.TestingServices
         /// or to a unique output directory name in the same directory as <see cref="Configuration.AssemblyToBeAnalyzed"/>
         /// and starting with its name.
         /// </summary>
-        internal static void SetOutputDirectory(Configuration configuration)
+        internal static void SetOutputDirectory(Configuration configuration, bool makeHistory)
         {
-            // Do not create the output directory yet, as we will want to scroll back the history first.
+            if (OutputDirectory.Length > 0)
+            {
+                return;
+            }
+
+            // Do not create the output directory yet if we have to scroll back the history first.
             OutputDirectory = Reporter.GetOutputDirectory(configuration.OutputFilePath, configuration.AssemblyToBeAnalyzed,
-                                                         "Coverage", createDir:false);
+                                                         "Coverage", createDir:!makeHistory);
+            if (!makeHistory)
+            {
+                return;
+            }
 
             // The MaxHistory previous results are kept under the directory name with a suffix scrolling back from 0 to 9 (oldest).
             const int MaxHistory = 10;

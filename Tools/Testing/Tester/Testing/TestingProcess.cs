@@ -274,10 +274,11 @@ namespace Microsoft.PSharp.TestingServices
             string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
             file += "_" + this.Configuration.TestingProcessId;
 
-            string directory = Reporter.GetOutputDirectory(this.Configuration.OutputFilePath, this.Configuration.AssemblyToBeAnalyzed);
+            // If this is a separate (sub-)process, CodeCoverageInstrumentation.OutputDirectory may not have been set up.
+            CodeCoverageInstrumentation.SetOutputDirectory(this.Configuration, makeHistory: false);
 
             Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
-            this.TestingEngine.TryEmitTraces(directory, file);
+            this.TestingEngine.TryEmitTraces(CodeCoverageInstrumentation.OutputDirectory, file);
         }
 
         /// <summary>
