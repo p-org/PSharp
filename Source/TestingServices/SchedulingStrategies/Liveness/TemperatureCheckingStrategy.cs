@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+using System.Linq;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -46,7 +47,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
+
             CheckLivenessTemperature();
+            IO.Debug.WriteLine("Temperature check here");
             return SchedulingStrategy.GetNext(out next, choices, current);
         }
 
@@ -81,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private void CheckLivenessTemperature()
         {
-            if (IsFair())
+            if (IsFair() && Monitors.Any(v => v.IsInHotState()))
             {
                 foreach (var monitor in Monitors)
                 {

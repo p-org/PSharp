@@ -351,6 +351,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
                     CheckLivenessAtTraceCycle(FingerprintIndexMap[fingerprint]);
                 }
+                IO.Debug.WriteLine("<Liveness checking> Fingerprint: " + fingerprint);
             }
 
             if (PotentialCycle.Count > 0)

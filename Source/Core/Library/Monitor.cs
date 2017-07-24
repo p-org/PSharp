@@ -510,6 +510,7 @@ namespace Microsoft.PSharp
                     $"Monitor '{this.GetType().Name}' detected potential liveness " +
                     $"bug in hot state '{this.CurrentStateName}'.");
             }
+            IO.Debug.WriteLine("Liveness temperature: " + this.LivenessTemperature);
         }
 
         /// <summary>
