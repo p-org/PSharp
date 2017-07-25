@@ -456,13 +456,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             DebugPrintScheduleTrace();
             DebugPrintPotentialCycle();
 
-            if (!IsSchedulingFair(PotentialCycle))
+            bool CheckFairness = true;
+            if (GetHotMonitors(PotentialCycle).Count == 0)
+                CheckFairness = false;
+            if (CheckFairness && !IsSchedulingFair(PotentialCycle))
             {
                 Debug.WriteLine("<LivenessDebug> Scheduling in cycle is unfair.");
                 PotentialCycle.Clear();
                 PotentialCycleFingerprints.Clear();
             }
-            else if (!IsNondeterminismFair(PotentialCycle))
+            else if (CheckFairness && !IsNondeterminismFair(PotentialCycle))
             {
                 Debug.WriteLine("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 PotentialCycle.Clear();
@@ -488,7 +491,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                             scheduleStep.Type, scheduleStep.State.Fingerprint.ToString());
                     }
 
-                    if (IsSchedulingFair(PotentialCycle) && IsNondeterminismFair(PotentialCycle))
+                    if (GetHotMonitors(PotentialCycle).Count > 0 && 
+                        IsSchedulingFair(PotentialCycle) && IsNondeterminismFair(PotentialCycle))
                     {
                         isFairCycleFound = true;
                         break;
