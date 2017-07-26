@@ -27,8 +27,9 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
+        /// <param name="CacheState">Used for liveness checking, cache only at sends</param>
         /// <returns>Boolean</returns>
-        bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
+        bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current, bool CacheState = true);
 
         /// <summary>
         /// Returns the next boolean choice.

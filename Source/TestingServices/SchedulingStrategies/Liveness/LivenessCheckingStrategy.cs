@@ -67,8 +67,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
+        /// <param name="CacheState"></param>
         /// <returns>Boolean</returns>
-        public abstract bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
+        public abstract bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current, bool CacheState = true);
 
         /// <summary>
         /// Returns the next boolean choice.
