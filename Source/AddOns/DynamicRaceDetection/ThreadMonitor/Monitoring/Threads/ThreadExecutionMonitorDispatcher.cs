@@ -27,7 +27,6 @@ using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.CallsOnly;
 using Microsoft.PSharp.TestingServices;
-using Microsoft.PSharp.Utilities;
 using ThreadTraces;
 
 namespace Microsoft.PSharp.Monitoring.AllCallbacks
@@ -53,7 +52,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// <summary>
         /// The thread trace.
         /// </summary>
-        private List<ThreadTrace> ThreadTrace;
+        private System.Collections.Generic.List<ThreadTrace> ThreadTrace;
 
         /// <summary>
         /// The debugging trace.
@@ -113,17 +112,17 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// <summary>
         /// The action ids.
         /// </summary>
-        private static Dictionary<int, int> ActionIds;
+        private static System.Collections.Generic.Dictionary<int, int> ActionIds;
 
         /// <summary>
         /// The send ids.
         /// </summary>
-        private static Dictionary<int, int> SendIds;
+        private static System.Collections.Generic.Dictionary<int, int> SendIds;
         
         /// <summary>
         /// The task methods.
         /// </summary>
-        private static List<Tuple<Method, int>> TaskMethods;
+        private static System.Collections.Generic.List<Tuple<Method, int>> TaskMethods;
 
         #endregion
 
@@ -134,9 +133,9 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// </summary>
         static ThreadExecutionMonitorDispatcher()
         {
-            ActionIds = new Dictionary<int, int>();
-            SendIds = new Dictionary<int, int>();
-            TaskMethods = new List<Tuple<Method, int>>();
+            ActionIds = new System.Collections.Generic.Dictionary<int, int>();
+            SendIds = new System.Collections.Generic.Dictionary<int, int>();
+            TaskMethods = new System.Collections.Generic.List<Tuple<Method, int>>();
         }
 
         /// <summary>
@@ -156,7 +155,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             this.ThreadIndex = threadIndex;
             this.Configuration = configuration;
             
-            this.ThreadTrace = new List<ThreadTrace>();
+            this.ThreadTrace = new System.Collections.Generic.List<ThreadTrace>();
             this.DebugTrace = new SafeList<string>();
             this.CallStack = new SafeStack<Method>();
 
@@ -227,13 +226,13 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 }
             }
 
-            //if (this.Configuration.EnableDebugging)
-            //{
-            //    foreach (var log in this.DebugTrace)
-            //    {
-            //        IO.Debug(log);
-            //    }
-            //}
+            if (this.Configuration.EnableDebugging)
+            {
+                foreach (var log in this.DebugTrace)
+                {
+                    IO.Output.WriteLine(log);
+                }
+            }
 
             this.ThreadTrace.Clear();
             ActionIds.Clear();
@@ -459,10 +458,10 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 this.IsCreateMachineMethod = true;
                 this.DebugTrace.Add($"<ThreadMonitorLog> Call '{method}' '{this.IsCreateMachineMethod}'.");
             }
-            else if ((method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
+            else if ((method.FullName.Contains("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
                 !this.CallStack.Peek().FullName.Contains(".Main"))
             {
-                this.DebugTrace.Add($"<ThreadMonitorLog> Send '{method.FullName}'.");
+                this.DebugTrace.Add($"<ThreadMonitorLog> Send '{method.FullName}'. " + CurrentMachineId);
                 ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
 
                 if (SendIds.ContainsKey(this.CurrentMachineId))

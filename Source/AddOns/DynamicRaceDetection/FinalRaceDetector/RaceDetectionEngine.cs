@@ -321,14 +321,6 @@ namespace FinalRaceDetector
 
                         if (ins.IsSend)
                         {
-                            Output.WriteLine("Searching: " + ins.SendId);
-                            foreach(var m in machineTrace)
-                            {
-                                if(!string.IsNullOrEmpty(m.SendEventName) && (int)m.MachineId == matching.MachineId)
-                                {
-                                    Output.WriteLine("Available: " + m.SendId);
-                                }
-                            }
                             MachineActionInfo machineSend = machineTrace.Where(
                                 item => (int)item.MachineId == matching.MachineId &&
                                 item.SendId == ins.SendId).Single();
@@ -741,7 +733,6 @@ namespace FinalRaceDetector
         bool DetectRacesFast()
         {
             Output.WriteLine("\nDETECTING RACES");
-
             if (this.CGraph.VertexCount == 0)
             {
                 return false;

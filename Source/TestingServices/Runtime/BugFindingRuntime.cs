@@ -589,13 +589,17 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (sender != null)
                 {
+                    if (base.Configuration.EnableDataRaceDetection)
+                    {
+                        // Traces machine actions, if data-race detection is enabled.
+                        this.MachineActionTraceMap[sender.Id].AddSendActionInfo(mid, e);
+                    }
                     this.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
                 }
                 else
                 {
                     this.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
                 }
-
                 return;
             }
             
@@ -624,13 +628,17 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (sender != null)
                 {
+                    if (base.Configuration.EnableDataRaceDetection)
+                    {
+                        // Traces machine actions, if data-race detection is enabled.
+                        this.MachineActionTraceMap[sender.Id].AddSendActionInfo(mid, e);
+                    }
                     this.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
                 }
                 else
                 {
                     this.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
                 }
-
                 return;
             }
 
