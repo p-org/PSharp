@@ -381,7 +381,7 @@ abstract event e;
 {
 }
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Unexpected token 'abstract'.", test);
+            LanguageTestUtilities.AssertFailedTestLog("An event cannot be declared as abstract.", test);
         }
 
         [Fact]

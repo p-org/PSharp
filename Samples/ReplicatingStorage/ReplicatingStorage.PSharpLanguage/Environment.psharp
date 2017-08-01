@@ -6,7 +6,7 @@ namespace ReplicatingStorage.PSharpLanguage
     machine Environment
     {
 		MachineId NodeManager;
-        int NumberOfReplicas;	// Note: commented out below
+        int NumberOfReplicas;
 		List<machine> AliveNodes;
         int NumberOfFaults;
 		machine Client;
@@ -16,24 +16,19 @@ namespace ReplicatingStorage.PSharpLanguage
 		{
 			entry
 			{
-				/*this.NumberOfReplicas = 3;
+				this.NumberOfReplicas = 3;
 				this.NumberOfFaults = 1;
 				this.AliveNodes = new List<machine>();
 
-				create(LivenessMonitor);
 				monitor<LivenessMonitor>(LConfigureEvent, this.NumberOfReplicas);
 
 				this.NodeManager = create(NodeManager);
 				this.Client = create(Client);
 
-				this.FailureTimer = create(FailureTimer);
-				send(this.FailureTimer, FConfigureEvent, this.Id);
-
-				raise(LocalEvent);*/
+				raise(LocalEvent);
 			}
 
-	        /*on LocalEvent goto Configuring;
-			defer Timeout;*/
+	        on LocalEvent goto Configuring;
 		}
 
 		state Configuring
@@ -66,27 +61,36 @@ namespace ReplicatingStorage.PSharpLanguage
         {
             var node = (trigger as NotifyNode).Node;
             this.AliveNodes.Add(node);
+
+			if (this.AliveNodes.Count == this.NumberOfReplicas &&
+				this.FailureTimer == null)
+			{
+				this.FailureTimer = create(FailureTimer);
+				send(this.FailureTimer, FConfigureEvent, this.Id);
+			}
         }
 
 		void InjectFault()
         {
-            if (this.NumberOfFaults == 0)
+            if (this.NumberOfFaults == 0 ||
+                this.AliveNodes.Count == 0)
             {
                 return;
             }
 
-            foreach (var node in this.AliveNodes)
-            {
-                if (*)
-                {
-                    this.Logger.WriteLine("\n [Environment] injecting fault.\n");
+            var nodeId = this.RandomInteger(this.AliveNodes.Count);
+            var node = this.AliveNodes[nodeId];
 
-                    send(node, FaultInject);
-                    send(this.NodeManager, NotifyFailure, node);
-                    this.AliveNodes.Remove(node);
-                    this.NumberOfFaults--;
-                    break;
-                }
+            this.Logger.WriteLine("\n [Environment] injecting fault.\n");
+
+            send(node, FaultInject);
+            send(this.NodeManager, NotifyFailure, node);
+            this.AliveNodes.Remove(node);
+
+            this.NumberOfFaults--;
+            if (this.NumberOfFaults == 0)
+            {
+                send(this.FailureTimer, halt);
             }
         }
     }

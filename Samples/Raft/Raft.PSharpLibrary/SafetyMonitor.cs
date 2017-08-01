@@ -19,7 +19,7 @@ namespace Raft.PSharpLibrary
 
         private class LocalEvent : Event { }
 
-        private int CurrentTerm;
+        //unused: private int CurrentTerm;
         private HashSet<int> TermsWithLeader;
 
         [Start]
@@ -29,7 +29,7 @@ namespace Raft.PSharpLibrary
 
         void InitOnEntry()
         {
-            this.CurrentTerm = -1;
+            //this.CurrentTerm = -1;
             this.TermsWithLeader = new HashSet<int>();
             this.Raise(new LocalEvent());
         }

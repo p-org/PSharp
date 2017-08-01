@@ -68,6 +68,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
+            // Check for inherited state.
+            if (!base.TokenStream.Done && base.TokenStream.Peek().Type == TokenType.Colon)
+            {
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                if (base.TokenStream.Done || base.TokenStream.Peek().Type != TokenType.Identifier)
+                {
+                    throw new ParsingException("Expected state identifier.",
+                        new List<TokenType> { TokenType.Identifier });
+                }
+
+                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
+                    TokenType.StateIdentifier));
+                node.BaseStateToken = base.TokenStream.Peek();
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            }
+
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
@@ -323,12 +341,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>());
             }
 
-            if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
-            {
-                throw new ParsingException("A machine state cannot be abstract.",
-                    new List<TokenType>());
-            }
-            else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
+            if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
             {
                 throw new ParsingException("A machine state cannot be virtual.",
                     new List<TokenType>());

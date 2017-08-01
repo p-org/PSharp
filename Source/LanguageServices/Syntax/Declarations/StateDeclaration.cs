@@ -74,6 +74,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token LeftCurlyBracketToken;
 
         /// <summary>
+        /// True if the machine is abstract.
+        /// </summary>
+        internal bool IsAbstract;
+
+        /// <summary>
+        /// The token identifying the base state this state inherits from, if any.
+        /// </summary>
+        internal Token BaseStateToken;
+
+        /// <summary>
         /// Entry declaration.
         /// </summary>
         internal EntryDeclaration EntryDeclaration;
@@ -155,6 +165,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IsStart = modSet.IsStart;
             this.IsHot = modSet.IsHot;
             this.IsCold = modSet.IsCold;
+            this.IsAbstract = modSet.InheritanceModifier == InheritanceModifier.Abstract;
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
@@ -443,14 +454,22 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 }
             }
 
-            if (!this.Machine.IsMonitor)
+            string getBaseTokenName(string requiredBaseType)
             {
-                text += "class " + this.Identifier.TextUnit.Text + " : MachineState";
+                if (this.BaseStateToken == null)
+                {
+                    return requiredBaseType;
+                }
+
+                // TODO: Ensure base derives (transitively) from MachineState? What if base is a state in a machine in another dll?
+                return this.BaseStateToken.Text;
             }
-            else
+            var baseTokenName = getBaseTokenName((this.Machine.IsMonitor ? "MonitorState" : "MachineState"));
+            if (this.IsAbstract)
             {
-                text += "class " + this.Identifier.TextUnit.Text + " : MonitorState";
+                text += "abstract ";
             }
+            text += "class " + this.Identifier.TextUnit.Text + " : " + baseTokenName;
 
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";

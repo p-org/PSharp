@@ -68,7 +68,6 @@ namespace TwoPhaseCommit.PSharpLibrary
         private Dictionary<int, int> Data;
         private List<MachineId> Replicas;
         private PendingWriteRequest PendingWriteReq;
-        private MachineId Replica;
         private int CurrSeqNum;
         private int Counter;
         private MachineId Timer;

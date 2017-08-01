@@ -5,15 +5,15 @@ namespace PingPong.PSharpLanguage
 {
     /// <summary>
     /// A simple PingPong application written using the P# high-level syntax.
-    /// 
+    ///
     /// The P# runtime starts by creating the P# machine 'NetworkEnvironment'. The
     /// 'NetworkEnvironment' machine then creates a 'Server' and a 'Client' machine,
     /// which then communicate by sending 'Ping' and 'Pong' events to each other for
     /// a limited amount of turns.
-    /// 
+    ///
     /// The P# compiler rewrites '.psharp' files to an intermediate C# representation
     /// (see the 'PingPong.PSharpLibrary' sample) before invoking the Roslyn compiler.
-    /// 
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -39,7 +39,7 @@ namespace PingPong.PSharpLanguage
         /// <summary>
         /// The P# testing engine uses a method annotated with the 'Microsoft.PSharp.Test'
         /// attribute as an entry point.
-        /// 
+        ///
         /// During testing, the testing engine takes control of the underlying scheduler
         /// and any declared in P# sources of non-determinism (e.g. P# asynchronous APIs,
         /// P# non-determinstic choices) and systematically executes the test method a user
