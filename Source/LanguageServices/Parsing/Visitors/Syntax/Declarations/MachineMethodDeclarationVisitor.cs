@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit));
+                // TODOswap Why?: base.TokenStream.Swap(base.TokenStream.Peek().TextUnit);
 
                 node.Parameters.Add(base.TokenStream.Peek());
 

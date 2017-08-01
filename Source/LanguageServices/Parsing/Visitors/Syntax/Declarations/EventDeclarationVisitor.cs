@@ -66,8 +66,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.Identifier)
             {
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.EventIdentifier));
+                base.TokenStream.Swap(TokenType.EventIdentifier);
             }
 
             node.Identifier = base.TokenStream.Peek();
@@ -153,8 +152,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Identifier)
                 {
-                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                        TokenType.EventIdentifier));
+                    base.TokenStream.Swap(TokenType.EventIdentifier);
                     node.GenericType.Add(base.TokenStream.Peek());
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Dot ||

@@ -17,6 +17,6 @@
     <ProjectReference Include="..\TestingServices\TestingServices.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="1.2.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.3.0" />
   </ItemGroup>
 </Project>

@@ -94,9 +94,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).
-                WithExpression(SyntaxFactory.IdentifierName("this.Send")).
-                WithTriviaFrom(node);
+                WithExpression(SyntaxFactory.IdentifierName("this.Send"));
 
+            base.Program.AddRewrittenTerm(node, rewritten.ToString());
+
+            rewritten = rewritten.WithTriviaFrom(node);
             return rewritten;
         }
 

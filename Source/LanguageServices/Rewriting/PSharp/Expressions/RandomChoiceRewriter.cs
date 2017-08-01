@@ -74,7 +74,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private SyntaxNode RewriteExpression(PrefixUnaryExpressionSyntax node)
         {
             var text = "this.Random()";
-            var rewritten = SyntaxFactory.ParseExpression(text);
+            base.Program.AddRewrittenTerm(node, text);
+
+            var rewritten = SyntaxFactory.ParseExpression(text);    // TODO: .WithTriviaFrom(node); ?
             return rewritten;
         }
 

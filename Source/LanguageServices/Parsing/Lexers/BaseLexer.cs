@@ -70,16 +70,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     var split = this.SplitText(lineText);
                     foreach (var tok in split)
                     {
-                        if (tok.Equals(""))
+                        if (tok.Length > 0)
                         {
-                            continue;
+                            this.TextUnits.Add(new TextUnit(tok, line, position));
+                            position += tok.Length;
                         }
-
-                        this.TextUnits.Add(new TextUnit(tok, line));
-                        position += tok.Length;
                     }
 
-                    this.TextUnits.Add(new TextUnit("\n", line));
+                    this.TextUnits.Add(new TextUnit("\n", line, position));
                     position++;
                     line++;
                 }

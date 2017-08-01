@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
 
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+            base.TextUnit = this.TypeIdentifier.TextUnit.WithText(text);
         }
 
         #endregion

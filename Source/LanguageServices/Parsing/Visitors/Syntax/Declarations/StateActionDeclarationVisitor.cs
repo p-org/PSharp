@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     }
 
                     TextUnit textUnit = new TextUnit(identifierBuilder.ToString(),
-                        eventIdentifier[0].TextUnit.Line);
+                        eventIdentifier[0].TextUnit.Line, eventIdentifier[0].TextUnit.Start);
                     resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier),
                         eventIdentifier);
                 }
@@ -184,8 +184,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             new List<TokenType>());
                     }
 
-                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.ActionIdentifier));
+                    base.TokenStream.Swap(TokenType.ActionIdentifier);
 
                     var actionIdentifier = base.TokenStream.Peek();
                     foreach (var kvp in resolvedEventIdentifiers)
@@ -339,8 +338,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (base.TokenStream.Peek().Type == TokenType.Identifier)
                 {
-                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                        TokenType.StateIdentifier));
+                    base.TokenStream.Swap(TokenType.StateIdentifier);
                     stateIdentifiers.Add(base.TokenStream.Peek());
 
                     base.TokenStream.Index++;

@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 sb.Append("\n").Append(indent).Append(splitLines.Last().Item2);
             }
-            base.TextUnit = new TextUnit(sb.ToString(), this.OpenBraceToken.TextUnit.Line);
+            base.TextUnit = this.OpenBraceToken.TextUnit.WithText(sb.ToString());
         }
 
         #endregion

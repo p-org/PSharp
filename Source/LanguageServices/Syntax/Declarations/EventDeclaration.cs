@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     this.Identifier.TextUnit.Text);
             }
 
-            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
+            base.TextUnit = this.EventKeyword.TextUnit.WithText(text);
         }
 
         #endregion

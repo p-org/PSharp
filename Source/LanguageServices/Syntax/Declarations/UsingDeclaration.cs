@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite(int indentLevel)
         {
             var text = GetIndent(indentLevel) + this.GetRewrittenUsingDeclaration();
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
+            base.TextUnit = this.UsingKeyword.TextUnit.WithText(text);
         }
 
         #endregion

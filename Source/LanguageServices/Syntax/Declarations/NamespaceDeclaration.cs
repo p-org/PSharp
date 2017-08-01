@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var indent = GetIndent(indentLevel); // indent here will likely always be 0
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite(indentLevel + 1);
+                node.Rewrite(indentLevel  + 1);
             }
             
             foreach (var node in this.MachineDeclarations)
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
+            base.TextUnit = this.NamespaceKeyword.TextUnit.WithText(text);
         }
 
         #endregion

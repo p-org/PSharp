@@ -44,6 +44,15 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
+        #region properties
+
+        /// <summary>
+        /// The P# terms rewritten to C# in this program.
+        /// </summary>
+        public RewrittenTerms RewrittenTerms { get; } = new RewrittenTerms();
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -64,8 +73,89 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             // Perform sanity checking on the P# program.
-            BasicTypeChecking();
+            this.BasicTypeChecking();
 
+            // Convert from P# structural syntax to attributed C# classes and relevant methods.
+            this.RewriteStructuresToAttributedClassesAndMethods();
+
+            // Convert from P# keywords etc. to C# syntax and insert additional 'using' references.
+            RewriteTermsAndInsertLibraries();
+
+            if (Debug.IsEnabled)
+            {
+                base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
+            }
+        }
+
+        /// <summary>
+        /// Add a record of a rewritten term (type, statement, expression) from P# to C#.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="rewrittenText"></param>
+        public override void AddRewrittenTerm(SyntaxNode node, string rewrittenText)
+        {
+            this.RewrittenTerms.AddToBatch(node, rewrittenText);
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Rewrites the P# types to C#.
+        /// </summary>
+        private void RewriteTypes()
+        {
+            new MachineTypeRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new HaltEventRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+        }
+
+        /// <summary>
+        /// Rewrites the P# statements to C#.
+        /// </summary>
+        private void RewriteStatements()
+        {
+            new CreateMachineRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new CreateRemoteMachineRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new SendRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new MonitorRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new RaiseRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new GotoStateRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new PopRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new AssertRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+
+            var qualifiedMethods = this.GetResolvedRewrittenQualifiedMethods();
+            new TypeofRewriter(this).Rewrite(qualifiedMethods);
+            this.MergeRewrittenTermBatch();
+        }
+
+        /// <summary>
+        /// Rewrites the P# expressions to C#.
+        /// </summary>
+        private void RewriteExpressions()
+        {
+            new TriggerRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new CurrentStateRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new ThisRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+            new RandomChoiceRewriter(this).Rewrite();
+            this.MergeRewrittenTermBatch();
+        }
+
+        private void RewriteStructuresToAttributedClassesAndMethods()
+        {
             var text = "";
             const int indentLevel = 0;
 
@@ -85,59 +175,23 @@ namespace Microsoft.PSharp.LanguageServices
             }
 
             base.UpdateSyntaxTree(text);
+        }
 
+        private void RewriteTermsAndInsertLibraries()
+        {
             this.RewriteTypes();
             this.RewriteStatements();
             this.RewriteExpressions();
 
+            // Adding additional libraries will change offsets.
+            var originalLength = base.GetSyntaxTree().Length;
             this.InsertLibraries();
-
-            if (Debug.IsEnabled)
-            {
-                base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
-            }
+            this.RewrittenTerms.OffsetStarts(base.GetSyntaxTree().Length - originalLength);
         }
 
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Rewrites the P# types to C#.
-        /// </summary>
-        private void RewriteTypes()
+        private void MergeRewrittenTermBatch()
         {
-            new MachineTypeRewriter(this).Rewrite();
-            new HaltEventRewriter(this).Rewrite();
-        }
-
-        /// <summary>
-        /// Rewrites the P# statements to C#.
-        /// </summary>
-        private void RewriteStatements()
-        {
-            new CreateMachineRewriter(this).Rewrite();
-            new CreateRemoteMachineRewriter(this).Rewrite();
-            new SendRewriter(this).Rewrite();
-            new MonitorRewriter(this).Rewrite();
-            new RaiseRewriter(this).Rewrite();
-            new GotoStateRewriter(this).Rewrite();
-            new PopRewriter(this).Rewrite();
-            new AssertRewriter(this).Rewrite();
-
-            var qualifiedMethods = this.GetResolvedRewrittenQualifiedMethods();
-            new TypeofRewriter(this).Rewrite(qualifiedMethods);
-        }
-
-        /// <summary>
-        /// Rewrites the P# expressions to C#.
-        /// </summary>
-        private void RewriteExpressions()
-        {
-            new TriggerRewriter(this).Rewrite();
-            new CurrentStateRewriter(this).Rewrite();
-            new ThisRewriter(this).Rewrite();
-            new RandomChoiceRewriter(this).Rewrite();
+            this.RewrittenTerms.MergeBatch();
         }
 
         /// <summary>

@@ -36,9 +36,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Consumes a qualified name from the tokenstream.
         /// QN = Identifier || Identifier.QN
         /// </summary>
-        /// <param name="replacement">TokenType</param>
+        /// <param name="replacementType">TokenType</param>
         /// <returns>Tokens</returns>
-        internal List<Token> ConsumeQualifiedName(TokenType replacement)
+        internal List<Token> ConsumeQualifiedName(TokenType replacementType)
         {
             var qualifiedName = new List<Token>();
 
@@ -53,8 +53,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                replacement));
+            base.TokenStream.Swap(replacementType);
             qualifiedName.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
@@ -77,7 +76,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     });
                 }
 
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit, replacement));
+                base.TokenStream.Swap(replacementType);
                 qualifiedName.Add(base.TokenStream.Peek());
 
                 base.TokenStream.Index++;

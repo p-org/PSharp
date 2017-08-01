@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     break;
                 }
 
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit));
+                // TODOswap why?: base.TokenStream.Swap(base.TokenStream.Peek().TextUnit);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();

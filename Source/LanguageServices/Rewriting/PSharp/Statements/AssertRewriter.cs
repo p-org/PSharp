@@ -72,8 +72,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            var rewritten = node.WithExpression(SyntaxFactory.IdentifierName("this.Assert"));
-            rewritten = rewritten.WithTriviaFrom(node);
+            var text = "this.Assert";
+            base.Program.AddRewrittenTerm(node, text);
+
+            var rewritten = node.WithExpression(SyntaxFactory.IdentifierName(text)).WithTriviaFrom(node);
             return rewritten;
         }
 

@@ -12,6 +12,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>
+    <AssemblyOriginatorKeyFile>C:\dev\PSharp\git\Tools_VisualStudio\Build\Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
@@ -26,6 +27,6 @@
     <None Include="PSharp.WithCompiler.targets" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.1012" />
   </ItemGroup>
 </Project>

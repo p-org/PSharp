@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     }
 
                     TextUnit textUnit = new TextUnit(identifierBuilder.ToString(),
-                        eventIdentifier[0].TextUnit.Line);
+                        eventIdentifier[0].TextUnit.Line, eventIdentifier[0].TextUnit.Start);
                     resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier),
                         eventIdentifier);
                 }

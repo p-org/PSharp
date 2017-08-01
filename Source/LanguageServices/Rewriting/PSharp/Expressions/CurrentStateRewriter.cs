@@ -73,9 +73,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private SyntaxNode RewriteExpression(IdentifierNameSyntax node)
         {
             var text = "this.CurrentState";
-            var rewritten = SyntaxFactory.ParseExpression(text);
-            rewritten = rewritten.WithTriviaFrom(node);
+            base.Program.AddRewrittenTerm(node, text);
 
+            var rewritten = SyntaxFactory.ParseExpression(text).WithTriviaFrom(node);
             return rewritten;
         }
 

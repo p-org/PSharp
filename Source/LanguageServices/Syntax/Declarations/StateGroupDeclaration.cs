@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += GetIndent(indentLevel) + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.StateGroupKeyword.TextUnit.Line);
+            base.TextUnit = this.StateGroupKeyword.TextUnit.WithText(text);
         }
 
         /// <summary>

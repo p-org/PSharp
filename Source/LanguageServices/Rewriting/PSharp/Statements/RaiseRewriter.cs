@@ -98,9 +98,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 SyntaxFactory.SeparatedList(arguments)));
 
             var text = node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Raise"))).ToString();
-            var rewritten = SyntaxFactory.ParseStatement(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            base.Program.AddRewrittenTerm(node, text);
+            var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
 

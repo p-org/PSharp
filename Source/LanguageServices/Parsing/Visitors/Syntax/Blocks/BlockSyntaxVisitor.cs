@@ -63,6 +63,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (counter == 0)
                 {
+                    node.CloseBraceToken = base.TokenStream.Peek();
                     break;
                 }
 

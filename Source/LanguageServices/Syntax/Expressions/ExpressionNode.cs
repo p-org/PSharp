@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             if (this.StmtTokens.Count == 0)
             {
-                base.TextUnit = new TextUnit("", 0);
+                base.TextUnit = new TextUnit("", 0, 0);
                 return;
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += token.TextUnit.Text;
             }
 
-            base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);
+            base.TextUnit = this.StmtTokens.First().TextUnit.WithText(text);
         }
 
         #endregion
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         protected void RewriteMachineType()
         {
-            var textUnit = new TextUnit("MachineId", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
+            var textUnit = this.RewrittenStmtTokens[this.Index].TextUnit.WithText("MachineId");
             this.RewrittenStmtTokens[this.Index] = new Token(textUnit, this.RewrittenStmtTokens[this.Index].Type);
         }
 
@@ -108,9 +108,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         protected void RewriteNonDeterministicChoice()
         {
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "this.Random()";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
+            var textUnit = this.RewrittenStmtTokens[this.Index].TextUnit.WithText("this.Random()");
+            this.RewrittenStmtTokens[this.Index] = new Token(textUnit);     // TODO TokenType?
         }
 
         #endregion
@@ -170,9 +169,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
             else
             {
-                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "this.Id";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
+                var textUnit = this.RewrittenStmtTokens[this.Index].TextUnit.WithText("this.Id");
+                this.RewrittenStmtTokens[this.Index] = new Token(textUnit); // TODO TokenType?
             }
         }
 
@@ -181,9 +179,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         private void RewriteTrigger()
         {
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "this.ReceivedEvent";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
+            var textUnit = this.RewrittenStmtTokens[this.Index].TextUnit.WithText("this.ReceivedEvent");
+            this.RewrittenStmtTokens[this.Index] = new Token(textUnit); // TODO TokenType?
         }
 
         /// <summary>
@@ -200,20 +197,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return;
             }
 
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "(this.";
-
-            if (this.Parent.Machine.IsMonitor)
-            {
-                text += "Monitor";
-            }
-            else
-            {
-                text += "Machine";
-            }
-
+            text += (this.Parent.Machine.IsMonitor) ? "Monitor" : "Machine";
             text += " as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
-            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line)));
+
+            var textUnit = this.RewrittenStmtTokens[this.Index].TextUnit.WithText(text);
+            this.RewrittenStmtTokens.Insert(this.Index, new Token(textUnit));   // TODO TokenType?
             this.Index++;
         }
 

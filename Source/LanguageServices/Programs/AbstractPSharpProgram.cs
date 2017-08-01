@@ -87,6 +87,13 @@ namespace Microsoft.PSharp.LanguageServices
             this.SyntaxTree = this.Project.CompilationContext.ReplaceSyntaxTree(this.SyntaxTree, text, project);
         }
 
+        /// <summary>
+        /// Add a record of a rewritten term (type, statement, expression) from P# to C#.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="rewrittenText"></param>
+        public virtual void AddRewrittenTerm(SyntaxNode node, string rewrittenText) { }
+
         #endregion
 
         #region protected API

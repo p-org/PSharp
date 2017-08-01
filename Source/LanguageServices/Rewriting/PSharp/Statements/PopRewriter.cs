@@ -73,10 +73,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var text = "this.Pop();";
+            base.Program.AddRewrittenTerm(node, text);
 
-            var rewritten = SyntaxFactory.ParseStatement(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
 

@@ -101,26 +101,31 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <returns>Token</returns>
         public Token Peek()
         {
-            if (this.Index == this.Tokens.Count)
-            {
-                return null;
-            }
-            
-            return this.Tokens[this.Index];
+            return this.Done ? null : this.Tokens[this.Index];
         }
 
         /// <summary>
-        /// Swaps the current token with the new token. Does nothing if the stream is
-        /// empty.
+        /// Swaps the current token with a new token containing updated text and type.
+        /// Does nothing if the stream is empty or the current index is past the end of the stream.
         /// </summary>
-        public void Swap(Token token)
+        public void Swap(TextUnit updatedText, TokenType updatedType = Token.DefaultTokenType)
         {
-            if (this.Index == this.Tokens.Count)
+            if (!this.Done)
             {
-                return;
+                this.Tokens[this.Index] = new Token(this.Peek(), updatedText, updatedType);
             }
+        }
 
-            this.Tokens[this.Index] = token;
+        /// <summary>
+        /// Swaps the current token with a new token containing updated type.
+        /// Does nothing if the stream is empty or the current index is past the end of the stream.
+        /// </summary>
+        public void Swap(TokenType updatedType)
+        {
+            if (this.Index != this.Tokens.Count)
+            {
+                this.Tokens[this.Index] = new Token(this.Peek(), updatedType);
+            }
         }
 
         /// <summary>
@@ -130,12 +135,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <returns>Token</returns>
         public Token GetAt(int index)
         {
-            if (index >= this.Tokens.Count || index < 0)
-            {
-                return null;
-            }
-            
-            return this.Tokens[index];
+            return (index >= this.Tokens.Count || index < 0) ? null : this.Tokens[index];
         }
 
         /// <summary>
@@ -262,5 +262,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns a string representation of the TokenStream's token count, current index, and current token.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var token = this.Done ? "<done>" : this.Peek().ToString();
+            return $"{this.Length}[{this.Index}] {token}";
+        }
     }
 }

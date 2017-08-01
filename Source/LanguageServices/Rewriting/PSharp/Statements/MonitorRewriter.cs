@@ -96,9 +96,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).
                 WithExpression((node.Expression as GenericNameSyntax).
-                WithIdentifier(SyntaxFactory.Identifier("this.Monitor"))).
-                WithTriviaFrom(node);
+                WithIdentifier(SyntaxFactory.Identifier("this.Monitor")));
 
+            base.Program.AddRewrittenTerm(node, rewritten.ToString());
+
+            rewritten = rewritten.WithTriviaFrom(node);
             return rewritten;
         }
 

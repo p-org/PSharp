@@ -83,11 +83,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 "typeof(" + arguments[0].ToString() + ")"));
             invocation = invocation.WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(arguments)));
-            
-            var text = node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Goto"))).ToString();
-            var rewritten = SyntaxFactory.ParseStatement(text);
-            rewritten = rewritten.WithTriviaFrom(node);
 
+            var text = node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Goto"))).ToString();
+            base.Program.AddRewrittenTerm(node, text);
+            var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
 

@@ -65,6 +65,10 @@ namespace Microsoft.PSharp.VisualStudio
                 var currLoc = containingLine.Start.Position;
                 foreach (var token in tokens)
                 {
+                    if (currLoc == containingLine.Length)   // TODOspan: we need to *not* add the ending newline
+                    {
+                        break;
+                    }
                     var tokenSpan = new SnapshotSpan(currSpan.Snapshot, new Span(currLoc, token.Text.Length));
                     yield return new TagSpan<PSharpTokenTag>(tokenSpan, new PSharpTokenTag(token.Type));
                     currLoc += token.Text.Length;

@@ -79,9 +79,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 (rewritten.Parent as AssignmentExpressionSyntax).Right.IsEquivalentTo(node)))
             {
                 var text = "this.Id";
-
-                rewritten = SyntaxFactory.ParseExpression(text);
-                rewritten = rewritten.WithTriviaFrom(node);
+                base.Program.AddRewrittenTerm(node, text);
+                rewritten = SyntaxFactory.ParseExpression(text).WithTriviaFrom(node);
             }
 
             return rewritten;

@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 $"_on_exit_action{suffix}";
             text += "\n" + StatementBlock.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);
+            base.TextUnit = this.ExitKeyword.TextUnit.WithText(text);
         }
 
         #endregion

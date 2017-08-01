@@ -124,18 +124,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
                 {
-                    base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
-                        Peek().TextUnit.Line), TokenType.MachineDecl));
+                    // TODOswap needed?    base.TokenStream.Swap(base.TokenStream.Peek().TextUnit.WithText("MachineId"), TokenType.MachineDecl);
                 }
 
-                if (textUnit == null)
-                {
-                    textUnit = new TextUnit(base.TokenStream.Peek().TextUnit.Text, line);
-                }
-                else
-                {
-                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
-                }
+                var peekTextUnit = base.TokenStream.Peek().TextUnit;
+                var initialText = (textUnit == null) ? string.Empty : textUnit.Text;
+                textUnit = (textUnit == null)
+                    ? new TextUnit(peekTextUnit.Text, line, peekTextUnit.Start)
+                    : textUnit + peekTextUnit;
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -143,7 +139,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += base.TokenStream.Peek().TextUnit;
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -191,11 +187,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
                     {
-                        base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
-                            Peek().TextUnit.Line), TokenType.MachineDecl));
+                        // TODOswap needed?    base.TokenStream.Swap(base.TokenStream.Peek().TextUnit.WithText("MachineId"), TokenType.MachineDecl);
                     }
 
-                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                    textUnit += base.TokenStream.Peek().TextUnit;
 
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -211,7 +206,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     });
                 }
 
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += base.TokenStream.Peek().TextUnit;
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -219,7 +214,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += base.TokenStream.Peek().TextUnit;
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -234,7 +229,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         });
                 }
 
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += base.TokenStream.Peek().TextUnit;
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();

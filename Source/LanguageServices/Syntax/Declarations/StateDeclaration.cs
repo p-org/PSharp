@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
             
-            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
+            base.TextUnit = this.StateKeyword.TextUnit.WithText(text);
         }
 
         /// <summary>

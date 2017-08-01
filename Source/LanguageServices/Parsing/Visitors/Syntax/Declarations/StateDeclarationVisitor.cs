@@ -60,8 +60,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                TokenType.StateIdentifier));
+            base.TokenStream.Swap(TokenType.StateIdentifier);
 
             node.Identifier = base.TokenStream.Peek();
 
@@ -78,8 +77,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                TokenType.StateLeftCurlyBracket));
+            base.TokenStream.Swap(TokenType.StateLeftCurlyBracket);
 
             node.LeftCurlyBracketToken = base.TokenStream.Peek();
 
@@ -187,8 +185,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.StateRightCurlyBracket));
+                        base.TokenStream.Swap(TokenType.StateRightCurlyBracket);
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
                         fixpoint = true;
                         break;
@@ -280,8 +277,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.StateRightCurlyBracket));
+                        base.TokenStream.Swap(TokenType.StateRightCurlyBracket);
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
                         fixpoint = true;
                         break;

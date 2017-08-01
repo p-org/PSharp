@@ -156,8 +156,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var tokenizedName = this.ToTokens(fullyQualifiedName);
 
             var rewritten = SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")");
-            rewritten = rewritten.WithTriviaFrom(node);
 
+            base.Program.AddRewrittenTerm(node, rewritten.ToString());
+
+            rewritten = rewritten.WithTriviaFrom(node);
             return rewritten;
         }
 

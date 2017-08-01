@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+            base.TextUnit = this.MachineKeyword.TextUnit.WithText(text);
 
             this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
@@ -302,13 +302,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += node.TextUnit.Text;
                 }
             }
-            else if (!this.IsMonitor)
-            {
-                text += "Machine";
-            }
             else
             {
-                text += "Monitor";
+                text += this.IsMonitor ? "Monitor" : "Machine";
             }
 
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
