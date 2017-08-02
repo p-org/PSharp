@@ -237,7 +237,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.PerformFullExploration = true;
             }
-            else if (option.ToLower().Equals("/coverage-report"))
+            else if (option.ToLower().Equals("/coverage"))
             {
                 base.Configuration.ReportCodeCoverage = true;
             }
@@ -331,11 +331,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/custom-state-hashing"))
             {
                 base.Configuration.EnableUserDefinedStateHashing = true;
-            }
-            else if (option.ToLower().Equals("/visualize"))
-            {
-                Error.ReportAndExit("Command line option '/visualize' is deprecated. " +
-                    "Please use '/coverage-report' instead.");
             }
             else
             {
@@ -446,7 +441,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n\n ---------------------------";
             help += "\n Testing code coverage options:";
             help += "\n ---------------------------";
-            help += "\n  /coverage-report\t Print code coverage statistics";
+            help += "\n  /coverage\t Print code coverage statistics";
 
             help += "\n";
 

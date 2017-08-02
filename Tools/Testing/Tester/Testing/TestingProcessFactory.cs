@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (configuration.ReportCodeCoverage)
             {
-                arguments.Append($"/coverage-report ");
+                arguments.Append($"/coverage ");
             }
 
             if (configuration.EnableCycleDetection)

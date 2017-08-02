@@ -38,20 +38,33 @@ namespace Microsoft.PSharp
                 // Creates and runs a testing process.
                 TestingProcess testingProcess = TestingProcess.Create(configuration);
                 testingProcess.Start();
+                return;
             }
-            else
+
+            if (configuration.ReportCodeCoverage)
             {
-                Output.WriteLine(". Testing " + configuration.AssemblyToBeAnalyzed);
-                if (configuration.TestMethodName != "")
-                {
-                    Output.WriteLine("... Method {0}", configuration.TestMethodName);
-                }
-
-                // Creates and runs the testing process scheduler.
-                TestingProcessScheduler.Create(configuration).Run();
-
-                Output.WriteLine(". Done");
+                // Instruments the program under test for code coverage.
+                CodeCoverageInstrumentation.Instrument(configuration.AssemblyToBeAnalyzed);
+                // Starts monitoring for code coverage.
+                CodeCoverageMonitor.Start(configuration);
             }
+
+            Output.WriteLine(". Testing " + configuration.AssemblyToBeAnalyzed);
+            if (configuration.TestMethodName != "")
+            {
+                Output.WriteLine("... Method {0}", configuration.TestMethodName);
+            }
+
+            // Creates and runs the testing process scheduler.
+            TestingProcessScheduler.Create(configuration).Run();
+
+            if (configuration.ReportCodeCoverage)
+            {
+                // Stops monitoring for code coverage.
+                CodeCoverageMonitor.Stop();
+            }
+
+            Output.WriteLine(". Done");
         }
 
         /// <summary>
