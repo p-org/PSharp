@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\Build\key.props" />
   <PropertyGroup>
     <AssemblyName>PSharpTester</AssemblyName>
     <Description>The P# systematic tester.</Description>
@@ -16,6 +15,7 @@
     <ProjectReference Include="..\..\..\Source\TestingServices\TestingServices.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 </Project>

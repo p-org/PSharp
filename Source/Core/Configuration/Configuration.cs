@@ -211,13 +211,13 @@ namespace Microsoft.PSharp
         /// The testing scheduler unique endpoint.
         /// </summary>
         [DataMember]
-        internal string TestingSchedulerEndPoint;
+        public string TestingSchedulerEndPoint;
 
         /// <summary>
         /// The testing scheduler process id.
         /// </summary>
         [DataMember]
-        internal int TestingSchedulerProcessId;
+        public int TestingSchedulerProcessId;
 
         /// <summary>
         /// The unique testing process id.
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region code coverage options
+        #region coverage options
 
         /// <summary>
         /// Enables code coverage reporting of a P# program.
@@ -345,9 +345,22 @@ namespace Microsoft.PSharp
         public bool ReportCodeCoverage;
 
         /// <summary>
-        /// Enables code coverage debugging.
+        /// Enables activity coverage reporting of a P# program.
         /// </summary>
-        public bool DebugCodeCoverage;
+        [DataMember]
+        public bool ReportActivityCoverage;
+
+        /// <summary>
+        /// Enables activity coverage debugging.
+        /// </summary>
+        public bool DebugActivityCoverage;
+
+        /// <summary>
+        /// Additional assembly specifications to instrument for code coverage, besides those in the
+        /// dependency graph between <see cref="AssemblyToBeAnalyzed"/> and the Microsoft.PSharp DLLs.
+        /// Key is filename, value is whether it is a list file (true) or a single file (false).
+        /// </summary>
+        public Dictionary<string, bool> AdditionalCodeCoverageAssemblies = new Dictionary<string, bool>();
 
         #endregion
 
@@ -412,7 +425,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Enables colored console output.
         /// </summary>
-        internal bool EnableColoredConsoleOutput;
+        public bool EnableColoredConsoleOutput;
 
         /// <summary>
         /// If true, then P# will throw any internal exceptions.
@@ -489,7 +502,8 @@ namespace Microsoft.PSharp
             this.EnableDataRaceDetection = false;
 
             this.ReportCodeCoverage = false;
-            this.DebugCodeCoverage = false;
+            this.ReportActivityCoverage = false;
+            this.DebugActivityCoverage = false;
 
             this.ContainerId = 0;
             this.NumberOfContainers = 1;

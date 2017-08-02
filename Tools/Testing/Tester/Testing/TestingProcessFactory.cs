@@ -110,14 +110,27 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/explore ");
             }
 
-            if (configuration.ReportCodeCoverage)
+            if (configuration.ReportCodeCoverage && configuration.ReportActivityCoverage)
             {
-                arguments.Append($"/coverage-report ");
+                arguments.Append($"/coverage ");
             }
-
+            else if (configuration.ReportCodeCoverage)
+            {
+                arguments.Append($"/coverage:code ");
+            }
+            else if (configuration.ReportActivityCoverage)
+            {
+                arguments.Append($"/coverage:activity ");
+            }
+            
             if (configuration.EnableCycleDetection)
             {
                 arguments.Append($"/cycle-detection ");
+            }
+            
+            if (configuration.OutputFilePath.Length > 0)
+            {
+                arguments.Append($"/o:{configuration.OutputFilePath} ");
             }
 
             arguments.Append($"/run-as-parallel-testing-task ");

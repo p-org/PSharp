@@ -291,7 +291,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Clones the test report.
         /// </summary>
         /// <returns>TestReport</returns>
-        internal TestReport Clone()
+        public TestReport Clone()
         {
             var serializer = new DataContractSerializer(typeof(TestReport), null, int.MaxValue, false, true, null);
             using (var ms = new System.IO.MemoryStream())

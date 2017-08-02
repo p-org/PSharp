@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CodeCoverageReporter.cs">
+// <copyright file="ActivityCoverageReporter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
     /// <summary>
     /// The P# code coverage reporter.
     /// </summary>
-    public class CodeCoverageReporter
+    public class ActivityCoverageReporter
     {
         #region fields
 
@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// Constructor.
         /// </summary>
         /// <param name="coverageInfo">CoverageInfo</param>
-        public CodeCoverageReporter(CoverageInfo coverageInfo)
+        public ActivityCoverageReporter(CoverageInfo coverageInfo)
         {
             this.CoverageInfo = coverageInfo;
         }

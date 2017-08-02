@@ -79,6 +79,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private uint? BugFoundByProcess;
 
+        /// <summary>
+        /// Set if ctrl-c or ctrl-break occurred.
+        /// </summary>
+        internal static bool ProcessCanceled;
+
         #endregion
 
         #region constructors
@@ -208,7 +213,10 @@ namespace Microsoft.PSharp.TestingServices
             this.CloseNotificationListener();
 
             // Merges and emits the test report.
-            this.EmitTestReport();
+            if (!ProcessCanceled)
+            {
+                this.EmitTestReport();
+            }
         }
 
         #endregion
@@ -443,13 +451,13 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            if (this.Configuration.ReportCodeCoverage)
+            if (this.Configuration.ReportActivityCoverage)
             {
                 Output.WriteLine($"... Emitting coverage reports:");
                 Reporter.EmitTestingCoverageReport(this.GlobalTestReport);
             }
 
-            if (this.Configuration.DebugCodeCoverage)
+            if (this.Configuration.DebugActivityCoverage)
             {
                 Output.WriteLine($"... Emitting debug coverage reports:");
                 foreach (var report in this.TestReports)

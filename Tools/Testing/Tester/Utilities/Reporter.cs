@@ -41,14 +41,11 @@ namespace Microsoft.PSharp.TestingServices
                 file += "_" + processId;
             }
 
-            string directory = "";
+            string directory = CodeCoverageInstrumentation.OutputDirectory;
             if (isDebug)
             {
-                directory = GetOutputDirectory(report.Configuration.OutputFilePath, report.Configuration.AssemblyToBeAnalyzed, "CoverageDebug");
-            }
-            else
-            {
-                directory = GetOutputDirectory(report.Configuration.OutputFilePath, report.Configuration.AssemblyToBeAnalyzed);
+                directory += $"Debug{Path.DirectorySeparatorChar}";
+                Directory.CreateDirectory(directory);
             }
 
             EmitTestingCoverageOutputFiles(report, directory, file);
@@ -61,8 +58,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="assemblyPath">Path of input assembly</param>
         /// <param name="userOutputDir">User-provided output path</param>
         /// <param name="suffix">Optional suffix</param>
+        /// <param name="createDir">if true, create the directory</param>
         /// <returns>Path</returns>
-        internal static string GetOutputDirectory(string userOutputDir, string assemblyPath, string suffix = "")
+        internal static string GetOutputDirectory(string userOutputDir, string assemblyPath, string suffix = "", bool createDir = true)
         {
             string directoryPath;
 
@@ -72,7 +70,6 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-
                 var subpath = Path.GetDirectoryName(assemblyPath);
                 if (subpath == "")
                 {
@@ -80,7 +77,8 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 directoryPath = subpath +
-                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar + 
+                    Path.GetFileName(assemblyPath) + Path.DirectorySeparatorChar;
             }
 
             if (suffix.Length > 0)
@@ -88,7 +86,10 @@ namespace Microsoft.PSharp.TestingServices
                 directoryPath += suffix + Path.DirectorySeparatorChar;
             }
 
-            Directory.CreateDirectory(directoryPath);
+            if (createDir)
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
             return directoryPath;
         }
 
@@ -99,28 +100,23 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Emits all the testing coverage related output files.
         /// </summary>
-        /// <param name="report">TestReport</param>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
+        /// <param name="report">TestReport containing CoverageInfo</param>
+        /// <param name="directory">Output directory name, unique for this run</param>
+        /// <param name="file">Output file name</param>
         private static void EmitTestingCoverageOutputFiles(TestReport report, string directory, string file)
         {
-            var codeCoverageReporter = new CodeCoverageReporter(report.CoverageInfo);
+            var codeCoverageReporter = new ActivityCoverageReporter(report.CoverageInfo);
+            var filePath = $"{directory}{file}";
 
-            string[] graphFiles = Directory.GetFiles(directory, file + "_*.dgml");
-            string graphFilePath = directory + file + "_" + graphFiles.Length + ".dgml";
-
+            string graphFilePath = $"{filePath}.dgml";
             Output.WriteLine($"..... Writing {graphFilePath}");
             codeCoverageReporter.EmitVisualizationGraph(graphFilePath);
 
-            string[] coverageFiles = Directory.GetFiles(directory, file + "_*.coverage.txt");
-            string coverageFilePath = directory + file + "_" + coverageFiles.Length + ".coverage.txt";
-
+            string coverageFilePath = $"{filePath}.coverage.txt";
             Output.WriteLine($"..... Writing {coverageFilePath}");
             codeCoverageReporter.EmitCoverageReport(coverageFilePath);
 
-            string[] serFiles = Directory.GetFiles(directory, file + "_*.sci");
-            string serFilePath = directory + file + "_" + serFiles.Length + ".sci";
-
+            string serFilePath = $"{filePath}.sci";
             Output.WriteLine($"..... Writing {serFilePath}");
             using (var fs = new FileStream(serFilePath, FileMode.Create))
             {
