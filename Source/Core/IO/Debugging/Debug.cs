@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
-        internal static void Write(string format, params object[] args)
+        public static void Write(string format, params object[] args)
         {
             if (IsEnabled)
             {
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
-        internal static void WriteLine(string format, params object[] args)
+        public static void WriteLine(string format, params object[] args)
         {
             if (IsEnabled)
             {

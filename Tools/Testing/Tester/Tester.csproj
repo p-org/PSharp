@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\Build\key.props" />
   <PropertyGroup>
     <AssemblyName>PSharpTester</AssemblyName>
     <Description>The P# systematic tester.</Description>

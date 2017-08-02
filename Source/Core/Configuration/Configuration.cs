@@ -211,13 +211,13 @@ namespace Microsoft.PSharp
         /// The testing scheduler unique endpoint.
         /// </summary>
         [DataMember]
-        internal string TestingSchedulerEndPoint;
+        public string TestingSchedulerEndPoint;
 
         /// <summary>
         /// The testing scheduler process id.
         /// </summary>
         [DataMember]
-        internal int TestingSchedulerProcessId;
+        public int TestingSchedulerProcessId;
 
         /// <summary>
         /// The unique testing process id.
@@ -412,7 +412,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Enables colored console output.
         /// </summary>
-        internal bool EnableColoredConsoleOutput;
+        public bool EnableColoredConsoleOutput;
 
         /// <summary>
         /// If true, then P# will throw any internal exceptions.
