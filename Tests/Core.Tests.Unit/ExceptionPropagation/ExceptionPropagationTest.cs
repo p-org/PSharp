@@ -89,8 +89,11 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             PSharpRuntime runtime = PSharpRuntime.Create();
             runtime.OnFailure += delegate (Exception exception)
             {
-                cnt++;
-                tcsFail.SetException(exception);
+                if (!(exception is MachineActionExceptionFilterException))
+                {
+                    cnt++;
+                    tcsFail.SetException(exception);
+                }
             };
 
             var tcs = new TaskCompletionSource<bool>();
@@ -108,10 +111,17 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             var tcsFail = new TaskCompletionSource<bool>();
             int cnt = 0;
+            bool sawFilterException = false;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
             runtime.OnFailure += delegate (Exception exception)
             {
+                // This test throws an exception that we should receive a filter call for
+                if (exception is MachineActionExceptionFilterException)
+                {
+                    sawFilterException = true;
+                    return;
+                }
                 cnt++;
                 tcsFail.SetException(exception);
             };
@@ -124,6 +134,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
             Assert.IsType<InvalidOperationException>(ex.InnerException);
             Assert.True(cnt == 1);
+            Assert.True(sawFilterException);
         }
     }
 }

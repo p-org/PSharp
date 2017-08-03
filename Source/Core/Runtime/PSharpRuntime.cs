@@ -772,7 +772,7 @@ namespace Microsoft.PSharp
         /// Raises the <see cref="OnFailure"/> event with the specified <see cref="Exception"/>.
         /// </summary>
         /// <param name="exception">Exception</param>
-        protected void RaiseOnFailureEvent(Exception exception)
+        protected internal void RaiseOnFailureEvent(Exception exception)
         {
             this.OnFailure?.Invoke(exception);
         }
