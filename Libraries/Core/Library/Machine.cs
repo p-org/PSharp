@@ -660,13 +660,14 @@ namespace Microsoft.PSharp
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <param name="returnEarly">Returns after handling just one event</param>
-        internal async Task RunEventHandler(bool returnEarly = false)
+        internal async Task<bool> RunEventHandler(bool returnEarly = false)
         {
             if (this.IsHalted)
             {
-                return;
+                return true;
             }
 
+            bool completed = false;
             EventInfo nextEventInfo = null;
             while (!this.IsHalted && base.Runtime.IsRunning)
             {
@@ -691,6 +692,7 @@ namespace Microsoft.PSharp
                         }
                         else
                         {
+                            completed = true;
                             this.IsRunning = false;
                             break;
                         }
@@ -726,9 +728,11 @@ namespace Microsoft.PSharp
                 // Return after handling the first event?
                 if (returnEarly)
                 {
-                    return;
+                    return false;
                 }
             }
+
+            return completed;
         }
 
         /// <summary>

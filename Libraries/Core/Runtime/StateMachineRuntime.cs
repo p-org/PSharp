@@ -448,6 +448,8 @@ namespace Microsoft.PSharp
         /// <param name="isFresh">Is a new machine</param>
         private async Task RunMachineEventHandlerAsync(Machine machine, Event e, bool isFresh)
         {
+            bool completed;
+
             try
             {
                 if (isFresh)
@@ -455,7 +457,7 @@ namespace Microsoft.PSharp
                     await machine.GotoStartState(e);
                 }
 
-                await machine.RunEventHandler(true);
+                completed = await machine.RunEventHandler(true);
             }
             catch (AssertionFailureException)
             {
@@ -469,7 +471,10 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            RunMachineEventHandler(machine, null, false);
+            if (!completed)
+            {
+                RunMachineEventHandler(machine, null, false);
+            }
         }
 
         #endregion
