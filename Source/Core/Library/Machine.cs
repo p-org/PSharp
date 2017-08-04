@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Machine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -614,7 +614,7 @@ namespace Microsoft.PSharp
                             this.Inbox.RemoveAt(idx);
                             idx--;
                         }
-                        
+
                         continue;
                     }
                 }
@@ -690,13 +690,14 @@ namespace Microsoft.PSharp
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <param name="returnEarly">Returns after handling just one event</param>
-        internal async Task RunEventHandler(bool returnEarly = false)
+        internal async Task<bool> RunEventHandler(bool returnEarly = false)
         {
             if (this.Info.IsHalted)
             {
-                return;
+                return true;
             }
 
+            bool completed = false;
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
@@ -729,6 +730,7 @@ namespace Microsoft.PSharp
 
                         if (nextEventInfo == null)
                         {
+                            completed = true;
                             this.IsRunning = false;
                             break;
                         }
@@ -764,9 +766,11 @@ namespace Microsoft.PSharp
                 // Return after handling the first event?
                 if (returnEarly)
                 {
-                    return;
+                    return false;
                 }
             }
+
+            return completed;
         }
 
         /// <summary>
@@ -1450,7 +1454,7 @@ namespace Microsoft.PSharp
                     }
                 }
             }
-                        
+
             // Populates the map of actions for this machine instance.
             foreach (var kvp in MachineActionMap[machineType])
             {
@@ -1626,7 +1630,7 @@ namespace Microsoft.PSharp
         }
 
         #endregion
-        
+
         #region error checking
 
         /// <summary>
