@@ -305,7 +305,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The schedule file to be replayed.
         /// </summary>
-        internal string ScheduleFile;
+        public string ScheduleFile;
 
         /// <summary>
         /// The schedule trace to be replayed.
