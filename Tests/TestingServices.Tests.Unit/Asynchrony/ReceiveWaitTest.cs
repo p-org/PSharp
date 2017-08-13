@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Detected an assertion failure.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
     }
 }

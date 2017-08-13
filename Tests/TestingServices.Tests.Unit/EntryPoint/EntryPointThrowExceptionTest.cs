@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new InvalidOperationException();
             });
 
-            base.AssertFailedWithException(test, typeof(InvalidOperationException));
+            base.AssertFailedWithException(test, typeof(InvalidOperationException), true);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new InvalidOperationException();
             });
 
-            base.AssertFailedWithException(test, typeof(InvalidOperationException));
+            base.AssertFailedWithException(test, typeof(InvalidOperationException), true);
         }
     }
 }

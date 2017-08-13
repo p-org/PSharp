@@ -1108,6 +1108,93 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
+        [Fact]
+        public void TestMultipleEventsSameAnonymousDo()
+        {
+            var test = @"
+namespace Foo {
+    machine M {
+        start state S
+        {
+            on E1, E2, E3 do {
+                assert(false, ""handler for all 3 events"");
+            }
+        }
+    }
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEventDoAction(typeof(E1), nameof(psharp_S_E1_action))]
+        [OnEventDoAction(typeof(E2), nameof(psharp_S_E2_action))]
+        [OnEventDoAction(typeof(E3), nameof(psharp_S_E3_action))]
+        class S : MachineState
+        {
+        }
+
+        protected void psharp_S_E1_action()
+        {
+            this.Assert(false, ""handler for all 3 events"");
+        }
+
+        protected void psharp_S_E2_action()
+        {
+            this.Assert(false, ""handler for all 3 events"");
+        }
+
+        protected void psharp_S_E3_action()
+        {
+            this.Assert(false, ""handler for all 3 events"");
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestMultipleEventsSameNamedDo()
+        {
+            var test = @"
+namespace Foo {
+    machine M {
+        start state S
+        {
+            on E1, E2, E3 do Check;
+        }
+        void Check() {
+            assert(false, ""handler for all 3 events"");
+        }
+    }
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M : Machine
+    {
+        [Microsoft.PSharp.Start]
+        [OnEventDoAction(typeof(E1), nameof(Check))]
+        [OnEventDoAction(typeof(E2), nameof(Check))]
+        [OnEventDoAction(typeof(E3), nameof(Check))]
+        class S : MachineState
+        {
+        }
+
+        void Check()
+        {
+            this.Assert(false, ""handler for all 3 events"");
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
         #endregion
 
         #region failure tests

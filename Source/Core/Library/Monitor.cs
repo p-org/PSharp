@@ -653,6 +653,11 @@ namespace Microsoft.PSharp
                 foreach (var type in StateTypeMap[monitorType])
                 {
                     Type stateType = type;
+                    if (type.IsAbstract)
+                    {
+                        continue;
+                    }
+
                     if (type.IsGenericType)
                     {
                         // If the state type is generic (only possible if inherited by a

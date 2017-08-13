@@ -201,6 +201,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
+                    case TokenType.Abstract:
                     case TokenType.StartState:
                     case TokenType.HotState:
                     case TokenType.ColdState:

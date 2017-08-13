@@ -145,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 6;
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(RealMachine)); });
-            base.AssertFailed(configuration, test, 1);
+            base.AssertFailed(configuration, test, 1, true);
         }
     }
 }

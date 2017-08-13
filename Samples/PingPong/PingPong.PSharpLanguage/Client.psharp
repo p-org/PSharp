@@ -2,7 +2,7 @@ namespace PingPong.PSharpLanguage
 {
     /// <summary>
     /// A P# machine that models a simple client.
-    /// 
+    ///
     /// It sends 'Ping' events to a server, and handles received 'Pong' event.
     /// </summary>
     internal machine Client
@@ -50,7 +50,10 @@ namespace PingPong.PSharpLanguage
             }
         }
 
-        state Active
+        // Illustrating state inheritance.
+        state Active : ActiveBaseState { }
+
+        state ActiveBaseState
         {
             entry
             {

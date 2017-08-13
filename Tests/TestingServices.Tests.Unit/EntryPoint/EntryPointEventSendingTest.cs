@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Value is 0.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
     }
 }

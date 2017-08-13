@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M), "M"); });
             var bugReport = "Machine 'M()' popped with no matching push.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });
             var bugReport = "Machine 'N()' has called raise/goto/pop inside an OnExit method.";
-            base.AssertFailed(test, bugReport);
+            base.AssertFailed(test, bugReport, true);
         }
     }
 }
