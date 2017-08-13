@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             string bugReport = "Trying to access the operation group id of 'Microsoft.PSharp.TestingServices.Tests.Unit.GetOperationGroupIdTest+M4()', which is not the currently executing machine.";
-            AssertFailed(test, bugReport);
+            AssertFailed(test, bugReport, true);
         }
     }
 }
