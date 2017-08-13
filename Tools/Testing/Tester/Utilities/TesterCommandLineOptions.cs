@@ -153,6 +153,17 @@ namespace Microsoft.PSharp.Utilities
                         "experimental strategies also exist, but are not listed here).");
                 }
             }
+            else if (option.ToLower().StartsWith("/replay:") && option.Length > 8)
+            {
+                string extension = System.IO.Path.GetExtension(option.Substring(8));
+                if (!extension.Equals(".schedule"))
+                {
+                    Error.ReportAndExit("Please give a valid schedule file " +
+                        "'/replay:[x]', where [x] has extension '.schedule'.");
+                }
+
+                base.Configuration.ScheduleFile = option.Substring(8);
+            }
             else if (option.ToLower().StartsWith("/reduction:"))
             {
                 string reduction = option.ToLower().Substring(11);
@@ -454,6 +465,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /parallel:[x]\t\t Number of parallel testing tasks ('1' by default)";
             help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /max-steps:[x]\t Max scheduling steps to be explored (disabled by default)";
+            help += "\n  /replay:[x]\t Tries to replay the schedule, and then switches to the specified strategy";
 
             help += "\n\n ---------------------------";
             help += "\n Testing code coverage options:";

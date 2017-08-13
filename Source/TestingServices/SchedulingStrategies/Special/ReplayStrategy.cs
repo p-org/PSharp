@@ -40,10 +40,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private ScheduleTrace ScheduleTrace;
 
         /// <summary>
+        /// The suffix strategy.
+        /// </summary>
+        private ISchedulingStrategy SuffixStrategy;
+
+        /// <summary>
         /// Is the scheduler that produced the
         /// schedule trace fair?
         /// </summary>
         private bool IsSchedulerFair;
+
+        /// <summary>
+        /// Is the scheduler replaying the trace?
+        /// </summary>
+        private bool IsReplaying;
 
         /// <summary>
         /// The number of scheduled steps.
@@ -66,11 +76,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="trace">ScheduleTrace</param>
         /// <param name="isFair">Is scheduler fair</param>
         public ReplayStrategy(Configuration configuration, ScheduleTrace trace, bool isFair)
+            : this(configuration, trace, isFair, null)
+        { }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="trace">ScheduleTrace</param>
+        /// <param name="isFair">Is scheduler fair</param>
+        /// <param name="suffixStrategy">The suffix strategy.</param>
+        public ReplayStrategy(Configuration configuration, ScheduleTrace trace, bool isFair, ISchedulingStrategy suffixStrategy)
         {
             Configuration = configuration;
             ScheduleTrace = trace;
             ScheduledSteps = 0;
             IsSchedulerFair = isFair;
+            IsReplaying = true;
+            SuffixStrategy = suffixStrategy;
             ErrorText = "";
         }
 
@@ -83,49 +106,61 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-            if (enabledChoices.Count == 0)
+            if (IsReplaying)
             {
-                next = null;
-                return false;
+                var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
+                if (enabledChoices.Count == 0)
+                {
+                    next = null;
+                    return false;
+                }
+
+                try
+                {
+                    if (ScheduledSteps >= ScheduleTrace.Count)
+                    {
+                        ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+
+                    ScheduleStep nextStep = ScheduleTrace[ScheduledSteps];
+                    if (nextStep.Type != ScheduleStepType.SchedulingChoice)
+                    {
+                        ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+
+                    next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
+                    if (next == null)
+                    {
+                        ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (SuffixStrategy == null)
+                    {
+                        if (!Configuration.DisableEnvironmentExit)
+                        {
+                            Error.ReportAndExit(ex.Message);
+                        }
+
+                        next = null;
+                        return false;
+                    }
+                    else
+                    {
+                        IsReplaying = false;
+                        return SuffixStrategy.GetNext(out next, choices, current);
+                    }
+                }
+
+                ScheduledSteps++;
+                return true;
             }
 
-            try
-            {
-                if (ScheduledSteps >= ScheduleTrace.Count)
-                {
-                    ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                    throw new InvalidOperationException(ErrorText);
-                }
-
-                ScheduleStep nextStep = ScheduleTrace[ScheduledSteps];
-                if (nextStep.Type != ScheduleStepType.SchedulingChoice)
-                {
-                    ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
-                    throw new InvalidOperationException(ErrorText);
-                }
-                
-                next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
-                if (next == null)
-                {
-                    ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
-                    throw new InvalidOperationException(ErrorText);
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                if (!Configuration.DisableEnvironmentExit)
-                {
-                    Error.ReportAndExit(ex.Message);
-                }
-
-                next = null;
-                return false;
-            }
-
-            ScheduledSteps++;
-
-            return true;
+            return SuffixStrategy.GetNext(out next, choices, current);
         }
 
         /// <summary>
@@ -136,44 +171,56 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            ScheduleStep nextStep = null;
-
-            try
+            if (IsReplaying)
             {
-                if (ScheduledSteps >= ScheduleTrace.Count)
+                ScheduleStep nextStep = null;
+
+                try
                 {
-                    ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                    throw new InvalidOperationException(ErrorText);
+                    if (ScheduledSteps >= ScheduleTrace.Count)
+                    {
+                        ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+
+                    nextStep = ScheduleTrace[ScheduledSteps];
+                    if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+                    {
+                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+
+                    if (nextStep.BooleanChoice == null)
+                    {
+                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (SuffixStrategy == null)
+                    {
+                        if (!Configuration.DisableEnvironmentExit)
+                        {
+                            Error.ReportAndExit(ex.Message);
+                        }
+
+                        next = false;
+                        return false;
+                    }
+                    else
+                    {
+                        IsReplaying = false;
+                        return SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
+                    }
                 }
 
-                nextStep = ScheduleTrace[ScheduledSteps];
-                if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
-                {
-                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
-                    throw new InvalidOperationException(ErrorText);
-                }
-
-                if (nextStep.BooleanChoice == null)
-                {
-                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
-                    throw new InvalidOperationException(ErrorText);
-                }
+                next = nextStep.BooleanChoice.Value;
+                ScheduledSteps++;
+                return true;
             }
-            catch (InvalidOperationException ex)
-            {
-                if (!Configuration.DisableEnvironmentExit)
-                {
-                    Error.ReportAndExit(ex.Message);
-                }
 
-                next = false;
-                return false;
-            }
-
-            next = nextStep.BooleanChoice.Value;
-            ScheduledSteps++;
-
-            return true;
+            return SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
         }
 
         /// <summary>
@@ -184,44 +231,56 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            ScheduleStep nextStep = null;
-
-            try
+            if (IsReplaying)
             {
-                if (ScheduledSteps >= ScheduleTrace.Count)
+                ScheduleStep nextStep = null;
+
+                try
                 {
-                    ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                    throw new InvalidOperationException(ErrorText);
+                    if (ScheduledSteps >= ScheduleTrace.Count)
+                    {
+                        ErrorText = "Trace is not reproducible: execution is longer than trace.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+
+                    nextStep = ScheduleTrace[ScheduledSteps];
+                    if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+                    {
+                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+
+                    if (nextStep.IntegerChoice == null)
+                    {
+                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
+                        throw new InvalidOperationException(ErrorText);
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    if (SuffixStrategy == null)
+                    {
+                        if (!Configuration.DisableEnvironmentExit)
+                        {
+                            Error.ReportAndExit(ex.Message);
+                        }
+
+                        next = 0;
+                        return false;
+                    }
+                    else
+                    {
+                        IsReplaying = false;
+                        return SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
+                    }
                 }
 
-                nextStep = ScheduleTrace[ScheduledSteps];
-                if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
-                {
-                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
-                    throw new InvalidOperationException(ErrorText);
-                }
-
-                if (nextStep.IntegerChoice == null)
-                {
-                    ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
-                    throw new InvalidOperationException(ErrorText);
-                }
+                next = nextStep.IntegerChoice.Value;
+                ScheduledSteps++;
+                return true;
             }
-            catch (InvalidOperationException ex)
-            {
-                if (!Configuration.DisableEnvironmentExit)
-                {
-                    Error.ReportAndExit(ex.Message);
-                }
 
-                next = 0;
-                return false;
-            }
-
-            next = nextStep.IntegerChoice.Value;
-            ScheduledSteps++;
-
-            return true;
+            return SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
         }
 
         /// <summary>
@@ -267,7 +326,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool PrepareForNextIteration()
         {
             ScheduledSteps = 0;
-            return false;
+            if (SuffixStrategy != null)
+            {
+                return SuffixStrategy.PrepareForNextIteration();
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -277,6 +343,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             ScheduledSteps = 0;
+            SuffixStrategy?.Reset();
         }
 
         /// <summary>
@@ -285,7 +352,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Scheduled steps</returns>
         public int GetScheduledSteps()
         {
-            return ScheduledSteps;
+            if (SuffixStrategy != null)
+            {
+                return ScheduledSteps + SuffixStrategy.GetScheduledSteps();
+            }
+            else
+            {
+                return ScheduledSteps;
+            }
         }
 
         /// <summary>
@@ -295,7 +369,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            return false;
+            if (SuffixStrategy != null)
+            {
+                return SuffixStrategy.HasReachedMaxSchedulingSteps();
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -304,7 +385,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
-            return IsSchedulerFair;
+            if (SuffixStrategy != null)
+            {
+                return SuffixStrategy.IsFair();
+            }
+            else
+            {
+                return IsSchedulerFair;
+            }
         }
 
         /// <summary>
@@ -313,7 +401,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Replay";
+            if (SuffixStrategy != null)
+            {
+                return "Replay(" + SuffixStrategy.GetDescription() + ")";
+            }
+            else
+            {
+                return "Replay";
+            }
         }
 
         #endregion

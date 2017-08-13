@@ -258,44 +258,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {
-                string[] scheduleDump;
-                if (this.Configuration.ScheduleTrace.Length > 0)
-                {
-                    scheduleDump = this.Configuration.ScheduleTrace.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-                }
-                else
-                {
-                    scheduleDump = File.ReadAllLines(this.Configuration.ScheduleFile);
-                }
-
-                bool isFair = false;
-                foreach (var line in scheduleDump)
-                {
-                    if (!line.StartsWith("--"))
-                    {
-                        break;
-                    }
-
-                    if (line.Equals("--fair-scheduling"))
-                    {
-                        isFair = true;
-                    }
-                    else if (line.Equals("--cycle-detection"))
-                    {
-                        this.Configuration.EnableCycleDetection = true;
-                    }
-                    else if (line.StartsWith("--liveness-temperature-threshold:"))
-                    {
-                        this.Configuration.LivenessTemperatureThreshold =
-                            Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
-                    }
-                    else if (line.StartsWith("--test-method:"))
-                    {
-                        this.Configuration.TestMethodName =
-                            line.Substring("--test-method:".Length);
-                    }
-                }
-
+                var scheduleDump = this.GetScheduleForReplay(out bool isFair);
                 ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
                 this.Strategy = new ReplayStrategy(this.Configuration, schedule, isFair);
             }
@@ -363,6 +326,14 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Portfolio testing strategy in only " +
                     "available in parallel testing.");
+            }
+
+            if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&
+                this.Configuration.ScheduleFile.Length > 0)
+            {
+                var scheduleDump = this.GetScheduleForReplay(out bool isFair);
+                ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
+                this.Strategy = new ReplayStrategy(this.Configuration, schedule, isFair, this.Strategy);
             }
         }
 
@@ -572,6 +543,54 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return testMethods;
+        }
+
+        /// <summary>
+        /// Returns the schedule to replay.
+        /// </summary>
+        /// <param name="isFair">Is strategy used during replay fair.</param>
+        /// <returns>Schedule</returns>
+        private string[] GetScheduleForReplay(out bool isFair)
+        {
+            string[] scheduleDump;
+            if (this.Configuration.ScheduleTrace.Length > 0)
+            {
+                scheduleDump = this.Configuration.ScheduleTrace.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            }
+            else
+            {
+                scheduleDump = File.ReadAllLines(this.Configuration.ScheduleFile);
+            }
+
+            isFair = false;
+            foreach (var line in scheduleDump)
+            {
+                if (!line.StartsWith("--"))
+                {
+                    break;
+                }
+
+                if (line.Equals("--fair-scheduling"))
+                {
+                    isFair = true;
+                }
+                else if (line.Equals("--cycle-detection"))
+                {
+                    this.Configuration.EnableCycleDetection = true;
+                }
+                else if (line.StartsWith("--liveness-temperature-threshold:"))
+                {
+                    this.Configuration.LivenessTemperatureThreshold =
+                        Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
+                }
+                else if (line.StartsWith("--test-method:"))
+                {
+                    this.Configuration.TestMethodName =
+                        line.Substring("--test-method:".Length);
+                }
+            }
+
+            return scheduleDump;
         }
 
         /// <summary>
