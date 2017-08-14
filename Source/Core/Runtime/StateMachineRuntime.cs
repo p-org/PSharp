@@ -32,11 +32,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private List<Monitor> Monitors;
 
-        /// <summary>
-        /// Map from unique machine ids to machines.
-        /// </summary>
-        private ConcurrentDictionary<ulong, Machine> MachineMap;
-
         #endregion
 
         #region initialization
@@ -251,8 +246,7 @@ namespace Microsoft.PSharp
         /// <returns>Guid</returns>
         public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
         {
-            Machine machine = null;
-            if (!this.MachineMap.TryGetValue(currentMachine.Value, out machine))
+            if (!this.MachineMap.TryGetValue(currentMachine.Value, out Machine machine))
             {
                 return Guid.Empty;
             }
@@ -348,7 +342,7 @@ namespace Microsoft.PSharp
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             base.Assert(result, $"Machine '{mid}' was already created.");
 
-            base.Log($"<CreateLog> Machine '{mid}' is created.");
+            base.Logger.OnCreateMachine(mid);
 
             return machine;
         }
@@ -362,18 +356,8 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id</param>
         internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
-            Machine machine = null;
-            if (!this.MachineMap.TryGetValue(mid.Value, out machine))
+            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
-                if (sender != null)
-                {
-                    base.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
-                }
-                else
-                {
-                    base.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
-                }
-
                 return;
             }
 
@@ -395,18 +379,8 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id</param>
         internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
-            Machine machine = null;
-            if (!this.MachineMap.TryGetValue(mid.Value, out machine))
+            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
-                if (sender != null)
-                {
-                    base.Log($"<SendLog> Machine '{sender.Id}' sent event '{e.GetType().FullName}' to a halted machine '{mid}'.");
-                }
-                else
-                {
-                    base.Log($"<SendLog> The event '{e.GetType().FullName}' was sent to a halted machine '{mid}'.");
-                }
-
                 return;
             }
 
@@ -443,14 +417,9 @@ namespace Microsoft.PSharp
             EventInfo eventInfo = new EventInfo(e, null);
             this.SetOperationGroupIdForEvent(eventInfo, sender, operationGroupId);
 
-            if (sender != null)
-            {
-                base.Log($"<SendLog> Machine '{sender.Id}' sent event '{eventInfo.EventName}' to '{machine.Id}'.");
-            }
-            else
-            {
-                base.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{machine.Id}'.");
-            }
+            var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
+            base.Logger.OnSend(machine.Id, machine.CurrentStateName, sender?.Id, senderState,
+                e.GetType().FullName, operationGroupId, isTargetHalted: false);
 
             machine.Enqueue(eventInfo, ref runNewHandler);
         }
@@ -544,19 +513,19 @@ namespace Microsoft.PSharp
                 "is not a subclass of Monitor.\n");
 
             MachineId mid = new MachineId(type, null, this);
-            Object monitor = Activator.CreateInstance(type);
+            Monitor monitor = (Monitor)Activator.CreateInstance(type);
 
-            (monitor as Monitor).Initialize(mid);
-            (monitor as Monitor).InitializeStateInformation();
+            monitor.Initialize(mid);
+            monitor.InitializeStateInformation();
 
             lock (this.Monitors)
             {
-                this.Monitors.Add(monitor as Monitor);
+                this.Monitors.Add(monitor);
             }
 
-            base.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+            base.Logger.OnCreateMonitor(type.Name, monitor.Id);
 
-            (monitor as Monitor).GotoStartState();
+            monitor.GotoStartState();
         }
 
         /// <summary>
@@ -617,15 +586,7 @@ namespace Microsoft.PSharp
                 result = true;
             }
 
-            if (machine != null)
-            {
-                base.Log($"<RandomLog> Machine '{machine.Id}' " +
-                    $"nondeterministically chose '{result}'.");
-            }
-            else
-            {
-                base.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
-            }
+            base.Logger.OnRandom(machine?.Id, result);
 
             return result;
         }
@@ -654,15 +615,7 @@ namespace Microsoft.PSharp
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);
 
-            if (machine != null)
-            {
-                base.Log($"<RandomLog> Machine '{machine.Id}' " +
-                    $"nondeterministically chose '{result}'.");
-            }
-            else
-            {
-                base.Log($"<RandomLog> Runtime nondeterministically chose '{result}'.");
-            }
+            base.Logger.OnRandom(machine?.Id, result);
 
             return result;
         }
@@ -682,7 +635,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            base.Log($"<StateLog> Machine '{machine.Id}' enters state '{machine.CurrentStateName}'.");
+            base.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry:true);
         }
 
         /// <summary>
@@ -696,20 +649,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            string liveness = "";
             string monitorState = monitor.CurrentStateNameWithTemperature;
-
-            if (monitor.IsInHotState())
-            {
-                liveness = "'hot' ";
-            }
-            else if (monitor.IsInColdState())
-            {
-                liveness = "'cold' ";
-            }
-
-            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' " +
-                $"enters {liveness}state '{monitorState}'.");
+            base.Logger.OnMonitorState(monitor.GetType().Name, monitor.Id, monitorState, true, monitor.GetHotState());
         }
 
         /// <summary>
@@ -723,7 +664,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            base.Log($"<StateLog> Machine '{machine.Id}' exits state '{machine.CurrentStateName}'.");
+            base.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: false);
         }
 
         /// <summary>
@@ -737,22 +678,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            string liveness = "";
-            string monitorState = monitor.CurrentStateName;
-
-            if (monitor.IsInHotState())
-            {
-                liveness = "'hot' ";
-                monitorState += "[hot]";
-            }
-            else if (monitor.IsInColdState())
-            {
-                liveness = "'cold' ";
-                monitorState += "[cold]";
-            }
-
-            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' " +
-                $"exits {liveness}state '{monitorState}'.");
+            string monitorState = monitor.CurrentStateNameWithTemperature;
+            base.Logger.OnMonitorState(monitor.GetType().Name,monitor.Id, monitorState, false, monitor.GetHotState());
         }
 
         /// <summary>
@@ -768,8 +695,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            base.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
-                $"'{action.Name}' in state '{machine.CurrentStateName}'.");
+            base.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
         }
 
         /// <summary>
@@ -785,8 +711,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' executed " +
-                $"action '{action.Name}' in state '{monitor.CurrentStateName}'.");
+            base.Logger.OnMonitorAction(monitor.GetType().Name, monitor.Id, action.Name, monitor.CurrentStateName);
         }
 
         /// <summary>
@@ -804,7 +729,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            base.Log($"<RaiseLog> Machine '{machine.Id}' raised event '{eventInfo.EventName}'.");
+            base.Logger.OnMachineEvent(machine.Id, machine.CurrentStateName, eventInfo.EventName);
         }
 
         /// <summary>
@@ -819,8 +744,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            base.Log($"<MonitorLog> Monitor '{monitor.GetType().Name}' raised " +
-                $"event '{eventInfo.EventName}'.");
+            base.Logger.OnMonitorEvent(monitor.GetType().Name, monitor.Id, monitor.CurrentStateName,
+                eventInfo.EventName, isProcessing:false);
         }
 
         /// <summary>
@@ -833,8 +758,7 @@ namespace Microsoft.PSharp
             // The machine inherits the operation group id of the dequeued event.
             machine.Info.OperationGroupId = eventInfo.OperationGroupId;
 
-            base.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
-                $"event '{eventInfo.EventName}'.");
+            base.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
         }
 
         /// <summary>
@@ -846,7 +770,7 @@ namespace Microsoft.PSharp
         {
             if (eventInfoInInbox == null)
             {
-                base.Log($"<ReceiveLog> Machine '{machine.Id}' is waiting to receive an event.");
+                base.Logger.OnWait(machine.Id, machine.CurrentStateName, string.Empty);
                 machine.Info.IsWaitingToReceive = true;
             }
         }
@@ -858,8 +782,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
-            base.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
-                $"event '{eventInfo.EventName}' and unblocked.");
+            base.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked:true);
 
             lock (machine)
             {
@@ -874,7 +797,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         internal override void NotifyHalted(Machine machine)
         {
-            base.Log($"<HaltLog> Machine '{machine.Id}' halted.");
+            base.Logger.OnHalt(machine.Id);
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 

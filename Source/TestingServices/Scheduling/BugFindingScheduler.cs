@@ -368,14 +368,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.BugReport = text;
 
-                this.Runtime.Log($"<ErrorLog> {text}");
-                this.Runtime.Log("<StrategyLog> Found bug using " +
-                    $"'{this.Runtime.Configuration.SchedulingStrategy}' strategy.");
-
-                if (this.Strategy.GetDescription().Length > 0)
-                {
-                    this.Runtime.Log($"<StrategyLog> {this.Strategy.GetDescription()}");
-                }
+                this.Runtime.Logger.OnError($"<ErrorLog> {text}");
+                this.Runtime.Logger.OnStrategyError(this.Runtime.Configuration.SchedulingStrategy, this.Strategy.GetDescription());
 
                 this.BugFound = true;
 

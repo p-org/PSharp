@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 {
     public class CustomLoggerTest
     {
-        class CustomLogger : ILogger
+        class CustomLogger : StateMachineLogger
         {
             private StringBuilder StringBuilder;
 
@@ -35,22 +35,22 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 StringBuilder = new StringBuilder();
             }
 
-            public void Write(string value)
+            public override void Write(string value)
             {
                 StringBuilder.Append(value);
             }
 
-            public void Write(string format, params object[] args)
+            public override void Write(string format, params object[] args)
             {
                 StringBuilder.AppendFormat(format, args);
             }
 
-            public void WriteLine(string value)
+            public override void WriteLine(string value)
             {
                 StringBuilder.AppendLine(value);
             }
 
-            public void WriteLine(string format, params object[] args)
+            public override void WriteLine(string format, params object[] args)
             {
                 StringBuilder.AppendFormat(format, args);
                 StringBuilder.AppendLine();
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 return StringBuilder.ToString();
             }
 
-            public void Dispose()
+            public override void Dispose()
             {
                 StringBuilder.Clear();
                 StringBuilder = null;
@@ -140,17 +140,17 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             string expected = @"<CreateLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' is created.
 <StateLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' enters state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init'.
-<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' invoked action 'InitOnEntry' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init'.
+<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init' invoked action 'InitOnEntry'.
 <CreateLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' is created.
 <StateLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' enters state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init'.
-<SendLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' sent event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E' to 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()'.
-<EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' enqueued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
-<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' dequeued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
-<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' invoked action 'Act' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init'.
-<SendLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' sent event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E' to 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()'.
-<EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' enqueued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
-<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' dequeued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
-<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' invoked action 'Act' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init'.
+<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init' sent event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init'.
+<EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init' enqueued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
+<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init' dequeued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
+<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init' invoked action 'Act'.
+<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+N.Init' sent event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init'.
+<EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init' enqueued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
+<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init' dequeued event 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+E'.
+<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest+M.Init' invoked action 'Act'.
 ";
 
             string actual = Regex.Replace(logger.ToString(), "[0-9]", "");

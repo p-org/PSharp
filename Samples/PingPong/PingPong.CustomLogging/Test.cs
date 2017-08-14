@@ -6,14 +6,14 @@ namespace PingPong.CustomLogging
 {
     /// <summary>
     /// A simple PingPong application written using the P# high-level syntax.
-    /// 
+    ///
     /// The P# runtime starts by creating the P# machine 'NetworkEnvironment'. The
     /// 'NetworkEnvironment' machine then creates a 'Server' and a 'Client' machine,
     /// which then communicate by sending 'Ping' and 'Pong' events to each other for
     /// a limited amount of turns.
-    /// 
+    ///
     /// This sample shows how to install a custom logger during testing.
-    /// 
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -60,13 +60,13 @@ namespace PingPong.CustomLogging
     /// <summary>
     /// Custom logger that just dumps to console.
     /// </summary>
-    class MyLogger : ILogger
+    class MyLogger : StateMachineLogger
     {
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
         /// <param name="value">Text</param>
-        public void Write(string value)
+        public override void Write(string value)
         {
             Console.Write(value);
         }
@@ -76,7 +76,7 @@ namespace PingPong.CustomLogging
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
-        public void Write(string format, params object[] args)
+        public override void Write(string format, params object[] args)
         {
             Console.Write($"MyLogger: {format}", args);
         }
@@ -86,7 +86,7 @@ namespace PingPong.CustomLogging
         /// current line terminator.
         /// </summary>
         /// <param name="value">Text</param>
-        public void WriteLine(string value)
+        public override void WriteLine(string value)
         {
             Console.WriteLine($"MyLogger: {value}");
         }
@@ -97,7 +97,7 @@ namespace PingPong.CustomLogging
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
-        public void WriteLine(string format, params object[] args)
+        public override void WriteLine(string format, params object[] args)
         {
             Console.WriteLine($"MyLogger: {format}", args);
         }
@@ -105,6 +105,6 @@ namespace PingPong.CustomLogging
         /// <summary>
         /// Disposes the logger.
         /// </summary>
-        public void Dispose() { }
+        public override void Dispose() { }
     }
 }
