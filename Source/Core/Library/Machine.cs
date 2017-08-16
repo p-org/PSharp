@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -86,7 +85,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private Dictionary<string, MethodInfo> ActionMap;
+        private Dictionary<string, CachedAction> ActionMap;
 
         /// <summary>
         /// Inbox of the state-machine. Incoming events are
@@ -225,7 +224,7 @@ namespace Microsoft.PSharp
             this.Inbox = new List<EventInfo>();
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
-            this.ActionMap = new Dictionary<string, MethodInfo>();
+            this.ActionMap = new Dictionary<string, CachedAction>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
@@ -882,9 +881,9 @@ namespace Microsoft.PSharp
         /// <param name="actionName">Action name</param>
         private async Task Do(string actionName)
         {
-            MethodInfo action = this.ActionMap[actionName];
-            base.Runtime.NotifyInvokedAction(this, action, this.ReceivedEvent);
-            await this.ExecuteAction(action);
+            var cachedAction = this.ActionMap[actionName];
+            base.Runtime.NotifyInvokedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
+            await this.ExecuteAction(cachedAction);
 
             if (this.IsPopInvoked)
             {
@@ -900,7 +899,7 @@ namespace Microsoft.PSharp
         {
             base.Runtime.NotifyEnteredState(this);
 
-            MethodInfo entryAction = null;
+            CachedAction entryAction = null;
             if (this.StateStack.Peek().EntryAction != null)
             {
                 entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
@@ -910,7 +909,7 @@ namespace Microsoft.PSharp
             // if there is one available.
             if (entryAction != null)
             {
-                base.Runtime.NotifyInvokedAction(this, entryAction, this.ReceivedEvent);
+                base.Runtime.NotifyInvokedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(entryAction);
             }
 
@@ -929,7 +928,7 @@ namespace Microsoft.PSharp
         {
             base.Runtime.NotifyExitedState(this);
 
-            MethodInfo exitAction = null;
+            CachedAction exitAction = null;
             if (this.StateStack.Peek().ExitAction != null)
             {
                 exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
@@ -941,7 +940,7 @@ namespace Microsoft.PSharp
             // if there is one available.
             if (exitAction != null)
             {
-                base.Runtime.NotifyInvokedAction(this, exitAction, this.ReceivedEvent);
+                base.Runtime.NotifyInvokedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(exitAction);
             }
 
@@ -949,8 +948,8 @@ namespace Microsoft.PSharp
             // if there is one available.
             if (eventHandlerExitActionName != null)
             {
-                MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-                base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction, this.ReceivedEvent);
+                CachedAction eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(eventHandlerExitAction);
             }
 
@@ -958,18 +957,45 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// An exception filter that calls OnFailure, which can choose to fast-fail the app
+        /// to get a full dump.
+        /// </summary>
+        /// <param name="ex">The exception being tested</param>
+        /// <param name="action">The machine action being executed when the failure occurred</param>
+        /// <returns></returns>
+        private bool InvokeOnFailureExceptionFilter(CachedAction action, Exception ex)
+        {
+            // This is called within the exception filter so the stack has not yet been unwound.
+            // If OnFailure does not fail-fast, return false to process the exception normally.
+            base.Runtime.RaiseOnFailureEvent(new MachineActionExceptionFilterException(action.MethodInfo.Name, ex));
+            return false;
+        }
+
+        /// <summary>
         /// Executes the specified action.
         /// </summary>
-        /// <param name="action">MethodInfo</param>
-        [DebuggerStepThrough]
-        private async Task ExecuteAction(MethodInfo action)
+        /// <param name="cachedAction">The cached methodInfo and corresponding delegate</param>
+        private async Task ExecuteAction(CachedAction cachedAction)
         {
             try
             {
-                object task = action.Invoke(this, null);
-                if (task != null)
+                if (cachedAction.IsAsync)
                 {
-                    await (Task)task;
+                    // We have no reliable stack for awaited operations.
+                    await cachedAction.ExecuteAsync();
+                }
+                else
+                {
+                    // Use an exception filter to call OnFailure before the stack has been unwound.
+                    try
+                    {
+                        cachedAction.Execute();
+                    }
+                    catch (Exception ex) when (InvokeOnFailureExceptionFilter(cachedAction, ex))
+                    {
+                        // If InvokeOnFailureExceptionFilter does not fail-fast, it returns
+                        // false to process the exception normally.
+                    }
                 }
             }
             catch (Exception ex)
@@ -1000,7 +1026,7 @@ namespace Microsoft.PSharp
                 else
                 {
                     // Reports the unhandled exception.
-                    this.ReportUnhandledException(innerException, action.Name);
+                    this.ReportUnhandledException(innerException, cachedAction.MethodInfo.Name);
                 }
             }
         }
@@ -1471,7 +1497,7 @@ namespace Microsoft.PSharp
             // Populates the map of actions for this machine instance.
             foreach (var kvp in MachineActionMap[machineType])
             {
-                this.ActionMap.Add(kvp.Key, kvp.Value);
+                this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
             }
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();

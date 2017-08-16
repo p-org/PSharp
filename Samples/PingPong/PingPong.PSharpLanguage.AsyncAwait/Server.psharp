@@ -1,4 +1,7 @@
-﻿namespace PingPong.PSharpLanguage.AsyncAwait
+﻿using System;
+using System.Threading.Tasks;
+
+namespace PingPong.PSharpLanguage.AsyncAwait
 {
     /// <summary>
     /// A P# machine that models a simple server.
@@ -15,17 +18,20 @@
         start state Active
         {
             /// <summary>
-            /// The 'on ... do ...' action declaration will execute (asynchrously)
-            /// the 'SendPong' method, whenever a 'Ping' event is dequeued while the
-            /// server machine is in the 'Active' state. See client.psharp for an 
-            /// example of an async anonymous action, which requires an explicit async
-            /// declaration.
+			/// Whenever a 'Ping' event is dequeued while the server machine is in the
+			/// 'Active' state, the 'on ... do ...' action declaration will execute the
+			/// 'SendPong' method; the method invocation will automatically be asynchronous
+			/// due to the Task return type of SendPong, and no 'await' is required here.
+			/// See client.psharp for an example of an async anonymous action, which does
+			/// require an explicit async declaration.
             /// </summary>
             on Client.Ping do SendPong;
         }
 
-        void SendPong()
+        async Task SendPong()
         {
+            await Task.Delay(42); // Simple await operation (compiler will warn if no awaits are present).
+
             // Receives a reference to a client machine (as a payload of
             // the 'Ping' event).
             var client = (trigger as Client.Ping).client;
