@@ -199,7 +199,17 @@ namespace Microsoft.PSharp
         /// Unique id of the group of operations that is
         /// associated with the next operation.
         /// </summary>
-        protected Guid OperationGroupId => Info.OperationGroupId;
+        protected Guid OperationGroupId
+        {
+            get
+            {
+                return Info.OperationGroupId;
+            }
+            set
+            {
+                Info.OperationGroupId = value;
+            }
+        }
 
         #endregion
 
