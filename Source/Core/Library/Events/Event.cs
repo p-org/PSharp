@@ -41,7 +41,7 @@ namespace Microsoft.PSharp
         /// User-defined hash of the event payload. Override to improve the
         /// accuracy of liveness checking when state-caching is enabled.
         /// </summary> 
-        protected internal virtual int HashedState => 0;
+        public virtual int HashedState => 0;
 
         #endregion
 
