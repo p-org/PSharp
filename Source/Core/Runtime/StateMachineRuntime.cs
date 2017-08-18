@@ -830,9 +830,6 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            // The machine inherits the operation group id of the dequeued event.
-            machine.Info.OperationGroupId = eventInfo.OperationGroupId;
-
             base.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                 $"event '{eventInfo.EventName}'.");
         }

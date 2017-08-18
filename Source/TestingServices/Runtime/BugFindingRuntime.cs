@@ -1189,9 +1189,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
-            // The machine inherits the operation group id of the dequeued event.
-            machine.Info.OperationGroupId = eventInfo.OperationGroupId;
-
             // Skip `Receive` if the last operation exited the previous event handler,
             // to avoid scheduling duplicate `Receive` operations.
             if ((machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint)

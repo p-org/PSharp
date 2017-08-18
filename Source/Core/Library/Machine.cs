@@ -199,7 +199,29 @@ namespace Microsoft.PSharp
         /// Unique id of the group of operations that is
         /// associated with the next operation.
         /// </summary>
-        protected Guid OperationGroupId => Info.OperationGroupId;
+        protected Guid OperationGroupId
+        {
+            get
+            {
+                return Info.OperationGroupId;
+            }
+            set
+            {
+                Info.OperationGroupId = value;
+            }
+        }
+
+        /// <summary>
+        /// Previous operation-group, needed for
+        /// implementing a push
+        /// </summary>
+        private Guid PrevOperationGroupId;
+
+        /// <summary>
+        /// Stack of operation groups that mirrors the 
+        /// state stack
+        /// </summary>
+        private Stack<Guid> OperationGroupIdStack;
 
         #endregion
 
@@ -230,6 +252,8 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
+
+            this.OperationGroupIdStack = new Stack<Guid>();
         }
 
         #endregion
@@ -738,6 +762,10 @@ namespace Microsoft.PSharp
 
                 if (dequeued)
                 {
+                    // The machine inherits the operation group id of the dequeued event.
+                    this.PrevOperationGroupId = this.OperationGroupId;
+                    this.OperationGroupId = nextEventInfo.OperationGroupId;
+
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
                     // to schedule a machine when a new operation is dequeued.
@@ -1068,6 +1096,10 @@ namespace Microsoft.PSharp
             var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
             this.DoStatePush(nextState);
 
+            // save previous operation-group on the stack
+            //this.OperationGroupIdStack.Push(this.PrevOperationGroupId);
+            this.PrevOperationGroupId = Guid.Empty;
+
             // The machine performs the on entry statements of the new state.
             await this.ExecuteCurrentStateOnEntry();
         }
@@ -1096,6 +1128,14 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                     $"and reentered state '{this.CurrentStateName}'.");
+            }
+
+            // pop operation-group from the stack
+            // This check is redundant, but being defensive here because
+            // OperationGroupIds are only used for logging purposes
+            if (this.OperationGroupIdStack.Count > 0)
+            {
+                this.OperationGroupId = this.OperationGroupIdStack.Pop();
             }
 
             // Watch out for an extra pop.

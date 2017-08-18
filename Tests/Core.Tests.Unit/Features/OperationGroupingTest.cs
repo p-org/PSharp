@@ -280,6 +280,43 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
 
+        class M12 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventPushState(typeof(E), typeof(Next))]
+            class Init : MachineState { }
+
+            [OnEntry(nameof(NextOnEntry))]
+            class Next : MachineState { }
+
+            void InitOnEntry()
+            {
+                var id = this.OperationGroupId;
+                Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
+            }
+
+            void NextOnEntry()
+            {
+                var id = this.OperationGroupId;
+                Assert(id == OperationGroup2, $"OperationGroupId is not '{OperationGroup2}', but {id}.");
+                Pop(); // Goes back to Init
+            }
+        }
+
+        class M12S : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                var m = this.Id.Runtime.CreateMachine(typeof(M12), new E(this.Id), OperationGroup1);
+                this.Id.Runtime.SendEvent(m, new E(this.Id), OperationGroup2);
+            }
+        }
+
         public void AssertSucceeded(Type machine)
         {
             var runtime = PSharpRuntime.Create();
@@ -349,6 +386,12 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
             AssertSucceeded(typeof(M9S));
+        }
+
+        [Fact]
+        public void TestOperationGroupingPushPop()
+        {
+            AssertSucceeded(typeof(M12S));
         }
     }
 }
