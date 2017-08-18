@@ -1020,7 +1020,7 @@ namespace Microsoft.PSharp
                 }
                 else if (innerException is TaskSchedulerException)
                 {
-                    IO.Debug.WriteLine("<Exception> TaskSchedulerException was thrown from " +
+                    IO.Debug.WriteLine("<Exception> TaskSchedulerException was " +
                         $"thrown from Machine '{base.Id}'.");
                 }
                 else
