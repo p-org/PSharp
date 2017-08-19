@@ -164,6 +164,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns a nullable boolean indicating liveness temperature: true for hot, false for cold, else null.
+        /// </summary>
+        internal bool? GetHotState()
+        {
+            return this.IsInHotState() ? true :
+                this.IsInColdState() ? (bool?)false :
+                null;
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -270,8 +280,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            this.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                $"is processing event '{e.GetType().FullName}'.");
+            this.Runtime.Logger.OnMonitorEvent(this.GetType().Name, this.Id, this.CurrentStateName,
+                e.GetType().FullName, isProcessing: true);
             this.HandleEvent(e);
         }
 
@@ -854,12 +864,7 @@ namespace Microsoft.PSharp
         /// <param name="actionName">Action name</param>
         private void ReportUnhandledException(Exception ex, string actionName)
         {
-            string state = "<unknown>";
-            if (this.CurrentState != null)
-            {
-                state = this.CurrentStateName;
-            }
-
+            var state = (this.CurrentState == null) ? "<unknown>" : this.CurrentStateName;
             this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                 $"in monitor '{this.Id}', state '{state}', action '{actionName}', " +
                 $"'{ex.Source}':\n" +

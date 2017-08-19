@@ -17,9 +17,9 @@ using System.IO;
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Logger that writes text in memory.
+    /// Logger that writes text in-memory.
     /// </summary>
-    internal sealed class InMemoryLogger : ILogger
+    internal sealed class InMemoryLogger : StateMachineLogger
     {
         /// <summary>
         /// Underlying string writer.
@@ -27,9 +27,10 @@ namespace Microsoft.PSharp.IO
         private StringWriter Writer;
 
         /// <summary>
-        /// Constructor.
+        /// Creates a new in-memory logger that logs everything by default.
         /// </summary>
         public InMemoryLogger()
+            : base(0)
         {
             Writer = new StringWriter();
         }
@@ -38,7 +39,7 @@ namespace Microsoft.PSharp.IO
         /// Writes the specified string value.
         /// </summary>
         /// <param name="value">Text</param>
-        public void Write(string value)
+        public override void Write(string value)
         {
             Writer.Write(value);
         }
@@ -48,7 +49,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
-        public void Write(string format, params object[] args)
+        public override void Write(string format, params object[] args)
         {
             Writer.Write(format, args);
         }
@@ -58,7 +59,7 @@ namespace Microsoft.PSharp.IO
         /// current line terminator.
         /// </summary>
         /// <param name="value">Text</param>
-        public void WriteLine(string value)
+        public override void WriteLine(string value)
         {
             Writer.WriteLine(value);
         }
@@ -69,7 +70,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
-        public void WriteLine(string format, params object[] args)
+        public override void WriteLine(string format, params object[] args)
         {
             Writer.WriteLine(format, args);
         }
@@ -85,7 +86,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Disposes the logger.
         /// </summary>
-        public void Dispose()
+        public override void Dispose()
         {
             Writer.Dispose();
         }
