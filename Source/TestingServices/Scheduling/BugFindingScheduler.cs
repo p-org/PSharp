@@ -424,6 +424,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.Strategy.IsFair())
             {
                 report.NumOfExploredFairSchedules++;
+                report.TotalExploredFairSteps += this.ScheduledSteps;
+
+                if (report.MinExploredFairSteps < 0 ||
+                    report.MinExploredFairSteps > this.ScheduledSteps)
+                {
+                    report.MinExploredFairSteps = this.ScheduledSteps;
+                }
+
+                if (report.MaxExploredFairSteps < this.ScheduledSteps)
+                {
+                    report.MaxExploredFairSteps = this.ScheduledSteps;
+                }
 
                 if (this.Strategy.HasReachedMaxSchedulingSteps())
                 {
@@ -433,22 +445,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 if (this.ScheduledSteps >= report.Configuration.MaxUnfairSchedulingSteps)
                 {
                     report.MaxUnfairStepsHitInFairTests++;
-                }
-
-                if (!this.Strategy.HasReachedMaxSchedulingSteps())
-                {
-                    report.TotalExploredFairSteps += this.ScheduledSteps;
-
-                    if (report.MinExploredFairSteps < 0 ||
-                        report.MinExploredFairSteps > this.ScheduledSteps)
-                    {
-                        report.MinExploredFairSteps = this.ScheduledSteps;
-                    }
-
-                    if (report.MaxExploredFairSteps < this.ScheduledSteps)
-                    {
-                        report.MaxExploredFairSteps = this.ScheduledSteps;
-                    }
                 }
             }
             else
