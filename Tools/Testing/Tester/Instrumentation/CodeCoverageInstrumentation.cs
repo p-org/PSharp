@@ -235,7 +235,7 @@ namespace Microsoft.PSharp.TestingServices
 
             // Do not create the output directory yet if we have to scroll back the history first.
             OutputDirectory = Reporter.GetOutputDirectory(configuration.OutputFilePath, configuration.AssemblyToBeAnalyzed,
-                                                         "Coverage", createDir:!makeHistory);
+                                                         "PSharpTesterOutput", createDir:!makeHistory);
             if (!makeHistory)
             {
                 return;
