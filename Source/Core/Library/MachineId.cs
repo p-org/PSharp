@@ -29,19 +29,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The P# runtime that executes the machine with this id.
         /// </summary>
-        public readonly PSharpRuntime Runtime;
+        public PSharpRuntime Runtime { get; private set; }
 
         /// <summary>
         /// Name of the machine.
         /// </summary>
         [DataMember]
-        public readonly string Name;
-
-        /// <summary>
-        /// Optional friendly name of the machine.
-        /// </summary>
-        [DataMember]
-        private readonly string FriendlyName;
+        public string Name { get; private set; }
 
         /// <summary>
         /// Type of the machine with this id.
@@ -53,7 +47,13 @@ namespace Microsoft.PSharp
         /// Unique id value.
         /// </summary>
         [DataMember]
-        internal readonly ulong Value;
+        public readonly ulong Value;
+
+        /// <summary>
+        /// Generation of the runtime that created this machine id.
+        /// </summary>
+        [DataMember]
+        public readonly ulong Generation;
 
         /// <summary>
         /// Endpoint.
@@ -61,37 +61,52 @@ namespace Microsoft.PSharp
         [DataMember]
         public readonly string Endpoint;
 
+        /// <summary>
+        /// True, if the machine id is bound to a machine.
+        /// </summary>
+        internal bool IsBound;
+
         #endregion
 
         #region constructors
 
         /// <summary>
-        /// Constructor.
+        /// Creates a new machine id.
         /// </summary>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="runtime">PSharpRuntime</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime)
+        /// <param name="isBound">Is the id bound to a machine?</param>
+        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime, bool isBound)
         {
-            this.FriendlyName = friendlyName;
-            this.Runtime = runtime;
-
-            this.Type = type.FullName;
-            this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
+            Runtime = runtime;
+            Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
             
             // Atomically increments and safely wraps into an unsigned long.
-            this.Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
+            Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
 
             // Checks for overflow.
-            Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
+            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
 
-            if (this.FriendlyName != null && this.FriendlyName.Length > 0)
+            Generation = runtime.Configuration.RuntimeGeneration;
+
+            Type = type.FullName;
+            if (friendlyName != null && friendlyName.Length > 0)
             {
-                this.Name = string.Format("{0}({1})", this.FriendlyName, this.Value);
+                Name = string.Format("{0}({1})", friendlyName, Value);
             }
             else
             {
-                this.Name = string.Format("{0}({1})", this.Type, this.Value);
+                Name = string.Format("{0}({1})", Type, Value);
+            }
+
+            if (isBound)
+            {
+                Bound(runtime);
+            }
+            else
+            {
+                IsBound = false;
             }
         }
 
@@ -103,8 +118,30 @@ namespace Microsoft.PSharp
         /// <param name="value">Id value</param>
         internal MachineId(string type, ulong value)
         {
-            this.Type = type;
-            this.Value = value;
+            Type = type;
+            Value = value;
+        }
+
+        /// <summary>
+        /// Bound the machine id.
+        /// </summary>
+        /// <param name="runtime">PSharpRuntime</param>
+        internal void Bound(PSharpRuntime runtime)
+        {
+            Runtime = runtime;
+            IsBound = true;
+        }
+
+        /// <summary>
+        /// Updates the friendly name of the machine id.
+        /// </summary>
+        /// <param name="friendlyName">Friendly machine name</param>
+        internal void UpdateFriendlyName(string friendlyName)
+        {
+            if (friendlyName != null && friendlyName.Length > 0)
+            {
+                Name = string.Format("{0}({1})", friendlyName, Value);
+            }
         }
 
         #endregion
@@ -130,7 +167,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return this.Value == mid.Value;
+            return Value == mid.Value && Generation == mid.Generation;
         }
 
         /// <summary>
@@ -139,7 +176,10 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return this.Value.GetHashCode();
+            int hash = 17;
+            hash = hash * 23 + Value.GetHashCode();
+            hash = hash * 23 + Generation.GetHashCode();
+            return hash;
         }
 
         /// <summary>
@@ -148,7 +188,7 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return this.Name;
+            return Name;
         }
 
         #endregion

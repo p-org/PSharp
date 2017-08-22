@@ -257,7 +257,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.CreateMachine(type, null, e, this, null);
+            return base.Runtime.CreateMachine(null, type, null, e, this, null);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return base.Runtime.CreateMachine(type, friendlyName, e, this, null);
+            return base.Runtime.CreateMachine(null, type, friendlyName, e, this, null);
         }
 
         /// <summary>
