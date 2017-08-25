@@ -91,7 +91,7 @@ namespace BoundedAsync.PSharpLibrary
             this.Send(this.Scheduler, new Req());
 
             // Transition to the 'Syncing' state in the end of this action.
-            this.Goto(typeof(Syncing));
+            this.Goto<Syncing>();
         }
 
         /// <summary>

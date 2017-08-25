@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 this.FailureDetector = this.CreateMachine(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
                 this.Send(this.FailureDetector, new RegisterClient(this.Id));
 
-                this.Goto(typeof(InjectFailures));
+                this.Goto<InjectFailures>();
             }
 
             [OnEntry(nameof(InjectFailuresOnEntry))]
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
                 if (this.Responses.Count < this.Alive.Count && this.Attempts < 2)
                 {
-                    this.Goto(typeof(SendPing));
+                    this.Goto<SendPing>();
                 }
                 else
                 {
@@ -342,7 +342,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             void InitOnEntry()
             {
                 this.Target = (this.ReceivedEvent as Config).Target;
-                this.Goto(typeof(WaitForReq));
+                this.Goto<WaitForReq>();
             }
 
             [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction))]
@@ -456,7 +456,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 var nodes = (this.ReceivedEvent as RegisterNodes).Nodes;
                 this.Nodes = new HashSet<MachineId>(nodes);
-                this.Goto(typeof(Wait));
+                this.Goto<Wait>();
             }
 
             [Hot]
@@ -469,7 +469,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 this.Nodes.Remove(node);
                 if (this.Nodes.Count == 0)
                 {
-                    this.Goto(typeof(Done));
+                    this.Goto<Done>();
                 }
             }
 

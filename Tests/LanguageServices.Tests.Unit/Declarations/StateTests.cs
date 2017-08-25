@@ -363,7 +363,7 @@ namespace Foo
     class M : Machine
     {
         [Microsoft.PSharp.Start]
-        [OnEventGotoState(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), typeof(S2))]
+        [OnEventGotoState(typeof(e<List<Tuple<bool, object>>, Dictionary<string, float>>), typeof(S2))]
         class S1 : MachineState
         {
         }
@@ -517,7 +517,7 @@ namespace Foo
     class M : Machine
     {
         [Microsoft.PSharp.Start]
-        [OnEventGotoState(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), typeof(S2), nameof(psharp_S1_e_type_0_action))]
+        [OnEventGotoState(typeof(e<List<Tuple<bool, object>>, Dictionary<string, float>>), typeof(S2), nameof(psharp_S1_e_type_0_action))]
         class S1 : MachineState
         {
         }
@@ -553,7 +553,7 @@ namespace Foo
         [Microsoft.PSharp.Start]
         [OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_S1_e_action))]
         [OnEventGotoState(typeof(e<int>), typeof(S2), nameof(psharp_S1_e_type_1_action))]
-        [OnEventGotoState(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), typeof(S2), nameof(psharp_S1_e_type_2_action))]
+        [OnEventGotoState(typeof(e<List<Tuple<bool, object>>, Dictionary<string, float>>), typeof(S2), nameof(psharp_S1_e_type_2_action))]
         class S1 : MachineState
         {
         }
@@ -682,7 +682,7 @@ namespace Foo
     class M : Machine
     {
         [Microsoft.PSharp.Start]
-        [OnEventDoAction(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), nameof(Bar))]
+        [OnEventDoAction(typeof(e<List<Tuple<bool, object>>, Dictionary<string, float>>), nameof(Bar))]
         class S1 : MachineState
         {
         }

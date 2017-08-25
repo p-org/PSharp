@@ -70,7 +70,7 @@ namespace FailureDetector.PSharpLibrary
             this.FailureDetector = this.CreateMachine(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
             this.Send(this.FailureDetector, new RegisterClient(this.Id));
 
-            this.Goto(typeof(InjectFailures));
+            this.Goto<InjectFailures>();
         }
 
         [OnEntry(nameof(InjectFailuresOnEntry))]

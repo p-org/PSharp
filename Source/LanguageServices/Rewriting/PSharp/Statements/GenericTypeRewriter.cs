@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TypeofRewriter.cs">
+// <copyright file="GenericTypeRewriter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// <summary>
     /// Rewrite typeof statements to fully qualify state names.
     /// </summary>
-    internal sealed class TypeofRewriter : PSharpRewriter
+    internal sealed class GenericTypeRewriter : PSharpRewriter
     {
         #region fields
 
@@ -41,8 +41,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="program">IPSharpProgram</param>
-        internal TypeofRewriter(IPSharpProgram program)
-            : base(program) {}
+        internal GenericTypeRewriter(IPSharpProgram program)
+            : base(program) { }
 
         /// <summary>
         /// Rewrites the typeof statements in the program.
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.typeNameQualifier.RewrittenQualifiedMethods = rewrittenQualifiedMethods;
 
             var typeofnodes = base.Program.GetSyntaxTree().GetRoot().DescendantNodes()
-                .OfType<TypeOfExpressionSyntax>().ToList();
+                .OfType<TypeArgumentListSyntax>().ToList();
 
             if (typeofnodes.Count > 0)
             {
@@ -69,18 +69,20 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region private methods
 
         /// <summary>
-        /// Rewrites the type inside typeof.
+        /// Rewrites the type(s) to qualified names inside a list of generic type arguments.
+        /// Primarily intended for the generic method Goto&lt;StateType&gt;().
         /// </summary>
-        /// <param name="node">TypeOfExpressionSyntax</param>
+        /// <param name="node">TypeArgumentListSyntax</param>
         /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteStatement(TypeOfExpressionSyntax node)
+        private SyntaxNode RewriteStatement(TypeArgumentListSyntax node)
         {
             this.typeNameQualifier.InitializeForNode(node);
 
-            var fullyQualifiedName = this.typeNameQualifier.GetQualifiedName(node.Type, out var succeeded);
-            var rewritten = succeeded
-                ? SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")").WithTriviaFrom(node)
-                : node;
+            var qualifiedNames = node.Arguments.Select(argType => this.typeNameQualifier.GetQualifiedName(argType, out _));
+            var qualifiedNamesCsv = string.Join(", ", qualifiedNames);
+
+            var fakeGenericExpression = SyntaxFactory.ParseExpression($"X<{qualifiedNamesCsv}>") as GenericNameSyntax;
+            var rewritten = node.WithArguments(fakeGenericExpression.TypeArgumentList.Arguments);
             return rewritten;
         }
 

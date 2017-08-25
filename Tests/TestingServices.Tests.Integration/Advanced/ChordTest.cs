@@ -824,7 +824,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             void InitOnEntry()
             {
-                this.Goto(typeof(Responded));
+                this.Goto<Responded>();
             }
 
             [Cold]

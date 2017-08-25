@@ -50,7 +50,7 @@ namespace MultiPaxos.PSharpLibrary
         {
             this.ClientSet = new Dictionary<int, int>();
             this.ProposedSet = new Dictionary<int, int>();
-            this.Goto(typeof(Wait));
+            this.Goto<Wait>();
         }
         
         [OnEventDoAction(typeof(ValidityCheck.monitor_client_sent), nameof(AddClientSet))]

@@ -48,7 +48,7 @@ namespace FailureDetector.PSharpLibrary
         {
             var nodes = (this.ReceivedEvent as RegisterNodes).Nodes;
             this.Nodes = new HashSet<MachineId>(nodes);
-            this.Goto(typeof(Wait));
+            this.Goto<Wait>();
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace FailureDetector.PSharpLibrary
             {
                 // When the liveness property has been satisfied
                 // transition out of the hot state.
-                this.Goto(typeof(Done));
+                this.Goto<Done>();
             }
         }
 

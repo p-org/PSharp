@@ -49,7 +49,7 @@ namespace MultiPaxos.PSharpLibrary
         void InitOnEntry()
         {
             this.LastValueChosen = new Dictionary<int, Tuple<int, int, int>>();
-            this.Goto(typeof(WaitForValueChosen));
+            this.Goto<WaitForValueChosen>();
         }
 
         [OnEventGotoState(typeof(BasicPaxosInvariant_P2b.monitor_valueChosen), typeof(CheckValueProposed), nameof(WaitForValueChosenAction))]

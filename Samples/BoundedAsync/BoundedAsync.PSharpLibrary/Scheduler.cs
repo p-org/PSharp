@@ -69,7 +69,7 @@ namespace BoundedAsync.PSharpLibrary
             this.Count = 0;
 
             // Transition to the 'Sync' state in the end of this action.
-            this.Goto(typeof(Sync));
+            this.Goto<Sync>();
         }
 
         /// <summary>

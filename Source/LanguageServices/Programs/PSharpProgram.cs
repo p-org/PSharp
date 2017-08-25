@@ -127,6 +127,7 @@ namespace Microsoft.PSharp.LanguageServices
 
             var qualifiedMethods = this.GetResolvedRewrittenQualifiedMethods();
             new TypeofRewriter(this).Rewrite(qualifiedMethods);
+            new GenericTypeRewriter(this).Rewrite(qualifiedMethods);
         }
 
         /// <summary>

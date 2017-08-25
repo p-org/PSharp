@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 switch(errorType)
                 {
                     case ErrorType.CALL_GOTO:
-                        this.Goto(typeof(Done));
+                        this.Goto<Done>();
                         break;
                     case ErrorType.CALL_RAISE:
                         this.Raise(new E());
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Foo()
             {
-                this.Goto(typeof(Done));
+                this.Goto<Done>();
             }
 
             class Done : MachineState { }

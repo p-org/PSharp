@@ -161,7 +161,7 @@ namespace FailureDetector.PSharpLibrary
             if (this.Responses.Count < this.Alive.Count && this.Attempts < 2)
             {
                 // Retry by looping back to same state.
-                this.Goto(typeof(SendPing));
+                this.Goto<SendPing>();
             }
             else
             {

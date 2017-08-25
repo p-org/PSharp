@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                this.Goto(typeof(Done));
+                this.Goto<Done>();
             }
 
             void ExitInit()
