@@ -30,13 +30,52 @@ namespace Microsoft.PSharp
     {
         static void Main(string[] args)
         {
-            if (args.Length < 1 || args.Length > 2)
+            var infile = string.Empty;
+            var outfile = string.Empty;
+            var csVersion = new Version(0, 0);
+
+            var usage = "Usage: PSharpSyntaxRewriter.exe file.psharp [file.psharp.cs] [/csVersion:major.minor]";
+
+            if (args.Length >= 1 && args.Length <= 3)
             {
-                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp [file.psharp.cs]");
-                return;
+                foreach (var arg in args)
+                {
+                    if (arg.StartsWith("/") || arg.StartsWith("-"))
+                    {
+                        var parts = arg.Substring(1).Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                        switch (parts[0].ToLower())
+                        {
+                            case "?":
+                                Output.WriteLine(usage);
+                                return;
+                            case "csversion":
+                                if (parts.Length != 2 || !Version.TryParse(parts[1], out csVersion))
+                                {
+                                    Output.WriteLine("Error: option csVersion requires a version (major.minor) value");
+                                    return;
+                                }
+                                break;
+                            default:
+                                Output.WriteLine($"Error: unknown option {parts[0]}");
+                                return;
+                        }
+                    }
+                    else if (infile.Length == 0)
+                    {
+                        infile = arg;
+                    }
+                    else
+                    {
+                        outfile = arg;
+                    }
+                }
             }
 
-            var outfile = args.Length > 1 ? args[1] : string.Empty;
+            if (infile.Length == 0)
+            {
+                Output.WriteLine(usage);
+                return;
+            }
 
             // Gets input file as string.
             var input_string = "";
@@ -52,7 +91,7 @@ namespace Microsoft.PSharp
 
             // Translates and prints on console or to file.
             string errors = "";
-            var output = Translate(input_string, out errors);
+            var output = Translate(input_string, out errors, csVersion);
             var result = string.Format("{0}", output == null ? "Parse Error: " + errors : output);
             if (!string.IsNullOrEmpty(outfile))
             {
@@ -75,10 +114,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Text</returns>
-        public static string Translate(string text, out string errors)
+        public static string Translate(string text, out string errors, Version csVersion)
         {
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.RewriteCSharpVersion = csVersion;
             errors = null;
 
             var context = CompilationContext.Create(configuration).LoadSolution(text);
@@ -105,12 +145,22 @@ namespace Microsoft.PSharp
         }
     }
 
+    /// <summary>
+    /// This is the MSBuild task referenced by the UsingTask element in the PSharp.targets file.
+    /// </summary>
     public class Rewriter : ITask
     {
         public IBuildEngine BuildEngine { get; set; }
         public ITaskHost HostObject { get; set; }
 
         public ITaskItem[] InputFiles { get; set; }
+
+        public string CSharpVersion
+        {
+            get { return this.csVersion.ToString(); }
+            set { this.csVersion = Version.Parse(value); }
+        }
+        private Version csVersion = new Version();
 
         [Output]
         public ITaskItem[] OutputFiles { get; set; }
@@ -120,8 +170,8 @@ namespace Microsoft.PSharp
             for (int i = 0; i < InputFiles.Length; i++)
             {
                 var inp = File.ReadAllText(InputFiles[i].ItemSpec);
-                string errors;
-                var outp = SyntaxRewriter.Translate(inp, out errors);
+                string errors = "";
+                var outp = SyntaxRewriter.Translate(inp, out errors, this.csVersion);
                 if (outp != null)
                 {
                     File.WriteAllText(OutputFiles[i].ItemSpec, outp);

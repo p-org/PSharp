@@ -103,6 +103,11 @@ namespace Microsoft.PSharp
         /// </summary>
         public bool ShowFullDataFlowInformation;
 
+        /// <summary>
+        /// The version of CSharp to target in rewriting, if specified.
+        /// </summary>
+        public Version RewriteCSharpVersion;
+
         #endregion
 
         #region bug finding options
@@ -463,6 +468,7 @@ namespace Microsoft.PSharp
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
+            this.RewriteCSharpVersion = new Version();
 
             this.AssemblyToBeAnalyzed = "";
             this.TestMethodName = "";
@@ -579,6 +585,19 @@ namespace Microsoft.PSharp
         {
             this.SchedulingIterations = iterations;
             return this;
+        }
+
+        /// <summary>
+        /// Indicates whether the requested C# version is supported for for rewriting.
+        /// </summary>
+        /// <param name="major">The major version required</param>
+        /// <param name="minor">The minor version required</param>
+        /// <returns></returns>
+        public bool IsRewriteCSharpVersion(int major, int minor)
+        {
+            // Return true if not set
+            return this.RewriteCSharpVersion.Major == 0
+                || this.RewriteCSharpVersion > new Version(major, minor);
         }
 
         #endregion

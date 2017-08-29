@@ -144,6 +144,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal HashSet<QualifiedMethod> RewrittenMethods;
 
+        /// <summary>
+        /// Whether to use nameof or a quoted string (based on C# version).
+        /// </summary>
+        private bool isNameofSupported;
+
         #endregion
 
         #region internal API
@@ -175,6 +180,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IgnoredEvents = new HashSet<Token>();
             this.ResolvedEventIdentifierTokens = new Dictionary<Token, Tuple<List<Token>, int>>();
             this.RewrittenMethods = new HashSet<QualifiedMethod>();
+            this.isNameofSupported = base.Program.GetProject().CompilationContext.Configuration.IsRewriteCSharpVersion(6, 0);
         }
 
         /// <summary>
@@ -477,6 +483,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             return text;
         }
 
+        private string Nameof(string item)
+        {
+            return this.isNameofSupported ? $"nameof({item})" : $"\"{item}\"";
+        }
+
         /// <summary>
         /// Instruments the on entry action.
         /// </summary>
@@ -494,7 +505,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
 
-            return indent + "[OnEntry(nameof(" + generatedProcName + "))]\n";
+            return indent + $"[OnEntry({Nameof(generatedProcName)})]\n";
         }
 
         /// <summary>
@@ -514,7 +525,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
 
-            return indent + "[OnExit(nameof(" + generatedProcName +   "))]\n";
+            return indent + $"[OnExit({Nameof(generatedProcName)})]\n";
         }
 
         /// <summary>
@@ -571,7 +582,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 if (onExitName.Length > 0)
                 {
-                    text += ", nameof(" + onExitName + ")";
+                    text += $", {Nameof(onExitName)}";
                 }
 
                 text += ")]\n";
@@ -674,11 +685,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 if (actionName.Length > 0)
                 {
-                    text += ", nameof(" + actionName + ")";
+                    text += $", {Nameof(actionName)}";
                 }
                 else
                 {
-                    text += ", nameof(" + binding.Value.TextUnit.Text + ")";
+                    text += $", {Nameof(binding.Value.TextUnit.Text)}";
                 }
 
                 text += ")]\n";

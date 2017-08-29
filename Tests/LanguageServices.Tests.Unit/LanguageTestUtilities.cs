@@ -24,9 +24,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     internal static class LanguageTestUtilities
     {
-        internal static void AssertRewritten(string expectedResult, string test, bool isPSharpProgram = true)
+        internal static void AssertRewritten(string expectedResult, string test, bool isPSharpProgram = true, Version csVersion = null)
         {
-            CompilationContext context = RunRewriter(test, isPSharpProgram);
+            CompilationContext context = RunRewriter(test, isPSharpProgram, csVersion);
             expectedResult = expectedResult.TrimStart();    // The tests create expectedResults with a leading crlf
 
             var project = context.GetProjects()[0];
@@ -68,10 +68,14 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             }
         }
 
-        internal static CompilationContext RunRewriter(string test, bool isPSharpProgram = true)
+        internal static CompilationContext RunRewriter(string test, bool isPSharpProgram = true, Version csVersion = null)
         {
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            if (csVersion != null)
+            {
+                configuration.RewriteCSharpVersion = csVersion;
+            }
 
             // There is some inconsistency around whether the rewriting process strips leading newlines, so make sure there are none.
             var context = CompilationContext.Create(configuration).LoadSolution(test.Trim(), isPSharpProgram ? "psharp" : "cs");
