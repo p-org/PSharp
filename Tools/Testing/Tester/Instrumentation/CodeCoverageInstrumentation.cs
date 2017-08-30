@@ -201,13 +201,23 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the tool path to the code coverage instrumentor.
         /// </summary>
+        /// <param name="settingName">The name of the setting; also used to query the environment variables</param>
+        /// <param name="toolName">The name of the tool; used in messages only</param>
         /// <returns>Tool path</returns>
         internal static string GetToolPath(string settingName, string toolName)
         {
             string toolPath = "";
             try
             {
-                toolPath = ConfigurationManager.AppSettings[settingName];
+                toolPath = Environment.GetEnvironmentVariable(settingName);
+                if (string.IsNullOrEmpty(toolPath))
+                {
+                    toolPath = ConfigurationManager.AppSettings[settingName];
+                }
+                else
+                {
+                    Output.WriteLine($"{toolName} overriding app settings path with environment variable");
+                }
             }
             catch (ConfigurationErrorsException)
             {

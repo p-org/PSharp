@@ -597,7 +597,7 @@ namespace Microsoft.PSharp
         {
             // Return true if not set
             return this.RewriteCSharpVersion.Major == 0
-                || this.RewriteCSharpVersion > new Version(major, minor);
+                || this.RewriteCSharpVersion >= new Version(major, minor);
         }
 
         #endregion
