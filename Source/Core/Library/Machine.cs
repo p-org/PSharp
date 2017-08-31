@@ -374,6 +374,7 @@ namespace Microsoft.PSharp
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
+            this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Goto while halted.");
             // If the state is not a state of the machine, then report an error and exit.
             this.Assert(StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
@@ -388,6 +389,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected void Raise(Event e)
         {
+            this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Raise while halted.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
@@ -402,6 +404,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Task<Event> Receive(params Type[] eventTypes)
         {
+            this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -425,6 +428,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
+            this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -444,6 +448,7 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
+            this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -816,6 +821,9 @@ namespace Microsoft.PSharp
                             base.Runtime.NotifyHalted(this, this.Inbox.Count);
                             this.CleanUpResources();
                         }
+
+                        // Invoke user callback outside the lock.
+                        this.OnHalt();
 
                         return;
                     }
@@ -1727,6 +1735,11 @@ namespace Microsoft.PSharp
             this.EventWaitHandlers.Clear();
             this.ReceivedEvent = null;
         }
+
+        /// <summary>
+        /// User callback when a machine halts.
+        /// </summary>
+        protected virtual void OnHalt() { }
 
         #endregion
     }
