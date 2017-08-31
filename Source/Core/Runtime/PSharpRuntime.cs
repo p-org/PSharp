@@ -801,6 +801,13 @@ namespace Microsoft.PSharp
         /// <param name="exception">Exception</param>
         protected internal void RaiseOnFailureEvent(Exception exception)
         {
+            if (this.Configuration.AttachDebugger && exception is MachineActionExceptionFilterException &&
+                !((exception as MachineActionExceptionFilterException).InnerException is RuntimeException))
+            {
+                System.Diagnostics.Debugger.Break();
+                this.Configuration.AttachDebugger = false;
+            }
+
             this.OnFailure?.Invoke(exception);
         }
 
