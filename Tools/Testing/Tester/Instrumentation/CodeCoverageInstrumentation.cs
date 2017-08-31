@@ -30,7 +30,6 @@ namespace Microsoft.PSharp.TestingServices
     {
         internal static string OutputDirectory = string.Empty;
         internal static List<string> InstrumentedAssemblyNames = new List<string>();
-        private static string VSInstrToolPath = GetToolPath("VSInstrToolPath", "VSInstr");
 
         internal static void Instrument(Configuration configuration)
         {
@@ -118,7 +117,7 @@ namespace Microsoft.PSharp.TestingServices
 
             using (var instrProc = new Process())
             {
-                instrProc.StartInfo.FileName = VSInstrToolPath;
+                instrProc.StartInfo.FileName = GetToolPath("VSInstrToolPath", "VSInstr");
                 instrProc.StartInfo.Arguments = $"/coverage {assemblyName}";
                 instrProc.StartInfo.UseShellExecute = false;
                 instrProc.StartInfo.RedirectStandardOutput = true;
