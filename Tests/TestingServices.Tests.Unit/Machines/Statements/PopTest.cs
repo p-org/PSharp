@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Init()
             {
-                this.Goto(typeof(S2));
+                this.Goto<S2>();
             }
 
             void Exit()

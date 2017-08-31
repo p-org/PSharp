@@ -57,7 +57,7 @@ namespace FailureDetector.PSharpLibrary
         void InitOnEntry()
         {
             this.Target = (this.ReceivedEvent as Config).Target;
-            this.Goto(typeof(WaitForReq));
+            this.Goto<WaitForReq>();
         }
 
         /// <summary>

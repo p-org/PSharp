@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             void InitOnEntry()
             {
                 LockVar = false;
-                Goto(typeof(Waiting));
+                this.Goto<Waiting>();
             }
 
             void OnTryLock()
@@ -145,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 var e = ReceivedEvent as Config;
                 left = e.Left;
                 right = e.Right;
-                Goto(typeof(Trying));
+                this.Goto<Trying>();
             }
 
             void TryAccess()
@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                     var evr = Receive(typeof(Lock.LockResp)).Result;
                     if ((evr as Lock.LockResp).LockResult)
                     {
-                        Goto(typeof(Done));
+                        this.Goto<Done>();
                         return;
                     }
                     else

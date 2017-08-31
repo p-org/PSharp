@@ -55,7 +55,7 @@ namespace Foo
 
         protected void psharp_S1_on_entry_action()
         {
-            this.Goto(typeof(S2));
+            this.Goto<S2>();
         }
     }
 }";
@@ -81,7 +81,7 @@ class S2 : MachineState
 }
 protected void psharp_S1_on_entry_action()
 {
-this.Goto(typeof(S2));
+this.Goto<S2>();
 }
 }
 }";
@@ -101,7 +101,7 @@ class S2 : MachineState
 }
 protected void psharp_S1_on_entry_action()
 {
-this.Goto(typeof(S2));
+this.Goto<S2>();
 }
 }
 }";
@@ -131,7 +131,7 @@ namespace Foo
 
         protected void psharp_S1_on_entry_action()
         {
-            this.Goto(typeof(S2));
+            this.Goto<S2>();
         }
     }
 }";
@@ -154,7 +154,7 @@ namespace Foo
 
         protected void psharp_S1_on_entry_action()
         {
-            this.Goto(typeof(S2));
+            this.Goto<S2>();
         }
     }
 }";

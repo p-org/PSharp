@@ -28,12 +28,30 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                this.Goto(typeof(object));
+                // This line no longer builds after converting from Goto(typeof(T)) to Goto<T>() 
+                // due to the "where T: MachineState" constraint on Goto<T>().
+                //this.Goto<object>();
+
+                // Added a different failure mode here; try to Goto a state from another machine.
+                this.Goto<Program2.Done>();
             }
 
             class Done : MachineState { }
         }
-        
+
+        class Program2 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(EntryInit))]
+            class Init : MachineState { }
+
+            void EntryInit()
+            {
+            }
+
+            internal class Done : MachineState { }
+        }
+
         [Fact]
         public void TestGotoStateFail()
         {

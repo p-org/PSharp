@@ -572,7 +572,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             void InitOnEntry()
             {
-                Goto(typeof(Progressing));
+                this.Goto<Progressing>();
             }
         }
 

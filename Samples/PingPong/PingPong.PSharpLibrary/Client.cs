@@ -70,7 +70,7 @@ namespace PingPong.PSharpLibrary
 
             // Notifies the P# runtime that the machine must transition
             // to the 'Active' state when 'InitOnEntry' returns.
-            this.Goto(typeof(Active));
+            this.Goto<Active>();
         }
 
         /// <summary>

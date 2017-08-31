@@ -358,7 +358,20 @@ namespace Microsoft.PSharp
         /// Transitions the machine to the specified <see cref="MachineState"/>
         /// at the end of the current action.
         /// </summary>
+        /// <typeparam name="S">Type of the state</typeparam>
+        protected void Goto<S>() where S: MachineState
+        {
+#pragma warning disable 618
+            Goto(typeof(S));
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action. Deprecated in favor of Goto&lt;T&gt;().
+        /// </summary>
         /// <param name="s">Type of the state</param>
+        [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
             // If the state is not a state of the machine, then report an error and exit.

@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void EntryInit()
             {
                 this.Item = default(T);
-                this.Goto(typeof(Active));
+                this.Goto<Active>();
             }
 
             [OnEntry(nameof(ActiveInit))]
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Init()
             {
-                this.Goto(typeof(S2));
+                this.Goto<S2>();
             }
         }
 

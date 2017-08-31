@@ -38,7 +38,7 @@ namespace Chord.PSharpLibrary
 
         void InitOnEntry()
         {
-            this.Goto(typeof(Responded));
+            this.Goto<Responded>();
         }
 
         [Cold]

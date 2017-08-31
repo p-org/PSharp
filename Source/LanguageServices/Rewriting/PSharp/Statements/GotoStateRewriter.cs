@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region private methods
 
         /// <summary>
-        /// Rewrites the statement with a raise statement.
+        /// Rewrites the jump(StateType) statement with a goto&lt;StateType&gt;() statement.
         /// </summary>
         /// <param name="node">ExpressionStatementSyntax</param>
         /// <returns>SyntaxNode</returns>
@@ -76,21 +76,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             var invocation = node.Expression as InvocationExpressionSyntax;
 
-            var arguments = new List<ArgumentSyntax>();
-            arguments.Add(invocation.ArgumentList.Arguments[0]);
-            
-            arguments[0] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
-                "typeof(" + arguments[0].ToString() + ")"));
-            invocation = invocation.WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(arguments)));
-            
-            var text = node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Goto"))).ToString();
-            var rewritten = SyntaxFactory.ParseStatement(text);
-            rewritten = rewritten.WithTriviaFrom(node);
+            var arg = invocation.ArgumentList.Arguments[0].ToString();
+            var text = node.WithExpression(SyntaxFactory.ParseExpression($"this.Goto<{arg}>()")).ToString();
 
+            var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
 
-        #endregion
+#endregion
     }
 }

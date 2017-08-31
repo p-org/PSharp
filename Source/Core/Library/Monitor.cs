@@ -223,7 +223,21 @@ namespace Microsoft.PSharp
         /// Returns from the execution context, and transitions
         /// the monitor to the given <see cref="MonitorState"/>.
         /// </summary>
+        /// <typeparam name="S">Type of the state</typeparam>
+        protected void Goto<S>() where S : MonitorState
+        {
+#pragma warning disable 618
+            Goto(typeof(S));
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Returns from the execution context, and transitions
+        /// the monitor to the given <see cref="MonitorState"/>.
+        /// Deprecated in favor of Goto&lt;T&gt;().
+        /// </summary>
         /// <param name="s">Type of the state</param>
+        [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
             // If the state is not a state of the monitor, then report an error and exit.
