@@ -1212,10 +1212,11 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyHalted(Machine machine)
+        /// <param name="inboxSize">Current size of the machine inbox.</param>
+        internal override void NotifyHalted(Machine machine, int inboxSize)
         {
             this.BugTrace.AddHaltStep(machine.Id, null);
-            this.Logger.OnHalt(machine.Id);
+            this.Logger.OnHalt(machine.Id, inboxSize);
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 

@@ -158,7 +158,8 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine has been halted.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been halted.</param>
-        void OnHalt(MachineId machineId);
+        /// <param name="inboxSize">Approximate size of the machine inbox.</param>
+        void OnHalt(MachineId machineId, int inboxSize);
 
         /// <summary>
         /// Called when a random result has been obtained.
