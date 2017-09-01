@@ -265,11 +265,12 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine has been halted.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been halted.</param>
-        public virtual void OnHalt(MachineId machineId)
+        /// <param name="inboxSize">Approximate size of the machine inbox.</param>
+        public virtual void OnHalt(MachineId machineId, int inboxSize)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine($"<HaltLog> Machine '{machineId}' halted.");
+                this.WriteLine($"<HaltLog> Machine '{machineId}' halted with '{inboxSize}' events in its inbox.");
             }
         }
 

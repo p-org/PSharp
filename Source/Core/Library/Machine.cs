@@ -813,8 +813,8 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             this.Info.IsHalted = true;
+                            base.Runtime.NotifyHalted(this, this.Inbox.Count);
                             this.CleanUpResources();
-                            base.Runtime.NotifyHalted(this);
                         }
 
                         return;

@@ -653,8 +653,9 @@ namespace Microsoft.PSharp
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">Machine</param>
+        /// <param name="inboxSize">Current size of the machine inbox.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyHalted(Machine machine)
+        internal virtual void NotifyHalted(Machine machine, int inboxSize)
         {
             // Override to implement the notification.
         }
