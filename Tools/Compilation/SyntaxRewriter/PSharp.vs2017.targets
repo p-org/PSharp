@@ -3,6 +3,7 @@
   <Target Name="GenerateToolOutput" BeforeTargets="CoreCompile">
     <Rewriter
         InputFiles="@(PSharp)"
+        CSharpVersion="$(LangVersion)"
         OutputFiles="@(PSharp->'$(IntermediateOutputPath)%(FileName)%(Extension).cs')">
       <Output TaskParameter="OutputFiles" ItemName="Compile" />
     </Rewriter>

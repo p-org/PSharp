@@ -30,7 +30,6 @@ namespace Microsoft.PSharp.TestingServices
     {
         internal static string OutputDirectory = string.Empty;
         internal static List<string> InstrumentedAssemblyNames = new List<string>();
-        private static string VSInstrToolPath = GetToolPath("VSInstrToolPath", "VSInstr");
 
         internal static void Instrument(Configuration configuration)
         {
@@ -118,7 +117,7 @@ namespace Microsoft.PSharp.TestingServices
 
             using (var instrProc = new Process())
             {
-                instrProc.StartInfo.FileName = VSInstrToolPath;
+                instrProc.StartInfo.FileName = GetToolPath("VSInstrToolPath", "VSInstr");
                 instrProc.StartInfo.Arguments = $"/coverage {assemblyName}";
                 instrProc.StartInfo.UseShellExecute = false;
                 instrProc.StartInfo.RedirectStandardOutput = true;
@@ -201,13 +200,23 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the tool path to the code coverage instrumentor.
         /// </summary>
+        /// <param name="settingName">The name of the setting; also used to query the environment variables</param>
+        /// <param name="toolName">The name of the tool; used in messages only</param>
         /// <returns>Tool path</returns>
         internal static string GetToolPath(string settingName, string toolName)
         {
             string toolPath = "";
             try
             {
-                toolPath = ConfigurationManager.AppSettings[settingName];
+                toolPath = Environment.GetEnvironmentVariable(settingName);
+                if (string.IsNullOrEmpty(toolPath))
+                {
+                    toolPath = ConfigurationManager.AppSettings[settingName];
+                }
+                else
+                {
+                    Output.WriteLine($"{toolName} overriding app settings path with environment variable");
+                }
             }
             catch (ConfigurationErrorsException)
             {

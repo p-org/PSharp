@@ -49,9 +49,17 @@ namespace Microsoft.PSharp
                                 Output.WriteLine(usage);
                                 return;
                             case "csversion":
-                                if (parts.Length != 2 || !Version.TryParse(parts[1], out csVersion))
+                                bool parseVersion(string value, out Version version)
                                 {
-                                    Output.WriteLine("Error: option csVersion requires a version (major.minor) value");
+                                    if (int.TryParse(value, out int intVer)) {
+                                        version = new Version(intVer, 0);
+                                        return true;
+                                    }
+                                    return Version.TryParse(value, out version);
+                                }
+                                if (parts.Length != 2 || !parseVersion(parts[1], out csVersion))
+                                {
+                                    Output.WriteLine("Error: option csVersion requires a version major[.minor] value");
                                     return;
                                 }
                                 break;
@@ -81,9 +89,9 @@ namespace Microsoft.PSharp
             var input_string = "";
             try
             {
-                input_string = System.IO.File.ReadAllText(args[0]);
+                input_string = File.ReadAllText(infile);
             }
-            catch (System.IO.IOException e)
+            catch (IOException e)
             {
                 Output.WriteLine("Error: {0}", e.Message);
                 return;
@@ -158,7 +166,13 @@ namespace Microsoft.PSharp
         public string CSharpVersion
         {
             get { return this.csVersion.ToString(); }
-            set { this.csVersion = Version.Parse(value); }
+            set
+            {
+                // Version.Parse errors if there is no ".minor" part. Allow exceptions to propagate.
+                this.csVersion = string.IsNullOrEmpty(value)
+                    ? new Version()
+                    : int.TryParse(value, out int intVer) ? new Version(intVer, 0) : new Version(value);
+            }
         }
         private Version csVersion = new Version();
 
