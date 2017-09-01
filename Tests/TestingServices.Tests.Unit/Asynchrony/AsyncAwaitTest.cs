@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task EntryInit()
             {
                 this.Send(this.Id, new E());
-                await Task.Delay(2).ConfigureAwait(false);
+                await Task.Delay(20).ConfigureAwait(false);
                 this.Send(this.Id, new E());
             }
         }
