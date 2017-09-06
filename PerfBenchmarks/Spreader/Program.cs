@@ -11,7 +11,7 @@ namespace Spreader
     /// <summary>
     /// Tests P# performance when creating a lot of machines
     /// Here, every machine creates 2 child machines and so on
-    /// Creates 2^x machines, where x is the count passed into Spreader.Config
+    /// Creates 2^x - 1 machines, where x is the count passed into Spreader.Config
     /// This benchmark is adapted from https://github.com/ponylang/ponyc/tree/master/examples/spreader
     /// </summary>
     class Program
