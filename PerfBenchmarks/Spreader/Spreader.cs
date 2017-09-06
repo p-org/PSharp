@@ -16,9 +16,7 @@ namespace Spreader
         TaskCompletionSource<bool> hasCompleted;
 
         internal class Config : Event
-        {
-            
-
+        {            
             public Config(MachineId parent, long count, TaskCompletionSource<bool> hasCompleted)
             {
                 this.Parent = parent;
@@ -57,7 +55,7 @@ namespace Spreader
             var e = this.ReceivedEvent as Config;
             this._parent = e.Parent;
             this._count = e.Count;
-            this.hasCompleted = e.hasCompleted;
+            this.hasCompleted = e.hasCompleted;            
             if (_count == 1)
             {
                 this.Send(_parent, new ResultEvent(1L));

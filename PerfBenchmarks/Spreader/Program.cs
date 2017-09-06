@@ -23,7 +23,7 @@ namespace Spreader
             TaskCompletionSource<bool> hasCompleted = new TaskCompletionSource<bool>();
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            runtime.CreateMachine(typeof(Spreader), new Spreader.Config(null, 20, hasCompleted));
+            runtime.CreateMachine(typeof(Spreader), new Spreader.Config(null, 22, hasCompleted));
             await hasCompleted.Task;
             sw.Stop();
             Console.WriteLine("Took {0} ms", sw.ElapsedMilliseconds);
