@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Mailbox
 {
+    /// <summary>
+    /// Tests P# performance when sending a lot of messages to a machine
+    /// This benchmark is adapted from https://github.com/ponylang/ponyc/tree/master/examples/mailbox
+    /// </summary>
     class Program
     {
         static void Main(string[] args)

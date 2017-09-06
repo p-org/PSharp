@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace Ring
 {
+    /// <summary>
+    /// Creates a set of rings of Machines
+    /// Each ring then passes around N messages.
+    /// This benchmark is adapted from https://github.com/ponylang/ponyc/tree/master/examples/ring
+    /// </summary>
     public class Program
     {
         /*

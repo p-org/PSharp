@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace SpawnBenchmark
 {
+    /// <summary>
+    /// Tests the P# runtime by creating a lot of actors, and also
+    /// sending messages between them
+    /// Adapted from the Akka.Net SpawnActor benchmark here:
+    /// https://github.com/akkadotnet/akka.net/tree/dev/src/benchmark/SpawnBenchmark
+    /// </summary>
     class Program
     {
         static void Main(string[] args)

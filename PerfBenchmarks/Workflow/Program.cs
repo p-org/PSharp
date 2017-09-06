@@ -9,6 +9,15 @@ using static Workflow.WorkFlowEvents;
 
 namespace Workflow
 {
+    /// <summary>
+    /// Simulates a workflow in P#
+    /// A bunch of source machine send work to an intermediate machine
+    /// Here, the work is an event with payload as a count
+    /// The intermediate machine accumulates the received counts and forwards
+    /// it to a sink machine
+    /// The sink machine simply informs the workflow supervisor when it receives
+    /// this total
+    /// </summary>
     class Program
     {
         static void Main(string[] args)

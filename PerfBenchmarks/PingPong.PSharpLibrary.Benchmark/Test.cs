@@ -10,15 +10,12 @@ using System.Threading;
 namespace PingPong.PSharpLibrary
 {
     /// <summary>
-    /// A simple PingPong application written using P# as a C# library.
+    /// A PingPong application written using P# as a C# library.
+    /// This benchmark is adapted from the Akka.net benchmark that
+    /// measures message processing throughput
+    /// here: https://github.com/akkadotnet/akka.net/tree/dev/src/benchmark/PingPong
     /// 
-    /// The P# runtime starts by creating the P# machine 'NetworkEnvironment'. The
-    /// 'NetworkEnvironment' machine then creates a 'Server' and a 'Client' machine,
-    /// which then communicate by sending 'Ping' and 'Pong' events to each other for
-    /// a limited amount of turns.
-    /// 
-    /// Note: this is an abstract implementation aimed primarily to showcase the testing
-    /// capabilities of P#.
+
     /// </summary>
     public class Program
     {
