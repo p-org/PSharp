@@ -725,7 +725,7 @@ namespace Microsoft.PSharp
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="operationGroupId">Operation group id</param>
-        internal void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, Guid? operationGroupId)
+        internal void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, ref Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {
@@ -733,10 +733,12 @@ namespace Microsoft.PSharp
             }
             else if (sender != null)
             {
+                operationGroupId = sender.Info.OperationGroupId;
                 eventInfo.SetOperationGroupId(sender.Info.OperationGroupId);
             }
             else
             {
+                operationGroupId = Guid.Empty;
                 eventInfo.SetOperationGroupId(Guid.Empty);
             }
         }
