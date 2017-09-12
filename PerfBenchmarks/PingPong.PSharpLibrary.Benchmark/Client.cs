@@ -93,7 +93,7 @@ namespace PingPong.PSharpLibrary
             else if (received >= repeat)
             {
                 //Console.WriteLine("Sent/Received/repeat in Client: {0}/{1}/{2}", sent, received, repeat);
-                this.Send(Server, new Halt());                
+                this.Send(Server, new Halt());
                 Raise(new Halt());
                 hasCompleted.SetResult(true);
             }

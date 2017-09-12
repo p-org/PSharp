@@ -13,6 +13,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net46|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;THREADS;NET46</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net46|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;NET46;THREADS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\Core\Core.csproj" />
   </ItemGroup>
