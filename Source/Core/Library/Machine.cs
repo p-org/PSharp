@@ -275,6 +275,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Creates a lightweight machine that executes the specified <see cref="Task"/>
+        /// asynchronously and halts.
+        /// </summary>
+        /// <param name="function">Async function to execute on the spawned machine</param>
+        protected void CreateTaskMachine(Func<Machine, Task> function)
+        {
+            CreateMachine(typeof(SingleTaskMachine), new SingleTaskMachineEvent(function));
+        }
+
+        /// <summary>
         /// Creates a new remote machine of the specified type and with the specified
         /// optional <see cref="Event"/>. This <see cref="Event"/> can only be used
         /// to access its payload, and cannot be handled.
@@ -309,7 +319,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        protected void Send(MachineId mid, Event e)
+        public void Send(MachineId mid, Event e)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
@@ -323,7 +333,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        protected void RemoteSend(MachineId mid, Event e)
+        public void RemoteSend(MachineId mid, Event e)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
@@ -337,7 +347,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        protected void Monitor<T>(Event e)
+        public void Monitor<T>(Event e)
         {
             this.Monitor(typeof(T), e);
         }
@@ -347,7 +357,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
-        protected void Monitor(Type type, Event e)
+        public void Monitor(Type type, Event e)
         {
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
@@ -402,7 +412,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(params Type[] eventTypes)
+        public Task<Event> Receive(params Type[] eventTypes)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -426,7 +436,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
+        public Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -446,7 +456,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        public Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -478,7 +488,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected bool Random()
+        public bool Random()
         {
             return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
         }
@@ -491,7 +501,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        protected bool Random(int maxValue)
+        public bool Random(int maxValue)
         {
             return base.Runtime.GetNondeterministicBooleanChoice(this, maxValue);
         }
@@ -504,7 +514,7 @@ namespace Microsoft.PSharp
         /// <param name="callerFilePath">CallerFilePath</param>
         /// <param name="callerLineNumber">CallerLineNumber</param>
         /// <returns>Boolean</returns>
-        protected bool FairRandom(
+        public bool FairRandom(
             [CallerMemberName] string callerMemberName = "",
             [CallerFilePath] string callerFilePath = "",
             [CallerLineNumber] int callerLineNumber = 0)
@@ -521,7 +531,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        protected int RandomInteger(int maxValue)
+        public int RandomInteger(int maxValue)
         {
             return base.Runtime.GetNondeterministicIntegerChoice(this, maxValue);
         }
@@ -531,7 +541,7 @@ namespace Microsoft.PSharp
         /// an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">Predicate</param>
-        protected void Assert(bool predicate)
+        public void Assert(bool predicate)
         {
             base.Runtime.Assert(predicate);
         }
@@ -543,7 +553,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
-        protected void Assert(bool predicate, string s, params object[] args)
+        public void Assert(bool predicate, string s, params object[] args)
         {
             base.Runtime.Assert(predicate, s, args);
         }
