@@ -68,7 +68,7 @@ namespace Mailbox
             sw.Stop();
             
             var elapsedMilliseconds = sw.ElapsedMilliseconds;
-            Console.WriteLine("Computing throughtput as {0}/{1} * 1000", totalMessageCount, elapsedMilliseconds);
+            // Console.WriteLine("Computing throughput as {0}/{1} * 1000", totalMessageCount, elapsedMilliseconds);
             double throughput = elapsedMilliseconds == 0 ? -1 : (double)totalMessageCount / (double)elapsedMilliseconds * 1000;
             return new Tuple<double, double>(elapsedMilliseconds/1000.0, throughput);
         }

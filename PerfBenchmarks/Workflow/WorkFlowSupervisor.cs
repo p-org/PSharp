@@ -41,11 +41,11 @@ namespace Workflow
         {
             numberOfNodes--;
             var e = this.ReceivedEvent as WorkFlowCompletionEvent;
-            Console.WriteLine("{0} Finished Processing", e.message);
-            Console.WriteLine("{0} nodes remaining", numberOfNodes);
+            //Console.WriteLine("{0} Finished Processing", e.message);
+            //Console.WriteLine("{0} nodes remaining", numberOfNodes);
             if (numberOfNodes <= 0)
             {
-                Console.WriteLine("{0} is the value computed", e.total);
+                //Console.WriteLine("{0} is the value computed", e.total);
                 this.hasCompleted.SetResult(true);
             }
         }

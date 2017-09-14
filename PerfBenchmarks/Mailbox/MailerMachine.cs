@@ -47,7 +47,7 @@ namespace Mailbox
             {
                 this.Send(e.Server, new Ping());
             }
-            Console.WriteLine("{0} is done sending sending messages", this.Id);
+            // Console.WriteLine("{0} is done sending sending messages", this.Id);
         }
     }
 }

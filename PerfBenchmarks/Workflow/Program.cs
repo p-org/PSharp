@@ -107,7 +107,7 @@ namespace Workflow
 
             long totalMessagesReceived = ((numberOfMessagesToIntermediate) * 2) + 1; // because the intermediate forwards them again
             var elapsedMilliseconds = sw.ElapsedMilliseconds;
-            Console.WriteLine("Computing throughtput as {0}/{1} * 1000", totalMessagesReceived, elapsedMilliseconds);
+            // Console.WriteLine("Computing throughput as {0}/{1} * 1000", totalMessagesReceived, elapsedMilliseconds);
             double throughput = elapsedMilliseconds == 0 ? -1 : (double)totalMessagesReceived / (double)elapsedMilliseconds * 1000;
             return new Tuple<double, double>(elapsedMilliseconds / 1000.0, throughput);
         }

@@ -72,10 +72,10 @@ namespace Ring
         {
             var e = this.ReceivedEvent as Pass;
             uint count = e.count;
-            if(count % 1000000 == 0)
-            {
-                Console.WriteLine(count);
-            }
+            //if(count % 1000000 == 0)
+            //{
+            //    Console.WriteLine(count);
+            //}
             if(count > 0)
             {
                 this.Send(next, new Pass(e.count - 1));
