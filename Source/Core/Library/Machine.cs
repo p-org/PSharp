@@ -91,7 +91,7 @@ namespace Microsoft.PSharp
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
-        private List<EventInfo> Inbox;
+        private LinkedList<EventInfo> Inbox;
 
         /// <summary>
         /// Gets the raised event. If no event has been raised
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Machine()
         {
-            this.Inbox = new List<EventInfo>();
+            this.Inbox = new LinkedList<EventInfo>();
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
@@ -579,7 +579,7 @@ namespace Microsoft.PSharp
 
                 base.Runtime.Logger.OnEnqueue(this.Id, this.CurrentStateName, eventInfo.EventName);
 
-                this.Inbox.Add(eventInfo);
+                this.Inbox.AddLast(eventInfo);
 
                 if (eventInfo.Event.Assert >= 0)
                 {
@@ -613,15 +613,16 @@ namespace Microsoft.PSharp
         /// <returns>EventInfo</returns>
         internal EventInfo TryDequeueEvent(bool checkOnly = false)
         {
-            EventInfo nextEventInfo = null;
+            EventInfo nextAvailableEventInfo = null;
 
-            // Iterates through the events in the inbox.
-            for (int idx = 0; idx < this.Inbox.Count; idx++)
+            var node = Inbox.First;
+            while (node != null)
             {
-                // Removes an ignored event.
-                if (this.Inbox[idx].EventType.IsGenericType)
+                var nextNode = node.Next;
+                var currentEventInfo = node.Value;
+                if (currentEventInfo.EventType.IsGenericType)
                 {
-                    var genericTypeDefinition = this.Inbox[idx].EventType.GetGenericTypeDefinition();
+                    var genericTypeDefinition = currentEventInfo.EventType.GetGenericTypeDefinition();
                     var ignored = false;
                     foreach (var tup in this.CurrentActionHandlerMap)
                     {
@@ -638,39 +639,38 @@ namespace Microsoft.PSharp
                     {
                         if (!checkOnly)
                         {
-                            this.Inbox.RemoveAt(idx);
-                            idx--;
+                            Inbox.Remove(node);
                         }
-
+                        node = nextNode;
                         continue;
                     }
                 }
 
-                if (this.IsIgnored(this.Inbox[idx].EventType))
+                if (this.IsIgnored(currentEventInfo.EventType))
                 {
                     if (!checkOnly)
                     {
-                        this.Inbox.RemoveAt(idx);
-                        idx--;
+                        Inbox.Remove(node);                        
                     }
-
+                    node = nextNode;
                     continue;
                 }
 
-                // Dequeues the first event that is not deferred.
-                if (!this.IsDeferred(this.Inbox[idx].EventType))
+                if (!this.IsDeferred(currentEventInfo.EventType))
                 {
-                    nextEventInfo = this.Inbox[idx];
+                    nextAvailableEventInfo = currentEventInfo;
                     if (!checkOnly)
                     {
-                        this.Inbox.RemoveAt(idx);
+                        Inbox.Remove(node);
                     }
 
                     break;
                 }
+
+                node = nextNode;
             }
 
-            return nextEventInfo;
+            return nextAvailableEventInfo;
         }
 
         /// <summary>
@@ -1212,24 +1212,28 @@ namespace Microsoft.PSharp
             EventInfo eventInfoInInbox = null;
             lock (this.Inbox)
             {
-                // Iterates through the events in the inbox.
-                for (int idx = 0; idx < this.Inbox.Count; idx++)
+                var node = this.Inbox.First;
+                while (node != null)
                 {
-                    // Dequeues the first event that the machine waits
-                    // to receive, if there is one in the inbox.
+                    var nextNode = node.Next;
+                    var currentEventInfo = node.Value;
+
                     EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
-                        val => val.EventType == this.Inbox[idx].EventType &&
-                               val.Predicate(this.Inbox[idx].Event));
+                        val => val.EventType == currentEventInfo.EventType &&
+                               val.Predicate(currentEventInfo.Event));
+
                     if (eventWaitHandler != null)
                     {
-                        base.Runtime.Logger.OnReceive(this.Id, this.CurrentStateName, this.Inbox[idx].EventName, wasBlocked:false);
+                        base.Runtime.Logger.OnReceive(this.Id, this.CurrentStateName, currentEventInfo.EventName, wasBlocked: false);
 
                         this.EventWaitHandlers.Clear();
-                        this.ReceiveCompletionSource.SetResult(this.Inbox[idx].Event);
-                        eventInfoInInbox = this.Inbox[idx];
-                        this.Inbox.RemoveAt(idx);
+                        this.ReceiveCompletionSource.SetResult(currentEventInfo.Event);
+                        eventInfoInInbox = currentEventInfo;
+                        this.Inbox.Remove(node);
                         break;
                     }
+
+                    node = nextNode;
                 }
             }
 
