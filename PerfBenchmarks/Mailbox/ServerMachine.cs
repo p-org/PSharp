@@ -54,11 +54,11 @@ namespace Mailbox
         void Process()
         {
             this.total++;
-            //if (this.total % 100000 == 0)
-            //{
-            //    Console.WriteLine("Processed {0} messages", this.total);
-            //}                
-            if(this.total == this.TotalMessageCount)
+            if (this.total % 100000 == 0)
+            {
+                Console.WriteLine("Processed {0} messages", this.total);
+            }
+            if (this.total == this.TotalMessageCount)
             {
                 this.hasCompleted.SetResult(true);
             }

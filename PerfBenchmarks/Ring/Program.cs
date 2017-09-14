@@ -38,19 +38,35 @@ namespace Ring
             uint numberOfMessagesToPass;
             if (args.Length == 0 || !uint.TryParse(args[2], out numberOfMessagesToPass))
             {
-                numberOfMessagesToPass = uint.MaxValue/512;
+                numberOfMessagesToPass = uint.MaxValue / 256;
             }
 
-            var configuration = Configuration.Create().WithVerbosityEnabled(0);                   
+            var configuration = Configuration.Create().WithVerbosityEnabled(0);
             var runtime = PSharpRuntime.Create(configuration);
 
-            var resTask = RunRing(numberOfNodesInRing, numberOfRings, numberOfMessagesToPass, runtime);
-            Console.WriteLine("Throughput with {0} rings of size {1} processing {2} messages each: {3} msgs/sec", 
-                numberOfRings, numberOfNodesInRing, numberOfMessagesToPass, resTask.Result);
+            List<double> throughputResults = new List<double>();
+            List<double> timeResults = new List<double>();
+            foreach (var msgCount in new uint[4] { 1000, 10000, 100000, 1000000 })
+            {
+                Console.WriteLine("Sending {0} messages", msgCount);
+                for (int i = 0; i < 5; i++)
+                {
+                    var resTask = RunRing(numberOfNodesInRing, numberOfRings, msgCount, runtime);
+                    Console.WriteLine("Throughput with {0} rings of size {1} processing {2} messages each: {3} msgs/sec. Total time {4} sec",
+                        numberOfRings, numberOfNodesInRing, msgCount, resTask.Result.Item2, resTask.Result.Item1);
+                    throughputResults.Add(resTask.Result.Item2);
+                    timeResults.Add(resTask.Result.Item1);
+                }
+
+                Console.WriteLine("Avg. throughput {0}", throughputResults.Average(r => r));
+                Console.WriteLine("Avg. time {0}", timeResults.Average(r => r));
+                throughputResults.Clear();
+                timeResults.Clear();
+            }
             Console.ReadKey();
         }
 
-        private static async Task<long> RunRing(uint numberOfNodesInRing, uint numberOfRings, uint numberOfMessagesToPass, PSharpRuntime runtime)
+        private static async Task<Tuple<double, double>> RunRing(uint numberOfNodesInRing, uint numberOfRings, uint numberOfMessagesToPass, PSharpRuntime runtime)
         {
             var totalWatch = Stopwatch.StartNew();
             List<MachineId> leaders = new List<MachineId>();
@@ -91,8 +107,9 @@ namespace Ring
 
             long totalMessagesReceived = ((long)numberOfMessagesToPass) * ((long)numberOfRings);
             var elapsedMilliseconds = sw.ElapsedMilliseconds;
-            long throughput = elapsedMilliseconds == 0 ? -1 : totalMessagesReceived / elapsedMilliseconds * 1000;
-            return throughput;
+            Console.WriteLine("Computing throughtput as {0}/{1} * 1000", totalMessagesReceived, elapsedMilliseconds);
+            double throughput = elapsedMilliseconds == 0 ? -1 : (double)totalMessagesReceived / (double)elapsedMilliseconds * 1000;
+            return new Tuple<double, double>(elapsedMilliseconds/1000.0, throughput);
         }
     }
 }

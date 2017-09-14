@@ -37,13 +37,29 @@ namespace Workflow
             var configuration = Configuration.Create().WithVerbosityEnabled(0);
             var runtime = PSharpRuntime.Create(configuration);
 
-            var resTask = RunWorkFlow(numberOfSources, numberOfMessages, runtime);
-            Console.WriteLine("Throughput with {0} sources generating {1} messages each: {2} msgs/sec",
-                numberOfSources, numberOfMessages, resTask.Result);
+            List<double> throughputResults = new List<double>();
+            List<double> timeResults = new List<double>();
+
+            foreach (var msgCount in new uint[4] { 1000, 10000, 100000, 1000000 })
+            {
+                Console.WriteLine("Sending {0} messages", msgCount);
+                for (int i = 0; i < 5; i++)
+                {
+                    var resTask = RunWorkFlow(numberOfSources, msgCount, runtime);
+                    Console.WriteLine("Throughput with {0} sources generating {1} messages each: {2} msgs/sec. Total time {3} sec",
+                        numberOfSources, msgCount, resTask.Result.Item2, resTask.Result.Item1);
+                    throughputResults.Add(resTask.Result.Item2);
+                    timeResults.Add(resTask.Result.Item1);
+                }
+                Console.WriteLine("Avg. throughput {0}", throughputResults.Average(r => r));
+                Console.WriteLine("Avg. time {0}", timeResults.Average(r => r));
+                throughputResults.Clear();
+                timeResults.Clear();
+            }
             Console.ReadKey();
         }
 
-        private static async Task<long> RunWorkFlow(uint numberOfSources, uint numberOfMessages, PSharpRuntime runtime)
+        private static async Task<Tuple<double, double>> RunWorkFlow(uint numberOfSources, uint numberOfMessages, PSharpRuntime runtime)
         {
             var totalWatch = Stopwatch.StartNew();
             List<MachineId> sources = new List<MachineId>();
@@ -91,8 +107,9 @@ namespace Workflow
 
             long totalMessagesReceived = ((numberOfMessagesToIntermediate) * 2) + 1; // because the intermediate forwards them again
             var elapsedMilliseconds = sw.ElapsedMilliseconds;
-            long throughput = elapsedMilliseconds == 0 ? -1 : totalMessagesReceived / elapsedMilliseconds * 1000;
-            return throughput;
+            Console.WriteLine("Computing throughtput as {0}/{1} * 1000", totalMessagesReceived, elapsedMilliseconds);
+            double throughput = elapsedMilliseconds == 0 ? -1 : (double)totalMessagesReceived / (double)elapsedMilliseconds * 1000;
+            return new Tuple<double, double>(elapsedMilliseconds / 1000.0, throughput);
         }
     }
 }
