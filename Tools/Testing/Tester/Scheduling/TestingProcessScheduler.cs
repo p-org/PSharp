@@ -84,6 +84,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal static bool ProcessCanceled;
 
+        /// <summary>
+        /// Set true if we have multiple parallel processes or are running code coverage.
+        /// </summary>
+        private bool runOutOfProcess;
+
         #endregion
 
         #region constructors
@@ -101,6 +106,10 @@ namespace Microsoft.PSharp.TestingServices
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
             this.BugFoundByProcess = null;
+
+            // Code coverage should be run out-of-process; otherwise VSPerfMon won't shutdown correctly
+            // because an instrumented process (this one) is still running.
+            this.runOutOfProcess = configuration.ParallelBugFindingTasks > 1 || configuration.ReportCodeCoverage;
 
             if (configuration.ParallelBugFindingTasks > 1)
             {
@@ -197,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Profiler.StartMeasuringExecutionTime();
 
-            if (this.Configuration.ParallelBugFindingTasks > 1)
+            if (runOutOfProcess)
             {
                 this.CreateParallelTestingProcesses();
                 this.RunParallelTestingProcesses();
@@ -292,7 +301,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void OpenNotificationListener()
         {
-            if (this.Configuration.ParallelBugFindingTasks < 2)
+            if (!this.runOutOfProcess)
             {
                 return;
             }
@@ -328,8 +337,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void CloseNotificationListener()
         {
-            if (this.Configuration.ParallelBugFindingTasks > 1 &&
-                this.NotificationService.State == CommunicationState.Opened)
+            if (this.runOutOfProcess && this.NotificationService.State == CommunicationState.Opened)
             {
                 try
                 {
