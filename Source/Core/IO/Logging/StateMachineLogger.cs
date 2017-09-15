@@ -237,7 +237,8 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                var guid = operationGroupId.HasValue ? operationGroupId.Value.ToString() : "<none>";
+                var guid = (operationGroupId.HasValue && operationGroupId.Value != Guid.Empty) ? 
+                    operationGroupId.Value.ToString() : "<none>";
                 var target = isTargetHalted
                             ? $"a halted machine '{targetMachineId}'"
                             : $"machine '{targetMachineId}'";

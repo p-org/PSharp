@@ -309,13 +309,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        protected void Send(MachineId mid, Event e)
+        /// <param name="options">Optional parameters</param>
+        protected void Send(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEvent(mid, e, this, null);
+            base.Runtime.SendEvent(mid, e, this, options);
         }
 
         /// <summary>
@@ -323,13 +324,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        protected void RemoteSend(MachineId mid, Event e)
+        /// <param name="options">Optional parameters</param>
+        protected void RemoteSend(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEventRemotely(mid, e, this, null);
+            base.Runtime.SendEventRemotely(mid, e, this, options);
         }
 
         /// <summary>
@@ -824,7 +826,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             this.Info.IsHalted = true;
-                            base.Runtime.NotifyHalted(this, this.Inbox.Count);
+                            base.Runtime.NotifyHalted(this, this.Inbox);
                             this.CleanUpResources();
                         }
 

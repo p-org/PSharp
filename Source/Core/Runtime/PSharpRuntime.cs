@@ -16,6 +16,7 @@ using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -218,8 +219,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id.</param>
-        public abstract void SendEvent(MachineId target, Event e, Guid? operationGroupId = null);
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public abstract void SendEvent(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Synchronously delivers an <see cref="Event"/> to a machine and
@@ -227,16 +228,16 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        public abstract Task SendEventAndExecute(MachineId target, Event e, Guid? operationGroupId = null);
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public abstract Task SendEventAndExecute(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        public abstract void RemoteSendEvent(MachineId target, Event e, Guid? operationGroupId = null);
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public abstract void RemoteSendEvent(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -320,7 +321,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
         protected bool GetTargetMachine(MachineId targetMachineId, Event e, AbstractMachine sender,
-            Guid? operationGroupId, out Machine targetMachine)
+            Guid operationGroupId, out Machine targetMachine)
         {
             if (!this.MachineMap.TryGetValue(targetMachineId.Value, out targetMachine))
             {
@@ -380,8 +381,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId);
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine and
@@ -390,8 +391,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId);
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -399,8 +400,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId);
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Checks that a machine can start its event handler. Returns false if the event
@@ -665,9 +666,9 @@ namespace Microsoft.PSharp
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="inboxSize">Current size of the machine inbox.</param>
+        /// <param name="inbox">Machine inbox.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyHalted(Machine machine, int inboxSize)
+        internal virtual void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
         {
             // Override to implement the notification.
         }
@@ -730,28 +731,27 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region Operation Group Id
+        #region operation group id
+
         /// <summary>
-        /// Sets the operation group id for the specified event.
+        /// Gets the new operation group id to propagate.
         /// </summary>
-        /// <param name="eventInfo">EventInfo</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="operationGroupId">Operation group id</param>
-        internal void SetOperationGroupIdForEvent(EventInfo eventInfo, AbstractMachine sender, ref Guid? operationGroupId)
+        /// <returns>Operation group Id</returns>
+        internal Guid GetNewOperationGroupId(AbstractMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {
-                eventInfo.SetOperationGroupId(operationGroupId.Value);
+                return operationGroupId.Value;
             }
             else if (sender != null)
             {
-                operationGroupId = sender.Info.OperationGroupId;
-                eventInfo.SetOperationGroupId(sender.Info.OperationGroupId);
+                return sender.Info.OperationGroupId;
             }
             else
             {
-                operationGroupId = Guid.Empty;
-                eventInfo.SetOperationGroupId(Guid.Empty);
+                return Guid.Empty;
             }
         }
 
