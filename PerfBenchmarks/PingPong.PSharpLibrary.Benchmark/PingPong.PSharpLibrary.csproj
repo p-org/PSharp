@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net46|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;THREADS;NET46</DefineConstants>
