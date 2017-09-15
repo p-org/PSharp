@@ -57,6 +57,11 @@ namespace Microsoft.PSharp
         internal Guid OperationGroupId { get; private set; }
 
         /// <summary>
+        /// Is this a must-handle event?
+        /// </summary>
+        internal bool MustHandle { get; private set; }
+
+        /// <summary>
         /// Creates a new <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="e">Event</param>
@@ -65,6 +70,7 @@ namespace Microsoft.PSharp
             Event = e;
             EventType = e.GetType();
             EventName = EventType.FullName;
+            MustHandle = false;
         }
 
         /// <summary>
@@ -84,6 +90,15 @@ namespace Microsoft.PSharp
         internal void SetOperationGroupId(Guid operationGroupId)
         {
             this.OperationGroupId = operationGroupId;
+        }
+
+        /// <summary>
+        /// Sets the MustHandle flag of the event
+        /// </summary>
+        /// <param name="mustHandle">MustHandle flag</param>
+        internal void SetMustHandle(bool mustHandle)
+        {
+            this.MustHandle = mustHandle;
         }
 
         /// <summary>

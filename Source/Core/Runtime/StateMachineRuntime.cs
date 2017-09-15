@@ -165,14 +165,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        public override void SendEvent(MachineId target, Event e, Guid? operationGroupId = null)
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public override void SendEvent(MachineId target, Event e, SendOptions options = null)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEvent(target, e, null, operationGroupId);
+            this.SendEvent(target, e, null, options);
         }
 
         /// <summary>
@@ -181,14 +181,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        public override Task SendEventAndExecute(MachineId target, Event e, Guid? operationGroupId = null)
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public override Task SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, null, operationGroupId);
+            return this.SendEventAndExecute(target, e, null, options);
         }
 
         /// <summary>
@@ -196,14 +196,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        public override void RemoteSendEvent(MachineId target, Event e, Guid? operationGroupId = null)
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public override void RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEventRemotely(target, e, null, operationGroupId);
+            this.SendEventRemotely(target, e, null, options);
         }
 
         /// <summary>
@@ -353,9 +353,10 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
+            var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
                 return;
@@ -376,9 +377,10 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
+            var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
                 return;
@@ -398,8 +400,8 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             base.NetworkProvider.RemoteSend(mid, e);
         }
@@ -412,10 +414,10 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid? operationGroupId, ref bool runNewHandler)
+        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, ref bool runNewHandler)
         {
             EventInfo eventInfo = new EventInfo(e, null);
-            this.SetOperationGroupIdForEvent(eventInfo, sender, ref operationGroupId);
+            eventInfo.SetOperationGroupId(operationGroupId);
 
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
             base.Logger.OnSend(machine.Id, sender?.Id, senderState,
@@ -722,7 +724,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
         {
-            this.SetOperationGroupIdForEvent(eventInfo, machine, ref operationGroupId);
+            eventInfo.SetOperationGroupId(base.GetNewOperationGroupId(machine, operationGroupId));
 
             if (base.Configuration.Verbose <= 1)
             {
@@ -795,10 +797,10 @@ namespace Microsoft.PSharp
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="inboxSize">Current size of the machine inbox.</param>
-        internal override void NotifyHalted(Machine machine, int inboxSize)
+        /// <param name="inbox">Machine inbox.</param>
+        internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
         {
-            base.Logger.OnHalt(machine.Id, inboxSize);
+            base.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id.Value, out machine);
         }
 

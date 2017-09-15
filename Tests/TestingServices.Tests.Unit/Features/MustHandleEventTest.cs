@@ -1,0 +1,205 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="MustHandleEventTest.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Microsoft.PSharp.TestingServices.Tests.Unit
+{
+    public class MustHandleEventTest : BaseTest
+    {
+        class E : Event
+        {
+            public MachineId Id;
+
+            public E() { }
+
+            public E(MachineId id)
+            {
+                Id = id;
+            }
+        }
+        class E1 : Event { }
+
+        class M1 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [IgnoreEvents(typeof(E))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.Raise(new Halt());
+            }
+        }
+
+        class M2 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [IgnoreEvents(typeof(E))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.Send(this.Id, new Halt());
+                this.Send(this.Id, new Halt());
+            }
+        }
+
+        class M3 : Machine
+        {
+            [Start]
+            [IgnoreEvents(typeof(E))]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                
+            }
+        }
+
+        class M4 : Machine
+        {
+            [Start]
+            [DeferEvents(typeof(E))]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+
+            }
+        }
+
+        class M5 : Machine
+        {
+            [Start]
+            [DeferEvents(typeof(E), typeof(Halt))]
+            [OnEventGotoState(typeof(E1), typeof(Next))]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            class Next : MachineState { }
+
+            void InitOnEntry()
+            {
+
+            }
+        }
+
+        [Fact]
+        public void TestMustHandleFail1()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M1));
+                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+            });
+
+            var config = Configuration.Create();
+
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()'.\n";
+            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
+            var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
+            {
+                foreach(var report in bugReports)
+                {
+                    if (report != bugReport1 && report != bugReport2)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            AssertFailed(config, test, 1, expectedFunc, true);
+        }
+
+        [Fact]
+        public void TestMustHandleFail2()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M2));
+                r.SendEvent(m, new E());
+                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+            });
+
+            var config = Configuration.Create().WithNumberOfIterations(100);
+
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()'.\n";
+            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
+            var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
+            {
+                foreach (var report in bugReports)
+                {
+                    if (report != bugReport1 && report != bugReport2)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            AssertFailed(config, test, 1, expectedFunc, true);
+        }
+
+        [Fact]
+        public void TestMustHandleFail3()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M5));
+                r.SendEvent(m, new Halt());
+                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new E1());
+            });
+
+            var config = Configuration.Create().WithNumberOfIterations(1);
+
+            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M5()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
+
+            AssertFailed(config, test, 1, new HashSet<string> { bugReport }, true);
+        }
+
+        [Fact]
+        public void TestMustHandleSuccess()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M3));
+                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new Halt());
+            });
+
+            var config = Configuration.Create().WithNumberOfIterations(100);
+            AssertSucceeded(config, test);
+        }
+
+        [Fact]
+        public void TestMustHandleDeferFail()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M4));
+                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new Halt());
+            });
+
+            var config = Configuration.Create().WithNumberOfIterations(1);
+            AssertFailed(config, test, 1, true);
+        }
+
+    }
+}

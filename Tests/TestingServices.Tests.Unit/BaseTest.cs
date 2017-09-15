@@ -90,6 +90,21 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
         {
+            AssertFailed(configuration, test, numExpectedErrors, bugReports =>
+            {
+                foreach(var expected in expectedOutputs)
+                {
+                    if(!bugReports.Contains(expected))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }, replay);
+        }
+
+        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, Func<HashSet<string>, bool> expectedOutputFunc, bool replay)
+        {
             InMemoryLogger logger = new InMemoryLogger();
 
             try
@@ -98,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 bfEngine.SetLogger(logger);
                 bfEngine.Run();
 
-                CheckErrors(bfEngine, numExpectedErrors, expectedOutputs);
+                CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
 
                 if (replay && !configuration.EnableCycleDetection)
                 {
@@ -107,7 +122,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                     rEngine.Run();
 
                     Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, numExpectedErrors, expectedOutputs);
+                    CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
                 }
             }
             catch (Exception ex)
@@ -120,25 +135,19 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
-        private void CheckErrors(ITestingEngine engine, int numExpectedErrors, ISet<string> expectedOutputs)
+        private void CheckErrors(ITestingEngine engine, int numExpectedErrors, Func<HashSet<string>, bool> expectedOutputFunc)
         {
             var numErrors = engine.TestReport.NumOfFoundBugs;
             Assert.Equal(numExpectedErrors, numErrors);
 
-            if (expectedOutputs.Count > 0)
+            var bugReports = new HashSet<string>();
+            foreach (var bugReport in engine.TestReport.BugReports)
             {
-                var bugReports = new HashSet<string>();
-                foreach (var bugReport in engine.TestReport.BugReports)
-                {
-                    var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
-                    bugReports.Add(actual);
-                }
-
-                foreach (var expected in expectedOutputs)
-                {
-                    Assert.Contains(expected, bugReports);
-                }
+                var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
+                bugReports.Add(actual);
             }
+
+            Assert.True(expectedOutputFunc(bugReports));
         }
 
         #endregion
