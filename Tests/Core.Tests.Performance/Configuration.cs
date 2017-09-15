@@ -15,6 +15,7 @@
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Exporters;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
 {
@@ -24,6 +25,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         {
             Add(MemoryDiagnoser.Default);
             //Add(StatisticColumn.OperationsPerSecond);
+            Add(StatisticColumn.Mean, StatisticColumn.Median, StatisticColumn.P95);
+            Add(RPlotExporter.Default);
         }
     }
 }
