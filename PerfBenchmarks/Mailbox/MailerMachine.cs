@@ -33,8 +33,7 @@ namespace Mailbox
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
-        [OnEventDoAction(typeof(Config), nameof(InitOnEntry))]
-        [IgnoreEvents(typeof(Ping))]
+        [OnEventDoAction(typeof(Config), nameof(InitOnEntry))]        
         class Init : MachineState { }
 
         /// <summary>

@@ -586,7 +586,8 @@ namespace Microsoft.PSharp
             }
 
             if (this.IsFast)
-            {                
+            {
+                base.Runtime.Logger.OnEnqueue(this.Id, this.CurrentStateName, eventInfo.EventName);
                 this.AsyncInbox.Post(eventInfo);
             }
             else
