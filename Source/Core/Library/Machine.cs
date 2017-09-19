@@ -1280,7 +1280,7 @@ namespace Microsoft.PSharp
         private Task<Event> WaitOnEvent()
         {
             this.Assert(this.IsFast == false, "Machine '{0}' marked with the Fast attribute " +
-                "does not support Receive actions", this.Id);
+                "performed a Receive action in state '{1}'.", this.Id, this.CurrentState);
             
             EventInfo eventInfoInInbox = null;
             lock (this.Inbox)
@@ -1517,8 +1517,8 @@ namespace Microsoft.PSharp
                             this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
                         }
                         bool fastInconsistent = this.IsFast && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
-                        this.Assert(fastInconsistent == false, $"Machine '{this.Id}' declared with the" +
-                            $" Fast attribute but ignores/defers events in state '{state}'.");
+                        this.Assert(fastInconsistent == false, $"Machine '{this.Id}' marked with the" +
+                            $" Fast attribute defered/ignored events in state '{state}'.");
                         StateMap[machineType].Add(state);
                     }
                 }
