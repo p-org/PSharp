@@ -759,7 +759,7 @@ namespace Microsoft.PSharp
 
             if (this.IsFast)
             {
-                while (this.IsRunning)
+                while (!this.Info.IsHalted)
                 {
                     EventInfo nextEventInfo = this.TryGetRaisedEvent();
                     if(nextEventInfo == null)
