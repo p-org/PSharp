@@ -8,6 +8,7 @@ using static Mailbox.MailerMachine;
 
 namespace Mailbox
 {
+    [Fast]
     internal class ServerMachine : Machine
     {
         /// <summary>

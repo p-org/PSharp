@@ -3,6 +3,7 @@
 
 namespace PingPong.PSharpLibrary
 {
+    [Fast]
     internal class Server : Machine
     {
         /// <summary>

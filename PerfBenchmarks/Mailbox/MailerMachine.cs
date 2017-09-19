@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Mailbox
 {
+    [Fast]
     class MailerMachine : Machine
     {
         internal class Config : Event
@@ -33,6 +34,7 @@ namespace Mailbox
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventDoAction(typeof(Config), nameof(InitOnEntry))]
+        [IgnoreEvents(typeof(Ping))]
         class Init : MachineState { }
 
         /// <summary>

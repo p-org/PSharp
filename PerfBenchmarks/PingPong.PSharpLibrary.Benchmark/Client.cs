@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 
 namespace PingPong.PSharpLibrary
-{    
+{       
     internal class Client : Machine
     {
         long received = 0L;

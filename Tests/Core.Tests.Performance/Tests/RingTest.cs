@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             public void CreateMachines()
             {
                 leaders.ForEach(x => runtime.SendEvent(x, new RingNode.Pass(numberOfMessagesToPass)));
-                completionSource.Task.Wait();
+                completionSource.Task.Wait();                
             }
         }
         //[Benchmark(Baseline = true)]
