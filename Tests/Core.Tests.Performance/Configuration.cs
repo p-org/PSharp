@@ -16,6 +16,7 @@ using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Exporters.Csv;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
 {
@@ -27,6 +28,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             //Add(StatisticColumn.OperationsPerSecond);
             Add(StatisticColumn.Mean, StatisticColumn.Median, StatisticColumn.P95);
             Add(RPlotExporter.Default);
+            Add(CsvMeasurementsExporter.Default);
         }
     }
 }
