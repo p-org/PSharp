@@ -415,10 +415,10 @@ namespace Microsoft.PSharp
         private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid? operationGroupId, ref bool runNewHandler)
         {
             EventInfo eventInfo = new EventInfo(e, null);
-            this.SetOperationGroupIdForEvent(eventInfo, sender, operationGroupId);
+            this.SetOperationGroupIdForEvent(eventInfo, sender, ref operationGroupId);
 
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            base.Logger.OnSend(machine.Id, machine.CurrentStateName, sender?.Id, senderState,
+            base.Logger.OnSend(machine.Id, sender?.Id, senderState,
                 e.GetType().FullName, operationGroupId, isTargetHalted: false);
 
             machine.Enqueue(eventInfo, ref runNewHandler);
@@ -722,7 +722,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
         {
-            this.SetOperationGroupIdForEvent(eventInfo, machine, operationGroupId);
+            this.SetOperationGroupIdForEvent(eventInfo, machine, ref operationGroupId);
 
             if (base.Configuration.Verbose <= 1)
             {

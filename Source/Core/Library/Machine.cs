@@ -590,7 +590,7 @@ namespace Microsoft.PSharp
 
             if (this.IsFast)
             {
-                base.Runtime.Logger.OnEnqueue(this.Id, this.CurrentStateName, eventInfo.EventName);
+                base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
                 this.AsyncInbox.Post(eventInfo);
             }
             else
@@ -608,9 +608,9 @@ namespace Microsoft.PSharp
                         return;
                     }
 
-                    base.Runtime.Logger.OnEnqueue(this.Id, this.CurrentStateName, eventInfo.EventName);
+                base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
 
-                    this.Inbox.AddLast(eventInfo);
+                this.Inbox.AddLast(eventInfo);
 
                     if (eventInfo.Event.Assert >= 0)
                     {
@@ -637,7 +637,6 @@ namespace Microsoft.PSharp
             }
         }
 
-      
         /// <summary>
         /// Dequeues the next available <see cref="EventInfo"/> from the
         /// inbox if there is one available, else returns null.
@@ -648,6 +647,7 @@ namespace Microsoft.PSharp
         {
             EventInfo nextAvailableEventInfo = null;
 
+            // Iterates through the events in the inbox.
             var node = Inbox.First;
             while (node != null)
             {
@@ -672,8 +672,10 @@ namespace Microsoft.PSharp
                     {
                         if (!checkOnly)
                         {
+                            // Removes an ignored event.
                             Inbox.Remove(node);
                         }
+
                         node = nextNode;
                         continue;
                     }
@@ -683,12 +685,15 @@ namespace Microsoft.PSharp
                 {
                     if (!checkOnly)
                     {
-                        Inbox.Remove(node);                        
+                        // Removes an ignored event.
+                        Inbox.Remove(node);
                     }
+
                     node = nextNode;
                     continue;
                 }
 
+                // Skips a deferred event.
                 if (!this.IsDeferred(currentEventInfo.EventType))
                 {
                     nextAvailableEventInfo = currentEventInfo;
@@ -1278,9 +1283,12 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         private Task<Event> WaitOnEvent()
         {
+        
             this.Assert(this.IsFast == false, "Machine '{0}' marked with the Fast attribute " +
                 "performed a Receive action in state '{1}'.", this.Id, this.CurrentState);
-            
+
+            // Dequeues the first event that the machine waits
+            // to receive, if there is one in the inbox.
             EventInfo eventInfoInInbox = null;
             lock (this.Inbox)
             {

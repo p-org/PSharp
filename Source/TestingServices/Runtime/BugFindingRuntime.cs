@@ -660,10 +660,10 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             EventInfo eventInfo = new EventInfo(e, originInfo, Scheduler.ScheduledSteps);
-            this.SetOperationGroupIdForEvent(eventInfo, sender, operationGroupId);
+            this.SetOperationGroupIdForEvent(eventInfo, sender, ref operationGroupId);
 
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            this.Logger.OnSend(machine.Id, machine.CurrentStateName, sender?.Id, senderState,
+            this.Logger.OnSend(machine.Id, sender?.Id, senderState,
                 e.GetType().FullName, operationGroupId, isTargetHalted:false);
 
             if (sender != null)
@@ -1076,7 +1076,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.AssertTransitionStatement(machine);
 
-            this.SetOperationGroupIdForEvent(eventInfo, machine, operationGroupId);
+            this.SetOperationGroupIdForEvent(eventInfo, machine, ref operationGroupId);
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddRaiseEventStep(machine.Id, machineState, eventInfo);
