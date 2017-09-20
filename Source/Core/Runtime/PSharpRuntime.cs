@@ -163,6 +163,17 @@ namespace Microsoft.PSharp
         public abstract MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
+        /// Creates a lightweight machine that executes the specified <see cref="Task"/>
+        /// asynchronously and halts.
+        /// </summary>
+        /// <param name="operationGroupId">Optional operation group id</param>
+        /// <param name="function">Async function to execute on the spawned machine</param>
+        public void CreateTaskMachine(Func<Machine, Task> function, Guid? operationGroupId = null)
+        {
+            CreateMachine(typeof(SingleTaskMachine), new SingleTaskMachineEvent(function), operationGroupId);
+        }
+
+        /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
         /// specified optional <see cref="Event"/>. This event can only be used to
         /// access its payload, and cannot be handled. The method returns only when
