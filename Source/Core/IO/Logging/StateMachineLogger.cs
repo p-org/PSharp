@@ -211,15 +211,14 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is sent to a target machine.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>
-        /// <param name="targetStateName">The name of the current state of the target machine.</param>
+        /// <param name="targetMachineId">Id of the target machine.</param>        
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
         ///     (if it is a non-Machine specialization of an AbstractMachine, it is not applicable).</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
-        public virtual void OnSend(MachineId targetMachineId, string targetStateName, MachineId senderId, string senderStateName,
+        public virtual void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName,
             string eventName, Guid? operationGroupId, bool isTargetHalted)
         {
             if (this.IsVerbose)
@@ -227,7 +226,7 @@ namespace Microsoft.PSharp.IO
                 var guid = operationGroupId.HasValue ? operationGroupId.Value.ToString() : "<none>";
                 var target = isTargetHalted
                             ? $"a halted machine '{targetMachineId}'"
-                            : $"machine '{targetMachineId}' in state '{targetStateName}'";
+                            : $"machine '{targetMachineId}'";
                 var message = senderId != null
                     ? $"<SendLog> Operation Group {guid}: Machine '{senderId}' in state '{senderStateName}'" +
                             $" sent event '{eventName}' to {target}."

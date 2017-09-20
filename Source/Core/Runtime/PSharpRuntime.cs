@@ -325,7 +325,7 @@ namespace Microsoft.PSharp
             if (!this.MachineMap.TryGetValue(targetMachineId.Value, out targetMachine))
             {
                 var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-                this.Logger.OnSend(targetMachineId, string.Empty, sender?.Id, senderState,
+                this.Logger.OnSend(targetMachineId, sender?.Id, senderState,
                     e.GetType().FullName, operationGroupId, isTargetHalted: true);
                 return false;
             }

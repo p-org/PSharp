@@ -663,7 +663,7 @@ namespace Microsoft.PSharp.TestingServices
             this.SetOperationGroupIdForEvent(eventInfo, sender, ref operationGroupId);
 
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            this.Logger.OnSend(machine.Id, machine.CurrentStateName, sender?.Id, senderState,
+            this.Logger.OnSend(machine.Id, sender?.Id, senderState,
                 e.GetType().FullName, operationGroupId, isTargetHalted:false);
 
             if (sender != null)

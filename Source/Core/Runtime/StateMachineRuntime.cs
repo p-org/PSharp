@@ -418,7 +418,7 @@ namespace Microsoft.PSharp
             this.SetOperationGroupIdForEvent(eventInfo, sender, ref operationGroupId);
 
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            base.Logger.OnSend(machine.Id, machine.CurrentStateName, sender?.Id, senderState,
+            base.Logger.OnSend(machine.Id, sender?.Id, senderState,
                 e.GetType().FullName, operationGroupId, isTargetHalted: false);
 
             machine.Enqueue(eventInfo, ref runNewHandler);
