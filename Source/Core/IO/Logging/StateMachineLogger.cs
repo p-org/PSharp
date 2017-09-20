@@ -82,14 +82,13 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
         /// <param name="eventName">Name of the event.</param>
-        public virtual void OnEnqueue(MachineId machineId, string currentStateName, string eventName)
+        public virtual void OnEnqueue(MachineId machineId, string eventName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine($"<EnqueueLog> Machine '{machineId}' in state '{currentStateName}' enqueued event '{eventName}'.");
+                this.WriteLine($"<EnqueueLog> Machine '{machineId}' enqueued event '{eventName}'.");
             }
         }
 
