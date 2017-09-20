@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,8 +13,11 @@ namespace Microsoft.PSharp.IO
 
         BufferBlock<Tuple<string, bool>> queue;
         public volatile bool IsRunning;
+        public readonly TextWriter Null;
+        TextWriter writer;
 
-        public AsyncLogger()
+
+        public AsyncLogger(TextWriter t)
         {
             queue = new BufferBlock<Tuple<string, bool>>();
             this.IsRunning = true;
@@ -24,18 +28,19 @@ namespace Microsoft.PSharp.IO
                     ProcessItem(current);
                 }
             });
+            writer = t == null ? TextWriter.Null : t ;
         }
 
-        private static void ProcessItem(Tuple<string, bool> current)
+        private void ProcessItem(Tuple<string, bool> current)
         {
             var message = current.Item1;
             if (current.Item2 == false)
             {
-                Console.Write(message);
+                writer.Write(message);
             }
             else
             {
-                Console.WriteLine(message);
+                writer.WriteLine(message);
             }
         }
 

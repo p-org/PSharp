@@ -44,6 +44,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             {
                 this.Name = "SimpleMachine";
                 this.Counter = 0;
+                int x = Name.Length;
             }
 
             public void SendMessageToPSharp()
@@ -146,10 +147,11 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         public int Clients { get; set; }
 
         [Benchmark(Baseline = true)]
-        public void RunWithConsoleLogger()
+        public void RunWithSyncLogger()
         {
             var configuration = PSharp.Configuration.Create().WithVerbosityEnabled(2);
             var runtime = PSharpRuntime.Create(configuration);
+            runtime.SetLogger(new SyncWriterLogger());
             ConcurrentQueue<MachineId> machines = new ConcurrentQueue<MachineId>();
             Parallel.For(0, Clients, index =>
             {
@@ -167,7 +169,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         {
             var configuration = PSharp.Configuration.Create().WithVerbosityEnabled(2);
             var runtime = PSharpRuntime.Create(configuration);
-            runtime.SetLogger(new AsyncLogger());
+            runtime.SetLogger(new AsyncLogger(null));
             ConcurrentQueue<MachineId> machines = new ConcurrentQueue<MachineId>();
             Parallel.For(0, Clients, index =>
             {
