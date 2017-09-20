@@ -577,7 +577,7 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                base.Runtime.Logger.OnEnqueue(this.Id, this.CurrentStateName, eventInfo.EventName);
+                base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
 
                 this.Inbox.AddLast(eventInfo);
 
