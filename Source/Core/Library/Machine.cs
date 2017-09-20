@@ -56,6 +56,12 @@ namespace Microsoft.PSharp
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
 
+        /// <summary>
+        /// Map from machine type to bool indicating if it has been declared
+        /// with the Fast attribute
+        /// </summary>
+        private static ConcurrentDictionary<Type, bool> IsMachineFastMap;
+       
         #endregion
 
         #region fields
@@ -138,8 +144,8 @@ namespace Microsoft.PSharp
         private bool IsPopInvoked;
 
         /// <summary>
-        /// IsFast is set when the machine is declared with the Fast attribute.
-        /// The Fast attribute can be used if the machine does not ignore/defer events,
+        /// IsFast is set when the machine subclass is declared with the Fast attribute.
+        /// The Fast attribute can be used if the subclass does not ignore/defer events,
         /// and does not use Receive actions
         /// Using it allows for asynchronous dequeues
         /// </summary>
@@ -240,13 +246,16 @@ namespace Microsoft.PSharp
             StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
             StateMap = new ConcurrentDictionary<Type, HashSet<MachineState>>();
             MachineActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
+            IsMachineFastMap = new ConcurrentDictionary<Type, bool>();
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         protected Machine()
-        {            
+        {
+            this.Inbox = new LinkedList<EventInfo>();
+            this.AsyncInbox = new BufferBlock<EventInfo>();
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
@@ -254,17 +263,7 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsInsideSynchronousCall = false;
-            this.IsPopInvoked = false;
-            this.IsFast = false;
-            if (this.GetType().IsDefined(typeof(Fast), false))
-            {
-                this.IsFast = true;
-                this.AsyncInbox = new BufferBlock<EventInfo>();
-            }
-            else
-            {
-                this.Inbox = new LinkedList<EventInfo>();
-            }
+            this.IsPopInvoked = false;                        
         }
 
         #endregion
@@ -588,7 +587,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            if (this.IsFast)
+            if (IsFast)
             {
                 base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
                 this.AsyncInbox.Post(eventInfo);
@@ -761,7 +760,7 @@ namespace Microsoft.PSharp
                 return true;
             }
 
-            if (this.IsFast)
+            if (IsFast)
             {
                 while (!this.Info.IsHalted)
                 {
@@ -1284,7 +1283,7 @@ namespace Microsoft.PSharp
         private Task<Event> WaitOnEvent()
         {
         
-            this.Assert(this.IsFast == false, "Machine '{0}' marked with the Fast attribute " +
+            this.Assert(IsFast == false, "Machine '{0}' marked with the Fast attribute " +
                 "performed a Receive action in state '{1}'.", this.Id, this.CurrentState);
 
             // Dequeues the first event that the machine waits
@@ -1461,6 +1460,16 @@ namespace Microsoft.PSharp
 
             if (MachineStateCached.TryAdd(machineType, false))
             {
+                var isFastAttributePresent = this.GetType().IsDefined(typeof(Fast), false);
+                if (isFastAttributePresent)
+                {
+                    IsMachineFastMap.TryAdd(machineType, true);
+                }
+                else
+                {
+                    IsMachineFastMap.TryAdd(machineType, false);
+                }
+
                 // Caches the available state types for this machine type.
                 if (StateTypeMap.TryAdd(machineType, new HashSet<Type>()))
                 {
@@ -1523,7 +1532,7 @@ namespace Microsoft.PSharp
                         {
                             this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
                         }
-                        bool fastInconsistent = this.IsFast && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
+                        bool fastInconsistent = isFastAttributePresent && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
                         this.Assert(fastInconsistent == false, $"Machine '{this.Id}' marked with the" +
                             $" Fast attribute defered/ignored events in state '{state}'.");
                         StateMap[machineType].Add(state);
@@ -1593,6 +1602,9 @@ namespace Microsoft.PSharp
             {
                 this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
             }
+
+            // Set the IsFast flag based on wheter the machine type has the Fast attribute
+            this.IsFast = IsMachineFastMap[machineType];
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");
