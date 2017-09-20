@@ -792,7 +792,7 @@ namespace Microsoft.PSharp
                     }
 
                 }
-                return false;
+                return true;
             }
             else
             {

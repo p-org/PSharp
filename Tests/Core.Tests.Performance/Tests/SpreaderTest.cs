@@ -29,9 +29,33 @@ namespace Microsoft.PSharp.Core.Tests.Performance
     /// This benchmark is adapted from https://github.com/ponylang/ponyc/tree/master/examples/spreader
     /// </summary>
     [Config(typeof(Configuration))]
-    [SimpleJob(RunStrategy.Monitoring, launchCount: 10, warmupCount: 2, targetCount: 10)]
+    [SimpleJob(RunStrategy.Monitoring)]
     public class SpreaderTest
     {
+        internal class Config : Event
+        {
+            public Config(MachineId parent, long count, TaskCompletionSource<bool> hasCompleted)
+            {
+                this.Parent = parent;
+                this.Count = count;
+                this.hasCompleted = hasCompleted;
+            }
+
+            public MachineId Parent { get; private set; }
+            public long Count { get; private set; }
+            public TaskCompletionSource<bool> hasCompleted { get; private set; }
+        }
+
+        internal class ResultEvent : Event
+        {
+            public ResultEvent(long count)
+            {
+                this.Count = count;
+            }
+
+            public long Count { get; private set; }
+        }
+
         class Spreader : Machine
         {
             long _count;
@@ -39,32 +63,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             long _result;
             long _received;
             TaskCompletionSource<bool> hasCompleted;
-
-            internal class Config : Event
-            {
-                public Config(MachineId parent, long count, TaskCompletionSource<bool> hasCompleted)
-                {
-                    this.Parent = parent;
-                    this.Count = count;
-                    this.hasCompleted = hasCompleted;
-                }
-
-                public MachineId Parent { get; private set; }
-                public long Count { get; private set; }
-                public TaskCompletionSource<bool> hasCompleted { get; private set; }
-            }
-
-            internal class ResultEvent : Event
-            {
-                public ResultEvent(long count)
-                {
-                    this.Count = count;
-                }
-
-                public long Count { get; private set; }
-            }
-
-
+          
             void SpawnChild()
             {
                 this.CreateMachine(typeof(Spreader), new Config(this.Id, _count - 1, null));
@@ -113,38 +112,83 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             }
         }
 
-        [Params(18, 19)]
+        [Fast]
+        class FastSpreader : Machine
+        {
+            long _count;
+            MachineId _parent;
+            long _result;
+            long _received;
+            TaskCompletionSource<bool> hasCompleted;
+         
+            void SpawnChild()
+            {
+                this.CreateMachine(typeof(Spreader), new Config(this.Id, _count - 1, null));
+            }
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(ResultEvent), nameof(Result))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                var e = this.ReceivedEvent as Config;
+                this._parent = e.Parent;
+                this._count = e.Count;
+                this.hasCompleted = e.hasCompleted;
+                if (_count == 1)
+                {
+                    this.Send(_parent, new ResultEvent(1L));
+                }
+                else
+                {
+                    SpawnChild();
+                    SpawnChild();
+                }
+            }
+
+            void Result()
+            {
+                var e = this.ReceivedEvent as ResultEvent;
+                _received = _received + 1;
+                _result = _result + e.Count;
+                if (_received == 2)
+                {
+                    if (_parent != null)
+                    {
+                        this.Send(_parent, new ResultEvent(_result + 1));
+                    }
+                    else
+                    {
+                        // Console.WriteLine("{0} Machines", _result + 1);
+                        this.hasCompleted.SetResult(true);
+                    }
+                }
+
+            }
+        }
+
+        [Params(18, 19, 20)]
         public int Size { get; set; }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public void CreateMachines()
         {
             TaskCompletionSource<bool> hasCompleted = new TaskCompletionSource<bool>();
             var runtime = new StateMachineRuntime();
-            runtime.CreateMachine(typeof(Spreader), new Spreader.Config(null, Size, hasCompleted));
+            runtime.CreateMachine(typeof(Spreader), new Config(null, Size, hasCompleted));
             hasCompleted.Task.Wait();                        
         }
 
-        //[Benchmark(Baseline = true)]
-        //public void CreateTasks()
-        //{
-        //    var tcs = new TaskCompletionSource<bool>();
-        //    int counter = 0;
+        [Benchmark]
+        public void CreateFastMachines()
+        {
+            TaskCompletionSource<bool> hasCompleted = new TaskCompletionSource<bool>();
+            var runtime = new StateMachineRuntime();
+            runtime.CreateMachine(typeof(FastSpreader), new Config(null, Size, hasCompleted));
+            hasCompleted.Task.Wait();
+        }
 
-        //    for (int idx = 0; idx < Size; idx++)
-        //    {
-        //        var task = new Task(() => {
-        //            int value = Interlocked.Increment(ref counter);
-        //            if (value == Size)
-        //            {
-        //                tcs.TrySetResult(true);
-        //            }
-        //        });
-
-        //        task.Start();
-        //    }
-
-        //    tcs.Task.Wait();
-        //}
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{458F6344-4ADE-475F-8A31-4DF3D01CF364}"
 	ProjectSection(SolutionItems) = preProject
@@ -84,7 +84,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workflow", "PerfBenchmarks\
 		{E75DB9C9-7842-4AE4-A29D-624F6B49F607} = {E75DB9C9-7842-4AE4-A29D-624F6B49F607}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleTaskMachine", "PerfBenchmarks\SingleTaskMachine\SingleTaskMachine.csproj", "{8A80E5A5-D46D-412E-AD1A-F8EAB84E62F3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E75DB9C9-7842-4AE4-A29D-624F6B49F607} = {E75DB9C9-7842-4AE4-A29D-624F6B49F607}
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -198,6 +206,10 @@ Global
 		{C699F02C-D7A1-4541-B92A-2269AE063873}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C699F02C-D7A1-4541-B92A-2269AE063873}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C699F02C-D7A1-4541-B92A-2269AE063873}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A80E5A5-D46D-412E-AD1A-F8EAB84E62F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A80E5A5-D46D-412E-AD1A-F8EAB84E62F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A80E5A5-D46D-412E-AD1A-F8EAB84E62F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A80E5A5-D46D-412E-AD1A-F8EAB84E62F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -235,5 +247,6 @@ Global
 		{EB68A656-CF12-4CD4-9DEA-7BCCB416BC71} = {E69A7F9C-5D36-451E-A083-8B589A36C39B}
 		{7A406456-FF8B-44E0-BBCB-64DC318FF7BD} = {E69A7F9C-5D36-451E-A083-8B589A36C39B}
 		{C699F02C-D7A1-4541-B92A-2269AE063873} = {E69A7F9C-5D36-451E-A083-8B589A36C39B}
+		{8A80E5A5-D46D-412E-AD1A-F8EAB84E62F3} = {E69A7F9C-5D36-451E-A083-8B589A36C39B}
 	EndGlobalSection
 EndGlobal
