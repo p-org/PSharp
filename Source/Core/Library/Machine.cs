@@ -246,8 +246,7 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         protected Machine()
-        {
-            this.Inbox = new LinkedList<EventInfo>();           
+        {            
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
@@ -261,6 +260,10 @@ namespace Microsoft.PSharp
             {
                 this.IsFast = true;
                 this.AsyncInbox = new BufferBlock<EventInfo>();
+            }
+            else
+            {
+                this.Inbox = new LinkedList<EventInfo>();
             }
         }
 
@@ -634,11 +637,7 @@ namespace Microsoft.PSharp
             }
         }
 
-        internal async Task<EventInfo> DequeueEventAsync()
-        {
-            return await AsyncInbox.ReceiveAsync();
-        }
-
+      
         /// <summary>
         /// Dequeues the next available <see cref="EventInfo"/> from the
         /// inbox if there is one available, else returns null.
@@ -766,7 +765,7 @@ namespace Microsoft.PSharp
                     {
                         // No default event handling here because we're 
                         // guaranteed an event to process following the await
-                        nextEventInfo = await this.DequeueEventAsync();
+                        nextEventInfo = await AsyncInbox.ReceiveAsync();
                         base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
                     }
                     else
