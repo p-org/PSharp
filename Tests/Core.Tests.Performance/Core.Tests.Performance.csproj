@@ -15,6 +15,6 @@
     <ProjectReference Include="..\..\Source\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.3" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.9" />
   </ItemGroup>
 </Project>
