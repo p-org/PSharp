@@ -22,6 +22,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using System.Threading.Tasks.Dataflow;
 
 namespace Microsoft.PSharp
 {
@@ -55,6 +56,12 @@ namespace Microsoft.PSharp
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
 
+        /// <summary>
+        /// Map from machine type to bool indicating if it has been declared
+        /// with the Fast attribute
+        /// </summary>
+        private static ConcurrentDictionary<Type, bool> IsMachineFastMap;
+       
         #endregion
 
         #region fields
@@ -94,6 +101,12 @@ namespace Microsoft.PSharp
         private LinkedList<EventInfo> Inbox;
 
         /// <summary>
+        /// Inbox supporting asynchronous dequeues
+        /// Used if the machine has the "Fast" attribute
+        /// </summary>
+        private BufferBlock<EventInfo> AsyncInbox;
+
+        /// <summary>
         /// Gets the raised event. If no event has been raised
         /// this will return null.
         /// </summary>
@@ -129,6 +142,14 @@ namespace Microsoft.PSharp
         /// Is pop invoked in the current action.
         /// </summary>
         private bool IsPopInvoked;
+
+        /// <summary>
+        /// IsFast is set when the machine subclass is declared with the Fast attribute.
+        /// The Fast attribute can be used if the subclass does not ignore/defer events,
+        /// and does not use Receive actions
+        /// Using it allows for asynchronous dequeues
+        /// </summary>
+        private bool IsFast;
 
         #endregion
 
@@ -225,6 +246,7 @@ namespace Microsoft.PSharp
             StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
             StateMap = new ConcurrentDictionary<Type, HashSet<MachineState>>();
             MachineActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
+            IsMachineFastMap = new ConcurrentDictionary<Type, bool>();
         }
 
         /// <summary>
@@ -233,6 +255,7 @@ namespace Microsoft.PSharp
         protected Machine()
         {
             this.Inbox = new LinkedList<EventInfo>();
+            this.AsyncInbox = new BufferBlock<EventInfo>();
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
@@ -240,7 +263,7 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsInsideSynchronousCall = false;
-            this.IsPopInvoked = false;
+            this.IsPopInvoked = false;                        
         }
 
         #endregion
@@ -559,48 +582,56 @@ namespace Microsoft.PSharp
         /// <param name="runNewHandler">Run a new handler</param>
         internal void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
         {
-            lock (this.Inbox)
+            if (this.Info.IsHalted)
             {
-                if (this.Info.IsHalted)
-                {
-                    return;
-                }
+                return;
+            }
 
-                EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
-                    val => val.EventType == eventInfo.EventType &&
-                           val.Predicate(eventInfo.Event));
-                if (eventWaitHandler != null)
-                {
-                    this.EventWaitHandlers.Clear();
-                    base.Runtime.NotifyReceivedEvent(this, eventInfo);
-                    this.ReceiveCompletionSource.SetResult(eventInfo.Event);
-                    return;
-                }
+            if (IsFast)
+            {
+                base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
+                this.AsyncInbox.Post(eventInfo);
+            }
+            else
+            {
+                lock (this.Inbox)
+                {                   
+                    EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
+                        val => val.EventType == eventInfo.EventType &&
+                               val.Predicate(eventInfo.Event));
+                    if (eventWaitHandler != null)
+                    {
+                        this.EventWaitHandlers.Clear();
+                        base.Runtime.NotifyReceivedEvent(this, eventInfo);
+                        this.ReceiveCompletionSource.SetResult(eventInfo.Event);
+                        return;
+                    }
 
                 base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
 
                 this.Inbox.AddLast(eventInfo);
 
-                if (eventInfo.Event.Assert >= 0)
-                {
-                    var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(eventCount <= eventInfo.Event.Assert, "There are more than " +
-                        $"{eventInfo.Event.Assert} instances of '{eventInfo.EventName}' " +
-                        $"in the input queue of machine '{this}'");
-                }
+                    if (eventInfo.Event.Assert >= 0)
+                    {
+                        var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
+                        this.Assert(eventCount <= eventInfo.Event.Assert, "There are more than " +
+                            $"{eventInfo.Event.Assert} instances of '{eventInfo.EventName}' " +
+                            $"in the input queue of machine '{this}'");
+                    }
 
-                if (eventInfo.Event.Assume >= 0)
-                {
-                    var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(eventCount <= eventInfo.Event.Assume, "There are more than " +
-                        $"{eventInfo.Event.Assume} instances of '{eventInfo.EventName}' " +
-                        $"in the input queue of machine '{this}'");
-                }
+                    if (eventInfo.Event.Assume >= 0)
+                    {
+                        var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
+                        this.Assert(eventCount <= eventInfo.Event.Assume, "There are more than " +
+                            $"{eventInfo.Event.Assume} instances of '{eventInfo.EventName}' " +
+                            $"in the input queue of machine '{this}'");
+                    }
 
-                if (!this.IsRunning && base.Runtime.CheckStartEventHandler(this))
-                {
-                    this.IsRunning = true;
-                    runNewHandler = true;
+                    if (!this.IsRunning && base.Runtime.CheckStartEventHandler(this))
+                    {
+                        this.IsRunning = true;
+                        runNewHandler = true;
+                    }
                 }
             }
         }
@@ -725,84 +756,120 @@ namespace Microsoft.PSharp
         internal async Task<bool> RunEventHandler(bool returnEarly = false)
         {
             if (this.Info.IsHalted)
-            {
+            {                
                 return true;
             }
 
-            bool completed = false;
-            while (!this.Info.IsHalted && base.Runtime.IsRunning)
+            if (IsFast)
             {
-                var defaultHandling = false;
-                var dequeued = false;
-
-                // Try to get the raised event, if there is one. Raised events
-                // have priority over the events in the inbox.
-                EventInfo nextEventInfo = this.TryGetRaisedEvent();
-
-                if (nextEventInfo == null)
+                while (!this.Info.IsHalted)
                 {
-                    var hasDefaultHandler = HasDefaultHandler();
-                    if (hasDefaultHandler)
+                    EventInfo nextEventInfo = this.TryGetRaisedEvent();
+                    if(nextEventInfo == null)
                     {
-                        base.Runtime.NotifyDefaultEventHandlerCheck(this);
+                        // No default event handling here because we're 
+                        // guaranteed an event to process following the await
+                        nextEventInfo = await AsyncInbox.ReceiveAsync();
+                        base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                    }
+                    else
+                    {
+                        base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
                     }
 
-                    lock (this.Inbox)
+                    // Assigns the received event.
+                    this.ReceivedEvent = nextEventInfo.Event;
+
+                    // Handles next event.
+                    await this.HandleEvent(nextEventInfo.Event);
+
+
+                    // Return after handling the first event?
+                    if (returnEarly)
                     {
-                        // Try to dequeue the next event, if there is one.
-                        nextEventInfo = this.TryDequeueEvent();
-                        dequeued = nextEventInfo != null;
-
-                        if (nextEventInfo == null && hasDefaultHandler)
-                        {
-                            // Else, get the default event.
-                            nextEventInfo = this.GetDefaultEvent();
-                            defaultHandling = true;
-                        }
-
-                        if (nextEventInfo == null)
-                        {
-                            completed = true;
-                            this.IsRunning = false;
-                            break;
-                        }
+                        return false;
                     }
-                }
 
-                if (dequeued)
-                {
-                    // Notifies the runtime for a new event to handle. This is only used
-                    // during bug-finding and operation bounding, because the runtime has
-                    // to schedule a machine when a new operation is dequeued.
-                    base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
                 }
-                else if (defaultHandling)
-                {
-                    // If the default event was handled, then notify the runtime.
-                    // This is only used during bug-finding, because the runtime
-                    // has to schedule a machine between default handlers.
-                    base.Runtime.NotifyDefaultHandlerFired(this);
-                }
-                else
-                {
-                    base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
-                }
-
-                // Assigns the received event.
-                this.ReceivedEvent = nextEventInfo.Event;
-
-                // Handles next event.
-                await this.HandleEvent(nextEventInfo.Event);
-
-
-                // Return after handling the first event?
-                if (returnEarly)
-                {
-                    return false;
-                }
+                return true;
             }
+            else
+            {
+                bool completed = false;
+                while (!this.Info.IsHalted && base.Runtime.IsRunning)
+                {
+                    var defaultHandling = false;
+                    var dequeued = false;
 
-            return completed;
+                    // Try to get the raised event, if there is one. Raised events
+                    // have priority over the events in the inbox.
+                    EventInfo nextEventInfo = this.TryGetRaisedEvent();
+
+                    if (nextEventInfo == null)
+                    {
+                        var hasDefaultHandler = HasDefaultHandler();
+                        if (hasDefaultHandler)
+                        {
+                            base.Runtime.NotifyDefaultEventHandlerCheck(this);
+                        }
+
+                        lock (this.Inbox)
+                        {
+                            // Try to dequeue the next event, if there is one.
+                            nextEventInfo = this.TryDequeueEvent();
+                            dequeued = nextEventInfo != null;
+
+                            if (nextEventInfo == null && hasDefaultHandler)
+                            {
+                                // Else, get the default event.
+                                nextEventInfo = this.GetDefaultEvent();
+                                defaultHandling = true;
+                            }
+
+                            if (nextEventInfo == null)
+                            {
+                                completed = true;
+                                this.IsRunning = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (dequeued)
+                    {
+                        // Notifies the runtime for a new event to handle. This is only used
+                        // during bug-finding and operation bounding, because the runtime has
+                        // to schedule a machine when a new operation is dequeued.
+                        base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                    }
+                    else if (defaultHandling)
+                    {
+                        // If the default event was handled, then notify the runtime.
+                        // This is only used during bug-finding, because the runtime
+                        // has to schedule a machine between default handlers.
+                        base.Runtime.NotifyDefaultHandlerFired(this);
+                    }
+                    else
+                    {
+                        base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
+                    }
+
+                    // Assigns the received event.
+                    this.ReceivedEvent = nextEventInfo.Event;
+
+                    // Handles next event.
+                    await this.HandleEvent(nextEventInfo.Event);
+
+
+                    // Return after handling the first event?
+                    if (returnEarly)
+                    {
+                        return false;
+                    }
+                }
+
+                return completed;
+            }
         }
 
         /// <summary>
@@ -1215,6 +1282,10 @@ namespace Microsoft.PSharp
         /// <returns>Event received</returns>
         private Task<Event> WaitOnEvent()
         {
+        
+            this.Assert(IsFast == false, "Machine '{0}' marked with the Fast attribute " +
+                "performed a Receive action in state '{1}'.", this.Id, this.CurrentState);
+
             // Dequeues the first event that the machine waits
             // to receive, if there is one in the inbox.
             EventInfo eventInfoInInbox = null;
@@ -1389,6 +1460,16 @@ namespace Microsoft.PSharp
 
             if (MachineStateCached.TryAdd(machineType, false))
             {
+                var isFastAttributePresent = this.GetType().IsDefined(typeof(Fast), false);
+                if (isFastAttributePresent)
+                {
+                    IsMachineFastMap.TryAdd(machineType, true);
+                }
+                else
+                {
+                    IsMachineFastMap.TryAdd(machineType, false);
+                }
+
                 // Caches the available state types for this machine type.
                 if (StateTypeMap.TryAdd(machineType, new HashSet<Type>()))
                 {
@@ -1451,7 +1532,9 @@ namespace Microsoft.PSharp
                         {
                             this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
                         }
-                        
+                        bool fastInconsistent = isFastAttributePresent && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
+                        this.Assert(fastInconsistent == false, $"Machine '{this.Id}' marked with the" +
+                            $" Fast attribute defered/ignored events in state '{state}'.");
                         StateMap[machineType].Add(state);
                     }
                 }
@@ -1519,6 +1602,9 @@ namespace Microsoft.PSharp
             {
                 this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
             }
+
+            // Set the IsFast flag based on wheter the machine type has the Fast attribute
+            this.IsFast = IsMachineFastMap[machineType];
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");
