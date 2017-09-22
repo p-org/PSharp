@@ -450,6 +450,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         internal override MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
+            this.AssertCorrectCallerMachine(creator, "CreateMachine");
             if (creator != null)
             {
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
@@ -491,6 +492,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         internal override async Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
+            this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
             if (creator != null)
             {
                 this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
@@ -534,6 +536,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
             Event e, Machine creator, Guid? operationGroupId)
         {
+            this.AssertCorrectCallerMachine(creator, "CreateRemoteMachine");
             return this.CreateMachine(type, friendlyName, e, creator, operationGroupId);
         }
 
@@ -576,6 +579,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="operationGroupId">Operation group id</param>
         internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
+            this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
 
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
@@ -601,6 +605,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="operationGroupId">Operation group id</param>
         internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, Guid? operationGroupId)
         {
+            this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
 
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
@@ -810,6 +815,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         internal override void Monitor(Type type, AbstractMachine sender, Event e)
         {
+            this.AssertCorrectCallerMachine(sender as Machine, "Monitor");
             if (sender != null && sender is Machine)
             {
                 this.AssertNoPendingTransitionStatement(sender as Machine, "Monitor");
@@ -861,29 +867,52 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Asserts that a transition statement (Raise/Goto/Pop) has not already
-        /// been called. Records that RGP has been called.
+        /// Asserts that a transition statement (raise, goto or pop) has not
+        /// already been called. Records that RGP has been called.
         /// </summary>
         /// <param name="machine">Machine</param>
         internal void AssertTransitionStatement(Machine machine)
         {
-            this.Assert(!machine.Info.IsInsideOnExit, "Machine '{0}' has called raise/goto/pop " +
+            this.Assert(!machine.Info.IsInsideOnExit, "Machine '{0}' has called raise, goto or pop " +
                 "inside an OnExit method.", machine.Id.Name);
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' has called multiple " +
-                "raise/goto/pop in the same action.", machine.Id.Name);
+                "raise, goto or pop in the same action.", machine.Id.Name);
             machine.Info.CurrentActionCalledTransitionStatement = true;
         }
 
         /// <summary>
-        /// Asserts that a transition statement (Raise/Goto/Pop) has not
-        /// already been called.
+        /// Asserts that a transition statement (raise, goto or pop)
+        /// has not already been called.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="calledAPI">Called API</param>
         internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
         {
-            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call API '{1}' " +
-                "after calling raise/goto/pop in the same action.", machine.Id.Name, calledAPI);
+            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
+                "after calling raise, goto or pop in the same action.", machine.Id.Name, calledAPI);
+        }
+
+        /// <summary>
+        /// Asserts that the machine calling a P# machine method is also
+        /// the machine that is currently executing.
+        /// </summary>
+        /// <param name="callerMachine">Caller machine</param>
+        /// <param name="calledAPI">Called API name</param>
+        private void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
+        {
+            if (callerMachine == null)
+            {
+                return;
+            }
+
+            var executingMachine = this.GetCurrentMachine();
+            if (executingMachine == null)
+            {
+                return;
+            }
+
+            this.Assert(executingMachine.Equals(callerMachine), $"Machine '{executingMachine.Id}' " +
+                $"invoked {calledAPI} on behalf of machine '{callerMachine.Id}'.");
         }
 
         /// <summary>
@@ -923,6 +952,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Boolean</returns>
         internal override bool GetNondeterministicBooleanChoice(AbstractMachine caller, int maxValue)
         {
+            this.AssertCorrectCallerMachine(caller as Machine, "Random");
             if (caller != null && caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
@@ -947,6 +977,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Boolean</returns>
         internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine caller, string uniqueId)
         {
+            this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
             if (caller != null && caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
@@ -971,6 +1002,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Integer</returns>
         internal override int GetNondeterministicIntegerChoice(AbstractMachine caller, int maxValue)
         {
+            this.AssertCorrectCallerMachine(caller as Machine, "RandomInteger");
             if (caller != null && caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "RandomInteger");
@@ -1137,6 +1169,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         internal override void NotifyPop(Machine machine)
         {
+            this.AssertCorrectCallerMachine(machine, "Pop");
             this.AssertTransitionStatement(machine);
 
             this.Logger.OnPop(machine.Id, string.Empty, machine.CurrentStateName);
@@ -1155,6 +1188,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(!machine.IsInsideSynchronousCall, $"Machine '{machine.Id}' called " +
                 "receive while executing synchronously.");
+            this.AssertCorrectCallerMachine(machine, "Receive");
             this.AssertNoPendingTransitionStatement(machine, "Receive");
         }
 

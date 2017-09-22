@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestPopDuringOnExit()
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });
-            var bugReport = "Machine 'N()' has called raise/goto/pop inside an OnExit method.";
+            var bugReport = "Machine 'N()' has called raise, goto or pop inside an OnExit method.";
             base.AssertFailed(test, bugReport, true);
         }
     }
