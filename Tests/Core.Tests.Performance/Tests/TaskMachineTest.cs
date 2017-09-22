@@ -50,17 +50,17 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
         }
 
-        internal class FastSingleTaskMachineEvent : Event
+        internal class FifoSingleTaskMachineEvent : Event
         {
             /// <summary>
             /// Payload
             /// </summary>
-            public Func<FastSingleTaskMachine, Task> function;
+            public Func<FifoSingleTaskMachine, Task> function;
 
             /// <summary>
             /// Constructor
             /// </summary>
-            public FastSingleTaskMachineEvent(Func<FastSingleTaskMachine, Task> function)
+            public FifoSingleTaskMachineEvent(Func<FifoSingleTaskMachine, Task> function)
             {
                 this.function = function;
             }
@@ -94,8 +94,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
         }
 
-        [Fast]
-        internal class FastSingleTaskMachine : Machine
+        [FifoMachine]
+        internal class FifoSingleTaskMachine : Machine
         {
             [Start]
             [OnEntry(nameof(Run))]
@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             /// </summary>
             async Task Run()
             {
-                var function = (this.ReceivedEvent as FastSingleTaskMachineEvent).function;
+                var function = (this.ReceivedEvent as FifoSingleTaskMachineEvent).function;
                 await function(this);
                 this.Raise(new Halt());
             }
@@ -164,7 +164,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             }
         }
 
-        [Fast]
+        [FifoMachine]
         class FM : Machine
         {
             TaskCompletionSource<bool> tcs;
@@ -198,17 +198,17 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         public int NumberOfMessages { get; set; }
 
         private PSharpRuntime runtime;
-        MachineId supervisor, supervisorFast;
-        private TaskCompletionSource<bool> tcs, tcsFast;
+        MachineId supervisor, supervisorFifo;
+        private TaskCompletionSource<bool> tcs, tcsFifo;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
             runtime = PSharpRuntime.Create();
             tcs = new TaskCompletionSource<bool>();
-            tcsFast = new TaskCompletionSource<bool>();
+            tcsFifo = new TaskCompletionSource<bool>();
             supervisor = runtime.CreateMachine(typeof(M), new ConfigureMachine(tcs, NumberOfMessages));
-            supervisorFast = runtime.CreateMachine(typeof(FM), new ConfigureMachine(tcsFast, NumberOfMessages));
+            supervisorFifo = runtime.CreateMachine(typeof(FM), new ConfigureMachine(tcsFifo, NumberOfMessages));
         }
 
         [Benchmark(Baseline = true)]
@@ -225,15 +225,15 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         }
 
         [Benchmark]
-        public void FastSingleTaskRun()
+        public void FifoSingleTaskRun()
         {
             for (int i = 0; i < NumberOfMessages; i++)
             {
-                runtime.CreateMachine(typeof(FastSingleTaskMachine), new FastSingleTaskMachineEvent(
+                runtime.CreateMachine(typeof(FifoSingleTaskMachine), new FifoSingleTaskMachineEvent(
                 async (v) =>
                 {
                     await Task.Yield();
-                    v.MySend(supervisorFast, new E());
+                    v.MySend(supervisorFifo, new E());
                 }));
             }
         }
@@ -246,7 +246,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
                 Task.Run(async () =>
                 {
                     await Task.Yield();
-                    runtime.SendEvent(supervisorFast, new E());
+                    runtime.SendEvent(supervisorFifo, new E());
                 });
             }
         }

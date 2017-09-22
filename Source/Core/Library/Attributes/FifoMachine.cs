@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Fast.cs">
+// <copyright file="FifoMachine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,5 +21,5 @@ namespace Microsoft.PSharp
     /// does not defer/ignore events, and does not use Receive actions
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class Fast : Attribute { }
+    public sealed class FifoMachine : Attribute { }
 }

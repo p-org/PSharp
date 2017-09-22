@@ -58,9 +58,9 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Map from machine type to bool indicating if it has been declared
-        /// with the Fast attribute
+        /// with the FifoMachine attribute
         /// </summary>
-        private static ConcurrentDictionary<Type, bool> IsMachineFastMap;
+        private static ConcurrentDictionary<Type, bool> IsMachineFifoMap;
        
         #endregion
 
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Inbox supporting asynchronous dequeues
-        /// Used if the machine has the "Fast" attribute
+        /// Used if the machine has the "FifoMachine" attribute
         /// </summary>
         private BufferBlock<EventInfo> AsyncInbox;
 
@@ -144,12 +144,12 @@ namespace Microsoft.PSharp
         private bool IsPopInvoked;
 
         /// <summary>
-        /// IsFast is set when the machine subclass is declared with the Fast attribute.
-        /// The Fast attribute can be used if the subclass does not ignore/defer events,
+        /// IsFifo is set when the machine subclass is declared with the FifoMachine attribute.
+        /// The attribute can be used if the subclass does not defer events,
         /// and does not use Receive actions
         /// Using it allows for asynchronous dequeues
         /// </summary>
-        private bool IsFast;
+        private bool IsFifo;
 
         #endregion
 
@@ -246,7 +246,7 @@ namespace Microsoft.PSharp
             StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
             StateMap = new ConcurrentDictionary<Type, HashSet<MachineState>>();
             MachineActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
-            IsMachineFastMap = new ConcurrentDictionary<Type, bool>();
+            IsMachineFifoMap = new ConcurrentDictionary<Type, bool>();
         }
 
         /// <summary>
@@ -587,7 +587,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            if (IsFast)
+            if (IsFifo)
             {
                 base.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
                 this.AsyncInbox.Post(eventInfo);
@@ -760,7 +760,7 @@ namespace Microsoft.PSharp
                 return true;
             }
 
-            if (IsFast)
+            if (IsFifo)
             {
                 while (!this.Info.IsHalted)
                 {
@@ -1283,7 +1283,7 @@ namespace Microsoft.PSharp
         private Task<Event> WaitOnEvent()
         {
         
-            this.Assert(IsFast == false, "Machine '{0}' marked with the Fast attribute " +
+            this.Assert(IsFifo == false, "Machine '{0}' marked with the FifoMachine attribute " +
                 "performed a Receive action in state '{1}'.", this.Id, this.CurrentState);
 
             // Dequeues the first event that the machine waits
@@ -1460,14 +1460,14 @@ namespace Microsoft.PSharp
 
             if (MachineStateCached.TryAdd(machineType, false))
             {
-                var isFastAttributePresent = this.GetType().IsDefined(typeof(Fast), false);
-                if (isFastAttributePresent)
+                var isFifoAttributePresent = this.GetType().IsDefined(typeof(FifoMachine), false);
+                if (isFifoAttributePresent)
                 {
-                    IsMachineFastMap.TryAdd(machineType, true);
+                    IsMachineFifoMap.TryAdd(machineType, true);
                 }
                 else
                 {
-                    IsMachineFastMap.TryAdd(machineType, false);
+                    IsMachineFifoMap.TryAdd(machineType, false);
                 }
 
                 // Caches the available state types for this machine type.
@@ -1532,9 +1532,9 @@ namespace Microsoft.PSharp
                         {
                             this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
                         }
-                        bool fastInconsistent = isFastAttributePresent && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
-                        this.Assert(fastInconsistent == false, $"Machine '{this.Id}' marked with the" +
-                            $" Fast attribute defered/ignored events in state '{state}'.");
+                        bool fifoInconsistent = isFifoAttributePresent && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
+                        this.Assert(fifoInconsistent == false, $"Machine '{this.Id}' marked with the" +
+                            $" FifoMachine attribute defered/ignored events in state '{state}'.");
                         StateMap[machineType].Add(state);
                     }
                 }
@@ -1603,8 +1603,8 @@ namespace Microsoft.PSharp
                 this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
             }
 
-            // Set the IsFast flag based on wheter the machine type has the Fast attribute
-            this.IsFast = IsMachineFastMap[machineType];
+            // Set the IsFifo flag based on wheter the machine type has the FifoMachine attribute
+            this.IsFifo = IsMachineFifoMap[machineType];
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");

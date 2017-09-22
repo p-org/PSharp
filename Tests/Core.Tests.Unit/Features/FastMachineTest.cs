@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class FastMachineTest 
+    public class FifoMachineTest 
     {
         class E : Event { }
 
@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
         class Def : Event { }
 
-        [Fast]
+        [FifoMachine]
         class M1: Machine
         {
             [Start]
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             
         }
 
-        [Fast]
+        [FifoMachine]
         class M2 : Machine
         {
             [Start]
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             
         }
 
-        [Fast]
+        [FifoMachine]
         class M3 : Machine
         {
             [Start]
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         }
                   
         [Fact]
-        public void TestFastMachineReceive()
+        public void TestFifoMachineReceive()
         {
 
             var runtime = PSharpRuntime.Create();
@@ -81,9 +81,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 exceptionMessage = ex.Message;                
             };
 
-            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FastMachineTest+M1(0)' " +
-                "marked with the Fast attribute performed a Receive action in state " +
-                "'Microsoft.PSharp.Core.Tests.Unit.FastMachineTest+M1+Init'.";
+            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M1(0)' " +
+                "marked with the FifoMachine attribute performed a Receive action in state " +
+                "'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M1+Init'.";
 
             var id = runtime.CreateMachine(typeof(M1));
             runtime.SendEvent(id, new E());
@@ -93,32 +93,32 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         }
 
         [Fact]
-        public void TestFastMachineDeferredEvent()
+        public void TestFifoMachineDeferredEvent()
         {
             var test = new Action(() => {
             var runtime = PSharpRuntime.Create();            
             var id = runtime.CreateMachine(typeof(M2));
             runtime.SendEvent(id, new E());            
             });
-            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FastMachineTest+M2(0)' marked with the" +
-                " Fast attribute defered/ignored events in state " +
-                "'Microsoft.PSharp.Core.Tests.Unit.FastMachineTest+M2+S1'.";
+            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M2(0)' marked with the" +
+                " FifoMachine attribute defered/ignored events in state " +
+                "'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M2+S1'.";
 
             var ex = Assert.Throws<AssertionFailureException>(test);
             Assert.Equal(bugReport, ex.Message);
         }
 
         [Fact]
-        public void TestFastMachineIgnoredEvent()
+        public void TestFifoMachineIgnoredEvent()
         {
             var test = new Action(() => {
                 var runtime = PSharpRuntime.Create();
                 var id = runtime.CreateMachine(typeof(M3));
                 runtime.SendEvent(id, new E());
             });
-            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FastMachineTest+M3(0)' marked with the" +
-                " Fast attribute defered/ignored events in state " +
-                "'Microsoft.PSharp.Core.Tests.Unit.FastMachineTest+M3+S1'.";
+            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M3(0)' marked with the" +
+                " FifoMachine attribute defered/ignored events in state " +
+                "'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M3+S1'.";
 
             var ex = Assert.Throws<AssertionFailureException>(test);
             Assert.Equal(bugReport, ex.Message);

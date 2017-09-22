@@ -112,8 +112,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             }
         }
 
-        [Fast]
-        class FastSpreader : Machine
+        [FifoMachine]
+        class FifoSpreader : Machine
         {
             long _count;
             MachineId _parent;
@@ -182,11 +182,11 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         }
 
         [Benchmark]
-        public void CreateFastMachines()
+        public void CreateFifoMachines()
         {
             TaskCompletionSource<bool> hasCompleted = new TaskCompletionSource<bool>();
             var runtime = new StateMachineRuntime();
-            runtime.CreateMachine(typeof(FastSpreader), new Config(null, Size, hasCompleted));
+            runtime.CreateMachine(typeof(FifoSpreader), new Config(null, Size, hasCompleted));
             hasCompleted.Task.Wait();
         }
 

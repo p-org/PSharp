@@ -104,8 +104,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             }
         }
 
-        [Fast]
-        class FastClient : Machine
+        [FifoMachine]
+        class FifoClient : Machine
         {
             internal class Configure : Event
             {
@@ -136,8 +136,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             }
         }
 
-        [Fast]
-        class FastServer : Machine
+        [FifoMachine]
+        class FifoServer : Machine
         {
             internal class Configure : Event
             {
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(FastClient.Ping), nameof(Pong))]
+            [OnEventDoAction(typeof(FifoClient.Ping), nameof(Pong))]
             class Init : MachineState { }
 
             void InitOnEntry()
@@ -172,7 +172,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
                 this.MaxValue = this.NumberOfClients * this.NumberOfSends;
                 for (int i = 0; i < this.NumberOfClients; i++)
                 {
-                    this.CreateMachine(typeof(FastClient), new FastClient.Configure(this.Id, this.NumberOfSends));
+                    this.CreateMachine(typeof(FifoClient), new FifoClient.Configure(this.Id, this.NumberOfSends));
                 }
             }
 
@@ -206,13 +206,13 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         }
 
         [Benchmark]
-        public void SendMessagesFast()
+        public void SendMessagesFifo()
         {
             var tcs = new TaskCompletionSource<bool>();
 
             var runtime = new StateMachineRuntime();
-            runtime.CreateMachine(typeof(FastServer), null,
-                new FastServer.Configure(tcs, this.Clients, this.EventsPerClient),
+            runtime.CreateMachine(typeof(FifoServer), null,
+                new FifoServer.Configure(tcs, this.Clients, this.EventsPerClient),
                 null);
 
             tcs.Task.Wait();
