@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
-                "has called multiple raise/goto/pop in the same action.";
+                "has called multiple raise, goto or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
-                "has called multiple raise/goto/pop in the same action.";
+                "has called multiple raise, goto or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
-                "cannot call API 'Send' after calling raise/goto/pop in the same action.";
+                "cannot call 'Send' after calling raise, goto or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
-                "has called raise/goto/pop inside an OnExit method.";
+                "has called raise, goto or pop inside an OnExit method.";
             base.AssertFailed(test, bugReport, true);
         }
 
