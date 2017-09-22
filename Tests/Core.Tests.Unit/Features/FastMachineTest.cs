@@ -52,20 +52,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             class S1 : MachineState { }
             
         }
-
-        [FifoMachine]
-        class M3 : Machine
-        {
-            [Start]
-            [OnEventGotoState(typeof(E), typeof(S1))]
-            class Init : MachineState { }
-
-            [IgnoreEvents(typeof(Ign))]
-            [OnEventGotoState(typeof(E), typeof(S1))]
-            class S1 : MachineState { }
-
-        }
-                  
+                         
         [Fact]
         public void TestFifoMachineReceive()
         {
@@ -101,28 +88,11 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             runtime.SendEvent(id, new E());            
             });
             var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M2(0)' marked with the" +
-                " FifoMachine attribute defered/ignored events in state " +
+                " FifoMachine attribute defered events in state " +
                 "'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M2+S1'.";
 
             var ex = Assert.Throws<AssertionFailureException>(test);
             Assert.Equal(bugReport, ex.Message);
-        }
-
-        [Fact]
-        public void TestFifoMachineIgnoredEvent()
-        {
-            var test = new Action(() => {
-                var runtime = PSharpRuntime.Create();
-                var id = runtime.CreateMachine(typeof(M3));
-                runtime.SendEvent(id, new E());
-            });
-            var bugReport = "Machine 'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M3(0)' marked with the" +
-                " FifoMachine attribute defered/ignored events in state " +
-                "'Microsoft.PSharp.Core.Tests.Unit.FifoMachineTest+M3+S1'.";
-
-            var ex = Assert.Throws<AssertionFailureException>(test);
-            Assert.Equal(bugReport, ex.Message);
-        }
-
+        }        
     }
 }

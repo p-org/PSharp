@@ -652,23 +652,8 @@ namespace Microsoft.PSharp
             {
                 var nextNode = node.Next;
                 var currentEventInfo = node.Value;
-                if (currentEventInfo.EventType.IsGenericType)
+                if (ShouldIgnore(currentEventInfo) || this.IsIgnored(currentEventInfo.EventType))
                 {
-                    var genericTypeDefinition = currentEventInfo.EventType.GetGenericTypeDefinition();
-                    var ignored = false;
-                    foreach (var tup in this.CurrentActionHandlerMap)
-                    {
-                        if (!(tup.Value is IgnoreAction)) continue;
-                        if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
-                            genericTypeDefinition.GetGenericTypeDefinition()))
-                        {
-                            ignored = true;
-                            break;
-                        }
-                    }
-
-                    if (ignored)
-                    {
                         if (!checkOnly)
                         {
                             // Removes an ignored event.
@@ -676,22 +661,9 @@ namespace Microsoft.PSharp
                         }
 
                         node = nextNode;
-                        continue;
-                    }
+                        continue;                    
                 }
-
-                if (this.IsIgnored(currentEventInfo.EventType))
-                {
-                    if (!checkOnly)
-                    {
-                        // Removes an ignored event.
-                        Inbox.Remove(node);
-                    }
-
-                    node = nextNode;
-                    continue;
-                }
-
+                
                 // Skips a deferred event.
                 if (!this.IsDeferred(currentEventInfo.EventType))
                 {
@@ -770,6 +742,13 @@ namespace Microsoft.PSharp
                         // No default event handling here because we're 
                         // guaranteed an event to process following the await
                         nextEventInfo = await AsyncInbox.ReceiveAsync();
+
+                        // Check if we should ignore the event
+                        if (ShouldIgnore(nextEventInfo) || this.IsIgnored(nextEventInfo.EventType))
+                        {
+                            continue;
+                        }
+
                         base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
                     }
                     else
@@ -779,7 +758,7 @@ namespace Microsoft.PSharp
 
                     // Assigns the received event.
                     this.ReceivedEvent = nextEventInfo.Event;
-
+                    
                     // Handles next event.
                     await this.HandleEvent(nextEventInfo.Event);
 
@@ -870,6 +849,27 @@ namespace Microsoft.PSharp
 
                 return completed;
             }
+        }
+
+        private bool ShouldIgnore(EventInfo eventInfo)
+        {
+            if (eventInfo.EventType.IsGenericType)
+            {
+                var genericTypeDefinition = eventInfo.EventType.GetGenericTypeDefinition();                
+                foreach (var tup in this.CurrentActionHandlerMap)
+                {
+                    if (!(tup.Value is IgnoreAction))
+                    {
+                        continue;
+                    }
+                    if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
+                        genericTypeDefinition.GetGenericTypeDefinition()))
+                    {
+                        return true;
+                    }
+                }               
+            }
+            return false;
         }
 
         /// <summary>
@@ -1532,9 +1532,9 @@ namespace Microsoft.PSharp
                         {
                             this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
                         }
-                        bool fifoInconsistent = isFifoAttributePresent && (state.IgnoredEvents.Count > 0 || state.DeferredEvents.Count > 0);
+                        bool fifoInconsistent = isFifoAttributePresent && state.DeferredEvents.Count > 0;
                         this.Assert(fifoInconsistent == false, $"Machine '{this.Id}' marked with the" +
-                            $" FifoMachine attribute defered/ignored events in state '{state}'.");
+                            $" FifoMachine attribute defered events in state '{state}'.");
                         StateMap[machineType].Add(state);
                     }
                 }
