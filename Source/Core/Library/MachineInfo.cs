@@ -32,7 +32,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Is the machine halted.
         /// </summary>
-        internal volatile bool IsHalted;
+        internal bool IsHalted;
 
         /// <summary>
         /// Is the machine waiting to receive an event.
