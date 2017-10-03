@@ -22,6 +22,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using System.Diagnostics;
 
 namespace Microsoft.PSharp
 {
@@ -129,6 +130,23 @@ namespace Microsoft.PSharp
         /// Is pop invoked in the current action.
         /// </summary>
         private bool IsPopInvoked;
+
+        /// <summary>
+        /// Used by the critical path profiler to keep track of time spent in
+        /// this machine's actions
+        /// </summary>
+        private Stopwatch LocalWatch;
+
+        /// <summary>
+        /// The time taken by longest path in this machine in ms
+        /// </summary>
+        private long LongestPathTime;
+
+        /// <summary>
+        /// The time this machine is idle, either blocked on a receive
+        /// or waiting for an event to dequeue
+        /// </summary>
+        private long IdleTime;
 
         #endregion
 
@@ -241,6 +259,13 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
+
+            if (base.Runtime.Configuration.EnableCriticalPathProfiling)
+            {
+                this.LocalWatch = new Stopwatch();
+                this.LongestPathTime = 0;
+                this.IdleTime = 0;
+            }
         }
 
         #endregion

@@ -418,6 +418,12 @@ namespace Microsoft.PSharp
         public bool EnableProfiling;
 
         /// <summary>
+        /// Enables profiling.
+        /// </summary>
+        [DataMember]
+        public bool EnableCriticalPathProfiling;
+
+        /// <summary>
         /// Keeps the temporary files.
         /// </summary>
         [DataMember]
@@ -598,6 +604,18 @@ namespace Microsoft.PSharp
             // Return true if not set
             return this.RewriteCSharpVersion.Major == 0
                 || this.RewriteCSharpVersion >= new Version(major, minor);
+        }
+
+        /// <summary>
+        /// Updates the configuration with critical path profiling information enabled
+        /// or disabled and returns it.
+        /// </summary>
+        /// <param name="profilingEnabled">Is critical path profiling enabled</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithCriticalPathProfilingEnabled(bool profilingEnabled = false)
+        {
+            this.EnableCriticalPathProfiling = profilingEnabled;
+            return this;
         }
 
         #endregion
