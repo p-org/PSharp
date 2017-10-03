@@ -135,18 +135,23 @@ namespace Microsoft.PSharp
         /// Used by the critical path profiler to keep track of time spent in
         /// this machine's actions
         /// </summary>
-        private Stopwatch LocalWatch;
+        internal Stopwatch LocalWatch;
 
         /// <summary>
         /// The time taken by longest path in this machine in ms
         /// </summary>
-        private long LongestPathTime;
+        internal long LongestPathTime;
 
         /// <summary>
         /// The time this machine is idle, either blocked on a receive
         /// or waiting for an event to dequeue
         /// </summary>
-        private long IdleTime;
+        internal long IdleTime;
+
+        /// <summary>
+        /// The time this machine began idling
+        /// </summary>
+        internal long IdleTimeStart;
 
         #endregion
 
@@ -933,7 +938,7 @@ namespace Microsoft.PSharp
             var cachedAction = this.ActionMap[actionName];
             base.Runtime.NotifyInvokedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
             await this.ExecuteAction(cachedAction);
-
+            base.Runtime.NotifyCompletedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
             if (this.IsPopInvoked)
             {
                 // Performs the state transition, if pop was invoked during the action.
@@ -960,6 +965,7 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.NotifyInvokedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(entryAction);
+                base.Runtime.NotifyCompletedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
             }
 
             if (this.IsPopInvoked)
@@ -991,6 +997,7 @@ namespace Microsoft.PSharp
             {
                 base.Runtime.NotifyInvokedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(exitAction);
+                base.Runtime.NotifyCompletedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
             }
 
             // Invokes the exit action of the event handler,
@@ -1000,6 +1007,7 @@ namespace Microsoft.PSharp
                 CachedAction eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                 base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(eventHandlerExitAction);
+                base.Runtime.NotifyCompletedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
             }
 
             base.Info.IsInsideOnExit = false;

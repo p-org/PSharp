@@ -14,6 +14,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using System.Threading;
 
 namespace Microsoft.PSharp
 {
@@ -24,6 +25,8 @@ namespace Microsoft.PSharp
     [DataContract]
     internal class EventInfo
     {
+        static long counter = -1;
+
         /// <summary>
         /// Contained event.
         /// </summary>
@@ -46,6 +49,11 @@ namespace Microsoft.PSharp
         internal int SendStep { get; }
 
         /// <summary>
+        /// The step from which this event was sent.
+        /// </summary>
+        internal long EventSequenceCounter { get; }
+
+        /// <summary>
         /// Information regarding the event origin.
         /// </summary>
         [DataMember]
@@ -65,6 +73,7 @@ namespace Microsoft.PSharp
             Event = e;
             EventType = e.GetType();
             EventName = EventType.FullName;
+            EventSequenceCounter = Interlocked.Increment(ref counter);
         }
 
         /// <summary>

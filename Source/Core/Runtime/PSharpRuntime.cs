@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Core.Utilities.Profiling;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
 using System;
@@ -62,6 +63,11 @@ namespace Microsoft.PSharp
         /// The installed logger.
         /// </summary>
         public ILogger Logger { get; private set; }
+
+        /// <summary>
+        /// The installed critical path profiler.
+        /// </summary>
+        public ICriticalPathProfiler CriticalPathProfiler { get; private set; }
 
         #endregion
 
@@ -547,6 +553,18 @@ namespace Microsoft.PSharp
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine completed an action.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
