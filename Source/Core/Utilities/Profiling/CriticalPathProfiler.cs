@@ -88,8 +88,7 @@ namespace Core.Utilities.Profiling
         public void OnActionEnter(Machine machine, string actionName)
         {
             if (Configuration.EnableCriticalPathProfiling)
-            {
-                machine.LocalWatch.Start();
+            {                
                 RecordPAGNodeAndEdge(machine, "Entering:" + actionName);
             }
         }
@@ -103,9 +102,9 @@ namespace Core.Utilities.Profiling
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
-                machine.LocalWatch.Stop();
-                machine.LongestPathTime += (machine.LocalWatch.ElapsedMilliseconds);
-                machine.LocalWatch.Reset();
+                // machine.LocalWatch.Stop();
+                // machine.LongestPathTime += (machine.LocalWatch.ElapsedMilliseconds);
+                // machine.LocalWatch.Reset();
                 RecordPAGNodeAndEdge(machine, "Exiting:" + actionName);
             }
         }
@@ -119,14 +118,15 @@ namespace Core.Utilities.Profiling
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
+                child.LocalWatch.Start();
                 if (parent == null)
                 {
-                    child.LongestPathTime = (this.StartTime - Stopwatch.GetTimestamp()) / ScalingFactor;
+                    child.LongestPathTime = (Stopwatch.GetTimestamp() - this.StartTime) / ScalingFactor;
                     RecordPAGNodeAndEdge(child, "Created" + child.Id);
                 }
                 else
                 {
-                    child.LongestPathTime = parent.LongestPathTime;
+                    child.LongestPathTime = parent.LongestPathTime + parent.LocalWatch.ElapsedMilliseconds;
                     RecordPAGNodeAndEdge(parent, "CreateMachine" + child.Id);
                     var targetId = RecordPAGNodeAndEdge(child, "Created:" + child.Id);
                     // record the cross edge
@@ -151,9 +151,9 @@ namespace Core.Utilities.Profiling
                     throw new Exception("Failed to retrieve key");
                 }
                 var sendNodeId = senderInfo.Item1;
-                var senderLongestPath = senderInfo.Item2;
-                machine.LongestPathTime = Math.Max(senderLongestPath, machine.LongestPathTime);
+                var senderLongestPath = senderInfo.Item2;                
                 RecordPAGNodeAndEdge(machine, "Dequeue:" + eventSequenceNumber);
+                machine.LongestPathTime = Math.Max(senderLongestPath, machine.LongestPathTime);
                 if (sendNodeId != -1)
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -196,7 +196,7 @@ namespace Core.Utilities.Profiling
             if (Configuration.EnableCriticalPathProfiling)
             {
                 machine.IdleTime += (machine.LocalWatch.ElapsedMilliseconds - machine.IdleTimeStart);
-                machine.LongestPathTime += machine.LocalWatch.ElapsedMilliseconds;
+                // machine.LongestPathTime += machine.LocalWatch.ElapsedMilliseconds;
                 Tuple<long, long> senderInfo;
                 if (!SenderInformation.TryGetValue(eventSequenceNumber, out senderInfo))
                 {
@@ -204,8 +204,8 @@ namespace Core.Utilities.Profiling
                 }
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
-                machine.LongestPathTime = Math.Max(senderLongestPath, machine.LongestPathTime);
                 RecordPAGNodeAndEdge(machine, "Dequeue:" + eventSequenceNumber);
+                machine.LongestPathTime = Math.Max(senderLongestPath, machine.LongestPathTime);
                 if (sendNodeId != -1)
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -225,13 +225,13 @@ namespace Core.Utilities.Profiling
                 long currentTimeStamp;
                 if (source != null)
                 {
-                    currentTimeStamp = source.LongestPathTime + source.LocalWatch.ElapsedMilliseconds;
+                    // currentTimeStamp = source.LongestPathTime + source.LocalWatch.ElapsedMilliseconds;
                     RecordPAGNodeAndEdge(source, String.Format("Send({0}, {1})", source.Id, eventSequenceNumber));
-                    SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, currentTimeStamp));
+                    SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, source.LongestPathTime));
                 }
                 else
                 {
-                    currentTimeStamp = (this.StartTime - Stopwatch.GetTimestamp()) / ScalingFactor;
+                    currentTimeStamp = (Stopwatch.GetTimestamp() - this.StartTime) / ScalingFactor;
                     SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(-1, currentTimeStamp));
                 }
             }
@@ -269,7 +269,7 @@ namespace Core.Utilities.Profiling
                 ProgramActivityGraph.AddEdge(new TaggedEdge<Node<PAGNodeData>, long>(source, target, timeDiff));
             }
 
-            var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0);
+            var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
             var maxTime = terminalNodes.Max(x => x.Data.LongestElapsedTime);
             var data = new PAGNodeData("Sink", 0, maxTime);
             var sinkNode = new CriticalPathNode(data);
@@ -277,7 +277,7 @@ namespace Core.Utilities.Profiling
             HashSet<Node<PAGNodeData>> interesting = new HashSet<Node<PAGNodeData>>();
             foreach (var node in terminalNodes)
             {
-                ProgramActivityGraph.AddEdge(new CriticalPathEdge(node, sinkNode, 0));
+                ProgramActivityGraph.AddEdge(new CriticalPathEdge(node, sinkNode, maxTime - node.Data.LongestElapsedTime));
                 if (node.Data.LongestElapsedTime == maxTime)
                 {
                     interesting.Add(node);
@@ -320,6 +320,9 @@ namespace Core.Utilities.Profiling
         {
             string currentStateName = machine.CurrentStateName;
             var nodeName = $"{currentStateName}:{extra}";
+            var curTime = machine.LocalWatch.ElapsedMilliseconds;
+            machine.LongestPathTime += curTime - machine.predecessorTimestamp;
+            machine.predecessorTimestamp = curTime;
             var criticalPathTime = machine.LongestPathTime;
             var data = new PAGNodeData(nodeName, 0, criticalPathTime);
             var node = new Node<PAGNodeData>(data);

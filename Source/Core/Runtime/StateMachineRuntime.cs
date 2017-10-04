@@ -784,8 +784,15 @@ namespace Microsoft.PSharp
             {
                 base.Logger.OnWait(machine.Id, machine.CurrentStateName, string.Empty);
                 machine.Info.IsWaitingToReceive = true;
+                base.CriticalPathProfiler.OnReceiveBegin(machine, string.Empty);
             }
-            base.CriticalPathProfiler.OnReceiveBegin(machine, string.Empty);
+            else
+            {
+                base.CriticalPathProfiler.OnReceiveBegin(machine, string.Empty);
+                base.CriticalPathProfiler.OnReceiveEnd(machine,
+                eventInfoInInbox.EventName, true, eventInfoInInbox.EventSequenceCounter);
+            }
+            
         }
 
         /// <summary>

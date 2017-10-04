@@ -126,7 +126,7 @@ namespace CriticalPathTests
         public void Test1()
         {
             Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
-            // config.OutputFilePath = @"";
+            config.OutputFilePath = @"C:\PSharp\bin\net46";
             PSharpRuntime runtime = PSharpRuntime.Create(config);
             
             var tcs = new TaskCompletionSource<bool>();
