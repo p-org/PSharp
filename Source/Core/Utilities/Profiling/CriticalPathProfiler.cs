@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Core.Utilities.Profiling
 {
+    using CriticalPathEdge = TaggedEdge<Node<PAGNodeData>, long>;
+    using CriticalPathNode = Node<PAGNodeData>;
+
     /// <summary>
     /// TBD
     /// </summary>
@@ -18,7 +21,17 @@ namespace Core.Utilities.Profiling
         /// </summary>
         internal long StartTime;
 
-        private static ConcurrentQueue<Node<PAGNodeData>> PAGNodes;
+        /// <summary>
+        /// Record when we stopeed the critical path profiler
+        /// </summary>
+        internal long StopTime;
+
+        /// <summary>
+        /// Record for how long we profiled the program in milliseconds
+        /// </summary>
+        internal long ProfiledTime;
+
+        private static ConcurrentQueue<CriticalPathNode> PAGNodes;
 
         private static ConcurrentQueue<Tuple<long, long>> PAGEdges;
 
@@ -30,47 +43,54 @@ namespace Core.Utilities.Profiling
         /// </summary>
         private static long ScalingFactor;
 
-        private BidirectionalGraph<Node<PAGNodeData>, TaggedEdge<Node<PAGNodeData>, long>> ProgramActivityGraph;
+        /// <summary>
+        /// The program activity graph that represents the execution of the PSharp program being profiled
+        /// </summary>
+        private BidirectionalGraph<CriticalPathNode, CriticalPathEdge> ProgramActivityGraph;
 
         static CriticalPathProfiler()
         {
             ScalingFactor = Stopwatch.Frequency / 1000L;
             SenderInformation = new ConcurrentDictionary<long, Tuple<long, long>>();
-            PAGNodes = new ConcurrentQueue<Node<PAGNodeData>>();
+            PAGNodes = new ConcurrentQueue<CriticalPathNode>();
             PAGEdges = new ConcurrentQueue<Tuple<long, long>>();
         }
 
         /// <summary>
-        /// TBD
+        /// The configuration supplied by the PSharp runtime.
+        /// Configuration.EnableCriticalPathProfiling controls
+        /// whether profiling code should be triggered or not.
         /// </summary>
         public Configuration Configuration { get; set; }
 
+        /// <summary>
+        /// The logger to log the critical path(s) found to.
+        /// </summary>
         private ILogger Logger;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="logger"></param>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="logger">Logger</param>
         public CriticalPathProfiler(Configuration configuration, ILogger logger)
         {
             this.Configuration = configuration;
             this.Logger = logger;
-            ProgramActivityGraph = new BidirectionalGraph<Node<PAGNodeData>, TaggedEdge<Node<PAGNodeData>, long>>();
+            ProgramActivityGraph = new BidirectionalGraph<CriticalPathNode, CriticalPathEdge>();
         }
 
         /// <summary>
-        /// TBD
+        /// The steps a profiler needs to take on entering an action in a machine
         /// </summary>
         /// <param name="machine"></param>
-        /// <param name="currentStateName"></param>
         /// <param name="actionName"></param>
-        public void OnActionEnter(Machine machine, string currentStateName, string actionName)
+        public void OnActionEnter(Machine machine, string actionName)
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
                 machine.LocalWatch.Start();
-                TrackPAGActions(machine, currentStateName, actionName);
+                RecordPAGNodeAndEdge(machine, "Entering:" + actionName);
             }
         }
 
@@ -78,16 +98,15 @@ namespace Core.Utilities.Profiling
         /// TBD
         /// </summary>
         /// <param name="machine"></param>
-        /// <param name="currentStateName"></param>
         /// <param name="actionName"></param>
-        public void OnActionExit(Machine machine, string currentStateName, string actionName)
+        public void OnActionExit(Machine machine, string actionName)
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
                 machine.LocalWatch.Stop();
                 machine.LongestPathTime += (machine.LocalWatch.ElapsedMilliseconds);
                 machine.LocalWatch.Reset();
-                TrackPAGActions(machine, currentStateName, actionName);
+                RecordPAGNodeAndEdge(machine, "Exiting:" + actionName);
             }
         }
 
@@ -103,13 +122,13 @@ namespace Core.Utilities.Profiling
                 if (parent == null)
                 {
                     child.LongestPathTime = (this.StartTime - Stopwatch.GetTimestamp()) / ScalingFactor;
-                    TrackPAGActions(child, child.CurrentStateName, "Created" + child.Id);
+                    RecordPAGNodeAndEdge(child, "Created" + child.Id);
                 }
                 else
                 {
                     child.LongestPathTime = parent.LongestPathTime;
-                    TrackPAGActions(parent, parent.CurrentStateName, "CreateMachine" + child.Id);
-                    var targetId = TrackPAGActions(child, child.CurrentStateName, "Created:" + child.Id);
+                    RecordPAGNodeAndEdge(parent, "CreateMachine" + child.Id);
+                    var targetId = RecordPAGNodeAndEdge(child, "Created:" + child.Id);
                     // record the cross edge
                     PAGEdges.Enqueue(new Tuple<long, long>(parent.predecessorId, targetId));
                 }
@@ -134,7 +153,7 @@ namespace Core.Utilities.Profiling
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
                 machine.LongestPathTime = Math.Max(senderLongestPath, machine.LongestPathTime);
-                TrackPAGActions(machine, machine.CurrentStateName, "Dequeue:" + eventSequenceNumber);
+                RecordPAGNodeAndEdge(machine, "Dequeue:" + eventSequenceNumber);
                 if (sendNodeId != -1)
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -155,14 +174,13 @@ namespace Core.Utilities.Profiling
         /// TBD
         /// </summary>
         /// <param name="machine"></param>
-        /// <param name="currentStateName"></param>
         /// <param name="eventName"></param>
-        public void OnReceiveBegin(Machine machine, string currentStateName, string eventName)
+        public void OnReceiveBegin(Machine machine, string eventName)
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
                 machine.IdleTimeStart = machine.LocalWatch.ElapsedMilliseconds;
-                TrackPAGActions(machine, currentStateName, "ReceiveBegin:" + eventName);
+                RecordPAGNodeAndEdge(machine, "ReceiveBegin:" + eventName);
             }
         }
 
@@ -170,11 +188,10 @@ namespace Core.Utilities.Profiling
         /// TBD
         /// </summary>
         /// <param name="machine"></param>
-        /// <param name="currentStateName"></param>
         /// <param name="eventNames"></param>
         /// <param name="wasBlocked"></param>
         /// <param name="eventSequenceNumber"></param>
-        public void OnReceiveEnd(Machine machine, string currentStateName, string eventNames, bool wasBlocked, long eventSequenceNumber)
+        public void OnReceiveEnd(Machine machine, string eventNames, bool wasBlocked, long eventSequenceNumber)
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
@@ -188,7 +205,7 @@ namespace Core.Utilities.Profiling
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
                 machine.LongestPathTime = Math.Max(senderLongestPath, machine.LongestPathTime);
-                TrackPAGActions(machine, machine.CurrentStateName, "Dequeue:" + eventSequenceNumber);
+                RecordPAGNodeAndEdge(machine, "Dequeue:" + eventSequenceNumber);
                 if (sendNodeId != -1)
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -209,7 +226,7 @@ namespace Core.Utilities.Profiling
                 if (source != null)
                 {
                     currentTimeStamp = source.LongestPathTime + source.LocalWatch.ElapsedMilliseconds;
-                    TrackPAGActions(source, source.CurrentStateName, String.Format("Send({0}, {1})", source.Id, eventSequenceNumber));
+                    RecordPAGNodeAndEdge(source, String.Format("Send({0}, {1})", source.Id, eventSequenceNumber));
                     SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, currentTimeStamp));
                 }
                 else
@@ -233,13 +250,17 @@ namespace Core.Utilities.Profiling
         /// </summary>
         public void StopCriticalPathProfiling()
         {
+            this.StopTime = Stopwatch.GetTimestamp();
+            this.ProfiledTime = (this.StopTime - this.StartTime) / ScalingFactor;
             // construct the PAG
             var nodes = PAGNodes.ToArray();
             foreach (var node in nodes)
             {
                 ProgramActivityGraph.AddNode(node);
             }
+
             var edges = PAGEdges.ToArray();
+
             foreach (var pair in edges)
             {
                 var source = ProgramActivityGraph.Nodes.Where(x => x.Id == pair.Item1).First();
@@ -251,12 +272,12 @@ namespace Core.Utilities.Profiling
             var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0);
             var maxTime = terminalNodes.Max(x => x.Data.LongestElapsedTime);
             var data = new PAGNodeData("Sink", 0, maxTime);
-            var sinkNode = new Node<PAGNodeData>(data);
-
+            var sinkNode = new CriticalPathNode(data);
+            ProgramActivityGraph.AddNode(sinkNode);
             HashSet<Node<PAGNodeData>> interesting = new HashSet<Node<PAGNodeData>>();
             foreach (var node in terminalNodes)
             {
-                ProgramActivityGraph.AddEdge(new TaggedEdge<Node<PAGNodeData>, long>(node, sinkNode, 0));
+                ProgramActivityGraph.AddEdge(new CriticalPathEdge(node, sinkNode, 0));
                 if (node.Data.LongestElapsedTime == maxTime)
                 {
                     interesting.Add(node);
@@ -286,9 +307,19 @@ namespace Core.Utilities.Profiling
             }
         }
 
-        private static long TrackPAGActions(Machine machine, string currentStateName, string actionName)
+        /// <summary>
+        /// Records a node representing the latest interesting profiling event from the machine passed in,
+        /// and an edge connecting the machine's previous event to this one.
+        /// The nodes and edges are not directly added to the ProgramActivityGraph, which is not thread safe.
+        /// They are cached for later processing.
+        /// </summary>
+        /// <param name="machine"></param>
+        /// <param name="extra">Extra diagnostic info</param>
+        /// <returns></returns>
+        private static long RecordPAGNodeAndEdge(Machine machine, string extra)
         {
-            var nodeName = $"{currentStateName}:{actionName}";
+            string currentStateName = machine.CurrentStateName;
+            var nodeName = $"{currentStateName}:{extra}";
             var criticalPathTime = machine.LongestPathTime;
             var data = new PAGNodeData(nodeName, 0, criticalPathTime);
             var node = new Node<PAGNodeData>(data);
@@ -307,7 +338,7 @@ namespace Core.Utilities.Profiling
             {
                 return;
             }
-            
+
             if (ProgramActivityGraph.InDegree(source) == 1)
             {
                 var inEdge = ProgramActivityGraph.InEdges(source).First();
@@ -329,6 +360,6 @@ namespace Core.Utilities.Profiling
                 }
                 ComputeCP(cpPredecessor.Source, cp);
             }
-        } 
+        }
     }
 }

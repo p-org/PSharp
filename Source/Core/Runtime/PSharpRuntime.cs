@@ -867,5 +867,43 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region profiling
+
+        /// <summary>
+        /// Installs the specified <see cref="ICriticalPathProfiler"/>.
+        /// </summary>
+        /// <param name="criticalPathProfiler">CriticalPathProfiler</param>
+        public void SetCriticalPathProfiler(ICriticalPathProfiler criticalPathProfiler)
+        {
+            this.CriticalPathProfiler = criticalPathProfiler ?? 
+                throw new InvalidOperationException("Cannot install a null critical path profiler.");
+        }
+
+        /// <summary>
+        /// Installs the default <see cref="ICriticalPathProfiler"/>.
+        /// </summary>
+        public void SetDefaultCriticalPathProfiler()
+        {
+            this.CriticalPathProfiler = new CriticalPathProfiler(this.Configuration, this.Logger);
+        }
+
+        /// <summary>
+        /// Start critical path profiling
+        /// </summary>
+        public void StartCriticalPathProfiling()
+        {
+            this.CriticalPathProfiler.StartCriticalPathProfiling();
+        }
+
+        /// <summary>
+        /// Stop critical path profiling
+        /// </summary>
+        public void StopCriticalPathProfiling()
+        {
+            this.CriticalPathProfiler.StopCriticalPathProfiling();
+        }
+
+        #endregion
+
     }
 }

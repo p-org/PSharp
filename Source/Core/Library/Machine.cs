@@ -271,13 +271,13 @@ namespace Microsoft.PSharp
             this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
 
-            if (base.Runtime.Configuration.EnableCriticalPathProfiling)
-            {
-                this.LocalWatch = new Stopwatch();
-                this.LongestPathTime = 0;
-                this.IdleTime = 0;
-                this.predecessorId = -1;
-            }
+            //if (this.Runtime.Configuration.EnableCriticalPathProfiling)
+            //{
+            this.LocalWatch = new Stopwatch();
+            this.LongestPathTime = 0;
+            this.IdleTime = 0;
+            this.predecessorId = -1;
+            //}
         }
 
         #endregion

@@ -67,21 +67,19 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// Called when a machine begins waiting to receive an event.
         /// </summary>
-        /// <param name="machine">Id of the machine that is entering the wait state.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machine"/>, if any.</param>
+        /// <param name="machine">Id of the machine that is entering the wait state.</param>        
         /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        void OnReceiveBegin(Machine machine, string currentStateName, string eventNames);
+        void OnReceiveBegin(Machine machine, string eventNames);
 
         /// <summary>
         /// Called when an event is received by a machine.
         /// </summary>
         /// <param name="machine">The machine that received the event.</param>
         /// <param name="eventName">The name of the event.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machine"/>, if any.</param>
         /// <param name="wasBlocked">The machine was waiting for one or more specific events,
         ///     and <paramref name="eventName"/> was one of them</param>
         /// <param name="eventSequenceNumber">the sequence number of the send corresponding to this event.</param>
-        void OnReceiveEnd(Machine machine, string currentStateName, string eventName, bool wasBlocked, long eventSequenceNumber);
+        void OnReceiveEnd(Machine machine, string eventName, bool wasBlocked, long eventSequenceNumber);
 
         /// <summary>
         /// Called when an event is sent to a target machine.
@@ -129,18 +127,16 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// Called when a machine executes an action.
         /// </summary>
-        /// <param name="machine">The machine executing the action.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="machine">The machine executing the action.</param>       
         /// <param name="actionName">The name of the action being executed.</param>
-        void OnActionEnter(Machine machine, string currentStateName, string actionName);
+        void OnActionEnter(Machine machine, string actionName);
 
         /// <summary>
         /// Called when a machine finishes an action.
         /// </summary>
-        /// <param name="machine">The machine executing the action.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="machine">The machine executing the action.</param>        
         /// <param name="actionName">The name of the action being executed.</param>
-        void OnActionExit(Machine machine, string currentStateName, string actionName);
+        void OnActionExit(Machine machine, string actionName);
 
         ///// <summary>
         ///// Called when a monitor enters or exits a state.

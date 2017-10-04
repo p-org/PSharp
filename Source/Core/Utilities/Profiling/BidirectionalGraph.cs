@@ -195,8 +195,8 @@ namespace Core.Utilities.Profiling
             {
                 return false;
             }
-            this.OutEdgesMap.Add(v, new HashSet<TEdge>());
-            this.OutEdgesMap.Add(v, new HashSet<TEdge>());
+            this.InEdgesMap.Add(v, new HashSet<TEdge>());
+            this.OutEdgesMap.Add(v, new HashSet<TEdge>());         
             return true;
         }
 

@@ -41,7 +41,6 @@ namespace CriticalPathTests
 
         internal class E3 : Event { };
 
-
         internal class MachineA : Machine
         {
             private TaskCompletionSource<bool> TCS;
@@ -56,7 +55,7 @@ namespace CriticalPathTests
             {
                 TCS = (this.ReceivedEvent as Configure).TCS;
                 var other = CreateMachine(typeof(MachineB));
-                this.Send(other, new E(this.Id));                
+                this.Send(other, new E(this.Id));
                 Goto<State1>();
             }
 
@@ -65,7 +64,7 @@ namespace CriticalPathTests
             private class State1 : MachineState { };
 
             private async Task S1()
-            {                
+            {
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 this.Raise(new S1Complete());
             }
@@ -84,7 +83,7 @@ namespace CriticalPathTests
             {
                 await Receive(typeof(MachineBDone));
                 TCS.SetResult(true);
-            }            
+            }
         }
 
         internal class MachineB : Machine
@@ -94,29 +93,30 @@ namespace CriticalPathTests
             [OnEventDoAction(typeof(E1), nameof(Stage1))]
             [OnEventDoAction(typeof(E2), nameof(Stage2))]
             [OnEventDoAction(typeof(E3), nameof(Stage3))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            { }
 
-            MachineId ParentId;
+            private MachineId ParentId;
 
-            void Act()
+            private void Act()
             {
                 this.ParentId = (this.ReceivedEvent as E).Id;
                 this.Raise(new E1());
             }
 
-            async Task Stage1()
+            private async Task Stage1()
             {
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 this.Raise(new E2());
             }
 
-            async Task Stage2()
+            private async Task Stage2()
             {
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 this.Raise(new E3());
             }
 
-            void Stage3()
+            private void Stage3()
             {
                 this.Send(this.ParentId, new MachineBDone());
             }
@@ -125,11 +125,16 @@ namespace CriticalPathTests
         [Fact]
         public void Test1()
         {
-            Configuration config = Configuration.Create().WithVerbosityEnabled(2);
-            PSharpRuntime runtime = PSharpRuntime.Create(config);            
+            Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
+            // config.OutputFilePath = @"";
+            PSharpRuntime runtime = PSharpRuntime.Create(config);
+            
             var tcs = new TaskCompletionSource<bool>();
+            runtime.SetDefaultCriticalPathProfiler();
+            runtime.StartCriticalPathProfiling();
             runtime.CreateMachine(typeof(MachineA), new Configure(tcs));
             tcs.Task.Wait();
+            runtime.StopCriticalPathProfiling();
         }
     }
 }

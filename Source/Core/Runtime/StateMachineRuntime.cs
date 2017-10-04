@@ -695,7 +695,7 @@ namespace Microsoft.PSharp
             }
 
             base.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
-            base.CriticalPathProfiler.OnActionEnter(machine, machine.CurrentStateName, action.Name);
+            base.CriticalPathProfiler.OnActionEnter(machine, action.Name);
         }
 
         /// <summary>
@@ -706,7 +706,7 @@ namespace Microsoft.PSharp
         /// <param name="receivedEvent">Event</param>
         internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            base.CriticalPathProfiler.OnActionEnter(machine, machine.CurrentStateName, action.Name);
+            base.CriticalPathProfiler.OnActionExit(machine, action.Name);
         }
 
         /// <summary>
@@ -770,6 +770,7 @@ namespace Microsoft.PSharp
             machine.Info.OperationGroupId = eventInfo.OperationGroupId;
 
             base.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
+            base.CriticalPathProfiler.OnDequeue(machine, eventInfo.EventSequenceCounter);
         }
 
         /// <summary>
@@ -784,7 +785,7 @@ namespace Microsoft.PSharp
                 base.Logger.OnWait(machine.Id, machine.CurrentStateName, string.Empty);
                 machine.Info.IsWaitingToReceive = true;
             }
-            base.CriticalPathProfiler.OnReceiveBegin(machine, machine.CurrentStateName, string.Empty);
+            base.CriticalPathProfiler.OnReceiveBegin(machine, string.Empty);
         }
 
         /// <summary>
@@ -795,7 +796,7 @@ namespace Microsoft.PSharp
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             base.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked:true);
-            base.CriticalPathProfiler.OnReceiveEnd(machine, machine.CurrentStateName, 
+            base.CriticalPathProfiler.OnReceiveEnd(machine,
                 eventInfo.EventName, true, eventInfo.EventSequenceCounter);
             lock (machine)
             {
