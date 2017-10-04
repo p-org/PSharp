@@ -153,6 +153,12 @@ namespace Microsoft.PSharp
         /// </summary>
         internal long IdleTimeStart;
 
+        /// <summary>
+        /// Used by the critical path profiler to track the predecessor node
+        /// on this machine
+        /// </summary>
+        internal long predecessorId;
+
         #endregion
 
         #region properties
@@ -270,6 +276,7 @@ namespace Microsoft.PSharp
                 this.LocalWatch = new Stopwatch();
                 this.LongestPathTime = 0;
                 this.IdleTime = 0;
+                this.predecessorId = -1;
             }
         }
 
