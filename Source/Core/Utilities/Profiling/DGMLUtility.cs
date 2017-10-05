@@ -56,16 +56,24 @@ namespace Core.Utilities.Profiling
         public string Label;
 
         /// <summary>
+        /// The edge color
+        /// </summary>
+        [XmlAttribute]
+        public string Stroke;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="label"></param>
-        public Link(string source, string target, string label)
+        /// <param name="stroke"></param>
+        public Link(string source, string target, string label, string stroke="Black")
         {
             this.Source = source;
             this.Target = target;
             this.Label = label;
+            this.Stroke = stroke;
         }
     }
 

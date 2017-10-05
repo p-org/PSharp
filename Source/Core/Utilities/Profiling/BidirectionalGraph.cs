@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
@@ -324,7 +325,7 @@ namespace Core.Utilities.Profiling
             ClearInEdges(v);
         }
 
-        public void Serialize(string xmlpath)
+        public void Serialize(string xmlpath, HashSet<Tuple<string, string>> interestingEdges)
         {
             Graph g = new Graph();
             List<Node> nodes = new List<Node>();
@@ -338,7 +339,12 @@ namespace Core.Utilities.Profiling
            
             foreach (var e in this.Edges)
             {
-                var edge = new Link(e.Source.Id.ToString(), e.Target.Id.ToString(), e.ToString());
+                var color = "Black";
+                if (interestingEdges != null && interestingEdges.Contains(new Tuple<string, string>(e.Source.Id.ToString(), e.Target.Id.ToString())))
+                {
+                    color = "Red";
+                }
+                var edge = new Link(e.Source.Id.ToString(), e.Target.Id.ToString(), e.ToString(), color);
                 edges.Add(edge);
             }
 

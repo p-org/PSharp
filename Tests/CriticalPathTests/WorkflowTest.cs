@@ -66,9 +66,9 @@ namespace CriticalPathTests
                 var worker1 = CreateMachine(typeof(Worker));
                 var worker2 = CreateMachine(typeof(Worker));
                 var worker3 = CreateMachine(typeof(Worker));
-                this.Send(worker1, new E(this.Id, 1));
+                this.Send(worker1, new E(this.Id, 4));
                 this.Send(worker2, new E(this.Id, 2));
-                this.Send(worker3, new E(this.Id, 3));
+                this.Send(worker3, new E(this.Id, 1));
             }
 
             private class State1 : MachineState { };

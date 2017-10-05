@@ -265,27 +265,33 @@ namespace Core.Utilities.Profiling
 
             var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
             var maxTime = terminalNodes.Max(x => x.Data.LongestElapsedTime);
-            AddSinkNodeAndEdges(terminalNodes, maxTime);
+            var sinkNode = AddSinkNodeAndEdges(terminalNodes, maxTime);
 
             // computing the actual path(s)
-            ComputeCriticalPaths(terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime));
+            // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
+            var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode});
 
             // serialize the graph
-            ProgramActivityGraph.Serialize(Configuration.OutputFilePath + "/PAG.dgml");
+            var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
+            var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
+            ProgramActivityGraph.Serialize(Configuration.OutputFilePath + "/PAG.dgml", uniqueEdges);
         }
 
         /// <summary>
         /// Compute and log the critical paths
         /// </summary>
         /// <param name="terminalNodes"></param>
-        private void ComputeCriticalPaths(IEnumerable<CriticalPathNode> terminalNodes)
+        private HashSet<CriticalPathEdge> ComputeCriticalPaths(IEnumerable<CriticalPathNode> terminalNodes)
         {
+            HashSet<CriticalPathEdge> CriticalEdges = new HashSet<CriticalPathEdge>();
             foreach (var node in terminalNodes)
             {
                 List<CriticalPathEdge> criticalPathEdges = new List<CriticalPathEdge>();
                 ComputeCP(node, criticalPathEdges);
                 LogCP(criticalPathEdges);
+                CriticalEdges.UnionWith(criticalPathEdges);
             }
+            return CriticalEdges;
         }
 
         /// <summary>
@@ -294,7 +300,7 @@ namespace Core.Utilities.Profiling
         /// </summary>
         /// <param name="terminalNodes"></param>
         /// <param name="maxTime"></param>
-        private void AddSinkNodeAndEdges(List<CriticalPathNode> terminalNodes, long maxTime)
+        private CriticalPathNode AddSinkNodeAndEdges(List<CriticalPathNode> terminalNodes, long maxTime)
         {
             var data = new PAGNodeData("Sink", 0, maxTime);
             var sinkNode = new CriticalPathNode(data);
@@ -308,6 +314,7 @@ namespace Core.Utilities.Profiling
                     interesting.Add(node);
                 }
             }
+            return sinkNode;
         }
 
         /// <summary>
@@ -397,6 +404,7 @@ namespace Core.Utilities.Profiling
                         maxTime = e.Source.Data.LongestElapsedTime;
                     }
                 }
+                cp.Add(cpPredecessor);
                 ComputeCP(cpPredecessor.Source, cp);
             }
         }
