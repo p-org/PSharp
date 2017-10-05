@@ -83,6 +83,14 @@ namespace Microsoft.PSharp.IO
         public void OnDefault(MachineId machineId, string currentStateName) { }
 
         /// <summary>
+        /// Called when a machine transitions states via a 'goto'.
+        /// </summary>
+        /// <param name="machineId">Id of the machine.</param>
+        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="newStateName">The target state of goto.</param>
+        public void OnGoto(MachineId machineId, string currentStateName, string newStateName) { }
+
+        /// <summary>
         /// Called when a machine is being pushed to a state.
         /// </summary>
         /// <param name="machineId">Id of the machine being pushed to the state.</param>
