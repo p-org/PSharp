@@ -1066,6 +1066,9 @@ namespace Microsoft.PSharp
         /// <param name="onExitActionName">Action name</param>
         private async Task GotoState(Type s, string onExitActionName)
         {
+            this.Logger.OnGoto(this.Id, this.CurrentStateName, 
+                $"{s.DeclaringType}.{StateGroup.GetQualifiedStateName(s)}");
+
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(onExitActionName);
             if (this.Info.IsHalted)
