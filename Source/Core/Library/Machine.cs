@@ -130,29 +130,12 @@ namespace Microsoft.PSharp
         /// Is pop invoked in the current action.
         /// </summary>
         private bool IsPopInvoked;
-
-        /// <summary>
-        /// Used by the critical path profiler to keep track of time spent in
-        /// this machine's actions
-        /// </summary>
-        internal Stopwatch LocalWatch;
-
-        /// <summary>
-        /// The time taken by longest path in this machine in ms
-        /// </summary>
-        internal long LongestPathTime;        
-
+                       
         /// <summary>
         /// Used by the critical path profiler to track the predecessor node
         /// on this machine
         /// </summary>
         internal long predecessorId;
-
-        /// <summary>
-        /// Used by the critical path profiler to track the predecessor timestamp
-        /// on this machine
-        /// </summary>
-        internal long predecessorTimestamp;
 
         #endregion
 
@@ -1411,11 +1394,8 @@ namespace Microsoft.PSharp
         /// Initializes fields pertaining to critical path profiling
         /// </summary>
         internal void InitializeProfilingInformation()
-        {
-            this.LocalWatch = new Stopwatch();
-            this.LongestPathTime = 0;
-            this.predecessorId = -1;
-            this.predecessorTimestamp = 0;            
+        {                        
+            this.predecessorId = -1;            
         }
 
         /// <summary>
