@@ -125,11 +125,15 @@ namespace CriticalPathTests
         [Fact]
         public void Test1()
         {
-            Configuration config = Configuration.Create().WithVerbosityEnabled(2);
+            Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
             PSharpRuntime runtime = PSharpRuntime.Create(config);
+            config.OutputFilePath = @"C:\Users\t-ansant\Source\Repos\PSharp\bin\net46";
+            runtime.SetDefaultCriticalPathProfiler();
+            runtime.StartCriticalPathProfiling();
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(Supervisor), new Configure(tcs));
             tcs.Task.Wait();
+            runtime.StopCriticalPathProfiling();
         }
     }
 }

@@ -16,10 +16,8 @@ namespace Core.Utilities.Profiling
     /// </summary>
     public class CriticalPathProfiler : ICriticalPathProfiler
     {
-        
-
         /// <summary>
-        /// Record when we stopeed the critical path profiler
+        /// Record when we stopped the critical path profiler
         /// </summary>
         internal long StopTime;
 
@@ -129,11 +127,11 @@ namespace Core.Utilities.Profiling
         /// <param name="parent">The creator.</param>
         /// <param name="child">The machine just created.</param>
         public void OnCreateMachine(Machine parent, Machine child)
-        {            
+        {
             if (Configuration.EnableCriticalPathProfiling)
-            {                
+            {
                 if (parent == null) // the runtime created the machine
-                {                    
+                {
                     RecordPAGNodeAndEdge(child, "+RuntimeCreated" + child.Id);
                 }
                 else
@@ -162,7 +160,7 @@ namespace Core.Utilities.Profiling
                     SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, currentTimeStamp));
                 }
                 else  // the runtime sent the message
-                {                    
+                {
                     SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(-1, currentTimeStamp));
                 }
             }
@@ -360,7 +358,7 @@ namespace Core.Utilities.Profiling
         private static long RecordPAGNodeAndEdge(Machine machine, string extra)
         {
             string currentStateName = machine.CurrentStateName;
-            var nodeName = $"{currentStateName}:{extra}";            
+            var nodeName = $"{currentStateName}:{extra}";
             long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
             var data = new PAGNodeData(nodeName, 0, currentTimeStamp);
             var node = new CriticalPathNode(data);
@@ -372,34 +370,6 @@ namespace Core.Utilities.Profiling
             machine.predecessorId = node.Id;
             return node.Id;
         }
-
-        //private static long RecordPAGNodeAndEdgeAtDequeue(Machine machine, long senderLongestPath, string extra)
-        //{
-        //    string currentStateName = machine.CurrentStateName;
-        //    var nodeName = $"{currentStateName}:{extra}";
-        //    long idleTime = 0;
-        //    if (senderLongestPath > machine.LongestPathTime)
-        //    {
-        //        idleTime = (senderLongestPath - machine.LongestPathTime);
-        //        machine.LongestPathTime = senderLongestPath;
-        //        machine.predecessorTimestamp = 0;
-        //        machine.LocalWatch.Restart();
-        //    }
-        //    else
-        //    {
-        //        var curTime = machine.LocalWatch.ElapsedMilliseconds;
-        //        machine.LongestPathTime += curTime - machine.predecessorTimestamp;
-        //    }
-        //    var data = new PAGNodeData(nodeName, idleTime, machine.LongestPathTime);
-        //    var node = new CriticalPathNode(data);
-        //    if (machine.predecessorId != -1)
-        //    {
-        //        PAGEdges.Enqueue(new Tuple<long, long>(machine.predecessorId, node.Id));
-        //    }
-        //    PAGNodes.Enqueue(node);
-        //    machine.predecessorId = node.Id;
-        //    return node.Id;
-        //}
 
         private void ComputeCP(CriticalPathNode source, List<CriticalPathEdge> cp)
         {

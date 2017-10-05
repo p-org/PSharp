@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace Core.Utilities.Profiling
     /// </summary>
     /// <typeparam name="TNode">Type of the vertices.</typeparam>
     /// <typeparam name="TTag">Type of the tag.</typeparam>
+    [DebuggerDisplay("{Source}->{Target}:{Tag}")]
     public class TaggedEdge<TNode, TTag>
        : IEdge<TNode>
     {
