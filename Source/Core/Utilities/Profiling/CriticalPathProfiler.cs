@@ -22,7 +22,7 @@ namespace Core.Utilities.Profiling
         internal long StartTime;
 
         /// <summary>
-        /// Record when we stopeed the critical path profiler
+        /// Record when we stopped the critical path profiler
         /// </summary>
         internal long StopTime;
 
@@ -132,8 +132,7 @@ namespace Core.Utilities.Profiling
             {
                 child.LocalWatch.Start();
                 if (parent == null) // the runtime created the machine
-                {
-                    child.LongestPathTime = (Stopwatch.GetTimestamp() - this.StartTime) / ScalingFactor;
+                {                    
                     RecordPAGNodeAndEdge(child, "+RuntimeCreated" + child.Id);
                 }
                 else
@@ -381,18 +380,14 @@ namespace Core.Utilities.Profiling
             string currentStateName = machine.CurrentStateName;
             var nodeName = $"{currentStateName}:{extra}";
             long idleTime = 0;
+            var curTime = machine.LocalWatch.ElapsedMilliseconds;
+            machine.LongestPathTime += curTime - machine.predecessorTimestamp;
+            machine.predecessorTimestamp = curTime;
             if (senderLongestPath > machine.LongestPathTime)
             {
                 idleTime = (senderLongestPath - machine.LongestPathTime);
                 machine.LongestPathTime = senderLongestPath;
-                machine.predecessorTimestamp = 0;
-                machine.LocalWatch.Restart();
-            }
-            else
-            {
-                var curTime = machine.LocalWatch.ElapsedMilliseconds;
-                machine.LongestPathTime += curTime - machine.predecessorTimestamp;
-            }
+            }            
             var data = new PAGNodeData(nodeName, idleTime, machine.LongestPathTime);
             var node = new CriticalPathNode(data);
             if (machine.predecessorId != -1)
