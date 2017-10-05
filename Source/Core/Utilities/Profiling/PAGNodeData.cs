@@ -17,11 +17,9 @@ namespace Core.Utilities.Profiling
         public string Name { get; private set; }
 
         /// <summary>
-        /// The time at which this node was created,
-        /// according to the clock of the machine
-        /// that created it
+        /// The time spent idling at this node
         /// </summary>
-        public long LocalElapsedTime { get; private set; }
+        public long IdleTime { get; private set; }
 
         /// <summary>
         /// The longest time on the critical path that must
@@ -33,12 +31,12 @@ namespace Core.Utilities.Profiling
         /// Constructor
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="localElapsedTime"></param>
+        /// <param name="idleTime"></param>
         /// <param name="longestElapsedTime"></param>
-        public PAGNodeData(string name, long localElapsedTime, long longestElapsedTime)
+        public PAGNodeData(string name, long idleTime, long longestElapsedTime)
         {
             Name = name;
-            LocalElapsedTime = localElapsedTime;
+            IdleTime = idleTime;
             LongestElapsedTime = longestElapsedTime;
         }
 
@@ -48,7 +46,10 @@ namespace Core.Utilities.Profiling
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format("{0}[{1}]", Name, LongestElapsedTime);
+            if (IdleTime == 0)
+                return String.Format("{0}[{1}]", Name, LongestElapsedTime);
+            else
+                return String.Format("{0}[{1}/{2}]", Name, IdleTime, LongestElapsedTime);
         }
 
     }

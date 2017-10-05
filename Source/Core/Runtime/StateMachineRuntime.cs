@@ -339,6 +339,11 @@ namespace Microsoft.PSharp
             machine.Initialize(this, mid, new MachineInfo(mid));
             machine.InitializeStateInformation();
 
+            if (this.Configuration.EnableCriticalPathProfiling)
+            {
+                machine.InitializeProfilingInformation();
+            }
+
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             base.Assert(result, $"Machine '{mid}' was already created.");
 

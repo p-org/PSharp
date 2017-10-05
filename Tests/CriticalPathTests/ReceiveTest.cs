@@ -55,6 +55,7 @@ namespace CriticalPathTests
             {
                 TCS = (this.ReceivedEvent as Configure).TCS;
                 var other = CreateMachine(typeof(MachineB));
+                Task.Delay(TimeSpan.FromMilliseconds(5)).Wait();
                 this.Send(other, new E(this.Id));
                 Goto<State1>();
             }
@@ -112,7 +113,7 @@ namespace CriticalPathTests
 
             private async Task Stage2()
             {
-                await Task.Delay(TimeSpan.FromSeconds(3));
+                await Task.Delay(TimeSpan.FromSeconds(5));
                 this.Raise(new E3());
             }
 
@@ -126,7 +127,8 @@ namespace CriticalPathTests
         public void Test1()
         {
             Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
-            config.OutputFilePath = @"C:\PSharp\bin\net46";
+            //config.OutputFilePath = @"C:\PSharp\bin\net46";
+            config.OutputFilePath = @"C:\Users\t-ansant\Source\Repos\PSharp\bin\net46";
             PSharpRuntime runtime = PSharpRuntime.Create(config);
             
             var tcs = new TaskCompletionSource<bool>();

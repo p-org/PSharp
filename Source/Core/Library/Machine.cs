@@ -140,18 +140,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The time taken by longest path in this machine in ms
         /// </summary>
-        internal long LongestPathTime;
-
-        /// <summary>
-        /// The time this machine is idle, either blocked on a receive
-        /// or waiting for an event to dequeue
-        /// </summary>
-        internal long IdleTime;
-
-        /// <summary>
-        /// The time this machine began idling
-        /// </summary>
-        internal long IdleTimeStart;
+        internal long LongestPathTime;        
 
         /// <summary>
         /// Used by the critical path profiler to track the predecessor node
@@ -275,16 +264,7 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsInsideSynchronousCall = false;
-            this.IsPopInvoked = false;
-
-            //if (this.Runtime.Configuration.EnableCriticalPathProfiling)
-            //{
-            this.LocalWatch = new Stopwatch();
-            this.LongestPathTime = 0;
-            this.IdleTime = 0;
-            this.predecessorId = -1;
-            this.predecessorTimestamp = 0;
-            //}
+            this.IsPopInvoked = false;            
         }
 
         #endregion
@@ -1425,6 +1405,17 @@ namespace Microsoft.PSharp
         {
             this.ReceivedEvent = e;
             return this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
+        /// Initializes fields pertaining to critical path profiling
+        /// </summary>
+        internal void InitializeProfilingInformation()
+        {
+            this.LocalWatch = new Stopwatch();
+            this.LongestPathTime = 0;
+            this.predecessorId = -1;
+            this.predecessorTimestamp = 0;            
         }
 
         /// <summary>
