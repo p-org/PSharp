@@ -8,10 +8,7 @@ namespace Microsoft.PSharp.VisualStudio
     {
         internal IProjectionBuffer PSharpViewProjectionBuffer { get; set; }
         internal IProjectionBuffer CSharpProjectionBuffer { get; set; }
-        internal Document PSharpViewProjectionDocument { get; set; }
-        internal Document CSharpProjectionDocument { get; set; }
-        internal ITextBuffer StaticRewriteBuffer { get; set; }
-        internal ITextBuffer[] DynamicRewriteBuffers { get; set; }
+        internal Document CSharpProjectionDocument { get; set; }    // TODO needed?
         internal ITextBuffer PSharpDiskBuffer { get; set; }
         internal ITrackingSpan[] CSharpProjTrackingSpans { get; set; }
         internal ITrackingSpan[] PSharpViewProjTrackingSpans { get; set; }

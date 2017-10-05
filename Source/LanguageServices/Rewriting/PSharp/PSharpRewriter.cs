@@ -49,6 +49,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.Program = program;
         }
 
+#if false // TODO remove if not used
         /// <summary>
         /// Returns the next statement.
         /// </summary>
@@ -141,6 +142,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return result;
         }
+#endif
 
         /// <summary>
         /// Updates the syntax tree.
@@ -151,6 +153,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.Program.UpdateSyntaxTree(text);
         }
 
-        #endregion
+#endregion
     }
 }

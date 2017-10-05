@@ -110,12 +110,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in realMachines)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }
 
             foreach (var node in monitors)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }
@@ -148,6 +150,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.EventDeclarations)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }

@@ -33,14 +33,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
 
         }
-        
+
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Containing machine</param>
         /// <param name="groupNode">Containing group</param>
         /// <param name="modSet">Modifier set</param>
-        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, ModifierSet modSet)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, ModifierSet modSet, TokenRange tokenRange)
         {
             this.CheckStateGroupModifierSet(modSet);
 
@@ -62,8 +63,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             base.TokenStream.Swap(TokenType.StateGroupIdentifier);
-
             node.Identifier = base.TokenStream.Peek();
+            node.HeaderTokenRange = tokenRange.FinishAndClone();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -111,6 +112,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         private void VisitNextPSharpIntraGroupDeclaration(StateGroupDeclaration node)
         {
             bool fixpoint = false;
+            var tokenRange = new TokenRange(base.TokenStream);
             while (!fixpoint)
             {
                 var token = base.TokenStream.Peek();
@@ -140,7 +142,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.Protected:
                     case TokenType.Internal:
                     case TokenType.Public:
-                        this.VisitGroupLevelDeclaration(node);
+                        this.VisitGroupLevelDeclaration(node, tokenRange.Start());
                         base.TokenStream.Index++;
                         break;
 
@@ -185,7 +187,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits a group level declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitGroupLevelDeclaration(StateGroupDeclaration parentNode)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        private void VisitGroupLevelDeclaration(StateGroupDeclaration parentNode, TokenRange tokenRange)
         {
             ModifierSet modSet = ModifierSet.CreateDefault();
 
@@ -214,11 +217,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.StateDecl)
             {
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, modSet);
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, modSet, tokenRange.Start());
             }
             else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
             {
-                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, modSet);
+                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, modSet, tokenRange.Start());
             }
         }
 

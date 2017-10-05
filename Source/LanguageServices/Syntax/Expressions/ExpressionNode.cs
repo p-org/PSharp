@@ -20,12 +20,13 @@ using Microsoft.PSharp.LanguageServices.Parsing;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
+#if false // TODO verify that ExpressionNode is not used
     /// <summary>
     /// Expression node.
     /// </summary>
     internal class ExpressionNode : PSharpSyntaxNode
     {
-        #region fields
+    #region fields
 
         /// <summary>
         /// The block node.
@@ -47,9 +48,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         private int Index;
 
-        #endregion
+    #endregion
 
-        #region internal API
+    #region internal API
 
         /// <summary>
         /// Constructor.
@@ -90,9 +91,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             base.TextUnit = this.StmtTokens.First().TextUnit.WithText(text);
         }
 
-        #endregion
+    #endregion
 
-        #region protected API
+    #region protected API
 
         /// <summary>
         /// Rewrites the machine type.
@@ -112,9 +113,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.RewrittenStmtTokens[this.Index] = new Token(textUnit);     // TODO TokenType?
         }
 
-        #endregion
+    #endregion
 
-        #region private methods
+    #region private methods
 
         /// <summary>
         /// Rewrites the next token.
@@ -221,6 +222,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             return;
         }
 
-        #endregion
+    #endregion
     }
+#endif // not used
 }

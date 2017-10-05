@@ -42,14 +42,20 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         internal List<NamespaceDeclaration> NamespaceDeclarations;
 
+        /// <summary>
+        /// List of rewritten code terms (terms within a code chunk).
+        /// </summary>
+        private RewrittenTermBatch RewrittenCodeTermBatch;
+
         #endregion
 
         #region properties
 
         /// <summary>
-        /// The P# terms rewritten to C# in this program.
+        /// The Projection Buffer information for mapping between the original P# buffer and the rewritten
+        /// C# buffer in this program.
         /// </summary>
-        public RewrittenTerms RewrittenTerms { get; } = new RewrittenTerms();
+        public ProjectionInfos ProjectionInfos { get; private set; }
 
         #endregion
 
@@ -75,11 +81,18 @@ namespace Microsoft.PSharp.LanguageServices
             // Perform sanity checking on the P# program.
             this.BasicTypeChecking();
 
+            this.ProjectionInfos = new ProjectionInfos(this);
+
             // Convert from P# structural syntax to attributed C# classes and relevant methods.
             this.RewriteStructuresToAttributedClassesAndMethods();
+            this.ProjectionInfos.OnInitialRewriteComplete();
+
+            // Set up for code term offset adjustments now that we have completed the initial pass.
+            this.RewrittenCodeTermBatch = new RewrittenTermBatch(this.ProjectionInfos.OrderedProjectionInfos);
 
             // Convert from P# keywords etc. to C# syntax and insert additional 'using' references.
             RewriteTermsAndInsertLibraries();
+            this.ProjectionInfos.OnFinalRewriteComplete();
 
             if (Debug.IsEnabled)
             {
@@ -94,7 +107,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// <param name="rewrittenText"></param>
         public override void AddRewrittenTerm(SyntaxNode node, string rewrittenText)
         {
-            this.RewrittenTerms.AddToBatch(node, rewrittenText);
+            this.RewrittenCodeTermBatch.AddToBatch(node, rewrittenText);
         }
 
         #endregion
@@ -168,11 +181,13 @@ namespace Microsoft.PSharp.LanguageServices
             var newLine = "";
             foreach (var node in this.NamespaceDeclarations)
             {
+                this.ProjectionInfos.Root.AddChild(node.ProjectionInfo, text.Length);
                 text += newLine;
                 node.Rewrite(indentLevel);
                 text += node.TextUnit.Text;
                 newLine = "\n";
             }
+            this.ProjectionInfos.FinalizeInitialOffsets(0, text);
 
             base.UpdateSyntaxTree(text);
         }
@@ -186,12 +201,15 @@ namespace Microsoft.PSharp.LanguageServices
             // Adding additional libraries will change offsets.
             var originalLength = base.GetSyntaxTree().Length;
             this.InsertLibraries();
-            this.RewrittenTerms.OffsetStarts(base.GetSyntaxTree().Length - originalLength);
+            var text = base.GetSyntaxTree().ToString();
+            this.ProjectionInfos.UpdateRewrittenCSharpText(text);
+            this.RewrittenCodeTermBatch.OffsetStarts(text.Length - originalLength);
         }
 
         private void MergeRewrittenTermBatch()
         {
-            this.RewrittenTerms.MergeBatch();
+            this.ProjectionInfos.UpdateRewrittenCSharpText(base.GetSyntaxTree().ToString());
+            this.RewrittenCodeTermBatch.MergeBatch();
         }
 
         /// <summary>
@@ -203,8 +221,8 @@ namespace Microsoft.PSharp.LanguageServices
             var otherUsings = base.GetSyntaxTree().GetCompilationUnitRoot().Usings;
             var psharpLib = base.CreateLibrary("Microsoft.PSharp");
             
-            list.Add(psharpLib);
             list.AddRange(otherUsings);
+            list.Add(psharpLib);
 
             // Add an additional newline to the last 'using' to separate from the namespace.
             list[list.Count - 1] = list.Last().WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n\n")));

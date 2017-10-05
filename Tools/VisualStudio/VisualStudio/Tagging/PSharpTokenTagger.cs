@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.VisualStudio
                 var currLoc = containingLine.Start.Position;
                 foreach (var token in tokens)
                 {
-                    if (currLoc == containingLine.Length)   // TODOspan: we need to *not* add the ending newline
+                    if (currLoc >= containingLine.End)   // TODOspan: we need to *not* add the ending newline
                     {
                         break;
                     }

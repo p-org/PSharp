@@ -195,13 +195,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 newLine = "\n";
             }
 
-            text += this.GetRewrittenStateOnEntryAndExitActions(indentLevel + 1, ref newLine);
+            text += this.GetRewrittenStateOnEntryAndExitActions(indentLevel + 1, ref newLine, text.Length);
             text += this.GetRewrittenWithActions(indentLevel + 1, ref newLine);
 
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = this.MachineKeyword.TextUnit.WithText(text);
 
+            // ProjectionInfo updated as part of TypeofRewriter actions on this
             this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
 
@@ -307,6 +308,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += this.IsMonitor ? "Monitor" : "Machine";
             }
 
+            base.ProjectionInfo.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
+
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             foreach (var node in this.EventDeclarations)
@@ -335,7 +338,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.StateDeclarations)
             {
-                text += newLine + node.TextUnit.Text;
+                text += newLine;
+                this.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
+                text += node.TextUnit.Text;
                 newLine = "\n";
             }
 
@@ -358,27 +363,29 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the rewritten state on-entry and on-exit actions.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine)
+        private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine, int offset)
         {
-            string text = "";
+            var text = string.Empty;
             foreach (var state in this.GetAllStateDeclarations())
             {
-                if (state.EntryDeclaration != null)
-                {
-                    state.EntryDeclaration.Rewrite(indentLevel);
-                    text += newLine + state.EntryDeclaration.TextUnit.Text;
-                    newLine = "\n";
-                }
-
-                if (state.ExitDeclaration != null)
-                {
-                    state.ExitDeclaration.Rewrite(indentLevel);
-                    text += newLine + state.ExitDeclaration.TextUnit.Text;
-                    newLine = "\n";
-                }
+                ProcessEntryOrExitDeclaration(state.EntryDeclaration, ref text, indentLevel, ref newLine, offset);
+                ProcessEntryOrExitDeclaration(state.ExitDeclaration, ref text, indentLevel, ref newLine, offset);
             }
-
             return text;
+        }
+
+        private void ProcessEntryOrExitDeclaration<T>(T declaration, ref string text, int indentLevel,
+                                                      ref string newLine, int offset) where T: PSharpSyntaxNode
+        {
+            // This should be a local function but can't because of the ref parameter
+            if (declaration != null)
+            {
+                declaration.Rewrite(indentLevel);
+                text += newLine;
+                this.ProjectionInfo.AddChild(declaration.ProjectionInfo, offset + text.Length);
+                text += declaration.TextUnit.Text;
+                newLine = "\n";
+            }
         }
 
         /// <summary>

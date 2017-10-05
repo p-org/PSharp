@@ -103,6 +103,11 @@ namespace Microsoft.PSharp
         /// </summary>
         public bool ShowFullDataFlowInformation;
 
+        /// <summary>
+        /// Indicates that rewriting is being done for the VS Language Service.
+        /// </summary>
+        public bool ForVsLanguageService;
+
         #endregion
 
         #region bug finding options
@@ -436,6 +441,7 @@ namespace Microsoft.PSharp
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
+            this.ForVsLanguageService = false;
 
             this.AssemblyToBeAnalyzed = "";
             this.TestMethodName = "";

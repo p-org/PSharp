@@ -78,6 +78,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
+            if (base.Configuration.ForVsLanguageService)
+            {
+                // Do not change formatting
+                base.TextUnit = this.OpenBraceToken.TextUnit.WithText(this.Block.ToString());
+                return;
+            }
+
             // Adjust the indent of lines in the block to match the surrounding indentation, according to
             // the line in the block with the minimum indentation.
             var lines = this.Block.ToString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);

@@ -40,7 +40,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="parentNode">Containing machine</param>
         /// <param name="groupNode">Containing group</param>
         /// <param name="modSet">Modifier set</param>
-        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, ModifierSet modSet)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, ModifierSet modSet, TokenRange tokenRange)
         {
             this.CheckMachineStateModifierSet(modSet);
 
@@ -61,8 +62,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             base.TokenStream.Swap(TokenType.StateIdentifier);
-
             node.Identifier = base.TokenStream.Peek();
+            node.HeaderTokenRange = tokenRange.FinishAndClone();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -111,6 +112,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         private void VisitNextPSharpIntraStateDeclaration(StateDeclaration node)
         {
             bool fixpoint = false;
+            var tokenRange = new TokenRange(base.TokenStream);
             while (!fixpoint)
             {
                 var token = base.TokenStream.Peek();
@@ -123,13 +125,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.Async:
+                        tokenRange.Start();
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         token = base.TokenStream.Peek();
                         switch (token.Type)
                         {
                             case TokenType.Entry:
-                                new StateEntryDeclarationVisitor(base.TokenStream).Visit(node, isAsync:true);
+                                new StateEntryDeclarationVisitor(base.TokenStream).Visit(node, tokenRange, isAsync:true);
                                 base.TokenStream.Index++;
                                 break;
 
@@ -153,7 +156,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.Entry:
-                        new StateEntryDeclarationVisitor(base.TokenStream).Visit(node);
+                        new StateEntryDeclarationVisitor(base.TokenStream).Visit(node, tokenRange.Start());
                         base.TokenStream.Index++;
                         break;
 
@@ -231,6 +234,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         private void VisitNextPIntraStateDeclaration(StateDeclaration node)
         {
             bool fixpoint = false;
+            var tokenRange = new TokenRange(base.TokenStream);
             while (!fixpoint)
             {
                 var token = base.TokenStream.Peek();
@@ -252,7 +256,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.Entry:
-                        new StateEntryDeclarationVisitor(base.TokenStream).Visit(node);
+                        new StateEntryDeclarationVisitor(base.TokenStream).Visit(node, tokenRange.Start());
                         base.TokenStream.Index++;
                         break;
 

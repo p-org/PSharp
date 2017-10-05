@@ -17,6 +17,7 @@ using System.Collections.Generic;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -195,7 +196,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             var indent = GetIndent(indentLevel);
             string text = indent;
-            
+
             if (this.Group != null)
             {
                 // When inside a group, the state should be made public.
@@ -215,6 +216,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
+
+            base.ProjectionInfo.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
+
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             var newLine = "";  // no newline for the first

@@ -2,61 +2,43 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Collections;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// This class represents a single instance of rewriting a SyntaxNode from a P# term to a C# replacement.
     /// </summary>
-    public class RewrittenTerm
+    public class RewrittenTerm : RewrittenSpan
     {
-        #region properties
+        #region fields
 
         /// <summary>
-        /// Start position of this node in the rewritten C# text buffer.
+        /// Holds the rewritten start position which may be updated by <see cref="AddRewrittenOffset(int)"/>.
         /// </summary>
-        public int Start { get; private set; }
+        private int rewrittenStart;
 
         /// <summary>
-        /// Original (P#) string at this position in the C# text buffer.
+        /// The <see cref="ProjectionInfo"/> containing the <see cref="ProjectionInfo.CodeChunk"/>
+        /// that contains this term.
         /// </summary>
-        public string OriginalString { get; private set; }
-
-        /// <summary>
-        /// Length of the original (P#) string at this position in the C# text buffer.
-        /// </summary>
-        public int OriginalLength => this.OriginalString.Length;
-
-        /// <summary>
-        /// Rewritten (C#) string at this position in the C# text buffer.
-        /// </summary>
-        public string RewrittenString { get; private set; }
-
-        /// <summary>
-        /// Length of the rewritten (C#) string at this position in the C# text buffer.
-        /// </summary>
-        public int RewrittenLength => this.RewrittenString.Length;
-
-        /// <summary>
-        /// Difference in length between original and replacement.
-        /// </summary>
-        public int ChangedLength => this.RewrittenLength - this.OriginalLength;
+        public ProjectionInfo ProjectionInfo;
 
         #endregion
 
         #region internal API
 
-        internal RewrittenTerm(int start, string original, string rewritten)
+        internal RewrittenTerm(string originalString, int rewrittenStart, string rewrittenString)
+            : base(originalString)
         {
-            this.Start = start;
-            this.OriginalString = original;
-            this.RewrittenString = rewritten;
+            base.GetRewrittenStartFunc = () => this.rewrittenStart;
+            base.GetRewrittenStringFunc = () => rewrittenString;
+            this.rewrittenStart = rewrittenStart;
+            base.RewrittenLength = rewrittenString.Length;
         }
 
-        internal void OffsetStart(int offset)
+        internal void AddRewrittenOffset(int offset)
         {
-            this.Start += offset;
+            this.rewrittenStart += offset;
         }
 
         #endregion
@@ -68,63 +50,43 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         public override string ToString()
         {
             var change = this.ChangedLength.ToString("+0;-#");
-            return $"{this.Start}({change}) {this.OriginalString}({this.OriginalLength}) -> {this.RewrittenString}({this.RewrittenLength})";
+            return $"{this.RewrittenStart}({change}) {this.OriginalString}({this.OriginalLength}) -> {this.RewrittenString}({this.RewrittenLength})";
         }
     }
 
     /// <summary>
-    /// This class represents a list of instances of rewriting SyntaxNodes from P# terms to a C# replacements.
+    /// This class represents a list of instances of rewriting SyntaxNodes from P# terms to C# replacements.
     /// </summary>
-    public class RewrittenTerms : IEnumerable<RewrittenTerm>
+    public class RewrittenTermBatch
     {
         #region fields
-        
-        /// <summary>
-        /// The cumulative list of nodes.
-        /// </summary>
-        private List<RewrittenTerm> Terms = new List<RewrittenTerm>();
 
         /// <summary>
         /// Contains the current batch of rewritten nodes.
         /// </summary>
         private List<RewrittenTerm> BatchTerms = new List<RewrittenTerm>();
 
+        /// <summary>
+        /// The list of projection buffer infos, ordered by CumulativeOffset.
+        /// </summary>
+        private ProjectionInfo[] OrderedProjectionInfos;
+
         #endregion
 
-        #region API
+        #region Constructor
 
-        /// <summary>
-        /// Returns the rewritten term at the passed index
-        /// </summary>
-        /// <param name="index">Index of the rewritten term to return</param>
-        /// <returns></returns>
-        public RewrittenTerm this[int index] { get { return this.Terms[index]; } }
-
-        #region IEnumerable<RewrittenTerm>
-
-        /// <summary>
-        /// Returns an enumerator over the rewritten terms.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerator<RewrittenTerm> GetEnumerator()
+        internal RewrittenTermBatch(IEnumerable<ProjectionInfo> projectionInfos)
         {
-            return ((IEnumerable<RewrittenTerm>)Terms).GetEnumerator();
+            this.OrderedProjectionInfos = projectionInfos.ToArray();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable<RewrittenTerm>)Terms).GetEnumerator();
-        }
-
-        #endregion
-        
         #endregion
 
         #region internal API
 
         internal void AddToBatch(SyntaxNode node, string rewrittenText)
         {
-            this.BatchTerms.Add(new RewrittenTerm(node.Span.Start, node.ToString(), rewrittenText));
+            this.BatchTerms.Add(new RewrittenTerm(node.ToString(), node.Span.Start, rewrittenText));
         }
 
         internal void MergeBatch()
@@ -135,18 +97,27 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             }
             AssertBatchSorted();
 
-            // Start positions in a batch are not adjusted for changes in preceding nodes as they are from a single enumeration of
-            // the SyntaxTree nodes. However, start positions across batches are adjusted for node changes in previous batches.
+            // Start positions within a batch are not adjusted by Roslyn for changes in preceding nodes because
+            // they are from a single enumeration of the SyntaxTree nodes. However, start positions across
+            // batches are adjusted for node changes in previous batches.
             AdjustStartsInBatch();
-            this.Terms = MergeAndAdjustStarts().ToList();
+
+            AdjustExistingTermStarts();
+            InsertBatchTermsIntoProjectionInfos();
+            AdjustProjectionInfoOffsets();
+            AdjustProjectionInfoCodeChunks();
             this.BatchTerms.Clear();
         }
 
         internal void OffsetStarts(int offset)
         {
-            foreach (var term in this.Terms)
+            foreach (var term in this.ExistingRewrittenCodeTerms)
             {
-                term.OffsetStart(offset);
+                term.AddRewrittenOffset(offset);
+            }
+            foreach (var projInfo in this.OrderedProjectionInfos)
+            {
+                projInfo.AddOffset(offset);
             }
         }
 
@@ -154,51 +125,151 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #region private methods
 
+        /// <summary>
+        /// Asserts that the batch start positions are in ascending order.
+        /// </summary>
         [Conditional("DEBUG")]
         private void AssertBatchSorted()
         {
             for (var ii = 1; ii < this.BatchTerms.Count; ++ii)
             {
-                Debug.Assert(this.BatchTerms[ii - 1].Start < this.BatchTerms[ii].Start);
+                Debug.Assert(this.BatchTerms[ii - 1].RewrittenStart < this.BatchTerms[ii].RewrittenStart);
             }
         }
 
+        /// <summary>
+        /// Cumulative adjustment for all starts in the batch, prior to merging the batch.
+        /// </summary>
         private void AdjustStartsInBatch()
         {
             int offset = 0;
             foreach (var term in this.BatchTerms)
             {
-                term.OffsetStart(offset);
+                term.AddRewrittenOffset(offset);
                 offset += term.ChangedLength;
             }
         }
 
-        private IEnumerable<RewrittenTerm> MergeAndAdjustStarts()
+        IEnumerable<RewrittenTerm> ExistingRewrittenCodeTerms => this.OrderedProjectionInfos.Select(info => info.RewrittenCodeTerms).SelectMany(list => list);
+
+        /// <summary>
+        /// Merge the batch of terms with the existing term list, returning a new term list enumeration.
+        /// </summary>
+        /// <returns></returns>
+        private void AdjustExistingTermStarts()
         {
-            using (var termEnumerator = this.Terms.GetEnumerator())
+            var existingTerms = ExistingRewrittenCodeTerms;
+            using (var existingTermEnumerator = existingTerms.GetEnumerator())
             using (var batchEnumerator = this.BatchTerms.GetEnumerator())
             {
-                var hasTerm = termEnumerator.MoveNext();
+                var hasTerm = existingTermEnumerator.MoveNext();
                 var hasBatch = batchEnumerator.MoveNext();
                 var offset = 0;
                 while (hasTerm)
                 {
-                    if (hasBatch && batchEnumerator.Current.Start < termEnumerator.Current.Start)
+                    if (hasBatch && batchEnumerator.Current.RewrittenStart < existingTermEnumerator.Current.RewrittenStart)
                     {
                         offset += batchEnumerator.Current.ChangedLength;
-                        yield return batchEnumerator.Current;
                         hasBatch = batchEnumerator.MoveNext();
                         continue;
                     }
-                    termEnumerator.Current.OffsetStart(offset);
-                    yield return termEnumerator.Current;
-                    hasTerm = termEnumerator.MoveNext();
+                    existingTermEnumerator.Current.AddRewrittenOffset(offset);
+                    hasTerm = existingTermEnumerator.MoveNext();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Insert new <see cref="RewrittenTerm"/>s from the current batch into the appropriate
+        /// <see cref="ProjectionInfo"/>s.
+        /// </summary>
+        private void InsertBatchTermsIntoProjectionInfos()
+        {
+            using (var batchEnumerator = this.BatchTerms.GetEnumerator())
+            {
+                var curProjIndex = 0;
+                bool getNextProjOffset(out int offset)
+                {
+                    var endOfList = curProjIndex >= this.OrderedProjectionInfos.Length - 1;
+                    offset = endOfList ? -1 : this.OrderedProjectionInfos[curProjIndex + 1].CumulativeOffset;
+                    return !endOfList;
+                }
+                void advanceToInnermostContainingProjInfo()
+                {
+                    while (getNextProjOffset(out int nextProjOffset) && nextProjOffset < batchEnumerator.Current.RewrittenStart)
+                    {
+                        ++curProjIndex;
+                    }
+                }
+                void insertBatchTerm()
+                {
+                    var curProjInfo = this.OrderedProjectionInfos[curProjIndex];
+                    var rewrittenIndex = curProjInfo.RewrittenCodeTerms.Count == 0
+                        ? -1
+                        : curProjInfo.RewrittenCodeTerms.FindLastIndex(term => term.RewrittenStart < batchEnumerator.Current.RewrittenStart);
+                    curProjInfo.RewrittenCodeTerms.Insert(rewrittenIndex + 1, batchEnumerator.Current);
+                    batchEnumerator.Current.ProjectionInfo = curProjInfo;
+                }
+
+                var hasBatch = batchEnumerator.MoveNext();
                 while (hasBatch)
                 {
-                    yield return batchEnumerator.Current;
+                    advanceToInnermostContainingProjInfo();
+                    insertBatchTerm();
                     hasBatch = batchEnumerator.MoveNext();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Adjust offsets for the new <see cref="ProjectionInfo"/>s based on the <see cref="RewrittenTerm"/>s 
+        /// in the current batch.
+        /// </summary>
+        private void AdjustProjectionInfoOffsets()
+        {
+            var projEnumerator = this.OrderedProjectionInfos.GetEnumerator();
+            using (var batchEnumerator = this.BatchTerms.GetEnumerator())
+            {
+                var hasProj = projEnumerator.MoveNext();
+                var hasTerm = batchEnumerator.MoveNext();
+                var offset = 0;
+                void updateProjInfoAndMoveNext()
+                {
+                    var projInfo = (ProjectionInfo)projEnumerator.Current;
+                    projInfo.AddOffset(offset);
+                    hasProj = projEnumerator.MoveNext();
+                }
+
+                // Note that the last ProjectionInfo may contain some of the batch terms, but they won't affect
+                // the offset of that ProjectionInfo.
+                while (hasTerm && hasProj)
+                {
+                    var curProjInfo = (ProjectionInfo)projEnumerator.Current;
+                    if (batchEnumerator.Current.RewrittenStart < curProjInfo.CumulativeOffset)
+                    {
+                        offset += batchEnumerator.Current.ChangedLength;
+                        hasTerm = batchEnumerator.MoveNext();
+                        continue;
+                    }
+                    updateProjInfoAndMoveNext();
+                }
+
+                // Update the remaining ProjectionInfos that may be after the final term.
+                while (hasProj)
+                {
+                    updateProjInfoAndMoveNext();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adjust <see cref="ProjectionInfo.CodeChunk"/>s for the current term batch.
+        /// </summary>
+        private void AdjustProjectionInfoCodeChunks()
+        {
+            foreach (var term in this.BatchTerms)
+            {
+                term.ProjectionInfo.IncrementCodeChunkLength(term.ChangedLength);
             }
         }
 

@@ -248,6 +248,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <param name="node">Node</param>
         private void VisitNextIntraNamespaceDeclaration(NamespaceDeclaration node)
         {
+            var tokenRange = new TokenRange(base.TokenStream);
             if (base.TokenStream.Done)
             {
                 throw new ParsingException("Expected \"}\".",
@@ -295,7 +296,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case TokenType.Partial:
                 case TokenType.Abstract:
                 case TokenType.Virtual:
-                    this.VisitEventOrMachineDeclaration(node);
+                    this.VisitEventOrMachineDeclaration(node, tokenRange.Start());
                     base.TokenStream.Index++;
                     break;
 
@@ -327,7 +328,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Visits an event or machine declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitEventOrMachineDeclaration(NamespaceDeclaration parentNode)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        private void VisitEventOrMachineDeclaration(NamespaceDeclaration parentNode, TokenRange tokenRange)
         {
             ModifierSet modSet = ModifierSet.CreateDefault();
 
@@ -362,11 +364,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, modSet);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, modSet, tokenRange.Start());
             }
             else if (base.TokenStream.Peek().Type == TokenType.Monitor)
             {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, true, modSet);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, true, modSet, tokenRange.Start());
             }
         }
 

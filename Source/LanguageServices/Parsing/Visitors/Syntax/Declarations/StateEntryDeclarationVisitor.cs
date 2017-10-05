@@ -38,8 +38,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
+        /// <param name="tokenRange">The range of accumulated tokens</param>
         /// <param name="isAsync">True if the entry method is async</param>
-        internal void Visit(StateDeclaration parentNode, bool isAsync = false)
+        internal void Visit(StateDeclaration parentNode, TokenRange tokenRange, bool isAsync = false)
         {
             if (parentNode.EntryDeclaration != null)
             {
@@ -49,6 +50,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             var node = new EntryDeclaration(base.TokenStream.Program, parentNode, isAsync);
             node.EntryKeyword = base.TokenStream.Peek();
+            node.HeaderTokenRange = tokenRange.FinishAndClone();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();

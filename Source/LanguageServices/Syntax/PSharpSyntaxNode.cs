@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -39,6 +40,17 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected const int SpacesPerIndent = 4;
         protected static string OneIndent = new string(' ', SpacesPerIndent);
 
+        /// <summary>
+        /// The range of accumulated header tokens
+        /// </summary>
+        internal TokenRange HeaderTokenRange;
+
+        /// <summary>
+        /// Offset and other information that will be used to create the VS Language Service
+        /// Projection Buffers for the rewritten form of this declaration.
+        /// </summary>
+        internal ProjectionInfo ProjectionInfo;
+
         #endregion
 
         #region protected API
@@ -50,7 +62,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected PSharpSyntaxNode(IPSharpProgram program)
         {
             this.Program = program;
+            this.ProjectionInfo = new ProjectionInfo(this);
         }
+
+        /// <summary>
+        /// Get the Configuration object.
+        /// </summary>
+        protected Configuration Configuration => this.Program.GetProject().CompilationContext.Configuration;
 
         /// <summary>
         /// Creates a string to be used for the specified level of indentation.

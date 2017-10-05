@@ -19,6 +19,7 @@ using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
+#if false // TODO verify ArgumentsListVisitor is not used
     /// <summary>
     /// The P# argument list parsing visitor.
     /// </summary>
@@ -83,4 +84,5 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
         }
     }
+#endif // not used
 }

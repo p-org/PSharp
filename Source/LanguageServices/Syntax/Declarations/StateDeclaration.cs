@@ -443,17 +443,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 }
             }
 
-            if (!this.Machine.IsMonitor)
-            {
-                text += "class " + this.Identifier.TextUnit.Text + " : MachineState";
-            }
-            else
-            {
-                text += "class " + this.Identifier.TextUnit.Text + " : MonitorState";
-            }
+            text += "class " + this.Identifier.TextUnit.Text + " : "; 
+            text += this.Machine.IsMonitor ? "MonitorState" : "MachineState";
 
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.ProjectionInfo.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
 
             return text;
         }

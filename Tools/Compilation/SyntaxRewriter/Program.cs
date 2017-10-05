@@ -30,21 +30,38 @@ namespace Microsoft.PSharp
     {
         static void Main(string[] args)
         {
-            if (args.Length < 1 || args.Length > 2)
+            if (args.Length < 1 || args.Length > 3)
             {
-                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp [file.psharp.cs]");
+                Output.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp [file.psharp.cs] [/vs-lang-service]");
                 return;
             }
 
-            var outfile = args.Length > 1 ? args[1] : string.Empty;
+            var infile = string.Empty;
+            var outfile = string.Empty;
+            var forVsLangService = false;
+            foreach (var arg in args)
+            {
+                if (arg.ToLower() == "/vs-lang-service")
+                {
+                    forVsLangService = true;
+                    continue;
+                }
+                if (infile.Length == 0)
+                {
+                    infile = arg;
+                    continue;
+                }
+                outfile = arg;
+            }
+
 
             // Gets input file as string.
             var input_string = "";
             try
             {
-                input_string = System.IO.File.ReadAllText(args[0]);
+                input_string = File.ReadAllText(infile);
             }
-            catch (System.IO.IOException e)
+            catch (IOException e)
             {
                 Output.WriteLine("Error: {0}", e.Message);
                 return;
@@ -52,7 +69,7 @@ namespace Microsoft.PSharp
 
             // Translates and prints on console or to file.
             string errors = "";
-            var output = Translate(input_string, out errors);
+            var output = Translate(input_string, forVsLangService, out errors);
             var result = string.Format("{0}", output == null ? "Parse Error: " + errors : output);
             if (!string.IsNullOrEmpty(outfile))
             {
@@ -75,10 +92,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Text</returns>
-        public static string Translate(string text, out string errors)
+        public static string Translate(string text, bool forVsLangService, out string errors)
         {
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.ForVsLanguageService = forVsLangService;
             errors = null;
 
             var context = CompilationContext.Create(configuration).LoadSolution(text);
@@ -121,7 +139,7 @@ namespace Microsoft.PSharp
             {
                 var inp = File.ReadAllText(InputFiles[i].ItemSpec);
                 string errors;
-                var outp = SyntaxRewriter.Translate(inp, out errors);
+                var outp = SyntaxRewriter.Translate(inp, false, out errors);
                 if (outp != null)
                 {
                     File.WriteAllText(OutputFiles[i].ItemSpec, outp);

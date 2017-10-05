@@ -42,7 +42,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="parentNode">Node</param>
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="modSet">Modifier set</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor, ModifierSet modSet)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor, ModifierSet modSet, TokenRange tokenRange)
         {
             if (isMonitor)
             {
@@ -70,8 +71,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             base.TokenStream.Swap(TokenType.MachineIdentifier);
-
             node.Identifier = base.TokenStream.Peek();
+            node.HeaderTokenRange = tokenRange.FinishAndClone();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -123,9 +124,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         }
                         else
                         {
+                            if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                            {
+                                base.TokenStream.Swap(TokenType.MachineIdentifier);
+                            }
                             node.BaseNameTokens.Add(base.TokenStream.Peek());
                         }
 
+                        node.HeaderTokenRange.ExtendStop();
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
                     }
@@ -179,6 +185,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         private void VisitNextPSharpIntraMachineDeclaration(MachineDeclaration node)
         {
             bool fixpoint = false;
+            var tokenRange = new TokenRange(base.TokenStream);
             while (!fixpoint)
             {
                 var token = base.TokenStream.Peek();
@@ -229,7 +236,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.Public:
                     case TokenType.Async:
                     case TokenType.Partial:
-                        this.VisitMachineLevelDeclaration(node);
+                        this.VisitMachineLevelDeclaration(node, tokenRange.Start());
                         base.TokenStream.Index++;
                         break;
 
@@ -274,7 +281,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits a machine level declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitMachineLevelDeclaration(MachineDeclaration parentNode)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        private void VisitMachineLevelDeclaration(MachineDeclaration parentNode, TokenRange tokenRange)
         {
             ModifierSet modSet = ModifierSet.CreateDefault();
 
@@ -363,11 +371,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
             else if (base.TokenStream.Peek().Type == TokenType.StateDecl)
             {
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet, tokenRange.Start());
             }
             else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
             {
-                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
+                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet, tokenRange.Start());
             }
             else
             {
