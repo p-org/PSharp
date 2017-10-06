@@ -281,7 +281,10 @@ namespace Microsoft.PSharp
         {
             Machine machine = this.CreateMachine(type, friendlyName);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            base.CriticalPathProfiler.OnCreateMachine(creator, machine);
+            if (this.Configuration.EnableCriticalPathProfiling)
+            {
+                base.CriticalPathProfiler.OnCreateMachine(creator, machine);
+            }
             this.RunMachineEventHandler(machine, e, true);
             return machine.Id;
         }

@@ -277,8 +277,8 @@ namespace Core.Utilities.Profiling
             // serialize the graph
             var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
             var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
-            var fileName = Configuration.OutputFilePath + Configuration.PAGFileName + ".dgml";
-            ProgramActivityGraph.Serialize(Configuration.OutputFilePath + "/PAG.dgml", uniqueEdges, topActivities);
+            var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".dgml";
+            ProgramActivityGraph.Serialize(fileName, uniqueEdges, topActivities);
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace Core.Utilities.Profiling
         /// <returns></returns>
         private CriticalPathNode GetCorrespondingActionEnd(CriticalPathNode actionBeginNode)
         {
-            System.Diagnostics.Debug.Assert(actionBeginNode.Data.NodeType == PAGNodeType.ActionBegin, "Require action begin node");            
+            System.Diagnostics.Debug.Assert(actionBeginNode.Data.NodeType == PAGNodeType.ActionBegin, "Require action begin node");
             CriticalPathNode successor = ProgramActivityGraph.OutEdges(actionBeginNode).First().Target;
             while (successor.Data.NodeType != PAGNodeType.ActionEnd)
             {
@@ -466,9 +466,8 @@ namespace Core.Utilities.Profiling
 
         private bool IsDequeueEndOrReceiveEnd(CriticalPathNode node)
         {
-            return node.Data.NodeType == PAGNodeType.DequeueEnd 
+            return node.Data.NodeType == PAGNodeType.DequeueEnd
                 || node.Data.NodeType == PAGNodeType.ReceiveEnd;
-
         }
     }
 }
