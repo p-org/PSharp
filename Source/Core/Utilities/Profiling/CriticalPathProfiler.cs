@@ -274,6 +274,7 @@ namespace Core.Utilities.Profiling
             // serialize the graph
             var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
             var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
+            var fileName = Configuration.OutputFilePath + Configuration.PAGFileName + ".dgml";
             ProgramActivityGraph.Serialize(Configuration.OutputFilePath + "/PAG.dgml", uniqueEdges);
         }
 

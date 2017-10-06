@@ -424,6 +424,12 @@ namespace Microsoft.PSharp
         public bool EnableCriticalPathProfiling;
 
         /// <summary>
+        /// The file name to serialize the program activity graph to.
+        /// </summary>
+        [DataMember]
+        public string PAGFileName;
+
+        /// <summary>
         /// Keeps the temporary files.
         /// </summary>
         [DataMember]
