@@ -171,7 +171,7 @@ namespace Core.Utilities.Profiling
         /// </summary>
         /// <param name="machine">The machine dequeueing the message.</param>
         /// <param name="eventSequenceNumber">The global sequence number of the send corresponding to this dequeue</param>
-        public void OnDequeue(Machine machine, long eventSequenceNumber)
+        public void OnDequeueEnd(Machine machine, long eventSequenceNumber)
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
@@ -182,7 +182,7 @@ namespace Core.Utilities.Profiling
                 }
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
-                RecordPAGNodeAndEdge(machine, "+Dequeue:" + eventSequenceNumber);
+                RecordPAGNodeAndEdge(machine, "+DequeueEnd:" + eventSequenceNumber, true);
                 if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -223,7 +223,7 @@ namespace Core.Utilities.Profiling
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
                 var diagnostic = String.Format("+ReceiveEnd[{0}]{1}:", wasBlocked, eventSequenceNumber);
-                RecordPAGNodeAndEdge(machine, diagnostic);
+                RecordPAGNodeAndEdge(machine, diagnostic, true);
                 if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -269,7 +269,7 @@ namespace Core.Utilities.Profiling
 
             // computing the actual path(s)
             // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
-            var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode});
+            var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
 
             // serialize the graph
             var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
@@ -361,13 +361,15 @@ namespace Core.Utilities.Profiling
         /// </summary>
         /// <param name="machine"></param>
         /// <param name="extra">Extra diagnostic info</param>
+        /// <param name="isDequeueEnd">is this a node representing a dequeue/receive end</param>
         /// <returns></returns>
-        private static long RecordPAGNodeAndEdge(Machine machine, string extra)
+        private static long RecordPAGNodeAndEdge(Machine machine, string extra, bool isDequeueEnd = false)
         {
             string currentStateName = machine.CurrentStateName;
             var nodeName = $"{currentStateName}:{extra}";
             long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
-            var data = new PAGNodeData(nodeName, 0, currentTimeStamp);
+            long idleTime = isDequeueEnd ? Math.Max(currentTimeStamp - machine.predecessorTimestamp, 0) : 0;
+            var data = new PAGNodeData(nodeName, idleTime, currentTimeStamp);
             var node = new CriticalPathNode(data);
             if (machine.predecessorId != -1)
             {
@@ -375,6 +377,7 @@ namespace Core.Utilities.Profiling
             }
             PAGNodes.Enqueue(node);
             machine.predecessorId = node.Id;
+            machine.predecessorTimestamp = currentTimeStamp;
             return node.Id;
         }
 

@@ -27,9 +27,9 @@ namespace Core.Utilities.Profiling
         /// Called when an event is dequeued by a machine.
         /// </summary>
         /// <param name="machine">The machine that the event is being dequeued by.</param>
-        /// <param name="eventSequenceNumber">the global sequence number associated with the 
+        /// <param name="eventSequenceNumber">the global sequence number associated with the
         /// send corresponding to this dequeue.</param>
-        void OnDequeue(Machine machine, long eventSequenceNumber);
+        void OnDequeueEnd(Machine machine, long eventSequenceNumber);
 
         ///// <summary>
         ///// Called when the default event handler for a state is about to be executed.
@@ -67,7 +67,7 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// Called when a machine begins waiting to receive an event.
         /// </summary>
-        /// <param name="machine">Id of the machine that is entering the wait state.</param>        
+        /// <param name="machine">Id of the machine that is entering the wait state.</param>
         /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
         void OnReceiveBegin(Machine machine, string eventNames);
 
@@ -127,14 +127,14 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// Called when a machine executes an action.
         /// </summary>
-        /// <param name="machine">The machine executing the action.</param>       
+        /// <param name="machine">The machine executing the action.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         void OnActionEnter(Machine machine, string actionName);
 
         /// <summary>
         /// Called when a machine finishes an action.
         /// </summary>
-        /// <param name="machine">The machine executing the action.</param>        
+        /// <param name="machine">The machine executing the action.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         void OnActionExit(Machine machine, string actionName);
 

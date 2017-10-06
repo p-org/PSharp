@@ -775,7 +775,7 @@ namespace Microsoft.PSharp
             machine.Info.OperationGroupId = eventInfo.OperationGroupId;
 
             base.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
-            base.CriticalPathProfiler.OnDequeue(machine, eventInfo.EventSequenceCounter);
+            base.CriticalPathProfiler.OnDequeueEnd(machine, eventInfo.EventSequenceCounter);
         }
 
         /// <summary>

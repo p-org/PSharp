@@ -137,6 +137,12 @@ namespace Microsoft.PSharp
         /// </summary>
         internal long predecessorId;
 
+        /// <summary>
+        /// Used by the critical path profiler to track the predecessor node's
+        /// timestamp on this machine
+        /// </summary>
+        internal long predecessorTimestamp;
+
         #endregion
 
         #region properties
