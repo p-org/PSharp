@@ -4,7 +4,6 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
-
 namespace Core.Utilities.Profiling
 {
     /// <summary>
@@ -197,7 +196,7 @@ namespace Core.Utilities.Profiling
                 return false;
             }
             this.InEdgesMap.Add(v, new HashSet<TEdge>());
-            this.OutEdgesMap.Add(v, new HashSet<TEdge>());         
+            this.OutEdgesMap.Add(v, new HashSet<TEdge>());
             return true;
         }
 
@@ -325,7 +324,7 @@ namespace Core.Utilities.Profiling
             ClearInEdges(v);
         }
 
-        public void Serialize(string xmlpath, HashSet<Tuple<string, string>> interestingEdges)
+        public void Serialize(string xmlpath, HashSet<Tuple<string, string>> interestingEdges, HashSet<long> topActivities)
         {
             Graph g = new Graph();
             List<Node> nodes = new List<Node>();
@@ -333,10 +332,15 @@ namespace Core.Utilities.Profiling
 
             foreach (var v in this.Nodes)
             {
-                var node = new Node(v.Id.ToString(), v.ToString());
+                var color = "White";
+                if (topActivities.Contains(v.Id))
+                {
+                    color = "Red";
+                }
+                var node = new Node(v.Id.ToString(), v.ToString(), color);
                 nodes.Add(node);
             }
-           
+
             foreach (var e in this.Edges)
             {
                 var color = "Black";

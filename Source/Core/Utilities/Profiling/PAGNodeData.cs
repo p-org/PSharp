@@ -1,11 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Core.Utilities.Profiling
 {
+    /// <summary>
+    /// An enum enumerating the type of nodes in the PAG (Program Activity Graph)
+    /// </summary>
+    public enum PAGNodeType
+    {
+        /// <summary> The caller of CreateMachine </summary>
+        Creator,
+
+        /// <summary> The first node of the machine created using CreateMachine </summary>
+        Child,
+
+        /// <summary> An action begin </summary>
+        ActionBegin,
+
+        /// <summary> An action end </summary>
+        ActionEnd,
+
+        /// <summary> A message send </summary>
+        Send,
+
+        /// <summary> A dequeue end </summary>
+        DequeueEnd,
+
+        /// <summary> The beginning of a receive action </summary>
+        ReceiveBegin,
+
+        /// <summary> The end of a receive action </summary>
+        ReceiveEnd,
+
+        /// <summary> A sink node </summary>
+        Sink
+    };
+
     /// <summary>
     /// Data that a node in a Program Activity Graph (PAG) holds
     /// </summary>
@@ -17,27 +46,34 @@ namespace Core.Utilities.Profiling
         public string Name { get; private set; }
 
         /// <summary>
-        /// The time spent idling at this node
+        /// The time spent idling after the previous event until
+        /// this node is created
         /// </summary>
         public long IdleTime { get; private set; }
 
         /// <summary>
-        /// The longest time on the critical path that must
-        /// elapse before this node is created
+        /// The time at which this node is created
         /// </summary>
-        public long LongestElapsedTime { get; private set; }
+        public long Timestamp { get; private set; }
+
+        /// <summary>
+        /// An enum representing the type of event the node represents
+        /// </summary>
+        public PAGNodeType NodeType { get; private set; }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name"></param>
         /// <param name="idleTime"></param>
-        /// <param name="longestElapsedTime"></param>
-        public PAGNodeData(string name, long idleTime, long longestElapsedTime)
+        /// <param name="nodeType"></param>
+        /// <param name="timestamp"></param>
+        public PAGNodeData(string name, long idleTime, PAGNodeType nodeType, long timestamp)
         {
             Name = name;
             IdleTime = idleTime;
-            LongestElapsedTime = longestElapsedTime;
+            Timestamp = timestamp;
+            NodeType = nodeType;
         }
 
         /// <summary>
@@ -47,10 +83,9 @@ namespace Core.Utilities.Profiling
         public override string ToString()
         {
             if (IdleTime == 0)
-                return String.Format("{0}[{1}]", Name, LongestElapsedTime);
+                return String.Format("{0}[{1}]", Name, Timestamp);
             else
-                return String.Format("{0}[{1}/{2}]", Name, IdleTime, LongestElapsedTime);
+                return String.Format("{0}[{1}/{2}]", Name, IdleTime, Timestamp);
         }
-
     }
 }

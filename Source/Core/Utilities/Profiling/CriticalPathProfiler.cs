@@ -104,7 +104,7 @@ namespace Core.Utilities.Profiling
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
-                RecordPAGNodeAndEdge(machine, "+Entering:" + actionName);
+                RecordPAGNodeAndEdge(machine, actionName, PAGNodeType.ActionBegin);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Core.Utilities.Profiling
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
-                RecordPAGNodeAndEdge(machine, "+Exiting:" + actionName);
+                RecordPAGNodeAndEdge(machine, actionName, PAGNodeType.ActionEnd);
             }
         }
 
@@ -132,13 +132,13 @@ namespace Core.Utilities.Profiling
             {
                 if (parent == null) // the runtime created the machine
                 {
-                    RecordPAGNodeAndEdge(child, "+RuntimeCreated" + child.Id);
+                    RecordPAGNodeAndEdge(child, "RuntimeCreated", PAGNodeType.Child);
                 }
                 else
                 {
                     // child.LongestPathTime = parent.LongestPathTime + parent.LocalWatch.ElapsedMilliseconds;
-                    RecordPAGNodeAndEdge(parent, "+CreateMachine" + child.Id);
-                    var targetId = RecordPAGNodeAndEdge(child, "Created:" + child.Id);
+                    RecordPAGNodeAndEdge(parent, "", PAGNodeType.Creator);
+                    var targetId = RecordPAGNodeAndEdge(child, "", PAGNodeType.Child);
                     PAGEdges.Enqueue(new Tuple<long, long>(parent.predecessorId, targetId));
                 }
             }
@@ -156,7 +156,7 @@ namespace Core.Utilities.Profiling
                 long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
                 if (source != null)
                 {
-                    RecordPAGNodeAndEdge(source, String.Format("+Send({0}, {1})", source.Id, eventSequenceNumber));
+                    RecordPAGNodeAndEdge(source, String.Format("({0}, {1})", source.Id, eventSequenceNumber), PAGNodeType.Send);
                     SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, currentTimeStamp));
                 }
                 else  // the runtime sent the message
@@ -182,7 +182,7 @@ namespace Core.Utilities.Profiling
                 }
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
-                RecordPAGNodeAndEdge(machine, "+DequeueEnd:" + eventSequenceNumber, true);
+                RecordPAGNodeAndEdge(machine, eventSequenceNumber.ToString(), PAGNodeType.DequeueEnd, true);
                 if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -199,7 +199,7 @@ namespace Core.Utilities.Profiling
         {
             if (Configuration.EnableCriticalPathProfiling)
             {
-                RecordPAGNodeAndEdge(machine, "+ReceiveBegin:" + eventName);
+                RecordPAGNodeAndEdge(machine, eventName, PAGNodeType.ReceiveBegin);
             }
         }
 
@@ -222,8 +222,8 @@ namespace Core.Utilities.Profiling
                 }
                 var sendNodeId = senderInfo.Item1;
                 var senderLongestPath = senderInfo.Item2;
-                var diagnostic = String.Format("+ReceiveEnd[{0}]{1}:", wasBlocked, eventSequenceNumber);
-                RecordPAGNodeAndEdge(machine, diagnostic, true);
+                var diagnostic = String.Format("[{0}]{1}:", wasBlocked, eventSequenceNumber);
+                RecordPAGNodeAndEdge(machine, diagnostic, PAGNodeType.ReceiveEnd, true);
                 if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
                 {
                     PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
@@ -264,18 +264,21 @@ namespace Core.Utilities.Profiling
             ConstructPAG();
 
             var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
-            var maxTime = terminalNodes.Max(x => x.Data.LongestElapsedTime);
+            var maxTime = terminalNodes.Max(x => x.Data.Timestamp);
             var sinkNode = AddSinkNodeAndEdges(terminalNodes, maxTime);
 
             // computing the actual path(s)
             // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
             var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
 
+            // compute the top 3 activities that take the most time
+            var topActivities = new HashSet<long>(GetTopKNodes(3).Select(x => x.Id));
+
             // serialize the graph
             var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
             var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
             var fileName = Configuration.OutputFilePath + Configuration.PAGFileName + ".dgml";
-            ProgramActivityGraph.Serialize(Configuration.OutputFilePath + "/PAG.dgml", uniqueEdges);
+            ProgramActivityGraph.Serialize(Configuration.OutputFilePath + "/PAG.dgml", uniqueEdges, topActivities);
         }
 
         /// <summary>
@@ -303,14 +306,14 @@ namespace Core.Utilities.Profiling
         /// <param name="maxTime"></param>
         private CriticalPathNode AddSinkNodeAndEdges(List<CriticalPathNode> terminalNodes, long maxTime)
         {
-            var data = new PAGNodeData("Sink", 0, maxTime);
+            var data = new PAGNodeData("Sink", 0, PAGNodeType.Sink, maxTime);
             var sinkNode = new CriticalPathNode(data);
             ProgramActivityGraph.AddNode(sinkNode);
             HashSet<Node<PAGNodeData>> interesting = new HashSet<Node<PAGNodeData>>();
             foreach (var node in terminalNodes)
             {
-                ProgramActivityGraph.AddEdge(new CriticalPathEdge(node, sinkNode, maxTime - node.Data.LongestElapsedTime));
-                if (node.Data.LongestElapsedTime == maxTime)
+                ProgramActivityGraph.AddEdge(new CriticalPathEdge(node, sinkNode, maxTime - node.Data.Timestamp));
+                if (node.Data.Timestamp == maxTime)
                 {
                     interesting.Add(node);
                 }
@@ -339,7 +342,7 @@ namespace Core.Utilities.Profiling
             {
                 var source = idToNode[pair.Item1];
                 var target = idToNode[pair.Item2];
-                var timeDiff = target.Data.LongestElapsedTime - source.Data.LongestElapsedTime;
+                var timeDiff = target.Data.Timestamp - source.Data.Timestamp;
                 ProgramActivityGraph.AddEdge(new TaggedEdge<Node<PAGNodeData>, long>(source, target, timeDiff));
             }
         }
@@ -362,15 +365,16 @@ namespace Core.Utilities.Profiling
         /// </summary>
         /// <param name="machine"></param>
         /// <param name="extra">Extra diagnostic info</param>
+        /// <param name="nodeType"></param>
         /// <param name="isDequeueEnd">is this a node representing a dequeue/receive end</param>
         /// <returns></returns>
-        private static long RecordPAGNodeAndEdge(Machine machine, string extra, bool isDequeueEnd = false)
+        private static long RecordPAGNodeAndEdge(Machine machine, string extra, PAGNodeType nodeType, bool isDequeueEnd = false)
         {
             string currentStateName = machine.CurrentStateName;
-            var nodeName = $"{currentStateName}:{extra}";
+            var nodeName = $"{machine.Id}:{currentStateName}:+{nodeType.ToString()}:{extra}";
             long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
             long idleTime = isDequeueEnd ? Math.Max(currentTimeStamp - machine.predecessorTimestamp, 0) : 0;
-            var data = new PAGNodeData(nodeName, idleTime, currentTimeStamp);
+            var data = new PAGNodeData(nodeName, idleTime, nodeType, currentTimeStamp);
             var node = new CriticalPathNode(data);
             if (machine.predecessorId != -1)
             {
@@ -399,18 +403,72 @@ namespace Core.Utilities.Profiling
             {
                 var inEdges = ProgramActivityGraph.InEdges(source);
                 CriticalPathEdge cpPredecessor = inEdges.First();
-                var maxTime = cpPredecessor.Source.Data.LongestElapsedTime;
+                var maxTime = cpPredecessor.Source.Data.Timestamp;
                 foreach (var e in inEdges)
                 {
-                    if (e.Source.Data.LongestElapsedTime > maxTime)
+                    if (e.Source.Data.Timestamp > maxTime)
                     {
                         cpPredecessor = e;
-                        maxTime = e.Source.Data.LongestElapsedTime;
+                        maxTime = e.Source.Data.Timestamp;
                     }
                 }
                 cp.Add(cpPredecessor);
                 ComputeCP(cpPredecessor.Source, cp);
             }
+        }
+
+        private IEnumerable<CriticalPathNode> GetTopKNodes(int k)
+        {
+            if (k < 0)
+            {
+                yield break;
+            }
+
+            var actionNodes = ProgramActivityGraph.Nodes.Where(x => x.Data.NodeType == PAGNodeType.ActionBegin);
+
+            if (actionNodes.Count() < k)
+            {
+                yield break;
+            }
+
+            var actionStartEnd = actionNodes.Select(x => new Tuple<CriticalPathNode, CriticalPathNode>(x, GetCorrespondingActionEnd(x)));
+            var topK = actionStartEnd.OrderByDescending(x => (x.Item2.Data.Timestamp - x.Item1.Data.Timestamp)).Take(k);
+            foreach (var pair in topK)
+            {
+                yield return pair.Item1;
+                yield return pair.Item2;
+            }
+        }
+
+        /// <summary>
+        /// This method assumes that profiling has stopped at a consistent point,
+        /// i.e every action begin has a corresponding action end.
+        /// </summary>
+        /// <param name="actionBeginNode"></param>
+        /// <returns></returns>
+        private CriticalPathNode GetCorrespondingActionEnd(CriticalPathNode actionBeginNode)
+        {
+            System.Diagnostics.Debug.Assert(actionBeginNode.Data.NodeType == PAGNodeType.ActionBegin, "Require action begin node");            
+            CriticalPathNode successor = ProgramActivityGraph.OutEdges(actionBeginNode).First().Target;
+            while (successor.Data.NodeType != PAGNodeType.ActionEnd)
+            {
+                if (ProgramActivityGraph.OutDegree(successor) == 1)
+                {
+                    successor = ProgramActivityGraph.OutEdges(successor).First().Target;
+                }
+                else
+                {
+                    successor = ProgramActivityGraph.OutEdges(successor).Where(x => !IsDequeueEndOrReceiveEnd(x.Target)).First().Target;
+                }
+            }
+            return successor;
+        }
+
+        private bool IsDequeueEndOrReceiveEnd(CriticalPathNode node)
+        {
+            return node.Data.NodeType == PAGNodeType.DequeueEnd 
+                || node.Data.NodeType == PAGNodeType.ReceiveEnd;
+
         }
     }
 }

@@ -21,14 +21,22 @@ namespace Core.Utilities.Profiling
         public string Label;
 
         /// <summary>
+        /// The background color for this node
+        /// </summary>
+        [XmlAttribute]
+        public string Background;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="id"></param>
         /// <param name="label"></param>
-        public Node(string id, string label)
+        /// <param name="background"></param>
+        public Node(string id, string label, string background = "White")
         {
             this.Id = id;
             this.Label = label;
+            this.Background = background;
         }
     }
 
@@ -68,7 +76,7 @@ namespace Core.Utilities.Profiling
         /// <param name="target"></param>
         /// <param name="label"></param>
         /// <param name="stroke"></param>
-        public Link(string source, string target, string label, string stroke="Black")
+        public Link(string source, string target, string label, string stroke = "Black")
         {
             this.Source = source;
             this.Target = target;
