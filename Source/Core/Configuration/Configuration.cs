@@ -328,12 +328,6 @@ namespace Microsoft.PSharp
         public bool EnableDataRaceDetection;
 
         /// <summary>
-        /// Callback for detecting races.
-        /// TODO: Does not belong here.
-        /// </summary>
-        public Action RaceDetectionCallback;
-
-        /// <summary>
         /// True if a race is found.
         /// TODO: Does not belong here.
         /// </summary>

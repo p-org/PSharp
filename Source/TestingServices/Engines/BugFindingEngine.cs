@@ -377,8 +377,6 @@ namespace Microsoft.PSharp.TestingServices
                     callback(iteration);
                 }
 
-                // TODO: Clean this up.
-                base.Configuration.RaceDetectionCallback?.Invoke();
                 if (base.Configuration.RaceFound)
                 {
                     string message = IO.Utilities.Format("Found a race");

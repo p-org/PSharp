@@ -814,8 +814,15 @@ namespace Microsoft.PSharp.TestingServices
                         this.ReportActivityCoverageOfMonitorEvent(sender, m, e);
                         this.ReportActivityCoverageOfMonitorTransition(m, e);
                     }
-
+                    if (base.Configuration.EnableDataRaceDetection)
+                    {
+                        this.Reporter.InMonitor = (long)m.Id.Value;
+                    }
                     m.MonitorEvent(e);
+                    if (base.Configuration.EnableDataRaceDetection)
+                    {
+                        this.Reporter.InMonitor = -1;
+                    }
                 }
             }
         }
