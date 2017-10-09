@@ -127,7 +127,7 @@ namespace CriticalPathTests
         {
             Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
             PSharpRuntime runtime = PSharpRuntime.Create(config);
-            config.OutputFilePath = @"C:\Users\t-ansant\Source\Repos\PSharp\bin\net46";
+            //config.OutputFilePath = @"C:\PSharp\bin\net46";
             config.PAGFileName = "WorkflowTest.Test1";
             runtime.SetDefaultCriticalPathProfiler();
             runtime.StartCriticalPathProfiling();

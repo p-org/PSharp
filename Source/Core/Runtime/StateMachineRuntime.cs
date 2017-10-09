@@ -281,10 +281,7 @@ namespace Microsoft.PSharp
         {
             Machine machine = this.CreateMachine(type, friendlyName);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            if (this.Configuration.EnableCriticalPathProfiling)
-            {
-                base.CriticalPathProfiler.OnCreateMachine(creator, machine);
-            }
+            base.CriticalPathProfiler?.OnCreateMachine(creator, machine);            
             this.RunMachineEventHandler(machine, e, true);
             return machine.Id;
         }
@@ -427,7 +424,7 @@ namespace Microsoft.PSharp
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
             base.Logger.OnSend(machine.Id, sender?.Id, senderState,
                 e.GetType().FullName, operationGroupId, isTargetHalted: false);
-            base.CriticalPathProfiler.OnSend(sender as Machine, eventInfo.EventSequenceCounter);
+            base.CriticalPathProfiler?.OnSend(sender as Machine, eventInfo.EventSequenceCounter);
             machine.Enqueue(eventInfo, ref runNewHandler);
         }
 
@@ -703,7 +700,7 @@ namespace Microsoft.PSharp
             }
 
             base.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
-            base.CriticalPathProfiler.OnActionEnter(machine, action.Name);
+            base.CriticalPathProfiler?.OnActionEnter(machine, action.Name);
         }
 
         /// <summary>
@@ -714,7 +711,7 @@ namespace Microsoft.PSharp
         /// <param name="receivedEvent">Event</param>
         internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            base.CriticalPathProfiler.OnActionExit(machine, action.Name);
+            base.CriticalPathProfiler?.OnActionExit(machine, action.Name);
         }
 
         /// <summary>
@@ -778,7 +775,7 @@ namespace Microsoft.PSharp
             machine.Info.OperationGroupId = eventInfo.OperationGroupId;
 
             base.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
-            base.CriticalPathProfiler.OnDequeueEnd(machine, eventInfo.EventSequenceCounter);
+            base.CriticalPathProfiler?.OnDequeueEnd(machine, eventInfo.EventSequenceCounter);
         }
 
         /// <summary>
@@ -792,12 +789,12 @@ namespace Microsoft.PSharp
             {
                 base.Logger.OnWait(machine.Id, machine.CurrentStateName, string.Empty);
                 machine.Info.IsWaitingToReceive = true;
-                base.CriticalPathProfiler.OnReceiveBegin(machine, string.Empty);
+                base.CriticalPathProfiler?.OnReceiveBegin(machine, string.Empty);
             }
             else
             {
-                base.CriticalPathProfiler.OnReceiveBegin(machine, string.Empty);
-                base.CriticalPathProfiler.OnReceiveEnd(machine,
+                base.CriticalPathProfiler?.OnReceiveBegin(machine, string.Empty);
+                base.CriticalPathProfiler?.OnReceiveEnd(machine,
                 eventInfoInInbox.EventName, true, eventInfoInInbox.EventSequenceCounter);
             }
             
@@ -811,7 +808,7 @@ namespace Microsoft.PSharp
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             base.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked:true);
-            base.CriticalPathProfiler.OnReceiveEnd(machine,
+            base.CriticalPathProfiler?.OnReceiveEnd(machine,
                 eventInfo.EventName, true, eventInfo.EventSequenceCounter);
             lock (machine)
             {

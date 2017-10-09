@@ -86,11 +86,10 @@ namespace CriticalPathTests
         [Fact]
         public void Test1()
         {
-            Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
-            config.OutputFilePath = @"C:\Users\t-ansant\Source\Repos\PSharp\bin\net46";
+            Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);            
             config.PAGFileName = "CascadeTest.Test1";
             PSharpRuntime runtime = PSharpRuntime.Create(config);
-
+            //config.OutputFilePath = @"C:\PSharp\bin\net46";
             var tcs = new TaskCompletionSource<bool>();
             runtime.SetDefaultCriticalPathProfiler();
             runtime.StartCriticalPathProfiling();
@@ -98,6 +97,7 @@ namespace CriticalPathTests
             var forwarder = runtime.CreateMachine(typeof(ForwarderMachine), new Configure(finisher, 5));
             var initiator = runtime.CreateMachine(typeof(InitiatorMachine), new Configure(forwarder, 10));
             tcs.Task.Wait();
+            Task.Delay(TimeSpan.FromSeconds(1));
             runtime.StopCriticalPathProfiling();
         }
     }

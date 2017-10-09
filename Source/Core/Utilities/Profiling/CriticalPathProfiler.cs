@@ -102,10 +102,7 @@ namespace Core.Utilities.Profiling
         /// <param name="actionName">The name of the action being run.</param>
         public void OnActionEnter(Machine machine, string actionName)
         {
-            if (Configuration.EnableCriticalPathProfiling)
-            {
-                RecordPAGNodeAndEdge(machine, actionName, PAGNodeType.ActionBegin);
-            }
+            RecordPAGNodeAndEdge(machine, actionName, PAGNodeType.ActionBegin);
         }
 
         /// <summary>
@@ -115,10 +112,7 @@ namespace Core.Utilities.Profiling
         /// <param name="actionName">The name of the action being run.</param>
         public void OnActionExit(Machine machine, string actionName)
         {
-            if (Configuration.EnableCriticalPathProfiling)
-            {
-                RecordPAGNodeAndEdge(machine, actionName, PAGNodeType.ActionEnd);
-            }
+            RecordPAGNodeAndEdge(machine, actionName, PAGNodeType.ActionEnd);
         }
 
         /// <summary>
@@ -128,19 +122,16 @@ namespace Core.Utilities.Profiling
         /// <param name="child">The machine just created.</param>
         public void OnCreateMachine(Machine parent, Machine child)
         {
-            if (Configuration.EnableCriticalPathProfiling)
+            if (parent == null) // the runtime created the machine
             {
-                if (parent == null) // the runtime created the machine
-                {
-                    RecordPAGNodeAndEdge(child, "RuntimeCreated", PAGNodeType.Child);
-                }
-                else
-                {
-                    // child.LongestPathTime = parent.LongestPathTime + parent.LocalWatch.ElapsedMilliseconds;
-                    RecordPAGNodeAndEdge(parent, "", PAGNodeType.Creator);
-                    var targetId = RecordPAGNodeAndEdge(child, "", PAGNodeType.Child);
-                    PAGEdges.Enqueue(new Tuple<long, long>(parent.predecessorId, targetId));
-                }
+                RecordPAGNodeAndEdge(child, "RuntimeCreated", PAGNodeType.Child);
+            }
+            else
+            {
+                // child.LongestPathTime = parent.LongestPathTime + parent.LocalWatch.ElapsedMilliseconds;
+                RecordPAGNodeAndEdge(parent, "", PAGNodeType.Creator);
+                var targetId = RecordPAGNodeAndEdge(child, "", PAGNodeType.Child);
+                PAGEdges.Enqueue(new Tuple<long, long>(parent.predecessorId, targetId));
             }
         }
 
@@ -151,18 +142,15 @@ namespace Core.Utilities.Profiling
         /// <param name="eventSequenceNumber">The global sequence number of this send.</param>
         public void OnSend(Machine source, long eventSequenceNumber)
         {
-            if (Configuration.EnableCriticalPathProfiling)
+            long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
+            if (source != null)
             {
-                long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
-                if (source != null)
-                {
-                    RecordPAGNodeAndEdge(source, String.Format("({0}, {1})", source.Id, eventSequenceNumber), PAGNodeType.Send);
-                    SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, currentTimeStamp));
-                }
-                else  // the runtime sent the message
-                {
-                    SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(-1, currentTimeStamp));
-                }
+                RecordPAGNodeAndEdge(source, String.Format("({0}, {1})", source.Id, eventSequenceNumber), PAGNodeType.Send);
+                SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(source.predecessorId, currentTimeStamp));
+            }
+            else  // the runtime sent the message
+            {
+                SenderInformation.TryAdd(eventSequenceNumber, new Tuple<long, long>(-1, currentTimeStamp));
             }
         }
 
@@ -173,20 +161,17 @@ namespace Core.Utilities.Profiling
         /// <param name="eventSequenceNumber">The global sequence number of the send corresponding to this dequeue</param>
         public void OnDequeueEnd(Machine machine, long eventSequenceNumber)
         {
-            if (Configuration.EnableCriticalPathProfiling)
+            Tuple<long, long> senderInfo;
+            if (!SenderInformation.TryGetValue(eventSequenceNumber, out senderInfo))
             {
-                Tuple<long, long> senderInfo;
-                if (!SenderInformation.TryGetValue(eventSequenceNumber, out senderInfo))
-                {
-                    throw new Exception("Failed to map dequeue to a send in the critical path profiler");
-                }
-                var sendNodeId = senderInfo.Item1;
-                var senderLongestPath = senderInfo.Item2;
-                RecordPAGNodeAndEdge(machine, eventSequenceNumber.ToString(), PAGNodeType.DequeueEnd, true);
-                if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
-                {
-                    PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
-                }
+                throw new Exception("Failed to map dequeue to a send in the critical path profiler");
+            }
+            var sendNodeId = senderInfo.Item1;
+            var senderLongestPath = senderInfo.Item2;
+            RecordPAGNodeAndEdge(machine, eventSequenceNumber.ToString(), PAGNodeType.DequeueEnd, true);
+            if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
+            {
+                PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
             }
         }
 
@@ -197,10 +182,7 @@ namespace Core.Utilities.Profiling
         /// <param name="eventName">The name of the event the machine is waiting for.</param>
         public void OnReceiveBegin(Machine machine, string eventName)
         {
-            if (Configuration.EnableCriticalPathProfiling)
-            {
-                RecordPAGNodeAndEdge(machine, eventName, PAGNodeType.ReceiveBegin);
-            }
+            RecordPAGNodeAndEdge(machine, eventName, PAGNodeType.ReceiveBegin);
         }
 
         /// <summary>
@@ -213,21 +195,18 @@ namespace Core.Utilities.Profiling
         /// corresponding to the dequeue that unblocked the machine.</param>
         public void OnReceiveEnd(Machine machine, string eventNames, bool wasBlocked, long eventSequenceNumber)
         {
-            if (Configuration.EnableCriticalPathProfiling)
+            Tuple<long, long> senderInfo;
+            if (!SenderInformation.TryGetValue(eventSequenceNumber, out senderInfo))
             {
-                Tuple<long, long> senderInfo;
-                if (!SenderInformation.TryGetValue(eventSequenceNumber, out senderInfo))
-                {
-                    throw new Exception("Failed to map dequeue (receive) to a send in the critical path profiler");
-                }
-                var sendNodeId = senderInfo.Item1;
-                var senderLongestPath = senderInfo.Item2;
-                var diagnostic = String.Format("[{0}]{1}:", wasBlocked, eventSequenceNumber);
-                RecordPAGNodeAndEdge(machine, diagnostic, PAGNodeType.ReceiveEnd, true);
-                if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
-                {
-                    PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
-                }
+                throw new Exception("Failed to map dequeue (receive) to a send in the critical path profiler");
+            }
+            var sendNodeId = senderInfo.Item1;
+            var senderLongestPath = senderInfo.Item2;
+            var diagnostic = String.Format("[{0}]{1}:", wasBlocked, eventSequenceNumber);
+            RecordPAGNodeAndEdge(machine, diagnostic, PAGNodeType.ReceiveEnd, true);
+            if (sendNodeId != -1)  // we don't represent enqueues from the runtime in the PAG
+            {
+                PAGEdges.Enqueue(new Tuple<long, long>(sendNodeId, machine.predecessorId));
             }
         }
 

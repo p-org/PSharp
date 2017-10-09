@@ -127,8 +127,7 @@ namespace CriticalPathTests
         public void Test1()
         {
             Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
-            //config.OutputFilePath = @"C:\PSharp\bin\net46";
-            config.OutputFilePath = @"C:\Users\t-ansant\Source\Repos\PSharp\bin\net46";
+            //config.OutputFilePath = @"C:\PSharp\bin\net46";            
             config.PAGFileName = "ReceiveTest.Test1";
             PSharpRuntime runtime = PSharpRuntime.Create(config);
             
@@ -137,6 +136,7 @@ namespace CriticalPathTests
             runtime.StartCriticalPathProfiling();
             runtime.CreateMachine(typeof(MachineA), new Configure(tcs));
             tcs.Task.Wait();
+            Task.Delay(TimeSpan.FromSeconds(1));
             runtime.StopCriticalPathProfiling();
         }
     }
