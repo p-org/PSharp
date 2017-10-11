@@ -237,7 +237,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                     !InSameMonitor(varState.InMonitorWrite, this.InMonitor))
                 {
                     // Write/Read race
-                    ReportRace(RaceDiagnostic.WriteRead, varState.lastWriteLocation, writeMId, sourceLocation, currentMId);
+                    ReportRace(RaceDiagnostic.WriteRead, varState.lastWriteLocation, writeMId, sourceLocation, currentMId, objHandle, offset);
                     return;
                 }
 
@@ -318,7 +318,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 if (writeMId != currentMId && !Epoch.Leq(writeEpoch, currentVC.GetComponent(writeMId)) &&
                     !InSameMonitor(varState.InMonitorWrite, this.InMonitor))
                 {
-                    ReportRace(RaceDiagnostic.WriteWrite, varState.lastWriteLocation, writeMId, sourceLocation, currentMId);
+                    ReportRace(RaceDiagnostic.WriteWrite, varState.lastWriteLocation, writeMId, sourceLocation, currentMId, objHandle, offset);
                 }
 
                 varState.InMonitorWrite = this.InMonitor;
@@ -335,7 +335,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                     {
                         // Read-Write Race
                         string firstLocation = Config.EnableReadWriteTracing ? varState.LastReadLocation[readMId] : "";
-                        ReportRace(RaceDiagnostic.ReadWrite, firstLocation, readMId, sourceLocation, currentMId);
+                        ReportRace(RaceDiagnostic.ReadWrite, firstLocation, readMId, sourceLocation, currentMId, objHandle, offset);
                     }
                 }
                 else
@@ -343,7 +343,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                     if (varState.VC.AnyGt(currentVC))
                     {
                         // SharedRead-Write Race
-                        ReportReadSharedWriteRace(sourceLocation, currentMId, currentVC, varState);
+                        ReportReadSharedWriteRace(sourceLocation, currentMId, currentVC, varState, objHandle, offset);
                     }
                     else
                     {
@@ -398,7 +398,8 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             this.TestReport.BugReports.Add(report);
         }
 
-        private void ReportRace(RaceDiagnostic diagnostic, string firstLocation, long first, string secondLocation, long second)
+        private void ReportRace(RaceDiagnostic diagnostic, string firstLocation, long first, string secondLocation, long second,
+            UIntPtr objHandle, UIntPtr offset)
         {
             switch (diagnostic)
             {
@@ -410,7 +411,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                         writeInfo = String.Format("Write ({0}) by", firstLocation);
                         readInfo = String.Format("Read ({0}) by", secondLocation);
                     }
-                    ReportRace("Write/Read", writeInfo, first, readInfo, second);
+                    ReportRace($"Write/Read[{objHandle}/{offset}]", writeInfo, first, readInfo, second);
                     break;
 
                 case RaceDiagnostic.WriteWrite:
@@ -421,7 +422,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                         firstWriteInfo = String.Format("Write ({0}) by", firstLocation);
                         secondWriteInfo = String.Format("Write ({0}) by", secondLocation);
                     }
-                    ReportRace("Write/Write", firstWriteInfo, first, secondWriteInfo, second);
+                    ReportRace($"Write/Write[{objHandle}/{offset}]", firstWriteInfo, first, secondWriteInfo, second);
                     break;
 
                 case RaceDiagnostic.ReadWrite:
@@ -432,7 +433,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                         readInfo = String.Format("Read ({0}) by", firstLocation);
                         writeInfo = String.Format("Write ({0}) by", secondLocation);
                     }
-                    ReportRace("Read/Write", readInfo, first, writeInfo, second);
+                    ReportRace($"Read/Write[{objHandle}/{offset}]", readInfo, first, writeInfo, second);
                     break;
 
                 default:
@@ -440,7 +441,8 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
         }
 
-        private void ReportReadSharedWriteRace(string sourceLocation, long currentMId, VectorClock currentVC, VarState varState)
+        private void ReportReadSharedWriteRace(string sourceLocation, long currentMId, VectorClock currentVC, VarState varState, 
+            UIntPtr objHandle, UIntPtr offset)
         {
             string writeInfo = "Write by:";
             string readInfo = "Shared Read by: ";
@@ -459,7 +461,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 }
                 if (!InSameMonitor(varState.InMonitorRead[(long)previousReader], this.InMonitor))
                 {
-                    ReportRace("Read-Shared/Write", readInfo, previousReader, writeInfo, currentMId);
+                    ReportRace($"Read-Shared/Write[{objHandle}/{offset}]", readInfo, previousReader, writeInfo, currentMId);
                 }
             }
         }
