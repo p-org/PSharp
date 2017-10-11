@@ -285,7 +285,7 @@ namespace Core.Utilities.Profiling
         /// <param name="maxTime"></param>
         private CriticalPathNode AddSinkNodeAndEdges(List<CriticalPathNode> terminalNodes, long maxTime)
         {
-            var data = new PAGNodeData("Sink", 0, PAGNodeType.Sink, maxTime);
+            var data = new PAGNodeData("Sink", 0, PAGNodeType.Sink, maxTime, -1);
             var sinkNode = new CriticalPathNode(data);
             ProgramActivityGraph.AddNode(sinkNode);
             HashSet<Node<PAGNodeData>> interesting = new HashSet<Node<PAGNodeData>>();
@@ -321,6 +321,10 @@ namespace Core.Utilities.Profiling
             {
                 var source = idToNode[pair.Item1];
                 var target = idToNode[pair.Item2];
+                if (source.Data.MachineId == target.Data.MachineId)
+                {
+                    source.Data.MachineSuccessor = target;
+                }
                 var timeDiff = target.Data.Timestamp - source.Data.Timestamp;
                 ProgramActivityGraph.AddEdge(new TaggedEdge<Node<PAGNodeData>, long>(source, target, timeDiff));
             }
@@ -353,7 +357,7 @@ namespace Core.Utilities.Profiling
             var nodeName = $"{machine.Id}:{currentStateName}:+{nodeType.ToString()}:{extra}";
             long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
             long idleTime = isDequeueEnd ? Math.Max(currentTimeStamp - machine.predecessorTimestamp, 0) : 0;
-            var data = new PAGNodeData(nodeName, idleTime, nodeType, currentTimeStamp);
+            var data = new PAGNodeData(nodeName, idleTime, nodeType, currentTimeStamp, (long)machine.Id.Value);
             var node = new CriticalPathNode(data);
             if (machine.predecessorId != -1)
             {
@@ -427,18 +431,10 @@ namespace Core.Utilities.Profiling
         /// <returns></returns>
         private CriticalPathNode GetCorrespondingActionEnd(CriticalPathNode actionBeginNode)
         {
-            System.Diagnostics.Debug.Assert(actionBeginNode.Data.NodeType == PAGNodeType.ActionBegin, "Require action begin node");
-            CriticalPathNode successor = ProgramActivityGraph.OutEdges(actionBeginNode).First().Target;
+            var successor = actionBeginNode.Data.MachineSuccessor;
             while (successor.Data.NodeType != PAGNodeType.ActionEnd)
             {
-                if (ProgramActivityGraph.OutDegree(successor) == 1)
-                {
-                    successor = ProgramActivityGraph.OutEdges(successor).First().Target;
-                }
-                else
-                {
-                    successor = ProgramActivityGraph.OutEdges(successor).Where(x => !IsDequeueEndOrReceiveEnd(x.Target)).First().Target;
-                }
+                successor = successor.Data.MachineSuccessor;
             }
             return successor;
         }

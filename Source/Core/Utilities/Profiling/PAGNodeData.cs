@@ -62,18 +62,30 @@ namespace Core.Utilities.Profiling
         public PAGNodeType NodeType { get; private set; }
 
         /// <summary>
+        /// The id of the machine whose event this node represents
+        /// </summary>
+        public long MachineId;
+
+        /// <summary>
+        /// The node representing the next interesting event on this machine
+        /// </summary>
+        public Node<PAGNodeData> MachineSuccessor;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name"></param>
         /// <param name="idleTime"></param>
         /// <param name="nodeType"></param>
         /// <param name="timestamp"></param>
-        public PAGNodeData(string name, long idleTime, PAGNodeType nodeType, long timestamp)
+        /// <param name="machineId"></param>
+        public PAGNodeData(string name, long idleTime, PAGNodeType nodeType, long timestamp, long machineId)
         {
             Name = name;
             IdleTime = idleTime;
             Timestamp = timestamp;
             NodeType = nodeType;
+            this.MachineId = machineId;
         }
 
         /// <summary>
