@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterCreateMachine(MachineId source, MachineId target)
         {
-            WriteToLog($"<RaceLog> Create({source}, {target})");
+            LogCreate(source, target);
             CreateCount++;
 
             // The id of the created machine should not conflict with an id seen earlier
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
-            WriteToLog($"<RaceLog> Deq({source}, {target}, {e}, {sequenceNumber})");
+            LogDequeue(source, target, e, sequenceNumber);
             DequeueCount++;
 
             var currentState = GetCurrentState(target);
@@ -185,7 +185,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
-            WriteToLog($"<RaceLog> Enq({source}, {target}, {e}, {sequenceNumber})");
+            LogEnqueue(source, target, e, sequenceNumber);
             EnqueueCount++;
 
             var currentState = GetCurrentState(source);
@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterRead(ulong source, string sourceLocation, UIntPtr location, UIntPtr objHandle, UIntPtr offset, bool isVolatile)
         {
-            WriteToLog($"<RaceLog> Read({sourceLocation}, {source}, {objHandle}, {offset})");
+            LogRead(sourceLocation, source, objHandle, offset);
             ReadCount++;
 
             var key = new Tuple<UIntPtr, UIntPtr>(objHandle, offset);
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             // of the action yet, so source \in MS is not guaranteed
             if (!MS.ContainsKey(source))
             {
-                WriteToLog("Saw a read in an action without a corresponding deq");
+                // WriteToLog("Saw a read in an action without a corresponding deq");
                 MS[source] = new InstrMachineState(source, this.Log, Config.EnableRaceDetectorLogging);
             }
 
@@ -280,7 +280,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         public void RegisterWrite(ulong source, string sourceLocation,
             UIntPtr location, UIntPtr objHandle, UIntPtr offset, bool isVolatile)
         {
-            WriteToLog($"<RaceLog> Write({sourceLocation}, {source}, {objHandle}, {offset})");
+            LogWrite(sourceLocation, source, objHandle, offset);
             WriteCount++;
 
             var key = new Tuple<UIntPtr, UIntPtr>(objHandle, offset);
@@ -289,7 +289,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             // of the action yet, so source \in MS is not guaranteed
             if (!MS.ContainsKey(source))
             {
-                WriteToLog("Saw a write in an action without a corresponding deq");
+                // WriteToLog("Saw a write in an action without a corresponding deq");
                 var newState = new InstrMachineState(source, this.Log, Config.EnableRaceDetectorLogging);
                 MS[source] = newState;
             }
@@ -441,7 +441,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
         }
 
-        private void ReportReadSharedWriteRace(string sourceLocation, long currentMId, VectorClock currentVC, VarState varState, 
+        private void ReportReadSharedWriteRace(string sourceLocation, long currentMId, VectorClock currentVC, VarState varState,
             UIntPtr objHandle, UIntPtr offset)
         {
             string writeInfo = "Write by:";
@@ -484,18 +484,54 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 return MS[machineId.Value];
             }
 
-            WriteToLog("Saw first operation for " + machineId);
+            // WriteToLog("Saw first operation for " + machineId);
             var newState = new InstrMachineState(machineId.Value, this.Log, Config.EnableRaceDetectorLogging);
             MS[machineId.Value] = newState;
             return newState;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteToLog(string message)
+        private void LogCreate(MachineId source, MachineId target)
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine(message);
+                Log.WriteLine($"<RaceLog> Create({source}, {target})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Deq({source}, {target}, {e}, {sequenceNumber})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Enq({source}, {target}, {e}, {sequenceNumber})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogRead(string sourceLocation, ulong source, UIntPtr objHandle, UIntPtr offset)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Read({sourceLocation}, {source}, {objHandle}, {offset})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogWrite(string sourceLocation, ulong source, UIntPtr objHandle, UIntPtr offset)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Write({sourceLocation}, {source}, {objHandle}, {offset})");
             }
         }
     }

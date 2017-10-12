@@ -140,6 +140,8 @@ namespace Microsoft.PSharp.TestingServices
                 base.Logger.WriteLine($"..... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
             }
+
+            base.Logger.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         /// <summary>
