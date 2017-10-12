@@ -86,7 +86,7 @@ namespace Microsoft.PSharp.TestingServices
                 monitorProc.StartInfo.RedirectStandardError = true;
                 monitorProc.Start();
 
-                Output.WriteLine($"... Shutting down code coverage monitor");
+                Output.WriteLine($"... {(isStarting ? "Starting" : "Shutting down")} code coverage monitor");
 
                 // timedOut can only become true on shutdown (non-infinite timeout value)
                 timedOut = !monitorProc.WaitForExit(isStarting ? Timeout.Infinite : 5000);
