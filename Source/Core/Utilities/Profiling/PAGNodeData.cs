@@ -72,6 +72,11 @@ namespace Core.Utilities.Profiling
         public Node<PAGNodeData> MachineSuccessor;
 
         /// <summary>
+        /// The node representing the previous interesting event on this machine
+        /// </summary>
+        public Node<PAGNodeData> MachinePredecessor;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name"></param>

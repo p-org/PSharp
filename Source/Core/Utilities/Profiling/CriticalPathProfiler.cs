@@ -324,6 +324,7 @@ namespace Core.Utilities.Profiling
                 if (source.Data.MachineId == target.Data.MachineId)
                 {
                     source.Data.MachineSuccessor = target;
+                    target.Data.MachinePredecessor = source;
                 }
                 var timeDiff = target.Data.Timestamp - source.Data.Timestamp;
                 ProgramActivityGraph.AddEdge(new TaggedEdge<Node<PAGNodeData>, long>(source, target, timeDiff));
@@ -443,6 +444,58 @@ namespace Core.Utilities.Profiling
         {
             return node.Data.NodeType == PAGNodeType.DequeueEnd
                 || node.Data.NodeType == PAGNodeType.ReceiveEnd;
+        }
+
+        private bool IsSendOrCreate(CriticalPathNode node)
+        {
+            return node.Data.NodeType == PAGNodeType.Send
+                || node.Data.NodeType == PAGNodeType.Creator;
+        }
+
+        private IEnumerable<CriticalPathNode> GetPAGNodesForAction(string actionName)
+        {
+            return ProgramActivityGraph.Nodes.Where(x => x.Data.Name.Contains(actionName)
+                               && x.Data.NodeType == PAGNodeType.ActionBegin);
+        }
+
+        private CriticalPathNode GetOtherMachineSuccessor(CriticalPathNode node)
+        {
+            System.Diagnostics.Debug.Assert(IsSendOrCreate(node),
+                "Querying for other machine successor for a node without any");
+            return ProgramActivityGraph.OutEdges(node)
+                    .Where(x => x.Target.Data.MachineId != node.Data.MachineId)
+                    .Select(x => x.Target).First();
+        }
+
+        private CriticalPathNode GetOtherMachinePredecessor(CriticalPathNode node)
+        {
+            System.Diagnostics.Debug.Assert(IsDequeueEndOrReceiveEnd(node),
+                "Querying for other machine predecessor for a node without any");
+            return ProgramActivityGraph.InEdges(node)
+                    .Where(x => x.Target.Data.MachineId != node.Data.MachineId)
+                    .Select(x => x.Target).First();
+        }
+
+        private void PropagateInformation(CriticalPathNode source, int OptFactor)
+        {
+            var sameMachineSuccessor = source.Data.MachineSuccessor;
+
+            // is a send node
+
+
+            // is a create node
+
+            
+            // same machine + could have idle time
+            if (IsDequeueEndOrReceiveEnd(sameMachineSuccessor))
+            {
+
+            }
+
+            // same machine + no idle time
+            {
+
+            }
         }
     }
 }
