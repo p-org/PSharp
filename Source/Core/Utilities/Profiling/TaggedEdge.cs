@@ -23,7 +23,7 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// The tag associated with this edge
         /// </summary>
-        public TTag Tag { get; private set; }
+        public TTag Tag { get; set; }
 
         /// <summary>
         /// A tagged edge edge connecting source to target.
@@ -55,8 +55,7 @@ namespace Core.Utilities.Profiling
         {
             get { return this._Target; }
         }
-
-
+        
         /// <summary>
         /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
         /// </summary>

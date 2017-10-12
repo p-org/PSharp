@@ -49,12 +49,12 @@ namespace Core.Utilities.Profiling
         /// The time spent idling after the previous event until
         /// this node is created
         /// </summary>
-        public long IdleTime { get; private set; }
+        public long IdleTime { get; set; }
 
         /// <summary>
         /// The time at which this node is created
         /// </summary>
-        public long Timestamp { get; private set; }
+        public long Timestamp { get; set; }
 
         /// <summary>
         /// An enum representing the type of event the node represents
@@ -103,6 +103,6 @@ namespace Core.Utilities.Profiling
                 return String.Format("{0}[{1}]", Name, Timestamp);
             else
                 return String.Format("{0}[{1}/{2}]", Name, IdleTime, Timestamp);
-        }
+        }        
     }
 }

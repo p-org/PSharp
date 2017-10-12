@@ -458,6 +458,29 @@ namespace Core.Utilities.Profiling
                                && x.Data.NodeType == PAGNodeType.ActionBegin);
         }
 
+        private HashSet<CriticalPathEdge> GetEdgesToCompress(string actionName)
+        {
+            HashSet<CriticalPathEdge> result = new HashSet<CriticalPathEdge>();
+            foreach (var source in GetPAGNodesForAction(actionName))
+            {
+                var actionEnd = GetCorrespondingActionEnd(source);
+                var node = source;
+                while (node != actionEnd)
+                {
+                    foreach (var edge in ProgramActivityGraph.OutEdges(node))
+                    {
+                        if (edge.Target == node.Data.MachineSuccessor)
+                        {
+                            result.Add(edge);
+                            node = edge.Target;
+                            break;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         private CriticalPathNode GetOtherMachineSuccessor(CriticalPathNode node)
         {
             System.Diagnostics.Debug.Assert(IsSendOrCreate(node),
@@ -476,26 +499,88 @@ namespace Core.Utilities.Profiling
                     .Select(x => x.Target).First();
         }
 
-        private void PropagateInformation(CriticalPathNode source, int OptFactor)
+        /// <summary>
+        /// Recompute CP on optimizing action "actionName" by optfactor
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <param name="optFactor"></param>
+        public void Query(string actionName, int optFactor)
         {
-            var sameMachineSuccessor = source.Data.MachineSuccessor;
-
-            // is a send node
-
-
-            // is a create node
-
-            
-            // same machine + could have idle time
-            if (IsDequeueEndOrReceiveEnd(sameMachineSuccessor))
+            var sources = GetPAGNodesForAction(actionName);
+            var compressedEdges = GetEdgesToCompress(actionName);
+            Queue<CriticalPathNode> worklist = new Queue<CriticalPathNode>();
+            foreach (var source in sources)
             {
-
+                worklist.Enqueue(source);
             }
 
-            // same machine + no idle time
+            while (worklist.Any())
             {
+                var current = worklist.Dequeue();
+                foreach (var edge in ProgramActivityGraph.OutEdges(current))
+                {
+                    var target = edge.Target;
+                    if (target.Data.NodeType == PAGNodeType.Sink)
+                    {
+                        continue;
+                    }
+                    if (compressedEdges.Contains(edge))
+                    {
+                        edge.Tag = edge.Tag / optFactor;
+                    }
 
+                    if (target == current.Data.MachineSuccessor)
+                    {
+                        if (!IsDequeueEndOrReceiveEnd(target))
+                        {
+                            target.Data.Timestamp = (current.Data.Timestamp + edge.Tag);
+                        }
+                        else
+                        {
+                            var otherPredecessor = GetOtherMachinePredecessor(current);
+                            var senderTimeStamp = otherPredecessor.Data.Timestamp;
+                            var currentTimeStamp = current.Data.Timestamp;
+                            target.Data.Timestamp = Math.Max(senderTimeStamp, currentTimeStamp);
+                            target.Data.IdleTime = Math.Max(senderTimeStamp - currentTimeStamp, 0);
+                            edge.Tag = target.Data.Timestamp - currentTimeStamp;
+                        }
+                    }
+                    // This is a dequeueEnd/child node
+                    else
+                    {
+                        if (target.Data.NodeType == PAGNodeType.Child)
+                        {
+                            target.Data.Timestamp = current.Data.Timestamp + edge.Tag;
+                        }
+                        else
+                        {
+                            var senderTimeStamp = current.Data.Timestamp;
+                            var currentTimeStamp = target.Data.MachinePredecessor.Data.Timestamp;
+                            target.Data.Timestamp = Math.Max(senderTimeStamp, currentTimeStamp);
+                            target.Data.IdleTime = Math.Max(senderTimeStamp - currentTimeStamp, 0);
+                            edge.Tag = target.Data.Timestamp - senderTimeStamp;
+                        }
+                    }
+                    if (target.Data.NodeType != PAGNodeType.Sink)
+                    {
+                        worklist.Enqueue(target);
+                    }
+                }
             }
+
+            // computing the actual path(s)
+            // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
+            var sinkNode = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).First();
+            var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
+
+            // compute the top 3 activities that take the most time
+            var topActivities = new HashSet<long>(GetTopKNodes(3).Select(x => x.Id));
+
+            // serialize the graph
+            var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
+            var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
+            var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".Opt" +".dgml";
+            ProgramActivityGraph.Serialize(fileName, uniqueEdges, topActivities);
         }
     }
 }
