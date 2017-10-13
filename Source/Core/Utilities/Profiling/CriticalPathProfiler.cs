@@ -242,9 +242,7 @@ namespace Core.Utilities.Profiling
             this.ProfiledTime = (this.StopTime - StartTime) / ScalingFactor;
             ConstructPAG();
 
-            var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
-            var maxTime = terminalNodes.Max(x => x.Data.Timestamp);
-            var sinkNode = AddSinkNodeAndEdges(terminalNodes, maxTime);
+            var sinkNode = AddSinkNodeAndEdges();
 
             // computing the actual path(s)
             // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
@@ -281,10 +279,10 @@ namespace Core.Utilities.Profiling
         /// Add a sink node, and edges from the terminal node of each machine's sequence of actions
         /// in the PAG to the sink node.
         /// </summary>
-        /// <param name="terminalNodes"></param>
-        /// <param name="maxTime"></param>
-        private CriticalPathNode AddSinkNodeAndEdges(List<CriticalPathNode> terminalNodes, long maxTime)
+        private CriticalPathNode AddSinkNodeAndEdges()
         {
+            var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
+            var maxTime = terminalNodes.Max(x => x.Data.Timestamp);
             var data = new PAGNodeData("Sink", 0, PAGNodeType.Sink, maxTime, -1);
             var sinkNode = new CriticalPathNode(data);
             ProgramActivityGraph.AddNode(sinkNode);
@@ -540,9 +538,7 @@ namespace Core.Utilities.Profiling
                             var otherPredecessor = GetOtherMachinePredecessor(current);
                             var senderTimeStamp = otherPredecessor.Data.Timestamp;
                             var currentTimeStamp = current.Data.Timestamp;
-                            target.Data.Timestamp = Math.Max(senderTimeStamp, currentTimeStamp);
-                            target.Data.IdleTime = Math.Max(senderTimeStamp - currentTimeStamp, 0);
-                            edge.Tag = target.Data.Timestamp - currentTimeStamp;
+                            UpdateTarget(target, senderTimeStamp, currentTimeStamp);
                         }
                     }
                     // This is a dequeueEnd/child node
@@ -556,9 +552,7 @@ namespace Core.Utilities.Profiling
                         {
                             var senderTimeStamp = current.Data.Timestamp;
                             var currentTimeStamp = target.Data.MachinePredecessor.Data.Timestamp;
-                            target.Data.Timestamp = Math.Max(senderTimeStamp, currentTimeStamp);
-                            target.Data.IdleTime = Math.Max(senderTimeStamp - currentTimeStamp, 0);
-                            edge.Tag = target.Data.Timestamp - senderTimeStamp;
+                            UpdateTarget(target, senderTimeStamp, currentTimeStamp);
                         }
                     }
                     if (target.Data.NodeType != PAGNodeType.Sink)
@@ -568,9 +562,11 @@ namespace Core.Utilities.Profiling
                 }
             }
 
-            // computing the actual path(s)
-            // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
+            // Remove the existing sink node and add a new one reflecting the new CP
             var sinkNode = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).First();
+            ProgramActivityGraph.RemoveNode(sinkNode);
+
+            sinkNode = AddSinkNodeAndEdges();
             var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
 
             // compute the top 3 activities that take the most time
@@ -579,8 +575,18 @@ namespace Core.Utilities.Profiling
             // serialize the graph
             var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
             var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
-            var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".Opt" +".dgml";
+            var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".Opt" + ".dgml";
             ProgramActivityGraph.Serialize(fileName, uniqueEdges, topActivities);
+        }
+
+        private void UpdateTarget(CriticalPathNode target, long senderTimeStamp, long currentTimeStamp)
+        {
+            target.Data.Timestamp = Math.Max(senderTimeStamp, currentTimeStamp);
+            target.Data.IdleTime = Math.Max(senderTimeStamp - currentTimeStamp, 0);
+            foreach (var e in ProgramActivityGraph.InEdges(target))
+            {
+                e.Tag = e.Target.Data.Timestamp - e.Source.Data.Timestamp;
+            }
         }
     }
 }
