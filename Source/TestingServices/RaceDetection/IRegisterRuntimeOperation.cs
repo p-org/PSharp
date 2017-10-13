@@ -37,6 +37,12 @@ namespace Microsoft.PSharp.TestingServices
         Dictionary<ulong, bool> InAction { get; set; }
 
         /// <summary>
+        /// InMonitor = -1 iff the runtime is not inside a monitor
+        /// and the monitor id otherwise
+        /// </summary>
+        long InMonitor { get; set; }
+
+        /// <summary>
         /// Process a read to a heap location.
         /// <param name="source">The machine performing the read</param>
         /// <param name="sourceInformation"> Line number of this read</param>

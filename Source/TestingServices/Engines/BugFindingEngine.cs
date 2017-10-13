@@ -140,6 +140,8 @@ namespace Microsoft.PSharp.TestingServices
                 base.Logger.WriteLine($"..... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
             }
+
+            base.Logger.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         /// <summary>
@@ -377,8 +379,6 @@ namespace Microsoft.PSharp.TestingServices
                     callback(iteration);
                 }
 
-                // TODO: Clean this up.
-                base.Configuration.RaceDetectionCallback?.Invoke();
                 if (base.Configuration.RaceFound)
                 {
                     string message = IO.Utilities.Format("Found a race");

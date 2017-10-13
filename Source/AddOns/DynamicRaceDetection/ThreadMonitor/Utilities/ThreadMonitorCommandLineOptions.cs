@@ -26,12 +26,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="args">Array of arguments</param>
         public ThreadMonitorCommandLineOptions(string[] args)
-            : base (args)
+            : base(args)
         {
-
         }
 
-        #endregion
+        #endregion public API
 
         #region protected methods
 
@@ -272,7 +271,7 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().StartsWith("/instr-list:"))
             {
                 base.Configuration.AdditionalCodeCoverageAssemblies[option.Substring(12)] = true;
-            }            
+            }
             else if (option.ToLower().StartsWith("/sch-seed:") && option.Length > 10)
             {
                 int seed;
@@ -355,7 +354,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.EnableUserDefinedStateHashing = true;
             }
-
             else if (option.ToLower().Equals("/detect-races"))
             {
                 base.Configuration.EnableDataRaceDetection = true;
@@ -491,6 +489,6 @@ namespace Microsoft.PSharp.Utilities
             Output.WriteLine(help);
         }
 
-        #endregion
+        #endregion protected methods
     }
 }

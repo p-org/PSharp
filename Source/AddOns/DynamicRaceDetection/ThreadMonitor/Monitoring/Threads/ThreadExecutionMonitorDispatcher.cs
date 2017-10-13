@@ -107,21 +107,17 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             }
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
+            if (objH == UIntPtr.Zero)
+                return;
             if (Reporter.InAction[machineId])// && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 if (is_volatile)
                 {
                     throw new Exception("Volatile variables not permitted in PSharp state machines");
                 }
-                string sourceInfo = "";
-                if (Configuration.EnableReadWriteTracing)
-                {
-                    StackFrame callStack = new StackFrame(3, true);                                                
-                    sourceInfo = String.Format ("Line {0} in Method {1} in File {2}.",
-                        callStack.GetFileLineNumber(), callStack.GetMethod(), callStack.GetFileName());
-                }
+                var sourceInfo = GetDebugInformation(location, objH);
                 Reporter.RegisterRead(machineId, sourceInfo, location, objH, objO, is_volatile);
-            }  
+            }
         }
 
         //[DebuggerNonUserCodeAttribute]
@@ -135,19 +131,15 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             }
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
+            if (objH == UIntPtr.Zero)
+                return;
             if (Reporter.InAction[machineId] /*&& !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null*/)
             {
                 if (is_volatile)
                 {
                     throw new Exception("Volatile variables not permitted in PSharp state machines");
                 }
-                string sourceInfo = "";
-                if (Configuration.EnableReadWriteTracing)
-                {
-                    StackFrame callStack = new StackFrame(3, true);
-                    sourceInfo = String.Format("Line {0} in Method {1} in File {2}.",
-                        callStack.GetFileLineNumber(), callStack.GetMethod(), callStack.GetFileName());
-                }
+                var sourceInfo = GetDebugInformation(location, objH);
                 Reporter.RegisterWrite(machineId, sourceInfo, location, objH, objO, is_volatile);
             }
         }
@@ -192,6 +184,43 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             }
 
             return result;
+        }
+
+        private static string TryGetClassName(UIntPtr location, UIntPtr objH)
+        {
+            var className = "Unk";
+            if (objH == UIntPtr.Zero)
+            {
+                return className;
+            }
+            UIntPtr classHandle;
+            if (ObjectTracking.TryGetClassHandle(objH, out classHandle))
+            {
+                className = ObjectTracking.GetClassName(classHandle);
+            }
+            return className;
+        }
+
+        private string GetDebugInformation(UIntPtr location, UIntPtr objH)
+        {
+            string sourceInfo = "";
+            if (Configuration.EnableReadWriteTracing)
+            {
+                StackFrame callStack = new StackFrame(4, true);
+                var caller = new StackFrame(5, true);
+                string sep = $"{Environment.NewLine}\t\t";
+                string className = TryGetClassName(location, objH);
+                sourceInfo = String.Format("ObjectType[{0}] {1}{2} {3}",
+                    className, GetSourceInformation(callStack), sep, GetSourceInformation(caller));
+            }
+
+            return sourceInfo;
+        }
+
+        private string GetSourceInformation(StackFrame callStack)
+        {
+            return String.Format("Line {0} in Method {1} in File {2}.",
+                    callStack.GetFileLineNumber(), callStack.GetMethod(), callStack.GetFileName());
         }
 
         #endregion methods

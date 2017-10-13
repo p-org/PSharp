@@ -47,6 +47,11 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         private Dictionary<ulong, VectorClock> ES;
 
         /// <summary>
+        /// Track the names of machines. Used when we report races
+        /// </summary>
+        private Dictionary<ulong, string> DescriptiveName;
+
+        /// <summary>
         /// A logger and configuration from the runtime to report races
         /// found (and possibly debug logs).
         /// </summary>
@@ -98,7 +103,9 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             MS = new Dictionary<ulong, InstrMachineState>();
             VS = new Dictionary<Tuple<UIntPtr, UIntPtr>, VarState>();
             ES = new Dictionary<ulong, VectorClock>();
+            DescriptiveName = new Dictionary<ulong, string>();
             InAction = new Dictionary<ulong, bool>();
+            InMonitor = -1;
             this.Log = logger;
             this.Config = config;
             this.TestReport = testReport;
@@ -106,6 +113,8 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         public Dictionary<ulong, bool> InAction { get; set; }
+
+        public long InMonitor { get; set; }
 
         public bool TryGetCurrentMachineId(out ulong machineId)
         {
@@ -121,20 +130,22 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void SetRuntime(PSharpRuntime runtime)
         {
-            runtime.Assert((runtime as BugFindingRuntime) != null, 
+            runtime.Assert((runtime as BugFindingRuntime) != null,
                 "Requires passed runtime to support method GetCurrentMachineId");
             this.Runtime = runtime as BugFindingRuntime;
         }
 
         public void RegisterCreateMachine(MachineId source, MachineId target)
         {
-            WriteToLog($"<RaceLog> Create({source}, {target})");
+            LogCreate(source, target);
             CreateCount++;
 
             // The id of the created machine should not conflict with an id seen earlier
-            Runtime.Assert(MS.ContainsKey(target.Value) == false, "New ID conflicts with an already existing id");
+            Runtime.Assert(MS.ContainsKey(target.Value) == false, $"New ID {target} conflicts with an already existing id");
 
-            // In case the runtime creates a machine, simply create a machine state for it, 
+            DescriptiveName[target.Value] = target.ToString();
+
+            // In case the runtime creates a machine, simply create a machine state for it,
             // with a fresh VC where the appropriate component is incremented.
             // no hb rule needs to be triggered
             if (source == null)
@@ -143,6 +154,8 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 MS[target.Value] = newState;
                 return;
             }
+
+            DescriptiveName[source.Value] = source.ToString();
 
             var sourceMachineState = GetCurrentState(source);
             var targetState = new InstrMachineState(target.Value, this.Log, Config.EnableRaceDetectorLogging);
@@ -153,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
-            WriteToLog($"<RaceLog> Deq({source}, {target}, {e}, {sequenceNumber})");
+            LogDequeue(source, target, e, sequenceNumber);
             DequeueCount++;
 
             var currentState = GetCurrentState(target);
@@ -172,7 +185,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
-            WriteToLog($"<RaceLog> Enq({source}, {target}, {e}, {sequenceNumber})");
+            LogEnqueue(source, target, e, sequenceNumber);
             EnqueueCount++;
 
             var currentState = GetCurrentState(source);
@@ -182,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         public void RegisterRead(ulong source, string sourceLocation, UIntPtr location, UIntPtr objHandle, UIntPtr offset, bool isVolatile)
         {
-            WriteToLog($"<RaceLog> Read({sourceLocation}, {source}, {objHandle}, {offset})");
+            LogRead(sourceLocation, source, objHandle, offset);
             ReadCount++;
 
             var key = new Tuple<UIntPtr, UIntPtr>(objHandle, offset);
@@ -191,7 +204,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             // of the action yet, so source \in MS is not guaranteed
             if (!MS.ContainsKey(source))
             {
-                WriteToLog("Saw a read in an action without a corresponding deq");
+                // WriteToLog("Saw a read in an action without a corresponding deq");
                 MS[source] = new InstrMachineState(source, this.Log, Config.EnableRaceDetectorLogging);
             }
 
@@ -201,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             if (VS.ContainsKey(key))
             {
                 var varState = VS[key];
-
+                varState.InMonitorRead[(long)source] = this.InMonitor;
                 if (Config.EnableReadWriteTracing)
                 {
                     varState.LastReadLocation[(long)source] = sourceLocation;
@@ -220,10 +233,11 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 long currentMId = (long)source;
 
                 // The lastest write was from a diff machine, and no HB
-                if (writeMId != currentMId && !Epoch.Leq(writeEpoch, mVC.GetComponent(writeMId)))
+                if (writeMId != currentMId && !Epoch.Leq(writeEpoch, mVC.GetComponent(writeMId)) &&
+                    !InSameMonitor(varState.InMonitorWrite, this.InMonitor))
                 {
                     // Write/Read race
-                    ReportRace(RaceDiagnostic.WriteRead, varState.lastWriteLocation, writeMId, sourceLocation, currentMId);
+                    ReportRace(RaceDiagnostic.WriteRead, varState.lastWriteLocation, writeMId, sourceLocation, currentMId, objHandle, offset);
                     return;
                 }
 
@@ -253,18 +267,20 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
             else // The first read from this variable
             {
-                VS[key] = new VarState(false, currentEpoch, Config.EnableReadWriteTracing);
+                var currentState = new VarState(false, currentEpoch, Config.EnableReadWriteTracing, this.InMonitor);
+                currentState.InMonitorRead[(long)source] = this.InMonitor;
                 if (Config.EnableReadWriteTracing)
                 {
-                    VS[key].LastReadLocation[(long)source] = sourceLocation;
+                    currentState.LastReadLocation[(long)source] = sourceLocation;
                 }
+                VS[key] = currentState;
             }
         }
 
         public void RegisterWrite(ulong source, string sourceLocation,
             UIntPtr location, UIntPtr objHandle, UIntPtr offset, bool isVolatile)
         {
-            WriteToLog($"<RaceLog> Write({sourceLocation}, {source}, {objHandle}, {offset})");
+            LogWrite(sourceLocation, source, objHandle, offset);
             WriteCount++;
 
             var key = new Tuple<UIntPtr, UIntPtr>(objHandle, offset);
@@ -273,7 +289,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             // of the action yet, so source \in MS is not guaranteed
             if (!MS.ContainsKey(source))
             {
-                WriteToLog("Saw a write in an action without a corresponding deq");
+                // WriteToLog("Saw a write in an action without a corresponding deq");
                 var newState = new InstrMachineState(source, this.Log, Config.EnableRaceDetectorLogging);
                 MS[source] = newState;
             }
@@ -293,30 +309,33 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 var readEpoch = varState.ReadEpoch;
                 var writeMId = Epoch.MId(writeEpoch);
 
-                if (Config.EnableReadWriteTracing)
-                {
-                    varState.lastWriteLocation = sourceLocation;
-                }
-
                 if (writeEpoch == currentEpoch)
                 {
                     // Same-epoch write
                     return;
                 }
 
-                if (writeMId != currentMId && !Epoch.Leq(writeEpoch, currentVC.GetComponent(writeMId)))
+                if (writeMId != currentMId && !Epoch.Leq(writeEpoch, currentVC.GetComponent(writeMId)) &&
+                    !InSameMonitor(varState.InMonitorWrite, this.InMonitor))
                 {
-                    ReportRace(RaceDiagnostic.WriteWrite, varState.lastWriteLocation, writeMId, sourceLocation, currentMId);
+                    ReportRace(RaceDiagnostic.WriteWrite, varState.lastWriteLocation, writeMId, sourceLocation, currentMId, objHandle, offset);
+                }
+
+                varState.InMonitorWrite = this.InMonitor;
+                if (Config.EnableReadWriteTracing)
+                {
+                    varState.lastWriteLocation = sourceLocation;
                 }
 
                 if (readEpoch != Epoch.ReadShared)
                 {
                     var readMId = Epoch.MId(readEpoch);
-                    if (readMId != currentMId && !Epoch.Leq(readEpoch, currentVC.GetComponent(readMId)))
+                    if (readMId != currentMId && !Epoch.Leq(readEpoch, currentVC.GetComponent(readMId)) &&
+                        !InSameMonitor(varState.InMonitorRead[readMId], this.InMonitor))
                     {
                         // Read-Write Race
                         string firstLocation = Config.EnableReadWriteTracing ? varState.LastReadLocation[readMId] : "";
-                        ReportRace(RaceDiagnostic.ReadWrite, firstLocation, readMId, sourceLocation, currentMId);
+                        ReportRace(RaceDiagnostic.ReadWrite, firstLocation, readMId, sourceLocation, currentMId, objHandle, offset);
                     }
                 }
                 else
@@ -324,7 +343,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                     if (varState.VC.AnyGt(currentVC))
                     {
                         // SharedRead-Write Race
-                        ReportReadSharedWriteRace(sourceLocation, currentMId, currentVC, varState);
+                        ReportReadSharedWriteRace(sourceLocation, currentMId, currentVC, varState, objHandle, offset);
                     }
                     else
                     {
@@ -337,7 +356,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
             else
             {
-                VS[key] = new VarState(true, currentEpoch, Config.EnableReadWriteTracing);
+                VS[key] = new VarState(true, currentEpoch, Config.EnableReadWriteTracing, this.InMonitor);
                 if (Config.EnableReadWriteTracing)
                 {
                     VS[key].lastWriteLocation = sourceLocation;
@@ -351,7 +370,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             this.ES.Clear();
             this.VS.Clear();
             this.InAction.Clear();
-            Log.WriteLine($"Iteration stats " +
+            this.Runtime.Logger.WriteLine($"Iteration stats " +
                 $"Enq:{EnqueueCount} Deq:{DequeueCount} Create:{CreateCount} Read:{ReadCount} Write:{WriteCount}");
             ResetCounters();
         }
@@ -372,12 +391,15 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         {
             Config.RaceFound = true;
             var nL = Environment.NewLine;
-            string report = $"****RACE:****{nL}\t{diagnostic}{nL}\t\t {first}:{fId}{nL}\t\t {second}:{sId}";
+            var firstId = DescriptiveName[(ulong)fId];
+            var secondId = DescriptiveName[(ulong)sId];
+            string report = $"****RACE:****{nL}\t{diagnostic}{nL}\t\t {first}:{firstId}{nL}\t\t {second}:{secondId}";
             Log.WriteLine(report);
             this.TestReport.BugReports.Add(report);
         }
 
-        private void ReportRace(RaceDiagnostic diagnostic, string firstLocation, long first, string secondLocation, long second)
+        private void ReportRace(RaceDiagnostic diagnostic, string firstLocation, long first, string secondLocation, long second,
+            UIntPtr objHandle, UIntPtr offset)
         {
             switch (diagnostic)
             {
@@ -389,7 +411,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                         writeInfo = String.Format("Write ({0}) by", firstLocation);
                         readInfo = String.Format("Read ({0}) by", secondLocation);
                     }
-                    ReportRace("Write/Read", writeInfo, first, readInfo, second);
+                    ReportRace($"Write/Read[{objHandle}/{offset}]", writeInfo, first, readInfo, second);
                     break;
 
                 case RaceDiagnostic.WriteWrite:
@@ -400,7 +422,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                         firstWriteInfo = String.Format("Write ({0}) by", firstLocation);
                         secondWriteInfo = String.Format("Write ({0}) by", secondLocation);
                     }
-                    ReportRace("Write/Write", firstWriteInfo, first, secondWriteInfo, second);
+                    ReportRace($"Write/Write[{objHandle}/{offset}]", firstWriteInfo, first, secondWriteInfo, second);
                     break;
 
                 case RaceDiagnostic.ReadWrite:
@@ -411,7 +433,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                         readInfo = String.Format("Read ({0}) by", firstLocation);
                         writeInfo = String.Format("Write ({0}) by", secondLocation);
                     }
-                    ReportRace("Read/Write", readInfo, first, writeInfo, second);
+                    ReportRace($"Read/Write[{objHandle}/{offset}]", readInfo, first, writeInfo, second);
                     break;
 
                 default:
@@ -419,7 +441,8 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
         }
 
-        private void ReportReadSharedWriteRace(string sourceLocation, long currentMId, VectorClock currentVC, VarState varState)
+        private void ReportReadSharedWriteRace(string sourceLocation, long currentMId, VectorClock currentVC, VarState varState,
+            UIntPtr objHandle, UIntPtr offset)
         {
             string writeInfo = "Write by:";
             string readInfo = "Shared Read by: ";
@@ -436,9 +459,22 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 {
                     readInfo = String.Format("Shared Read ({0}) by", varState.LastReadLocation[(long)previousReader]);
                 }
-
-                ReportRace("Read-Shared/Write", readInfo, previousReader, writeInfo, currentMId);
+                if (!InSameMonitor(varState.InMonitorRead[(long)previousReader], this.InMonitor))
+                {
+                    ReportRace($"Read-Shared/Write[{objHandle}/{offset}]", readInfo, previousReader, writeInfo, currentMId);
+                }
             }
+        }
+
+        private bool InSameMonitor(long firstMonitor, long secondMonitor)
+        {
+            // both accesses are outside monitors, therefore not in the same monitor
+            if (firstMonitor == -1 && secondMonitor == -1)
+            {
+                return false;
+            }
+
+            return firstMonitor == secondMonitor;
         }
 
         private InstrMachineState GetCurrentState(MachineId machineId)
@@ -448,18 +484,54 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                 return MS[machineId.Value];
             }
 
-            WriteToLog("Saw first operation for " + machineId);
+            // WriteToLog("Saw first operation for " + machineId);
             var newState = new InstrMachineState(machineId.Value, this.Log, Config.EnableRaceDetectorLogging);
             MS[machineId.Value] = newState;
             return newState;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteToLog(string message)
+        private void LogCreate(MachineId source, MachineId target)
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine(message);
+                Log.WriteLine($"<RaceLog> Create({source}, {target})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Deq({source}, {target}, {e}, {sequenceNumber})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Enq({source}, {target}, {e}, {sequenceNumber})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogRead(string sourceLocation, ulong source, UIntPtr objHandle, UIntPtr offset)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Read({sourceLocation}, {source}, {objHandle}, {offset})");
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LogWrite(string sourceLocation, ulong source, UIntPtr objHandle, UIntPtr offset)
+        {
+            if (Config.EnableRaceDetectorLogging)
+            {
+                Log.WriteLine($"<RaceLog> Write({sourceLocation}, {source}, {objHandle}, {offset})");
             }
         }
     }

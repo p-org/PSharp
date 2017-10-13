@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadMonitor", "ThreadMonitor\ThreadMonitor.csproj", "{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}"
 EndProject
@@ -78,5 +78,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{6DEBC6DB-D866-46DE-A55F-21DAA3BC458D} = {6A075B14-5CA9-4B66-997B-CFE8E626104E}
 		{31896F2D-63AE-4AC5-BBA2-5DE9BE60892E} = {6A075B14-5CA9-4B66-997B-CFE8E626104E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B4CDCC0-FBB9-4D7C-8FE6-AAD1792369E8}
 	EndGlobalSection
 EndGlobal

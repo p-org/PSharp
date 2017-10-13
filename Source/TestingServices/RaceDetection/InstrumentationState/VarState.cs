@@ -29,12 +29,17 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
 
         internal Dictionary<long, string> LastReadLocation;
 
-        public VarState(bool isWrite, long epoch, bool shouldCreateInstrumentationState)
+        internal long InMonitorWrite;
+
+        internal Dictionary<long, long> InMonitorRead;
+
+        public VarState(bool isWrite, long epoch, bool shouldCreateInstrumentationState, long inMonitor)
         {
             if (isWrite)
             {
                 ReadEpoch = Epoch.Zero;
                 WriteEpoch = epoch;
+                InMonitorWrite = inMonitor;
             }
             else
             {
@@ -46,6 +51,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
             {
                 LastReadLocation = new Dictionary<long, string>();
             }
+            InMonitorRead = new Dictionary<long, long>();
         }
     }
 }

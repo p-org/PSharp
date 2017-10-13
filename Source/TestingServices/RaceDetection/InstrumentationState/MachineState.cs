@@ -48,14 +48,20 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
             this.EnableLogging = enableLogging;
             this.IncrementEpochAndVC();  // initialize
             Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            WriteToLog($"<VCLog> Created {VC.ToString()} for {Mid}");
+            if (EnableLogging)
+            {
+                Logger.WriteLine($"<VCLog> Created {VC.ToString()} for {Mid}");
+            }
         }
 
         public void IncrementEpochAndVC()
         {
             Epoch = VC.Tick(Mid);
             Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            WriteToLog($"<VCLog> Updated {VC.ToString()} for {Mid} [Increment]");
+            if (EnableLogging)
+            {
+                Logger.WriteLine($"<VCLog> Updated {VC.ToString()} for {Mid} [Increment]");
+            }
         }
 
         public void JoinEpochAndVC(VectorClock other)
@@ -63,7 +69,10 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
             VC.Max(other);
             Epoch = this.VC.GetComponent(this.Mid);
             Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            WriteToLog($"<VCLog> Updated {VC.ToString()} for {Mid} [Join {other.ToString()}]");
+            if (EnableLogging)
+            {
+                Logger.WriteLine($"<VCLog> Updated {VC.ToString()} for {Mid} [Join {other.ToString()}]");
+            }
         }
 
         public void JoinThenIncrement(VectorClock other)
@@ -71,20 +80,15 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
             JoinEpochAndVC(other);
             IncrementEpochAndVC();
             Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            WriteToLog($"<VCLog> Updated {VC.ToString()} for {Mid}");
+            if (EnableLogging)
+            {
+                Logger.WriteLine($"<VCLog> Updated {VC.ToString()} for {Mid}");
+            }
         }
 
         public int GetVCSize()
         {
             return VC.Size();
-        }
-
-        private void WriteToLog(string message)
-        {
-            if (EnableLogging)
-            {
-                Logger.WriteLine(message);
-            }
         }
     }
 }
