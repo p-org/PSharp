@@ -3,11 +3,20 @@ using Microsoft.PSharp;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CriticalPathTests
 {
     public class CascadeTest
     {
+        private readonly ITestOutputHelper output;
+
+        public CascadeTest(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
+
         internal class Configure : Event
         {
             public MachineId Id;
@@ -64,7 +73,7 @@ namespace CriticalPathTests
                 var delay = (this.ReceivedEvent as Configure).Delay;
                 var t = Task.Delay(TimeSpan.FromSeconds(delay));
                 t.Wait();
-                Receive(typeof(E)).Wait();
+                Receive(typeof(E));
                 this.Send(other, new E());
             }
         }
@@ -82,29 +91,27 @@ namespace CriticalPathTests
                 var delay = (this.ReceivedEvent as ConfigureFinisher).Delay;
                 var t = Task.Delay(TimeSpan.FromSeconds(delay));
                 t.Wait();
-                Receive(typeof(E)).Wait();
+                Receive(typeof(E));
                 tcs.SetResult(true);
             }
         }
 
         [Fact]
-        public async void Test1()
+        public void Test1()
         {
-            Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);
+            Configuration config = Configuration.Create().WithVerbosityEnabled(2).WithCriticalPathProfilingEnabled(true);            
             config.PAGFileName = "CascadeTest.Test1";
-            PSharpRuntime runtime = PSharpRuntime.Create(config);
+            PSharpRuntime runtime = PSharpRuntime.Create(config);           
             config.OutputFilePath = @"C:\Users\t-ansant\Source\Repos\PSharp\bin\net46";
             var tcs = new TaskCompletionSource<bool>();
-            var criticalPathProfiler = new CriticalPathProfiler(config, runtime.Logger);
-            runtime.SetCriticalPathProfiler(criticalPathProfiler);
-            runtime.StartCriticalPathProfiling();
+            var criticalPathProfiler = new CriticalPathProfiler(runtime);            
             var finisher = runtime.CreateMachine(typeof(FinisherMachine), new ConfigureFinisher(tcs, 3));
             var forwarder = runtime.CreateMachine(typeof(ForwarderMachine), new Configure(finisher, 5));
             var initiator = runtime.CreateMachine(typeof(InitiatorMachine), new Configure(forwarder, 10));
             tcs.Task.Wait();
-            await Task.Delay(TimeSpan.FromSeconds(11));
+            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
             runtime.StopCriticalPathProfiling();
-            criticalPathProfiler.Query("InitiatorMachine.Init:+ActionBegin:InitOnEntry", 2);
+            criticalPathProfiler.Query("InitiatorMachine.Init:+ActionBegin:InitOnEntry", 4);
         }
     }
 }

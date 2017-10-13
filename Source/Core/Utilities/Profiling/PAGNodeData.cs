@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.PSharp;
+using System;
 
 namespace Core.Utilities.Profiling
 {
@@ -43,7 +44,12 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// The name of the node
         /// </summary>
-        public string Name { get; private set; }
+        public string ActionName { get; private set; }
+
+        /// <summary>
+        /// The state this interesting profiling event belongs to
+        /// </summary>
+        public string StateName { get; private set; }
 
         /// <summary>
         /// The time spent idling after the previous event until
@@ -64,7 +70,12 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// The id of the machine whose event this node represents
         /// </summary>
-        public long MachineId;
+        public MachineId Mid;
+
+        /// <summary>
+        /// The parent action this node belongs to
+        /// </summary>
+        public long parentId;
 
         /// <summary>
         /// The node representing the next interesting event on this machine
@@ -79,18 +90,41 @@ namespace Core.Utilities.Profiling
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="m"></param>
+        /// <param name="actionName"></param>
         /// <param name="idleTime"></param>
         /// <param name="nodeType"></param>
         /// <param name="timestamp"></param>
-        /// <param name="machineId"></param>
-        public PAGNodeData(string name, long idleTime, PAGNodeType nodeType, long timestamp, long machineId)
+        /// <param name="parentId"></param>
+        public PAGNodeData(Machine m, string actionName, long idleTime, PAGNodeType nodeType, long timestamp, long parentId)
         {
-            Name = name;
+            ActionName = actionName;
+            StateName = m != null ? m.CurrentStateName : "";
             IdleTime = idleTime;
             Timestamp = timestamp;
             NodeType = nodeType;
-            this.MachineId = machineId;
+            this.Mid = m?.Id;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="stateName"></param>
+        /// <param name="actionName"></param>
+        /// <param name="idleTime"></param>
+        /// <param name="nodeType"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="mId"></param>
+        /// <param name="parentId"></param>
+        public PAGNodeData(string stateName, string actionName, long idleTime, PAGNodeType nodeType, long timestamp,
+            MachineId mId, long parentId)
+        {
+            this.StateName = stateName;
+            this.ActionName = actionName;
+            this.IdleTime = idleTime;
+            this.Timestamp = timestamp;
+            this.NodeType = nodeType;
+            this.Mid = mId;
         }
 
         /// <summary>
@@ -100,9 +134,9 @@ namespace Core.Utilities.Profiling
         public override string ToString()
         {
             if (IdleTime == 0)
-                return String.Format("{0}[{1}]", Name, Timestamp);
+                return String.Format("{0}[{1}]<{2}>]", StateName + "+" + ActionName, Timestamp, NodeType);
             else
-                return String.Format("{0}[{1}/{2}]", Name, IdleTime, Timestamp);
-        }        
+                return String.Format("{0}[{1}/{2}]<{3}>]", StateName + "+" + ActionName, IdleTime, Timestamp, NodeType);
+        }
     }
 }

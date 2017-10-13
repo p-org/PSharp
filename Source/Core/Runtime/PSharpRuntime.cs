@@ -877,6 +877,9 @@ namespace Microsoft.PSharp
         {
             this.CriticalPathProfiler = criticalPathProfiler ?? 
                 throw new InvalidOperationException("Cannot install a null critical path profiler.");
+            Assert(this.Configuration.EnableCriticalPathProfiling != false, 
+                "Installing a profiler without profiling enabled");
+            
         }
 
         /// <summary>

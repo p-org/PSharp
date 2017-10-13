@@ -96,6 +96,24 @@ namespace Core.Utilities.Profiling
         }
 
         /// <summary>
+        /// Constructor that installs this profiler on the runtime passed in,
+        /// and begins profiling
+        /// </summary>
+        /// <param name="runtime"></param>
+        public CriticalPathProfiler(PSharpRuntime runtime)
+        {
+            this.Configuration = runtime.Configuration;
+            this.Logger = runtime.Logger;
+            ProgramActivityGraph = new BidirectionalGraph<CriticalPathNode, CriticalPathEdge>();
+            if (Configuration.EnableCriticalPathProfiling == false)
+            {
+                Configuration.EnableCriticalPathProfiling = true;
+            }
+            runtime.SetCriticalPathProfiler(this);
+            this.StartCriticalPathProfiling();
+        }
+
+        /// <summary>
         /// Update profiler state on entering an action in a machine.
         /// </summary>
         /// <param name="machine">The machine running the action.</param>
@@ -124,7 +142,7 @@ namespace Core.Utilities.Profiling
         {
             if (parent == null) // the runtime created the machine
             {
-                RecordPAGNodeAndEdge(child, "RuntimeCreated", PAGNodeType.Child);
+                RecordPAGNodeAndEdge(child, "", PAGNodeType.Child);
             }
             else
             {
@@ -241,20 +259,106 @@ namespace Core.Utilities.Profiling
             this.StopTime = Stopwatch.GetTimestamp();
             this.ProfiledTime = (this.StopTime - StartTime) / ScalingFactor;
             ConstructPAG();
-
+            CleanUpPAG();
             var sinkNode = AddSinkNodeAndEdges();
 
             // computing the actual path(s)
             // terminalNodes.Where(x => x.Data.LongestElapsedTime == maxTime)
             var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
 
-            // compute the top 3 activities that take the most time
-            var topActivities = new HashSet<long>(GetTopKNodes(3).Select(x => x.Id));
+            // compute the top activities that take the most time
+            HashSet<long> topActivities = GetTopActivities(10);
 
             // serialize the graph
             var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
             var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
+            if (Configuration.PAGFileName == null || Configuration.PAGFileName.Length == 0)
+            {
+                Configuration.PAGFileName = "PAG";
+            }
             var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".dgml";
+            ProgramActivityGraph.Serialize(fileName, uniqueEdges, topActivities);
+        }
+
+        /// <summary>
+        /// Recompute CP on optimizing action "actionName" by optfactor
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <param name="optFactor"></param>
+        public void Query(string actionName, int optFactor)
+        {
+            var sources = GetPAGNodesForAction(actionName);
+            var compressedEdges = GetEdgesToCompress(actionName);
+            Queue<CriticalPathNode> worklist = new Queue<CriticalPathNode>();
+            foreach (var source in sources)
+            {
+                worklist.Enqueue(source);
+            }
+
+            while (worklist.Any())
+            {
+                var current = worklist.Dequeue();
+                foreach (var edge in ProgramActivityGraph.OutEdges(current))
+                {
+                    var target = edge.Target;
+                    if (target.Data.NodeType == PAGNodeType.Sink)
+                    {
+                        continue;
+                    }
+                    if (compressedEdges.Contains(edge))
+                    {
+                        edge.Tag = edge.Tag / optFactor;
+                    }
+
+                    if (target == current.Data.MachineSuccessor)
+                    {
+                        if (!IsDequeueEndOrReceiveEnd(target))
+                        {
+                            target.Data.Timestamp = (current.Data.Timestamp + edge.Tag);
+                        }
+                        else
+                        {
+                            var otherPredecessor = GetOtherMachinePredecessor(current);
+                            var senderTimeStamp = otherPredecessor.Data.Timestamp;
+                            var currentTimeStamp = current.Data.Timestamp;
+                            UpdateTarget(target, senderTimeStamp, currentTimeStamp);
+                        }
+                    }
+                    // This is a dequeueEnd/child node
+                    else
+                    {
+                        if (target.Data.NodeType == PAGNodeType.Child)
+                        {
+                            target.Data.Timestamp = current.Data.Timestamp + edge.Tag;
+                        }
+                        else
+                        {
+                            var senderTimeStamp = current.Data.Timestamp;
+                            var currentTimeStamp = target.Data.MachinePredecessor.Data.Timestamp;
+                            UpdateTarget(target, senderTimeStamp, currentTimeStamp);
+                        }
+                    }
+                    if (target.Data.NodeType != PAGNodeType.Sink)
+                    {
+                        worklist.Enqueue(target);
+                    }
+                }
+            }
+
+            // Remove the existing sink node and add a new one reflecting the new CP
+            var sinkNode = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).First();
+            ProgramActivityGraph.RemoveNode(sinkNode);
+
+            sinkNode = AddSinkNodeAndEdges();
+            var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
+
+            // compute the top activities that take the most time
+            var topActivities = GetTopActivities(10);
+
+            // serialize the graph
+            var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
+            var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
+            var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".Opt" + ".dgml";
             ProgramActivityGraph.Serialize(fileName, uniqueEdges, topActivities);
         }
 
@@ -283,7 +387,7 @@ namespace Core.Utilities.Profiling
         {
             var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
             var maxTime = terminalNodes.Max(x => x.Data.Timestamp);
-            var data = new PAGNodeData("Sink", 0, PAGNodeType.Sink, maxTime, -1);
+            var data = new PAGNodeData(null, "Sink", 0, PAGNodeType.Sink, maxTime, -1);
             var sinkNode = new CriticalPathNode(data);
             ProgramActivityGraph.AddNode(sinkNode);
             HashSet<Node<PAGNodeData>> interesting = new HashSet<Node<PAGNodeData>>();
@@ -319,7 +423,9 @@ namespace Core.Utilities.Profiling
             {
                 var source = idToNode[pair.Item1];
                 var target = idToNode[pair.Item2];
-                if (source.Data.MachineId == target.Data.MachineId)
+                if (source.Data.Mid == target.Data.Mid &&
+                    !(source.Data.NodeType == PAGNodeType.Send &&
+                    target.Data.NodeType == PAGNodeType.DequeueEnd)) // there could be send -> deqEnd on the same machine
                 {
                     source.Data.MachineSuccessor = target;
                     target.Data.MachinePredecessor = source;
@@ -331,12 +437,16 @@ namespace Core.Utilities.Profiling
 
         private void LogCP(List<CriticalPathEdge> criticalPathEdges)
         {
+            var original = Logger.LoggingVerbosity;
+            Logger.LoggingVerbosity = 0;
+            this.Logger.WriteLine("Writing a CP");
             for (int i = criticalPathEdges.Count - 1; i >= 0; i--)
             {
                 var e = criticalPathEdges[i];
                 var stringRep = String.Format("{0}->{1}:{2}", e.Source, e.Target, e.Tag);
                 this.Logger.WriteLine(stringRep);
             }
+            Logger.LoggingVerbosity = original;
         }
 
         /// <summary>
@@ -346,17 +456,16 @@ namespace Core.Utilities.Profiling
         /// They are cached for later processing.
         /// </summary>
         /// <param name="machine"></param>
-        /// <param name="extra">Extra diagnostic info</param>
+        /// <param name="actionName">Extra diagnostic info</param>
         /// <param name="nodeType"></param>
         /// <param name="isDequeueEnd">is this a node representing a dequeue/receive end</param>
         /// <returns></returns>
-        private static long RecordPAGNodeAndEdge(Machine machine, string extra, PAGNodeType nodeType, bool isDequeueEnd = false)
+        private static long RecordPAGNodeAndEdge(Machine machine, string actionName, PAGNodeType nodeType, bool isDequeueEnd = false)
         {
             string currentStateName = machine.CurrentStateName;
-            var nodeName = $"{machine.Id}:{currentStateName}:+{nodeType.ToString()}:{extra}";
             long currentTimeStamp = (Stopwatch.GetTimestamp() - StartTime) / ScalingFactor;
             long idleTime = isDequeueEnd ? Math.Max(currentTimeStamp - machine.predecessorTimestamp, 0) : 0;
-            var data = new PAGNodeData(nodeName, idleTime, nodeType, currentTimeStamp, (long)machine.Id.Value);
+            var data = new PAGNodeData(machine, actionName, idleTime, nodeType, currentTimeStamp, (long)machine.Id.Value);
             var node = new CriticalPathNode(data);
             if (machine.predecessorId != -1)
             {
@@ -452,7 +561,7 @@ namespace Core.Utilities.Profiling
 
         private IEnumerable<CriticalPathNode> GetPAGNodesForAction(string actionName)
         {
-            return ProgramActivityGraph.Nodes.Where(x => x.Data.Name.Contains(actionName)
+            return ProgramActivityGraph.Nodes.Where(x => x.Data.ActionName.Equals(actionName)
                                && x.Data.NodeType == PAGNodeType.ActionBegin);
         }
 
@@ -484,7 +593,7 @@ namespace Core.Utilities.Profiling
             System.Diagnostics.Debug.Assert(IsSendOrCreate(node),
                 "Querying for other machine successor for a node without any");
             return ProgramActivityGraph.OutEdges(node)
-                    .Where(x => x.Target.Data.MachineId != node.Data.MachineId)
+                    .Where(x => x.Target.Data.Mid.Value != node.Data.Mid.Value)
                     .Select(x => x.Target).First();
         }
 
@@ -493,90 +602,8 @@ namespace Core.Utilities.Profiling
             System.Diagnostics.Debug.Assert(IsDequeueEndOrReceiveEnd(node),
                 "Querying for other machine predecessor for a node without any");
             return ProgramActivityGraph.InEdges(node)
-                    .Where(x => x.Target.Data.MachineId != node.Data.MachineId)
+                    .Where(x => x.Target.Data.Mid.Value != node.Data.Mid.Value)
                     .Select(x => x.Target).First();
-        }
-
-        /// <summary>
-        /// Recompute CP on optimizing action "actionName" by optfactor
-        /// </summary>
-        /// <param name="actionName"></param>
-        /// <param name="optFactor"></param>
-        public void Query(string actionName, int optFactor)
-        {
-            var sources = GetPAGNodesForAction(actionName);
-            var compressedEdges = GetEdgesToCompress(actionName);
-            Queue<CriticalPathNode> worklist = new Queue<CriticalPathNode>();
-            foreach (var source in sources)
-            {
-                worklist.Enqueue(source);
-            }
-
-            while (worklist.Any())
-            {
-                var current = worklist.Dequeue();
-                foreach (var edge in ProgramActivityGraph.OutEdges(current))
-                {
-                    var target = edge.Target;
-                    if (target.Data.NodeType == PAGNodeType.Sink)
-                    {
-                        continue;
-                    }
-                    if (compressedEdges.Contains(edge))
-                    {
-                        edge.Tag = edge.Tag / optFactor;
-                    }
-
-                    if (target == current.Data.MachineSuccessor)
-                    {
-                        if (!IsDequeueEndOrReceiveEnd(target))
-                        {
-                            target.Data.Timestamp = (current.Data.Timestamp + edge.Tag);
-                        }
-                        else
-                        {
-                            var otherPredecessor = GetOtherMachinePredecessor(current);
-                            var senderTimeStamp = otherPredecessor.Data.Timestamp;
-                            var currentTimeStamp = current.Data.Timestamp;
-                            UpdateTarget(target, senderTimeStamp, currentTimeStamp);
-                        }
-                    }
-                    // This is a dequeueEnd/child node
-                    else
-                    {
-                        if (target.Data.NodeType == PAGNodeType.Child)
-                        {
-                            target.Data.Timestamp = current.Data.Timestamp + edge.Tag;
-                        }
-                        else
-                        {
-                            var senderTimeStamp = current.Data.Timestamp;
-                            var currentTimeStamp = target.Data.MachinePredecessor.Data.Timestamp;
-                            UpdateTarget(target, senderTimeStamp, currentTimeStamp);
-                        }
-                    }
-                    if (target.Data.NodeType != PAGNodeType.Sink)
-                    {
-                        worklist.Enqueue(target);
-                    }
-                }
-            }
-
-            // Remove the existing sink node and add a new one reflecting the new CP
-            var sinkNode = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).First();
-            ProgramActivityGraph.RemoveNode(sinkNode);
-
-            sinkNode = AddSinkNodeAndEdges();
-            var criticalEdges = ComputeCriticalPaths(new CriticalPathNode[] { sinkNode });
-
-            // compute the top 3 activities that take the most time
-            var topActivities = new HashSet<long>(GetTopKNodes(3).Select(x => x.Id));
-
-            // serialize the graph
-            var interesting = criticalEdges.Select(x => new Tuple<string, string>(x.Source.Id.ToString(), x.Target.Id.ToString()));
-            var uniqueEdges = new HashSet<Tuple<string, string>>(interesting);
-            var fileName = Configuration.OutputFilePath + "\\" + Configuration.PAGFileName + ".Opt" + ".dgml";
-            ProgramActivityGraph.Serialize(fileName, uniqueEdges, topActivities);
         }
 
         private void UpdateTarget(CriticalPathNode target, long senderTimeStamp, long currentTimeStamp)
@@ -587,6 +614,69 @@ namespace Core.Utilities.Profiling
             {
                 e.Tag = e.Target.Data.Timestamp - e.Source.Data.Timestamp;
             }
+        }
+
+        /// <summary>
+        /// Output the top k nodes where k = (total #action nodes/fraction)
+        /// </summary>
+        /// <param name="fraction"></param>
+        /// <returns></returns>
+        private HashSet<long> GetTopActivities(int fraction)
+        {
+            var numOfActionNodes = ProgramActivityGraph.Nodes.Where(x => x.Data.NodeType == PAGNodeType.ActionBegin).Count();
+            var k = Math.Max(numOfActionNodes / fraction, numOfActionNodes > 0 ? 1 : 0);
+            var topActivities = new HashSet<long>(GetTopKNodes(k).Select(x => x.Id));
+            this.Logger.WriteLine("Logging top activities:");
+            foreach (var activity in topActivities)
+            {
+                this.Logger.WriteLine(activity.ToString());
+            }
+            return topActivities;
+        }
+
+        /// <summary>
+        /// When we stop critical path profiling, we add fake action end nodes, for all
+        /// machines whose last node isn't an action end/create/child
+        /// </summary>
+        private void CleanUpPAG()
+        {
+            HashSet<CriticalPathNode> toAddNodes = new HashSet<CriticalPathNode>();
+            HashSet<CriticalPathEdge> toAddEdges = new HashSet<CriticalPathEdge>();
+            var terminalNodes = ProgramActivityGraph.Nodes.Where(x => ProgramActivityGraph.OutDegree(x) == 0).ToList();
+            foreach (var node in terminalNodes)
+            {
+                var nodeType = node.Data.NodeType;
+                if (IsSafeNodeType(nodeType))
+                {
+                    continue;
+                }
+
+                var pred = node;
+
+                while (pred != null && pred.Data.NodeType != PAGNodeType.ActionBegin)
+                {
+                    pred = pred.Data.MachinePredecessor;
+                }
+
+                System.Diagnostics.Debug.Assert(pred != null, "Ill formed PAG");
+
+                var actionName = pred.Data.ActionName;
+
+                var data = new PAGNodeData(pred.Data.StateName, pred.Data.ActionName, 0,
+                    PAGNodeType.ActionEnd, node.Data.Timestamp, node.Data.Mid, node.Data.parentId);
+                var fakeEnd = new CriticalPathNode(data);
+                node.Data.MachineSuccessor = fakeEnd;
+                fakeEnd.Data.MachinePredecessor = node;
+                toAddNodes.Add(fakeEnd);
+                toAddEdges.Add(new CriticalPathEdge(node, fakeEnd, 0));
+            }
+            ProgramActivityGraph.AddNodeRange(toAddNodes);
+            ProgramActivityGraph.AddEdgeRange(toAddEdges);
+        }
+
+        private bool IsSafeNodeType(PAGNodeType nodeType)
+        {
+            return nodeType == PAGNodeType.ActionEnd || nodeType == PAGNodeType.Creator || nodeType == PAGNodeType.Child;
         }
     }
 }
