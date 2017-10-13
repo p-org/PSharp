@@ -721,10 +721,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
+        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
         {
-            eventInfo.SetOperationGroupId(base.GetNewOperationGroupId(machine, operationGroupId));
+            eventInfo.SetOperationGroupId(base.GetNewOperationGroupId(machine, null));
 
             if (base.Configuration.Verbose <= 1)
             {

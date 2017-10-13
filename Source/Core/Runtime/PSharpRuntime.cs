@@ -581,9 +581,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        /// <param name="operationGroupId">Operation group id</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo, Guid? operationGroupId)
+        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }

@@ -396,7 +396,7 @@ namespace Microsoft.PSharp
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
                 base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent, null);
+            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent);
         }
 
         /// <summary>
