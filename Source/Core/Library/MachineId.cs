@@ -35,7 +35,7 @@ namespace Microsoft.PSharp
         /// Name of the machine.
         /// </summary>
         [DataMember]
-        public string Name { get; private set; }
+        public readonly string Name;
 
         /// <summary>
         /// Type of the machine with this id.
@@ -60,11 +60,6 @@ namespace Microsoft.PSharp
         /// </summary>
         [DataMember]
         public readonly string Endpoint;
-
-        /// <summary>
-        /// True, if the machine id is bound to a machine.
-        /// </summary>
-        internal bool IsBound;
 
         #endregion
 
@@ -99,49 +94,30 @@ namespace Microsoft.PSharp
             {
                 Name = string.Format("{0}({1})", Type, Value);
             }
-
-            if (isBound)
-            {
-                Bound(runtime);
-            }
-            else
-            {
-                IsBound = false;
-            }
         }
 
         /// <summary>
-        /// Constructor. This is only used to partially reconstruct
-        /// a machine id from a given machine type and id value.
+        /// Internal constructor. 
         /// </summary>
         /// <param name="type">Machine type</param>
+        /// <param name="name">Machine name</param>
         /// <param name="value">Id value</param>
-        internal MachineId(string type, ulong value)
+        /// <param name="generation">Id generation</param>
+        internal MachineId(string type, string name, ulong value, ulong generation)
         {
             Type = type;
             Value = value;
+            Generation = generation;
+            Name = name;
         }
 
         /// <summary>
-        /// Bound the machine id.
+        /// Bind the machine id.
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
-        internal void Bound(PSharpRuntime runtime)
+        internal void Bind(PSharpRuntime runtime)
         {
             Runtime = runtime;
-            IsBound = true;
-        }
-
-        /// <summary>
-        /// Updates the friendly name of the machine id.
-        /// </summary>
-        /// <param name="friendlyName">Friendly machine name</param>
-        internal void UpdateFriendlyName(string friendlyName)
-        {
-            if (friendlyName != null && friendlyName.Length > 0)
-            {
-                Name = string.Format("{0}({1})", friendlyName, Value);
-            }
         }
 
         #endregion

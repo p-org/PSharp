@@ -82,6 +82,17 @@ namespace Microsoft.PSharp.TestingServices
         private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
+        /// A map from unique machine ids to action traces.
+        /// Only used for dynamic data race detection.
+        /// </summary>
+        internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
+
+        /// <summary>
+        /// Set of all machine Ids created by this runtime.
+        /// </summary>
+        internal HashSet<MachineId> AllCreatedMachineIds;
+
+        /// <summary>
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
@@ -148,6 +159,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Monitors = new List<Monitor>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
+            this.AllCreatedMachineIds = new HashSet<MachineId>();
         }
 
         #endregion
@@ -209,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
+        internal MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -280,7 +292,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
+        internal Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -376,6 +388,17 @@ namespace Microsoft.PSharp.TestingServices
         public override void RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
         {
             this.SendEvent(target, e, options);
+        }
+
+        /// <summary>
+        /// Create a new machine Id with incremented generation. This
+        /// method should be used only for testing with PSharpTester.
+        /// </summary>
+        /// <param name="mid">Machine Id</param>
+        /// <returns>Machine Id with incremented generation count</returns>
+        public override MachineId IncGenerationForTesting(MachineId mid)
+        {
+            return new MachineId(mid.Type, mid.Name, mid.Value, mid.Generation + 1);
         }
 
         /// <summary>
@@ -591,12 +614,10 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                base.Assert(mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
-                base.Assert(!mid.IsBound, "Machine id '{0}' is already bound to a machine.", mid.Value);
-                base.Assert(mid.Type == type.FullName, "Cannot bound machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                base.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                base.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Value, mid.Type, type.FullName);
-                mid.Bound(this);
-                mid.UpdateFriendlyName(friendlyName);
+                mid.Bind(this);
             }
 
             var isMachineTypeCached = MachineFactory.IsCached(type);
@@ -615,6 +636,10 @@ namespace Microsoft.PSharp.TestingServices
                 "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
                 "runtime generation was deserialized, but the current runtime has not increased its generation value.",
                 mid.Value, mid.Generation);
+
+            this.Assert(!AllCreatedMachineIds.Contains(mid), "MachineId ({0},{1}) of a previously halted machine cannot be reused " +
+                "to create a new machine {2}", mid.Value, mid.Generation, mid);
+            AllCreatedMachineIds.Add(mid);
 
             this.Logger.OnCreateMachine(mid);
 
@@ -636,6 +661,9 @@ namespace Microsoft.PSharp.TestingServices
         internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
+            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
+                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid.Generation, mid);
+
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
 
@@ -665,6 +693,9 @@ namespace Microsoft.PSharp.TestingServices
         internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
+            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
+                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid.Generation, mid);
+
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
 

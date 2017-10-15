@@ -112,22 +112,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
-        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="mid">Unbound machine id</param>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
-        {
-            return this.CreateMachine(mid, type, friendlyName, e, null, operationGroupId);
-        }
-
-        /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
         /// specified optional <see cref="Event"/>. This event can only be used to
         /// access its payload, and cannot be handled. The method returns only when
@@ -173,23 +157,6 @@ namespace Microsoft.PSharp
         public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
             return this.CreateMachineAndExecute(null, type, friendlyName, e, null, operationGroupId);
-        }
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
-        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled. The method returns only
-        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
-        /// </summary>
-        /// <param name="mid">Unbound machine id</param>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
-        {
-            return this.CreateMachineAndExecute(mid, type, friendlyName, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -268,6 +235,17 @@ namespace Microsoft.PSharp
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
             this.SendEventRemotely(target, e, null, options);
+        }
+
+        /// <summary>
+        /// Create a new machine Id with incremented generation. This
+        /// method should be used only for testing with PSharpTester.
+        /// </summary>
+        /// <param name="mid">Machine Id</param>
+        /// <returns>Machine Id with incremented generation count</returns>
+        public override MachineId IncGenerationForTesting(MachineId mid)
+        {
+            throw new NotImplementedException("The method IncGenerationForTesting should not be used for production runs.");
         }
 
         /// <summary>
@@ -405,12 +383,10 @@ namespace Microsoft.PSharp
             }
             else
             {
-                base.Assert(mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
-                base.Assert(!mid.IsBound, "Machine id '{0}' is already bound to a machine.", mid.Value);
-                base.Assert(mid.Type == type.FullName, "Cannot bound machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                base.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                base.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Value, mid.Type, type.FullName);
-                mid.Bound(this);
-                mid.UpdateFriendlyName(friendlyName);
+                mid.Bind(this);
             }
 
             Machine machine = MachineFactory.Create(type);

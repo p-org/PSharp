@@ -142,14 +142,6 @@ namespace Microsoft.PSharp
         #region runtime interface
 
         /// <summary>
-        /// Creates a new unbound machine id that has not yet been bound to any machine.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <returns>MachineId</returns>
-        public MachineId CreateMachineId(Type type, string friendlyName) => new MachineId(type, friendlyName, this, isBound: false);
-
-        /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
@@ -162,7 +154,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
-        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
+        /// machine id, and passes the specified optional <see cref="Event"/>. This
         /// event can only be used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="mid">Unbound machine id</param>
@@ -183,19 +175,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
         public abstract MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
-        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="mid">Unbound machine id</param>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        public abstract MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -235,20 +214,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
         public abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
-        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled. The method returns only
-        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
-        /// </summary>
-        /// <param name="mid">Unbound machine id</param>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        public abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new remote machine of the specified <see cref="Type"/> and with
@@ -300,6 +265,15 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         public abstract void RemoteSendEvent(MachineId target, Event e, SendOptions options = null);
+
+
+        /// <summary>
+        /// Create a new machine Id with incremented generation. This
+        /// method should be used only for testing with PSharpTester.
+        /// </summary>
+        /// <param name="mid">Machine Id</param>
+        /// <returns>Machine Id with incremented generation count</returns>
+        public abstract MachineId IncGenerationForTesting(MachineId mid);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
