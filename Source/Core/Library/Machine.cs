@@ -893,7 +893,7 @@ namespace Microsoft.PSharp
                     }
 
                     this.DoStatePop();
-                    base.Runtime.Logger.OnPopUnhandledEvent(this.Id, e.GetType().FullName, this.CurrentStateName);
+                    base.Runtime.Logger.OnPopUnhandledEvent(this.Id, this.CurrentStateName, e.GetType().FullName);
                     continue;
                 }
 
