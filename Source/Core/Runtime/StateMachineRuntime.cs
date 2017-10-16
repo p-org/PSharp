@@ -90,10 +90,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id</param>
-        /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
+        public override void CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachine(mid, type, null, e, null, operationGroupId);
+            this.CreateMachine(mid, type, null, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -138,9 +137,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
+        public override async Task CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachineAndExecute(mid, type, null, e, null, operationGroupId);
+            await this.CreateMachineAndExecute(mid, type, null, e, null, operationGroupId);
         }
 
         /// <summary>
@@ -379,7 +378,7 @@ namespace Microsoft.PSharp
 
             if (mid == null)
             {
-                mid = new MachineId(type, friendlyName, this, true);
+                mid = new MachineId(type, friendlyName, this);
             }
             else
             {
@@ -572,7 +571,7 @@ namespace Microsoft.PSharp
             base.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
                 "is not a subclass of Monitor.\n");
 
-            MachineId mid = new MachineId(type, null, this, true);
+            MachineId mid = new MachineId(type, null, this);
             Monitor monitor = (Monitor)Activator.CreateInstance(type);
 
             monitor.Initialize(mid);

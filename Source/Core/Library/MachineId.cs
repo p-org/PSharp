@@ -38,6 +38,12 @@ namespace Microsoft.PSharp
         public readonly string Name;
 
         /// <summary>
+        /// Optional friendly name of the machine.
+        /// </summary>
+        [DataMember]
+        private readonly string FriendlyName;
+
+        /// <summary>
         /// Type of the machine with this id.
         /// </summary>
         [DataMember]
@@ -71,9 +77,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="runtime">PSharpRuntime</param>
-        /// <param name="isBound">Is the id bound to a machine?</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime, bool isBound)
+        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime)
         {
+            FriendlyName = friendlyName;
             Runtime = runtime;
             Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
             
@@ -97,18 +103,31 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Internal constructor. 
+        /// Create a new (fresh) MachineId borrowing information from a given id.
         /// </summary>
-        /// <param name="type">Machine type</param>
-        /// <param name="name">Machine name</param>
-        /// <param name="value">Id value</param>
-        /// <param name="generation">Id generation</param>
-        internal MachineId(string type, string name, ulong value, ulong generation)
+        /// <param name="mid">MachineId</param>
+        internal MachineId(MachineId mid)
         {
-            Type = type;
-            Value = value;
-            Generation = generation;
-            Name = name;
+            Runtime = mid.Runtime;
+            Endpoint = mid.Endpoint;
+
+            // Atomically increments and safely wraps into an unsigned long.
+            Value = (ulong)Interlocked.Increment(ref Runtime.MachineIdCounter) - 1;
+
+            // Checks for overflow.
+            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
+
+            Generation = mid.Generation;
+            Type = mid.Type;
+
+            if (FriendlyName != null && FriendlyName.Length > 0)
+            {
+                Name = string.Format("{0}({1})", FriendlyName, Value);
+            }
+            else
+            {
+                Name = string.Format("{0}({1})", Type, Value);
+            }
         }
 
         /// <summary>

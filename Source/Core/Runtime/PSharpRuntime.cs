@@ -161,8 +161,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id</param>
-        /// <returns>MachineId</returns>
-        public abstract MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
+        public abstract void CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -199,8 +198,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id</param>
-        /// <returns>MachineId</returns>
-        public abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
+        public abstract Task CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with

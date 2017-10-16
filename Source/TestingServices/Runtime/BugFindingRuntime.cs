@@ -93,6 +93,11 @@ namespace Microsoft.PSharp.TestingServices
         internal HashSet<MachineId> AllCreatedMachineIds;
 
         /// <summary>
+        /// Map for IncGeneration
+        /// </summary>
+        internal Dictionary<MachineId, MachineId> IncGenerationMap;
+
+        /// <summary>
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
@@ -160,6 +165,7 @@ namespace Microsoft.PSharp.TestingServices
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
             this.AllCreatedMachineIds = new HashSet<MachineId>();
+            this.IncGenerationMap = new Dictionary<MachineId, MachineId>();
         }
 
         #endregion
@@ -189,10 +195,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id</param>
-        /// <returns>MachineId</returns>
-        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
+        public override void CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachine(mid, type, null, e, operationGroupId);
+            this.Assert(mid != null, "Cannot pass a null MachineId.");
+            this.CreateMachine(mid, type, null, e, operationGroupId);
         }
 
         /// <summary>
@@ -259,9 +265,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
+        public override async Task CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            return this.CreateMachineAndExecute(mid, type, null, e, operationGroupId);
+            this.Assert(mid != null, "Cannot pass a null MachineId.");
+            await this.CreateMachineAndExecute(mid, type, null, e, operationGroupId);
         }
 
         /// <summary>
@@ -398,7 +405,14 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Machine Id with incremented generation count</returns>
         public override MachineId IncGenerationForTesting(MachineId mid)
         {
-            return new MachineId(mid.Type, mid.Name, mid.Value, mid.Generation + 1);
+            if(IncGenerationMap.ContainsKey(mid))
+            {
+                return IncGenerationMap[mid];
+            }
+
+            var ret = new MachineId(mid);
+            IncGenerationMap.Add(mid, ret);
+            return ret;
         }
 
         /// <summary>
@@ -477,7 +491,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(testMethod != null || testAction != null, "The test harness machine " +
                 "cannot execute a null test method or action.");
 
-            MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this, true);
+            MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
             TestHarnessMachine harness = new TestHarnessMachine(testMethod, testAction);
 
             harness.Initialize(this, mid, new SchedulableInfo(mid));
@@ -610,7 +624,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (mid == null)
             {
-                mid = new MachineId(type, friendlyName, this, true);
+                mid = new MachineId(type, friendlyName, this);
             }
             else
             {
@@ -882,7 +896,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
                 "is not a subclass of Monitor.\n");
 
-            MachineId mid = new MachineId(type, null, this, true);
+            MachineId mid = new MachineId(type, null, this);
 
             SchedulableInfo info = new SchedulableInfo(mid);
             Scheduler.NotifyMonitorRegistered(info);
