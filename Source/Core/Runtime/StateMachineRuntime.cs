@@ -244,7 +244,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine Id with incremented generation count</returns>
         public override MachineId IncGenerationForTesting(MachineId mid)
         {
-            throw new NotImplementedException("The method IncGenerationForTesting should not be used for production runs.");
+            throw new NotSupportedException("The method IncGenerationForTesting should not be used for production runs.");
         }
 
         /// <summary>
