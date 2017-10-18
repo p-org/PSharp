@@ -103,7 +103,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Create a new (fresh) MachineId borrowing information from a given id.
+        /// Create a fresh MachineId borrowing information from a given id.
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)

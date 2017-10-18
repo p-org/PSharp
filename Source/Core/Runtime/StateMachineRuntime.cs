@@ -237,17 +237,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Create a new machine Id with incremented generation. This
-        /// method should be used only for testing with PSharpTester.
-        /// </summary>
-        /// <param name="mid">Machine Id</param>
-        /// <returns>Machine Id with incremented generation count</returns>
-        public override MachineId IncGenerationForTesting(MachineId mid)
-        {
-            throw new NotSupportedException("The method IncGenerationForTesting should not be used for production runs.");
-        }
-
-        /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>

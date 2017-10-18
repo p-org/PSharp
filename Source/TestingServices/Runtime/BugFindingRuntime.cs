@@ -87,11 +87,6 @@ namespace Microsoft.PSharp.TestingServices
         internal HashSet<MachineId> AllCreatedMachineIds;
 
         /// <summary>
-        /// Map for IncGeneration
-        /// </summary>
-        internal Dictionary<MachineId, MachineId> IncGenerationMap;
-
-        /// <summary>
         /// The root task id.
         /// </summary>
         internal int? RootTaskId;
@@ -159,7 +154,6 @@ namespace Microsoft.PSharp.TestingServices
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
             this.AllCreatedMachineIds = new HashSet<MachineId>();
-            this.IncGenerationMap = new Dictionary<MachineId, MachineId>();
         }
 
         #endregion
@@ -389,24 +383,6 @@ namespace Microsoft.PSharp.TestingServices
         public override void RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
         {
             this.SendEvent(target, e, options);
-        }
-
-        /// <summary>
-        /// Create a new machine Id with incremented generation. This
-        /// method should be used only for testing with PSharpTester.
-        /// </summary>
-        /// <param name="mid">Machine Id</param>
-        /// <returns>Machine Id with incremented generation count</returns>
-        public override MachineId IncGenerationForTesting(MachineId mid)
-        {
-            if(IncGenerationMap.ContainsKey(mid))
-            {
-                return IncGenerationMap[mid];
-            }
-
-            var ret = new MachineId(mid);
-            IncGenerationMap.Add(mid, ret);
-            return ret;
         }
 
         /// <summary>

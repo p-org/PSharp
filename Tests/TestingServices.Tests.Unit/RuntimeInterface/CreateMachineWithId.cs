@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 var m = r.CreateMachine(typeof(M));
-                var mprime = r.IncGenerationForTesting(m);
+                var mprime = r.CreateMachineId(typeof(M));
                 r.Assert(m != mprime);
                 r.CreateMachine(mprime, typeof(M));
             });
@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var data = new Data();
                 var m1 = this.CreateMachine(typeof(M1), new E1(data));
-                var m2 = this.Id.Runtime.IncGenerationForTesting(m1);
+                var m2 = this.Id.Runtime.CreateMachineId(typeof(M1));
                 this.Send(m1, new TerminateReq(this.Id));
                 this.Receive(typeof(TerminateResp));
                 this.Id.Runtime.CreateMachine(m2, typeof(M1), new E1(data));

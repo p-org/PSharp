@@ -141,6 +141,16 @@ namespace Microsoft.PSharp
 
         #region runtime interface
 
+
+        /// <summary>
+        /// Creates a fresh machine id that has not yet been bound to any machine.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <returns>MachineId</returns>
+
+        public MachineId CreateMachineId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
+
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
         /// the specified optional <see cref="Event"/>. This event can only be
@@ -263,15 +273,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         public abstract void RemoteSendEvent(MachineId target, Event e, SendOptions options = null);
-
-
-        /// <summary>
-        /// Create a new machine Id with incremented generation. This
-        /// method should be used only for testing with PSharpTester.
-        /// </summary>
-        /// <param name="mid">Machine Id</param>
-        /// <returns>Machine Id with incremented generation count</returns>
-        public abstract MachineId IncGenerationForTesting(MachineId mid);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
