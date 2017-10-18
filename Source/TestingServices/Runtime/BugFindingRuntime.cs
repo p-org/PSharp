@@ -82,12 +82,6 @@ namespace Microsoft.PSharp.TestingServices
         private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
-        /// A map from unique machine ids to action traces.
-        /// Only used for dynamic data race detection.
-        /// </summary>
-        internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
-
-        /// <summary>
         /// Set of all machine Ids created by this runtime.
         /// </summary>
         internal HashSet<MachineId> AllCreatedMachineIds;
