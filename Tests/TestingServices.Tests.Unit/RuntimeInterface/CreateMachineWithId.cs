@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -159,6 +160,70 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertSucceeded(test);
+        }
+
+        class M2 : Machine
+        {
+            [Start]
+            class S : MachineState { }
+        }
+
+        class M3 : Machine
+        {
+            [Start]
+            class S : MachineState { }
+        }
+
+        [Fact]
+        public void TestCreateWithId3()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m3 = r.CreateMachineId(typeof(M3));
+                r.CreateMachine(m3, typeof(M2));
+            });
+
+            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M3' to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2'.", true);
+        }
+
+        [Fact]
+        public void TestCreateWithId4()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m2 = r.CreateMachine(typeof(M2));
+                r.CreateMachine(m2, typeof(M2));
+            });
+
+            base.AssertFailed(test, "Machine with id '' is already bound to an existing machine.", true);
+        }
+
+        [Fact]
+        public void TestCreateWithId5()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachineId(typeof(M2));
+                r.SendEvent(m, new E());
+            });
+
+            base.AssertFailed(test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E to a MachineId '' that was never previously bound to a machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2()", true);
+        }
+
+        [Fact]
+        public void TestCreateWithId6()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M2));
+
+                // Make sure that the machine halts
+                for (int i = 0; i < 100; i++)
+                {
+                    r.SendEvent(m, new Halt());
+                }
+
+                // trying to bring up a halted machine
+                r.CreateMachine(m, typeof(M2));
+            });
+
+            base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be reused to create a new machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2", false);
         }
     }
 }

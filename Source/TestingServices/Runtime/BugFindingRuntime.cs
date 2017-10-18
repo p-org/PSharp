@@ -598,8 +598,8 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                base.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
-                base.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Value, mid.Type, type.FullName);
                 mid.Bind(this);
             }
@@ -616,13 +616,11 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +
-                "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
-                "runtime generation was deserialized, but the current runtime has not increased its generation value.",
-                mid.Value, mid.Generation);
+            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.",
+                mid.Value);
 
-            this.Assert(!AllCreatedMachineIds.Contains(mid), "MachineId ({0},{1}) of a previously halted machine cannot be reused " +
-                "to create a new machine {2}", mid.Value, mid.Generation, mid);
+            this.Assert(!AllCreatedMachineIds.Contains(mid), "MachineId '{0}' of a previously halted machine cannot be reused " +
+                "to create a new machine of type {1}", mid.Value, type.FullName);
             AllCreatedMachineIds.Add(mid);
 
             this.Logger.OnCreateMachine(mid);
@@ -645,8 +643,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
-            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
-                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid.Generation, mid);
+            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
+                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid);
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
