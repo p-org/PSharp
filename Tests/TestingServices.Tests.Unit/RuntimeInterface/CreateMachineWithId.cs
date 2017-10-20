@@ -272,6 +272,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var config = Configuration.Create().WithNumberOfIterations(100);
+            config.ReductionStrategy = Utilities.ReductionStrategy.None;
 
             base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E to a MachineId '' that was never previously bound to a machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M4()", false);
         }
