@@ -225,5 +225,55 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be reused to create a new machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2", false);
         }
+
+        class E2: Event
+        {
+            public MachineId mid;
+
+            public E2(MachineId mid)
+            {
+                this.mid = mid;
+            }
+        }
+
+        class M4 : Machine
+        {
+            [Start]
+            [IgnoreEvents(typeof(E))]
+            [OnEntry(nameof(InitOnEntry))]
+            class S : MachineState { }
+
+            void InitOnEntry()
+            {
+
+            }
+        }
+
+        class M5 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class S : MachineState { }
+
+            void InitOnEntry()
+            {
+                var mid = (this.ReceivedEvent as E2).mid;
+                this.Send(mid, new E());
+            }
+        }
+
+        [Fact]
+        public void TestCreateWithId7()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachineId(typeof(M4));
+                r.CreateMachine(typeof(M5), new E2(m));
+                r.CreateMachine(m, typeof(M4));
+            });
+
+            var config = Configuration.Create().WithNumberOfIterations(100);
+
+            base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E to a MachineId '' that was never previously bound to a machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M4()", false);
+        }
     }
 }
