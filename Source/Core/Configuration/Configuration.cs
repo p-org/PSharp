@@ -478,7 +478,7 @@ namespace Microsoft.PSharp
             this.TestMethodName = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
-            this.ReductionStrategy = ReductionStrategy.ForceSchedule;
+            this.ReductionStrategy = ReductionStrategy.None;
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
             this.IncrementalSchedulingSeed = false;
