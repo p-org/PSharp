@@ -232,19 +232,16 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.NumOfExploredFairSchedules > 0)
             {
-                if (this.TotalExploredFairSteps > 0)
-                {
-                    int averageExploredFairSteps = this.TotalExploredFairSteps /
-                        this.NumOfExploredFairSchedules;
+                int averageExploredFairSteps = this.TotalExploredFairSteps /
+                    this.NumOfExploredFairSchedules;
 
-                    report.AppendLine();
-                    report.AppendFormat("{0} Number of scheduling points in fair terminating schedules: " +
-                        "{1} (min), {2} (avg), {3} (max).",
-                        prefix.Equals("...") ? "....." : prefix,
-                        this.MinExploredFairSteps < 0 ? 0 : this.MinExploredFairSteps,
-                        averageExploredFairSteps,
-                        this.MaxExploredFairSteps < 0 ? 0 : this.MaxExploredFairSteps);
-                }
+                report.AppendLine();
+                report.AppendFormat("{0} Number of scheduling points in fair terminating schedules: " +
+                    "{1} (min), {2} (avg), {3} (max).",
+                    prefix.Equals("...") ? "....." : prefix,
+                    this.MinExploredFairSteps < 0 ? 0 : this.MinExploredFairSteps,
+                    averageExploredFairSteps,
+                    this.MaxExploredFairSteps < 0 ? 0 : this.MaxExploredFairSteps);
 
                 if (configuration.MaxUnfairSchedulingSteps > 0 &&
                     this.MaxUnfairStepsHitInFairTests > 0)
