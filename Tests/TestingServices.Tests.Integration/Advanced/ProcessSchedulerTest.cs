@@ -576,8 +576,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        [Fact]
-        public void TestProcessSchedulerLivenessBugWithCycleReplay()
+        [Theory]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(3163)]
+        public void TestProcessSchedulerLivenessBugWithCycleReplay(int seed)
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
@@ -585,7 +587,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = 16;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {

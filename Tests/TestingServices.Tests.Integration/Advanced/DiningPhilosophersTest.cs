@@ -193,15 +193,17 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             class Done : MonitorState { }
         }
 
-        [Fact]
-        public void TestDiningPhilosophersLivenessBugWithCycleReplay()
+        [Theory]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(52)]
+        public void TestDiningPhilosophersLivenessBugWithCycleReplay(int seed)
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = 6;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {

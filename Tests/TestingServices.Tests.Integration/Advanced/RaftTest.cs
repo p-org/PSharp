@@ -1148,14 +1148,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        [Fact]
-        public void TestMultipleLeadersInRaftProtocol()
+        [Theory]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(79)]
+        public void TestMultipleLeadersInRaftProtocol(int seed)
         {
             var configuration = base.GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = 885;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
             var test = new Action<PSharpRuntime>((r) => {
