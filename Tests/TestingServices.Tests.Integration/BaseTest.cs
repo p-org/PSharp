@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             try
             {
                 engine = BugFindingEngine.Create(configuration, test);
-                //engine.SetLogger(logger);
+                engine.SetLogger(logger);
                 engine.Run();
 
                 var numErrors = engine.TestReport.NumOfFoundBugs;
@@ -175,7 +175,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         {
             public IEnumerator<object[]> GetEnumerator()
             {
-                for(int i = 1000; i < 100000; i++)
+                for(int i = 0; i < 1000; i++)
                 {
                     yield return new object[] { i };
                 }

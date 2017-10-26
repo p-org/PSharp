@@ -500,7 +500,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         }
 
         [Theory]
-        [ClassData(typeof(SeedGenerator))]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(4986)]
         public void TestFailureDetectorLivenessBug(int seed)
         {
             var configuration = base.GetConfiguration();
@@ -509,16 +510,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.LivenessTemperatureThreshold = 1000;
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
+            configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
-            //var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-            //    "'Microsoft.PSharp.TestingServices.Tests.Integration.FailureDetectorTest+LivenessMonitor.Wait'.";
-            //base.AssertFailed(configuration, test, bugReport);
-            base.AssertSucceeded(configuration, test);
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
+                "'Microsoft.PSharp.TestingServices.Tests.Integration.FailureDetectorTest+LivenessMonitor.Wait'.";
+            base.AssertFailed(configuration, test, bugReport);
         }
 
         [Fact]
