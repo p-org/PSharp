@@ -1,0 +1,21 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <AvailableItemName Include="PSharp" />
+  </ItemGroup>
+  <PropertyGroup>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateToolOutput</CoreCompileDependsOn>
+  </PropertyGroup>
+  <UsingTask TaskName="Microsoft.PSharp.RewriterAsSeparateProcess" AssemblyFile=".\PSharpSyntaxRewriterProcess.exe" />
+
+  <Target Name="GenerateToolOutput">
+
+    <RewriterAsSeparateProcess
+        InputFiles="@(PSharp)"
+        OutputFiles="@(PSharp->'$(IntermediateOutputPath)%(FileName)%(Extension).cs')">
+
+      <Output TaskParameter="OutputFiles" ItemName="Compile" />
+
+    </RewriterAsSeparateProcess>
+  </Target>
+
+</Project>
