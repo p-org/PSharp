@@ -476,15 +476,18 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             class Done : MonitorState { }
         }
 
-        [Fact]
-        public void TestFailureDetectorSafetyBug()
+        [Theory]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(100813)]
+        public void TestFailureDetectorSafetyBug(int seed)
         {
             var configuration = base.GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = 100813;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
+            configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(Safety));
@@ -496,15 +499,18 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             base.AssertFailed(configuration, test, bugReport);
         }
 
-        [Fact]
-        public void TestFailureDetectorLivenessBug()
+        [Theory]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(4986)]
+        public void TestFailureDetectorLivenessBug(int seed)
         {
             var configuration = base.GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = 4986;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
+            configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));

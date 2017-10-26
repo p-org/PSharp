@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -168,6 +169,22 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
             result = Regex.Replace(result, @"\([0-9]+\)", "()");
             return result;
+        }
+
+        public class SeedGenerator : IEnumerable<object[]>
+        {
+            public IEnumerator<object[]> GetEnumerator()
+            {
+                for(int i = 0; i < 1000; i++)
+                {
+                    yield return new object[] { i };
+                }
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
         }
 
         #endregion

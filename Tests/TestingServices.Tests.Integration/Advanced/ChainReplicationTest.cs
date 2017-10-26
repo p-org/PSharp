@@ -1440,16 +1440,17 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             }
         }
 
-        [Fact]
-        public void TestSequenceNotSortedInChainReplicationProtocol()
+        [Theory]
+        //[ClassData(typeof(SeedGenerator))]
+        [InlineData(90)]
+        public void TestSequenceNotSortedInChainReplicationProtocol(int seed)
         {
             var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
             configuration.MaxSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = 32;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 2;
-            configuration.IncrementalSchedulingSeed = true;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(InvariantMonitor));

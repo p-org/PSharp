@@ -836,17 +836,19 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             class Requested : MonitorState { }
         }
 
-        [Fact]
-        public void TestLivenessBugInChordProtocol()
+        [Theory]
+        [InlineData(0)]
+        public void TestLivenessBugInChordProtocol(int seed)
         {
             var configuration = base.GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = 663;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(ClusterManager));
             });
@@ -856,15 +858,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             base.AssertFailed(configuration, test, bugReport);
         }
 
-        [Fact]
-        public void TestLivenessBugInChordProtocolWithCycleReplay()
+        [Theory]
+        [InlineData(2)]
+        public void TestLivenessBugInChordProtocolWithCycleReplay(int seed)
         {
             var configuration = base.GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.MaxSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = 377;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
-
+            
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(ClusterManager));
