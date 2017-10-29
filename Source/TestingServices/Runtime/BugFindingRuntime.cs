@@ -648,6 +648,7 @@ namespace Microsoft.PSharp.TestingServices
             if (sender != null && sender is Machine)
             {
                 originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().Name,
+                    (sender as Machine).CurrentState == null ? "None" : 
                     StateGroup.GetQualifiedStateName((sender as Machine).CurrentState));
             }
             else

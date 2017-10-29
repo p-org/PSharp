@@ -114,23 +114,33 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         class M3 : Machine
         {
+            MachineId sender;
+
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             class Init : MachineState { }
 
             void InitOnEntry()
             {
+                sender = (this.ReceivedEvent as E).Id;
                 this.Raise(new Halt());
             }
 
             protected override void OnHalt()
             {
                 // no-ops but no failure
-                this.Send(this.Id, new E());
+                this.Send(sender, new E());
                 this.Random();
                 this.Assert(true);
                 this.CreateMachine(typeof(Dummy));
             }
+        }
+
+        class M4 : Machine
+        {
+            [Start]
+            [IgnoreEvents(typeof(E))]
+            class Init : MachineState { }
         }
 
         [Fact]
@@ -180,7 +190,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestAPIsOnHalt()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(M3));
+                var m = r.CreateMachine(typeof(M4));
+                r.CreateMachine(typeof(M3), new E(m));
             });
 
             AssertSucceeded(test);
