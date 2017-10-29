@@ -48,7 +48,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<ulong, Machine> MachineMap;
+        protected ConcurrentDictionary<MachineId, Machine> MachineMap;
 
         #endregion
 
@@ -130,6 +130,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
+            this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
             this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
@@ -139,6 +140,16 @@ namespace Microsoft.PSharp
         #endregion
 
         #region runtime interface
+
+
+        /// <summary>
+        /// Creates a fresh machine id that has not yet been bound to any machine.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <returns>MachineId</returns>
+
+        public MachineId CreateMachineId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
@@ -150,6 +161,17 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
         public abstract MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
+        /// machine id, and passes the specified optional <see cref="Event"/>. This
+        /// event can only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id</param>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public abstract void CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -174,6 +196,19 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
         public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
+        /// event can only be used to access its payload, and cannot be handled. The method
+        /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
+        /// is handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id</param>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
+        public abstract Task CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -323,7 +358,7 @@ namespace Microsoft.PSharp
         protected bool GetTargetMachine(MachineId targetMachineId, Event e, AbstractMachine sender,
             Guid operationGroupId, out Machine targetMachine)
         {
-            if (!this.MachineMap.TryGetValue(targetMachineId.Value, out targetMachine))
+            if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
             {
                 var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
                 this.Logger.OnSend(targetMachineId, sender?.Id, senderState,
@@ -341,26 +376,28 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
+        /// <param name="mid">Unbound machine id</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract MachineId CreateMachine(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
+        internal abstract MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
         /// method returns only when the machine is initialized and the <see cref="Event"/>
         /// (if any) is handled.
         /// </summary>
+        /// <param name="mid">Unbound machine id</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
+        internal abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Creates a new remote <see cref="Machine"/> of the specified <see cref="System.Type"/>.

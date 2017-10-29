@@ -257,7 +257,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.CreateMachine(type, null, e, this, null);
+            return base.Runtime.CreateMachine(null, type, null, e, this, null);
         }
 
         /// <summary>
@@ -271,7 +271,21 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return base.Runtime.CreateMachine(type, friendlyName, e, this, null);
+            return base.Runtime.CreateMachine(null, type, friendlyName, e, this, null);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
+        /// can only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id</param>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null)
+        {
+            base.Runtime.CreateMachine(mid, type, friendlyName, e, this, null);
         }
 
         /// <summary>
