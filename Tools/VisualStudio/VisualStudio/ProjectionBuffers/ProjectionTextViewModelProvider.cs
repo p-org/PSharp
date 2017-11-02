@@ -33,7 +33,6 @@ namespace Microsoft.PSharp.VisualStudio
             ProjectionBufferGraph graph;
             if (!bufferToGraphMap.TryGetValue(dataModel.DataBuffer, out graph))
             {
-                // TODO not available: var doc = dataModel.DataBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var psharpWorkspace = new PSharpWorkspace(vsWorkspace, textBufferFactory, projectionBufferFactory, contentTypeRegistry);
                 graph = psharpWorkspace.InsertProjectionBufferGraph(dataModel.DataBuffer);
             }

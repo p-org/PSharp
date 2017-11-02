@@ -24,6 +24,7 @@ namespace Microsoft.PSharp.VisualStudio
         IContentType projectionContentType;
         IContentType inertContentType;
 
+        ProjectionBufferGraph projectionBufferGraph;
         private ProjectionInfos projectionInfos;
 
         private Dictionary<ITextBuffer, ProjectionBufferGraph> csProjectionBufferMap = new Dictionary<ITextBuffer, ProjectionBufferGraph>();
@@ -106,19 +107,50 @@ namespace Microsoft.PSharp.VisualStudio
                 ProjectionBufferOptions.None,
                 csharpContentType
             );
+            csProjectionBuffer.Changed += CsProjectionBuffer_Changed;
+            csProjectionBuffer.SourceSpansChanged += CsProjectionBuffer_SourceSpansChanged;
             return (csProjectionBuffer, csProjTrackingSpans);
         }
 
-        private (IProjectionBuffer, List<ITrackingSpan>) CreatePSharpViewProjectionBuffer(IProjectionBuffer csProjectionBuffer, ITextBuffer vsTextBuffer)
+        private void CsProjectionBuffer_Changed(object sender, TextContentChangedEventArgs args)
         {
-            var psViewProjTrackingSpans = CreatePSharpViewTrackingSpans(csProjectionBuffer, vsTextBuffer);
+            return; // TODO editing support
+        }
+
+        private void CsProjectionBuffer_SourceSpansChanged(object sender, ProjectionSourceSpansChangedEventArgs args)
+        {
+            return; // TODO editing support
+        }
+
+        private (IProjectionBuffer, (List<ITrackingSpan>, ISet<ITrackingSpan>)) CreatePSharpViewProjectionBuffer(IProjectionBuffer csProjectionBuffer, ITextBuffer vsTextBuffer)
+        {
+            var (psViewProjTrackingSpans, embeddedPSharpTrackingSpans) = CreatePSharpViewTrackingSpans(csProjectionBuffer, vsTextBuffer);
             var psViewProjectionBuffer = projectionBufferFactory.CreateProjectionBuffer(
                 null, // TODO projectionEditResolver
                 psViewProjTrackingSpans.Select(ts => (object)ts).ToList(),
                 ProjectionBufferOptions.None,
                 projectionContentType
             );
-            return (psViewProjectionBuffer, psViewProjTrackingSpans);
+            psViewProjectionBuffer.Changed += PsViewProjectionBuffer_Changed;
+            psViewProjectionBuffer.SourceSpansChanged += PsViewProjectionBuffer_SourceSpansChanged;
+            vsTextBuffer.Changed += VsTextBuffer_Changed;
+            return (psViewProjectionBuffer, (psViewProjTrackingSpans, embeddedPSharpTrackingSpans));
+        }
+
+        private void VsTextBuffer_Changed(object sender, TextContentChangedEventArgs args)
+        {
+            var isEmbeddedCSharp = this.projectionBufferGraph.IsEmbeddedPSharpPoint(args.Changes.First().NewPosition);
+            return; // TODO editing support
+        }
+
+        private void PsViewProjectionBuffer_Changed(object sender, TextContentChangedEventArgs args)
+        {
+            return; // TODO editing support
+        }
+
+        private void PsViewProjectionBuffer_SourceSpansChanged(object sender, ProjectionSourceSpansChangedEventArgs e)
+        {
+            return; // TODO editing support
         }
 
         private List<ITrackingSpan> CreateCSharpTrackingSpans(ITextBuffer vsTextBuffer)
@@ -158,8 +190,7 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 if (psEnd > psStart)
                 {
-                    // The P# view projection buffer copies the original P# text to a new P# text buffer which is then a
-                    // source to the ProjectionBuffer.
+                    // The P# view projection buffer gets its P# data from the VS editing text buffer.
                     var span = new Span(psStart, psEnd - psStart);
                     //var unused = vsTextBuffer.CurrentSnapshot.AsText().ToString().Substring(span.Start, span.Length);
                     csSpans.Add((-1, -1, vsTextBuffer.CurrentSnapshot.CreateTrackingSpan(span, SpanTrackingMode)));
@@ -203,7 +234,7 @@ namespace Microsoft.PSharp.VisualStudio
             return csSpans.Select(span => createTrackingSpan(span)).ToList();
         }
 
-        private List<ITrackingSpan> CreatePSharpViewTrackingSpans(IProjectionBuffer csProjectionBuffer, ITextBuffer vsTextBuffer)
+        private (List<ITrackingSpan>, ISet<ITrackingSpan>) CreatePSharpViewTrackingSpans(IProjectionBuffer csProjectionBuffer, ITextBuffer vsTextBuffer)
         {
             // The P# View ProjectionBuffer is what is seen by Visual Studio. It has two sources:
             // 1p#. The CSharp projectionBuffer, tracking the same unaltered C# segments of code chunks as in 
@@ -222,21 +253,21 @@ namespace Microsoft.PSharp.VisualStudio
             // 2. The sections of the C# ProjectionBuffer that contain P#-mapped code cannot overlap with the sections of the
             //    P# View ProjectionBuffer that contain P#-mapped code. The ProjectionBuffer system will not allow buffer
             //    overlaps, even when the buffers are buried one or more layers below the surface.
-            var psViewSpans = new List<(int Start, int End, bool IsPSharp)>();
+            var psViewSpans = new List<(int Start, int End, bool IsPSharp, bool IsEmbeddedPSharp)>();
             var psBufferOffset = 0;
 
-            void AddOrCoalesceSpan(int start, int end, bool isPSharp)
+            void AddOrCoalesceSpan(int start, int end, bool isPSharp, bool isEmbeddedPSharp)
             {
                 if (psViewSpans.Count > 0)
                 {
                     var lastSpan = psViewSpans[psViewSpans.Count - 1];
-                    if (lastSpan.IsPSharp == isPSharp && lastSpan.End == start)
+                    if (lastSpan.IsPSharp == isPSharp && !lastSpan.IsEmbeddedPSharp && !isEmbeddedPSharp && lastSpan.End == start)
                     {
-                        psViewSpans[psViewSpans.Count - 1] = (lastSpan.Start, end, isPSharp);
+                        psViewSpans[psViewSpans.Count - 1] = (lastSpan.Start, end, isPSharp, false);
                         return;
                     }
                 }
-                psViewSpans.Add((start, end, isPSharp));
+                psViewSpans.Add((start, end, isPSharp, isEmbeddedPSharp));
             }
 
             void projectFromCSharpSpan(int csStart, int csEnd)
@@ -245,27 +276,31 @@ namespace Microsoft.PSharp.VisualStudio
                 {
                     // The P# view projection buffer gets this span from the C# projection buffer (hence a 'graph').
                     //var unused = csSnapshot.AsText().ToString().Substring(csStart, csEnd - csStart);
-                    AddOrCoalesceSpan(csStart, csEnd, isPSharp: false);
+                    AddOrCoalesceSpan(csStart, csEnd, isPSharp:false, isEmbeddedPSharp:false);
                 }
             }
 
-            void projectFromPSharpSpan(int psEnd)
+            void projectFromPSharpSpan(int psEnd, bool isEmbeddedPSharp = false)
             {
                 if (psEnd > psBufferOffset)
                 {
                     // The P# view projection buffer copies the original P# text to a new P# text buffer which is then a
                     // source to the ProjectionBuffer.
                     //var unused = vsTextBuffer.CurrentSnapshot.AsText().ToString().Substring(psBufferOffset, psEnd - psBufferOffset);
-                    AddOrCoalesceSpan(psBufferOffset, psEnd, isPSharp: true);
+                    AddOrCoalesceSpan(psBufferOffset, psEnd, isPSharp:true, isEmbeddedPSharp:isEmbeddedPSharp);
                     psBufferOffset = psEnd;
                 }
             }
 
-            ITrackingSpan createTrackingSpan((int start, int end, bool isPSharp) span)
+            var embeddedPSharpTrackingSpans = new HashSet<ITrackingSpan>();
+            ITrackingSpan createTrackingSpan((int start, int end, bool isPSharp, bool isEmbeddedPSharp) span)
             {
                 var length = span.end - span.start;
                 var buffer = span.isPSharp ? vsTextBuffer : csProjectionBuffer;
-                return buffer.CurrentSnapshot.CreateTrackingSpan(span.start, length, SpanTrackingMode);
+                var trackingSpan = buffer.CurrentSnapshot.CreateTrackingSpan(span.start, length, SpanTrackingMode);
+                if (span.isEmbeddedPSharp)
+                    embeddedPSharpTrackingSpans.Add(trackingSpan);
+                return trackingSpan;
             }
 
             foreach (var projInfo in this.projectionInfos.OrderedProjectionInfos)
@@ -292,7 +327,7 @@ namespace Microsoft.PSharp.VisualStudio
                         projectFromCSharpSpan(csBufferOffset, term.RewrittenStart);
                         csBufferOffset = term.RewrittenEnd;
                         psBufferOffset = term.OriginalStart;
-                        projectFromPSharpSpan(term.OriginalEnd);
+                        projectFromPSharpSpan(term.OriginalEnd, isEmbeddedPSharp:true);
                     }
 
                     // Add any leftovers in the code chunk.
@@ -303,22 +338,25 @@ namespace Microsoft.PSharp.VisualStudio
 
             // Add any leftovers from the base P# buffer
             projectFromPSharpSpan(vsTextBuffer.CurrentSnapshot.Length);
-            return psViewSpans.Select(span => createTrackingSpan(span)).ToList();
+            return (psViewSpans.Select(span => createTrackingSpan(span)).ToList(), embeddedPSharpTrackingSpans);
         }
 
         private ProjectionBufferGraph CreateProjectionBufferGraph(ITextBuffer vsTextBuffer)
         {
             var (csProjectionBuffer, csProjTrackingSpans) = CreateCSharpProjectionBuffer(vsTextBuffer);
-            var (psViewProjectionBuffer, psViewProjTrackingSpans) = CreatePSharpViewProjectionBuffer(csProjectionBuffer, vsTextBuffer);
+            var (psViewProjectionBuffer, (psViewProjTrackingSpans, embeddedPsTrackingSpans)) = CreatePSharpViewProjectionBuffer(csProjectionBuffer, vsTextBuffer);
 
-            return new ProjectionBufferGraph
+            this.projectionBufferGraph = new ProjectionBufferGraph
             {
                 PSharpDiskBuffer = vsTextBuffer,
                 CSharpProjectionBuffer = csProjectionBuffer,
                 PSharpViewProjectionBuffer = psViewProjectionBuffer,
                 CSharpProjTrackingSpans = csProjTrackingSpans.ToArray(),
-                PSharpViewProjTrackingSpans = psViewProjTrackingSpans.ToArray()
+                PSharpViewProjTrackingSpans = psViewProjTrackingSpans.ToArray(),
+                EmbeddedPSharpTrackingSpans = embeddedPsTrackingSpans
             };
+            psViewProjectionBuffer.Properties.AddProperty(typeof(ProjectionBufferGraph), projectionBufferGraph);
+            return this.projectionBufferGraph;
         }
 
         private void AddProjectedDocuments(ProjectionBufferGraph graph)
@@ -358,11 +396,23 @@ namespace Microsoft.PSharp.VisualStudio
             if (this.projectionProject == null)
             {
                 var dte = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(_DTE)) as EnvDTE.DTE;
-                var activeDoc = dte?.ActiveDocument;
-                var activeProject = activeDoc?.ProjectItem?.ContainingProject;
-                if (activeProject != null)
+                // TODO workaround only--FIXME: Sometimes we're constructed/invoked before ActiveDocument or CurrentSolution.Projects have been set
+                for (var iter = 0; iter < 25; System.Threading.Thread.Sleep(200), ++iter)
                 {
-                    this.projectionProject = this.vsWorkspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.FilePath == activeProject.FullName);
+                    var activeDoc = dte?.ActiveDocument;
+                    var activeProject = activeDoc?.ProjectItem?.ContainingProject;
+                    if (activeProject != null)
+                    {
+                        var documentId = this.vsWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(activeDoc.FullName).FirstOrDefault();
+                        if (documentId != null)
+                        {
+                            this.projectionProject = this.vsWorkspace.CurrentSolution.GetDocument(documentId).Project;
+                        }
+                        if (this.projectionProject == null)
+                        {
+                            this.projectionProject = this.vsWorkspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.FilePath == activeProject.FullName);
+                        }
+                    }
                     if (this.projectionProject != null)
                     {
                         return;

@@ -209,7 +209,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Using:
 
                 case TokenType.MachineDecl:
-                case TokenType.Monitor:
+                case TokenType.MachineIdDecl:
+                case TokenType.MonitorDecl:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
 
@@ -250,7 +251,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Break:
                 case TokenType.Continue:
                 case TokenType.Return:
-                case TokenType.Pop:
+                case TokenType.PopState:
                 case TokenType.Lock:
                 case TokenType.Try:
                 case TokenType.Catch:

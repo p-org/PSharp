@@ -223,8 +223,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.MachineDecl));
                     break;
 
+                case "MachineId": // Some of the samples use this rather than "machine"; they've been out there for a while so support it
+                    this.Tokens.Add(new Token(unit, TokenType.MachineIdDecl));
+                    break;
+
                 case "monitor":
-                    this.Tokens.Add(new Token(unit, TokenType.Monitor));
+                    this.Tokens.Add(new Token(unit, TokenType.MonitorDecl));
                     break;
 
                 case "state":
@@ -360,7 +364,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     break;
 
                 case "pop":
-                    this.Tokens.Add(new Token(unit, TokenType.Pop));
+                    this.Tokens.Add(new Token(unit, TokenType.PopState));
                     break;
 
                 case "lock":

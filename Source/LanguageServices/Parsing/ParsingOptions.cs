@@ -43,6 +43,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         internal bool SkipErrorChecking;
 
+        /// <summary>
+        /// Indicates that parsing is being done for the VS Language Service.
+        /// </summary>
+        internal bool ForVsLanguageService;
+
         #endregion
 
         #region constructors
@@ -70,6 +75,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public static ParsingOptions CreateDefault()
         {
             return new ParsingOptions();
+        }
+
+        /// <summary>
+        /// Creates an instance of the default
+        /// P# parsing options.
+        /// </summary>
+        /// <returns>ParsingOptions</returns>
+        public static ParsingOptions CreateForVsLanguageService()
+        {
+            return new ParsingOptions { ForVsLanguageService = true };
         }
 
         /// <summary>

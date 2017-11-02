@@ -38,23 +38,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// The length of the stream.
         /// </summary>
-        public int Length
-        {
-            get
-            {
-                return this.Tokens.Count;
-            }
-        }
+        public int Length { get { return this.Tokens.Count; } }
 
         /// <summary>
         /// True if no tokens remaining in the stream.
         /// </summary>
         public bool Done
         {
-            get
-            {
-                return this.Index == this.Length;
-            }
+            // In some cases of early end of string (e.g. VS Lang Service parsing) we may increment this twice.
+            get { return this.Index >= this.Length; }
         }
 
         /// <summary>
@@ -83,15 +75,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <returns>Token</returns>
         public Token Next()
         {
-            if (this.Index == this.Tokens.Count)
-            {
-                return null;
-            }
-
-            var token = this.Tokens[this.Index];
-            this.Index++;
-
-            return token;
+            return this.Done ? null : this.Tokens[this.Index++];
         }
 
         /// <summary>
@@ -102,6 +86,28 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public Token Peek()
         {
             return this.Done ? null : this.Tokens[this.Index];
+        }
+
+        /// <summary>
+        /// Returns the type of the most recent non-whitespace token, to help refine the
+        /// list of expected tokens in the event of error.
+        /// </summary>
+        /// <returns>Token</returns>
+        public TokenType PrevNonWhitespaceType()
+        {
+            for (var ii = this.Index - 1; ii >= 0; --ii)
+            {
+                var tokType = this.Tokens[ii].Type;
+                switch (tokType)
+                {
+                    case TokenType.WhiteSpace:
+                    case TokenType.NewLine:
+                        continue;
+                    default:
+                        return tokType;
+                }
+            }
+            return TokenType.None;
         }
 
         /// <summary>
@@ -122,7 +128,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public void Swap(TokenType updatedType)
         {
-            if (this.Index != this.Tokens.Count)
+            if (!this.Done)
             {
                 this.Tokens[this.Index] = new Token(this.Peek(), updatedType);
             }

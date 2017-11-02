@@ -92,12 +92,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
             catch (ParsingException ex)
             {
-                this.ErrorLog.Append(ex.Message);
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
+                if (base.Options.ForVsLanguageService)
+                {
+                    throw;
+                }
+                this.ErrorLog.Append(ex.Message);
                 this.ReportParsingError();
 
-                if (base.Options.ThrowParsingException &&
-                    this.ErrorLog.Length > 0)
+                if (base.Options.ThrowParsingException && this.ErrorLog.Length > 0)
                 {
                     throw new ParsingException(this.ErrorLog.ToString(), ex.ExpectedTokenTypes);
                 }

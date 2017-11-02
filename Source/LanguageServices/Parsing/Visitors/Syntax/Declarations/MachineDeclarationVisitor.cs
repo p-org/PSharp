@@ -189,73 +189,76 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             while (!fixpoint)
             {
                 var token = base.TokenStream.Peek();
-                switch (token.Type)
+                if (!base.TokenStream.Done)
                 {
-                    case TokenType.WhiteSpace:
-                    case TokenType.Comment:
-                    case TokenType.NewLine:
-                        base.TokenStream.Index++;
-                        break;
+                    switch (token.Type)
+                    {
+                        case TokenType.WhiteSpace:
+                        case TokenType.Comment:
+                        case TokenType.NewLine:
+                            base.TokenStream.Index++;
+                            break;
 
-                    case TokenType.CommentLine:
-                    case TokenType.Region:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        break;
+                        case TokenType.CommentLine:
+                        case TokenType.Region:
+                            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                            break;
 
-                    case TokenType.CommentStart:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        break;
+                        case TokenType.CommentStart:
+                            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                            break;
 
-                    case TokenType.StartState:
-                    case TokenType.HotState:
-                    case TokenType.ColdState:
-                    case TokenType.EventDecl:
-                    case TokenType.StateDecl:
-                    case TokenType.StateGroupDecl:
-                    case TokenType.Void:
-                    case TokenType.MachineDecl:
-                    case TokenType.Object:
-                    case TokenType.String:
-                    case TokenType.Sbyte:
-                    case TokenType.Byte:
-                    case TokenType.Short:
-                    case TokenType.Ushort:
-                    case TokenType.Int:
-                    case TokenType.Uint:
-                    case TokenType.Long:
-                    case TokenType.Ulong:
-                    case TokenType.Char:
-                    case TokenType.Bool:
-                    case TokenType.Decimal:
-                    case TokenType.Float:
-                    case TokenType.Double:
-                    case TokenType.Identifier:
-                    case TokenType.Private:
-                    case TokenType.Protected:
-                    case TokenType.Internal:
-                    case TokenType.Public:
-                    case TokenType.Async:
-                    case TokenType.Partial:
-                        this.VisitMachineLevelDeclaration(node, tokenRange.Start());
-                        base.TokenStream.Index++;
-                        break;
+                        case TokenType.StartState:
+                        case TokenType.HotState:
+                        case TokenType.ColdState:
+                        case TokenType.EventDecl:
+                        case TokenType.StateDecl:
+                        case TokenType.StateGroupDecl:
+                        case TokenType.Void:
+                        case TokenType.MachineDecl:
+                        case TokenType.Object:
+                        case TokenType.String:
+                        case TokenType.Sbyte:
+                        case TokenType.Byte:
+                        case TokenType.Short:
+                        case TokenType.Ushort:
+                        case TokenType.Int:
+                        case TokenType.Uint:
+                        case TokenType.Long:
+                        case TokenType.Ulong:
+                        case TokenType.Char:
+                        case TokenType.Bool:
+                        case TokenType.Decimal:
+                        case TokenType.Float:
+                        case TokenType.Double:
+                        case TokenType.Identifier:
+                        case TokenType.Private:
+                        case TokenType.Protected:
+                        case TokenType.Internal:
+                        case TokenType.Public:
+                        case TokenType.Async:
+                        case TokenType.Partial:
+                            this.VisitMachineLevelDeclaration(node, tokenRange.Start());
+                            base.TokenStream.Index++;
+                            break;
 
-                    case TokenType.LeftSquareBracket:
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        new AttributeListVisitor(base.TokenStream).Visit();
-                        base.TokenStream.Index++;
-                        break;
+                        case TokenType.LeftSquareBracket:
+                            base.TokenStream.Index++;
+                            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                            new AttributeListVisitor(base.TokenStream).Visit();
+                            base.TokenStream.Index++;
+                            break;
 
-                    case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(TokenType.MachineRightCurlyBracket);
-                        node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        fixpoint = true;
-                        break;
+                        case TokenType.RightCurlyBracket:
+                            base.TokenStream.Swap(TokenType.MachineRightCurlyBracket);
+                            node.RightCurlyBracketToken = base.TokenStream.Peek();
+                            fixpoint = true;
+                            break;
 
-                    default:
-                        throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.",
-                            new List<TokenType>());
+                        default:
+                            throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.",
+                                new List<TokenType>());
+                    }
                 }
 
                 if (base.TokenStream.Done)
@@ -338,6 +341,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
+                if (base.TokenStream.PrevNonWhitespaceType() == TokenType.StartState)
+                {
+                    throw new ParsingException("Expected state declaration.",
+                        new List<TokenType>
+                    {
+                    TokenType.StateDecl
+                    });
+                }
                 throw new ParsingException("Expected event, state, group or method declaration.",
                     new List<TokenType>
                 {

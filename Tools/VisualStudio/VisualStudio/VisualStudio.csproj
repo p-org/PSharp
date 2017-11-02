@@ -115,8 +115,12 @@
     <Compile Include="Intellisense\CompletionSourceProvider.cs" />
     <Compile Include="Intellisense\ErrorFixSuggestedAction.cs" />
     <Compile Include="Intellisense\Keywords.cs" />
+    <Compile Include="Intellisense\QuickInfoController.cs" />
+    <Compile Include="Intellisense\QuickInfoSource.cs" />
+    <Compile Include="Intellisense\QuickInfoSourceProvider.cs" />
     <Compile Include="Intellisense\SuggestedActionsSource.cs" />
     <Compile Include="Intellisense\SuggestedActionsSourceProvider.cs" />
+    <Compile Include="Intellisense\QuickInfoControllerProvider.cs" />
     <Compile Include="ProjectionBuffers\ProjectionBufferGraph.cs" />
     <Compile Include="ProjectionBuffers\ProjectionTextViewModel.cs" />
     <Compile Include="ProjectionBuffers\ProjectionTextViewModelProvider.cs" />

@@ -517,7 +517,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Monitor token.
         /// </summary>
-        Monitor,
+        MonitorDecl,
 
         /// <summary>
         /// State token.
@@ -558,6 +558,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Machine identifier token.
         /// </summary>
         MachineIdentifier,
+
+        /// <summary>
+        /// "MachineId" token.
+        /// </summary>
+        MachineIdDecl,  // Some of the samples use this rather than "machine"; they've been out there for a while so support it
 
         /// <summary>
         /// State identifier token.
@@ -615,9 +620,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         Assume,
 
         /// <summary>
-        /// Pop token.
+        /// PopState token.
         /// </summary>
-        Pop,
+        PopState,
 
         /// <summary>
         /// On action token.

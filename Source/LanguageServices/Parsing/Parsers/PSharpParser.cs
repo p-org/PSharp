@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     TokenType.Virtual,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.Monitor,
+                    TokenType.MonitorDecl,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
                 });
@@ -288,7 +288,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.EventDecl:
                 case TokenType.MachineDecl:
-                case TokenType.Monitor:
+                case TokenType.MonitorDecl:
                 case TokenType.Internal:
                 case TokenType.Public:
                 case TokenType.Private:
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Monitor)
+                base.TokenStream.Peek().Type != TokenType.MonitorDecl)
             {
                 new ModifierVisitor(base.TokenStream).Visit(modSet);
 
@@ -347,14 +347,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Monitor))
+                base.TokenStream.Peek().Type != TokenType.MonitorDecl))
             {
                 throw new ParsingException("Expected event, machine or monitor declaration.",
                     new List<TokenType>
                 {
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.Monitor
+                    TokenType.MonitorDecl
                 });
             }
 
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             {
                 new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, modSet, tokenRange.Start());
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Monitor)
+            else if (base.TokenStream.Peek().Type == TokenType.MonitorDecl)
             {
                 new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, true, modSet, tokenRange.Start());
             }

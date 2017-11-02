@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using System.Linq;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -27,8 +28,8 @@ namespace Microsoft.PSharp.VisualStudio
     /// </summary>
     internal sealed class Indent : ISmartIndent
     {
-        private readonly ITextView TextView;
-        private bool IsDisposed;
+        private readonly ITextView textView;
+        private bool isDisposed;
 
         /// <summary>
         /// Constructor.
@@ -36,8 +37,7 @@ namespace Microsoft.PSharp.VisualStudio
         /// <param name="textView">ITextView</param>
         public Indent(ITextView textView)
         {
-            this.TextView = textView;
-            this.IsDisposed = false;
+            this.textView = textView;
         }
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
@@ -47,73 +47,66 @@ namespace Microsoft.PSharp.VisualStudio
 
         internal int GetLineIndentation(ITextSnapshotLine line)
         {
-            var options = this.TextView.Options;
+            var options = this.textView.Options;
             var tabSize = options.GetIndentSize();
 
             var indent = 0;
-            if (line.LineNumber == 0)
-            {
-                return indent;
-            }
-
-            var currentLine = line;
-
-            do
+            var currentLine = line.LineNumber == 0 ? line : line.Snapshot.GetLineFromLineNumber(line.LineNumber - 1);
+            while (currentLine.LineNumber > 0 && currentLine.GetText().Trim().Length == 0)
             {
                 currentLine = line.Snapshot.GetLineFromLineNumber(currentLine.LineNumber - 1);
             }
-            while (currentLine.LineNumber > 0 && currentLine.Length == 0);
-            if (line.LineNumber == 0)
+            if (currentLine.LineNumber == 0)
             {
                 return indent;
             }
 
-            var tokens = new PSharpLexer().Tokenize(currentLine.GetText());
-
             bool codeFound = false;
+            bool openBracketFound = false;
+            var tokens = new PSharpLexer().Tokenize(currentLine.GetText());
             foreach (var token in tokens)
             {
                 if (token.Type == TokenType.WhiteSpace && !codeFound)
                 {
                     foreach (var c in token.Text)
                     {
-                        if (c == '\t')
-                        {
-                            indent += tabSize;
-                        }
-                        else
-                        {
-                            indent++;
-                        }
+                        indent += (c == '\t') ? tabSize : 1;
                     }
+                    continue;
                 }
-                else if (token.Type == TokenType.LeftCurlyBracket ||
+                if (token.Type == TokenType.LeftCurlyBracket ||
                     token.Type == TokenType.MachineLeftCurlyBracket ||
                     token.Type == TokenType.StateLeftCurlyBracket)
                 {
-                    indent += tabSize;
+                    openBracketFound = true;
                     break;
                 }
-                else if (!codeFound)
+                codeFound = true;
+            }
+
+            if (openBracketFound)
+            {
+                // Don't indent for the openBracket of the preceding line if the first nonblank character
+                // on the current line is the corresponding close bracket.
+                var token = new PSharpLexer().Tokenize(line.GetText().Trim()).FirstOrDefault();
+                if (token == null
+                    || (token.Type != TokenType.RightCurlyBracket &&
+                        token.Type != TokenType.MachineRightCurlyBracket &&
+                        token.Type != TokenType.StateRightCurlyBracket))
                 {
-                    codeFound = true;
+                    indent += tabSize;
                 }
             }
 
-            if (indent < 0)
-            {
-                indent = 0;
-            }
-
-            return indent;
+            return indent < 0 ? 0 : indent;
         }
 
         public void Dispose()
         {
-            if (!this.IsDisposed)
+            if (!this.isDisposed)
             {
                 GC.SuppressFinalize(this);
-                this.IsDisposed = true;
+                this.isDisposed = true;
             }
         }
     }

@@ -137,6 +137,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
+            if (base.TokenStream.Done && base.TokenStream.PrevNonWhitespaceType() != TokenType.Identifier)
+            {
+                throw new ParsingException("Expected identifier.",
+                    new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
             if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
                 textUnit += base.TokenStream.Peek().TextUnit;
