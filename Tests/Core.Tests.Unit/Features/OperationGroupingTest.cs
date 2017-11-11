@@ -280,7 +280,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
 
-        public void AssertSucceeded(Type machine)
+        private void AssertSucceeded(Type machine)
         {
             var runtime = PSharpRuntime.Create();
             var failed = false;

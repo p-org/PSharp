@@ -5,7 +5,7 @@ param(
     [string]$test="all"
 )
 
-if (-not (Test-Path $PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe))
+if (-not (Test-Path $PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe))
 {
     Write-Host "Error: the xUnit console runner was not found. Please build P# to install the NuGet package." -ForegroundColor "red"
     exit
@@ -26,7 +26,7 @@ if (($test -eq "all") -or ($test -eq "testing-services"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Integration\bin\$framework\Microsoft.PSharp.TestingServices.Tests.Integration.dll -verbose"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Integration\bin\$framework\Microsoft.PSharp.TestingServices.Tests.Integration.dll -verbose"
 }
 
 Write-Host "Done." -ForegroundColor "green" 
