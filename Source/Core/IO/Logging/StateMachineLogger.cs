@@ -254,11 +254,13 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine has been created.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
-        public virtual void OnCreateMachine(MachineId machineId)
+        /// <param name="creator">Id of the host machine, null otherwise.</param>
+        public virtual void OnCreateMachine(MachineId machineId, MachineId creator)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine($"<CreateLog> Machine '{machineId}' is created.");
+                var source = creator == null ? "the Runtime" : $"machine '{creator.Name}'";
+                this.WriteLine($"<CreateLog> Machine '{machineId}' was created by {source}.");
             }
         }
 
@@ -271,7 +273,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine($"<CreateLog> Monitor '{monitorTypeName}' with id '{monitorId}' is created.");
+                this.WriteLine($"<CreateLog> Monitor '{monitorTypeName}' with id '{monitorId}' was created.");
             }
         }
 
