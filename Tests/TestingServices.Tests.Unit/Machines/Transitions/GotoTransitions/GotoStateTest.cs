@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertSucceeded(test);
-            Assert.Equal(MonitorValue, 101);
+            Assert.Equal(101, MonitorValue);
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertSucceeded(test);
-            Assert.Equal(MonitorValue, 202);
+            Assert.Equal(202, MonitorValue);
         }
     }
 }

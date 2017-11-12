@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertSucceeded(test);
-            Assert.Equal(WithNameofValue, 11111);
+            Assert.Equal(11111, WithNameofValue);
         }
 
         [Fact]
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertSucceeded(test);
-            Assert.Equal(WithoutNameofValue, 11111);
+            Assert.Equal(11111, WithoutNameofValue);
         }
     }
 }
