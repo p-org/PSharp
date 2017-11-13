@@ -5,7 +5,7 @@ param(
     [string]$test="all"
 )
 
-if (-not (Test-Path $PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe))
+if (-not (Test-Path $PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe))
 {
     Write-Host "Error: the xUnit console runner was not found. Please build P# to install the NuGet package." -ForegroundColor "red"
     exit
@@ -26,7 +26,7 @@ if (($test -eq "all") -or ($test -eq "core"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\Core.Tests.Unit\bin\$framework\Microsoft.PSharp.Core.Tests.Unit.dll -verbose"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe $PSScriptRoot\Core.Tests.Unit\bin\$framework\Microsoft.PSharp.Core.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "testing-services"))
@@ -40,7 +40,7 @@ if (($test -eq "all") -or ($test -eq "testing-services"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Unit\bin\$framework\Microsoft.PSharp.TestingServices.Tests.Unit.dll -verbose"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe $PSScriptRoot\TestingServices.Tests.Unit\bin\$framework\Microsoft.PSharp.TestingServices.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "shared-objects"))
@@ -54,7 +54,7 @@ if (($test -eq "all") -or ($test -eq "shared-objects"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\SharedObjects.Tests.Unit\bin\$framework\Microsoft.PSharp.SharedObjects.Tests.Unit.dll -verbose"
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe $PSScriptRoot\SharedObjects.Tests.Unit\bin\$framework\Microsoft.PSharp.SharedObjects.Tests.Unit.dll -verbose"
 }
 
 if (($test -eq "all") -or ($test -eq "language-services"))
@@ -68,7 +68,7 @@ if (($test -eq "all") -or ($test -eq "language-services"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\LanguageServices.Tests.Unit\bin\$framework\Microsoft.PSharp.LanguageServices.Tests.Unit.dll -verbose"   
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe $PSScriptRoot\LanguageServices.Tests.Unit\bin\$framework\Microsoft.PSharp.LanguageServices.Tests.Unit.dll -verbose"   
 }
 
 if (($test -eq "all") -or ($test -eq "static-analysis"))
@@ -82,7 +82,7 @@ if (($test -eq "all") -or ($test -eq "static-analysis"))
         exit
     }
 
-    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.2.0\tools\xunit.console.exe $PSScriptRoot\StaticAnalysis.Tests.Unit\bin\$framework\Microsoft.PSharp.StaticAnalysis.Tests.Unit.dll -verbose"  
+    Invoke-Expression "$PSScriptRoot\..\packages\xunit.runner.console\2.3.1\tools\net452\xunit.console.exe $PSScriptRoot\StaticAnalysis.Tests.Unit\bin\$framework\Microsoft.PSharp.StaticAnalysis.Tests.Unit.dll -verbose"  
 }
 
 Write-Host "Done." -ForegroundColor "green" 

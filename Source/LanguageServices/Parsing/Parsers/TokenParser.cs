@@ -18,6 +18,7 @@ using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.PSharp.IO;
+using System;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -41,7 +42,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// List of expected token types at end of parsing.
         /// </summary>
-        protected List<TokenType> ExpectedTokenTypes;
+        protected TokenType[] ExpectedTokenTypes;
 
         /// <summary>
         /// The error log.
@@ -84,7 +85,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.OriginalTokens = tokens.ToList();
             this.TokenStream = new TokenStream(tokens);
             this.Program = this.CreateNewProgram();
-            this.ExpectedTokenTypes = new List<TokenType>();
+            this.ExpectedTokenTypes = Array.Empty<TokenType>();
 
             try
             {
@@ -102,7 +103,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 if (base.Options.ThrowParsingException && this.ErrorLog.Length > 0)
                 {
-                    throw new ParsingException(this.ErrorLog.ToString(), ex.ExpectedTokenTypes);
+                    throw new ParsingException(this.ErrorLog.ToString(), ex.FailingToken, ex.ExpectedTokenTypes);
                 }
             }
             
@@ -113,7 +114,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Returns the expected token types at the end of parsing.
         /// </summary>
         /// <returns>Expected token types</returns>
-        public List<TokenType> GetExpectedTokenTypes()
+        public TokenType[] GetExpectedTokenTypes()
         {
             return this.ExpectedTokenTypes;
         }

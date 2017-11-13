@@ -664,7 +664,7 @@ namespace Foo
         public void TestOnComplexGenericEventDoActionDeclaration()
         {
             var test = @"
-using System.Collection.Generic;
+using System.Collections.Generic;
 namespace Foo {
 machine M {
 start state S1
@@ -675,7 +675,7 @@ on e<List<Tuple<bool, object>>, Dictionary<string, float>> do Bar;
 }";
             var expected = @"
 using Microsoft.PSharp;
-using System.Collection.Generic;
+using System.Collections.Generic;
 
 namespace Foo
 {

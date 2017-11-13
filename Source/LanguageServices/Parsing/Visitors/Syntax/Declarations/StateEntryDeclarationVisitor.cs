@@ -44,8 +44,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (parentNode.EntryDeclaration != null)
             {
-                throw new ParsingException("Duplicate entry declaration.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate entry declaration.", base.TokenStream.Peek());
             }
 
             var node = new EntryDeclaration(base.TokenStream.Program, parentNode, isAsync);
@@ -58,11 +57,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", base.TokenStream.Peek(),
+                    TokenType.LeftCurlyBracket);
             }
 
             var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine, parentNode);

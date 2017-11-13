@@ -71,10 +71,10 @@ namespace Microsoft.PSharp
                     errorReporter.WriteWarningLine(warning);
                 }
 
-                if (ex.Warnings.Count > 0)
+                if (ex.Warnings.Length > 0)
                 {
-                    logger.WriteLine("Found {0} parsing warning{1}.", ex.Warnings.Count,
-                        ex.Warnings.Count == 1 ? "" : "s");
+                    logger.WriteLine("Found {0} parsing warning{1}.", ex.Warnings.Length,
+                        ex.Warnings.Length == 1 ? "" : "s");
                 }
 
                 foreach (var error in ex.Errors)
@@ -82,10 +82,10 @@ namespace Microsoft.PSharp
                     errorReporter.WriteErrorLine(error);
                 }
 
-                if (ex.Errors.Count > 0)
+                if (ex.Errors.Length > 0)
                 {
-                    logger.WriteLine("Found {0} parsing error{1}.", ex.Errors.Count,
-                        ex.Errors.Count == 1 ? "" : "s");
+                    logger.WriteLine("Found {0} parsing error{1}.", ex.Errors.Length,
+                        ex.Errors.Length == 1 ? "" : "s");
                 }
             }
             catch (RewritingException ex)

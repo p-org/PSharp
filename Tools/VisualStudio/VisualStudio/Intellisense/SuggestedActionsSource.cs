@@ -14,40 +14,37 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
 
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.VisualStudio
 {
     internal class SuggestedActionsSource : ISuggestedActionsSource
     {
-        private readonly SuggestedActionsSourceProvider SourceProvider;
-        private readonly ITextView TextView;
-        private readonly ITextBuffer Buffer;
+        private readonly SuggestedActionsSourceProvider sourceProvider;
+        private readonly ITextView textView;
+        private readonly ITextBuffer textBuffer;
 
-        private bool IsDisposed;
+        private bool isDisposed;
 
-        public event EventHandler<EventArgs> SuggestedActionsChanged;   // TODO unused
+        public event EventHandler<EventArgs> SuggestedActionsChanged;   // TODO unused; implement Workspace registration change
 
         public SuggestedActionsSource(SuggestedActionsSourceProvider suggestedActionsSourceProvider,
             ITextView textView, ITextBuffer textBuffer)
         {
-            this.SourceProvider = suggestedActionsSourceProvider;
-            this.TextView = textView;
-            this.Buffer = textBuffer;
-            this.IsDisposed = false;
+            this.sourceProvider = suggestedActionsSourceProvider;
+            this.textView = textView;
+            this.textBuffer = textBuffer;
+            this.isDisposed = false;
         }
 
         public Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories,
@@ -55,74 +52,61 @@ namespace Microsoft.PSharp.VisualStudio
         {
             return Task.Factory.StartNew(() =>
             {
-                return false;   // TODO short-circuited for now
-
-                TextExtent extent;
-                if (!this.TryGetWordUnderCaret(out extent))
-                {
-                    return false;
-                }
-
-                var extentToken = new PSharpLexer().Tokenize(extent.Span.GetText()).FirstOrDefault();
-                if (extentToken == null)
-                {
-                    return false;
-                }
-
-                var snapshot = extent.Span.Snapshot;
-                var trackSpan = range.Snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
-                var preSpan = new SnapshotSpan(snapshot, new Span(snapshot.GetLineFromLineNumber(0).Start,
-                    trackSpan.GetStartPoint(snapshot).Position));
-
-                var tokens = new PSharpLexer().Tokenize(preSpan.GetText());
-                var parser = new PSharpParser(ParsingOptions.CreateDefault());
-                parser.ParseTokens(tokens);
-
-                var expected = parser.GetExpectedTokenTypes();
-                if (this.IsExpectedTokenType(extentToken, expected))
-                {
-                    return false;
-                }
-
-                return extent.IsSignificant;
+                return (!this.TryGetWordUnderCaret(out TextExtent extent)
+                        || IsExtentTokenExpected(range, extent, out _, out _))
+                    ? false
+                    : extent.IsSignificant;
             });
         }
 
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(ISuggestedActionCategorySet requestedActionCategories,
             SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return Enumerable.Empty<SuggestedActionSet>();  // TODO short-circuited for now 
+            return !this.TryGetWordUnderCaret(out TextExtent textExtent) || !textExtent.IsSignificant
+                    || IsExtentTokenExpected(range, textExtent, out ITrackingSpan trackingSpan, out PSharpParser parser)
+                ? Enumerable.Empty<SuggestedActionSet>()
+                : GetSuggestedActions(textExtent, trackingSpan, parser);
+        }
 
-            TextExtent extent;
-            if (!this.TryGetWordUnderCaret(out extent) || !extent.IsSignificant)
-            {
-                return Enumerable.Empty<SuggestedActionSet>();
-            }
-
+        private bool IsExtentTokenExpected(SnapshotSpan range, TextExtent extent, out ITrackingSpan trackSpan, out PSharpParser parser)
+        {
             var extentToken = new PSharpLexer().Tokenize(extent.Span.GetText()).FirstOrDefault();
             if (extentToken == null)
             {
-                return Enumerable.Empty<SuggestedActionSet>();
+                trackSpan = null;
+                parser = null;
+                return false;
             }
 
             var snapshot = extent.Span.Snapshot;
-            var trackSpan = range.Snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
+            trackSpan = range.Snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
             var preSpan = new SnapshotSpan(snapshot, new Span(snapshot.GetLineFromLineNumber(0).Start,
                 trackSpan.GetStartPoint(snapshot).Position));
 
             var tokens = new PSharpLexer().Tokenize(preSpan.GetText());
-            var parser = new PSharpParser(ParsingOptions.CreateDefault());
-            parser.ParseTokens(tokens);
-
-            var expected = parser.GetExpectedTokenTypes();
-            if (this.IsExpectedTokenType(extentToken, expected))
+            parser = new PSharpParser(ParsingOptions.CreateForVsLanguageService());
+            try
             {
-                return Enumerable.Empty<SuggestedActionSet>();
+                parser.ParseTokens(tokens);
             }
+            catch (ParsingException)
+            {
+                // Parsing exception is expected
+            }
+            return this.IsExpectedTokenType(extentToken, parser.GetExpectedTokenTypes());
+        }
 
-            var errorFixAction = new ErrorFixSuggestedAction(trackSpan);
+        private IEnumerable<SuggestedActionSet> GetSuggestedActions(TextExtent textExtent, ITrackingSpan trackingSpan, PSharpParser parser)
+        {
+            var span = textExtent.Span;
+            var word = span.Snapshot.TextBuffer.CurrentSnapshot.GetText().Substring(span.Start.Position, span.End.Position - span.Start.Position);
 
-            return new SuggestedActionSet[] { new SuggestedActionSet(new ISuggestedAction[] { errorFixAction }) };
+            // Start with prefix search
+            var suggestions = CompletionSource.RefineAvailableKeywords(parser.GetExpectedTokenTypes(), word, usePrefix:false).ToList();
+            foreach (var suggestion in suggestions)
+            {
+                yield return new SuggestedActionSet(new ISuggestedAction[] { new ErrorFixSuggestedAction(word, suggestion, trackingSpan) });
+            }
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
@@ -132,52 +116,42 @@ namespace Microsoft.PSharp.VisualStudio
         }
 
         /// <summary>
-        /// Returns true if the given token is of the expected token type
+        /// Returns true if the given token is of the expected token type, or is an ignorable token
         /// </summary>
         /// <returns></returns>
-        private bool IsExpectedTokenType(Token token, List<TokenType> expectedTokenTypes)
+        private bool IsExpectedTokenType(Token token, TokenType[] expectedTokenTypes)
         {
-            if (token.Type == TokenType.WhiteSpace ||
-                token.Type == TokenType.NewLine ||
-                token.Type == TokenType.Comment ||
-                token.Type == TokenType.CommentLine ||
-                token.Type == TokenType.CommentStart ||
-                token.Type == TokenType.CommentEnd ||
-                expectedTokenTypes.Contains(token.Type))
-            {
-                return true;
-            }
-
-            return false;
+            return PSharpQuickInfoSource.IsIgnoreTokenType(token.Type) || expectedTokenTypes.Contains(token.Type);
         }
 
         private bool TryGetWordUnderCaret(out TextExtent wordExtent)
         {
-            var caret = this.TextView.Caret;
-            SnapshotPoint point;
-
+            var caret = this.textView.Caret;
             if (caret.Position.BufferPosition > 0)
             {
-                point = caret.Position.BufferPosition - 1;
-            }
-            else
-            {
-                wordExtent = default(TextExtent);
-                return false;
+                var position = caret.Position.BufferPosition.Position;
+                var projBuf = this.textView.BufferGraph.TopBuffer;
+                var projSnapshotPoint = new SnapshotPoint(projBuf.CurrentSnapshot, position);
+                var editBufferPoint = this.textView.BufferGraph.MapDownToBuffer(projSnapshotPoint, PointTrackingMode.Positive,
+                                            this.textBuffer, PositionAffinity.Predecessor);
+                if (editBufferPoint.HasValue)
+                {
+                    var navigator = this.sourceProvider.NavigatorService.GetTextStructureNavigator(this.textBuffer);
+                    wordExtent = navigator.GetExtentOfWord(editBufferPoint.Value - 1);
+                    return true;
+                }
             }
 
-            var navigator = this.SourceProvider.NavigatorService.GetTextStructureNavigator(this.Buffer);
-            wordExtent = navigator.GetExtentOfWord(point);
-
-            return true;
+            wordExtent = default(TextExtent);
+            return false;
         }
 
         public void Dispose()
         {
-            if (!this.IsDisposed)
+            if (!this.isDisposed)
             {
                 GC.SuppressFinalize(this);
-                this.IsDisposed = true;
+                this.isDisposed = true;
             }
         }
     }

@@ -48,11 +48,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected field or method identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected field or method identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             var identifierToken = base.TokenStream.Peek();
@@ -64,12 +61,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     (base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                     base.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"(\" or \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftParenthesis,
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \"(\" or \";\".", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.LeftParenthesis,
+                        TokenType.Semicolon
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
@@ -98,41 +95,34 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine field cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be public.", base.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine field cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be internal.", base.TokenStream.Peek());
             }
 
             if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                throw new ParsingException("A machine field cannot be abstract.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be abstract.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
             {
-                throw new ParsingException("A machine field cannot be virtual.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be virtual.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Override)
             {
-                throw new ParsingException("A machine field cannot be overriden.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be overriden.", base.TokenStream.Peek());
             }
 
             if (modSet.IsAsync)
             {
-                throw new ParsingException("A machine field cannot be async.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be async.", base.TokenStream.Peek());
             }
 
             if (modSet.IsPartial)
             {
-                throw new ParsingException("A machine field cannot be partial.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be partial.", base.TokenStream.Peek());
             }
         }
     }

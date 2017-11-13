@@ -126,9 +126,10 @@
     <Compile Include="ProjectionBuffers\ProjectionTextViewModelProvider.cs" />
     <Compile Include="ProjectionBuffers\PSharpWorkspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tagging\PSharpErrorTagger.cs" />
     <Compile Include="Tagging\PSharpTokenTag.cs" />
     <Compile Include="Tagging\PSharpTokenTagger.cs" />
-    <Compile Include="Tagging\PSharpTokenTagProvider.cs" />
+    <Compile Include="Tagging\PSharpTagProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

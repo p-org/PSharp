@@ -12,9 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Syntax;
 
@@ -63,11 +61,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected machine identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected machine identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             base.TokenStream.Swap(TokenType.MachineIdentifier);
@@ -83,12 +78,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     (base.TokenStream.Peek().Type != TokenType.Colon &&
                     base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
                 {
-                    throw new ParsingException("Expected \":\" or \"{\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Colon,
-                            TokenType.LeftCurlyBracket
-                    });
+                    throw new ParsingException("Expected \":\" or \"{\".", base.TokenStream.Peek(),
+                        new []
+                        {
+                                TokenType.Colon,
+                                TokenType.LeftCurlyBracket
+                        });
                 }
 
                 if (base.TokenStream.Peek().Type == TokenType.Colon)
@@ -101,11 +96,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     if (base.TokenStream.Done ||
                         base.TokenStream.Peek().Type != TokenType.Identifier)
                     {
-                        throw new ParsingException("Expected base machine identifier.",
-                            new List<TokenType>
-                        {
-                                TokenType.Identifier
-                        });
+                        throw new ParsingException("Expected base machine identifier.", base.TokenStream.Peek(),
+                            TokenType.Identifier);
                     }
 
                     while (!base.TokenStream.Done &&
@@ -115,12 +107,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             base.TokenStream.Peek().Type != TokenType.Dot &&
                             base.TokenStream.Peek().Type != TokenType.NewLine)
                         {
-                            throw new ParsingException("Expected base machine identifier.",
-                                new List<TokenType>
-                            {
+                            throw new ParsingException("Expected base machine identifier.", base.TokenStream.Peek(),
+                                new []
+                                {
                                     TokenType.Identifier,
                                     TokenType.Dot
-                            });
+                                });
                         }
                         else
                         {
@@ -141,11 +133,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", base.TokenStream.Peek(),
+                    TokenType.LeftCurlyBracket);
             }
 
             base.TokenStream.Swap(TokenType.MachineLeftCurlyBracket);
@@ -161,20 +150,17 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             var stateDeclarations = node.GetAllStateDeclarations();
             if (stateDeclarations.Count == 0 && node.BaseNameTokens.Count == 0)
             {
-                throw new ParsingException("A machine must declare at least one state.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine must declare at least one state.", base.TokenStream.Peek());
             }
 
             var startStates = stateDeclarations.FindAll(s => s.IsStart);
             if (startStates.Count == 0 && node.BaseNameTokens.Count == 0)
             {
-                throw new ParsingException("A machine must declare a start state.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine must declare a start state.", base.TokenStream.Peek());
             }
             else if (startStates.Count > 1)
             {
-                throw new ParsingException("A machine can declare only a single start state.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine can declare only a single start state.", base.TokenStream.Peek());
             }
         }
 
@@ -256,26 +242,25 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             break;
 
                         default:
-                            throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.",
-                                new List<TokenType>());
+                            throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.", base.TokenStream.Peek());
                     }
                 }
 
                 if (base.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Private,
-                            TokenType.Protected,
-                            TokenType.StartState,
-                            TokenType.HotState,
-                            TokenType.ColdState,
-                            TokenType.StateDecl,
-                            TokenType.StateGroupDecl,
-                            TokenType.LeftSquareBracket,
-                            TokenType.RightCurlyBracket
-                    });
+                    throw new ParsingException("Expected \"}\".", base.TokenStream.Peek(),
+                        new []
+                        {
+                                TokenType.Private,
+                                TokenType.Protected,
+                                TokenType.StartState,
+                                TokenType.HotState,
+                                TokenType.ColdState,
+                                TokenType.StateDecl,
+                                TokenType.StateGroupDecl,
+                                TokenType.LeftSquareBracket,
+                                TokenType.RightCurlyBracket
+                        });
                 }
             }
         }
@@ -343,37 +328,34 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             {
                 if (base.TokenStream.PrevNonWhitespaceType() == TokenType.StartState)
                 {
-                    throw new ParsingException("Expected state declaration.",
-                        new List<TokenType>
-                    {
-                    TokenType.StateDecl
-                    });
+                    throw new ParsingException("Expected state declaration.", base.TokenStream.Peek(),
+                        TokenType.StateDecl);
                 }
-                throw new ParsingException("Expected event, state, group or method declaration.",
-                    new List<TokenType>
-                {
-                    TokenType.EventDecl,
-                    TokenType.StateDecl,
-                    TokenType.StateGroupDecl,
-                    TokenType.MachineDecl,
-                    TokenType.Void,
-                    TokenType.Object,
-                    TokenType.String,
-                    TokenType.Sbyte,
-                    TokenType.Byte,
-                    TokenType.Short,
-                    TokenType.Ushort,
-                    TokenType.Int,
-                    TokenType.Uint,
-                    TokenType.Long,
-                    TokenType.Ulong,
-                    TokenType.Char,
-                    TokenType.Bool,
-                    TokenType.Decimal,
-                    TokenType.Float,
-                    TokenType.Double,
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected event, state, group or method declaration.", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.EventDecl,
+                        TokenType.StateDecl,
+                        TokenType.StateGroupDecl,
+                        TokenType.MachineDecl,
+                        TokenType.Void,
+                        TokenType.Object,
+                        TokenType.String,
+                        TokenType.Sbyte,
+                        TokenType.Byte,
+                        TokenType.Short,
+                        TokenType.Ushort,
+                        TokenType.Int,
+                        TokenType.Uint,
+                        TokenType.Long,
+                        TokenType.Ulong,
+                        TokenType.Char,
+                        TokenType.Bool,
+                        TokenType.Decimal,
+                        TokenType.Float,
+                        TokenType.Double,
+                        TokenType.Identifier
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.EventDecl)
@@ -402,13 +384,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("A machine cannot be declared as private.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine cannot be declared as private.", base.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("A machine cannot be declared as protected.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine cannot be declared as protected.", base.TokenStream.Peek());
             }
         }
 
@@ -420,13 +400,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("A monitor cannot be declared as private.",
-                    new List<TokenType>());
+                throw new ParsingException("A monitor cannot be declared as private.", base.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("A monitor cannot be declared as protected.",
-                    new List<TokenType>());
+                throw new ParsingException("A monitor cannot be declared as protected.", base.TokenStream.Peek());
             }
         }
     }

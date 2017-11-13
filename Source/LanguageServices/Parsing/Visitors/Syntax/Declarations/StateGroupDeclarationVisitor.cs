@@ -55,11 +55,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected state group identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected state group identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             base.TokenStream.Swap(TokenType.StateGroupIdentifier);
@@ -72,11 +69,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", base.TokenStream.Peek(),
+                    TokenType.LeftCurlyBracket);
             }
 
             base.TokenStream.Swap(TokenType.StateGroupLeftCurlyBracket);
@@ -100,8 +94,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             var stateDeclarations = node.GetAllStateDeclarations();
             if (stateDeclarations.Count == 0)
             {
-                throw new ParsingException("A state group must declare at least one state.",
-                    new List<TokenType>());
+                throw new ParsingException("A state group must declare at least one state.", base.TokenStream.Peek());
             }
         }
 
@@ -160,25 +153,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     default:
-                        throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.", base.TokenStream.Peek());
                 }
 
                 if (base.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Private,
-                            TokenType.Protected,
-                            TokenType.StartState,
-                            TokenType.HotState,
-                            TokenType.ColdState,
-                            TokenType.StateDecl,
-                            TokenType.StateGroupDecl,
-                            TokenType.LeftSquareBracket,
-                            TokenType.RightCurlyBracket
-                    });
+                    throw new ParsingException("Expected \"}\".", base.TokenStream.Peek(),
+                        new []
+                        {
+                                TokenType.Private,
+                                TokenType.Protected,
+                                TokenType.StartState,
+                                TokenType.HotState,
+                                TokenType.ColdState,
+                                TokenType.StateDecl,
+                                TokenType.StateGroupDecl,
+                                TokenType.LeftSquareBracket,
+                                TokenType.RightCurlyBracket
+                        });
                 }
             }
         }
@@ -207,12 +199,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 (base.TokenStream.Peek().Type != TokenType.StateDecl &&
                 base.TokenStream.Peek().Type != TokenType.StateGroupDecl))
             {
-                throw new ParsingException("Expected state or group declaration.",
-                    new List<TokenType>
-                {
-                    TokenType.StateDecl,
-                    TokenType.StateGroupDecl
-                });
+                throw new ParsingException("Expected state or group declaration.", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.StateDecl,
+                        TokenType.StateGroupDecl
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.StateDecl)
@@ -233,57 +225,47 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine state group cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be public.", base.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine state group cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be internal.", base.TokenStream.Peek());
             }
 
             if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                throw new ParsingException("A machine state group cannot be abstract.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be abstract.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
             {
-                throw new ParsingException("A machine state group cannot be virtual.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be virtual.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Override)
             {
-                throw new ParsingException("A machine state group cannot be overriden.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be overriden.", base.TokenStream.Peek());
             }
 
             if (modSet.IsAsync)
             {
-                throw new ParsingException("A machine state group cannot be async.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be async.", base.TokenStream.Peek());
             }
 
             if (modSet.IsPartial)
             {
-                throw new ParsingException("A machine state group cannot be partial.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be partial.", base.TokenStream.Peek());
             }
 
             if (modSet.IsStart)
             {
-                throw new ParsingException("A machine state group cannot be marked start.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be marked start.", base.TokenStream.Peek());
             }
             else if (modSet.IsHot)
             {
-                throw new ParsingException("A machine state group cannot be hot.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be hot.", base.TokenStream.Peek());
             }
             else if (modSet.IsCold)
             {
-                throw new ParsingException("A machine state group cannot be cold.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state group cannot be cold.", base.TokenStream.Peek());
             }
         }
     }

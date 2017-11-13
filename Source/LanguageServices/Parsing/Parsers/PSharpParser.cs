@@ -105,12 +105,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     case TokenType.Virtual:
                     case TokenType.EventDecl:
                     case TokenType.MachineDecl:
-                        throw new ParsingException("Must be declared inside a namespace.",
-                            new List<TokenType>());
+                        throw new ParsingException("Must be declared inside a namespace.", token);
 
                     default:
-                        throw new ParsingException("Unexpected token.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected token.", token);
                 }
             }
         }
@@ -133,11 +131,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             while (!base.TokenStream.Done &&
@@ -147,12 +142,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     base.TokenStream.Peek().Type != TokenType.Dot &&
                     base.TokenStream.Peek().Type != TokenType.NewLine)
                 {
-                    throw new ParsingException("Expected identifier.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier,
-                        TokenType.Dot
-                    });
+                    throw new ParsingException("Expected identifier.", base.TokenStream.Peek(),
+                        TokenType.Identifier, TokenType.Dot);
                 }
                 else
                 {
@@ -166,11 +157,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \";\".", base.TokenStream.Peek(),
+                    TokenType.Semicolon);
             }
 
             node.SemicolonToken = base.TokenStream.Peek();
@@ -192,11 +180,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected namespace identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected namespace identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             while (!base.TokenStream.Done &&
@@ -206,12 +191,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     base.TokenStream.Peek().Type != TokenType.Dot &&
                     base.TokenStream.Peek().Type != TokenType.NewLine)
                 {
-                    throw new ParsingException("Expected namespace identifier.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier,
-                        TokenType.Dot
-                    });
+                    throw new ParsingException("Expected namespace identifier.", base.TokenStream.Peek(),
+                        TokenType.Identifier, TokenType.Dot);
                 }
                 else
                 {
@@ -225,11 +206,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", base.TokenStream.Peek(),
+                    TokenType.LeftCurlyBracket);
             }
 
             node.LeftCurlyBracketToken = base.TokenStream.Peek();
@@ -251,20 +229,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             var tokenRange = new TokenRange(base.TokenStream);
             if (base.TokenStream.Done)
             {
-                throw new ParsingException("Expected \"}\".",
-                    new List<TokenType>
-                {
-                    TokenType.Internal,
-                    TokenType.Public,
-                    TokenType.Partial,
-                    TokenType.Abstract,
-                    TokenType.Virtual,
-                    TokenType.EventDecl,
-                    TokenType.MachineDecl,
-                    TokenType.MonitorDecl,
-                    TokenType.LeftSquareBracket,
-                    TokenType.RightCurlyBracket
-                });
+                throw new ParsingException("Expected \"}\".", null,
+                    new []
+                    {
+                        TokenType.Internal,
+                        TokenType.Public,
+                        TokenType.Partial,
+                        TokenType.Abstract,
+                        TokenType.Virtual,
+                        TokenType.EventDecl,
+                        TokenType.MachineDecl,
+                        TokenType.MonitorDecl,
+                        TokenType.LeftSquareBracket,
+                        TokenType.RightCurlyBracket
+                    });
             }
 
             bool fixpoint = false;
@@ -314,8 +292,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     break;
 
                 default:
-                    throw new ParsingException("Unexpected token.",
-                        new List<TokenType>());
+                    throw new ParsingException("Unexpected token.", token,
+                        new []
+                        {
+                            TokenType.EventDecl,
+                            TokenType.MachineDecl,
+                            TokenType.MonitorDecl,
+                            TokenType.Internal,
+                            TokenType.Public,
+                            TokenType.Private,
+                            TokenType.Protected,
+                            TokenType.Partial,
+                            TokenType.Abstract,
+                            TokenType.Virtual
+                        });
             }
 
             if (!fixpoint)
@@ -349,13 +339,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.MonitorDecl))
             {
-                throw new ParsingException("Expected event, machine or monitor declaration.",
-                    new List<TokenType>
-                {
-                    TokenType.EventDecl,
-                    TokenType.MachineDecl,
-                    TokenType.MonitorDecl
-                });
+                throw new ParsingException("Expected event, machine or monitor declaration.", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.EventDecl,
+                        TokenType.MachineDecl,
+                        TokenType.MonitorDecl
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.EventDecl)

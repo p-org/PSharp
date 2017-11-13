@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.VisualStudio
         private readonly ITextBuffer Buffer;
 
         private List<Completion> CompletionList;
-        private HashSet<TokenType> DoNotSuggest = new HashSet<TokenType>
+        internal static HashSet<TokenType> DoNotSuggest = new HashSet<TokenType>
         {
             TokenType.NewLine, TokenType.WhiteSpace, TokenType.Identifier,
             TokenType.LeftCurlyBracket,
@@ -95,8 +95,8 @@ namespace Microsoft.PSharp.VisualStudio
             var prefix = this.Buffer.CurrentSnapshot.GetText().Substring(extent.Span.Start.Position, extent.Span.End.Position - extent.Span.Start.Position);
 
             var availableKeywords = GetAvailableKeywords(extent.Span.Start.Position - 1);
-            this.CompletionList = this.RefineAvailableKeywords(availableKeywords, prefix)
-                                      .Select(kvp => new Completion(kvp.Key, kvp.Key, kvp.Value, null, null)).ToList();
+            this.CompletionList = RefineAvailableKeywords(availableKeywords, prefix, usePrefix:true)
+                                  .Select(kvp => new Completion(kvp.Key, kvp.Key, kvp.Value, null, null)).ToList();
             if (this.CompletionList.Count > 0)
             {
                 var trackSpan = this.Buffer.CurrentSnapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
@@ -151,19 +151,91 @@ namespace Microsoft.PSharp.VisualStudio
         /// </summary>
         /// <param name="expectedTokenTypes">Expected token types</param>
         /// <param name="keywords">Keywords</param>
-        private IEnumerable<KeyValuePair<string, string>> RefineAvailableKeywords(IEnumerable<TokenType> expectedTokenTypes, string prefix)
+        internal static IEnumerable<KeyValuePair<string, string>> RefineAvailableKeywords(IEnumerable<TokenType> expectedTokenTypes, string word, bool usePrefix)
         {
             foreach (var tokenType in expectedTokenTypes.Where(tokType => !DoNotSuggest.Contains(tokType)))
             {
                 var tokenString = TokenTypeRegistry.GetText(tokenType);
-                if (tokenString.Length > prefix.Length && tokenString.StartsWith(prefix)
-                        && Keywords.DefinitionMap.TryGetValue(tokenString, out string initialDef))
+                if (Keywords.DefinitionMap.TryGetValue(tokenString, out string initialDef) && IsMatch(word, tokenString, usePrefix))
                 {
                     // TODO: Consolidate the various lists and dictionaries.
                     var tokenDefinition = PSharpQuickInfoSource.TokenTypeTips.TryGetValue(tokenType, out string betterDef) ? betterDef : initialDef;
                     yield return new KeyValuePair<string, string>(tokenString, tokenDefinition);
                 }
             }
+        }
+
+        internal static bool IsMatch(string word, string tokenString, bool prefixOnly)
+        {
+            // No suggestion if they match.
+            if (word == tokenString)
+            {
+                return false;
+            }
+
+            // Simplify prefix matches. For CompletionSource, "token starts with word" this is the only check.
+            if (tokenString.Length > word.Length && tokenString.StartsWith(word))
+            {
+                return true;
+            }
+            if (prefixOnly)
+            {
+                return false;
+            }
+            if (word.Length > tokenString.Length && word.StartsWith(tokenString))
+            {
+                return true;
+            }
+
+            // For SuggestedActions. Consider edit distance 1 only: Insertions, Deletions, and Transpositions
+            // Insertions: removing one letter from 'word' forms 'tokenString' then seeing if it is equal or prefix.
+            // Deletions: removing one letter from 'tokenString' forms 'word' then seeing if it is equal or prefix.
+            // Transpositions: transpose two characters in 'word' then seeing if it is equal or prefix.
+            int lhsPos = 0, rhsPos = 0;
+            void resetPos() { lhsPos = 0; rhsPos = 0; }
+            bool isInsertion() { resetPos(); return isOneDeletion(tokenString, word); }
+            bool isDeletion() { resetPos(); return isOneDeletion(word, tokenString); }
+            bool findNextDiff(string lhs, string rhs)
+            {
+                while (lhsPos < lhs.Length && rhsPos < rhs.Length)
+                {
+                    if (lhs[lhsPos] != rhs[rhsPos])
+                    {
+                        return true;
+                    }
+                    ++lhsPos;
+                    ++rhsPos;
+                }
+                return false;
+            }
+
+            bool isOneDeletion(string lhs, string rhs)
+            {
+                if (!findNextDiff(lhs, rhs))
+                {
+                    return false;
+                }
+                ++rhsPos;
+                return !findNextDiff(lhs, rhs);
+            }
+
+            // Apply the single edit distance then check for equal or prefix.
+            if (isInsertion() || isDeletion())
+            {
+                return true;
+            }
+
+            // Now check for transposition.
+            resetPos();
+            if (!findNextDiff(word, tokenString) 
+                    || lhsPos > word.Length - 2 || rhsPos > tokenString.Length - 2
+                    || word[lhsPos] != tokenString[rhsPos + 1] || word[lhsPos + 1] != tokenString[rhsPos])
+            {
+                return false;
+            }
+            lhsPos += 2;
+            rhsPos += 2;
+            return !findNextDiff(word, tokenString);
         }
 
         public void Dispose()

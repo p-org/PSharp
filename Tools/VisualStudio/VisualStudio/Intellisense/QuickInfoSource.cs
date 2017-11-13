@@ -67,6 +67,18 @@ namespace Microsoft.PSharp.VisualStudio
             [TokenType.TypeIdentifier] = "type",
         };
 
+        internal static HashSet<TokenType> IgnoreTokenTypes = new HashSet<TokenType>
+        {
+            TokenType.WhiteSpace,
+            TokenType.NewLine,
+            TokenType.Comment,
+            TokenType.CommentLine,
+            TokenType.CommentStart,
+            TokenType.CommentEnd
+        };
+
+        internal static bool IsIgnoreTokenType(TokenType t) => IgnoreTokenTypes.Contains(t);
+
         public PSharpQuickInfoSource(PSharpQuickInfoSourceProvider provider, ITextBuffer subjectBuffer, ITagAggregator<PSharpTokenTag> tagAggregator)
         {
             this.provider = provider;
@@ -116,13 +128,9 @@ namespace Microsoft.PSharp.VisualStudio
             foreach (var tagSpan in this.tagAggregator.GetTags(new SnapshotSpan(subjectTriggerPoint.Value, subjectTriggerPoint.Value)))
             {
                 var tokenType = preprocessTokenType(tagSpan.Tag.Type);
-                if (tokenType == TokenType.WhiteSpace || tokenType == TokenType.NewLine)
+                if (IsIgnoreTokenType(tokenType) || !TokenTypeTips.TryGetValue(tokenType, out string content))
                 {
                     continue;
-                }
-                if (!TokenTypeTips.TryGetValue(tokenType, out string content))
-                {
-                    content = tokenType.ToString();
                 }
                 var firstSpan = tagSpan.Span.GetSpans(this.subjectBuffer).First();
                 applicableToSpan = this.subjectBuffer.CurrentSnapshot.CreateTrackingSpan(firstSpan, SpanTrackingMode.EdgeExclusive);

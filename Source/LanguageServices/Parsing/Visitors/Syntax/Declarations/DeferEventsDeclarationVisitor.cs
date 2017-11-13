@@ -42,8 +42,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (parentNode.Machine.IsMonitor)
             {
-                throw new ParsingException("Monitors cannot \"defer\".",
-                    new List<TokenType>());
+                throw new ParsingException("Monitors cannot \"defer\".", base.TokenStream.Peek());
             }
 
             base.TokenStream.Index++;
@@ -84,19 +83,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             {
                 if (!parentNode.AddDeferredEvent(kvp.Key, kvp.Value))
                 {
-                    throw new ParsingException("Unexpected defer declaration.",
-                        new List<TokenType>());
+                    throw new ParsingException("Unexpected defer declaration.", base.TokenStream.Peek());
                 }
             }
 
             if (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type == TokenType.Identifier)
             {
-                throw new ParsingException("Expected \",\".",
-                    new List<TokenType>
-                {
-                    TokenType.Comma
-                });
+                throw new ParsingException("Expected \",\".", base.TokenStream.Peek(),
+                    TokenType.Comma);
             }
 
 
@@ -104,19 +99,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket ||
                 base.TokenStream.Peek().Type == TokenType.RightAngleBracket))
             {
-                throw new ParsingException("Invalid generic expression.",
-                    new List<TokenType> { });
+                throw new ParsingException("Invalid generic expression.", base.TokenStream.Peek());
             }
 
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \";\".", base.TokenStream.Peek(),
+                    TokenType.Semicolon);
             }
         }
     }

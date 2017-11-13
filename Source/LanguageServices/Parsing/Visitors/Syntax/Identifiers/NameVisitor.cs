@@ -46,11 +46,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             base.TokenStream.Swap(replacementType);
@@ -69,11 +66,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 // Consumes identifier.
                 if (base.TokenStream.Done || base.TokenStream.Peek().Type != TokenType.Identifier)
                 {
-                    throw new ParsingException("Expected identifier.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier
-                    });
+                    throw new ParsingException("Expected identifier.", base.TokenStream.Peek(),
+                        TokenType.Identifier);
                 }
 
                 base.TokenStream.Swap(replacementType);
@@ -102,14 +96,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 base.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
-                throw new ParsingException("Expected event identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier,
-                    TokenType.MulOp,
-                    TokenType.HaltEvent,
-                    TokenType.DefaultEvent
-                });
+                throw new ParsingException("Expected event identifier.", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.Identifier,
+                        TokenType.MulOp,
+                        TokenType.HaltEvent,
+                        TokenType.DefaultEvent
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.MulOp ||
@@ -200,11 +194,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     base.TokenStream.Peek().Type != TokenType.Float &&
                     base.TokenStream.Peek().Type != TokenType.Double)
                     {
-                        throw new ParsingException("Unexpected token inside a generic name.",
-                            new List<TokenType>
-                        {
-                            TokenType.Identifier
-                        });
+                        throw new ParsingException("Unexpected token inside a generic name.", base.TokenStream.Peek(),
+                            TokenType.Identifier);
                     }
 
                     if (base.TokenStream.Peek().Type == TokenType.RightAngleBracket)
@@ -238,11 +229,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 }
 
 
-                throw new ParsingException("Incomplete generic name.",
-                    new List<TokenType>
-                {
-                            TokenType.RightAngleBracket
-                });
+                throw new ParsingException("Incomplete generic name.", base.TokenStream.Peek(),
+                    TokenType.RightAngleBracket);
             }
 
             return qualifiedName;
@@ -264,14 +252,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 base.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
-                throw new ParsingException("Expected event identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier,
-                    TokenType.MulOp,
-                    TokenType.HaltEvent,
-                    TokenType.DefaultEvent
-                });
+                throw new ParsingException("Expected event identifier.", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.Identifier,
+                        TokenType.MulOp,
+                        TokenType.HaltEvent,
+                        TokenType.DefaultEvent
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.MulOp || 

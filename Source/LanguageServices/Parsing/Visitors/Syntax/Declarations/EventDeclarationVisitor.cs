@@ -55,13 +55,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 base.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
-                throw new ParsingException("Expected event identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier,
-                    TokenType.HaltEvent,
-                    TokenType.DefaultEvent
-                });
+                throw new ParsingException("Expected event identifier.", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.Identifier,
+                        TokenType.HaltEvent,
+                        TokenType.DefaultEvent
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.Identifier)
@@ -81,14 +81,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 base.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"(\" or \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.Assert,
-                    TokenType.Assume,
-                    TokenType.LeftParenthesis,
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \"(\" or \";\".", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.Assert,
+                        TokenType.Assume,
+                        TokenType.LeftParenthesis,
+                        TokenType.Semicolon
+                    });
             }
             
             int genericCount = 0;
@@ -125,11 +125,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (genericCount == 0 &&
                     base.TokenStream.Peek().Type == TokenType.Comma)
                 {
-                    throw new ParsingException("Expected generic type.",
-                        new List<TokenType>
-                        {
-                            TokenType.Identifier
-                        });
+                    throw new ParsingException("Expected generic type.", base.TokenStream.Peek(),
+                        TokenType.Identifier);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
                 {
@@ -140,11 +137,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 {
                     if (genericCount == 0)
                     {
-                        throw new ParsingException("Invalid generic expression.",
-                            new List<TokenType>
-                            {
-                                TokenType.Identifier
-                            });
+                        throw new ParsingException("Invalid generic expression.", base.TokenStream.Peek(),
+                            TokenType.Identifier);
                     }
 
                     node.GenericType.Add(base.TokenStream.Peek());
@@ -182,11 +176,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (genericCount > 0)
             {
-                throw new ParsingException("Invalid generic expression.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Invalid generic expression.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
             
             if (base.TokenStream.Done ||
@@ -195,14 +186,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 base.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"(\" or \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.Assert,
-                    TokenType.Assume,
-                    TokenType.LeftParenthesis,
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \"(\" or \";\".", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.Assert,
+                        TokenType.Assume,
+                        TokenType.LeftParenthesis,
+                        TokenType.Semicolon
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.Assert ||
@@ -225,21 +216,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.Identifier)
                 {
-                    throw new ParsingException("Expected integer.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier
-                    });
+                    throw new ParsingException("Expected integer.", base.TokenStream.Peek(),
+                        TokenType.Identifier);
                 }
 
                 int value;
                 if (!int.TryParse(base.TokenStream.Peek().TextUnit.Text, out value))
                 {
-                    throw new ParsingException("Expected integer.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier
-                    });
+                    throw new ParsingException("Expected integer.", base.TokenStream.Peek(),
+                        TokenType.Identifier);
                 }
 
                 if (isAssert)
@@ -258,12 +243,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     (base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                     base.TokenStream.Peek().Type != TokenType.Semicolon))
                 {
-                    throw new ParsingException("Expected \"(\" or \";\".",
-                        new List<TokenType>
-                    {
-                        TokenType.LeftParenthesis,
-                        TokenType.Semicolon
-                    });
+                    throw new ParsingException("Expected \"(\" or \";\".", base.TokenStream.Peek(),
+                        new []
+                        {
+                            TokenType.LeftParenthesis,
+                            TokenType.Semicolon
+                        });
                 }
             }
 
@@ -315,21 +300,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     throw new ParsingException("The payload type of event '" + node.Identifier.TextUnit.Text +
                         "' was not declared correctly.\n" +
                         "  You must declare both a type and a name identifier, for example:\n\n" +
-                        "    event e (a:int, b:bool)\n",
-                        new List<TokenType>
-                    {
-                            TokenType.RightParenthesis
-                    });
+                        "    event e (a:int, b:bool)\n", base.TokenStream.Peek(),
+                        TokenType.RightParenthesis);
                 }
 
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.RightParenthesis)
                 {
-                    throw new ParsingException("Expected \")\".",
-                        new List<TokenType>
-                    {
-                            TokenType.RightParenthesis
-                    });
+                    throw new ParsingException("Expected \")\".", base.TokenStream.Peek(),
+                        TokenType.RightParenthesis);
                 }
 
                 node.RightParenthesis = base.TokenStream.Peek();
@@ -341,11 +320,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \";\".", base.TokenStream.Peek(),
+                    TokenType.Semicolon);
             }
 
             node.SemicolonToken = base.TokenStream.Peek();
@@ -370,26 +346,22 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (!isInMachine && modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("An event declared in the scope of a namespace cannot be private.",
-                    new List<TokenType>());
+                throw new ParsingException("An event declared in the scope of a namespace cannot be private.", base.TokenStream.Peek());
             }
 
             if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("An event cannot be declared as protected.",
-                    new List<TokenType>());
+                throw new ParsingException("An event cannot be declared as protected.", base.TokenStream.Peek());
             }
 
             if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                throw new ParsingException("An event cannot be declared as abstract.",
-                    new List<TokenType>());
+                throw new ParsingException("An event cannot be declared as abstract.", base.TokenStream.Peek());
             }
 
             if (modSet.IsPartial)
             {
-                throw new ParsingException("An event cannot be declared as partial.",
-                    new List<TokenType>());
+                throw new ParsingException("An event cannot be declared as partial.", base.TokenStream.Peek());
             }
         }
     }

@@ -32,6 +32,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Returns the expected token types at the end of parsing.
         /// </summary>
         /// <returns>Expected token types</returns>
-        List<TokenType> GetExpectedTokenTypes();
+        TokenType[] GetExpectedTokenTypes();
     }
 }

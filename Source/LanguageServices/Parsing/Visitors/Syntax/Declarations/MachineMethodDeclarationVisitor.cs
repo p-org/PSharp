@@ -78,12 +78,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 (base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket &&
                 base.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"{\" or \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket,
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \"{\" or \";\".", base.TokenStream.Peek(),
+                    new []
+                    {
+                        TokenType.LeftCurlyBracket,
+                        TokenType.Semicolon
+                    });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
@@ -108,13 +108,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine method cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine method cannot be public.", base.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine method cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine method cannot be internal.", base.TokenStream.Peek());
             }
         }
     }

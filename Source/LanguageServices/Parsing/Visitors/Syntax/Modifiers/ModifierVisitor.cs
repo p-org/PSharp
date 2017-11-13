@@ -102,45 +102,37 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     base.TokenStream.Peek().Type == TokenType.Protected ||
                     base.TokenStream.Peek().Type == TokenType.Internal))
             {
-                throw new ParsingException("More than one protection modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("More than one protection modifier.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier != InheritanceModifier.None &&
                 base.TokenStream.Peek().Type == TokenType.Abstract)
             {
-                throw new ParsingException("Duplicate abstract modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate abstract modifier.", base.TokenStream.Peek());
             }
             else if (modSet.IsStart && base.TokenStream.Peek().Type == TokenType.StartState)
             {
-                throw new ParsingException("Duplicate start state modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate start state modifier.", base.TokenStream.Peek());
             }
             else if (modSet.IsHot && base.TokenStream.Peek().Type == TokenType.HotState)
             {
-                throw new ParsingException("Duplicate hot state liveness modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate hot state liveness modifier.", base.TokenStream.Peek());
             }
             else if (modSet.IsCold && base.TokenStream.Peek().Type == TokenType.ColdState)
             {
-                throw new ParsingException("Duplicate cold state liveness modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate cold state liveness modifier.", base.TokenStream.Peek());
             }
             else if ((modSet.IsCold && base.TokenStream.Peek().Type == TokenType.HotState) ||
                 (modSet.IsHot && base.TokenStream.Peek().Type == TokenType.ColdState))
             {
-                throw new ParsingException("More than one state liveness modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("More than one state liveness modifier.", base.TokenStream.Peek());
             }
             else if (modSet.IsAsync && base.TokenStream.Peek().Type == TokenType.Async)
             {
-                throw new ParsingException("Duplicate async modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate async modifier.", base.TokenStream.Peek());
             }
             else if (modSet.IsPartial && base.TokenStream.Peek().Type == TokenType.Partial)
             {
-                throw new ParsingException("Duplicate partial modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate partial modifier.", base.TokenStream.Peek());
             }
         }
     }

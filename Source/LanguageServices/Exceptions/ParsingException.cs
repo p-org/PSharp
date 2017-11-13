@@ -27,42 +27,49 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// List of errors.
         /// </summary>
-        internal List<string> Errors;
+        internal string[] Errors { get; private set; }
 
         /// <summary>
         /// List of warnings.
         /// </summary>
-        internal List<string> Warnings;
+        internal string[] Warnings { get; private set; }
+
+        /// <summary>
+        /// The token that triggered the exception.
+        /// </summary>
+        internal Token FailingToken { get; private set; }
 
         /// <summary>
         /// The expected tokens.
         /// </summary>
-        internal List<TokenType> ExpectedTokenTypes;
+        internal TokenType[] ExpectedTokenTypes { get; private set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="errors">List of errors</param>
         /// <param name="warnings">List of warnings</param>
-        public ParsingException(List<string> errors, List<string> warnings)
+        public ParsingException(string[] errors, string[] warnings)
             : base("")
         {
             this.Errors = errors;
             this.Warnings = warnings;
-            this.ExpectedTokenTypes = new List<TokenType>();
+            this.ExpectedTokenTypes = Array.Empty<TokenType>();
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="message">Message</param>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(string message, List<TokenType> expectedTokensTypes)
+        /// <param name="failingToken">The token at the point of parsing failure</param>
+        /// <param name="expectedTokenTypes">Expected token types</param>
+        public ParsingException(string message, Token failingToken, params TokenType[] expectedTokenTypes)
             : base(message)
         {
-            this.Errors = new List<string>();
-            this.Warnings = new List<string>();
-            this.ExpectedTokenTypes = expectedTokensTypes;
+            this.Errors = Array.Empty<string>();
+            this.Warnings = Array.Empty<string>();
+            this.FailingToken = failingToken;
+            this.ExpectedTokenTypes = expectedTokenTypes;
         }
     }
 }

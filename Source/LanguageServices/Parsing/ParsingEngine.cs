@@ -47,7 +47,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <returns>ParsingEngine</returns>
         public static ParsingEngine Create(CompilationContext context)
         {
-            return new ParsingEngine(context, ParsingOptions.CreateDefault());
+            var options = context.Configuration.ForVsLanguageService ? ParsingOptions.CreateForVsLanguageService() : ParsingOptions.CreateDefault();
+            return new ParsingEngine(context, options);
         }
 
         /// <summary>

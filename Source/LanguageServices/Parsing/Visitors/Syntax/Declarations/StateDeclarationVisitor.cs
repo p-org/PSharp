@@ -54,11 +54,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected state identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected state identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             base.TokenStream.Swap(TokenType.StateIdentifier);
@@ -71,11 +68,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", base.TokenStream.Peek(),
+                    TokenType.LeftCurlyBracket);
             }
 
             base.TokenStream.Swap(TokenType.StateLeftCurlyBracket);
@@ -143,8 +137,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                                     base.TokenStream.Index++;
                                     break;
                                 default:
-                                    throw new ParsingException("'async' was used in an incorrect context.",
-                                        new List<TokenType>());
+                                    throw new ParsingException("'async' was used in an incorrect context.", base.TokenStream.Peek());
                             }
                             break;
 
@@ -199,33 +192,30 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         case TokenType.Protected:
                         case TokenType.Internal:
                         case TokenType.Public:
-                            throw new ParsingException("State actions cannot have modifiers.",
-                                new List<TokenType>());
+                            throw new ParsingException("State actions cannot have modifiers.", base.TokenStream.Peek());
 
                         case TokenType.Abstract:
                         case TokenType.Virtual:
-                            throw new ParsingException("State actions cannot be abstract or virtual.",
-                                new List<TokenType>());
+                            throw new ParsingException("State actions cannot be abstract or virtual.", base.TokenStream.Peek());
 
                         default:
-                            throw new ParsingException("Unexpected token.",
-                                new List<TokenType>());
+                            throw new ParsingException("Unexpected token.", base.TokenStream.Peek());
                     }
                 }
 
                 if (base.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Entry,
-                            TokenType.Exit,
-                            TokenType.OnAction,
-                            TokenType.DeferEvent,
-                            TokenType.IgnoreEvent,
-                            TokenType.LeftSquareBracket,
-                            TokenType.RightCurlyBracket
-                    });
+                    throw new ParsingException("Expected \"}\".", base.TokenStream.Peek(),
+                        new []
+                        {
+                                TokenType.Entry,
+                                TokenType.Exit,
+                                TokenType.OnAction,
+                                TokenType.DeferEvent,
+                                TokenType.IgnoreEvent,
+                                TokenType.LeftSquareBracket,
+                                TokenType.RightCurlyBracket
+                        });
                 }
             }
         }
@@ -290,21 +280,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     default:
-                        throw new ParsingException("Unexpected token.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected token.", base.TokenStream.Peek());
                 }
 
                 if (base.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                        TokenType.Entry,
-                        TokenType.Exit,
-                        TokenType.OnAction,
-                        TokenType.DeferEvent,
-                        TokenType.IgnoreEvent
-                    });
+                    throw new ParsingException("Expected \"}\".", base.TokenStream.Peek(),
+                        new []
+                        {
+                            TokenType.Entry,
+                            TokenType.Exit,
+                            TokenType.OnAction,
+                            TokenType.DeferEvent,
+                            TokenType.IgnoreEvent
+                        });
                 }
             }
         }
@@ -317,41 +306,34 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine state cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be public.", base.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine state cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be internal.", base.TokenStream.Peek());
             }
 
             if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                throw new ParsingException("A machine state cannot be abstract.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be abstract.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
             {
-                throw new ParsingException("A machine state cannot be virtual.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be virtual.", base.TokenStream.Peek());
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Override)
             {
-                throw new ParsingException("A machine state cannot be overriden.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be overriden.", base.TokenStream.Peek());
             }
 
             if (modSet.IsAsync)
             {
-                throw new ParsingException("A machine state cannot be async.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be async.", base.TokenStream.Peek());
             }
 
             if (modSet.IsPartial)
             {
-                throw new ParsingException("A machine state cannot be partial.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be partial.", base.TokenStream.Peek());
             }
         }
     }

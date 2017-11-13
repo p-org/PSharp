@@ -60,11 +60,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected type identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected type identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
             
             var line = base.TokenStream.Peek().TextUnit.Line;
@@ -139,11 +136,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Done && base.TokenStream.PrevNonWhitespaceType() != TokenType.Identifier)
             {
-                throw new ParsingException("Expected identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected identifier.", base.TokenStream.Peek(),
+                    TokenType.Identifier);
             }
 
             if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
@@ -208,11 +202,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.RightAngleBracket)
                 {
-                    throw new ParsingException("Expected \">\".",
-                        new List<TokenType>
-                    {
-                        TokenType.RightAngleBracket
-                    });
+                    throw new ParsingException("Expected \">\".", base.TokenStream.Peek(),
+                        TokenType.RightAngleBracket);
                 }
 
                 textUnit += base.TokenStream.Peek().TextUnit;
@@ -231,11 +222,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
                 {
-                    throw new ParsingException("Expected \"]\".",
-                        new List<TokenType>
-                        {
-                            TokenType.RightSquareBracket
-                        });
+                    throw new ParsingException("Expected \"]\".", base.TokenStream.Peek(),
+                        TokenType.RightSquareBracket);
                 }
 
                 textUnit += base.TokenStream.Peek().TextUnit;

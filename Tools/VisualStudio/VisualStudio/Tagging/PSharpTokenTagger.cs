@@ -14,11 +14,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.PSharp.VisualStudio
@@ -52,10 +50,8 @@ namespace Microsoft.PSharp.VisualStudio
                 yield break;
             }
 
-            foreach (var span in spans)
+            foreach (var currSpan in spans)
             {
-                var snapshot = span.Snapshot;
-                var currSpan = span;
                 var containingLine = currSpan.Start.GetContainingLine();
 
                 var tokens = new PSharpLexer().Tokenize(containingLine.GetText());

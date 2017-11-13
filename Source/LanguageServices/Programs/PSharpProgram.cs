@@ -221,8 +221,8 @@ namespace Microsoft.PSharp.LanguageServices
             var otherUsings = base.GetSyntaxTree().GetCompilationUnitRoot().Usings;
             var psharpLib = base.CreateLibrary("Microsoft.PSharp");
             
-            list.AddRange(otherUsings);
             list.Add(psharpLib);
+            list.AddRange(otherUsings);
 
             // Add an additional newline to the last 'using' to separate from the namespace.
             list[list.Count - 1] = list.Last().WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n\n")));

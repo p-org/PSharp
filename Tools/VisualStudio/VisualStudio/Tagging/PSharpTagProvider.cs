@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpTokenTagProvider.cs">
+// <copyright file="PSharpTagProvider.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,10 +15,9 @@
 using System.ComponentModel.Composition;
 
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using System;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -28,11 +27,20 @@ namespace Microsoft.PSharp.VisualStudio
     [Export(typeof(ITaggerProvider))]
     [ContentType("psharp")]
     [TagType(typeof(PSharpTokenTag))]
-    internal sealed class PSharpTokenTagProvider : ITaggerProvider
+    [TagType(typeof(IErrorTag))]
+    internal sealed class PSharpTagProvider : ITaggerProvider
     {
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            return new PSharpTokenTagger(buffer) as ITagger<T>;
+            if (typeof(T) == typeof(PSharpTokenTag))
+            {
+                return new PSharpTokenTagger(buffer) as ITagger<T>;
+            }
+            if (typeof(T) == typeof(IErrorTag))
+            {
+                return new PSharpErrorTagger(buffer) as ITagger<T>;
+            }
+            throw new InvalidOperationException("Unknown TagType: {typeof(T).FullName}");
         }
     }
 }

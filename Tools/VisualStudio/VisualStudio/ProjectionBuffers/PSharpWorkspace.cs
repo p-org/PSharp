@@ -81,14 +81,12 @@ namespace Microsoft.PSharp.VisualStudio
 
                 var pSharpProgram = context.GetProjects()[0].PSharpPrograms[0];
                 this.projectionInfos = pSharpProgram.ProjectionInfos;
-
-                var csharpText = pSharpProgram.GetSyntaxTree().ToString();
             }
-            catch (ParsingException ex)
+            catch (ParsingException /*ex*/)
             {
                 // TODO: ParsingException
             }
-            catch (RewritingException ex)
+            catch (RewritingException /*ex*/)
             {
                 // TODO: RewritingException
             }

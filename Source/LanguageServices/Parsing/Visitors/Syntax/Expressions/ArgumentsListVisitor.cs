@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (base.TokenStream.Peek().Type == TokenType.NonDeterministic)
                 {
                     throw new ParsingException("Can only use the nondeterministic \"$\" " +
-                        "keyword as the guard of an if statement.", new List<TokenType>());
+                        "keyword as the guard of an if statement.", base.TokenStream.Peek());
                 }
 
                 node.StmtTokens.Add(base.TokenStream.Peek());
@@ -76,11 +76,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                throw new ParsingException("Expected \")\".",
-                    new List<TokenType>
-                {
-                    TokenType.RightParenthesis
-                });
+                throw new ParsingException("Expected \")\".", base.TokenStream.Peek(),
+                    TokenType.RightParenthesis);
             }
         }
     }

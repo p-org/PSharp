@@ -65,11 +65,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
             {
-                throw new ParsingException("Expected \"]\".",
-                    new List<TokenType>
-                {
-                    TokenType.RightSquareBracket
-                });
+                throw new ParsingException("Expected \"]\".", base.TokenStream.Peek(),
+                    TokenType.RightSquareBracket);
             }
         }
     }

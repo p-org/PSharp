@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             if (errors.Count > 0 || warnings.Count > 0)
             {
-                throw new ParsingException(errors, warnings);
+                throw new ParsingException(errors.ToArray(), warnings.ToArray());
             }
         }
 
