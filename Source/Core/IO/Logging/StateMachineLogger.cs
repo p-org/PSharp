@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine($"<PushLog> Machine '{0}' pushed from state '{1}' to state '{2}'.",
+                this.WriteLine("<PushLog> Machine '{0}' pushed from state '{1}' to state '{2}'.",
                     machineId, currentStateName, newStateName);
             }
         }
