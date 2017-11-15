@@ -623,7 +623,7 @@ namespace Microsoft.PSharp.TestingServices
                 "to create a new machine of type {1}", mid.Value, type.FullName);
             AllCreatedMachineIds.Add(mid);
 
-            this.Logger.OnCreateMachine(mid);
+            this.Logger.OnCreateMachine(mid, creator?.Id);
 
             if (base.Configuration.EnableDataRaceDetection)
             {

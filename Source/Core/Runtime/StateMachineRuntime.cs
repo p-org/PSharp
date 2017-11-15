@@ -311,6 +311,7 @@ namespace Microsoft.PSharp
         internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             Machine machine = this.CreateMachine(mid, type, friendlyName);
+            base.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
             this.RunMachineEventHandler(machine, e, true);
             return machine.Id;
@@ -332,6 +333,7 @@ namespace Microsoft.PSharp
             Machine creator, Guid? operationGroupId)
         {
             Machine machine = this.CreateMachine(mid, type, friendlyName);
+            base.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
             await this.RunMachineEventHandlerAsync(machine, e, true);
             return machine.Id;
@@ -387,8 +389,6 @@ namespace Microsoft.PSharp
                 "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
                 "runtime generation was deserialized, but the current runtime has not increased its generation value.",
                 mid.Value, mid.Generation);
-
-            base.Logger.OnCreateMachine(mid);
 
             return machine;
         }

@@ -149,7 +149,8 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine has been created.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
-        public void OnCreateMachine(MachineId machineId) { }
+        /// <param name="creator">Id of the host machine, null otherwise.</param>
+        public void OnCreateMachine(MachineId machineId, MachineId creator) { }
 
         /// <summary>
         /// Called when a monitor has been created.
