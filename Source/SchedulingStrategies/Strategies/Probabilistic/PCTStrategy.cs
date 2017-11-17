@@ -90,9 +90,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             RandomNumberGenerator = random;
             MaxScheduledSteps = maxSteps;
             ScheduledSteps = 0;
-
             ScheduleLength = 0;
-            ScheduledSteps = 0;
             MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
             PrioritizedSchedulableChoices = new List<ISchedulable>();
             PriorityChangePoints = new SortedSet<int>();
