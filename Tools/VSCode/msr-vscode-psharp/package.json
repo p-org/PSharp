@@ -1,0 +1,32 @@
+{
+    "name": "msr-vscode-psharp",
+    "displayName": "msr-vscode-psharp",
+    "description": "VSCode extension to support P#",
+    "version": "0.0.1",
+    "publisher": "tedhartms",
+    "engines": {
+        "vscode": "^1.18.0"
+    },
+    "categories": [
+        "Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "psharp",
+            "aliases": ["P#", "psharp"],
+            "extensions": ["psharp"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "psharp",
+            "scopeName": "source.psharp",
+            "path": "./syntaxes/psharp.tmLanguage.json"
+        }],
+        "snippets": [
+            {
+                "language": "p",
+                "path": "./snippets/snippets.json"
+            }
+        ]
+    }
+}
