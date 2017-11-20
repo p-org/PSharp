@@ -1,0 +1,77 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "P#",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control",
+				"match": "\\b(if|else|while|for|foreach|break|continue|return|goto)\\b"
+			},
+			{
+				"name": "keyword.modifier",
+				"match": "\\b(public|private|protected|internal|abstract|virtual|override)\\b"
+			},
+			{
+				"name": "keyword.other",
+				"match": "\\b(using|namespace)\\b"
+			},
+			{
+				"name": "keyword.class",
+				"match": "\\b(start|machine|model|monitor|state|event|entry|exit)\\b"
+			},
+			{
+				"name": "keyword.action",
+				"match": "\\b(action|fun|on|do|goto|defer|ignore|to|default|with|receive|hot|cold|push|new|jump)\\b"
+			},
+			{
+				"name": "keyword.function",
+				"match": "\\b(assert|assume|raise|send|delete|payload)\\b"
+			},
+			{
+				"name": "keyword.identifier",
+				"match": "\\b(this|base)\\b"
+			},
+			{
+				"name": "constant.nonnumeric",
+				"match": "\\b(null|true|false)\\b"
+			},
+			{
+				"name": "keyword.operator",
+				"match": "\\b(sizeof|in|as|keys|values)\\b"
+			},
+			{
+				"name": "storage.type",
+				"match": "\\b(var|int|bool|float|double|string|foreign|any|seq|map)\\b"
+			},
+			{
+				"name": "comment.block",
+				"begin": "/\\*(?!/)",
+				"end": "\\*/"
+			},
+			{
+				"name": "comment.line",
+				"match": "//.*"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.psharp",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.psharp",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.psharp"
+}
