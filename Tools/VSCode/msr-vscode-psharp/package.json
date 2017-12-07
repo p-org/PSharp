@@ -24,7 +24,7 @@
         }],
         "snippets": [
             {
-                "language": "p",
+                "language": "psharp",
                 "path": "./snippets/snippets.json"
             }
         ]

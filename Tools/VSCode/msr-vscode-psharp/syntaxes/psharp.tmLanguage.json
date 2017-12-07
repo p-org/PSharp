@@ -16,7 +16,7 @@
 				"match": "\\b(if|else|while|for|foreach|break|continue|return|goto)\\b"
 			},
 			{
-				"name": "keyword.modifier",
+				"name": "storage.modifier",
 				"match": "\\b(public|private|protected|internal|abstract|virtual|override)\\b"
 			},
 			{
@@ -24,28 +24,36 @@
 				"match": "\\b(using|namespace)\\b"
 			},
 			{
-				"name": "keyword.class",
-				"match": "\\b(start|machine|model|monitor|state|event|entry|exit)\\b"
+				"name": "entity.class",
+				"match": "\\b(machine|model|monitor|state|event|entry|exit)\\b"
 			},
 			{
-				"name": "keyword.action",
-				"match": "\\b(action|fun|on|do|goto|defer|ignore|to|default|with|receive|hot|cold|push|new|jump)\\b"
+				"name": "entity.attribute-name",
+				"match": "\\b(start|hot|cold)\\b"
 			},
 			{
-				"name": "keyword.function",
+				"name": "keyword.other.action",
+				"match": "\\b(action|fun|on|do|goto|defer|ignore|to|default|with|receive|push|jump)\\b"
+			},
+			{
+				"name": "support.function",
 				"match": "\\b(assert|assume|raise|send|delete|payload)\\b"
 			},
 			{
-				"name": "keyword.identifier",
+				"name": "variable.language",
 				"match": "\\b(this|base)\\b"
 			},
 			{
-				"name": "constant.nonnumeric",
+				"name": "constant.language",
 				"match": "\\b(null|true|false)\\b"
 			},
 			{
 				"name": "keyword.operator",
 				"match": "\\b(sizeof|in|as|keys|values)\\b"
+			},
+			{
+				"name": "keyword.operator.new",
+				"match": "\\b(new)\\b"
 			},
 			{
 				"name": "storage.type",
