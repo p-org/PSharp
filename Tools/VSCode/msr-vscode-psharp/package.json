@@ -10,18 +10,30 @@
     "categories": [
         "Languages"
     ],
+    "devDependencies": {
+        "typescript": "^2.1.5",
+        "vscode": "^1.1.10"
+    },
+    "scripts": {
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "activationEvents": [
+        "onLanguage:psharp"
+      ],
+    "main": "./out/main",
     "contributes": {
         "languages": [{
-            "id": "psharp",
-            "aliases": ["P#", "psharp"],
-            "extensions": ["psharp"],
-            "configuration": "./language-configuration.json"
-        }],
+                "id": "psharp",
+                "aliases": ["P#", "psharp"],
+                "extensions": ["psharp"],
+                "configuration": "./language-configuration.json"
+            }],
         "grammars": [{
-            "language": "psharp",
-            "scopeName": "source.psharp",
-            "path": "./syntaxes/psharp.tmLanguage.json"
-        }],
+                "language": "psharp",
+                "scopeName": "source.psharp",
+                "path": "./syntaxes/psharp.tmLanguage.json"
+            }],
         "snippets": [
             {
                 "language": "psharp",
