@@ -16,6 +16,10 @@
 				"match": "\\b(if|else|while|for|foreach|break|continue|return|goto)\\b"
 			},
 			{
+				"name": "keyword.control",
+				"match": "\\b(on|do|defer|ignore|default|with|receive|push|jump)\\b"
+			},
+			{
 				"name": "storage.modifier",
 				"match": "\\b(public|private|protected|internal|abstract|virtual|override)\\b"
 			},
@@ -24,19 +28,23 @@
 				"match": "\\b(using|namespace)\\b"
 			},
 			{
-				"name": "entity.class",
-				"match": "\\b(machine|model|monitor|state|event|entry|exit)\\b"
+				"name": "entity.name.class",
+				"match": "\\b(machine|model|monitor|state|event)\\b"
 			},
 			{
-				"name": "entity.attribute-name",
+				"name": "entity.name.tag",
+				"match": "\\b(entry|exit)\\b"
+			},
+			{
+				"name": "keyword.other.attribute",
 				"match": "\\b(start|hot|cold)\\b"
 			},
 			{
-				"name": "keyword.other.action",
-				"match": "\\b(action|fun|on|do|goto|defer|ignore|to|default|with|receive|push|jump)\\b"
+				"name": "entity.name.function",
+				"match": "\\b(action|fun|to)\\b"
 			},
 			{
-				"name": "support.function",
+				"name": "entity.name.function",
 				"match": "\\b(assert|assume|raise|send|delete|payload)\\b"
 			},
 			{
