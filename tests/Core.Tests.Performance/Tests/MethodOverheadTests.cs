@@ -20,35 +20,70 @@ using System.Collections.Generic;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
 {
-    class E1 : Event { }
-    class E2 : Event { }
-    class E3 : Event { }
-    class E4 : Event { }
-    class E5 : Event { }
-    class E6 : Event { }
-    class E7 : Event { }
-    class E8 : Event { }
-    class E9 : Event { }
-    class E10 : Event { }
-
     [Config(typeof(Configuration))]
     public class MethodOverheadTest
     {
         class Node : Machine
         {
-            internal class Configure : Event
+            internal class CounterEvent : Event
             {
                 public TaskCompletionSource<bool> TCS;
                 public int Size;
                 public int Counter;
 
-                internal Configure(TaskCompletionSource<bool> tcs, int size)
+                internal CounterEvent(TaskCompletionSource<bool> tcs, int size)
                 {
                     this.TCS = tcs;
                     this.Size = size;
                     this.Counter = 0;
                 }
+
+                // To be used with Set()
+                internal CounterEvent()
+                {
+                }
+
+                internal void Set(TaskCompletionSource<bool> tcs, int size)
+                {
+                    this.TCS = tcs;
+                    this.Size = size;
+                }
+
+                internal void Increment()
+                {
+                    var result = Interlocked.Increment(ref this.Counter);
+                    if (result == this.Size)
+                    {
+                        this.TCS.TrySetResult(true);
+                    }
+                }
             }
+
+            internal class CounterEventWrapper : Event
+            {
+                internal CounterEvent CounterEvent;
+
+                internal void Set(CounterEvent counterEvent)
+                {
+                    this.CounterEvent = counterEvent;
+                }
+
+                internal void Increment()
+                {
+                    this.CounterEvent.Increment();
+                }
+            }
+
+            internal class E1 : CounterEventWrapper { }
+            internal class E2 : CounterEventWrapper { }
+            internal class E3 : CounterEventWrapper { }
+            internal class E4 : CounterEventWrapper { }
+            internal class E5 : CounterEventWrapper { }
+            internal class E6 : CounterEventWrapper { }
+            internal class E7 : CounterEventWrapper { }
+            internal class E8 : CounterEventWrapper { }
+            internal class E9 : CounterEventWrapper { }
+            internal class E10 : CounterEventWrapper { }
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -66,33 +101,30 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
             void InitOnEntry()
             {
-                var tcs = (this.ReceivedEvent as Configure).TCS;
-                var size = (this.ReceivedEvent as Configure).Size;
-                var counter = Interlocked.Increment(ref (this.ReceivedEvent as Configure).Counter);
-                if (counter == size)
-                {
-                    tcs.TrySetResult(true);
-                }
+                (this.ReceivedEvent as CounterEvent).Increment();
             }
 
-            int counter;
+            private void OnAct()
+            {
+                (this.ReceivedEvent as CounterEventWrapper).Increment();
+            }
 
-            private void Act1() { ++counter; }
-            private void Act2() { ++counter; }
-            private void Act3() { ++counter; }
-            private void Act4() { ++counter; }
-            private void Act5() { ++counter; }
-            private void Act6() { ++counter; }
-            private void Act7() { ++counter; }
-            private void Act8() { ++counter; }
-            private void Act9() { ++counter; }
-            private void Act10() { ++counter; }
+            private void Act1() { this.OnAct(); }
+            private void Act2() { this.OnAct(); }
+            private void Act3() { this.OnAct(); }
+            private void Act4() { this.OnAct(); }
+            private void Act5() { this.OnAct(); }
+            private void Act6() { this.OnAct(); }
+            private void Act7() { this.OnAct(); }
+            private void Act8() { this.OnAct(); }
+            private void Act9() { this.OnAct(); }
+            private void Act10() { this.OnAct(); }
         }
 
         [Params(100, 500, 1000)]
         public int Size { get; set; }
 
-        [Params(1, 10, 100)]
+        [Params(1, 10, 20)]
         public int Reps { get; set; }
 
         [Benchmark]
@@ -100,8 +132,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         {
             var runtime = new StateMachineRuntime();
 
-            var tcs = new TaskCompletionSource<bool>();
-            Node.Configure configureEvent = new Node.Configure(tcs, Size);
+            var tcsMachines = new TaskCompletionSource<bool>();
+            var configureEvent = new Node.CounterEvent(tcsMachines, Size);
 
             var machineIds = new List<MachineId>();
             for (int idx = 0; idx < Size; idx++)
@@ -109,29 +141,33 @@ namespace Microsoft.PSharp.Core.Tests.Performance
                 machineIds.Add(runtime.CreateMachine(typeof(Node), null, configureEvent, null));
             }
 
-            tcs.Task.Wait();
+            tcsMachines.Task.Wait();
 
-            var events = new Event[] {
-                new E1(),
-                new E2(),
-                new E3(),
-                new E4(),
-                new E5(),
-                new E6(),
-                new E7(),
-                new E8(),
-                new E9(),
-                new E10()
+            var events = new Node.CounterEventWrapper[] {
+                new Node.E1(),
+                new Node.E2(),
+                new Node.E3(),
+                new Node.E4(),
+                new Node.E5(),
+                new Node.E6(),
+                new Node.E7(),
+                new Node.E8(),
+                new Node.E9(),
+                new Node.E10()
             };
 
             for (var mid = 0; mid < machineIds.Count; ++mid)
             {
                 for (var rep = 0; rep < Reps; ++rep)
                 {
+                    var tcsEvents = new TaskCompletionSource<bool>();
+                    var counterEvent = new Node.CounterEvent(tcsEvents, events.Length);
                     for (var evt = 0; evt < events.Length; ++evt)
                     {
+                        events[evt].Set(counterEvent);
                         runtime.SendEvent(machineIds[mid], events[evt]);
                     }
+                    tcsEvents.Task.Wait();
                 }
             }
         }
