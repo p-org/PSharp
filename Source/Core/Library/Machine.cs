@@ -50,8 +50,7 @@ namespace Microsoft.PSharp
         private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
 
         /// <summary>
-        /// Map from machine types to a set of all
-        /// available actions.
+        /// Map from machine types to a map of all available action names and their MethodInfos.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
 
@@ -915,13 +914,33 @@ namespace Microsoft.PSharp
             }
         }
 
+        private CachedAction GetCachedAction(string actionName)
+        {
+            if (actionName == null)
+            {
+                return null;
+            }
+
+#if true
+            // Load the cached action on demand
+            if (!this.ActionMap.TryGetValue(actionName, out CachedAction cachedAction))
+            {
+                cachedAction = new CachedAction(MachineActionMap[this.GetType()][actionName], this);
+                this.ActionMap.Add(actionName, cachedAction);
+            }
+            return cachedAction;
+#else
+            return new CachedAction(MachineActionMap[this.GetType()][actionName], this);
+#endif
+        }
+
         /// <summary>
         /// Invokes an action.
         /// </summary>
         /// <param name="actionName">Action name</param>
         private async Task Do(string actionName)
         {
-            var cachedAction = this.ActionMap[actionName];
+            var cachedAction = this.GetCachedAction(actionName);
             base.Runtime.NotifyInvokedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
             await this.ExecuteAction(cachedAction);
             base.Runtime.NotifyCompletedAction(this, cachedAction.MethodInfo, this.ReceivedEvent);
@@ -940,11 +959,7 @@ namespace Microsoft.PSharp
         {
             base.Runtime.NotifyEnteredState(this);
 
-            CachedAction entryAction = null;
-            if (this.StateStack.Peek().EntryAction != null)
-            {
-                entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
-            }
+            var entryAction = GetCachedAction(this.StateStack.Peek().EntryAction);
 
             // Invokes the entry action of the new state,
             // if there is one available.
@@ -970,11 +985,7 @@ namespace Microsoft.PSharp
         {
             base.Runtime.NotifyExitedState(this);
 
-            CachedAction exitAction = null;
-            if (this.StateStack.Peek().ExitAction != null)
-            {
-                exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
-            }
+            var exitAction = this.GetCachedAction(this.StateStack.Peek().ExitAction);
 
             base.Info.IsInsideOnExit = true;
 
@@ -987,11 +998,10 @@ namespace Microsoft.PSharp
                 base.Runtime.NotifyCompletedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
             }
 
-            // Invokes the exit action of the event handler,
-            // if there is one available.
-            if (eventHandlerExitActionName != null)
+            // Invokes the exit action of the event handler, if there is one available.
+            CachedAction eventHandlerExitAction = this.GetCachedAction(eventHandlerExitActionName);
+            if (eventHandlerExitAction != null)
             {
-                CachedAction eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                 base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(eventHandlerExitAction);
                 base.Runtime.NotifyCompletedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
@@ -1341,9 +1351,9 @@ namespace Microsoft.PSharp
                 this.PushTransitions.ContainsKey(typeof(Default));
         }
 
-        #endregion
+#endregion
 
-        #region state caching
+#region state caching
 
         /// <summary>
         /// Returns the cached state of this machine.
@@ -1387,9 +1397,9 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
+#endregion
 
-        #region initialization
+#region initialization
 
         /// <summary>
         /// Transitions to the start state, and executes the
@@ -1481,39 +1491,26 @@ namespace Microsoft.PSharp
                 // Caches the actions declarations for this machine type.
                 if (MachineActionMap.TryAdd(machineType, new Dictionary<string, MethodInfo>()))
                 {
+                    void addAction(string actionName)
+                    {
+                        if (actionName != null && !MachineActionMap[machineType].ContainsKey(actionName))
+                        {
+                            MachineActionMap[machineType].Add(actionName, this.GetActionWithName(actionName));
+                        }
+                    }
                     foreach (var state in StateMap[machineType])
                     {
-                        if (state.EntryAction != null &&
-                            !MachineActionMap[machineType].ContainsKey(state.EntryAction))
-                        {
-                            MachineActionMap[machineType].Add(state.EntryAction,
-                                this.GetActionWithName(state.EntryAction));
-                        }
-
-                        if (state.ExitAction != null &&
-                            !MachineActionMap[machineType].ContainsKey(state.ExitAction))
-                        {
-                            MachineActionMap[machineType].Add(state.ExitAction,
-                                this.GetActionWithName(state.ExitAction));
-                        }
+                        addAction(state.EntryAction);
+                        addAction(state.ExitAction);
 
                         foreach (var transition in state.GotoTransitions)
                         {
-                            if (transition.Value.Lambda != null &&
-                                !MachineActionMap[machineType].ContainsKey(transition.Value.Lambda))
-                            {
-                                MachineActionMap[machineType].Add(transition.Value.Lambda,
-                                    this.GetActionWithName(transition.Value.Lambda));
-                            }
+                            addAction(transition.Value.Lambda);
                         }
 
                         foreach (var action in state.ActionBindings)
                         {
-                            if (!MachineActionMap[machineType].ContainsKey(action.Value.Name))
-                            {
-                                MachineActionMap[machineType].Add(action.Value.Name,
-                                    this.GetActionWithName(action.Value.Name));
-                            }
+                            addAction(action.Value.Name);
                         }
                     }
                 }
@@ -1536,12 +1533,6 @@ namespace Microsoft.PSharp
                 }
             }
 
-            // Populates the map of actions for this machine instance.
-            foreach (var kvp in MachineActionMap[machineType])
-            {
-                this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
-            }
-
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Machine '{base.Id}' " +
@@ -1552,9 +1543,9 @@ namespace Microsoft.PSharp
             this.AssertStateValidity();
         }
 
-        #endregion
+#endregion
 
-        #region utilities
+#region utilities
 
         /// <summary>
         /// Returns the names of the events that the machine
@@ -1655,9 +1646,9 @@ namespace Microsoft.PSharp
             return method;
         }
 
-        #endregion
+#endregion
 
-        #region code coverage methods
+#region code coverage methods
 
         /// <summary>
         /// Returns the set of all states in the machine
@@ -1710,9 +1701,9 @@ namespace Microsoft.PSharp
             return pairs;
         }
 
-        #endregion
+#endregion
 
-        #region error checking
+#region error checking
 
         /// <summary>
         /// Check machine for state related errors.
@@ -1746,9 +1737,9 @@ namespace Microsoft.PSharp
                 $"The stack trace is:\n{ex.StackTrace}");
         }
 
-        #endregion
+#endregion
 
-        #region cleanup methods
+#region cleanup methods
 
         /// <summary>
         /// Resets the static caches.
@@ -1775,6 +1766,6 @@ namespace Microsoft.PSharp
         /// </summary>
         protected virtual void OnHalt() { }
 
-        #endregion
+#endregion
     }
 }
