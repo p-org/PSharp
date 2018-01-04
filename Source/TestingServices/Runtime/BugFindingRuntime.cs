@@ -957,10 +957,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         internal void AssertTransitionStatement(Machine machine)
         {
-            this.Assert(!machine.Info.IsInsideOnExit, "Machine '{0}' has called raise, goto or pop " +
+            this.Assert(!machine.Info.IsInsideOnExit, "Machine '{0}' has called raise, goto, push or pop " +
                 "inside an OnExit method.", machine.Id.Name);
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' has called multiple " +
-                "raise, goto or pop in the same action.", machine.Id.Name);
+                "raise, goto, push or pop in the same action.", machine.Id.Name);
             machine.Info.CurrentActionCalledTransitionStatement = true;
         }
 
@@ -973,7 +973,7 @@ namespace Microsoft.PSharp.TestingServices
         internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
         {
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
-                "after calling raise, goto or pop in the same action.", machine.Id.Name, calledAPI);
+                "after calling raise, goto, push or pop in the same action.", machine.Id.Name, calledAPI);
         }
 
         /// <summary>
@@ -1503,6 +1503,11 @@ namespace Microsoft.PSharp.TestingServices
             {
                 edgeLabel = "goto";
                 destState = StateGroup.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
+            }
+            if (eventInfo.Event is PushStateEvent)
+            {
+                edgeLabel = "push";
+                destState = StateGroup.GetQualifiedStateName((eventInfo.Event as PushStateEvent).State);
             }
             else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
