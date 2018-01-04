@@ -122,6 +122,7 @@ namespace Microsoft.PSharp.LanguageServices
             new MonitorRewriter(this).Rewrite();
             new RaiseRewriter(this).Rewrite();
             new GotoStateRewriter(this).Rewrite();
+            new PushStateRewriter(this).Rewrite();
             new PopRewriter(this).Rewrite();
             new AssertRewriter(this).Rewrite();
 
