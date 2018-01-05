@@ -400,6 +400,36 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action, pushing current state on the stack.
+        /// </summary>
+        /// <typeparam name="S">Type of the state</typeparam>
+        protected void Push<S>() where S : MachineState
+        {
+#pragma warning disable 618
+            Push(typeof(S));
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action, pushing current state on the stack. 
+        /// Deprecated in favor of Push&lt;T&gt;().
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
+        protected void Push(Type s)
+        {
+            this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Push while halted.");
+            // If the state is not a state of the machine, then report an error and exit.
+            this.Assert(StateTypeMap[this.GetType()].Any(val
+                => val.DeclaringType.Equals(s.DeclaringType) &&
+                val.Name.Equals(s.Name)), $"Machine '{base.Id}' " +
+                $"is trying to transition to non-existing state '{s.Name}'.");
+            this.Raise(new PushStateEvent(s));
+        }
+
+        /// <summary>
         /// Raises an <see cref="Event"/> internally at the end of the current action.
         /// </summary>
         /// <param name="e">Event</param>
@@ -860,6 +890,12 @@ namespace Microsoft.PSharp
                 {
                     Type targetState = (e as GotoStateEvent).State;
                     await this.GotoState(targetState, null);
+                }
+                // Checks if the event is a push state event.
+                else if (e.GetType() == typeof(PushStateEvent))
+                {
+                    Type targetState = (e as PushStateEvent).State;
+                    await this.PushState(targetState);
                 }
                 // Checks if the event can trigger a goto state transition.
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
