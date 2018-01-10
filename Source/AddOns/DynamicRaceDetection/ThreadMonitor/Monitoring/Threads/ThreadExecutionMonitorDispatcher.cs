@@ -20,7 +20,9 @@ using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 using Microsoft.PSharp.Monitoring.CallsOnly;
 using Microsoft.PSharp.TestingServices;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.PSharp.Monitoring.AllCallbacks
 {
@@ -204,14 +206,23 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         private string GetDebugInformation(UIntPtr location, UIntPtr objH)
         {
             string sourceInfo = "";
+            List<string> debugInfo = new List<string>();
             if (Configuration.EnableReadWriteTracing)
             {
+                for (int i = 4; i < 15; i++)
+                {
+                    var frame = new StackFrame(i, true);
+                    var info = GetSourceInformation(frame);
+                    if (Regex.Match(info,@"\bMachine.cs\b").Success) { break; }
+                    debugInfo.Add(info);
+                    if (i > 15) { break; }
+                }
                 StackFrame callStack = new StackFrame(4, true);
                 var caller = new StackFrame(5, true);
-                string sep = $"{Environment.NewLine}\t\t";
+                string sep = $"{Environment.NewLine}\t\t\t";
                 string className = TryGetClassName(location, objH);
-                sourceInfo = String.Format("ObjectType[{0}] {1}{2} {3}",
-                    className, GetSourceInformation(callStack), sep, GetSourceInformation(caller));
+                sourceInfo = String.Format("ObjectType[{0}] {1}",
+                    className, string.Join(sep, debugInfo));
             }
 
             return sourceInfo;
