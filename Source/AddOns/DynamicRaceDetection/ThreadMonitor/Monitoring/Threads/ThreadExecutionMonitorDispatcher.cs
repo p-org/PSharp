@@ -215,9 +215,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     var info = GetSourceInformation(frame);
                     if (Regex.Match(info,@"\bMachine.cs\b").Success) { break; }
                     debugInfo.Add(info);
-                    if (i > 15) { break; }
                 }
-                StackFrame callStack = new StackFrame(4, true);
                 var caller = new StackFrame(5, true);
                 string sep = $"{Environment.NewLine}\t\t\t";
                 string className = TryGetClassName(location, objH);
