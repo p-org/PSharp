@@ -393,7 +393,8 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             var nL = Environment.NewLine;
             var firstId = DescriptiveName[(ulong)fId];
             var secondId = DescriptiveName[(ulong)sId];
-            string report = $"****RACE:****{nL}\t{diagnostic}{nL}\t\t {first}:{firstId}{nL}\t\t {second}:{secondId}";
+            //Removing diagnostic from the report string
+            string report = $"****RACE:****{nL}\t\t {first}:{firstId}{nL}\t\t {second}:{secondId}";
             Log.WriteLine(report);
             this.TestReport.BugReports.Add(report);
         }

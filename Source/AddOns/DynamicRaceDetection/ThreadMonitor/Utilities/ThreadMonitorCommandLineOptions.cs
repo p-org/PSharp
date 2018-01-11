@@ -161,6 +161,9 @@ namespace Microsoft.PSharp.Utilities
                 }
 
                 base.Configuration.ScheduleFile = option.Substring(8);
+
+                // For replay Read Write tracing is automatically enabled to give call stack information for races.
+                base.Configuration.EnableReadWriteTracing = true;
             }
             else if (option.ToLower().StartsWith("/reduction:"))
             {
