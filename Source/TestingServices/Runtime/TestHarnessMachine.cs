@@ -14,6 +14,7 @@
 
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -34,6 +35,10 @@ namespace Microsoft.PSharp.TestingServices
         /// The test action.
         /// </summary>
         private Action<PSharpRuntime> TestAction;
+
+        internal override string CurrentStateName => throw new NotImplementedException();
+
+        protected internal override Type CurrentState => throw new NotImplementedException();
 
         #endregion
 
@@ -107,6 +112,41 @@ namespace Microsoft.PSharp.TestingServices
                     $"   {ex.Message}\n" +
                     $"The stack trace is:\n{ex.StackTrace}");
             }
+        }
+
+        internal override Task GotoStartState(Event e)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override EventInfo TryDequeueEvent(bool checkOnly = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override Task<bool> RunEventHandler(bool returnEarly = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override int GetCachedState()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override Type GetStateTypeAtStackIndex(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override string GetEventWaitHandlerNames()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

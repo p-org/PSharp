@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Map from task ids to machines.
         /// </summary>
-        private ConcurrentDictionary<int, Machine> TaskMap;
+        private ConcurrentDictionary<int, AbstractMachine> TaskMap;
 
         #endregion
 
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
         /// <param name="taskMap">Task map</param>
-        internal AsynchronousTaskScheduler(BugFindingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        internal AsynchronousTaskScheduler(BugFindingRuntime runtime, ConcurrentDictionary<int, AbstractMachine> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 // Else, the task was spawned by user-code (e.g. due to async/await). In
                 // this case, get the currently scheduled machine (this was the machine
                 // that spawned this task).
-                Machine machine = this.TaskMap[Runtime.Scheduler.ScheduledMachine.TaskId];
+                var machine = this.TaskMap[Runtime.Scheduler.ScheduledMachine.TaskId];
 
                 this.TaskMap.TryRemove(Runtime.Scheduler.ScheduledMachine.TaskId, out machine);
                 this.TaskMap.TryAdd(task.Id, machine);

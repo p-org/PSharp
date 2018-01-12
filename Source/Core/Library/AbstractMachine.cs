@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
 {
@@ -43,6 +44,22 @@ namespace Microsoft.PSharp
         /// </summary>
         internal MachineInfo Info { get; private set; }
 
+        /// <summary>
+        /// Gets the name of the current state.
+        /// </summary>
+        abstract internal string CurrentStateName { get; }
+
+        /// <summary>
+        /// Is the machine executing under a synchronous call. This includes
+        /// the methods CreateMachineAndExecute and SendEventAndExecute.
+        /// </summary>
+        internal bool IsInsideSynchronousCall;
+
+        /// <summary>
+        /// Gets the <see cref="Type"/> of the current state.
+        /// </summary>
+        abstract protected internal Type CurrentState { get; }
+
         #endregion
 
         #region initialize
@@ -59,6 +76,68 @@ namespace Microsoft.PSharp
             this.Id = mid;
             this.Info = info;
         }
+
+        #endregion
+
+        #region basic machine operations
+
+        /// <summary>
+        /// Transitions to the start state, and executes the
+        /// entry action, if there is any.
+        /// </summary>
+        /// <param name="e">Event</param>
+        internal abstract Task GotoStartState(Event e);
+
+        /// <summary>
+        /// Enqueues the specified <see cref="EventInfo"/>.
+        /// </summary>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="runNewHandler">Run a new handler</param>
+        internal abstract void Enqueue(EventInfo eventInfo, ref bool runNewHandler);
+
+        /// <summary>
+        /// Dequeues the next available <see cref="EventInfo"/> from the
+        /// inbox if there is one available, else returns null.
+        /// </summary>
+        /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
+        /// <returns>EventInfo</returns>
+        internal abstract EventInfo TryDequeueEvent(bool checkOnly = false);
+
+        /// <summary>
+        /// Runs the event handler. The handler terminates if there
+        /// is no next event to process or if the machine is halted.
+        /// </summary>
+        /// <param name="returnEarly">Returns after handling just one event</param>
+        internal abstract Task<bool> RunEventHandler(bool returnEarly = false);
+
+        #endregion
+
+        #region state caching
+
+        /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        /// <returns>Hash value</returns>
+        internal abstract int GetCachedState();
+
+        #endregion
+
+        #region logging routines
+
+        /// <summary>
+        /// Returns the type of the state at the specified state
+        /// stack index, if there is one.
+        /// </summary>
+        /// <param name="index">State stack index</param>
+        /// <returns>Type</returns>
+        internal abstract Type GetStateTypeAtStackIndex(int index);
+
+        /// <summary>
+        /// Returns the names of the events that the machine
+        /// is waiting to receive. This is not thread safe.
+        /// </summary>
+        /// <returns>string</returns>
+        internal abstract string GetEventWaitHandlerNames();
 
         #endregion
 
@@ -127,6 +206,16 @@ namespace Microsoft.PSharp
         internal virtual HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
             return new HashSet<Tuple<string, string>>();
+        }
+
+        /// <summary>
+        /// Returns the destination state for an event (if any)
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Destination state, or null</returns>
+        internal virtual Type GetDestinationState(Type eventType)
+        {
+            return null;
         }
 
         #endregion

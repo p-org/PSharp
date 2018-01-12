@@ -120,12 +120,6 @@ namespace Microsoft.PSharp
         private bool IsRunning;
 
         /// <summary>
-        /// Is the machine executing under a synchronous call. This includes
-        /// the methods CreateMachineAndExecute and SendEventAndExecute.
-        /// </summary>
-        internal bool IsInsideSynchronousCall;
-
-        /// <summary>
         /// Is pop invoked in the current action.
         /// </summary>
         private bool IsPopInvoked;
@@ -142,7 +136,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the <see cref="Type"/> of the current state.
         /// </summary>
-        protected internal Type CurrentState
+        override protected internal Type CurrentState
         {
             get
             {
@@ -174,7 +168,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the name of the current state.
         /// </summary>
-        internal string CurrentStateName
+        internal override string CurrentStateName
         {
             get
             {
@@ -603,7 +597,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        internal void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        internal override void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
         {
             lock (this.Inbox)
             {
@@ -657,7 +651,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
         /// <returns>EventInfo</returns>
-        internal EventInfo TryDequeueEvent(bool checkOnly = false)
+        internal override EventInfo TryDequeueEvent(bool checkOnly = false)
         {
             EventInfo nextAvailableEventInfo = null;
 
@@ -768,7 +762,7 @@ namespace Microsoft.PSharp
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <param name="returnEarly">Returns after handling just one event</param>
-        internal async Task<bool> RunEventHandler(bool returnEarly = false)
+        internal override async Task<bool> RunEventHandler(bool returnEarly = false)
         {
             if (this.Info.IsHalted)
             {
@@ -1385,7 +1379,7 @@ namespace Microsoft.PSharp
         /// Returns the cached state of this machine.
         /// </summary>
         /// <returns>Hash value</returns>
-        internal int GetCachedState()
+        internal override int GetCachedState()
         {
             unchecked
             {
@@ -1432,7 +1426,7 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        internal Task GotoStartState(Event e)
+        internal override Task GotoStartState(Event e)
         {
             this.ReceivedEvent = e;
             return this.ExecuteCurrentStateOnEntry();
@@ -1597,7 +1591,7 @@ namespace Microsoft.PSharp
         /// is waiting to receive. This is not thread safe.
         /// </summary>
         /// <returns>string</returns>
-        internal string GetEventWaitHandlerNames()
+        internal override string GetEventWaitHandlerNames()
         {
             string events = "";
             foreach (var ewh in this.EventWaitHandlers)
@@ -1614,7 +1608,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="index">State stack index</param>
         /// <returns>Type</returns>
-        internal Type GetStateTypeAtStackIndex(int index)
+        internal override Type GetStateTypeAtStackIndex(int index)
         {
             return this.StateStack.ElementAtOrDefault(index)?.GetType();
         }
@@ -1744,6 +1738,24 @@ namespace Microsoft.PSharp
             }
 
             return pairs;
+        }
+
+        /// <summary>
+        /// Returns the destination state for an event (if any)
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Destination state, or null</returns>
+        internal override Type GetDestinationState(Type eventType)
+        {
+            if (GotoTransitions.ContainsKey(eventType))
+            {
+                return GotoTransitions[eventType].TargetState;
+            }
+            else if (PushTransitions.ContainsKey(eventType))
+            {
+                return PushTransitions[eventType].TargetState;
+            }
+            return null;
         }
 
         #endregion

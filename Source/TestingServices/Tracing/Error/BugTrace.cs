@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="machine">Machine</param>
         /// <param name="targetMachine">Target machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal void AddCreateMachineStep(Machine machine, MachineId targetMachine, EventInfo eventInfo)
+        internal void AddCreateMachineStep(AbstractMachine machine, MachineId targetMachine, EventInfo eventInfo)
         {
             MachineId mid = null;
             string machineState = null;

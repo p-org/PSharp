@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Map from task ids to machines.
         /// </summary>
-        private ConcurrentDictionary<int, Machine> TaskMap;
+        private ConcurrentDictionary<int, AbstractMachine> TaskMap;
 
         /// <summary>
         /// Set of all machine Ids created by this runtime.
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.TestingServices
         private void Initialize()
         {
             this.Monitors = new List<Monitor>();
-            this.TaskMap = new ConcurrentDictionary<int, Machine>();
+            this.TaskMap = new ConcurrentDictionary<int, AbstractMachine>();
             this.RootTaskId = Task.CurrentId;
             this.AllCreatedMachineIds = new HashSet<MachineId>();
         }
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         internal MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
-            Machine creator = null;
+            AbstractMachine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
                 creator = this.TaskMap[(int)Task.CurrentId];
@@ -289,7 +289,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         internal Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
         {
-            Machine creator = null;
+            AbstractMachine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
                 creator = this.TaskMap[(int)Task.CurrentId];
@@ -310,7 +310,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
         {
-            Machine creator = null;
+            AbstractMachine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
                 creator = this.TaskMap[(int)Task.CurrentId];
@@ -333,7 +333,7 @@ namespace Microsoft.PSharp.TestingServices
         public override MachineId RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null, Guid? operationGroupId = null)
         {
-            Machine creator = null;
+            AbstractMachine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
                 creator = this.TaskMap[(int)Task.CurrentId];
@@ -428,7 +428,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(currentMachine == GetCurrentMachineId(), "Trying to access the operation group id of " +
                 $"'{currentMachine}', which is not the currently executing machine.");
 
-            if (!this.MachineMap.TryGetValue(currentMachine, out Machine machine))
+            if (!this.MachineMap.TryGetValue(currentMachine, out AbstractMachine machine))
             {
                 return Guid.Empty;
             }
@@ -507,7 +507,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, AbstractMachine creator, Guid? operationGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachine");
             if (creator != null)
@@ -541,7 +541,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
         internal override async Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e,
-            Machine creator, Guid? operationGroupId)
+            AbstractMachine creator, Guid? operationGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
             if (creator != null)
@@ -575,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
         internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
-            Event e, Machine creator, Guid? operationGroupId)
+            Event e, AbstractMachine creator, Guid? operationGroupId)
         {
             return this.CreateMachine(null, type, friendlyName, e, creator, operationGroupId);
         }
@@ -588,7 +588,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="creator">The id of the machine that created the returned machine.</param>
         /// <returns>Machine</returns>
-        private Machine CreateMachine(MachineId mid, Type type, string friendlyName, Machine creator)
+        private Machine CreateMachine(MachineId mid, Type type, string friendlyName, AbstractMachine creator)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
 
@@ -649,7 +649,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
 
-            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
+            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out AbstractMachine machine))
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{mid}'.\n");
@@ -681,7 +681,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
 
-            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
+            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out AbstractMachine machine))
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{mid}'.\n");
@@ -721,7 +721,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="runNewHandler">Run a new handler</param>
         /// <returns>EventInfo</returns>
-        private EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
+        private EventInfo EnqueueEvent(AbstractMachine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
         {
             if (sender != null && sender is Machine)
             {
@@ -773,7 +773,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="isFresh">If true, then this is a new machine.</param>
         /// <param name="executeSynchronously">If true, this operation executes synchronously.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
+        private void RunMachineEventHandler(AbstractMachine machine, Event initialEvent, bool isFresh,
             bool executeSynchronously, EventInfo enablingEvent)
         {
             Task task = new Task(async () =>
@@ -838,7 +838,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <returns>Boolean</returns>
-        internal override bool CheckStartEventHandler(Machine machine)
+        internal override bool CheckStartEventHandler(AbstractMachine machine)
         {
             return machine.TryDequeueEvent(true) != null;
         }
@@ -955,7 +955,7 @@ namespace Microsoft.PSharp.TestingServices
         /// already been called. Records that RGP has been called.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal void AssertTransitionStatement(Machine machine)
+        internal void AssertTransitionStatement(AbstractMachine machine)
         {
             this.Assert(!machine.Info.IsInsideOnExit, "Machine '{0}' has called raise, goto, push or pop " +
                 "inside an OnExit method.", machine.Id.Name);
@@ -970,7 +970,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="calledAPI">Called API</param>
-        internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
+        internal void AssertNoPendingTransitionStatement(AbstractMachine machine, string calledAPI)
         {
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
                 "after calling raise, goto, push or pop in the same action.", machine.Id.Name, calledAPI);
@@ -982,7 +982,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="callerMachine">Caller machine</param>
         /// <param name="calledAPI">Called API name</param>
-        private void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
+        private void AssertCorrectCallerMachine(AbstractMachine callerMachine, string calledAPI)
         {
             if (callerMachine == null)
             {
@@ -1109,7 +1109,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine entered a state.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyEnteredState(Machine machine)
+        internal override void NotifyEnteredState(AbstractMachine machine)
         {
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddGotoStateStep(machine.Id, machineState);
@@ -1133,7 +1133,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine exited a state.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyExitedState(Machine machine)
+        internal override void NotifyExitedState(AbstractMachine machine)
         {
             base.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: false);
         }
@@ -1154,7 +1154,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1172,7 +1172,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        internal override void NotifyCompletedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
             if (base.Configuration.EnableDataRaceDetection)
             {
@@ -1199,7 +1199,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             this.AssertTransitionStatement(machine);
             eventInfo.SetOperationGroupId(base.GetNewOperationGroupId(machine, null));
@@ -1229,7 +1229,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyDequeuedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             // The machine inherits the operation group id of the dequeued event.
             machine.Info.OperationGroupId = eventInfo.OperationGroupId;
@@ -1267,7 +1267,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine invoked pop.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyPop(Machine machine)
+        internal override void NotifyPop(AbstractMachine machine)
         {
             this.AssertCorrectCallerMachine(machine, "Pop");
             this.AssertTransitionStatement(machine);
@@ -1284,7 +1284,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyReceiveCalled(Machine machine)
+        internal override void NotifyReceiveCalled(AbstractMachine machine)
         {
             this.Assert(!machine.IsInsideSynchronousCall, $"Machine '{machine.Id}' called " +
                 "receive while executing synchronously.");
@@ -1297,7 +1297,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal override void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyHandleRaisedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             if (base.Configuration.ReportActivityCoverage)
             {
@@ -1310,7 +1310,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        internal override void NotifyWaitEvents(AbstractMachine machine, EventInfo eventInfoInInbox)
         {
             if (eventInfoInInbox == null)
             {
@@ -1341,7 +1341,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyReceivedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked:true);
@@ -1362,7 +1362,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="inbox">Machine inbox.</param>
-        internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
+        internal override void NotifyHalted(AbstractMachine machine, LinkedList<EventInfo> inbox)
         {
             var mustHandleEvent = inbox.FirstOrDefault(ev => ev.MustHandle);
             this.Assert(mustHandleEvent == null,
@@ -1377,7 +1377,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that the inbox of the specified machine is about to be
         /// checked to see if the default event handler should fire.
         /// </summary>
-        internal override void NotifyDefaultEventHandlerCheck(Machine machine)
+        internal override void NotifyDefaultEventHandlerCheck(AbstractMachine machine)
         {
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, machine.Info.Id);
             // If the default event handler fires, the next receive in NotifyDefaultHandlerFired
@@ -1390,7 +1390,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that the default handler of the specified machine has been fired.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyDefaultHandlerFired(Machine machine)
+        internal override void NotifyDefaultHandlerFired(AbstractMachine machine)
         {
             // NextOperationMatchingSendIndex is set in NotifyDefaultEventHandlerCheck.
             this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
@@ -1405,7 +1405,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void ReportActivityCoverageOfReceivedEvent(Machine machine, EventInfo eventInfo)
+        private void ReportActivityCoverageOfReceivedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             string originMachine = eventInfo.OriginInfo.SenderMachineName;
             string originState = eventInfo.OriginInfo.SenderStateName;
@@ -1440,7 +1440,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Reports coverage for the specified machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void ReportActivityCoverageOfMachine(Machine machine)
+        private void ReportActivityCoverageOfMachine(AbstractMachine machine)
         {
             var machineName = machine.GetType().Name;
 
@@ -1491,7 +1491,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        private void ReportActivityCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
+        private void ReportActivityCoverageOfStateTransition(AbstractMachine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
             string originState = StateGroup.GetQualifiedStateName(machine.CurrentState);
@@ -1509,17 +1509,10 @@ namespace Microsoft.PSharp.TestingServices
                 edgeLabel = "push";
                 destState = StateGroup.GetQualifiedStateName((eventInfo.Event as PushStateEvent).State);
             }
-            else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
+            else if (machine.GetDestinationState(eventInfo.EventType) != null)
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = StateGroup.GetQualifiedStateName(
-                    machine.GotoTransitions[eventInfo.EventType].TargetState);
-            }
-            else if (machine.PushTransitions.ContainsKey(eventInfo.EventType))
-            {
-                edgeLabel = eventInfo.EventType.Name;
-                destState = StateGroup.GetQualifiedStateName(
-                    machine.PushTransitions[eventInfo.EventType].TargetState);
+                destState = StateGroup.GetQualifiedStateName(machine.GetDestinationState(eventInfo.EventType));
             }
             else
             {
@@ -1535,7 +1528,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         /// <param name="fromState">Top of the stack state</param>
         /// <param name="toState">Next to top state of the stack</param>
-        private void ReportActivityCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
+        private void ReportActivityCoverageOfPopTransition(AbstractMachine machine, Type fromState, Type toState)
         {
             string originMachine = machine.GetType().Name;
             string originState = StateGroup.GetQualifiedStateName(fromState);
@@ -1586,7 +1579,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Gets the currently executing <see cref="Machine"/>.
         /// </summary>
         /// <returns>Machine or null, if not present</returns>
-        internal Machine GetCurrentMachine()
+        internal AbstractMachine GetCurrentMachine()
         {
             //  The current task does not correspond to a machine.
             if (Task.CurrentId == null)

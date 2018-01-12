@@ -48,7 +48,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<MachineId, Machine> MachineMap;
+        protected ConcurrentDictionary<MachineId, AbstractMachine> MachineMap;
 
         #endregion
 
@@ -130,7 +130,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
-            this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
+            this.MachineMap = new ConcurrentDictionary<MachineId, AbstractMachine>();
             this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
@@ -356,7 +356,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
         protected bool GetTargetMachine(MachineId targetMachineId, Event e, AbstractMachine sender,
-            Guid operationGroupId, out Machine targetMachine)
+            Guid operationGroupId, out AbstractMachine targetMachine)
         {
             if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
             {
@@ -383,7 +383,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
+        internal abstract MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, AbstractMachine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
@@ -397,7 +397,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
+        internal abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e, AbstractMachine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Creates a new remote <see cref="Machine"/> of the specified <see cref="System.Type"/>.
@@ -410,7 +410,7 @@ namespace Microsoft.PSharp
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
         internal abstract MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
-            Event e, Machine creator, Guid? operationGroupId);
+            Event e, AbstractMachine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -447,7 +447,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <returns>Boolean</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual bool CheckStartEventHandler(Machine machine)
+        internal virtual bool CheckStartEventHandler(AbstractMachine machine)
         {
             return true;
         }
@@ -542,7 +542,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyEnteredState(Machine machine)
+        internal virtual void NotifyEnteredState(AbstractMachine machine)
         {
             // Override to implement the notification.
         }
@@ -562,7 +562,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyExitedState(Machine machine)
+        internal virtual void NotifyExitedState(AbstractMachine machine)
         {
             // Override to implement the notification.
         }
@@ -584,7 +584,7 @@ namespace Microsoft.PSharp
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
@@ -596,7 +596,7 @@ namespace Microsoft.PSharp
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        internal virtual void NotifyCompletedAction(AbstractMachine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
@@ -619,7 +619,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -641,7 +641,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyDequeuedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -651,7 +651,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyPop(Machine machine)
+        internal virtual void NotifyPop(AbstractMachine machine)
         {
             // Override to implement the notification.
         }
@@ -661,7 +661,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyReceiveCalled(Machine machine)
+        internal virtual void NotifyReceiveCalled(AbstractMachine machine)
         {
             // Override to implement the notification.
         }
@@ -672,7 +672,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyHandleRaisedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -682,7 +682,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        internal virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        internal virtual void NotifyWaitEvents(AbstractMachine machine, EventInfo eventInfoInInbox)
         {
             // Override to implement the notification.
         }
@@ -693,7 +693,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyReceivedEvent(AbstractMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -704,7 +704,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="inbox">Machine inbox.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
+        internal virtual void NotifyHalted(AbstractMachine machine, LinkedList<EventInfo> inbox)
         {
             // Override to implement the notification.
         }
@@ -714,7 +714,7 @@ namespace Microsoft.PSharp
         /// checked to see if the default event handler should fire.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyDefaultEventHandlerCheck(Machine machine)
+        internal virtual void NotifyDefaultEventHandlerCheck(AbstractMachine machine)
         {
             // Override to implement the notification.
         }
@@ -724,7 +724,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyDefaultHandlerFired(Machine machine)
+        internal virtual void NotifyDefaultHandlerFired(AbstractMachine machine)
         {
             // Override to implement the notification.
         }
