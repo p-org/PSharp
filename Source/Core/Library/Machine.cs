@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
         /// Map from machine types to a set of all
         /// available states.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
+        protected static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
 
         /// <summary>
         /// Map from machine types to a set of all
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp
         /// Gets the latest received <see cref="Event"/>, or null if
         /// no <see cref="Event"/> has been received.
         /// </summary>
-        protected internal Event ReceivedEvent { get; private set; }
+        protected internal Event ReceivedEvent { get; protected set; }
 
         /// <summary>
         /// User-defined hashed state of the machine. Override to improve the
@@ -603,7 +603,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        internal void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        internal virtual void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
         {
             lock (this.Inbox)
             {
@@ -972,7 +972,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
-        private async Task ExecuteCurrentStateOnEntry()
+        protected async Task ExecuteCurrentStateOnEntry()
         {
             base.Runtime.NotifyEnteredState(this);
 
@@ -1182,7 +1182,7 @@ namespace Microsoft.PSharp
         /// when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        private void DoStatePush(MachineState state)
+        protected void DoStatePush(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
@@ -1251,7 +1251,7 @@ namespace Microsoft.PSharp
         /// Configures the state transitions of the machine
         /// when a state is popped.
         /// </summary>
-        private void DoStatePop()
+        protected void DoStatePop()
         {
             this.StateStack.Pop();
             this.ActionHandlerStack.Pop();
@@ -1432,7 +1432,7 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        internal Task GotoStartState(Event e)
+        internal virtual Task GotoStartState(Event e)
         {
             this.ReceivedEvent = e;
             return this.ExecuteCurrentStateOnEntry();
