@@ -759,7 +759,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            machine.Enqueue(eventInfo, ref runNewHandler);
+            machine.Enqueue(eventInfo, ref runNewHandler, sender);
 
             return eventInfo;
         }

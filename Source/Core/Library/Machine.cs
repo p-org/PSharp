@@ -324,13 +324,29 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters</param>
-        protected void Send(MachineId mid, Event e, SendOptions options = null)
+        protected virtual void Send(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
             base.Runtime.SendEvent(mid, e, this, options);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters</param>
+        protected virtual Task SendAsync(MachineId mid, Event e, SendOptions options = null)
+        {
+            // If the target machine is null, then report an error and exit.
+            this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
+            // If the event is null, then report an error and exit.
+            this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
+            base.Runtime.SendEvent(mid, e, this, options);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -448,7 +464,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(params Type[] eventTypes)
+        protected internal virtual Task<Event> Receive(params Type[] eventTypes)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -472,7 +488,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
+        protected internal virtual Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -492,7 +508,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        protected internal virtual Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -603,7 +619,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        internal virtual void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        /// <param name="sender">Sender machine</param>
+        internal virtual void Enqueue(EventInfo eventInfo, ref bool runNewHandler, AbstractMachine sender)
         {
             lock (this.Inbox)
             {
@@ -652,12 +669,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Enqueues the specified <see cref="EventInfo"/>.
+        /// </summary>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="runNewHandler">Run a new handler</param>
+        /// <param name="sender">Sender machine</param>
+        internal virtual Task EnqueueAsync(EventInfo eventInfo, ref bool runNewHandler, AbstractMachine sender)
+        {
+            Enqueue(eventInfo, ref runNewHandler, sender);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
         /// Dequeues the next available <see cref="EventInfo"/> from the
         /// inbox if there is one available, else returns null.
         /// </summary>
         /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
         /// <returns>EventInfo</returns>
-        internal EventInfo TryDequeueEvent(bool checkOnly = false)
+        internal virtual EventInfo TryDequeueEvent(bool checkOnly = false)
         {
             EventInfo nextAvailableEventInfo = null;
 
@@ -723,6 +752,17 @@ namespace Microsoft.PSharp
             }
 
             return nextAvailableEventInfo;
+        }
+
+        /// <summary>
+        /// Dequeues the next available <see cref="EventInfo"/> from the
+        /// inbox if there is one available, else returns null.
+        /// </summary>
+        /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
+        /// <returns>EventInfo</returns>
+        internal virtual Task<EventInfo> TryDequeueEventAsync(bool checkOnly = false)
+        {
+            return Task.FromResult<EventInfo>(TryDequeueEvent(checkOnly));
         }
 
         /// <summary>
@@ -1432,6 +1472,7 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
+        /// <param name="creator">Creator</param>
         internal virtual Task GotoStartState(Event e)
         {
             this.ReceivedEvent = e;

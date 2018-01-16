@@ -64,6 +64,11 @@ namespace Microsoft.PSharp
         /// </summary>
         public ILogger Logger { get; private set; }
 
+        /// <summary>
+        /// Machine factories
+        /// </summary>
+        internal List<IMachineFactory> MachineFactories { get; private set; }
+
         #endregion
 
         #region events
@@ -134,6 +139,7 @@ namespace Microsoft.PSharp
             this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
+            this.MachineFactories = new List<IMachineFactory>() { new DefaultMachineFactory() };
             this.IsRunning = true;
         }
 
@@ -256,6 +262,15 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         public abstract void SendEvent(MachineId target, Event e, SendOptions options = null);
+
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public abstract Task SendEventAsync(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Synchronously delivers an <see cref="Event"/> to a machine and
@@ -420,6 +435,15 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal abstract Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine and
@@ -840,6 +864,24 @@ namespace Microsoft.PSharp
         {
             this.NetworkProvider.Dispose();
             this.NetworkProvider = new LocalNetworkProvider(this);
+        }
+
+        #endregion
+
+        #region Machine factories
+
+        /// <summary>
+        /// Installs the specified <see cref="IMachineFactory"/>.
+        /// </summary>
+        /// <param name="machineFactory">IMachineFactory</param>
+        internal void AddMachineFactory(IMachineFactory machineFactory)
+        {
+            if (machineFactory == null)
+            {
+                throw new InvalidOperationException("Cannot install a null machine factory.");
+            }
+
+            this.MachineFactories.Add(machineFactory);
         }
 
         #endregion

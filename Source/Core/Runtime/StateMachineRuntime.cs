@@ -205,6 +205,22 @@ namespace Microsoft.PSharp
             this.SendEvent(target, e, null, options);
         }
 
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        public override Task SendEventAsync(MachineId target, Event e, SendOptions options = null)
+        {
+            // If the target machine is null then report an error and exit.
+            base.Assert(target != null, "Cannot send to a null machine.");
+            // If the event is null then report an error and exit.
+            base.Assert(e != null, "Cannot send a null event.");
+            return this.SendEventAsync(target, e, null, options);
+        }
+
         /// <summary>
         /// Synchronously delivers an <see cref="Event"/> to a machine
         /// and executes it if the machine is available.
@@ -310,7 +326,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
-            Machine machine = this.CreateMachine(mid, type, friendlyName);
+            Machine machine = this.CreateMachine(mid, type, friendlyName, creator);
             base.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
             this.RunMachineEventHandler(machine, e, true);
@@ -332,10 +348,10 @@ namespace Microsoft.PSharp
         internal override async Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e,
             Machine creator, Guid? operationGroupId)
         {
-            Machine machine = this.CreateMachine(mid, type, friendlyName);
+            Machine machine = await this.CreateMachineAsync(mid, type, friendlyName, creator);
             base.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            await this.RunMachineEventHandlerAsync(machine, e, true);
+            await this.RunMachineEventHandlerAsync(machine, e, true, creator);
             return machine.Id;
         }
 
@@ -362,8 +378,9 @@ namespace Microsoft.PSharp
         /// <param name="mid">Unbound machine id</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="creator">Creator</param>
         /// <returns>Machine</returns>
-        private Machine CreateMachine(MachineId mid, Type type, string friendlyName)
+        private Machine CreateMachine(MachineId mid, Type type, string friendlyName, AbstractMachine creator)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
 
@@ -379,10 +396,17 @@ namespace Microsoft.PSharp
                 mid.Bind(this);
             }
 
-            Machine machine = MachineFactory.Create(type);
+            IMachineFactory factory = MachineFactories[0];
+            for(int i = MachineFactories.Count - 1; i > 0; i++)
+            {
+                if(type.IsSubclassOf(MachineFactories[i].BaseClassType()))
+                {
+                    factory = MachineFactories[i];
+                    break;
+                }
+            }
 
-            machine.Initialize(this, mid, new MachineInfo(mid));
-            machine.InitializeStateInformation();
+            Machine machine = factory.Create(type, this, creator, mid, new MachineInfo(mid));
 
             bool result = this.MachineMap.TryAdd(mid, machine);
             this.Assert(result, "Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +
@@ -392,6 +416,52 @@ namespace Microsoft.PSharp
 
             return machine;
         }
+
+        /// <summary>
+        /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
+        /// </summary>
+        /// <param name="mid">Unbound machine id</param>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="creator">Creator</param>
+        /// <returns>Machine</returns>
+        private async Task<Machine> CreateMachineAsync(MachineId mid, Type type, string friendlyName, AbstractMachine creator)
+        {
+            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+
+            if (mid == null)
+            {
+                mid = new MachineId(type, friendlyName, this);
+            }
+            else
+            {
+                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                    mid.Value, mid.Type, type.FullName);
+                mid.Bind(this);
+            }
+
+            IMachineFactory factory = MachineFactories[0];
+            for (int i = MachineFactories.Count - 1; i > 0; i++)
+            {
+                if (type.IsSubclassOf(MachineFactories[i].BaseClassType()))
+                {
+                    factory = MachineFactories[i];
+                    break;
+                }
+            }
+
+            Machine machine = await factory.CreateAsync(type, this, creator, mid, new MachineInfo(mid));
+
+            bool result = this.MachineMap.TryAdd(mid, machine);
+            this.Assert(result, "Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +
+                "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
+                "runtime generation was deserialized, but the current runtime has not increased its generation value.",
+                mid.Value, mid.Generation);
+
+            return machine;
+        }
+
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -410,6 +480,29 @@ namespace Microsoft.PSharp
 
             bool runNewHandler = false;
             this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
+            if (runNewHandler)
+            {
+                this.RunMachineEventHandler(machine, null, false);
+            }
+        }
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        internal override async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        {
+            var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
+            if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
+            {
+                return;
+            }
+
+            bool runNewHandler = false;
+            await this.EnqueueEventAsync(machine, e, sender, operationGroupId, ref runNewHandler);
             if (runNewHandler)
             {
                 this.RunMachineEventHandler(machine, null, false);
@@ -436,7 +529,7 @@ namespace Microsoft.PSharp
             this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
             if (runNewHandler)
             {
-                await this.RunMachineEventHandlerAsync(machine, null, false);
+                await this.RunMachineEventHandlerAsync(machine, null, false, null);
             }
         }
 
@@ -469,7 +562,27 @@ namespace Microsoft.PSharp
             base.Logger.OnSend(machine.Id, sender?.Id, senderState,
                 e.GetType().FullName, operationGroupId, isTargetHalted: false);
 
-            machine.Enqueue(eventInfo, ref runNewHandler);
+            machine.Enqueue(eventInfo, ref runNewHandler, sender);
+        }
+
+        /// <summary>
+        /// Enqueues an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
+        /// <param name="runNewHandler">Run a new handler</param>
+        private Task EnqueueEventAsync(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, ref bool runNewHandler)
+        {
+            EventInfo eventInfo = new EventInfo(e, null);
+            eventInfo.SetOperationGroupId(operationGroupId);
+
+            var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
+            base.Logger.OnSend(machine.Id, sender?.Id, senderState,
+                e.GetType().FullName, operationGroupId, isTargetHalted: false);
+
+            return machine.EnqueueAsync(eventInfo, ref runNewHandler, sender);
         }
 
         /// <summary>
@@ -510,7 +623,8 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
+        /// <param name="creator">Creator</param>
+        private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh, AbstractMachine creator)
         {
             bool completed;
 
