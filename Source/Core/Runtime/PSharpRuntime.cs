@@ -263,15 +263,6 @@ namespace Microsoft.PSharp
         /// <param name="options">Optional parameters of a send operation.</param>
         public abstract void SendEvent(MachineId target, Event e, SendOptions options = null);
 
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        /// <param name="target">Target machine id</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        public abstract Task SendEventAsync(MachineId target, Event e, SendOptions options = null);
-
         /// <summary>
         /// Synchronously delivers an <see cref="Event"/> to a machine and
         /// executes the event handler if the machine is available.
@@ -435,15 +426,6 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        internal abstract Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine and

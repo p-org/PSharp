@@ -1472,7 +1472,6 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="creator">Creator</param>
         internal virtual Task GotoStartState(Event e)
         {
             this.ReceivedEvent = e;

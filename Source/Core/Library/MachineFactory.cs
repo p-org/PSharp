@@ -87,20 +87,6 @@ namespace Microsoft.PSharp
             return newMachine;
         }
 
-        /// <summary>
-        /// Creates a new P# machine of the specified type.
-        /// </summary>
-        /// <param name="type">Type</param>
-        /// <param name="runtime">PSharpRuntime</param>
-        /// <param name="creator">Creator machine, if any</param>
-        /// <param name="mid">Id of the new machine</param>
-        /// <param name="info">MachineInfo</param>
-        /// <returns>Machine</returns>
-        public Task<Machine> CreateAsync(Type type, PSharpRuntime runtime, AbstractMachine creator, MachineId mid, MachineInfo info)
-        {
-            return Task.FromResult<Machine>(Create(type, runtime, creator, mid, info));
-        }
-
         #endregion
     }
 }
