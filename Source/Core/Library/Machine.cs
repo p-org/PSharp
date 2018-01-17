@@ -1071,12 +1071,24 @@ namespace Microsoft.PSharp
                     {
                         cachedAction.Execute();
                     }
+                    catch(Exception ex) when (OnException(cachedAction.MethodInfo.Name, ex))
+                    {
+                        // user handled the exception, return normally
+                        this.Logger.WriteLine("<Exception> Exception of type '{0}' was thrown by handler '{1}' of machine '{2}' and handlded by the user's OnException override.",
+                            ex.GetType().Name, cachedAction.MethodInfo.Name, this.Id.Name);
+                    }
                     catch (Exception ex) when (InvokeOnFailureExceptionFilter(cachedAction, ex))
                     {
                         // If InvokeOnFailureExceptionFilter does not fail-fast, it returns
                         // false to process the exception normally.
                     }
                 }
+            }
+            catch (Exception ex) when (OnException(cachedAction.MethodInfo.Name, ex))
+            {
+                // user handled the exception, return normally
+                this.Logger.WriteLine("<Exception> Exception of type '{0}' was thrown by handler '{1}' of machine '{2}' and handlded by the user's OnException override.",
+                    ex.GetType().Name, cachedAction.MethodInfo.Name, this.Id.Name);
             }
             catch (Exception ex)
             {
@@ -1780,6 +1792,17 @@ namespace Microsoft.PSharp
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        /// <summary>
+        /// User callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the message should be propagated, true otherwise</returns>
+        protected virtual bool OnException(string methodName, Exception ex)
+        {
+            return false;
         }
 
         #endregion
