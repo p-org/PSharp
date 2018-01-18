@@ -390,7 +390,10 @@ namespace Microsoft.PSharp
                 }
             }
 
-            Machine machine = factory.Create(type, this, creator, mid, new MachineInfo(mid));
+            Machine machine = factory.Create(type);
+
+            machine.Initialize(this, mid, new MachineInfo(mid));
+            machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid, machine);
             this.Assert(result, "Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +

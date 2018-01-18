@@ -63,7 +63,7 @@ namespace Microsoft.PSharp
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
-        private Stack<MachineState> StateStack;
+        internal protected Stack<MachineState> StateStack;
 
         /// <summary>
         /// A stack of maps that determine event handling action for
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
-        private LinkedList<EventInfo> Inbox;
+        internal LinkedList<EventInfo> Inbox;
 
         /// <summary>
         /// Gets the raised event. If no event has been raised
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Is the machine running.
         /// </summary>
-        private bool IsRunning;
+        internal protected bool IsRunning;
 
         /// <summary>
         /// Is the machine executing under a synchronous call. This includes
@@ -331,22 +331,6 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
             base.Runtime.SendEvent(mid, e, this, options);
-        }
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
-        protected virtual Task SendAsync(MachineId mid, Event e, SendOptions options = null)
-        {
-            // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
-            // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEvent(mid, e, this, options);
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -669,24 +653,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Enqueues the specified <see cref="EventInfo"/>.
-        /// </summary>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="runNewHandler">Run a new handler</param>
-        /// <param name="sender">Sender machine</param>
-        internal virtual Task EnqueueAsync(EventInfo eventInfo, ref bool runNewHandler, AbstractMachine sender)
-        {
-            Enqueue(eventInfo, ref runNewHandler, sender);
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
         /// Dequeues the next available <see cref="EventInfo"/> from the
         /// inbox if there is one available, else returns null.
         /// </summary>
         /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
         /// <returns>EventInfo</returns>
-        internal virtual EventInfo TryDequeueEvent(bool checkOnly = false)
+        internal EventInfo TryDequeueEvent(bool checkOnly = false)
         {
             EventInfo nextAvailableEventInfo = null;
 
@@ -755,22 +727,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Dequeues the next available <see cref="EventInfo"/> from the
-        /// inbox if there is one available, else returns null.
-        /// </summary>
-        /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
-        /// <returns>EventInfo</returns>
-        internal virtual Task<EventInfo> TryDequeueEventAsync(bool checkOnly = false)
-        {
-            return Task.FromResult<EventInfo>(TryDequeueEvent(checkOnly));
-        }
-
-        /// <summary>
         /// Returns the raised <see cref="EventInfo"/> if
         /// there is one available, else returns null.
         /// </summary>
         /// <returns>EventInfo</returns>
-        private EventInfo TryGetRaisedEvent()
+        internal EventInfo TryGetRaisedEvent()
         {
             EventInfo raisedEventInfo = null;
             if (this.RaisedEvent != null)
@@ -792,7 +753,7 @@ namespace Microsoft.PSharp
         /// Returns the default <see cref="EventInfo"/>.
         /// </summary>
         /// <returns>EventInfo</returns>
-        private EventInfo GetDefaultEvent()
+        internal EventInfo GetDefaultEvent()
         {
             base.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
             return new EventInfo(new Default(), new EventOriginInfo(
@@ -808,7 +769,7 @@ namespace Microsoft.PSharp
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <param name="returnEarly">Returns after handling just one event</param>
-        internal async Task<bool> RunEventHandler(bool returnEarly = false)
+        internal virtual async Task<bool> RunEventHandler(bool returnEarly = false)
         {
             if (this.Info.IsHalted)
             {
@@ -895,7 +856,7 @@ namespace Microsoft.PSharp
         /// Handles the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="e">Event to handle</param>
-        private async Task HandleEvent(Event e)
+        internal protected async Task HandleEvent(Event e)
         {
             base.Info.CurrentActionCalledTransitionStatement = false;
 
@@ -1222,7 +1183,7 @@ namespace Microsoft.PSharp
         /// when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        protected void DoStatePush(MachineState state)
+        internal protected virtual void DoStatePush(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
@@ -1291,7 +1252,7 @@ namespace Microsoft.PSharp
         /// Configures the state transitions of the machine
         /// when a state is popped.
         /// </summary>
-        protected void DoStatePop()
+        internal protected virtual void DoStatePop()
         {
             this.StateStack.Pop();
             this.ActionHandlerStack.Pop();
@@ -1410,7 +1371,7 @@ namespace Microsoft.PSharp
         /// Checks if the machine has a default handler.
         /// </summary>
         /// <returns></returns>
-        private bool HasDefaultHandler()
+        internal protected bool HasDefaultHandler()
         {
             return this.CurrentActionHandlerMap.ContainsKey(typeof(Default)) ||
                 this.GotoTransitions.ContainsKey(typeof(Default)) ||

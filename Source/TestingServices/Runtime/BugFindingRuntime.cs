@@ -604,13 +604,22 @@ namespace Microsoft.PSharp.TestingServices
                 mid.Bind(this);
             }
 
-            var isMachineTypeCached = MachineFactory.IsCached(type);
-            Machine machine = MachineFactory.Create(type);
+            IMachineFactory factory = MachineFactories[0];
+            for (int i = MachineFactories.Count - 1; i > 0; i++)
+            {
+                if (type.IsSubclassOf(MachineFactories[i].BaseClassType()))
+                {
+                    factory = MachineFactories[i];
+                    break;
+                }
+            }
+
+            Machine machine = factory.Create(type);
 
             machine.Initialize(this, mid, new SchedulableInfo(mid));
             machine.InitializeStateInformation();
 
-            if (base.Configuration.ReportActivityCoverage && !isMachineTypeCached)
+            if (base.Configuration.ReportActivityCoverage)
             {
                 this.ReportActivityCoverageOfMachine(machine);
             }
@@ -1443,6 +1452,11 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfMachine(Machine machine)
         {
             var machineName = machine.GetType().Name;
+
+            if(this.CoverageInfo.MachinesToStates.ContainsKey(machineName))
+            {
+                return;
+            }
 
             // fetch states
             var states = machine.GetAllStates();

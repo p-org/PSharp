@@ -34,6 +34,21 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         public ITransaction CurrentTransaction { get; internal set; }
 
+        /// <summary>
+        /// Pending machine creations
+        /// </summary>
+        private List<TaskCompletionSource<bool>> PendingMachineCreations;
+
+        /// <summary>
+        /// State changes (inverted, for undo)
+        /// </summary>
+        private List<MachineStateChangeOp> PendingStateChangesInverted;
+
+        /// <summary>
+        /// State changes
+        /// </summary>
+        private List<MachineStateChangeOp> PendingStateChanges;
+
         #endregion
 
         /// <summary>
@@ -43,6 +58,9 @@ namespace Microsoft.PSharp.ReliableServices
             : base()
         {
             this.StateManager = stateManager;
+            this.PendingMachineCreations = new List<TaskCompletionSource<bool>>();
+            this.PendingStateChangesInverted = new List<MachineStateChangeOp>();
+            this.PendingStateChanges = new List<MachineStateChangeOp>();
         }
 
         /// <summary>
@@ -61,73 +79,290 @@ namespace Microsoft.PSharp.ReliableServices
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>("StateStackStore_" + Id.ToString());
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
 
-            // CurrentTransaction started by the MachineFactory 
-            // (Machine object creation already added to the tx)
-
-            var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
-            if (cnt != 0)
+            using (CurrentTransaction = this.StateManager.CreateTransaction())
             {
-                // re-hydrate
-                DoStatePop();
-
-                for (int i = 0; i < cnt; i++)
+                var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
+                if (cnt != 0)
                 {
-                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
-                    this.Assert(s.HasValue, "Error reading store for the state stack");
+                    // re-hydrate
+                    DoStatePop();
 
-                    var nextState = StateMap[this.GetType()].First(val
-                        => val.GetType().Equals(s.Value));
+                    for (int i = 0; i < cnt; i++)
+                    {
+                        var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
+                        this.Assert(s.HasValue, "Error reading store for the state stack");
 
-                    this.DoStatePush(nextState);
+                        var nextState = StateMap[this.GetType()].First(val
+                            => val.GetType().Equals(s.Value));
+
+                        this.DoStatePush(nextState);
+                    }
+
+                    this.Assert(e == null, "Unexpected event passed on failover");
+
+                    await OnActivate();
+                }
+                else
+                {
+                    // fresh start
+                    await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.FullName);
+
+                    await OnActivate();
+
+                    this.ReceivedEvent = e;
+                    await this.ExecuteCurrentStateOnEntry();
                 }
 
-                this.Assert(e == null, "Unexpected event passed on failover");
-
-                await OnActivate();
-                // don't commit, the sender will do so
-            }
-            else
-            {
-                // fresh start
-                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.FullName);
-
-                await OnActivate();
-
-                this.ReceivedEvent = e;
-                await this.ExecuteCurrentStateOnEntry();
-
-                // finish machine creation
-                await CurrentTransaction.CommitAsync();                
+                await CurrentTransaction.CommitAsync();
             }
 
             this.CurrentTransaction = null;
         }
 
-        #region inbox accessing
+        #region CreateMachine
 
         /// <summary>
-        /// Enqueues the specified <see cref="EventInfo"/>.
+        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
+        /// and passes the specified optional <see cref="Event"/>. This event
+        /// can only be used to access its payload, and cannot be handled.
         /// </summary>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="runNewHandler">Run a new handler</param>
-        /// <param name="sender">Sender machine</param>
-        internal override void Enqueue(EventInfo eventInfo, ref bool runNewHandler, AbstractMachine sender)
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        protected async Task<MachineId> ReliableCreateMachine(Type type, string friendlyName, Event e = null)
         {
-            var senderRSM = sender as ReliableStateMachine;
+            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
+            var mid = this.Runtime.CreateMachineId(type, friendlyName);
 
-            if(senderRSM != null)
+            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.FullName, e));
+            var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
+            PendingMachineCreations.Add(tcs);
+            return mid;
+        }
+
+        /// <summary>
+        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
+        /// and passes the specified optional <see cref="Event"/>. This event
+        /// can only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        public static async Task<MachineId> ReliableCreateMachine(IReliableStateManager stateManager, PSharpRuntime runtime, Type type, string friendlyName, Event e = null)
+        {
+            var createdMachineMap = await stateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
+            var mid = runtime.CreateMachineId(type, friendlyName);
+
+            using (var tx = stateManager.CreateTransaction())
             {
-                this.Assert(senderRSM.StateManager == this.StateManager, "Multiple different state managers detected");
+                await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.FullName, e));
             }
 
-            if(senderRSM == null || senderRSM.CurrentTransaction == null)
+            var tcs = SpawnMachineCreationTask(runtime, mid, type, e);
+            tcs.SetResult(true);
+            return mid;
+        }
+
+        private static TaskCompletionSource<bool> SpawnMachineCreationTask(PSharpRuntime runtime, MachineId mid, Type type, Event e)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            Task.Run(async () =>
             {
-                using(var tx = this.StateManager.CreateTransaction())
+                var r = await tcs.Task;
+                if(r)
                 {
-                    this.InputQueue.EnqueueAsync(tx, eventInfo);
+                    runtime.CreateMachine(mid, type, e);
+                }
+            });
+            return tcs;
+        }
+
+        #endregion
+
+        #region internal methods
+
+        /// <summary>
+        /// Runs the event handler. The handler terminates if there
+        /// is no next event to process or if the machine is halted.
+        /// </summary>
+        /// <param name="returnEarly">Returns after handling just one event</param>
+        internal override async Task<bool> RunEventHandler(bool returnEarly = false)
+        {
+            if (this.Info.IsHalted)
+            {
+                return true;
+            }
+
+            while (!this.Info.IsHalted && base.Runtime.IsRunning)
+            {
+                var dequeued = false;
+
+                // Try to get the raised event, if there is one. Raised events
+                // have priority over the events in the inbox.
+                EventInfo nextEventInfo = this.TryGetRaisedEvent();
+
+                if (nextEventInfo == null)
+                {
+                    lock (base.Inbox)
+                    {
+                        // Try to dequeue the next event, if there is one.
+                        nextEventInfo = this.TryDequeueEvent();
+                        
+                    }
+
+                    if (nextEventInfo == null)
+                    {
+                        // commit previous transaction
+                        if (CurrentTransaction != null)
+                        {
+                            try
+                            {
+                                // record state changes (if any)
+                                if (PendingStateChanges.Count > 0)
+                                {
+                                    var size = await StateStackStore.GetCountAsync(CurrentTransaction);
+                                    for (int i = 0; i < PendingStateChanges.Count; i++)
+                                    {
+                                        if(PendingStateChanges[i] is PopStateChangeOp)
+                                        {
+                                            await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1));
+                                            size--;
+                                        }
+                                        else
+                                        {
+                                            var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().FullName;
+                                            await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush);
+                                            size++;
+                                        }
+                                    }
+                                }
+
+                                await CurrentTransaction.CommitAsync();
+                                CurrentTransaction.Dispose();
+
+                                PendingMachineCreations.ForEach(tcs => tcs.SetResult(true));
+                            }
+                            catch (Exception)
+                            {
+                                PendingMachineCreations.ForEach(tcs => tcs.SetResult(false));
+                                
+                                // restore state stack
+                                for(int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
+                                {
+                                    if(PendingStateChangesInverted[i] is PopStateChangeOp)
+                                    {
+                                        base.DoStatePop();
+                                    }
+                                    else
+                                    {
+                                        base.DoStatePush((PendingStateChangesInverted[i] as PushStateChangeOp).state);
+                                    }
+                                }
+
+                            }
+                        }
+
+                        PendingMachineCreations.Clear();
+                        PendingStateChanges.Clear();
+                        PendingStateChangesInverted.Clear();
+                        CurrentTransaction = StateManager.CreateTransaction();
+
+                        nextEventInfo = await ReliableDequeue();
+
+                        if(nextEventInfo == null)
+                        {
+                            CurrentTransaction.Dispose();
+                            CurrentTransaction = null;
+                        }
+                    }
+
+                    dequeued = nextEventInfo != null;
+                }
+
+                if(nextEventInfo == null)
+                {
+                    // retry
+                    await Task.Delay(10);
+                    continue; 
+                }
+
+                if (dequeued)
+                {
+                    // Notifies the runtime for a new event to handle. This is only used
+                    // during bug-finding and operation bounding, because the runtime has
+                    // to schedule a machine when a new operation is dequeued.
+                    base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                }
+                else
+                {
+                    base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
+                }
+
+                // Assigns the received event.
+                this.ReceivedEvent = nextEventInfo.Event;
+
+                // Handles next event.
+                await this.HandleEvent(nextEventInfo.Event);
+
+                // Return after handling the first event?
+                if (returnEarly)
+                {
+                    return false;
                 }
             }
 
+            return false;
+        }
+
+        private async Task<EventInfo> ReliableDequeue()
+        {
+            var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+            if (cv.HasValue)
+            {
+                return cv.Value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Configures the state transitions of the machine
+        /// when a state is pushed on to the stack.
+        /// </summary>
+        /// <param name="state">State that is to be pushed on to the top of the stack</param>
+        internal protected override void DoStatePush(MachineState state)
+        {             
+            PendingStateChanges.Add(new PushStateChangeOp(state));
+            PendingStateChangesInverted.Add(new PopStateChangeOp());
+            base.DoStatePush(state);
+        }
+
+        /// <summary>
+        /// Configures the state transitions of the machine
+        /// when a state is popped.
+        /// </summary>
+        internal protected override void DoStatePop()
+        {
+            PendingStateChanges.Add(new PopStateChangeOp());
+            PendingStateChangesInverted.Add(new PushStateChangeOp(StateStack.Peek()));
+            base.DoStatePop();
+        }
+        #endregion
+
+        #region Send
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters</param>
+        protected async Task ReliableSend(MachineId mid, Event e)
+        {
+            var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
+            await targetQueue.EnqueueAsync(CurrentTransaction, new EventInfo(e));
         }
 
         /// <summary>
@@ -136,14 +371,17 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters</param>
-        protected override async Task SendAsync(MachineId mid, Event e, SendOptions options = null)
+        public static async Task ReliableSend(IReliableStateManager stateManager, MachineId mid, Event e)
         {
-            // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
-            // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            await base.Runtime.SendEventAndExecute(mid, e, this, options);
+            using (var tx = stateManager.CreateTransaction())
+            {
+                var targetQueue = await stateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
+                await targetQueue.EnqueueAsync(tx, new EventInfo(e));
+            }
         }
+
+
+
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -153,7 +391,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="options">Optional parameters</param>
         protected override void Send(MachineId mid, Event e, SendOptions options = null)
         {
-            this.Assert(false, $"ReliableStateMachines ('{base.Id}') don't support Send. Use SendAsync instead.");
+            this.Assert(false, $"ReliableStateMachines ('{base.Id}') don't support Send. Use ReliableSend instead.");
             throw new NotImplementedException();
         }
 

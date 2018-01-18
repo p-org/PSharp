@@ -59,12 +59,8 @@ namespace Microsoft.PSharp
         /// Creates a new P# machine of the specified type.
         /// </summary>
         /// <param name="type">Type</param>
-        /// <param name="runtime">PSharpRuntime</param>
-        /// <param name="creator">Creator machine, if any</param>
-        /// <param name="mid">Id of the new machine</param>
-        /// <param name="info">MachineInfo</param>
         /// <returns>Machine</returns>
-        public Machine Create(Type type, PSharpRuntime runtime, AbstractMachine creator, MachineId mid, MachineInfo info)
+        public Machine Create(Type type)
         {
             Machine newMachine;
 
@@ -80,9 +76,6 @@ namespace Microsoft.PSharp
 
                 newMachine = constructor();
             }
-
-            newMachine.Initialize(runtime, mid, info);
-            newMachine.InitializeStateInformation();
 
             return newMachine;
         }
