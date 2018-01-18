@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.ReliableServices
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>("StateStackStore_" + Id.ToString());
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
 
-            var CurrentTransaction = this.StateManager.CreateTransaction();
+            CurrentTransaction = this.StateManager.CreateTransaction();
 
             var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
             if (cnt != 0)
