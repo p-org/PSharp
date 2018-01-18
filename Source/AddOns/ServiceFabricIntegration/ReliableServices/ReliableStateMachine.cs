@@ -79,44 +79,41 @@ namespace Microsoft.PSharp.ReliableServices
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>("StateStackStore_" + Id.ToString());
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
 
-            using (CurrentTransaction = this.StateManager.CreateTransaction())
+            var CurrentTransaction = this.StateManager.CreateTransaction();
+
+            var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
+            if (cnt != 0)
             {
-                var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
-                if (cnt != 0)
+                // re-hydrate
+                DoStatePop();
+
+                for (int i = 0; i < cnt; i++)
                 {
-                    // re-hydrate
-                    DoStatePop();
+                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
+                    this.Assert(s.HasValue, "Error reading store for the state stack");
 
-                    for (int i = 0; i < cnt; i++)
-                    {
-                        var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
-                        this.Assert(s.HasValue, "Error reading store for the state stack");
+                    var nextState = StateMap[this.GetType()].First(val
+                        => val.GetType().Equals(s.Value));
 
-                        var nextState = StateMap[this.GetType()].First(val
-                            => val.GetType().Equals(s.Value));
-
-                        this.DoStatePush(nextState);
-                    }
-
-                    this.Assert(e == null, "Unexpected event passed on failover");
-
-                    await OnActivate();
-                }
-                else
-                {
-                    // fresh start
-                    await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.FullName);
-
-                    await OnActivate();
-
-                    this.ReceivedEvent = e;
-                    await this.ExecuteCurrentStateOnEntry();
+                    this.DoStatePush(nextState);
                 }
 
-                await CurrentTransaction.CommitAsync();
+                this.Assert(e == null, "Unexpected event passed on failover");
+
+                await OnActivate();
+            }
+            else
+            {
+                // fresh start
+                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.FullName);
+
+                await OnActivate();
+
+                this.ReceivedEvent = e;
+                await this.ExecuteCurrentStateOnEntry();
             }
 
-            this.CurrentTransaction = null;
+            await CommitCurrentTransaction();
         }
 
         #region CreateMachine
@@ -134,7 +131,7 @@ namespace Microsoft.PSharp.ReliableServices
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
             var mid = this.Runtime.CreateMachineId(type, friendlyName);
 
-            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.FullName, e));
+            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.FullName, /* e */ null)); // TODO: FIX serialization of events
             var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
             PendingMachineCreations.Add(tcs);
             return mid;
@@ -181,6 +178,60 @@ namespace Microsoft.PSharp.ReliableServices
 
         #region internal methods
 
+        private async Task CommitCurrentTransaction()
+        {
+            try
+            {
+                // record state changes (if any)
+                if (PendingStateChanges.Count > 0)
+                {
+                    var size = await StateStackStore.GetCountAsync(CurrentTransaction);
+                    for (int i = 0; i < PendingStateChanges.Count; i++)
+                    {
+                        if (PendingStateChanges[i] is PopStateChangeOp)
+                        {
+                            await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1));
+                            size--;
+                        }
+                        else
+                        {
+                            var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().FullName;
+                            await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush);
+                            size++;
+                        }
+                    }
+                }
+
+                await CurrentTransaction.CommitAsync();
+                
+                PendingMachineCreations.ForEach(tcs => tcs.SetResult(true));
+            }
+            catch (Exception)
+            {
+                PendingMachineCreations.ForEach(tcs => tcs.SetResult(false));
+
+                // restore state stack
+                for (int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
+                {
+                    if (PendingStateChangesInverted[i] is PopStateChangeOp)
+                    {
+                        base.DoStatePop();
+                    }
+                    else
+                    {
+                        base.DoStatePush((PendingStateChangesInverted[i] as PushStateChangeOp).state);
+                    }
+                }
+
+            }
+
+            CurrentTransaction.Dispose();
+            PendingMachineCreations.Clear();
+            PendingStateChanges.Clear();
+            PendingStateChangesInverted.Clear();
+            CurrentTransaction = null;
+        }
+
         /// <summary>
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
@@ -215,56 +266,9 @@ namespace Microsoft.PSharp.ReliableServices
                         // commit previous transaction
                         if (CurrentTransaction != null)
                         {
-                            try
-                            {
-                                // record state changes (if any)
-                                if (PendingStateChanges.Count > 0)
-                                {
-                                    var size = await StateStackStore.GetCountAsync(CurrentTransaction);
-                                    for (int i = 0; i < PendingStateChanges.Count; i++)
-                                    {
-                                        if(PendingStateChanges[i] is PopStateChangeOp)
-                                        {
-                                            await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1));
-                                            size--;
-                                        }
-                                        else
-                                        {
-                                            var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().FullName;
-                                            await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush);
-                                            size++;
-                                        }
-                                    }
-                                }
-
-                                await CurrentTransaction.CommitAsync();
-                                CurrentTransaction.Dispose();
-
-                                PendingMachineCreations.ForEach(tcs => tcs.SetResult(true));
-                            }
-                            catch (Exception)
-                            {
-                                PendingMachineCreations.ForEach(tcs => tcs.SetResult(false));
-                                
-                                // restore state stack
-                                for(int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
-                                {
-                                    if(PendingStateChangesInverted[i] is PopStateChangeOp)
-                                    {
-                                        base.DoStatePop();
-                                    }
-                                    else
-                                    {
-                                        base.DoStatePush((PendingStateChangesInverted[i] as PushStateChangeOp).state);
-                                    }
-                                }
-
-                            }
+                            await CommitCurrentTransaction();
                         }
 
-                        PendingMachineCreations.Clear();
-                        PendingStateChanges.Clear();
-                        PendingStateChangesInverted.Clear();
                         CurrentTransaction = StateManager.CreateTransaction();
 
                         nextEventInfo = await ReliableDequeue();
