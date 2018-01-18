@@ -65,9 +65,10 @@ namespace Microsoft.PSharp.ReliableServices
                 Func<IReliableStateManager, Machine> constructor;
                 if (!MachineConstructorCache.TryGetValue(type, out constructor))
                 {
+                    var param = Expression.Parameter(typeof(IReliableStateManager), "stateManager");
                     constructor = Expression.Lambda<Func<IReliableStateManager, Machine>>(
-                        Expression.New(type.GetConstructor(new Type[] { typeof(IReliableStateManager) }), 
-                        Expression.Parameter(typeof(IReliableStateManager)))).Compile();
+                        Expression.New(type.GetConstructor(new Type[] { typeof(IReliableStateManager) }),
+                        param), param).Compile();
                     MachineConstructorCache.Add(type, constructor);
                 }
 
