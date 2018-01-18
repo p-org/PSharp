@@ -22,7 +22,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Factory for creating P# machines.
     /// </summary>
-    internal interface IMachineFactory
+    public interface IMachineFactory
     {
         /// <summary>
         /// Types for which this factory is responsible

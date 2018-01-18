@@ -856,7 +856,7 @@ namespace Microsoft.PSharp
         /// Installs the specified <see cref="IMachineFactory"/>.
         /// </summary>
         /// <param name="machineFactory">IMachineFactory</param>
-        internal void AddMachineFactory(IMachineFactory machineFactory)
+        public void AddMachineFactory(IMachineFactory machineFactory)
         {
             if (machineFactory == null)
             {

@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// StatefulService State Manager
         /// </summary>
-        private IReliableStateManager StateManager;
+        protected IReliableStateManager StateManager;
 
         /// <summary>
         /// Persistent current state (stack)
