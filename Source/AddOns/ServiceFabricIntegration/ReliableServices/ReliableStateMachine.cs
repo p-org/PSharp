@@ -131,7 +131,7 @@ namespace Microsoft.PSharp.ReliableServices
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
             var mid = this.Runtime.CreateMachineId(type, friendlyName);
 
-            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.FullName, /* e */ null)); // TODO: FIX serialization of events
+            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.FullName, e)); 
             var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
             PendingMachineCreations.Add(tcs);
             return mid;
@@ -153,6 +153,7 @@ namespace Microsoft.PSharp.ReliableServices
             using (var tx = stateManager.CreateTransaction())
             {
                 await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.FullName, e));
+                await tx.CommitAsync();
             }
 
             var tcs = SpawnMachineCreationTask(runtime, mid, type, e);
