@@ -1799,7 +1799,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="ex">The exception thrown by the machine</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
-        /// <returns>False if the message should be propagated, true otherwise</returns>
+        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
         protected virtual bool OnException(string methodName, Exception ex)
         {
             return false;
