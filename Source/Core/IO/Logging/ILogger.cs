@@ -200,6 +200,24 @@ namespace Microsoft.PSharp.IO
         void OnMachineAction(MachineId machineId, string currentStateName, string actionName);
 
         /// <summary>
+        /// Called when a machine throws an exception
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        void OnMachineExceptionThrown(MachineId machineId, string currentStateName, string actionName, Exception ex);
+
+        /// <summary>
+        /// Called when a machine's OnException method is used to handle a thrown exception
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        void OnMachineExceptionHandled(MachineId machineId, string currentStateName, string actionName, Exception ex);
+
+        /// <summary>
         /// Called when a monitor enters or exits a state.
         /// </summary>
         /// <param name="monitorTypeName">The name of the monitor entering or exiting the state.</param>
