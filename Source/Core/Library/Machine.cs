@@ -1061,8 +1061,16 @@ namespace Microsoft.PSharp
             {
                 if (cachedAction.IsAsync)
                 {
-                    // We have no reliable stack for awaited operations.
-                    await cachedAction.ExecuteAsync();
+                    try
+                    {
+                        // We have no reliable stack for awaited operations.
+                        await cachedAction.ExecuteAsync();
+                    }
+                    catch (Exception ex) when (OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    {
+                        // user handled the exception, return normally
+                    }
+
                 }
                 else
                 {
@@ -1071,11 +1079,9 @@ namespace Microsoft.PSharp
                     {
                         cachedAction.Execute();
                     }
-                    catch(Exception ex) when (OnException(cachedAction.MethodInfo.Name, ex))
+                    catch(Exception ex) when (OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
                     {
                         // user handled the exception, return normally
-                        this.Logger.WriteLine("<Exception> Exception of type '{0}' was thrown by handler '{1}' of machine '{2}' and handlded by the user's OnException override.",
-                            ex.GetType().Name, cachedAction.MethodInfo.Name, this.Id.Name);
                     }
                     catch (Exception ex) when (InvokeOnFailureExceptionFilter(cachedAction, ex))
                     {
@@ -1083,12 +1089,6 @@ namespace Microsoft.PSharp
                         // false to process the exception normally.
                     }
                 }
-            }
-            catch (Exception ex) when (OnException(cachedAction.MethodInfo.Name, ex))
-            {
-                // user handled the exception, return normally
-                this.Logger.WriteLine("<Exception> Exception of type '{0}' was thrown by handler '{1}' of machine '{2}' and handlded by the user's OnException override.",
-                    ex.GetType().Name, cachedAction.MethodInfo.Name, this.Id.Name);
             }
             catch (Exception ex)
             {
@@ -1792,6 +1792,28 @@ namespace Microsoft.PSharp
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        /// <summary>
+        /// Invokes user callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
+        private bool OnExceptionHandler(string methodName, Exception ex)
+        {
+            this.Logger.WriteLine("<Exception> Machine '{0}' threw exception of type '{1}' when running handler '{2}'.",
+                this.Id.Name, ex.GetType().Name, methodName);
+
+            var ret = OnException(methodName, ex);
+
+            if(ret)
+            {
+                this.Logger.WriteLine("<Exception> Machine '{0}': user's OnException override handled exception '{1}'.",
+                    this.Id.Name, ex.GetType().Name);
+            }
+
+            return ret;
         }
 
         /// <summary>
