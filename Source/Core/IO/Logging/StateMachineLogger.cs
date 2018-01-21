@@ -348,6 +348,36 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
+        /// Called when a machine throws an exception
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        public virtual void OnMachineExceptionThrown(MachineId machineId, string currentStateName, string actionName, Exception ex)
+        {
+            if (this.IsVerbose)
+            {
+                this.WriteLine($"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' threw an exception '{ex.GetType().Name}'.");
+            }
+        }
+
+        /// <summary>
+        /// Called when a machine's OnException method is used to handle a thrown exception
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        public virtual void OnMachineExceptionHandled(MachineId machineId, string currentStateName, string actionName, Exception ex)
+        {
+            if (this.IsVerbose)
+            {
+                this.WriteLine($"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' chose to handle the exception '{ex.GetType().Name}'.");
+            }
+        }
+
+        /// <summary>
         /// Called when a monitor enters or exits a state.
         /// </summary>
         /// <param name="monitorTypeName">The name of the type of the monitor entering or exiting the state</param>
