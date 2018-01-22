@@ -133,8 +133,100 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(IncorrectDecl1));
             });
 
+            // The replay engine gives a different error message
             var exptectedOutputs = new HashSet<string> { "Method IncorrectReturn of class IncorrectDecl1, marked with attribute MachineConstructor must have return type either void or Task" ,
                 "Machine construction failed for IncorrectDecl1" };
+            var config = Configuration.Create();
+
+            AssertFailed(config, test, 1, new Func<HashSet<string>, bool>(bugReports => bugReports.IsSubsetOf(exptectedOutputs)), true);
+        }
+
+        class IncorrectDecl2 : Machine
+        {
+            [Start]
+            class Init : MachineState { }
+
+            [MachineConstructor]
+            async Task IncorrectArg(E e)
+            {
+                await Task.Yield();
+            }
+        }
+
+        [Fact]
+        public void TestIncorrectDecl2()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(IncorrectDecl2));
+            });
+
+            // The replay engine gives a different error message
+            var exptectedOutputs = new HashSet<string> { "Method IncorrectArg of class IncorrectDecl2, marked with attribute MachineConstructor must accept a single parameter of type Event" ,
+                "Machine construction failed for IncorrectDecl2" };
+            var config = Configuration.Create();
+
+            AssertFailed(config, test, 1, new Func<HashSet<string>, bool>(bugReports => bugReports.IsSubsetOf(exptectedOutputs)), true);
+        }
+
+        class IncorrectDecl3 : Machine
+        {
+            [Start]
+            class Init : MachineState { }
+
+            [MachineConstructor]
+            async Task IncorrectArgs(Event e, E e2)
+            {
+                await Task.Yield();
+            }
+        }
+
+        [Fact]
+        public void TestIncorrectDecl3()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(IncorrectDecl3));
+            });
+
+            // The replay engine gives a different error message
+            var exptectedOutputs = new HashSet<string> { "Method IncorrectArgs of class IncorrectDecl3, marked with attribute MachineConstructor must accept a single parameter of type Event" ,
+                "Machine construction failed for IncorrectDecl3" };
+            var config = Configuration.Create();
+
+            AssertFailed(config, test, 1, new Func<HashSet<string>, bool>(bugReports => bugReports.IsSubsetOf(exptectedOutputs)), true);
+        }
+
+        class IncorrectDecl4 : Machine
+        {
+            [Start]
+            class Init : MachineState { }
+
+            [MachineConstructor]
+            async Task Cons1(Event e)
+            {
+                await Task.Yield();
+            }
+
+
+            [MachineConstructor]
+            async Task Cons2(Event e)
+            {
+                await Task.Yield();
+            }
+        }
+
+        [Fact]
+        public void TestIncorrectDecl4()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(IncorrectDecl4));
+            });
+
+            // The replay engine gives a different error message
+            var exptectedOutputs = new HashSet<string> {
+                "Only one instance member of class IncorrectDecl4 can be marked with attribute MachineConstructor." + Environment.NewLine +
+                "Found Cons1" + Environment.NewLine +
+                "Found Cons2",
+                "Machine construction failed for IncorrectDecl4" };
             var config = Configuration.Create();
 
             AssertFailed(config, test, 1, new Func<HashSet<string>, bool>(bugReports => bugReports.IsSubsetOf(exptectedOutputs)), true);
