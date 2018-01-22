@@ -103,9 +103,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     case TokenType.Partial:
                     case TokenType.Abstract:
                     case TokenType.Virtual:
-                    case TokenType.EventDecl:
                     case TokenType.MachineDecl:
                         throw new ParsingException("Must be declared inside a namespace.",
+                            new List<TokenType>());
+
+                    case TokenType.ExternDecl:
+                    case TokenType.EventDecl:
+                        throw new ParsingException("Must be declared inside a namespace or machine.",
                             new List<TokenType>());
 
                     default:
@@ -183,8 +187,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void VisitNamespaceDeclaration()
         {
-            var node = new NamespaceDeclaration(base.TokenStream.Program);
-            node.NamespaceKeyword = base.TokenStream.Peek();
+            var node = new NamespaceDeclaration(base.TokenStream.Program)
+            {
+                NamespaceKeyword = base.TokenStream.Peek()
+            };
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -258,6 +264,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     TokenType.Partial,
                     TokenType.Abstract,
                     TokenType.Virtual,
+                    TokenType.ExternDecl,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
                     TokenType.Monitor,
@@ -283,6 +290,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.CommentStart:
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    break;
+
+                case TokenType.ExternDecl:
+                    new EventDeclarationVisitor(base.TokenStream).VisitExternDeclaration(node, null);
+                    base.TokenStream.Index++;
                     break;
 
                 case TokenType.EventDecl:

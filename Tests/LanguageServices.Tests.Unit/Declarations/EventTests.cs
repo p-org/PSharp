@@ -118,7 +118,7 @@ using Microsoft.PSharp;
 
 namespace Foo
 {
-    internal class e1<T,K> : Event
+    internal class e1<T, K> : Event
     {
         public e1()
             : base()
@@ -212,7 +212,7 @@ using Microsoft.PSharp;
 
 namespace Foo
 {
-    internal class e1<T,K> : Event
+    internal class e1<T, K> : Event
     {
         public K m;
         public T n;
@@ -286,7 +286,7 @@ namespace Foo
             }
         }
 
-        public class e3<T,K> : Event
+        public class e3<T, K> : Event
         {
             public K m;
             public T n;
@@ -347,7 +347,7 @@ private event e;
         public void TestEventDeclarationWithoutNamespace()
         {
             var test = "event e;";
-            LanguageTestUtilities.AssertFailedTestLog("Must be declared inside a namespace.", test);
+            LanguageTestUtilities.AssertFailedTestLog("Must be declared inside a namespace or machine.", test);
         }
 
         [Fact]
@@ -357,7 +357,7 @@ private event e;
 namespace Foo {
 public event e>;
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"assert\", \"assume\", \"<\", \"(\", \";\", \":\".", test);
         }
 
         [Fact]

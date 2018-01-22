@@ -28,14 +28,14 @@ namespace Microsoft.PSharp
         /// Specifies that there must not be more than k instances
         /// of e in the input queue of any machine.
         /// </summary>
-        protected internal readonly int Assert;
+        protected internal int Assert { get; private set; }
 
         /// <summary>
         /// Speciﬁes that during testing, an execution that increases
         /// the cardinality of e beyond k in some queue must not be
         /// generated.
         /// </summary>
-        protected internal readonly int Assume;
+        protected internal int Assume { get; private set; }
 
         /// <summary> 
         /// User-defined hash of the event payload. Override to improve the
@@ -62,6 +62,16 @@ namespace Microsoft.PSharp
         /// <param name="assert">Assert</param>
         /// <param name="assume">Assume</param>
         protected Event(int assert, int assume)
+        {
+            this.SetCardinalityConstraints(assert, assume);
+        }
+
+        /// <summary>
+        /// Allows override of constructor cardinality constraints.
+        /// </summary>
+        /// <param name="assert">Assert</param>
+        /// <param name="assume">Assume</param>
+        protected void SetCardinalityConstraints(int assert, int assume)
         {
             this.Assert = assert;
             this.Assume = assume;
