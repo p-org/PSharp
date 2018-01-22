@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        internal List<EventDeclaration> EventDeclarations;
+        internal EventDeclarations EventDeclarations;
 
         /// <summary>
         /// List of machine declarations.
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             : base(program)
         {
             this.IdentifierTokens = new List<Token>();
-            this.EventDeclarations = new List<EventDeclaration>();
+            this.EventDeclarations = new EventDeclarations();
             this.MachineDeclarations = new List<MachineDeclaration>();
         }
 

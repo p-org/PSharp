@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 if (base.Options.ThrowParsingException &&
                     this.ErrorLog.Length > 0)
                 {
-                    throw new ParsingException(this.ErrorLog.ToString(), ex.ExpectedTokenTypes);
+                    throw new ParsingException(this.ErrorLog.ToString(), ex.ExpectedTokenTypes, ex);
                 }
             }
             
