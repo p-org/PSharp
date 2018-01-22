@@ -17,7 +17,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// The parent of this <see cref="ProjectionInfo"/>.
         /// </summary>
-        internal ProjectionInfo Parent;
+        internal ProjectionInfo PSharpParent;
+
+        /// <summary>
+        /// The C#-rewritten parent of this <see cref="ProjectionInfo"/>. This is different from the P# parent
+        /// when, for example, a declaration (e.g. a state action) on a contained (e.g. a state) class must be
+        /// rewritten as a method in the containaing (e.g. machine) parent class.
+        /// </summary>
+        internal ProjectionInfo CSharpParent;
 
         /// <summary>
         /// The list of rewritten terms within this <see cref="ProjectionInfo"/>'s code block.
@@ -25,10 +32,15 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         internal List<RewrittenTerm> RewrittenCodeTerms = new List<RewrittenTerm>();
 
         /// <summary>
-        /// The children of this Projection Info. The P# *Declaration classes maintain class-specific
-        /// child lists; here we maintain this in a standard format.
+        /// The children of this Projection Info in the PSharp hierarchy. The P# *Declaration classes maintain
+        /// class-specific child lists; here we maintain this in a standard format.
         /// </summary>
-        internal List<ProjectionInfo> children = new List<ProjectionInfo>();
+        internal List<ProjectionInfo> PSharpChildren = new List<ProjectionInfo>();
+
+        /// <summary>
+        /// The children of this Projection Info in the CSharp hierarchy, as described in <see cref="CSharpParent"/>.
+        /// </summary>
+        internal List<ProjectionInfo> CSharpChildren = new List<ProjectionInfo>();
 
         /// <summary>
         /// The type of the P# node corresponding to this <see cref="ProjectionInfo"/>.
@@ -57,9 +69,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #region constructor
 
-        internal ProjectionInfo(object node)
+        internal ProjectionInfo(object node, ProjectionInfos projectionInfos = null)
         {
             this.NodeType = node.GetType();
+            this.projectionInfos = projectionInfos;
         }
 
         #endregion
@@ -87,7 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.Header.OriginalStart = originalTokenRange.StartPosition;
             this.Header.OriginalString = originalTokenRange.GetString();
             this.rewrittenHeaderOffset = rewrittenOffset;
-            this.Header.GetRewrittenStartFunc = () => this.HasRewrittenHeader ? this.rewrittenHeaderOffset + this.CumulativeOffset : -1;
+            this.Header.GetRewrittenStartFunc = () => this.HasRewrittenHeader ? this.rewrittenHeaderOffset + this.RewrittenCumulativeOffset : -1;
 
             var rewrittenSubstring = rewrittenString.Substring(rewrittenOffset);  // does not change so use a temp
             this.Header.GetRewrittenStringFunc = () => rewrittenSubstring;
@@ -116,7 +129,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.CodeChunk.OriginalStart = originalStart;
             this.CodeChunk.OriginalString = originalString;
             this.rewrittenCodeChunkOffset = rewrittenOffset;
-            this.CodeChunk.GetRewrittenStartFunc = () => this.rewrittenCodeChunkOffset + this.CumulativeOffset;
+            this.CodeChunk.GetRewrittenStartFunc = () => this.rewrittenCodeChunkOffset + this.RewrittenCumulativeOffset;
 
             // The code chunk may be adjusted based on <see cref="RewrittenTerm"/>s 
             // so we carry the length and dynamically obtain the <see cref="CodeChunk"/> string.
@@ -144,7 +157,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// this figure is accumulated from parent to children via <see cref="FinalizeInitialOffsets(int)"/>
         /// after the initial structure-rewrite pass is completed.
         /// </summary>
-        public int CumulativeOffset { get; private set; }
+        public int RewrittenCumulativeOffset { get; private set; }
 
         /// <summary>
         /// Non-root recursive calls to both update the offset and set the rewritten string reference.
@@ -152,26 +165,41 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <param name="offsetAdjustment"></param>
         internal void FinalizeInitialOffsets(int offsetAdjustment)
         {
-            this.CumulativeOffset += offsetAdjustment;
-            foreach (var child in this.children)
+            this.RewrittenCumulativeOffset += offsetAdjustment;
+            foreach (var child in this.CSharpChildren)
             {
-                child.FinalizeInitialOffsets(this.CumulativeOffset);
+                child.FinalizeInitialOffsets(this.RewrittenCumulativeOffset);
             }
+        }
+
+        /// <summary>
+        /// Set the initial offset in the parent node for this child node.
+        /// </summary>
+        /// <param name="offsetInParent">The offset within the immediate parent; adjusted by
+        ///     <see cref="FinalizeInitialOffsets(int)"/> after the initial structure-rewrite
+        ///     pass is completed.</param>
+        internal void SetOffsetInParent(int offsetInParent)
+        {
+            // This is separate from setting the parent because parentage must be established before
+            // children are rewritten, which may be done in an initial rewrite iteration before 
+            // iteration that accumulates the text offsets (which includes children).
+            this.RewrittenCumulativeOffset = offsetInParent;
         }
 
         /// <summary>
         /// Adds a child projectionInfo (e.g. a state's within a machine).
         /// </summary>
         /// <param name="child">The ProjectionInfo of the child</param>
-        /// <param name="offsetInParent">The offset within the immediate parent; adjusted by
-        ///     <see cref="FinalizeInitialOffsets(int)"/> after the initial structure-rewrite
-        ///     pass is completed.</param>
-        internal void AddChild(ProjectionInfo child, int offsetInParent)
+        /// <param name="csharpParent">The ProjectionInfo of the <see cref="CSharpParent"/> of this child, if different from the P# parent</param>
+        internal void AddChild(ProjectionInfo child, ProjectionInfo csharpParent = null)
         {
-            child.Parent = this;
             child.projectionInfos = this.projectionInfos;
-            child.CumulativeOffset = offsetInParent;
-            this.children.Add(child);
+
+            child.PSharpParent = this;
+            child.PSharpParent.PSharpChildren.Add(child);
+
+            child.CSharpParent = csharpParent ?? this;
+            child.CSharpParent.CSharpChildren.Add(child);
         }
 
         /// <summary>
@@ -180,7 +208,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <param name="offset"></param>
         internal void AddOffset(int offset)
         {
-            this.CumulativeOffset += offset;
+            this.RewrittenCumulativeOffset += offset;
         }
 
         /// <summary>
@@ -207,7 +235,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             // Return DFS
             yield return this;
-            foreach (var child in this.children.Select(child => child.GetFlatList()).SelectMany(list => list))
+            foreach (var child in this.CSharpChildren.Select(child => child.GetFlatList()).SelectMany(list => list))
             {
                 yield return child;
             }
@@ -228,7 +256,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var codeString = this.HasCode 
                 ? $"[{this.rewrittenCodeChunkOffset}, {this.CodeChunk.RewrittenLength}] {getTruncatedString(this.CodeChunk.RewrittenString)}]"
                 : "-0-";
-            return  $"{this.NodeType.Name} offset: [{this.CumulativeOffset}] origHdr: [{originalHeaderString}] " +
+            return  $"{this.NodeType.Name} offset: [{this.RewrittenCumulativeOffset}] origHdr: [{originalHeaderString}] " +
                     $"rewritnHdr: [{rewrittenHeaderString}] code: [{codeString}]";
         }
     }
@@ -263,7 +291,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         internal ProjectionInfos(IPSharpProgram program)
         {
-            this.Root = new ProjectionInfo(program);
+            this.Root = new ProjectionInfo(program, this);
         }
 
         /// <summary>
@@ -304,7 +332,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         internal void FinalizeInitialOffsets(int offsetAdjustment, string rewrittenCSharpText)
         {
             this.RewrittenCSharpText = rewrittenCSharpText;
-            foreach (var child in this.Root.children)
+            foreach (var child in this.Root.PSharpChildren)
             {
                 child.FinalizeInitialOffsets(offsetAdjustment);
             }
@@ -326,7 +354,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private IEnumerable<ProjectionInfo> CreateFlatList()
         {
             // Return DFS
-            foreach (var child in this.Root.children.Select(child => child.GetFlatList()).SelectMany(list => list))
+            foreach (var child in this.Root.CSharpChildren.Select(child => child.GetFlatList()).SelectMany(list => list))
             {
                 yield return child;
             }
@@ -340,7 +368,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             for (var ii = 1; ii < this.orderedProjectionInfos.Length; ++ii)
             {
-                Debug.Assert(this.orderedProjectionInfos[ii - 1].CumulativeOffset < this.orderedProjectionInfos[ii].CumulativeOffset);
+                Debug.Assert(this.orderedProjectionInfos[ii - 1].RewrittenCumulativeOffset < this.orderedProjectionInfos[ii].RewrittenCumulativeOffset);
             }
         }
 

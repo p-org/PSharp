@@ -191,7 +191,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 bool getNextProjOffset(out int offset)
                 {
                     var endOfList = curProjIndex >= this.OrderedProjectionInfos.Length - 1;
-                    offset = endOfList ? -1 : this.OrderedProjectionInfos[curProjIndex + 1].CumulativeOffset;
+                    offset = endOfList ? -1 : this.OrderedProjectionInfos[curProjIndex + 1].RewrittenCumulativeOffset;
                     return !endOfList;
                 }
                 void advanceToInnermostContainingProjInfo()
@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 while (hasTerm && hasProj)
                 {
                     var curProjInfo = (ProjectionInfo)projEnumerator.Current;
-                    if (batchEnumerator.Current.RewrittenStart < curProjInfo.CumulativeOffset)
+                    if (batchEnumerator.Current.RewrittenStart < curProjInfo.RewrittenCumulativeOffset)
                     {
                         offset += batchEnumerator.Current.ChangedLength;
                         hasTerm = batchEnumerator.MoveNext();

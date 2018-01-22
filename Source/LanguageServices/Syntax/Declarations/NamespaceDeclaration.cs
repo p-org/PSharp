@@ -94,11 +94,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var indent = GetIndent(indentLevel); // indent here will likely always be 0
             foreach (var node in this.EventDeclarations)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo);
                 node.Rewrite(indentLevel  + 1);
             }
             
             foreach (var node in this.MachineDeclarations)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -110,14 +112,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in realMachines)
             {
-                base.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
+                node.ProjectionInfo.SetOffsetInParent(text.Length);
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }
 
             foreach (var node in monitors)
             {
-                base.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
+                node.ProjectionInfo.SetOffsetInParent(text.Length);
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }
@@ -150,7 +152,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.EventDeclarations)
             {
-                base.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
+                node.ProjectionInfo.SetOffsetInParent(text.Length);
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }

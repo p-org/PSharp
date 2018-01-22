@@ -181,7 +181,8 @@ namespace Microsoft.PSharp.LanguageServices
             var newLine = "";
             foreach (var node in this.NamespaceDeclarations)
             {
-                this.ProjectionInfos.Root.AddChild(node.ProjectionInfo, text.Length);
+                this.ProjectionInfos.Root.AddChild(node.ProjectionInfo);
+                node.ProjectionInfo.SetOffsetInParent(text.Length);
                 text += newLine;
                 node.Rewrite(indentLevel);
                 text += node.TextUnit.Text;

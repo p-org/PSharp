@@ -166,6 +166,7 @@ namespace Microsoft.PSharp.VisualStudio
             //          chunks. This text is copied from corresponding spans of the rewritten C# file.
             var csSpans = new List<(int Start, int End, ITrackingSpan TrackingSpan)>();
             var inertTextBuffer = textBufferFactory.CreateTextBuffer(this.projectionInfos.RewrittenCSharpText, inertContentType);
+            inertTextBuffer.Changed += InertTextBuffer_Changed;
             var inertBufferOffset = 0;
 
             void AddOrCoalesceInertSpan(int csEnd)
@@ -197,9 +198,7 @@ namespace Microsoft.PSharp.VisualStudio
 
             ITrackingSpan createTrackingSpan((int start, int end, ITrackingSpan trackingSpan) span)
             {
-                return (span.trackingSpan != null)
-                    ? span.trackingSpan
-                    : inertTextBuffer.CurrentSnapshot.CreateTrackingSpan(span.start, span.end - span.start, SpanTrackingMode);
+                return span.trackingSpan ?? inertTextBuffer.CurrentSnapshot.CreateTrackingSpan(span.start, span.end - span.start, SpanTrackingMode);
             }
 
             foreach (var projInfo in this.projectionInfos.OrderedProjectionInfos)
@@ -230,6 +229,11 @@ namespace Microsoft.PSharp.VisualStudio
             // Add any leftovers from the C# text
             AddOrCoalesceInertSpan(inertTextBuffer.CurrentSnapshot.Length);
             return csSpans.Select(span => createTrackingSpan(span)).ToList();
+        }
+
+        private void InertTextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        {
+            return; // TODO editing support
         }
 
         private (List<ITrackingSpan>, ISet<ITrackingSpan>) CreatePSharpViewTrackingSpans(IProjectionBuffer csProjectionBuffer, ITextBuffer vsTextBuffer)

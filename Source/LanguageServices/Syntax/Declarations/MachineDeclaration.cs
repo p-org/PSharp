@@ -149,6 +149,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             foreach (var node in this.EventDeclarations)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -159,6 +160,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.StateDeclarations)
             {
+                base.ProjectionInfo.AddChild(node.ProjectionInfo);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -198,7 +200,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += this.GetRewrittenStateOnEntryAndExitActions(indentLevel + 1, ref newLine, text.Length);
             text += this.GetRewrittenWithActions(indentLevel + 1, ref newLine);
 
-            text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            text += $"{indent}{this.RightCurlyBracketToken.TextUnit.Text}\n";
 
             base.TextUnit = this.MachineKeyword.TextUnit.WithText(text);
 
@@ -294,7 +296,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "abstract ";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : ";
+            text += $"class {this.Identifier.TextUnit.Text} : ";
 
             if (this.ColonToken != null)
             {
@@ -310,7 +312,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             base.ProjectionInfo.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
 
-            text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            text += $"\n{indent}{this.LeftCurlyBracketToken.TextUnit.Text}\n";
 
             foreach (var node in this.EventDeclarations)
             {
@@ -339,7 +341,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             foreach (var node in this.StateDeclarations)
             {
                 text += newLine;
-                this.ProjectionInfo.AddChild(node.ProjectionInfo, text.Length);
+                node.ProjectionInfo.SetOffsetInParent(text.Length);
                 text += node.TextUnit.Text;
                 newLine = "\n";
             }
@@ -368,21 +370,26 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var text = string.Empty;
             foreach (var state in this.GetAllStateDeclarations())
             {
-                ProcessEntryOrExitDeclaration(state.EntryDeclaration, ref text, indentLevel, ref newLine, offset);
-                ProcessEntryOrExitDeclaration(state.ExitDeclaration, ref text, indentLevel, ref newLine, offset);
+                ProcessEntryOrExitDeclaration(state, state.EntryDeclaration, ref text, indentLevel, ref newLine, offset);
+                ProcessEntryOrExitDeclaration(state, state.ExitDeclaration, ref text, indentLevel, ref newLine, offset);
             }
             return text;
         }
 
-        private void ProcessEntryOrExitDeclaration<T>(T declaration, ref string text, int indentLevel,
+        private void ProcessEntryOrExitDeclaration<T>(StateDeclaration state, T declaration, ref string text, int indentLevel,
                                                       ref string newLine, int offset) where T: PSharpSyntaxNode
         {
             // This should be a local function but can't because of the ref parameter
             if (declaration != null)
             {
+                // For the C# rewriting here, the parent is actually the machine instance
+                // on which the rewritten method resides.
+                state.ProjectionInfo.AddChild(declaration.ProjectionInfo, this.ProjectionInfo);
                 declaration.Rewrite(indentLevel);
                 text += newLine;
-                this.ProjectionInfo.AddChild(declaration.ProjectionInfo, offset + text.Length);
+
+                // The rewritten offset is relative to the machine, which is the C# parent.
+                declaration.ProjectionInfo.SetOffsetInParent(offset + text.Length);
                 text += declaration.TextUnit.Text;
                 newLine = "\n";
             }

@@ -282,16 +282,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
                     }
 
-                    if (base.TokenStream.Peek().Type == TokenType.Comma)
+                    if (!base.TokenStream.Done)
                     {
-                        isType = false;
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    }
-                    else if (base.TokenStream.Peek().Type == TokenType.Colon)
-                    {
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        if (base.TokenStream.Peek().Type == TokenType.Comma)
+                        {
+                            isType = false;
+                            base.TokenStream.Index++;
+                            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        }
+                        else if (base.TokenStream.Peek().Type == TokenType.Colon)
+                        {
+                            base.TokenStream.Index++;
+                            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        }
                     }
                 }
 
