@@ -48,6 +48,7 @@ namespace Foo
         public E2()
             : base()
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -56,6 +57,7 @@ namespace Foo
         public E2x()
             : base()
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -97,6 +99,7 @@ namespace Foo
             public E2()
                 : base()
             {
+                base.SetCardinalityConstraints(-1, -1);
             }
         }
 
@@ -105,6 +108,7 @@ namespace Foo
             public E2x()
                 : base()
             {
+                base.SetCardinalityConstraints(-1, -1);
             }
         }
 
@@ -150,6 +154,7 @@ namespace Bar
         public E2()
             : base()
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -185,6 +190,7 @@ namespace Foo
         public E2()
             : base()
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -193,6 +199,7 @@ namespace Foo
         public E2x()
             : base()
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -231,6 +238,7 @@ namespace Foo
             : base()
         {
             this.b = b;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -242,6 +250,7 @@ namespace Foo
             : base()
         {
             this.b = b;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -280,6 +289,7 @@ namespace Foo
         public E2(string a)
             : base(a)
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -288,6 +298,7 @@ namespace Foo
         public E2x(string a)
             : base(a)
         {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -329,6 +340,7 @@ namespace Foo
             : base(a)
         {
             this.b = b;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -340,6 +352,7 @@ namespace Foo
             : base(a)
         {
             this.b = b;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -387,6 +400,7 @@ namespace Foo
         {
             this.a1 = a1;
             this.b1 = b1;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -400,6 +414,7 @@ namespace Foo
         {
             this.a2 = a2;
             this.b2 = b2;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -413,6 +428,7 @@ namespace Foo
         {
             this.a2x = a2x;
             this.b2x = b2x;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -462,6 +478,7 @@ namespace Foo
         {
             this.a1 = a1;
             this.b1 = b1;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -475,6 +492,7 @@ namespace Foo
         {
             this.a2 = a2;
             this.b2 = b2;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -488,6 +506,7 @@ namespace Foo
         {
             this.a2x = a2x;
             this.b2x = b2x;
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -506,6 +525,7 @@ namespace Foo {
     internal event E4: E3 assume 4;
     internal event E5 assert 5;
     internal event E6: E5 assume 6;
+    internal event E7: E6;
 }";
             var expected = @"
 using Microsoft.PSharp;
@@ -560,6 +580,15 @@ namespace Foo
             : base()
         {
             base.SetCardinalityConstraints(-1, 6);
+        }
+    }
+
+    internal class E7 : E6
+    {
+        public E7()
+            : base()
+        {
+            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
