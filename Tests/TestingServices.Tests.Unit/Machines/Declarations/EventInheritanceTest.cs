@@ -175,17 +175,27 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
+        internal class E7 : E6
+        {
+            public E7()
+            : base()
+        {
+                base.SetCardinalityConstraints(-1, -1);
+            }
+        }
+
         public class Tester
         {
             public static void Test()
             {
                 bool verify(Event ev, int expectedAssert, int expectedAssume) => ev.Assert == expectedAssert && ev.Assume == expectedAssume;
-                verify(new E1(), 1, -1);
-                verify(new E2(), 2, -1);
-                verify(new E3(), -1, 3);
-                verify(new E4(), -1, 4);
-                verify(new E5(), 5, -1);
-                verify(new E4(), -1, 6);
+                Assert.True(verify(new E1(), 1, -1));
+                Assert.True(verify(new E2(), 2, -1));
+                Assert.True(verify(new E3(), -1, 3));
+                Assert.True(verify(new E4(), -1, 4));
+                Assert.True(verify(new E5(), 5, -1));
+                Assert.True(verify(new E6(), -1, 6));
+                Assert.True(verify(new E7(), -1, -1));
             }
         }
     }

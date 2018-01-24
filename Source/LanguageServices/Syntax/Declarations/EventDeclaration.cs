@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += ")\n";
             text += indent2 + ": base(";
 
-            void addAssertAssumeParams()
+            void addAssertAssumeParams(bool forDerived)
             {
                 if (this.AssertKeyword != null)
                 {
@@ -254,6 +254,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 else if (this.AssumeKeyword != null)
                 {
                     text += "-1, " + this.AssumeValue;
+                }
+                else if (forDerived)
+                {
+                    text += "-1, -1";
                 }
             }
 
@@ -273,7 +277,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             else
             {
                 // Assert/Assume are passed as params to ctor overload for classes that derive directly from Event.
-                addAssertAssumeParams();
+                addAssertAssumeParams(forDerived: false);
             }
 
             text += ")\n";
@@ -285,11 +289,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
             }
 
-            if (this.BaseClassDecl != null && (this.AssertKeyword != null || this.AssumeKeyword != null))
+            if (this.BaseClassDecl != null)
             {
                 // Assert/Assume are passed as to a protected method for classes that don't derive directly from Event.
+                // Override any base-class declaration; if none are specified on the derived class then this will turn it off.
                 text += indent2 + "base.SetCardinalityConstraints(";
-                addAssertAssumeParams();
+                addAssertAssumeParams(forDerived: true);
                 text += ");\n";
             }
 
