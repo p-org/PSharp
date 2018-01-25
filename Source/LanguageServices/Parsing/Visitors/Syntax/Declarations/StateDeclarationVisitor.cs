@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                                     break;
 
                                 case TokenType.Exit:
-                                    new StateExitDeclarationVisitor(base.TokenStream).Visit(node, isAsync:true);
+                                    new StateExitDeclarationVisitor(base.TokenStream).Visit(node, tokenRange, isAsync:true);
                                     base.TokenStream.Index++;
                                     break;
                                 default:
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             break;
 
                         case TokenType.Exit:
-                            new StateExitDeclarationVisitor(base.TokenStream).Visit(node);
+                            new StateExitDeclarationVisitor(base.TokenStream).Visit(node, tokenRange.Start());
                             base.TokenStream.Index++;
                             break;
 
@@ -254,7 +254,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.Exit:
-                        new StateExitDeclarationVisitor(base.TokenStream).Visit(node);
+                        new StateExitDeclarationVisitor(base.TokenStream).Visit(node, tokenRange.Start());
                         base.TokenStream.Index++;
                         break;
 

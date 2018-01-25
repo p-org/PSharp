@@ -66,8 +66,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation.
+        /// Rewrites the syntax node declaration to the intermediate C# representation.
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
@@ -75,9 +74,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             var typeStr = this.IsAsync ? "async System.Threading.Tasks.Task" : "void";
             var suffix = this.IsAsync ? "_async()" : "()";
-            string text = GetIndent(indentLevel) + $"protected {typeStr} psharp_" + this.State.GetFullyQualifiedName() + 
+            var indent = GetIndent(indentLevel);
+            string text = indent + $"protected {typeStr} psharp_" + this.State.GetFullyQualifiedName() + 
                 $"_on_exit_action{suffix}";
-            text += "\n" + StatementBlock.TextUnit.Text + "\n";
+
+            base.ProjectionInfo.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
+
+            text += "\n";
+            base.ProjectionInfo.SetCodeChunkInfo(StatementBlock.OpenBraceToken.TextUnit.Start, StatementBlock.TextUnit.Text, text.Length);
+            text += StatementBlock.TextUnit.Text + "\n";
 
             base.TextUnit = this.ExitKeyword.TextUnit.WithText(text);
         }

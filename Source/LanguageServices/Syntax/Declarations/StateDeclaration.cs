@@ -449,6 +449,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
+            // Note: MachineDeclaration.cs handles the state Entry/ExitDeclaration hierarchy 
             base.ProjectionInfo.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
 
             return text;
