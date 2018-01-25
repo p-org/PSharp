@@ -492,10 +492,6 @@ namespace Microsoft.PSharp
 
                     await machine.RunEventHandler();
                 }
-                catch (AssertionFailureException)
-                {
-                    base.IsRunning = false;
-                }
                 catch (Exception ex)
                 {
                     base.IsRunning = false;
@@ -522,11 +518,6 @@ namespace Microsoft.PSharp
                 }
 
                 completed = await machine.RunEventHandler(true);
-            }
-            catch (AssertionFailureException)
-            {
-                base.IsRunning = false;
-                return;
             }
             catch (Exception ex)
             {

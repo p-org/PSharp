@@ -479,9 +479,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var exception = new AssertionFailureException("Detected an assertion failure.");
-                this.RaiseOnFailureEvent(exception);
-                throw exception;
+                throw new AssertionFailureException("Detected an assertion failure.");
             }
         }
 
@@ -496,9 +494,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var exception = new AssertionFailureException(IO.Utilities.Format(s, args));
-                this.RaiseOnFailureEvent(exception);
-                throw exception;
+                throw new AssertionFailureException(IO.Utilities.Format(s, args));
             }
         }
 
@@ -871,15 +867,9 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
         {
-            if (exception is AssertionFailureException)
-            {
-                throw exception;
-            }
-            else
-            {
-                this.RaiseOnFailureEvent(exception);
-                throw new AssertionFailureException(IO.Utilities.Format(s, args), exception);
-            }
+            throw (exception is AssertionFailureException)
+                ? exception
+                : new AssertionFailureException(IO.Utilities.Format(s, args), exception);
         }
 
         #endregion

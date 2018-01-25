@@ -1802,15 +1802,19 @@ namespace Microsoft.PSharp
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
         private bool OnExceptionHandler(string methodName, Exception ex)
         {
-            this.Logger.WriteLine("<Exception> Machine '{0}' threw exception of type '{1}' when running handler '{2}'.",
-                this.Id.Name, ex.GetType().Name, methodName);
+            if(ex is ExecutionCanceledException)
+            {
+                // internal exception, used by PsharpTester
+                return false;
+            }
+
+            this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
 
             var ret = OnException(methodName, ex);
 
             if(ret)
             {
-                this.Logger.WriteLine("<Exception> Machine '{0}': user's OnException override handled exception '{1}'.",
-                    this.Id.Name, ex.GetType().Name);
+                this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
             }
 
             return ret;
