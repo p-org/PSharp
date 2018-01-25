@@ -867,8 +867,9 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
         {
-            this.RaiseOnFailureEvent(exception);
-            throw new AssertionFailureException(IO.Utilities.Format(s, args), exception);
+            throw (exception is AssertionFailureException)
+                ? exception
+                : new AssertionFailureException(IO.Utilities.Format(s, args), exception);
         }
 
         #endregion
