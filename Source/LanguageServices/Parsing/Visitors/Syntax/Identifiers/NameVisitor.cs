@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
@@ -85,6 +86,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             return qualifiedName;
+        }
+
+        internal static Token VisitSimpleQualifiedName(TokenStream tokenStream, TokenType replacementType)
+        {
+            var eventIdentifiers = new NameVisitor(tokenStream).ConsumeQualifiedName(replacementType);
+            var identifierBuilder = new StringBuilder();
+            foreach (var token in eventIdentifiers)
+            {
+                identifierBuilder.Append(token.TextUnit.Text);
+            }
+
+            TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifiers[0].TextUnit.Line);
+            return new Token(textUnit, replacementType);
         }
 
         /// <summary>

@@ -682,8 +682,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Nondeterministic token.
         /// </summary>
-        NonDeterministic
+        NonDeterministic,
 
+        /// <summary>
+        /// "extern" declaration token
+        /// </summary>
+        ExternDecl
         #endregion
     }
 }

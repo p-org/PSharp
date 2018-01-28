@@ -32,7 +32,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         internal MachineDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
@@ -175,7 +174,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Visits the next intra-machine declration.
+        /// Visits the next intra-machine declaration.
         /// </summary>
         /// <param name="node">Node</param>
         private void VisitNextPSharpIntraMachineDeclaration(MachineDeclaration node)
@@ -199,6 +198,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     case TokenType.CommentStart:
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
+
+                    case TokenType.ExternDecl:
+                        new EventDeclarationVisitor(base.TokenStream).VisitExternDeclaration(node.Namespace, node);
+                        base.TokenStream.Index++;
                         break;
 
                     case TokenType.Abstract:

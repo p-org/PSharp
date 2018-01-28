@@ -57,8 +57,19 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="message">Message</param>
         /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(string message, List<TokenType> expectedTokensTypes)
-            : base(message)
+        public ParsingException(string message, List<TokenType> expectedTokensTypes = null)
+            : this(message, expectedTokensTypes ?? new List<TokenType> {}, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="expectedTokensTypes">Expected token types</param>
+        /// <param name="innerEx">Inner Exception, if any</param>
+        public ParsingException(string message, List<TokenType> expectedTokensTypes, Exception innerEx)
+            : base(message, innerEx)
         {
             this.Errors = new List<string>();
             this.Warnings = new List<string>();
