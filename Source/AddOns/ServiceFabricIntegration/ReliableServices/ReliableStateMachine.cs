@@ -37,6 +37,11 @@ namespace Microsoft.PSharp.ReliableServices
         protected IReliableDictionary<string, int> SendCounters;
 
         /// <summary>
+        /// Counters for reliable remote receive
+        /// </summary>
+        protected IReliableDictionary<string, int> ReceiveCounters;
+
+        /// <summary>
         /// Current transaction
         /// </summary>
         public ITransaction CurrentTransaction { get; internal set; }
@@ -87,6 +92,8 @@ namespace Microsoft.PSharp.ReliableServices
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
             SendCounters =
                 await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + Id.ToString());
+            ReceiveCounters = 
+                await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("ReceiveCounters_" + Id.ToString());
 
             CurrentTransaction = this.StateManager.CreateTransaction();
 
@@ -330,15 +337,39 @@ namespace Microsoft.PSharp.ReliableServices
 
         private async Task<EventInfo> ReliableDequeue()
         {
-            var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
-            if (cv.HasValue)
+            EventInfo ret;
+
+            do
             {
-                return cv.Value;
-            }
-            else
-            {
-                return null;
-            }
+                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+                if (cv.HasValue)
+                {
+                    if (cv.Value.Event is TaggedRemoteEvent)
+                    {
+                        var tg = (cv.Value.Event as TaggedRemoteEvent);
+                        var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
+                        if (currentCounter == tg.tag - 1)
+                        {
+                            ret = new EventInfo(tg.ev, cv.Value.OriginInfo);
+                            await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        ret = cv.Value;
+                    }
+
+                    return ret;
+                }
+                else
+                {
+                    return null;
+                }
+            } while (true);
         }
 
         /// <summary>
@@ -386,8 +417,7 @@ namespace Microsoft.PSharp.ReliableServices
         protected async Task ReliableRemoteSend(MachineId mid, Event e)
         {
             var tag = await SendCounters.AddOrUpdateAsync(CurrentTransaction, mid.Name, 1, (key, oldValue) => oldValue + 1);
-            //this.RemoteSend(mid, new TaggedEvent(e, tag));
-            
+            await this.RemoteSend(mid, new TaggedRemoteEvent(this.Id, e, tag));            
         }
 
         /// <summary>
@@ -402,6 +432,7 @@ namespace Microsoft.PSharp.ReliableServices
             {
                 var targetQueue = await stateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
                 await targetQueue.EnqueueAsync(tx, new EventInfo(e));
+                await tx.CommitAsync();
             }
         }
 
