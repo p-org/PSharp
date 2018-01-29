@@ -308,7 +308,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
+        public override Task<MachineId> RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string friendlyName,
+        public override Task<MachineId> RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
@@ -380,9 +380,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        public override void RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
+        public override Task RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
         {
             this.SendEvent(target, e, options);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -574,10 +575,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
+        internal override Task<MachineId> CreateRemoteMachine(Type type, string friendlyName, string endpoint,
             Event e, Machine creator, Guid? operationGroupId)
         {
-            return this.CreateMachine(null, type, friendlyName, e, creator, operationGroupId);
+            return Task.FromResult(this.CreateMachine(null, type, friendlyName, e, creator, operationGroupId));
         }
 
         /// <summary>
@@ -715,9 +716,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override Task SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.SendEvent(mid, e, sender, options);
+            return Task.CompletedTask;
         }
 
         /// <summary>

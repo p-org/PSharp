@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Net
 {
@@ -32,14 +33,14 @@ namespace Microsoft.PSharp.Net
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId RemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e);
+        Task<MachineId> RemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e);
 
         /// <summary>
         /// Sends an event to a remote machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        void RemoteSend(MachineId target, Event e);
+        Task RemoteSend(MachineId target, Event e);
 
         /// <summary>
         /// Returns the local endpoint.

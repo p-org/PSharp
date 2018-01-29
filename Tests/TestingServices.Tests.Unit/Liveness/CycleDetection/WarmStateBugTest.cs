@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(WaitForUserOnEntry))]
-            [OnEventGotoState(typeof(UserEvent), typeof(HandleEvent))]
+            [OnEventGotoState(typeof(UserEvent), typeof(HandleEventState))]
             class WaitForUser : MachineState { }
 
             void WaitForUserOnEntry()
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             [OnEntry(nameof(HandleEventOnEntry))]
             [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
-            class HandleEvent : MachineState { }
+            class HandleEventState : MachineState { }
 
             void HandleEventOnEntry()
             {

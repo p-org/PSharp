@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Net
 {
@@ -62,10 +63,10 @@ namespace Microsoft.PSharp.Net
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId INetworkProvider.RemoteCreateMachine(Type type, string friendlyName,
+        Task<MachineId> INetworkProvider.RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e)
         {
-            return this.Runtime.CreateMachine(type, friendlyName, e);
+            return Task.FromResult(this.Runtime.CreateMachine(type, friendlyName, e));
         }
 
         /// <summary>
@@ -73,9 +74,10 @@ namespace Microsoft.PSharp.Net
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        void INetworkProvider.RemoteSend(MachineId target, Event e)
+        Task INetworkProvider.RemoteSend(MachineId target, Event e)
         {
             this.Runtime.SendEvent(target, e);
+            return Task.CompletedTask;
         }
 
         /// <summary>

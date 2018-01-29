@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
 
 namespace Microsoft.PSharp.ReliableServices
 {
@@ -28,6 +30,11 @@ namespace Microsoft.PSharp.ReliableServices
         /// Inbox
         /// </summary>
         private IReliableConcurrentQueue<EventInfo> InputQueue;
+
+        /// <summary>
+        /// Counters for reliable remote send
+        /// </summary>
+        protected IReliableDictionary<string, int> SendCounters;
 
         /// <summary>
         /// Current transaction
@@ -78,6 +85,8 @@ namespace Microsoft.PSharp.ReliableServices
         {
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>("StateStackStore_" + Id.ToString());
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
+            SendCounters =
+                await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + Id.ToString());
 
             CurrentTransaction = this.StateManager.CreateTransaction();
 
@@ -363,11 +372,22 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
         protected async Task ReliableSend(MachineId mid, Event e)
         {
             var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
             await targetQueue.EnqueueAsync(CurrentTransaction, new EventInfo(e));
+        }
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine executing on a different StateManager
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        protected async Task ReliableRemoteSend(MachineId mid, Event e)
+        {
+            var tag = await SendCounters.AddOrUpdateAsync(CurrentTransaction, mid.Name, 1, (key, oldValue) => oldValue + 1);
+            //this.RemoteSend(mid, new TaggedEvent(e, tag));
+            
         }
 
         /// <summary>

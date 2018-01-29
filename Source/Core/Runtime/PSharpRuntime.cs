@@ -239,7 +239,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public abstract MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null);
+        public abstract Task<MachineId> RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Creates a new remote machine of the specified <see cref="Type"/> and name, and
@@ -252,7 +252,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public abstract MachineId RemoteCreateMachine(Type type, string friendlyName,
+        public abstract Task<MachineId> RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace Microsoft.PSharp
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        public abstract void RemoteSendEvent(MachineId target, Event e, SendOptions options = null);
+        public abstract Task RemoteSendEvent(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -415,7 +415,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal abstract MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
+        internal abstract Task<MachineId> CreateRemoteMachine(Type type, string friendlyName, string endpoint,
             Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
@@ -444,7 +444,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
+        internal abstract Task SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Checks that a machine can start its event handler. Returns false if the event

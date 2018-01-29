@@ -168,7 +168,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
+        public override Task<MachineId> RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
         {
             return this.CreateRemoteMachine(type, null, endpoint, e, null, operationGroupId);
         }
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string friendlyName,
+        public override Task<MachineId> RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null, Guid? operationGroupId = null)
         {
             return this.CreateRemoteMachine(type, friendlyName, endpoint, e, null, operationGroupId);
@@ -227,13 +227,13 @@ namespace Microsoft.PSharp
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        public override void RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
+        public override async Task RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             base.Assert(e != null, "Cannot send a null event.");
-            this.SendEventRemotely(target, e, null, options);
+            await this.SendEventRemotely(target, e, null, options);
         }
 
         /// <summary>
@@ -349,7 +349,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
         /// <returns>MachineId</returns>
-        internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
+        internal override Task<MachineId> CreateRemoteMachine(Type type, string friendlyName, string endpoint,
             Event e, Machine creator, Guid? operationGroupId)
         {
             base.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' is not a machine.");
@@ -458,9 +458,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override Task SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
-            base.NetworkProvider.RemoteSend(mid, e);
+            return base.NetworkProvider.RemoteSend(mid, e);
         }
 
         /// <summary>

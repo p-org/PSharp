@@ -297,7 +297,7 @@ namespace Microsoft.PSharp
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
+        protected Task<MachineId> CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
             return base.Runtime.CreateRemoteMachine(type, null, endpoint, e, this, null);
         }
@@ -312,7 +312,7 @@ namespace Microsoft.PSharp
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected MachineId CreateRemoteMachine(Type type, string friendlyName,
+        protected Task<MachineId> CreateRemoteMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
             return base.Runtime.CreateRemoteMachine(type, friendlyName, endpoint, e, this, null);
@@ -339,13 +339,13 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters</param>
-        protected void RemoteSend(MachineId mid, Event e, SendOptions options = null)
+        protected Task RemoteSend(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            base.Runtime.SendEventRemotely(mid, e, this, options);
+            return base.Runtime.SendEventRemotely(mid, e, this, options);
         }
 
         /// <summary>
