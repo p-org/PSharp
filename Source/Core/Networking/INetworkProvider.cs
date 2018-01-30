@@ -36,6 +36,29 @@ namespace Microsoft.PSharp.Net
         Task<MachineId> RemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e);
 
         /// <summary>
+        /// Creates a new remote machine of the specified type
+        /// associated with the specified MachineId. 
+        /// </summary>
+        /// <param name="mid">MachineId of the machine</param>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns> 
+        Task RemoteCreateMachine(MachineId mid, Type type, Event e);
+
+        /// <summary>
+        /// Creates a new remote machine ID of the specified type
+        /// and with the specified event. Does not create a machine.
+        /// An optional friendly
+        /// name can be specified. If the friendly name is null
+        /// or the empty string, a default value will be given.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <returns>MachineId</returns> 
+        Task<MachineId> RemoteCreateMachineId(Type type, string friendlyName, string endpoint);
+
+        /// <summary>
         /// Sends an event to a remote machine.
         /// </summary>
         /// <param name="target">Target machine id</param>

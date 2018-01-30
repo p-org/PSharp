@@ -161,6 +161,25 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
+        protected async Task<MachineId> ReliableRemoteCreateMachine(Type type, string friendlyName, Event e = null)
+        {
+            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
+            var mid = this.Runtime.CreateMachineId(type, friendlyName);
+
+            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.FullName, e));
+            var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
+            PendingMachineCreations.Add(tcs);
+            return mid;
+        }
+
+        /// <summary>
+        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
+        /// and passes the specified optional <see cref="Event"/>. This event
+        /// can only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
         public static async Task<MachineId> ReliableCreateMachine(IReliableStateManager stateManager, PSharpRuntime runtime, Type type, string friendlyName, Event e = null)
         {
             var createdMachineMap = await stateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
@@ -175,6 +194,43 @@ namespace Microsoft.PSharp.ReliableServices
             var tcs = SpawnMachineCreationTask(runtime, mid, type, e);
             tcs.SetResult(true);
             return mid;
+        }
+
+        /// <summary>
+        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
+        /// and passes the specified optional <see cref="Event"/>. This event
+        /// can only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="mid">MachineId of the machine to be created</param>
+        /// <param name="e">Event</param>
+        /// <returns>False, if machine was already created</returns>
+        public static async Task<bool> ReliableCreateMachine(IReliableStateManager stateManager, PSharpRuntime runtime, MachineId mid, Type type, Event e = null)
+        {
+            var createdMachineMap = await stateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
+            var alreadyCreated = false;
+
+            using (var tx = stateManager.CreateTransaction())
+            {
+                var cv = await createdMachineMap.TryGetValueAsync(tx, mid.ToString());
+                if (cv.HasValue)
+                {
+                    alreadyCreated = true;
+                }
+                else
+                {
+                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.FullName, e));
+                    await tx.CommitAsync();
+                }
+            }
+
+            if (!alreadyCreated)
+            {
+                var tcs = SpawnMachineCreationTask(runtime, mid, type, e);
+                tcs.SetResult(true);
+            }
+
+            return !alreadyCreated;
         }
 
         private static TaskCompletionSource<bool> SpawnMachineCreationTask(PSharpRuntime runtime, MachineId mid, Type type, Event e)
