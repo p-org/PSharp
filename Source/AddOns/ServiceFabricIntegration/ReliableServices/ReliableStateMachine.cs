@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.ReliableServices
             else
             {
                 // fresh start
-                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.FullName);
+                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName);
 
                 await OnActivate();
 
@@ -147,7 +147,7 @@ namespace Microsoft.PSharp.ReliableServices
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
             var mid = this.Runtime.CreateMachineId(type, friendlyName);
 
-            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.FullName, e)); 
+            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e)); 
             var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
             PendingMachineCreations.Add(tcs);
             return mid;
@@ -160,15 +160,14 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="endpoint">Endpoint where to create the machine</param>
         /// <param name="e">Event</param>
-        protected async Task<MachineId> ReliableRemoteCreateMachine(Type type, string friendlyName, Event e = null)
+        protected async Task<MachineId> ReliableRemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e = null)
         {
-            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
-            var mid = this.Runtime.CreateMachineId(type, friendlyName);
+            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
+            var mid = await this.Runtime.NetworkProvider.RemoteCreateMachineId(type, friendlyName, endpoint);
 
-            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.FullName, e));
-            var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
-            PendingMachineCreations.Add(tcs);
+            await remoteCreationMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
             return mid;
         }
 
@@ -187,7 +186,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             using (var tx = stateManager.CreateTransaction())
             {
-                await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.FullName, e));
+                await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
                 await tx.CommitAsync();
             }
 
@@ -219,7 +218,7 @@ namespace Microsoft.PSharp.ReliableServices
                 }
                 else
                 {
-                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.FullName, e));
+                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
                     await tx.CommitAsync();
                 }
             }
@@ -268,7 +267,7 @@ namespace Microsoft.PSharp.ReliableServices
                         }
                         else
                         {
-                            var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().FullName;
+                            var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().AssemblyQualifiedName;
                             await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush);
                             size++;
                         }
@@ -277,10 +276,42 @@ namespace Microsoft.PSharp.ReliableServices
 
                 await CurrentTransaction.CommitAsync();
                 
+                // remote machine creations
+                var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
+
+                using (var tx = this.StateManager.CreateTransaction())
+                {
+                    var keys = new List<string>();
+
+                    var enumerable = await remoteCreationMachineMap.CreateEnumerableAsync(tx);
+                    var enumerator = enumerable.GetAsyncEnumerator();
+
+                    // TODO: Add cancellation token
+                    var ct = new System.Threading.CancellationToken();
+
+                    while (await enumerator.MoveNextAsync(ct))
+                    {
+                        keys.Add(enumerator.Current.Key);
+                        var tup = enumerator.Current.Value;
+                        // idempotent, so this can happen multiple times
+                        await this.Runtime.NetworkProvider.RemoteCreateMachine(tup.Item1, Type.GetType(tup.Item2), tup.Item3);
+                    }
+
+                    // TODO: ClearAsync doesn't work
+                    foreach (var k in keys)
+                    {
+                        await remoteCreationMachineMap.TryRemoveAsync(tx, k);
+                    }
+
+                    await tx.CommitAsync();
+                }
+
+                // local machine creations
                 PendingMachineCreations.ForEach(tcs => tcs.SetResult(true));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                this.Logger.WriteLine("ReliableStateMachine encountered an exception trying to commit a transaction: {0}", ex.ToString());
                 PendingMachineCreations.ForEach(tcs => tcs.SetResult(false));
 
                 // restore state stack
