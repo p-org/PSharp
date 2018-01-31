@@ -277,7 +277,8 @@ namespace Microsoft.PSharp.ReliableServices
                 }
 
                 await CurrentTransaction.CommitAsync();
-                
+                this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.CommitSequenceNumber);
+
                 // remote machine creations
                 var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
 
