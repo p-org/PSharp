@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,7 +50,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// Pending machine creations
         /// </summary>
-        private List<TaskCompletionSource<bool>> PendingMachineCreations;
+        private ConcurrentBag<TaskCompletionSource<bool>> PendingMachineCreations;
 
         /// <summary>
         /// State changes (inverted, for undo)
@@ -70,7 +71,7 @@ namespace Microsoft.PSharp.ReliableServices
             : base()
         {
             this.StateManager = stateManager;
-            this.PendingMachineCreations = new List<TaskCompletionSource<bool>>();
+            this.PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             this.PendingStateChangesInverted = new List<MachineStateChangeOp>();
             this.PendingStateChanges = new List<MachineStateChangeOp>();
         }
@@ -130,6 +131,7 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             await CommitCurrentTransaction();
+            CurrentTransaction = StateManager.CreateTransaction();
         }
 
         #region CreateMachine
@@ -307,12 +309,18 @@ namespace Microsoft.PSharp.ReliableServices
                 }
 
                 // local machine creations
-                PendingMachineCreations.ForEach(tcs => tcs.SetResult(true));
+                foreach (var tcs in PendingMachineCreations.AsEnumerable())
+                {
+                    tcs.SetResult(true);
+                }
             }
             catch (Exception ex)
             {
                 this.Logger.WriteLine("ReliableStateMachine encountered an exception trying to commit a transaction: {0}", ex.ToString());
-                PendingMachineCreations.ForEach(tcs => tcs.SetResult(false));
+                foreach (var tcs in PendingMachineCreations.AsEnumerable())
+                {
+                    tcs.SetResult(false);
+                }
 
                 // restore state stack
                 for (int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
@@ -330,7 +338,7 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             CurrentTransaction.Dispose();
-            PendingMachineCreations.Clear();
+            PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             PendingStateChanges.Clear();
             PendingStateChangesInverted.Clear();
             CurrentTransaction = null;
