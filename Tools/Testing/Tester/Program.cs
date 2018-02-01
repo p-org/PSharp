@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
@@ -26,6 +27,7 @@ namespace Microsoft.PSharp
     class Program
     {
         private static Configuration configuration;
+		private static TestingProcessScheduler tpscheduler;
 
         static void Main(string[] args)
         {
@@ -64,8 +66,9 @@ namespace Microsoft.PSharp
                 Output.WriteLine("... Method {0}", configuration.TestMethodName);
             }
 
-            // Creates and runs the testing process scheduler.
-            TestingProcessScheduler.Create(configuration).Run();
+			// Creates and runs the testing process scheduler.
+			tpscheduler = TestingProcessScheduler.Create(configuration);
+			tpscheduler.Run();
             Shutdown();
 
             Output.WriteLine(". Done");
@@ -83,12 +86,13 @@ namespace Microsoft.PSharp
 
         static void CancelProcess()
         {
-            if (TestingProcessScheduler.ProcessCanceled)
-            {
-                return;
-            }
-            TestingProcessScheduler.ProcessCanceled = true;
-            var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
+			tpscheduler.Stop();
+			Output.WriteLine(". Shutting down all testing tasks");
+			Task.Run(async () => {
+				await Task.Delay(2500);
+				return;
+			});
+			var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
             Output.WriteLine($". Process canceled by user.{monitorMessage}");
             Shutdown();
         }

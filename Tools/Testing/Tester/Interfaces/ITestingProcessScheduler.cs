@@ -39,5 +39,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="processId">Unique process id</param>
         [OperationContract]
         void SetTestReport(TestReport testReport, uint processId);
+
+		/// <summary>
+		/// Halts currently executing testing processes.
+		/// </summary>
+		void Stop();
     }
 }

@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Set if ctrl-c or ctrl-break occurred.
         /// </summary>
-        internal static bool ProcessCanceled;
+        private static bool ProcessCanceled;
 
         /// <summary>
         /// Set true if we have multiple parallel processes or are running code coverage.
@@ -182,6 +182,29 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
+		/// <summary>
+		/// Halts currently executing testing processes.
+		/// </summary>
+		public void Stop()
+		{
+			// propagate the request for cancellation using the ProcessCanceled flag.
+			SetProcessCanceled();
+
+			foreach(var testingProcess in this.TestingProcesses)
+			{
+				this.StopTestingProcess(testingProcess.Key);
+			}
+		}
+
+		/// <summary>
+		/// Return the current task cancellation request status.
+		/// </summary>
+		/// <returns></returns>
+		public static bool GetProcessCanceled()
+		{
+			return ProcessCanceled;
+		}
+
         #endregion
 
         #region internal methods
@@ -232,6 +255,14 @@ namespace Microsoft.PSharp.TestingServices
 
         #region private methods
 
+		/// <summary>
+		/// Set ProcessCanceled to true, in order to cancel tasks in response to Ctrl+C.
+		/// </summary>
+		private void SetProcessCanceled()
+		{
+			ProcessCanceled = true;
+		}
+
         /// <summary>
         /// Creates the user specified number of parallel testing processes.
         /// </summary>
@@ -278,16 +309,27 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void CreateAndRunInMemoryTestingProcess()
         {
-            TestingProcess testingProcess = TestingProcess.Create(this.Configuration);
-            this.TestingProcessChannels.Add(0, testingProcess);
+			this.TestingProcesses.Add(0, TestingProcessFactory.Create(0, this.Configuration));
+			this.TestingProcessChannels.Add(0, this.CreateTestingProcessChannel(0));
 
-            Output.WriteLine($"... Created '1' testing task.");
+			Output.WriteLine($"... Created '1' testing task.");
 
-            // Starts the testing process.
-            testingProcess.Start();
+			// Starts the testing process.
+			this.TestingProcesses[0].Start();
 
-            // Get and merge the test report.
-            TestReport testReport = this.GetTestReport(0);
+			// Wait for the testing process to exit.
+			try
+			{
+				this.TestingProcesses[0].WaitForExit();
+			}
+			catch (InvalidOperationException)
+			{
+				IO.Debug.WriteLine($"... Unable to wait for testing task '{0}' to " +
+					"terminate. Task has already terminated.");
+			}
+
+			// Get and merge the test report.
+			TestReport testReport = this.GetTestReport(0);
             if (testReport != null)
             {
                 this.MergeTestReport(testReport, 0);
