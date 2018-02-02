@@ -190,10 +190,19 @@ namespace Microsoft.PSharp.TestingServices
 			// propagate the request for cancellation using the ProcessCanceled flag.
 			SetProcessCanceled();
 
-			foreach(var testingProcess in this.TestingProcesses)
+			// TestingProcesses is only populated with parallel tests
+			if (this.TestingProcesses.Count > 0)
 			{
-				this.StopTestingProcess(testingProcess.Key);
+				foreach(var testingProcess in this.TestingProcesses)
+				{
+					this.StopTestingProcess(testingProcess.Key);
+				}
 			}
+			else  // there is a single testing task
+			{
+				this.StopTestingProcess(0);
+			}
+
 		}
 
 		/// <summary>
@@ -309,24 +318,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void CreateAndRunInMemoryTestingProcess()
         {
-			this.TestingProcesses.Add(0, TestingProcessFactory.Create(0, this.Configuration));
-			this.TestingProcessChannels.Add(0, this.CreateTestingProcessChannel(0));
+			TestingProcess testingProcess = TestingProcess.Create(this.Configuration);
+			this.TestingProcessChannels.Add(0, testingProcess);
 
 			Output.WriteLine($"... Created '1' testing task.");
 
 			// Starts the testing process.
-			this.TestingProcesses[0].Start();
-
-			// Wait for the testing process to exit.
-			try
-			{
-				this.TestingProcesses[0].WaitForExit();
-			}
-			catch (InvalidOperationException)
-			{
-				IO.Debug.WriteLine($"... Unable to wait for testing task '{0}' to " +
-					"terminate. Task has already terminated.");
-			}
+			testingProcess.Start();
 
 			// Get and merge the test report.
 			TestReport testReport = this.GetTestReport(0);

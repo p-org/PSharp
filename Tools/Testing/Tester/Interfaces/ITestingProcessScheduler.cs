@@ -43,6 +43,7 @@ namespace Microsoft.PSharp.TestingServices
 		/// <summary>
 		/// Halts currently executing testing processes.
 		/// </summary>
+		[OperationContract]
 		void Stop();
     }
 }
