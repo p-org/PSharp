@@ -5,7 +5,7 @@
     <AssemblyName>Microsoft.PSharp.SharedObjects</AssemblyName>
     <Description>The P# shared objects library.</Description>
     <AssemblyTitle>Microsoft.PSharp.SharedObjects</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
@@ -15,8 +15,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TestingServices\TestingServices.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="1.2.2" />
   </ItemGroup>
 </Project>

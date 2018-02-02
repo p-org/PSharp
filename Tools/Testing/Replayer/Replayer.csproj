@@ -5,7 +5,7 @@
     <AssemblyName>PSharpReplayer</AssemblyName>
     <Description>The P# bug-trace replayer.</Description>
     <AssemblyTitle>PSharpReplayer</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <PackageTags>bug;trace;replay;psharp</PackageTags>
   </PropertyGroup>

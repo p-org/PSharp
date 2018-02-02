@@ -5,7 +5,7 @@
     <AssemblyName>PSharpCoverageReportMerger</AssemblyName>
     <Description>The P# coverage report merger.</Description>
     <AssemblyTitle>PSharpCoverageReportMerger</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <PackageTags>coverage;merger;psharp</PackageTags>
   </PropertyGroup>

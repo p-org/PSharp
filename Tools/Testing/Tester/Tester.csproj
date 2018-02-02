@@ -4,7 +4,7 @@
     <AssemblyName>PSharpTester</AssemblyName>
     <Description>The P# systematic tester.</Description>
     <AssemblyTitle>PSharpTester</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <PackageTags>systematic;tester;psharp</PackageTags>
   </PropertyGroup>

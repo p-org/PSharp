@@ -53,7 +53,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Initial event provided on machine creation, or null otherwise</param>
         protected virtual Task InitOnEntry(Event e)
         {
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         /// <summary>

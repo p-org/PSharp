@@ -695,7 +695,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.RunMachineEventHandler(machine, null, false, true, eventInfo);
             }
 
-            await Task.CompletedTask;
+            await Task.FromResult(true); 
         }
 
         /// <summary>

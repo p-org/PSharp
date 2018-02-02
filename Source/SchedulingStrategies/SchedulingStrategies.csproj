@@ -5,7 +5,7 @@
     <AssemblyName>Microsoft.PSharp.TestingServices.SchedulingStrategies</AssemblyName>
     <Description>Scheduling strategies for testing actor-based systems.</Description>
     <AssemblyTitle>Microsoft.PSharp.TestingServices.SchedulingStrategies</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>testing;scheduling-strategies;dotnet;csharp</PackageTags>
