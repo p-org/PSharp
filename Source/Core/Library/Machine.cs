@@ -120,10 +120,10 @@ namespace Microsoft.PSharp
         private bool IsRunning;
 
         /// <summary>
-        /// Is the machine executing under a synchronous call. This includes
-        /// the methods CreateMachineAndExecute and SendEventAndExecute.
+        /// If the machine is executing under a synchronous call, this is the 
+        /// machine waiting for quiescence
         /// </summary>
-        internal bool IsInsideSynchronousCall;
+        internal MachineId SyncCallerMachineId;
 
         /// <summary>
         /// Is pop invoked in the current action.
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
-            this.IsInsideSynchronousCall = false;
+            this.SyncCallerMachineId = null;
             this.IsPopInvoked = false;
         }
 

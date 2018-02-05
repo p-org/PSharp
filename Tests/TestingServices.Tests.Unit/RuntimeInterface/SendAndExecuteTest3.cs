@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendAndExecuteTest.cs">
+// <copyright file="SendAndExecuteTest3.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,11 +19,21 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class SendAndExecuteTest2: BaseTest
+    public class SendAndExecuteTest3 : BaseTest
     {
-        class E1 : Event { }
+        class E : Event
+        {
+            public int x;
 
-        class A : Machine
+            public E()
+            {
+                this.x = 0;
+            }
+        }
+
+        class LE : Event { }
+
+        class Harness : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -31,34 +41,53 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var b = this.CreateMachine(typeof(B));
-                var handled = await this.Runtime.SendEventAndExecute(b, new E1());
-                this.Assert(!handled);
+                var e = new E();
+                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
+                var handled = await this.Runtime.SendEventAndExecute(m, e);
+                this.Assert(handled);
+                this.Assert(e.x == 1);
             }
         }
 
-        class B : Machine
+        class M : Machine
         {
+            bool LE_Handled = false;
+
             [Start]
             [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E), nameof(HandleEventE))]
+            [OnEventDoAction(typeof(LE), nameof(HandleEventLE))]
             class Init : MachineState { }
 
-            async Task InitOnEntry()
+            void InitOnEntry()
             {
-                await this.Receive(typeof(E1));
+                this.Send(this.Id, new LE());
             }
 
+            void HandleEventLE()
+            {
+                LE_Handled = true;
+            }
+
+            void HandleEventE()
+            {
+                this.Assert(LE_Handled);
+                var e = (this.ReceivedEvent as E);
+                e.x = 1;
+            }
         }
+
 
         [Fact]
-        public void TestSyncSendToReceive()
+        public void TestSendBlocks()
         {
-            var config = Configuration.Create().WithNumberOfIterations(1000);
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(A));
+                r.CreateMachine(typeof(Harness));
             });
+            var config = Configuration.Create().WithNumberOfIterations(100);
 
             base.AssertSucceeded(config, test);
         }
+
     }
 }

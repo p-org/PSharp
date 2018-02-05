@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CreateAndExecuteTest.cs">
+// <copyright file="SendAndExecuteTest4.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,74 +19,61 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class CreateAndExecuteTest : BaseTest
+    public class SendAndExecuteTest4 : BaseTest
     {
-        class Configure : Event
-        {
-            public bool ExecuteSynchronously;
+        class LE : Event { }
 
-            public Configure(bool executeSynchronously)
+        class E : Event
+        {
+            public MachineId mid;
+
+            public E(MachineId mid)
             {
-                this.ExecuteSynchronously = executeSynchronously;
+                this.mid = mid;
             }
         }
-        
-        class E : Event { }
+
+        class Harness : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [IgnoreEvents(typeof(LE))]
+            class Init : MachineState { }
+
+            async Task InitOnEntry()
+            {
+                var m = await this.Runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
+                var handled = await this.Runtime.SendEventAndExecute(m, new LE());
+                this.Assert(handled);
+            }
+        }
 
         class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
+            [IgnoreEvents(typeof(LE))]
             class Init : MachineState { }
 
             async Task InitOnEntry()
             {
-                var e = (this.ReceivedEvent as Configure);
-
-                MachineId mid = null;
-                if (e.ExecuteSynchronously)
-                {
-                    mid = await this.Runtime.CreateMachineAndExecute(typeof(N), "N");
-                }
-                else
-                {
-                    mid = this.Runtime.CreateMachine(typeof(N), "N");
-                }
-
-                this.Send(mid, new E());
+                var creator = (this.ReceivedEvent as E).mid;
+                var handled = await this.Id.Runtime.SendEventAndExecute(creator, new LE());
+                this.Assert(!handled);
             }
+
         }
 
-        class N : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            async Task InitOnEntry()
-            {
-                await this.Receive(typeof(E));
-            }
-        }
 
         [Fact]
-        public void TestCreateAndExecuteWithReceive()
+        public void TestSendCycleDoesNotDeadlock()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(M), new Configure(false));
+                r.CreateMachine(typeof(Harness));
             });
+            var config = Configuration.Create().WithNumberOfIterations(100);
 
-            base.AssertSucceeded(test);
-        }
-
-        [Fact]
-        public void TestCreateAndExecuteWithReceiveFail()
-        {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(M), new Configure(true));
-            });
-
-            base.AssertFailed(test, "Machine 'N()' called receive while executing synchronously.", true);
+            base.AssertSucceeded(config, test);
         }
 
     }
