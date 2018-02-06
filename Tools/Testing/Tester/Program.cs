@@ -90,13 +90,13 @@ namespace Microsoft.PSharp
 				tpscheduler.Stop();
 
 			// Delay shutting down to allow the spawned testing processes to end gracefully.
-			await Task.Delay(5000);
+			await Task.Delay(2500);
 
 			var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
             Output.WriteLine($". Process canceled by user.{monitorMessage}");
             Shutdown();
         }
-
+		
         /// <summary>
         /// Handler for unhandled exceptions.
         /// </summary>
