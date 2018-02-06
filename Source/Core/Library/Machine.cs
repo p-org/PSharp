@@ -120,12 +120,6 @@ namespace Microsoft.PSharp
         private bool IsRunning;
 
         /// <summary>
-        /// Is the machine executing under a synchronous call. This includes
-        /// the methods CreateMachineAndExecute and SendEventAndExecute.
-        /// </summary>
-        internal bool IsInsideSynchronousCall;
-
-        /// <summary>
         /// Is pop invoked in the current action.
         /// </summary>
         private bool IsPopInvoked;
@@ -239,7 +233,6 @@ namespace Microsoft.PSharp
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
-            this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
         }
 
@@ -767,8 +760,7 @@ namespace Microsoft.PSharp
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        /// <param name="returnEarly">Returns after handling just one event</param>
-        internal async Task<bool> RunEventHandler(bool returnEarly = false)
+        internal async Task<bool> RunEventHandler()
         {
             if (this.Info.IsHalted)
             {
@@ -839,13 +831,6 @@ namespace Microsoft.PSharp
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
-
-
-                // Return after handling the first event?
-                if (returnEarly)
-                {
-                    return false;
-                }
             }
 
             return completed;
