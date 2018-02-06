@@ -84,15 +84,13 @@ namespace Microsoft.PSharp
             }
         }
 
-        static void CancelProcess()
+        async static void CancelProcess()
         {
 			if (tpscheduler != null)
 				tpscheduler.Stop();
 
 			// Delay shutting down to allow the spawned testing processes to end gracefully.
-			Task.Run(async () => {
-				await Task.Delay(5000);
-			});
+			await Task.Delay(5000);
 
 			var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
             Output.WriteLine($". Process canceled by user.{monitorMessage}");

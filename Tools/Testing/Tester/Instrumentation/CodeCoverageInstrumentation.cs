@@ -176,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (!string.IsNullOrEmpty(OutputDirectory) && File.Exists(origExe))
                 {
-                    if (TestingProcessScheduler.GetProcessCanceled())
+                    if (TestingProcessScheduler.IsProcessCanceled)
                     {
                         File.Delete(assemblyName);
                         File.Delete(instrPdb);

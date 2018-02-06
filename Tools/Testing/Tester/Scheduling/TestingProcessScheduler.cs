@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Set if ctrl-c or ctrl-break occurred.
         /// </summary>
-        private static bool ProcessCanceled;
+        public static bool IsProcessCanceled { get; private set; }
 
         /// <summary>
         /// Set true if we have multiple parallel processes or are running code coverage.
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices
 		public void Stop()
 		{
 			// propagate the request for cancellation using the ProcessCanceled flag.
-			SetProcessCanceled();
+			IsProcessCanceled = true;
 
 			// TestingProcesses is only populated with parallel tests
 			if (this.TestingProcesses.Count > 0)
@@ -203,15 +203,6 @@ namespace Microsoft.PSharp.TestingServices
 				this.StopTestingProcess(0);
 			}
 
-		}
-
-		/// <summary>
-		/// Return the current task cancellation request status.
-		/// </summary>
-		/// <returns></returns>
-		public static bool GetProcessCanceled()
-		{
-			return ProcessCanceled;
 		}
 
         #endregion
@@ -254,7 +245,7 @@ namespace Microsoft.PSharp.TestingServices
             this.CloseNotificationListener();
 
             // Merges and emits the test report.
-            if (!ProcessCanceled)
+            if (!IsProcessCanceled)
             {
                 this.EmitTestReport();
             }
@@ -263,14 +254,6 @@ namespace Microsoft.PSharp.TestingServices
         #endregion
 
         #region private methods
-
-		/// <summary>
-		/// Set ProcessCanceled to true, in order to cancel tasks in response to Ctrl+C.
-		/// </summary>
-		private void SetProcessCanceled()
-		{
-			ProcessCanceled = true;
-		}
 
         /// <summary>
         /// Creates the user specified number of parallel testing processes.
