@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Records if a machine was triggered by an enqueue
         /// </summary>
-        internal bool machineTriggered;
+        internal bool startEventHandlerCalled;
 
         #endregion
 
@@ -705,9 +705,11 @@ namespace Microsoft.PSharp.TestingServices
 
             bool runNewHandler = false;
 
-            // indicates if the machine implicitly handled the event
-            // (because it doesn't trigger an action)
-            machineTriggered = false; // set by CheckStartEventHandler
+            // This is set true by CheckStartEventHandler, called by EnqueueEvent. runNewHandler is not
+            // set to true by EnqueueEvent (even when the machine was previously Idle) when the event
+            // e requires no action by the machine (i.e., it implicitly handles the event). In such a case, 
+            // CheckStartEventHandler must have been called.
+            startEventHandlerCalled = false; 
 
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
             if (runNewHandler)
@@ -719,8 +721,7 @@ namespace Microsoft.PSharp.TestingServices
                     rev => (rev as QuiescentEvent).mid == mid);
                 return true;
             }
-
-            await Task.FromResult(true); 
+            return startEventHandlerCalled;  
         }
 
         /// <summary>
@@ -807,8 +808,6 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     this.Scheduler.NotifyEventHandlerStarted(machine.Info as SchedulableInfo);
 
-                    machine.SyncCallerMachineId = syncCaller;
-
                     if (isFresh)
                     {
                         await machine.GotoStartState(initialEvent);
@@ -820,8 +819,6 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         this.SendEvent(syncCaller, new QuiescentEvent(machine.Id));
                     }
-
-                    machine.SyncCallerMachineId = null;
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
                     (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
@@ -866,7 +863,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Boolean</returns>
         internal override bool CheckStartEventHandler(Machine machine)
         {
-            machineTriggered = true;
+            startEventHandlerCalled = true;
             return machine.TryDequeueEvent(true) != null;
         }
 
