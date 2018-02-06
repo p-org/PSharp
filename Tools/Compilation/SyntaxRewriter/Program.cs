@@ -183,6 +183,13 @@ namespace Microsoft.PSharp
 
         public bool Execute()
         {
+            if (InputFiles == null)
+            {
+                // Target was included but no .psharp files are present in the project. Skip
+                // execution.
+                return true;
+            }
+
             for (int i = 0; i < InputFiles.Length; i++)
             {
                 var inp = File.ReadAllText(InputFiles[i].ItemSpec);
