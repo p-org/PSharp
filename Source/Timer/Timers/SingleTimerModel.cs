@@ -25,6 +25,7 @@ namespace Microsoft.PSharp.Timer
 			this.Goto<Await>();
 		}
 
+		// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client.
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		internal sealed class Await : MachineState { }

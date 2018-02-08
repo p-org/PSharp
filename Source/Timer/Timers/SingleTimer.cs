@@ -8,15 +8,13 @@ using System.Timers;
 namespace Microsoft.PSharp.Timer
 {
 	/// <summary>
-	/// Model of a timer, which sends a single timeout event.
+	/// A P# timer, which sends a single timeout event.
 	/// </summary>
 	public class SingleTimer : Machine
 	{
-		MachineId client;	// the client with which this timer is registered
+		MachineId client;   // the client with which this timer is registered
 		bool timeoutSent;   // keeps track of whether timeout has been fired
-		System.Timers.Timer timer;	
-
-		private class Unit : Event { }
+		System.Timers.Timer timer;	// use a system timer to fire timeout events
 
 		[Start]
 		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
@@ -25,10 +23,14 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			timer = new System.Timers.Timer();
+			this.timeoutSent = false;
+			timer = new System.Timers.Timer();  // default interval of 100ms used here
+			timer.Elapsed += OnTimedEvent;
+			timer.AutoReset = false;	// one-off timer event required
 			this.Goto<Await>();
 		}
 
+		// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client.
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		internal sealed class Await : MachineState { }
@@ -36,43 +38,36 @@ namespace Microsoft.PSharp.Timer
 		private void SucceedCancellation()
 		{
 			this.Send(this.client, new eCancelSucess());
-			this.Goto<Await>();
+			this.Raise(new Halt());
 		}
 
 		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEntry(nameof(StartActiveState))]
-		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
+		[OnEventDoAction(typeof(Default), nameof(SendTimeout))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
 
-		private void StartActiveState()
-		{
-			this.Raise(new Unit());
-		}
-
 		private void SendTimeout()
 		{
-			this.Send(this.client, new eTimeOut());
-			timer.Elapsed += OnTimedEvent;
+			this.timer.Start();
 		}
 
 		private void OnTimedEvent(Object source, ElapsedEventArgs e)
 		{
 			this.Send(this.client, new eTimeOut());
 			this.timeoutSent = true;
-			this.Goto<Await>();
 		}
 
 		private void AttemptCancellation()
 		{
-			if (! this.timeoutSent)
-			{
-				this.SucceedCancellation();
-			}
-			else
+			if (this.timeoutSent)
 			{
 				this.Send(this.client, new eCancelFailure());
-				this.Goto<Await>();
+				this.Raise(new Halt());
+			}
+
+			else
+			{
+				this.SucceedCancellation();
 			}
 		}
 	}
