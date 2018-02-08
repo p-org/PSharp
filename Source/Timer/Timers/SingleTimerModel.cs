@@ -12,8 +12,7 @@ namespace Microsoft.PSharp.Timer
 	public class SingleTimerModel : Machine
 	{
 		MachineId client;   // the client with which this timer is registered
-
-		private class Unit : Event { }
+		bool timeoutSent;   // keeps track of whether timeout has been fired
 
 		[Start]
 		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
@@ -22,49 +21,42 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			this.timeoutSent = false;
 			this.Goto<Await>();
 		}
 
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		internal sealed class Await : MachineState { }
-
+		
 		private void SucceedCancellation()
 		{
 			this.Send(this.client, new eCancelSucess());
-			this.Goto<Await>();
+			this.Raise(new Halt());
 		}
 
 		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEntry(nameof(StartActiveState))]
-		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
+		[OnEventDoAction(typeof(Default), nameof(SendTimeout))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
-
-		private void StartActiveState()
-		{
-			this.Raise(new Unit());
-		}
 
 		private void SendTimeout()
 		{
 			this.Send(this.client, new eTimeOut());
-			this.Goto<Await>();
+			this.timeoutSent = true;
 		}
 
 		private void AttemptCancellation()
 		{
-			bool choice = this.Random();
-
-			if(choice)
+			if (this.timeoutSent)
 			{
-				this.SucceedCancellation();
+				this.Send(this.client, new eCancelFailure());
+				this.Raise(new Halt());
 			}
+
 			else
 			{
-				this.Send(this.client, new eTimeOut());
-				this.Send(this.client, new eCancelFailure());
-				this.Goto<Await>();
+				this.SucceedCancellation();
 			}
 		}
 	}
