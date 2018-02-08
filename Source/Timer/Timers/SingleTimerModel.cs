@@ -11,7 +11,7 @@ namespace Microsoft.PSharp.Timer
 	/// </summary>
 	public class SingleTimerModel : Machine
 	{
-		MachineId client;
+		MachineId client;   // the client with which this timer is registered
 
 		private class Unit : Event { }
 

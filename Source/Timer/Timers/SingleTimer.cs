@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Microsoft.PSharp.Timer
 {
@@ -11,7 +12,9 @@ namespace Microsoft.PSharp.Timer
 	/// </summary>
 	public class SingleTimer : Machine
 	{
-		MachineId client;
+		MachineId client;	// the client with which this timer is registered
+		bool timeoutSent;   // keeps track of whether timeout has been fired
+		System.Timers.Timer timer;	
 
 		private class Unit : Event { }
 
@@ -22,6 +25,7 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			timer = new System.Timers.Timer();
 			this.Goto<Await>();
 		}
 
@@ -49,20 +53,24 @@ namespace Microsoft.PSharp.Timer
 		private void SendTimeout()
 		{
 			this.Send(this.client, new eTimeOut());
+			timer.Elapsed += OnTimedEvent;
+		}
+
+		private void OnTimedEvent(Object source, ElapsedEventArgs e)
+		{
+			this.Send(this.client, new eTimeOut());
+			this.timeoutSent = true;
 			this.Goto<Await>();
 		}
 
 		private void AttemptCancellation()
 		{
-			bool choice = this.Random();
-
-			if (choice)
+			if (! this.timeoutSent)
 			{
 				this.SucceedCancellation();
 			}
 			else
 			{
-				this.Send(this.client, new eTimeOut());
 				this.Send(this.client, new eCancelFailure());
 				this.Goto<Await>();
 			}
