@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Timer</RootNamespace>
     <AssemblyName>Microsoft.PSharp.Timer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,7 +51,8 @@
     <Compile Include="Events\eTimeOut.cs" />
     <Compile Include="Events\InitTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Timers\SingleEventTimerModel.cs" />
+    <Compile Include="Timers\SingleTimer.cs" />
+    <Compile Include="Timers\SingleTimerModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
