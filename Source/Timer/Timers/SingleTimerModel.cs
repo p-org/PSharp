@@ -12,8 +12,7 @@ namespace Microsoft.PSharp.Timer
 	public class SingleTimerModel : Machine
 	{
 		MachineId client;   // the client with which this timer is registered
-		bool timeoutSent;   // keeps track of whether timeout has been fired
-
+		
 		[Start]
 		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
 		internal sealed class Init : MachineState { }
@@ -21,7 +20,6 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			this.timeoutSent = false;
 			this.Goto<Await>();
 		}
 
@@ -44,13 +42,15 @@ namespace Microsoft.PSharp.Timer
 		private void SendTimeout()
 		{
 			this.Send(this.client, new eTimeOut());
-			this.timeoutSent = true;
+			this.Raise(new Halt());
 		}
 
 		private void AttemptCancellation()
 		{
-			if (this.timeoutSent)
+			bool choice = this.Random();
+			if (choice)
 			{
+				this.Send(this.client, new eTimeOut());
 				this.Send(this.client, new eCancelFailure());
 				this.Raise(new Halt());
 			}
