@@ -51,6 +51,8 @@
     <Compile Include="Events\eTimeOut.cs" />
     <Compile Include="Events\InitTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Timers\PeriodicTimer.cs" />
+    <Compile Include="Timers\PeriodicTimerModel.cs" />
     <Compile Include="Timers\SingleTimer.cs" />
     <Compile Include="Timers\SingleTimerModel.cs" />
   </ItemGroup>

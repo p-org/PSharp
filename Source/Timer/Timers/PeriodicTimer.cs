@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SingleTimer.cs">
+// <copyright file="PeriodicTimer.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -22,14 +22,14 @@ using System.Timers;
 namespace Microsoft.PSharp.Timer
 {
 	/// <summary>
-	/// A P# timer, which sends a single timeout event.
+	/// A P# timer, which sends out periodic timeout events.
 	/// </summary>
-	public class SingleTimer : Machine
+	public class PeriodicTimer : Machine
 	{
 		MachineId client;   // the client with which this timer is registered
 		bool timeoutSent;   // keeps track of whether timeout has been fired
-		int period;			// periodicity of the timeout events
-		System.Timers.Timer timer;	// use a system timer to fire timeout events
+		int period;         // periodicity of the timeout events
+		System.Timers.Timer timer;  // use a system timer to fire timeout events
 
 		[Start]
 		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
@@ -42,7 +42,6 @@ namespace Microsoft.PSharp.Timer
 			this.timeoutSent = false;
 			timer = new System.Timers.Timer(this.period);  // default interval of 100ms used here
 			timer.Elapsed += OnTimedEvent;
-			timer.AutoReset = false;	// one-off timer event required
 			this.Goto<Await>();
 		}
 
@@ -77,6 +76,8 @@ namespace Microsoft.PSharp.Timer
 		{
 			if (this.timeoutSent)
 			{
+
+				this.timer.Stop();
 				this.Send(this.client, new eCancelFailure());
 				this.Raise(new Halt());
 			}

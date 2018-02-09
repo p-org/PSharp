@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SingleTimer.cs">
+// <copyright file="PeriodicTimerModel.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,24 +12,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace Microsoft.PSharp.Timer
 {
 	/// <summary>
-	/// A P# timer, which sends a single timeout event.
+	/// Model of a timer, which sends out periodic timeout events.
 	/// </summary>
-	public class SingleTimer : Machine
+	public class PeriodicTimerModel : Machine
 	{
 		MachineId client;   // the client with which this timer is registered
-		bool timeoutSent;   // keeps track of whether timeout has been fired
-		int period;			// periodicity of the timeout events
-		System.Timers.Timer timer;	// use a system timer to fire timeout events
 
 		[Start]
 		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
@@ -38,11 +35,6 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
-			this.timeoutSent = false;
-			timer = new System.Timers.Timer(this.period);  // default interval of 100ms used here
-			timer.Elapsed += OnTimedEvent;
-			timer.AutoReset = false;	// one-off timer event required
 			this.Goto<Await>();
 		}
 
@@ -64,19 +56,16 @@ namespace Microsoft.PSharp.Timer
 
 		private void SendTimeout()
 		{
-			this.timer.Start();
-		}
-
-		private void OnTimedEvent(Object source, ElapsedEventArgs e)
-		{
 			this.Send(this.client, new eTimeOut());
-			this.timeoutSent = true;
+			this.Goto<Active>();
 		}
 
 		private void AttemptCancellation()
 		{
-			if (this.timeoutSent)
+			bool choice = this.Random();
+			if (choice)
 			{
+				this.Send(this.client, new eTimeOut());
 				this.Send(this.client, new eCancelFailure());
 				this.Raise(new Halt());
 			}
