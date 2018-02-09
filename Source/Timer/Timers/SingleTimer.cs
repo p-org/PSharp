@@ -14,6 +14,7 @@ namespace Microsoft.PSharp.Timer
 	{
 		MachineId client;   // the client with which this timer is registered
 		bool timeoutSent;   // keeps track of whether timeout has been fired
+		int period;			// periodicity of the timeout events
 		System.Timers.Timer timer;	// use a system timer to fire timeout events
 
 		[Start]
@@ -23,8 +24,9 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
 			this.timeoutSent = false;
-			timer = new System.Timers.Timer();  // default interval of 100ms used here
+			timer = new System.Timers.Timer(this.period);  // default interval of 100ms used here
 			timer.Elapsed += OnTimedEvent;
 			timer.AutoReset = false;	// one-off timer event required
 			this.Goto<Await>();
