@@ -63,7 +63,8 @@ $samples = "BoundedAsync\BoundedAsync.PSharpLanguage\BoundedAsync.PSharpLanguage
     "Raft\Raft.PSharpLibrary\Raft.PSharpLibrary.csproj",
     "ReplicatingStorage\ReplicatingStorage.PSharpLanguage\ReplicatingStorage.PSharpLanguage.csproj",
     "ReplicatingStorage\ReplicatingStorage.PSharpLibrary\ReplicatingStorage.PSharpLibrary.csproj",
-    "TwoPhaseCommit\TwoPhaseCommit.PSharpLibrary\TwoPhaseCommit.PSharpLibrary.csproj"
+    "TwoPhaseCommit\TwoPhaseCommit.PSharpLibrary\TwoPhaseCommit.PSharpLibrary.csproj",
+    "Timers\Timers\Timers.csproj"
 
 Import-Module $PSScriptRoot\..\Scripts\common.psm1
 

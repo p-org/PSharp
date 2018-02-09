@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Timer
 {
+	internal sealed class Unit : Event { }
 	/// <summary>
 	/// Model of a timer, which sends out periodic timeout events.
 	/// </summary>
@@ -51,13 +52,14 @@ namespace Microsoft.PSharp.Timer
 
 		[IgnoreEvents(typeof(eStartTimer))]
 		[OnEventDoAction(typeof(Default), nameof(SendTimeout))]
+		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
 
 		private void SendTimeout()
 		{
 			this.Send(this.client, new eTimeOut());
-			this.Goto<Active>();
+			this.Raise(new Unit());
 		}
 
 		private void AttemptCancellation()
