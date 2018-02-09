@@ -11,12 +11,7 @@
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\bin\net46\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net46|AnyCPU'">
-    <NoWarn>1701;1702;1705</NoWarn>
-    <WarningsAsErrors>NU1605</WarningsAsErrors>
-    <DocumentationFile>obj\Debug\net46\Microsoft.PSharp.TestingServices.xml</DocumentationFile>
+    <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
