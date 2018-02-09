@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Set if ctrl-c or ctrl-break occurred.
         /// </summary>
-        public static bool IsProcessCanceled { get; private set; }
+        internal static bool IsProcessCanceled { get; private set; }
 
         /// <summary>
         /// Set true if we have multiple parallel processes or are running code coverage.
