@@ -410,7 +410,11 @@ namespace Microsoft.PSharp.TestingServices
         {
             try
             {
-                this.TestingProcessChannels[processId].Stop();
+                // The key may not be in the dictionary yet if we cancel quickly.
+                if (this.TestingProcessChannels.TryGetValue(processId, out var testingProcess))
+                {
+                    testingProcess.Stop();
+                }
             }
             catch (CommunicationException ex)
             {

@@ -372,11 +372,18 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 task.Start();
-                task.Wait(this.CancellationTokenSource.Token);
+                // Note that we may end the wait on TCS cancellation here before the task "looks up"
+                // to detect the TCS cancellation.
+                task.Wait(/*this.CancellationTokenSource.Token*/);
+            }
+            catch (InvalidOperationException) when (this.CancellationTokenSource.IsCancellationRequested)
+            {
+                // This happens on a quick cancellation: "Start may not be called on a task that has completed."
+                // Ignore it.
             }
             catch (OperationCanceledException)
             {
-                if (this.CancellationTokenSource.IsCancellationRequested)
+                if (!this.CancellationTokenSource.IsCancellationRequested)
                 {
                     this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
                 }

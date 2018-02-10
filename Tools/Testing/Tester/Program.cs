@@ -13,8 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
-
+using System.IO;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
@@ -27,7 +26,8 @@ namespace Microsoft.PSharp
     class Program
     {
         private static Configuration configuration;
-		private static TestingProcessScheduler tpscheduler;
+        private static TestingProcessScheduler tpscheduler;
+        private static TextWriter conOut;
 
         static void Main(string[] args)
         {
@@ -66,9 +66,12 @@ namespace Microsoft.PSharp
                 Output.WriteLine("... Method {0}", configuration.TestMethodName);
             }
 
-			// Creates and runs the testing process scheduler.
-			tpscheduler = TestingProcessScheduler.Create(configuration);
-			tpscheduler.Run();
+            // Preserve this for output on ctrl-c; the testing engine may redirect it.
+            conOut = Console.Out;
+
+            // Creates and runs the testing process scheduler.
+            tpscheduler = TestingProcessScheduler.Create(configuration);
+            tpscheduler.Run();
             Shutdown();
 
             Output.WriteLine(". Done");
@@ -84,17 +87,15 @@ namespace Microsoft.PSharp
             }
         }
 
-        async static void CancelProcess()
+        private static void CancelProcess()
         {
-			if (tpscheduler != null)
-				tpscheduler.Stop();
-
-			// Delay shutting down to allow the spawned testing processes to end gracefully.
-			await Task.Delay(2500);
-
-			var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
-            Output.WriteLine($". Process canceled by user.{monitorMessage}");
-            Shutdown();
+            if (!TestingProcessScheduler.IsProcessCanceled && tpscheduler != null)
+            {
+                tpscheduler.Stop();
+                var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
+                conOut.WriteLine($". Process canceled by user.{monitorMessage}");   // use conOut in case of redirection
+                Shutdown();
+            }
         }
 		
         /// <summary>
