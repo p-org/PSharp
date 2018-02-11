@@ -63,7 +63,7 @@ namespace Microsoft.PSharp
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
-        internal protected Stack<MachineState> StateStack;
+        internal Stack<MachineState> StateStack;
 
         /// <summary>
         /// A stack of maps that determine event handling action for
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Is the machine running.
         /// </summary>
-        internal protected bool IsRunning;
+        internal bool IsRunning;
 
         /// <summary>
         /// Is the machine executing under a synchronous call. This includes
@@ -856,7 +856,7 @@ namespace Microsoft.PSharp
         /// Handles the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="e">Event to handle</param>
-        internal protected async Task HandleEvent(Event e)
+        internal async Task HandleEvent(Event e)
         {
             base.Info.CurrentActionCalledTransitionStatement = false;
 
@@ -1183,7 +1183,7 @@ namespace Microsoft.PSharp
         /// when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        internal protected virtual void DoStatePush(MachineState state)
+        internal virtual void DoStatePush(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
@@ -1252,7 +1252,7 @@ namespace Microsoft.PSharp
         /// Configures the state transitions of the machine
         /// when a state is popped.
         /// </summary>
-        internal protected virtual void DoStatePop()
+        internal virtual void DoStatePop()
         {
             this.StateStack.Pop();
             this.ActionHandlerStack.Pop();
@@ -1371,7 +1371,7 @@ namespace Microsoft.PSharp
         /// Checks if the machine has a default handler.
         /// </summary>
         /// <returns></returns>
-        internal protected bool HasDefaultHandler()
+        internal bool HasDefaultHandler()
         {
             return this.CurrentActionHandlerMap.ContainsKey(typeof(Default)) ||
                 this.GotoTransitions.ContainsKey(typeof(Default)) ||

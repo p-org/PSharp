@@ -473,7 +473,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        internal protected override void DoStatePush(MachineState state)
+        internal override void DoStatePush(MachineState state)
         {             
             PendingStateChanges.Add(new PushStateChangeOp(state));
             PendingStateChangesInverted.Add(new PopStateChangeOp());
@@ -484,7 +484,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// Configures the state transitions of the machine
         /// when a state is popped.
         /// </summary>
-        internal protected override void DoStatePop()
+        internal override void DoStatePop()
         {
             PendingStateChanges.Add(new PopStateChangeOp());
             PendingStateChangesInverted.Add(new PushStateChangeOp(StateStack.Peek()));
