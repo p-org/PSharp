@@ -28,6 +28,7 @@ namespace Microsoft.PSharp.IO
         public override void Write(string value)
         {
             Console.Write(value);
+			Console.Out.Flush();
         }
 
         /// <summary>
@@ -38,6 +39,7 @@ namespace Microsoft.PSharp.IO
         public override void Write(string format, params object[] args)
         {
             Console.Write(format, args);
+			Console.Out.Flush();
         }
 
         /// <summary>
@@ -48,7 +50,8 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string value)
         {
             Console.WriteLine(value);
-        }
+			Console.Out.Flush();
+		}
 
         /// <summary>
         /// Writes the text representation of the specified array of objects,
@@ -59,7 +62,8 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string format, params object[] args)
         {
             Console.WriteLine(format, args);
-        }
+			Console.Out.Flush();
+		}
 
         /// <summary>
         /// Disposes the logger.

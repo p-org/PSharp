@@ -42,6 +42,7 @@ namespace Microsoft.PSharp.IO
         public override void Write(string value)
         {
             Writer.Write(value);
+			Writer.Flush();
         }
 
         /// <summary>
@@ -52,7 +53,8 @@ namespace Microsoft.PSharp.IO
         public override void Write(string format, params object[] args)
         {
             Writer.Write(format, args);
-        }
+			Writer.Flush();
+		}
 
         /// <summary>
         /// Writes the specified string value, followed by the
@@ -62,7 +64,8 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string value)
         {
             Writer.WriteLine(value);
-        }
+			Writer.Flush();
+		}
 
         /// <summary>
         /// Writes the text representation of the specified array of objects,
@@ -73,7 +76,8 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string format, params object[] args)
         {
             Writer.WriteLine(format, args);
-        }
+			Writer.Flush();
+		}
 
         /// <summary>
         /// Returns the logged text as a string.
