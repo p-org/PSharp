@@ -359,10 +359,10 @@ namespace Microsoft.PSharp.IO
             var target = isTargetHalted
                         ? $"a halted machine '{targetMachineId}'"
                         : $"machine '{targetMachineId}'";
-            return senderId != null
-                ? $"<SendLog> Operation Group {guid}: Machine '{senderId}' in state '{senderStateName}'" +
-                        $" sent event '{eventName}' to {target}."
-                : $"<SendLog> Operation Group {guid}: The event '{eventName}' was sent to {target}.";
+            var sender = senderId != null
+                ? $"Machine '{senderId}' in state '{senderStateName}'"
+                : $"The Runtime";
+            return $"<SendLog> Operation Group {guid}: {sender} sent event '{eventName}' to {target}.";
         }
 
         /// <summary>
