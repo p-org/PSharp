@@ -36,7 +36,7 @@ namespace Microsoft.PSharp
 
             // Parses the command line options to get the configuration.
             configuration = new TesterCommandLineOptions(args).Parse();
-            Console.CancelKeyPress += (sender, eventArgs) => CancelProcess();
+            Console.CancelKeyPress += (sender, eventArgs) => CancelProcess(sender, eventArgs);
 
             if (configuration.RunAsParallelBugFindingTask)
             {
@@ -82,19 +82,19 @@ namespace Microsoft.PSharp
             if (configuration != null && configuration.ReportCodeCoverage && CodeCoverageMonitor.IsRunning)
             {
                 // Stops monitoring for code coverage.
+                conOut.WriteLine(". Shutting down the code coverage monitor (this may take a few seconds)...");
                 CodeCoverageMonitor.Stop();
                 CodeCoverageInstrumentation.Restore();
             }
         }
 
-        private static void CancelProcess()
+        private static void CancelProcess(object sender, ConsoleCancelEventArgs eventArgs)
         {
             if (!TestingProcessScheduler.IsProcessCanceled && tpscheduler != null)
             {
                 tpscheduler.Stop();
-                var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
-                conOut.WriteLine($". Process canceled by user.{monitorMessage}");   // use conOut in case of redirection
-                Shutdown();
+                conOut.WriteLine($". Process canceled by user; waiting for processes to complete gracefully and report.");
+                eventArgs.Cancel = true;    // Don't terminate the process
             }
         }
 		

@@ -372,8 +372,8 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 task.Start();
-                // Note that we may end the wait on TCS cancellation here before the task "looks up"
-                // to detect the TCS cancellation.
+                // Don't check TCS cancellation here as it may end the wait before the task "looks up"
+                // to detect the TCS cancellation and gracefully exit.
                 task.Wait(/*this.CancellationTokenSource.Token*/);
             }
             catch (InvalidOperationException) when (this.CancellationTokenSource.IsCancellationRequested)
