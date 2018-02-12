@@ -42,7 +42,6 @@ namespace Microsoft.PSharp.IO
         public override void Write(string value)
         {
             Writer.Write(value);
-			Writer.Flush();
         }
 
         /// <summary>
@@ -53,7 +52,6 @@ namespace Microsoft.PSharp.IO
         public override void Write(string format, params object[] args)
         {
             Writer.Write(format, args);
-			Writer.Flush();
 		}
 
         /// <summary>
@@ -64,7 +62,6 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string value)
         {
             Writer.WriteLine(value);
-			Writer.Flush();
 		}
 
         /// <summary>
@@ -76,7 +73,6 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string format, params object[] args)
         {
             Writer.WriteLine(format, args);
-			Writer.Flush();
 		}
 
         /// <summary>

@@ -329,6 +329,10 @@ namespace Microsoft.PSharp.TestingServices
             var stdOut = Console.Out;
             var stdErr = Console.Error;
 
+			// Flush buffers to allow streaming of console output.
+			stdOut.Flush();
+			stdErr.Flush();
+
             try
             {
                 // Creates a new instance of the bug-finding runtime.
