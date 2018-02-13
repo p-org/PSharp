@@ -120,12 +120,6 @@ namespace Microsoft.PSharp
         internal bool IsRunning;
 
         /// <summary>
-        /// Is the machine executing under a synchronous call. This includes
-        /// the methods CreateMachineAndExecute and SendEventAndExecute.
-        /// </summary>
-        internal bool IsInsideSynchronousCall;
-
-        /// <summary>
         /// Is pop invoked in the current action.
         /// </summary>
         private bool IsPopInvoked;
@@ -239,7 +233,6 @@ namespace Microsoft.PSharp
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
-            this.IsInsideSynchronousCall = false;
             this.IsPopInvoked = false;
         }
 
@@ -768,8 +761,7 @@ namespace Microsoft.PSharp
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        /// <param name="returnEarly">Returns after handling just one event</param>
-        internal virtual async Task<bool> RunEventHandler(bool returnEarly = false)
+        internal virtual async Task<bool> RunEventHandler()
         {
             if (this.Info.IsHalted)
             {
@@ -840,13 +832,6 @@ namespace Microsoft.PSharp
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
-
-
-                // Return after handling the first event?
-                if (returnEarly)
-                {
-                    return false;
-                }
             }
 
             return completed;
@@ -1062,8 +1047,16 @@ namespace Microsoft.PSharp
             {
                 if (cachedAction.IsAsync)
                 {
-                    // We have no reliable stack for awaited operations.
-                    await cachedAction.ExecuteAsync();
+                    try
+                    {
+                        // We have no reliable stack for awaited operations.
+                        await cachedAction.ExecuteAsync();
+                    }
+                    catch (Exception ex) when (OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    {
+                        // user handled the exception, return normally
+                    }
+
                 }
                 else
                 {
@@ -1071,6 +1064,10 @@ namespace Microsoft.PSharp
                     try
                     {
                         cachedAction.Execute();
+                    }
+                    catch(Exception ex) when (OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    {
+                        // user handled the exception, return normally
                     }
                     catch (Exception ex) when (InvokeOnFailureExceptionFilter(cachedAction, ex))
                     {
@@ -1781,6 +1778,43 @@ namespace Microsoft.PSharp
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        /// <summary>
+        /// Invokes user callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
+        private bool OnExceptionHandler(string methodName, Exception ex)
+        {
+            if(ex is ExecutionCanceledException)
+            {
+                // internal exception, used by PsharpTester
+                return false;
+            }
+
+            this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
+
+            var ret = OnException(methodName, ex);
+
+            if(ret)
+            {
+                this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// User callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
+        protected virtual bool OnException(string methodName, Exception ex)
+        {
+            return false;
         }
 
         #endregion

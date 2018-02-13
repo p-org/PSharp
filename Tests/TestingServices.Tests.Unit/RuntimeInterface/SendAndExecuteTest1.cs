@@ -52,56 +52,35 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var e = (this.ReceivedEvent as Configure);
-
-                MachineId b = this.CreateMachine(typeof(B), "B");
-                MachineId c = this.CreateMachine(typeof(C), new E2(b));
+                MachineId b;
 
                 if (e.ExecuteSynchronously)
                 {
-                    await this.Runtime.SendEventAndExecute(b, new E1());
+                     b = await this.Runtime.CreateMachineAndExecute(typeof(B)); 
                 }
                 else
                 {
-                    this.Runtime.SendEvent(b, new E1());
+                    b = this.Runtime.CreateMachine(typeof(B));
                 }
+                this.Send(b, new E1());
             }
         }
 
         class B : Machine
         {
             [Start]
-            [OnEventDoAction(typeof(E1), nameof(HandleEventE1))]
-            [OnEventDoAction(typeof(E3), nameof(HandleEventE3))]
+            [OnEntry(nameof(InitOnEntry))]
             class Init : MachineState { }
 
-            async Task HandleEventE1()
+            async Task InitOnEntry()
             {
                 await this.Receive(typeof(E1));
             }
 
-            void HandleEventE3() { }
-        }
-
-        class C : Machine
-        {
-            MachineId Target;
-
-            [Start]
-            [OnEntry(nameof(Run))]
-            class Init : MachineState { }
-
-            void Run()
-            {
-                this.Target = (this.ReceivedEvent as E2).Id;
-                this.Send(this.Target, new E3());
-                this.Send(this.Target, new E1());
-                this.Send(this.Target, new E1());
-                this.Send(this.Target, new E1());
-            }
         }
 
         [Fact]
-        public void TestSendAndExecute1WithReceive()
+        public void TestSendAndExecuteNoDeadlockWithReceive()
         {
             var test = new Action<PSharpRuntime>((r) => {
                 r.CreateMachine(typeof(A), new Configure(false));
@@ -111,14 +90,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         [Fact]
-        public void TestSendAndExecute1WithReceiveFail()
+        public void TestSendAndExecuteDeadlockWithReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(10);
             var test = new Action<PSharpRuntime>((r) => {
                 r.CreateMachine(typeof(A), new Configure(true));
             });
 
-            base.AssertFailed(config, test, "Machine 'B()' called receive while executing synchronously.", true);
+            base.AssertFailed(config, test, "Livelock detected. 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest1+A()' and 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest1+B()' are waiting for an event, but no other schedulable choices are enabled.", true);
         }
     }
 }

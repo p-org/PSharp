@@ -84,14 +84,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         public void TestAssertFailureEventHandler()
         {
             var tcsFail = new TaskCompletionSource<bool>();
-            int cnt = 0;
+            int count = 0;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
             runtime.OnFailure += delegate (Exception exception)
             {
                 if (!(exception is MachineActionExceptionFilterException))
                 {
-                    cnt++;
+                    count++;
                     tcsFail.SetException(exception);
                 }
             };
@@ -103,14 +103,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
             Assert.IsType<AssertionFailureException>(ex.InnerException);
-            Assert.True(cnt == 1);
+            Assert.Equal(1, count);
         }
 
         [Fact]
         public void TestUnhandledExceptionEventHandler()
         {
             var tcsFail = new TaskCompletionSource<bool>();
-            int cnt = 0;
+            int count = 0;
             bool sawFilterException = false;
 
             PSharpRuntime runtime = PSharpRuntime.Create();
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                     sawFilterException = true;
                     return;
                 }
-                cnt++;
+                count++;
                 tcsFail.SetException(exception);
             };
 
@@ -132,8 +132,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             Task.Delay(10).Wait(); // give it some time
 
             AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-            Assert.IsType<InvalidOperationException>(ex.InnerException);
-            Assert.True(cnt == 1);
+            Assert.IsType<AssertionFailureException>(ex.InnerException);
+            Assert.IsType<InvalidOperationException>(ex.InnerException.InnerException);
+            Assert.Equal(1, count);
             Assert.True(sawFilterException);
         }
     }

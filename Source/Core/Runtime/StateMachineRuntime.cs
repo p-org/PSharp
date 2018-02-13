@@ -206,13 +206,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Synchronously delivers an <see cref="Event"/> to a machine
-        /// and executes it if the machine is available.
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately
+        /// if the target machine was already running. Otherwise blocks until the machine handles
+        /// the event and reaches quiescense again.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        public override Task SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
+        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        public override Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
         {
             // If the target machine is null then report an error and exit.
             base.Assert(target != null, "Cannot send to a null machine.");
@@ -319,8 +321,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
-        /// method returns only when the machine is initialized and the <see cref="Event"/>
-        /// (if any) is handled.
+        /// method returns only when the created machine reaches quiescence
         /// </summary>
         /// <param name="mid">Unbound machine id</param>
         /// <param name="type">Type of the machine</param>
@@ -428,19 +429,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine and
-        /// executes the event handler if the machine is available.
+        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
+        /// if the target machine was already running. Otherwise blocks until the machine handles
+        /// the event and reaches quiescense again.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
-                return;
+                return true;
             }
 
             bool runNewHandler = false;
@@ -448,7 +451,9 @@ namespace Microsoft.PSharp
             if (runNewHandler)
             {
                 await this.RunMachineEventHandlerAsync(machine, null, false, null);
+                return true;
             }
+            return false;
         }
 
         /// <summary>
@@ -503,10 +508,6 @@ namespace Microsoft.PSharp
 
                     await machine.RunEventHandler();
                 }
-                catch (AssertionFailureException)
-                {
-                    base.IsRunning = false;
-                }
                 catch (Exception ex)
                 {
                     base.IsRunning = false;
@@ -524,8 +525,6 @@ namespace Microsoft.PSharp
         /// <param name="creator">Creator</param>
         private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh, AbstractMachine creator)
         {
-            bool completed;
-
             try
             {
                 if (isFresh)
@@ -533,23 +532,13 @@ namespace Microsoft.PSharp
                     await machine.GotoStartState(initialEvent);
                 }
 
-                completed = await machine.RunEventHandler(true);
-            }
-            catch (AssertionFailureException)
-            {
-                base.IsRunning = false;
-                return;
+                await machine.RunEventHandler();
             }
             catch (Exception ex)
             {
                 base.IsRunning = false;
                 base.RaiseOnFailureEvent(ex);
                 return;
-            }
-
-            if (!completed)
-            {
-                RunMachineEventHandler(machine, null, false);
             }
         }
 

@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        internal List<EventDeclaration> EventDeclarations;
+        internal EventDeclarations EventDeclarations;
 
         /// <summary>
         /// List of field declarations.
@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.InheritanceModifier = modSet.InheritanceModifier;
             this.IsPartial = modSet.IsPartial;
             this.BaseNameTokens = new List<Token>();
-            this.EventDeclarations = new List<EventDeclaration>();
+            this.EventDeclarations = new EventDeclarations();
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
             this.StateGroupDeclarations = new List<StateGroupDeclaration>();

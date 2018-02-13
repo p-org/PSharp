@@ -216,6 +216,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "group";
                     break;
 
+                case TokenType.ExternDecl:
+                    text = "extern";
+                    break;
+
                 case TokenType.EventDecl:
                     text = "event";
                     break;

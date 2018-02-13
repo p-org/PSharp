@@ -91,6 +91,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal int? RootTaskId;
 
+        /// <summary>
+        /// Records if a machine was triggered by an enqueue
+        /// </summary>
+        internal bool startEventHandlerCalled;
+
         #endregion
 
         #region initialization
@@ -358,19 +363,21 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Synchronously delivers an <see cref="Event"/> to a machine
-        /// and executes it if the machine is available.
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately
+        /// if the target machine was already running. Otherwise blocks until the machine handles
+        /// the event and reaches quiescense again.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        public override async Task SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
+        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        public override Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
         {
             // If the target machine is null then report an error and exit.
             this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            await this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
+            return this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
         }
 
         /// <summary>
@@ -524,7 +531,7 @@ namespace Microsoft.PSharp.TestingServices
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
-            this.RunMachineEventHandler(machine, e, true, false, null);
+            this.RunMachineEventHandler(machine, e, true, null, null);
 
             return machine.Id;
         }
@@ -545,10 +552,10 @@ namespace Microsoft.PSharp.TestingServices
             Machine creator, Guid? operationGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
-            if (creator != null)
-            {
-                this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
-            }
+            this.Assert(creator != null, "Only a machine can execute CreateMachineAndExecute. " +
+                "Avoid calling directly from the PSharp Test method. " + 
+                "Instead call through a 'harness' machine.");
+            this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
 
             // Using ulong.MaxValue because a 'Create' operation cannot specify
             // the id of its target, because the id does not exist yet.
@@ -558,7 +565,10 @@ namespace Microsoft.PSharp.TestingServices
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
-            this.RunMachineEventHandler(machine, e, true, true, null);
+            this.RunMachineEventHandler(machine, e, true, creator.Id, null);
+
+            // wait until the machine reaches quiescence
+            await creator.Receive(typeof(QuiescentEvent), rev => (rev as QuiescentEvent).mid == machine.Id);
 
             return await Task.FromResult(machine.Id);
         }
@@ -670,23 +680,28 @@ namespace Microsoft.PSharp.TestingServices
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
             if (runNewHandler)
             {
-                this.RunMachineEventHandler(machine, null, false, false, eventInfo);
+                this.RunMachineEventHandler(machine, null, false, null, eventInfo);
             }
         }
 
         /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine and
-        /// executes the event handler if the machine is available.
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately
+        /// if the target machine was already running. Otherwise blocks until the machine handles
+        /// the event and reaches quiescense again.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override async Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
             this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
                 "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid.Generation, mid);
+            this.Assert(sender != null && (sender is Machine), "Only a machine can execute CreateMachineAndExecute. " +
+                "Avoid calling directly from the PSharp Test method. " +
+                "Instead call through a 'harness' machine.");
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
@@ -695,17 +710,28 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{mid}'.\n");
-                return;
+                return true;
             }
 
             bool runNewHandler = false;
+
+            // This is set true by CheckStartEventHandler, called by EnqueueEvent. runNewHandler is not
+            // set to true by EnqueueEvent (even when the machine was previously Idle) when the event
+            // e requires no action by the machine (i.e., it implicitly handles the event). In such a case, 
+            // CheckStartEventHandler must have been called.
+            startEventHandlerCalled = false; 
+
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
             if (runNewHandler)
             {
-                this.RunMachineEventHandler(machine, null, false, true, eventInfo);
-            }
+                this.RunMachineEventHandler(machine, null, false, sender.Id, eventInfo);
 
-            await Task.CompletedTask;
+                // wait until the machine reaches quiescence
+                await (sender as Machine).Receive(typeof(QuiescentEvent),
+                    rev => (rev as QuiescentEvent).mid == mid);
+                return true;
+            }
+            return startEventHandlerCalled;  
         }
 
         /// <summary>
@@ -782,10 +808,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        /// <param name="executeSynchronously">If true, this operation executes synchronously.</param>
+        /// <param name="syncCaller">Caller machine that is blocked for quiscence.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
         private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
-            bool executeSynchronously, EventInfo enablingEvent)
+            MachineId syncCaller, EventInfo enablingEvent)
         {
             Task task = new Task(async () =>
             {
@@ -793,19 +819,16 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     this.Scheduler.NotifyEventHandlerStarted(machine.Info as SchedulableInfo);
 
-                    machine.IsInsideSynchronousCall = executeSynchronously;
-
                     if (isFresh)
                     {
                         await machine.GotoStartState(initialEvent);
                     }
 
-                    await machine.RunEventHandler(executeSynchronously);
-                    machine.IsInsideSynchronousCall = false;
+                    await machine.RunEventHandler();
 
-                    if (executeSynchronously)
+                    if(syncCaller != null)
                     {
-                        await machine.RunEventHandler();
+                        this.SendEvent(syncCaller, new QuiescentEvent(machine.Id));
                     }
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
@@ -851,6 +874,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Boolean</returns>
         internal override bool CheckStartEventHandler(Machine machine)
         {
+            startEventHandlerCalled = true;
             return machine.TryDequeueEvent(true) != null;
         }
 
@@ -1297,8 +1321,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         internal override void NotifyReceiveCalled(Machine machine)
         {
-            this.Assert(!machine.IsInsideSynchronousCall, $"Machine '{machine.Id}' called " +
-                "receive while executing synchronously.");
             this.AssertCorrectCallerMachine(machine, "Receive");
             this.AssertNoPendingTransitionStatement(machine, "Receive");
         }

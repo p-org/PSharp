@@ -407,8 +407,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        /// <param name="returnEarly">Returns after handling just one event</param>
-        internal override async Task<bool> RunEventHandler(bool returnEarly = false)
+        internal override async Task<bool> RunEventHandler()
         {
             if (this.Info.IsHalted)
             {
@@ -488,12 +487,6 @@ namespace Microsoft.PSharp.ReliableServices
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
-
-                // Return after handling the first event?
-                if (returnEarly)
-                {
-                    return false;
-                }
             }
 
             return false;

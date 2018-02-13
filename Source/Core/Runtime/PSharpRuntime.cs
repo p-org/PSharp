@@ -264,13 +264,15 @@ namespace Microsoft.PSharp
         public abstract void SendEvent(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
-        /// Synchronously delivers an <see cref="Event"/> to a machine and
-        /// executes the event handler if the machine is available.
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately
+        /// if the target machine was already running. Otherwise blocks until the machine handles
+        /// the event and reaches quiescense again.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        public abstract Task SendEventAndExecute(MachineId target, Event e, SendOptions options = null);
+        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        public abstract Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -428,14 +430,16 @@ namespace Microsoft.PSharp
         internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine and
-        /// executes the event handler if the machine is available.
+        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
+        /// if the target machine was already running. Otherwise blocks until the machine handles
+        /// the event and reaches quiescense again.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal abstract Task SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
+        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        internal abstract Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -485,9 +489,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var exception = new AssertionFailureException("Detected an assertion failure.");
-                this.RaiseOnFailureEvent(exception);
-                throw exception;
+                throw new AssertionFailureException("Detected an assertion failure.");
             }
         }
 
@@ -502,9 +504,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var exception = new AssertionFailureException(IO.Utilities.Format(s, args));
-                this.RaiseOnFailureEvent(exception);
-                throw exception;
+                throw new AssertionFailureException(IO.Utilities.Format(s, args));
             }
         }
 
@@ -895,15 +895,9 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         internal virtual void WrapAndThrowException(Exception exception, string s, params object[] args)
         {
-            if (exception is AssertionFailureException)
-            {
-                throw exception;
-            }
-            else
-            {
-                this.RaiseOnFailureEvent(exception);
-                throw new AssertionFailureException(IO.Utilities.Format(s, args), exception);
-            }
+            throw (exception is AssertionFailureException)
+                ? exception
+                : new AssertionFailureException(IO.Utilities.Format(s, args), exception);
         }
 
         #endregion

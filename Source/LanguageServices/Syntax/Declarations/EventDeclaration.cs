@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
+using System.Linq;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -98,6 +99,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token SemicolonToken;
 
+        /// <summary>
+        /// The Event subclass that this subclass inherits from, if any.
+        /// </summary>
+        internal EventDeclaration BaseClassDecl;
+
+        /// <summary>
+        /// If true, this is an extern event declaration (not fully defined)
+        /// </summary>
+        internal bool IsExtern;
+
         #endregion
 
         #region internal API
@@ -167,16 +178,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += indent0;
             if (this.AccessModifier == AccessModifier.None)
             {
-                // The event was declared in the scope of a machine.
-                if (this.Machine != null)
-                {
-                    text += "private ";
-                }
-                // The event was declared in the scope of a namespace.
-                else
-                {
-                    text += "public ";
-                }
+                // If the the event was declared in the scope of a machine it is private;
+                // otherwise it was declared in the scope of a namespace and is public.
+                text += this.Machine != null ? "private " : "public ";
             }
             else if (this.AccessModifier == AccessModifier.Public)
             {
@@ -189,13 +193,31 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += "class " + this.Identifier.TextUnit.Text;
 
-            foreach (var token in this.GenericType)
+            var allDecls = EventDeclarations.EnumerateInheritance(this).ToArray();
+
+            void appendGenericType(EventDeclaration decl)
             {
-                text += token.TextUnit.Text;
+                // The GenericTypes contains the leading < and > as well as the type identifier(s and comma(s)).
+                foreach (var token in decl.GenericType)
+                {
+                    text += token.TextUnit.Text + (token.Type == TokenType.Comma ? " " : "");
+                }
             }
 
-            text += " : Event\n";
-            text += indent0 + "{\n";
+            appendGenericType(this);
+
+            text += " : ";
+            if (this.BaseClassDecl != null)
+            {
+                text += this.BaseClassDecl.Identifier.Text;
+                appendGenericType(this.BaseClassDecl);
+            }
+            else
+            {
+                text += "Event";
+            }
+
+            text += "\n" + indent0 + "{\n";
 
             var newLine = "";
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
@@ -210,30 +232,52 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += indent1 + "public ";
             text += this.Identifier.TextUnit.Text + "(";
 
-            for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
+            var separator = string.Empty;
+            foreach (var decl in allDecls)
             {
-                if (i == this.PayloadIdentifiers.Count - 1)
+                for (int i = 0; i < decl.PayloadIdentifiers.Count; i++)
                 {
-                    text += this.PayloadTypes[i].TextUnit.Text + " ";
-                    text += this.PayloadIdentifiers[i].TextUnit.Text;
-                }
-                else
-                {
-                    text += this.PayloadTypes[i].TextUnit.Text + " ";
-                    text += this.PayloadIdentifiers[i].TextUnit.Text + ", ";
+                    text += $"{separator}{decl.PayloadTypes[i].TextUnit.Text} {decl.PayloadIdentifiers[i].TextUnit.Text}";
+                    separator = ", ";
                 }
             }
 
             text += ")\n";
             text += indent2 + ": base(";
 
-            if (this.AssertKeyword != null)
+            void addAssertAssumeParams(bool forDerived)
             {
-                text += this.AssertValue + ", -1";
+                if (this.AssertKeyword != null)
+                {
+                    text += this.AssertValue + ", -1";
+                }
+                else if (this.AssumeKeyword != null)
+                {
+                    text += "-1, " + this.AssumeValue;
+                }
+                else if (forDerived)
+                {
+                    text += "-1, -1";
+                }
             }
-            else if (this.AssumeKeyword != null)
+
+            if (allDecls.Length > 1)
             {
-                text += "-1, " + this.AssumeValue;
+                // We don't pass the most-derived decl's params to the base class
+                separator = string.Empty;
+                foreach (var decl in allDecls.Take(allDecls.Length - 1))
+                {
+                    for (int i = 0; i < decl.PayloadIdentifiers.Count; i++)
+                    {
+                        text += $"{separator}{decl.PayloadIdentifiers[i].TextUnit.Text}";
+                        separator = ", ";
+                    }
+                }
+            }
+            else
+            {
+                // Assert/Assume are passed as params to ctor overload for classes that derive directly from Event.
+                addAssertAssumeParams(forDerived: false);
             }
 
             text += ")\n";
@@ -243,6 +287,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += indent2 + "this." + this.PayloadIdentifiers[i].TextUnit.Text + " = ";
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
+            }
+
+            if (this.BaseClassDecl != null)
+            {
+                // Assert/Assume are passed as to a protected method for classes that don't derive directly from Event.
+                // Override any base-class declaration; if none are specified on the derived class then this will turn it off.
+                text += indent2 + "base.SetCardinalityConstraints(";
+                addAssertAssumeParams(forDerived: true);
+                text += ");\n";
             }
 
             text += indent1 + "}\n";
