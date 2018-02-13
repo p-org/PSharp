@@ -149,7 +149,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             foreach (var node in this.EventDeclarations)
             {
-                base.ProjectionInfo.AddChild(node.ProjectionInfo);
+                base.ProjectionNode.AddChild(node.ProjectionNode);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.StateDeclarations)
             {
-                base.ProjectionInfo.AddChild(node.ProjectionInfo);
+                base.ProjectionNode.AddChild(node.ProjectionNode);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             base.TextUnit = this.MachineKeyword.TextUnit.WithText(text);
 
-            // ProjectionInfo updated as part of TypeofRewriter actions on this
+            // ProjectionNode is updated as part of TypeofRewriter actions on this
             this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
 
@@ -310,7 +310,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += this.IsMonitor ? "Monitor" : "Machine";
             }
 
-            base.ProjectionInfo.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
+            base.ProjectionNode.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
 
             text += $"\n{indent}{this.LeftCurlyBracketToken.TextUnit.Text}\n";
 
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             foreach (var node in this.StateDeclarations)
             {
                 text += newLine;
-                node.ProjectionInfo.SetOffsetInParent(text.Length);
+                node.ProjectionNode.SetOffsetInParent(text.Length);
                 text += node.TextUnit.Text;
                 newLine = "\n";
             }
@@ -384,12 +384,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 // For the C# rewriting here, the parent is actually the machine instance
                 // on which the rewritten method resides.
-                state.ProjectionInfo.AddChild(declaration.ProjectionInfo, this.ProjectionInfo);
+                state.ProjectionNode.AddChild(declaration.ProjectionNode, this.ProjectionNode);
                 declaration.Rewrite(indentLevel);
                 text += newLine;
 
                 // The rewritten offset is relative to the machine, which is the C# parent.
-                declaration.ProjectionInfo.SetOffsetInParent(offset + text.Length);
+                declaration.ProjectionNode.SetOffsetInParent(offset + text.Length);
                 text += declaration.TextUnit.Text;
                 newLine = "\n";
             }

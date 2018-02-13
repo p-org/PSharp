@@ -78,10 +78,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             string text = indent + $"protected {typeStr} psharp_" + this.State.GetFullyQualifiedName() + 
                 $"_on_exit_action{suffix}";
 
-            base.ProjectionInfo.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
+            base.ProjectionNode.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
 
             text += "\n";
-            base.ProjectionInfo.SetCodeChunkInfo(StatementBlock.OpenBraceToken.TextUnit.Start, StatementBlock.TextUnit.Text, text.Length);
+            base.ProjectionNode.SetCodeChunkInfo(StatementBlock.OpenBraceToken.TextUnit.Start, StatementBlock.TextUnit.Text, text.Length);
             text += StatementBlock.TextUnit.Text + "\n";
 
             base.TextUnit = this.ExitKeyword.TextUnit.WithText(text);

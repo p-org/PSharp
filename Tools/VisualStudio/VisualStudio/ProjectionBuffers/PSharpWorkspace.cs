@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.VisualStudio
         IContentType inertContentType;
 
         ProjectionBufferGraph projectionBufferGraph;
-        private ProjectionInfos projectionInfos;
+        private ProjectionTree projectionTree;
 
         private Dictionary<ITextBuffer, ProjectionBufferGraph> csProjectionBufferMap = new Dictionary<ITextBuffer, ProjectionBufferGraph>();
         CodeAnalysis.Project projectionProject;
@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.VisualStudio
                 RewritingEngine.Create(context).Run();
 
                 var pSharpProgram = context.GetProjects()[0].PSharpPrograms[0];
-                this.projectionInfos = pSharpProgram.ProjectionInfos;
+                this.projectionTree = pSharpProgram.ProjectionTree;
             }
             catch (ParsingException /*ex*/)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.VisualStudio
             //      b.  The P# code that is between C# code chunks, which is essentially the entire P# file outside the C# code
             //          chunks. This text is copied from corresponding spans of the rewritten C# file.
             var csSpans = new List<(int Start, int End, ITrackingSpan TrackingSpan)>();
-            var inertTextBuffer = textBufferFactory.CreateTextBuffer(this.projectionInfos.RewrittenCSharpText, inertContentType);
+            var inertTextBuffer = textBufferFactory.CreateTextBuffer(this.projectionTree.RewrittenCSharpText, inertContentType);
             inertTextBuffer.Changed += InertTextBuffer_Changed;
             var inertBufferOffset = 0;
 
@@ -201,7 +201,7 @@ namespace Microsoft.PSharp.VisualStudio
                 return span.trackingSpan ?? inertTextBuffer.CurrentSnapshot.CreateTrackingSpan(span.start, span.end - span.start, SpanTrackingMode);
             }
 
-            foreach (var projInfo in this.projectionInfos.OrderedProjectionInfos)
+            foreach (var projInfo in this.projectionTree.OrderedCSharpProjectionNodes)
             {
                 if (projInfo.HasRewrittenHeader)
                 {
@@ -249,7 +249,7 @@ namespace Microsoft.PSharp.VisualStudio
             // Additional notes:
             // 1. It is important that the inert buffer spans in the C# ProjectionBuffer and the P# spans in the P# View
             //    ProjectionBuffer line up correctly (even though they come from different "files", the original P# file and the
-            //    rewritten C# in-memory "file"). The ProjectionInfos are used to track offsets into these two buffers.
+            //    rewritten C# in-memory "file"). The ProjectionNodes are used to track offsets into these two buffers.
             //    Similarly, the unchanged spans of C# code must be projected from their position in the C# ProjectionBuffer
             //    to their positions in the P# View ProjectionBuffer.
             // 2. The sections of the C# ProjectionBuffer that contain P#-mapped code cannot overlap with the sections of the
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.VisualStudio
                 return trackingSpan;
             }
 
-            foreach (var projInfo in this.projectionInfos.OrderedProjectionInfos)
+            foreach (var projInfo in this.projectionTree.OrderedCSharpProjectionNodes)
             {
                 // All P#-to-C# text has already been placed into the C# projection buffer as inert text.
                 // We will map the original P# text for the same spans to the P# view projection buffer as P# text.

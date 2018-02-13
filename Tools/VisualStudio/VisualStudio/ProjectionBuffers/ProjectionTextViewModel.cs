@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -30,17 +31,21 @@ namespace Microsoft.PSharp.VisualStudio
 
         public SnapshotPoint GetNearestPointInVisualBuffer(SnapshotPoint editBufferPoint)
         {
+            Debug.Assert(editBufferPoint.Snapshot.TextBuffer == this.VisualBuffer); // TODO
             return editBufferPoint; // TODO make sure these are correct
         }
 
         public SnapshotPoint GetNearestPointInVisualSnapshot(SnapshotPoint editBufferPoint, ITextSnapshot targetVisualSnapshot, PointTrackingMode trackingMode)
         {
+            Debug.Assert(editBufferPoint.Snapshot.TextBuffer == this.VisualBuffer); // TODO
+            Debug.Assert(targetVisualSnapshot.TextBuffer == this.VisualBuffer);     // TODO
             return editBufferPoint.TranslateTo(targetVisualSnapshot, trackingMode);
         }
 
         public bool IsPointInVisualBuffer(SnapshotPoint editBufferPoint, PositionAffinity affinity)
         {
             // All non-inert (rewritten) points are in the visual buffer.
+            Debug.Assert(editBufferPoint.Snapshot.TextBuffer == this.VisualBuffer); // TODO
             return true;
         }
 

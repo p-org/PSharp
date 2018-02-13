@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// The Projection Buffer information for mapping between the original P# buffer and the rewritten
         /// C# buffer in this program.
         /// </summary>
-        public ProjectionInfos ProjectionInfos { get; private set; }
+        public ProjectionTree ProjectionTree { get; private set; }
 
         #endregion
 
@@ -81,18 +81,18 @@ namespace Microsoft.PSharp.LanguageServices
             // Perform sanity checking on the P# program.
             this.BasicTypeChecking();
 
-            this.ProjectionInfos = new ProjectionInfos(this);
+            this.ProjectionTree = new ProjectionTree(this);
 
             // Convert from P# structural syntax to attributed C# classes and relevant methods.
             this.RewriteStructuresToAttributedClassesAndMethods();
-            this.ProjectionInfos.OnInitialRewriteComplete();
+            this.ProjectionTree.OnInitialRewriteComplete();
 
             // Set up for code term offset adjustments now that we have completed the initial pass.
-            this.RewrittenCodeTermBatch = new RewrittenTermBatch(this.ProjectionInfos.OrderedProjectionInfos);
+            this.RewrittenCodeTermBatch = new RewrittenTermBatch(this.ProjectionTree.OrderedCSharpProjectionNodes);
 
             // Convert from P# keywords etc. to C# syntax and insert additional 'using' references.
             RewriteTermsAndInsertLibraries();
-            this.ProjectionInfos.OnFinalRewriteComplete();
+            this.ProjectionTree.OnFinalRewriteComplete();
 
             if (Debug.IsEnabled)
             {
@@ -181,14 +181,14 @@ namespace Microsoft.PSharp.LanguageServices
             var newLine = "";
             foreach (var node in this.NamespaceDeclarations)
             {
-                this.ProjectionInfos.Root.AddChild(node.ProjectionInfo);
-                node.ProjectionInfo.SetOffsetInParent(text.Length);
+                this.ProjectionTree.Root.AddChild(node.ProjectionNode);
+                node.ProjectionNode.SetOffsetInParent(text.Length);
                 text += newLine;
                 node.Rewrite(indentLevel);
                 text += node.TextUnit.Text;
                 newLine = "\n";
             }
-            this.ProjectionInfos.FinalizeInitialOffsets(0, text);
+            this.ProjectionTree.FinalizeInitialOffsets(0, text);
 
             base.UpdateSyntaxTree(text);
         }
@@ -203,13 +203,13 @@ namespace Microsoft.PSharp.LanguageServices
             var originalLength = base.GetSyntaxTree().Length;
             this.InsertLibraries();
             var text = base.GetSyntaxTree().ToString();
-            this.ProjectionInfos.UpdateRewrittenCSharpText(text);
+            this.ProjectionTree.UpdateRewrittenCSharpText(text);
             this.RewrittenCodeTermBatch.OffsetStarts(text.Length - originalLength);
         }
 
         private void MergeRewrittenTermBatch()
         {
-            this.ProjectionInfos.UpdateRewrittenCSharpText(base.GetSyntaxTree().ToString());
+            this.ProjectionTree.UpdateRewrittenCSharpText(base.GetSyntaxTree().ToString());
             this.RewrittenCodeTermBatch.MergeBatch();
         }
 

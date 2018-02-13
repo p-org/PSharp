@@ -11,13 +11,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         /// <summary>
         /// Allows the owner to pass in a function that will calculate the rewritten start position
-        /// based on offsets (see <see cref="ProjectionInfo"/>).
+        /// based on offsets (see <see cref="ProjectionNode"/>).
         /// </summary>
         internal Func<int> GetRewrittenStartFunc = () => -1;
 
         /// <summary>
         /// Allows the owner to pass in a function that will calculate the rewritten string
-        /// based on a dynamic string (see <see cref="ProjectionInfo"/>).
+        /// based on a dynamic string (see <see cref="ProjectionNode"/>).
         /// </summary>
         internal Func<string> GetRewrittenStringFunc = () => string.Empty;
 
@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         /// <summary>
         /// Start position of this span in the original P# text buffer.
-        /// May be constant or dynamically adjusted via <see cref="ProjectionInfo.SetCodeTermOriginalPositions()"/>.
+        /// May be constant or dynamically adjusted via <see cref="ProjectionNode.SetCodeTermOriginalPositions()"/>.
         /// </summary>
         public int OriginalStart { get; internal set; } = -1;
 

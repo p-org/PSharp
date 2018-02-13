@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Offset and other information that will be used to create the VS Language Service
         /// Projection Buffers for the rewritten form of this declaration.
         /// </summary>
-        internal ProjectionInfo ProjectionInfo;
+        internal ProjectionNode ProjectionNode;
 
         #endregion
 
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected PSharpSyntaxNode(IPSharpProgram program)
         {
             this.Program = program;
-            this.ProjectionInfo = new ProjectionInfo(this);
+            this.ProjectionNode = new ProjectionNode(this);
         }
 
         /// <summary>

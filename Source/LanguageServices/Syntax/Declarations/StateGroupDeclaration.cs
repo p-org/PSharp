@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
 
-            base.ProjectionInfo.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
+            base.ProjectionNode.SetHeaderInfo(base.HeaderTokenRange, indent.Length, text);
 
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 

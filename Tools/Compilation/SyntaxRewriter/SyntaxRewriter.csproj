@@ -12,7 +12,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>
-    <AssemblyOriginatorKeyFile>C:\dev\PSharp\git\Tools_VisualStudio\Build\Key.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\..\Build\Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
