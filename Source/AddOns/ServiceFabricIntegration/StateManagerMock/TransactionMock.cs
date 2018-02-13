@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
@@ -27,16 +28,18 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         List<ITxState> StateObjects;
 
-        public TransactionMock(PSharpRuntime runtime)
+        public TransactionMock(PSharpRuntime runtime, long transactionId)
         {
             this.Runtime = runtime;
             this.StateObjects = new List<ITxState>();
             this.Committed = false;
+            this._TransactionId = transactionId;
         }
 
         public long CommitSequenceNumber => 0;
 
-        public long TransactionId => 0;
+        public long TransactionId => _TransactionId;
+        long _TransactionId;
 
         public void Abort()
         {
@@ -54,10 +57,12 @@ namespace Microsoft.PSharp.ReliableServices
             {
                 throw new InvalidOperationException("Transaction Mock: multiple commits");
             }
+            /*
             if (this.Runtime.RandomInteger(10) == 0)
             {
                 throw new System.Fabric.TransactionFaultedException("TransactionMock: simulated fault");
             }
+            */
 
             foreach (var obj in StateObjects)
             {
@@ -72,7 +77,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         public void CheckTimeout(TimeSpan? timeout = null)
         {
-            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && Runtime.RandomInteger(10) == 0)
+            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && false /*Runtime.RandomInteger(10) == 0*/)
             {
                 throw new TimeoutException("ReliableTx: simulated timeout");
             }
@@ -85,12 +90,20 @@ namespace Microsoft.PSharp.ReliableServices
 
         public void Dispose()
         {
-            
+            if(!Committed)
+            {
+                Abort();
+            }
         }
 
         public Task<long> GetVisibilitySequenceNumberAsync()
         {
             throw new NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            return string.Format("TransactionMock[{0}]", TransactionId);
         }
     }
 }

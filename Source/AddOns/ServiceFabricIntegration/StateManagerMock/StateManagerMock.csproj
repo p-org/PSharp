@@ -7,8 +7,8 @@
     <ProjectGuid>{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StateManagerMock</RootNamespace>
-    <AssemblyName>StateManagerMock</AssemblyName>
+    <RootNamespace>ReliableServices</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.ReliableServices.StateManagerMock</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\bin\net46\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>

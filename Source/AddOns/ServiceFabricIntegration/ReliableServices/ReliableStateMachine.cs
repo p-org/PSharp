@@ -192,6 +192,11 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="e">Event</param>
         protected async Task<MachineId> ReliableRemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e = null)
         {
+            if(InTestMode)
+            {
+                return await ReliableCreateMachine(type, friendlyName, e);
+            }
+
             var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
             var mid = await this.Runtime.NetworkProvider.RemoteCreateMachineId(type, friendlyName, endpoint);
 
@@ -303,7 +308,7 @@ namespace Microsoft.PSharp.ReliableServices
                 }
 
                 await CurrentTransaction.CommitAsync();
-                this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.CommitSequenceNumber);
+                this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.TransactionId);
 
                 if(InTestMode)
                 {
@@ -336,7 +341,7 @@ namespace Microsoft.PSharp.ReliableServices
                     while (await enumerator.MoveNextAsync(ct))
                     {
                         keys.Add(enumerator.Current.Key);
-                        var tup = enumerator.Current.Value;
+                        var tup = enumerator.Current.Value; 
                         // idempotent, so this can happen multiple times
                         await this.Runtime.NetworkProvider.RemoteCreateMachine(tup.Item1, Type.GetType(tup.Item2), tup.Item3);
                     }
@@ -408,30 +413,32 @@ namespace Microsoft.PSharp.ReliableServices
 
                 if (nextEventInfo == null)
                 {
+                    // commit previous transaction
+                    if (CurrentTransaction != null)
+                    {
+                        await CommitCurrentTransaction();
+                    }
+
+                    CurrentTransaction = StateManager.CreateTransaction();
+                    var reliableDequeue = false;
+
                     lock (base.Inbox)
                     {
                         // Try to dequeue the next event, if there is one.
                         nextEventInfo = this.TryDequeueEvent();
-                        
                     }
 
-                    if (nextEventInfo == null)
+                    if (nextEventInfo == null && !InTestMode)
                     {
-                        // commit previous transaction
-                        if (CurrentTransaction != null)
-                        {
-                            await CommitCurrentTransaction();
-                        }
-
-                        CurrentTransaction = StateManager.CreateTransaction();
-
                         nextEventInfo = await ReliableDequeue();
+                        reliableDequeue = (nextEventInfo != null);
 
-                        if(nextEventInfo == null)
-                        {
-                            CurrentTransaction.Dispose();
-                            CurrentTransaction = null;
-                        }
+                    }
+
+                    if (!reliableDequeue && !InTestMode)
+                    {
+                        CurrentTransaction.Dispose();
+                        CurrentTransaction = null;
                     }
 
                     dequeued = nextEventInfo != null;
@@ -439,9 +446,17 @@ namespace Microsoft.PSharp.ReliableServices
 
                 if(nextEventInfo == null)
                 {
-                    // retry
-                    await Task.Delay(10);
-                    continue; 
+                    if (InTestMode)
+                    {
+                        this.IsRunning = false;
+                        break;
+                    }
+                    else
+                    {
+                        // retry
+                        await Task.Delay(10);
+                        continue;
+                    }
                 }
 
                 if (dequeued)

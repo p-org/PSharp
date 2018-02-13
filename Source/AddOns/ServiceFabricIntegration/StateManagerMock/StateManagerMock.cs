@@ -8,6 +8,7 @@ using Microsoft.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data.Notifications;
+using System.Threading;
 
 namespace Microsoft.PSharp.ReliableServices
 {
@@ -21,6 +22,8 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         PSharpRuntime Runtime;
 
+        long TransactionCounter;
+
         private ConcurrentDictionary<Uri, IReliableState> store = new ConcurrentDictionary<Uri, IReliableState>();
 
         private Dictionary<Type, Type> dependencyMap = new Dictionary<Type, Type>()
@@ -32,6 +35,7 @@ namespace Microsoft.PSharp.ReliableServices
         public StateManagerMock(PSharpRuntime runtime)
         {
             this.Runtime = runtime;
+            this.TransactionCounter = 0;
         }
 
         // IReliableStateManager interface
@@ -43,7 +47,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         public ITransaction CreateTransaction()
         {
-            return new TransactionMock(Runtime);
+            return new TransactionMock(Runtime, Interlocked.Increment(ref TransactionCounter));
         }
 
         public IAsyncEnumerator<IReliableState> GetAsyncEnumerator()
@@ -182,7 +186,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         private Uri ToUri(string name)
         {
-            return new Uri("mock://" + name, UriKind.Absolute);
+            return new Uri("mock://" + name.Replace('(','_').Replace(')','_'), UriKind.Absolute);
         }
     }
 }
