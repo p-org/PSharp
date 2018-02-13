@@ -57,12 +57,12 @@ namespace Microsoft.PSharp.ReliableServices
             {
                 throw new InvalidOperationException("Transaction Mock: multiple commits");
             }
-            /*
-            if (this.Runtime.RandomInteger(10) == 0)
+            
+            if (this.Runtime.RandomInteger(100) == 0)
             {
                 throw new System.Fabric.TransactionFaultedException("TransactionMock: simulated fault");
             }
-            */
+            
 
             foreach (var obj in StateObjects)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         public void CheckTimeout(TimeSpan? timeout = null)
         {
-            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && false /*Runtime.RandomInteger(10) == 0*/)
+            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && Runtime.RandomInteger(100) == 0)
             {
                 throw new TimeoutException("ReliableTx: simulated timeout");
             }

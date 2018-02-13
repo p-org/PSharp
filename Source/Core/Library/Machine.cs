@@ -973,7 +973,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
-        protected async Task ExecuteCurrentStateOnEntry()
+        internal async Task ExecuteCurrentStateOnEntry()
         {
             base.Runtime.NotifyEnteredState(this);
 

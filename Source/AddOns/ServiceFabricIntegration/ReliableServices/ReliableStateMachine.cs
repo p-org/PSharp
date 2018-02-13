@@ -360,28 +360,39 @@ namespace Microsoft.PSharp.ReliableServices
                 {
                     tcs.SetResult(true);
                 }
+
+                CurrentTransaction.Dispose();
+                PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
+                PendingStateChanges.Clear();
+                PendingStateChangesInverted.Clear();
+                CurrentTransaction = null;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
             {
                 this.Logger.WriteLine("ReliableStateMachine encountered an exception trying to commit a transaction: {0}", ex.ToString());
-                foreach (var tcs in PendingMachineCreations.AsEnumerable())
-                {
-                    tcs.SetResult(false);
-                }
+                CleanupOnAbortedTransaction();
+            }
 
-                // restore state stack
-                for (int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
-                {
-                    if (PendingStateChangesInverted[i] is PopStateChangeOp)
-                    {
-                        base.DoStatePop();
-                    }
-                    else
-                    {
-                        base.DoStatePush((PendingStateChangesInverted[i] as PushStateChangeOp).state);
-                    }
-                }
+        }
 
+        private void CleanupOnAbortedTransaction()
+        {
+            foreach (var tcs in PendingMachineCreations.AsEnumerable())
+            {
+                tcs.SetResult(false);
+            }
+
+            // restore state stack
+            for (int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
+            {
+                if (PendingStateChangesInverted[i] is PopStateChangeOp)
+                {
+                    base.DoStatePop();
+                }
+                else
+                {
+                    base.DoStatePush((PendingStateChangesInverted[i] as PushStateChangeOp).state);
+                }
             }
 
             CurrentTransaction.Dispose();
@@ -389,6 +400,7 @@ namespace Microsoft.PSharp.ReliableServices
             PendingStateChanges.Clear();
             PendingStateChangesInverted.Clear();
             CurrentTransaction = null;
+
         }
 
         /// <summary>
