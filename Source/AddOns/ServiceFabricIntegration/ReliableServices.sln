@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliableServices", "ReliableServices\ReliableServices.csproj", "{BAB409E2-3370-401D-96BF-9A10A7BFFC91}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\..\Core\Core.csproj", "{7095295A-CD08-4F57-97D3-E482265B421E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingServices", "..\..\TestingServices\TestingServices.csproj", "{C24174D7-A37A-46E7-A54E-2844251E8B6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateManagerMock", "StateManagerMock\StateManagerMock.csproj", "{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,14 @@ Global
 		{C24174D7-A37A-46E7-A54E-2844251E8B6E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C24174D7-A37A-46E7-A54E-2844251E8B6E}.Release|x64.ActiveCfg = Release|Any CPU
 		{C24174D7-A37A-46E7-A54E-2844251E8B6E}.Release|x64.Build.0 = Release|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Debug|x64.Build.0 = Debug|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|x64.ActiveCfg = Release|Any CPU
+		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

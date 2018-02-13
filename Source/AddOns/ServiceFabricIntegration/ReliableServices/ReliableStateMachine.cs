@@ -62,18 +62,37 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         private List<MachineStateChangeOp> PendingStateChanges;
 
+        /// <summary>
+        /// Machine is executing under test mode
+        /// </summary>
+        private bool InTestMode;
+
+        /// <summary>
+        /// Out-buffer for send operations (test mode)
+        /// </summary>
+        private Queue<Tuple<MachineId, Event>> TestModeOutBuffer;
+
+        /// <summary>
+        /// Out-buffer for create-machine operations (test mode)
+        /// </summary>
+        private Queue<Tuple<MachineId, Type, Event>> TestModeCreateBuffer;
+
         #endregion
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected ReliableStateMachine(IReliableStateManager stateManager)
+        protected ReliableStateMachine(IReliableStateManager stateManager, bool testMode)
             : base()
         {
             this.StateManager = stateManager;
             this.PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             this.PendingStateChangesInverted = new List<MachineStateChangeOp>();
             this.PendingStateChanges = new List<MachineStateChangeOp>();
+
+            this.InTestMode = testMode;
+            this.TestModeOutBuffer = new Queue<Tuple<MachineId, Event>>();
+            this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
         }
 
         /// <summary>
@@ -149,9 +168,16 @@ namespace Microsoft.PSharp.ReliableServices
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
             var mid = this.Runtime.CreateMachineId(type, friendlyName);
 
-            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e)); 
-            var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
-            PendingMachineCreations.Add(tcs);
+            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
+            if (!InTestMode)
+            {
+                var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
+                PendingMachineCreations.Add(tcs);
+            }
+            else
+            {
+                TestModeCreateBuffer.Enqueue(Tuple.Create(mid, type, e));
+            }
             return mid;
         }
 
@@ -278,6 +304,21 @@ namespace Microsoft.PSharp.ReliableServices
 
                 await CurrentTransaction.CommitAsync();
                 this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.CommitSequenceNumber);
+
+                if(InTestMode)
+                {
+                    while(TestModeCreateBuffer.Count > 0)
+                    {
+                        var tup = TestModeCreateBuffer.Dequeue();
+                        this.Runtime.CreateMachine(tup.Item1, tup.Item2, tup.Item3);
+                    }
+
+                    while(TestModeOutBuffer.Count > 0)
+                    {
+                        var tup = TestModeOutBuffer.Dequeue();
+                        this.Runtime.SendEvent(tup.Item1, tup.Item2);
+                    }
+                }
 
                 // remote machine creations
                 var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
@@ -501,8 +542,15 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="e">Event</param>
         protected async Task ReliableSend(MachineId mid, Event e)
         {
-            var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
-            await targetQueue.EnqueueAsync(CurrentTransaction, new EventInfo(e));
+            if (!InTestMode)
+            {
+                var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
+                await targetQueue.EnqueueAsync(CurrentTransaction, new EventInfo(e));
+            }
+            else
+            {
+                TestModeOutBuffer.Enqueue(Tuple.Create(mid, e));
+            }
         }
 
         /// <summary>
@@ -512,8 +560,15 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="e">Event</param>
         protected async Task ReliableRemoteSend(MachineId mid, Event e)
         {
-            var tag = await SendCounters.AddOrUpdateAsync(CurrentTransaction, mid.Name, 1, (key, oldValue) => oldValue + 1);
-            await this.RemoteSend(mid, new TaggedRemoteEvent(this.Id, e, tag));            
+            if (!InTestMode)
+            {
+                var tag = await SendCounters.AddOrUpdateAsync(CurrentTransaction, mid.Name, 1, (key, oldValue) => oldValue + 1);
+                await this.RemoteSend(mid, new TaggedRemoteEvent(this.Id, e, tag));
+            }
+            else
+            {
+                TestModeOutBuffer.Enqueue(Tuple.Create(mid, e));
+            }
         }
 
         /// <summary>
