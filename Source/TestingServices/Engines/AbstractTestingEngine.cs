@@ -372,9 +372,9 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 task.Start();
-                // Don't check TCS cancellation here as it may end the wait before the task "looks up"
-                // to detect the TCS cancellation and gracefully exit.
-                task.Wait(/*this.CancellationTokenSource.Token*/);
+                // We need to check TCS cancellation here to avoid race condition when waiting inside RunNextIteration
+                // for BugFindingScheduler.Wait() to exit (alternatively, perhaps pass the CTS to BugFindingScheduler).
+                task.Wait(this.CancellationTokenSource.Token);
             }
             catch (InvalidOperationException) when (this.CancellationTokenSource.IsCancellationRequested)
             {
