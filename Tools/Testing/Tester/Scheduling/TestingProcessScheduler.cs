@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +31,9 @@ namespace Microsoft.PSharp.TestingServices
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     internal sealed class TestingProcessScheduler : ITestingProcessScheduler
     {
-        #region fields
+		#region fields
+
+		private static TextWriter consoleHandle = Console.Out;
 
         /// <summary>
         /// Configuration.
@@ -244,11 +247,8 @@ namespace Microsoft.PSharp.TestingServices
             // Closes the remote notification listener.
             this.CloseNotificationListener();
 
-            // Merges and emits the test report.
-            if (!IsProcessCanceled)
-            {
-                this.EmitTestReport();
-            }
+			// Merges and emits the test report.
+			this.EmitTestReport();
         }
 
         #endregion
@@ -473,13 +473,16 @@ namespace Microsoft.PSharp.TestingServices
         private void EmitTestReport()
         {
             var testReports = new List<TestReport>(this.TestReports.Values);
-            foreach (var process in this.TestingProcesses)
-            {
-                if (!this.TestReports.ContainsKey(process.Key))
-                {
-                    Output.WriteLine($"... Task {process.Key} failed due to an internal error.");
-                }
-            }
+			if (!IsProcessCanceled)
+			{
+				foreach (var process in this.TestingProcesses)
+				{
+					if (!this.TestReports.ContainsKey(process.Key))
+					{
+						Output.WriteLine($"... Task {process.Key} failed due to an internal error.");
+					}
+				}
+			}
 
             if (this.TestReports.Count == 0)
             {
