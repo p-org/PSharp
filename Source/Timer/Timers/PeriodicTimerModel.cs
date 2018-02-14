@@ -22,52 +22,85 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp.Timer
 {
 	/// <summary>
-	/// Model of a timer, which sends out periodic timeout events.
+	/// Model of a timer, which sends periodic timeout events.
+	/// The timer is started with a eStartTimer event, and canceled by eCancelTimer event.
+	/// A canceled timer can be restarted.
 	/// </summary>
 	public class PeriodicTimerModel : Machine
 	{
-		MachineId client;   // the client with which this timer is registered
+		#region fields
+		/// <summary>
+		/// The client with which this timer is registered.
+		/// </summary>
+		MachineId client;
 
+		#endregion
+
+		#region states
+		/// <summary>
+		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
+		/// </summary>		
 		[Start]
-		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
+		[OnEntry(nameof(InitializeTimer))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
+		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		internal sealed class Init : MachineState { }
+
+		/// <summary>
+		/// Timer has been started with eStartTimer, and can send timeout events.
+		/// </summary>
+		[IgnoreEvents(typeof(eStartTimer))]
+		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
+		internal sealed class Active : MachineState { }
+
+		/// <summary>
+		/// Timer state where at least one timeout event has been sent out.
+		/// </summary>
+		[OnEventDoAction(typeof(eCancelTimer), nameof(FailedCancellationState))]
+		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		internal sealed class NonzeroTimeouts : MachineState { }
+
+		/// <summary>
+		/// State reached after eCancelTimer is received after at least one eTimeout has been sent.
+		/// </summary>
+		[OnEventDoAction(typeof(eCancelTimer), nameof(FailedCancellation))]
+		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
+		internal sealed class FailedCancellationState : MachineState { }
+
+		#endregion
+
+		#region handlers
 
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			this.Goto<Await>();
 		}
-
-		// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client.
-		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
-		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Await : MachineState { }
 
 		private void SucceedCancellation()
 		{
 			this.Send(this.client, new eCancelSucess());
-			this.Raise(new Halt());
+			this.Goto<NonzeroTimeouts>();
 		}
 
-		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEventDoAction(typeof(Default), nameof(SendTimeout))]
-		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
-		internal sealed class Active : MachineState { }
+		private void FailedCancellation()
+		{
+			this.Send(this.client, new eCancelFailure);
+		}
+
 
 		private void SendTimeout()
 		{
 			this.Send(this.client, new eTimeOut());
-			this.Goto<Active>();
 		}
 
 		private void AttemptCancellation()
 		{
-			bool choice = this.Random();
-			if (choice)
+			if (this.Random())
 			{
 				this.Send(this.client, new eTimeOut());
 				this.Send(this.client, new eCancelFailure());
-				this.Raise(new Halt());
+				this.Goto<FailedCancellationState>();
 			}
 
 			else
@@ -75,5 +108,7 @@ namespace Microsoft.PSharp.Timer
 				this.SucceedCancellation();
 			}
 		}
+
+		#endregion
 	}
 }
