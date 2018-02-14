@@ -77,6 +77,16 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         private Queue<Tuple<MachineId, Type, Event>> TestModeCreateBuffer;
 
+        /// <summary>
+        /// Last dequeued event (test mode)
+        /// </summary>
+        private EventInfo LastDequeuedEvent;
+
+        /// <summary>
+        /// Last transaction aborted (test mode only)
+        /// </summary>
+        private bool LastTxAborted;
+
         #endregion
 
         /// <summary>
@@ -93,6 +103,8 @@ namespace Microsoft.PSharp.ReliableServices
             this.InTestMode = testMode;
             this.TestModeOutBuffer = new Queue<Tuple<MachineId, Event>>();
             this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
+            this.LastTxAborted = false;
+            this.LastDequeuedEvent = null;
         }
 
         /// <summary>
@@ -395,12 +407,17 @@ namespace Microsoft.PSharp.ReliableServices
                 }
             }
 
-            CurrentTransaction.Dispose();
+            if (CurrentTransaction != null)
+            {
+                CurrentTransaction.Dispose();
+            }
+
             PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             PendingStateChanges.Clear();
             PendingStateChangesInverted.Clear();
             CurrentTransaction = null;
-
+            RaisedEvent = null;
+            LastTxAborted = true;
         }
 
         /// <summary>
@@ -417,10 +434,11 @@ namespace Microsoft.PSharp.ReliableServices
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var dequeued = false;
+                EventInfo nextEventInfo = null;
 
                 // Try to get the raised event, if there is one. Raised events
                 // have priority over the events in the inbox.
-                EventInfo nextEventInfo = this.TryGetRaisedEvent();
+                nextEventInfo = this.TryGetRaisedEvent();
 
                 if (nextEventInfo == null)
                 {
@@ -436,7 +454,8 @@ namespace Microsoft.PSharp.ReliableServices
                     lock (base.Inbox)
                     {
                         // Try to dequeue the next event, if there is one.
-                        nextEventInfo = this.TryDequeueEvent();
+                        nextEventInfo = (LastTxAborted && InTestMode) ? LastDequeuedEvent
+                            : this.TryDequeueEvent();
                     }
 
                     if (nextEventInfo == null && !InTestMode)
@@ -485,6 +504,9 @@ namespace Microsoft.PSharp.ReliableServices
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
 
+                this.LastDequeuedEvent = nextEventInfo;
+                this.LastTxAborted = false;
+
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
             }
@@ -527,6 +549,24 @@ namespace Microsoft.PSharp.ReliableServices
                     return null;
                 }
             } while (true);
+        }
+
+        /// <summary>
+        /// Invokes user callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
+        internal override bool OnExceptionHandler(string methodName, Exception ex)
+        {
+            if(ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
+            {
+                this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
+                CleanupOnAbortedTransaction();
+                return true;
+            }
+
+            return base.OnExceptionHandler(methodName, ex);
         }
 
         /// <summary>

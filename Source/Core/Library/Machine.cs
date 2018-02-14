@@ -97,7 +97,7 @@ namespace Microsoft.PSharp
         /// Gets the raised event. If no event has been raised
         /// this will return null.
         /// </summary>
-        private EventInfo RaisedEvent;
+        internal EventInfo RaisedEvent;
 
         /// <summary>
         /// A list of event wait handlers. They denote the types of events that
@@ -1786,7 +1786,7 @@ namespace Microsoft.PSharp
         /// <param name="ex">The exception thrown by the machine</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
-        private bool OnExceptionHandler(string methodName, Exception ex)
+        internal virtual bool OnExceptionHandler(string methodName, Exception ex)
         {
             if(ex is ExecutionCanceledException)
             {
