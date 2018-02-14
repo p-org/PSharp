@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.Timer
 		[IgnoreEvents(typeof(Timeout))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class ZeroTimeouts : MachineState { }
+		internal sealed class Quiescent : MachineState { }
 
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.Timer
 		[IgnoreEvents(typeof(eStartTimer))]
 		[OnEntry(nameof(StartSystemTimer))]
 		[OnEventGotoState(typeof(Timeout), typeof(NonzeroTimeouts), nameof(SendTimeout))]
-		[OnEventGotoState(typeof(eCancelTimer), typeof(ZeroTimeouts))]
+		[OnEventGotoState(typeof(eCancelTimer), typeof(Quiescent))]
 		internal sealed class Active : MachineState { }
 
 		/// <summary>
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.Timer
 			timer = new System.Timers.Timer(this.period);
 			timer.Elapsed += OnTimedEvent;  // associate handler for system timeout event
 			timer.AutoReset = false;    // one-off timer event required
-			this.Goto<ZeroTimeouts>();
+			this.Goto<Quiescent>();
 		}
 
 		private void StartSystemTimer()
