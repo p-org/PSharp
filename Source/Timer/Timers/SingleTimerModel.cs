@@ -36,16 +36,14 @@ namespace Microsoft.PSharp.Timer
 
 		#region states
 
-		[Start]
-		[OnEntry(nameof(InitializeTimer))]
-		internal sealed class Init : MachineState { }
-
 		/// <summary>
 		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
 		/// </summary>		
+		[Start]
+		[OnEntry(nameof(InitializeTimer))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Quiescent : MachineState { }
+		internal sealed class Init : MachineState { }
 
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
@@ -69,7 +67,6 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			this.Goto<Quiescent>();
 		}
 
 		
@@ -99,7 +96,7 @@ namespace Microsoft.PSharp.Timer
 			else
 			{
 				this.SucceedCancellation();
-				this.Goto<Quiescent>();
+				this.Goto<Init>();
 			}
 		}
 	}

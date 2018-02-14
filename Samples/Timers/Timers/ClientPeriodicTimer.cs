@@ -25,15 +25,16 @@ namespace Timers
 
 		private void Initialize()
 		{
-			periodicTimerModel = this.CreateMachine(typeof(SingleTimerModel));
+			periodicTimerModel = this.CreateMachine(typeof(PeriodicTimerModel));
 
-			// Initialize the timer. The period is unneccessary since we have a timer model.
+			// Initialize the timer. The period is unneccessary since we are dealing with a model.
 			this.Send(this.periodicTimerModel, new InitTimer(this.Id));
 
 			// Start the timer
 			this.Send(this.periodicTimerModel, new eStartTimer());
 
 			// Raise Unit event to non-deterministically cancel the timer
+			this.Raise(new Unit());
 
 		}
 
@@ -67,7 +68,7 @@ namespace Timers
 
 			Object queuedEvent = this.ReceivedEvent;
 
-			while(queuedEvent!= null && (queuedEvent.GetType() != typeof(MarkupEvent)))
+			while(queuedEvent!= null || (queuedEvent.GetType() != typeof(MarkupEvent)))
 			{
 				if (queuedEvent.GetType() == typeof(eTimeOut))
 					continue;
