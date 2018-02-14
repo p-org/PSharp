@@ -43,22 +43,26 @@ namespace Timers
 
 		private void HandleTimeout()
 		{
-			Console.WriteLine("Client: Timeout received from timer");
-			this.Raise(new Halt());
+			// Console.WriteLine("Client: Timeout received from timer");
+			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyTimeoutReceived());
 		}
 
 		private void HandleSuccessfulCancellation()
 		{
-			Console.WriteLine("Client: Timer canceled successfully");
-			this.Raise(new Halt());
+			// Console.WriteLine("Client: Timer canceled successfully");
+			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyCancelSuccess());
 		}
 
 		private void HandleFailedCancellation()
 		{
+			// For a failed cancellation, a timeout event has already been fired. 
+			// Thus, there should be a single timeout event in this machine's queue.
 			Object timeout = this.ReceivedEvent;
 			this.Assert(timeout.GetType() == typeof(eTimeOut));
-			Console.WriteLine("Client: Timer cancellation failed");
-			this.Raise(new Halt());
+
+			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyCancelFailure());
+
+			// Console.WriteLine("Client: Timer cancellation failed");
 		}
 
 	}

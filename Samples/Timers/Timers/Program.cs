@@ -11,8 +11,8 @@ namespace Timers
 	{
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Starting machines...");
 			var configuration = Configuration.Create().WithVerbosityEnabled(1);
+			configuration.EnableMonitorsInProduction = true;
 			var runtime = PSharpRuntime.Create(configuration);
 			Execute(runtime);
 			Console.ReadLine();
@@ -21,9 +21,8 @@ namespace Timers
 		[Microsoft.PSharp.Test]
 		public static void Execute(PSharpRuntime runtime)
 		{
-			// This is the root machine to the P# PingPong program. CreateMachine
-			// executes asynchronously (i.e. non-blocking).
-			runtime.CreateMachine(typeof(ClientPeriodicTimer));
+			runtime.RegisterMonitor(typeof(SafetyMonitor));
+			runtime.CreateMachine(typeof(ClientSingleTimer));
 		}
 	}
 }

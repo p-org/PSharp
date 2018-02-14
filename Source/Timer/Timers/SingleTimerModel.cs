@@ -22,57 +22,87 @@ namespace Microsoft.PSharp.Timer
 {
 	/// <summary>
 	/// Model of a timer, which sends a single timeout event.
+	/// The timer is started with a eStartTimer event, and canceled by eCancelTimer event.
+	/// A canceled timer can be restarted.
 	/// </summary>
 	public class SingleTimerModel : Machine
 	{
-		MachineId client;   // the client with which this timer is registered
-		
+		#region fields
+		/// <summary>
+		/// The client with which this timer is registered.
+		/// </summary>
+		MachineId client;
+		#endregion
+
+		#region states
+
 		[Start]
-		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
+		[OnEntry(nameof(InitializeTimer))]
 		internal sealed class Init : MachineState { }
+
+		/// <summary>
+		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
+		/// </summary>		
+		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
+		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
+		internal sealed class ZeroTimeouts : MachineState { }
+
+		/// <summary>
+		/// Timer has been started with eStartTimer, and can send timeout events.
+		/// </summary>
+		[IgnoreEvents(typeof(eStartTimer))]
+		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
+		internal sealed class Active : MachineState { }
+
+		/// <summary>
+		/// Timer state where at least one timeout event has been sent out.
+		/// </summary>
+		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(FailedCancellation))]
+		internal sealed class NonzeroTimeouts : MachineState { }
+
+		#endregion
+
+		#region handlers
 
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			this.Goto<Await>();
+			this.Goto<ZeroTimeouts>();
 		}
 
-		// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client.
-		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
-		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Await : MachineState { }
 		
 		private void SucceedCancellation()
 		{
 			this.Send(this.client, new eCancelSucess());
-			this.Raise(new Halt());
 		}
 
-		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEventDoAction(typeof(Default), nameof(SendTimeout))]
-		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
-		internal sealed class Active : MachineState { }
+		private void FailedCancellation()
+		{
+			this.Send(this.client, new eCancelFailure());
+		}
 
 		private void SendTimeout()
 		{
 			this.Send(this.client, new eTimeOut());
-			this.Raise(new Halt());
 		}
 
 		private void AttemptCancellation()
 		{
-			bool choice = this.Random();
-			if (choice)
+			if (this.Random())
 			{
 				this.Send(this.client, new eTimeOut());
 				this.Send(this.client, new eCancelFailure());
-				this.Raise(new Halt());
 			}
 
 			else
 			{
 				this.SucceedCancellation();
+				this.Goto<ZeroTimeouts>();
 			}
 		}
 	}
+
+	#endregion
 }

@@ -22,69 +22,104 @@ using System.Timers;
 namespace Microsoft.PSharp.Timer
 {
 	/// <summary>
-	/// A P# timer, which sends a single timeout event.
+	/// Model of a timer, which sends a single timeout event.
+	/// The timer is started with a eStartTimer event, and canceled by eCancelTimer event.
+	/// A canceled timer can be restarted.
 	/// </summary>
 	public class SingleTimer : Machine
 	{
-		MachineId client;   // the client with which this timer is registered
-		bool timeoutSent;   // keeps track of whether timeout has been fired
-		int period;			// periodicity of the timeout events
-		System.Timers.Timer timer;	// use a system timer to fire timeout events
+		#region fields
+		/// <summary>
+		/// The client with which this timer is registered.
+		/// </summary>
+		private MachineId client;
+
+		/// <summary>
+		/// Periodicity of timeout events. If not specified explicitly, default value of 100ms is used.
+		/// </summary>
+		private int period;		
+
+		/// <summary>
+		/// Use a system timer to fire timeout events.
+		/// </summary>
+		private System.Timers.Timer timer;
+		#endregion
+
+		#region internal events
+		private class Timeout : Event { }
+		#endregion
+
+		#region states
 
 		[Start]
-		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
+		[OnEntry(nameof(InitializeTimer))]
 		internal sealed class Init : MachineState { }
+
+
+		/// <summary>
+		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
+		/// </summary>
+		[IgnoreEvents(typeof(Timeout))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
+		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
+		internal sealed class ZeroTimeouts : MachineState { }
+
+		/// <summary>
+		/// Timer has been started with eStartTimer, and can send timeout events.
+		/// </summary>
+		[IgnoreEvents(typeof(eStartTimer))]
+		[OnEntry(nameof(StartSystemTimer))]
+		[OnEventGotoState(typeof(Timeout), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		[OnEventGotoState(typeof(eCancelTimer), typeof(ZeroTimeouts))]
+		internal sealed class Active : MachineState { }
+
+		/// <summary>
+		/// Timer state where at least one timeout event has been sent out.
+		/// </summary>
+		[IgnoreEvents(typeof(Timeout))]
+		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(FailedCancellation))]
+		internal sealed class NonzeroTimeouts : MachineState { }
+
+		#endregion
+
+		#region handlers
 
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
 			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
-			this.timeoutSent = false;
-			timer = new System.Timers.Timer(this.period);  // default interval of 100ms used here
-			timer.Elapsed += OnTimedEvent;
-			timer.AutoReset = false;	// one-off timer event required
-			this.Goto<Await>();
+			timer = new System.Timers.Timer(this.period);
+			timer.Elapsed += OnTimedEvent;  // associate handler for system timeout event
+			timer.AutoReset = false;    // one-off timer event required
+			this.Goto<ZeroTimeouts>();
 		}
 
-		// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client.
-		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
-		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Await : MachineState { }
-
-		private void SucceedCancellation()
-		{
-			this.Send(this.client, new eCancelSucess());
-			this.Raise(new Halt());
-		}
-
-		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEventDoAction(typeof(Default), nameof(SendTimeout))]
-		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
-		internal sealed class Active : MachineState { }
-
-		private void SendTimeout()
+		private void StartSystemTimer()
 		{
 			this.timer.Start();
 		}
 
 		private void OnTimedEvent(Object source, ElapsedEventArgs e)
 		{
-			this.Send(this.client, new eTimeOut());
-			this.timeoutSent = true;
+			this.Raise(new Timeout());
 		}
 
-		private void AttemptCancellation()
+		private void SucceedCancellation()
 		{
-			if (this.timeoutSent)
-			{
-				this.Send(this.client, new eCancelFailure());
-				this.Raise(new Halt());
-			}
-
-			else
-			{
-				this.SucceedCancellation();
-			}
+			this.Send(this.client, new eCancelSucess());
 		}
+
+		private void FailedCancellation()
+		{
+			this.Send(this.client, new eCancelFailure());
+		}
+
+		private void SendTimeout()
+		{
+			this.Send(this.client, new eTimeOut());
+		}
+
+		#endregion
 	}
 }
