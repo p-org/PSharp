@@ -35,11 +35,6 @@ namespace Microsoft.PSharp.Timer
 		private MachineId client;
 
 		/// <summary>
-		/// Periodicity of timeout events. If not specified explicitly, default value of 100ms is used.
-		/// </summary>
-		private int period;		
-
-		/// <summary>
 		/// Use a system timer to fire timeout events.
 		/// </summary>
 		private System.Timers.Timer timer;
@@ -51,18 +46,15 @@ namespace Microsoft.PSharp.Timer
 
 		#region states
 
-		[Start]
-		[OnEntry(nameof(InitializeTimer))]
-		internal sealed class Init : MachineState { }
-
-
 		/// <summary>
 		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
 		/// </summary>
+		[Start]
 		[IgnoreEvents(typeof(Timeout))]
+		[OnEntry(nameof(InitializeTimer))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Quiescent : MachineState { }
+		internal sealed class Init : MachineState { }
 
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
@@ -70,7 +62,7 @@ namespace Microsoft.PSharp.Timer
 		[IgnoreEvents(typeof(eStartTimer))]
 		[OnEntry(nameof(StartSystemTimer))]
 		[OnEventGotoState(typeof(Timeout), typeof(NonzeroTimeouts), nameof(SendTimeout))]
-		[OnEventGotoState(typeof(eCancelTimer), typeof(Quiescent))]
+		[OnEventGotoState(typeof(eCancelTimer), typeof(Init))]
 		internal sealed class Active : MachineState { }
 
 		/// <summary>
@@ -88,11 +80,8 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
-			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
-			timer = new System.Timers.Timer(this.period);
 			timer.Elapsed += OnTimedEvent;  // associate handler for system timeout event
 			timer.AutoReset = false;    // one-off timer event required
-			this.Goto<Quiescent>();
 		}
 
 		private void StartSystemTimer()
