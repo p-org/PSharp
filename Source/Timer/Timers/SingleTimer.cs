@@ -38,37 +38,47 @@ namespace Microsoft.PSharp.Timer
 		/// Use a system timer to fire timeout events.
 		/// </summary>
 		private System.Timers.Timer timer;
-		#endregion
 
-		#region internal events
-		private class Timeout : Event { }
+		/// <summary>
+		/// True if a cancellation has not been sent to the client already.
+		/// timer.Stop() may still result a timeout being sent, as they could operate on different threads.
+		/// </summary>
+		private bool IsTimerEnabled;
+
+		/// <summary>
+		/// True if an eTimeout has been sent already.
+		/// </summary>
+		private bool IsTimeoutSent;
+
+		private readonly Object tlock = new object();
+
 		#endregion
 
 		#region states
 
+		[Start]
+		[OnEntry(nameof(InitializeTimer))]
+		internal sealed class Init : MachineState { }
+
 		/// <summary>
 		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
 		/// </summary>
-		[Start]
-		[IgnoreEvents(typeof(Timeout))]
-		[OnEntry(nameof(InitializeTimer))]
+		[OnEntry(nameof(ResetTimer))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Init : MachineState { }
+		internal sealed class Quiescent : MachineState { }
 
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
 		/// </summary>
 		[IgnoreEvents(typeof(eStartTimer))]
 		[OnEntry(nameof(StartSystemTimer))]
-		[OnEventGotoState(typeof(Timeout), typeof(NonzeroTimeouts), nameof(SendTimeout))]
-		[OnEventGotoState(typeof(eCancelTimer), typeof(Init))]
+		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
 
 		/// <summary>
 		/// Timer state where at least one timeout event has been sent out.
 		/// </summary>
-		[IgnoreEvents(typeof(Timeout))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(FailedCancellation))]
 		internal sealed class NonzeroTimeouts : MachineState { }
@@ -82,16 +92,33 @@ namespace Microsoft.PSharp.Timer
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
 			timer.Elapsed += OnTimedEvent;  // associate handler for system timeout event
 			timer.AutoReset = false;    // one-off timer event required
+			this.IsTimerEnabled = false;
+			this.IsTimeoutSent = false;
+		}
+
+		private void ResetTimer()
+		{
+			this.IsTimerEnabled = false;
+			this.IsTimeoutSent = false;
 		}
 
 		private void StartSystemTimer()
 		{
+			this.IsTimerEnabled = true;
+			this.IsTimeoutSent = false;
 			this.timer.Start();
 		}
 
 		private void OnTimedEvent(Object source, ElapsedEventArgs e)
 		{
-			this.Raise(new Timeout());
+			lock (this.tlock)
+			{
+				if (this.IsTimerEnabled)
+				{
+					this.IsTimeoutSent = true;
+					this.Send(this.client, new eTimeOut());
+				}
+			}
 		}
 
 		private void SucceedCancellation()
@@ -104,11 +131,23 @@ namespace Microsoft.PSharp.Timer
 			this.Send(this.client, new eCancelFailure());
 		}
 
-		private void SendTimeout()
+		private void AttemptCancellation()
 		{
-			this.Send(this.client, new eTimeOut());
+			lock(this.tlock)
+			{
+				if(this.IsTimeoutSent)
+				{
+					this.Send(this.client, new eCancelFailure());
+					this.Goto<NonzeroTimeouts>();
+				}
+				else
+				{
+					this.Send(this.client, new eCancelSucess());
+					this.IsTimerEnabled = false;
+					this.Goto<Quiescent>();
+				}
+			}
 		}
-
 		#endregion
 	}
 }
