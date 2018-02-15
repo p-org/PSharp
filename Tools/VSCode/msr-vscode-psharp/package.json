@@ -11,7 +11,7 @@
         "Languages"
     ],
     "devDependencies": {
-        "typescript": "^2.1.5",
+        "typescript": "^2.7.1",
         "vscode": "^1.1.10"
     },
     "scripts": {
@@ -20,20 +20,29 @@
     },
     "activationEvents": [
         "onLanguage:psharp"
-      ],
+    ],
     "main": "./out/main",
     "contributes": {
-        "languages": [{
+        "languages": [
+            {
                 "id": "psharp",
-                "aliases": ["P#", "psharp"],
-                "extensions": ["psharp"],
+                "aliases": [
+                    "P#",
+                    "psharp"
+                ],
+                "extensions": [
+                    "psharp"
+                ],
                 "configuration": "./language-configuration.json"
-            }],
-        "grammars": [{
+            }
+        ],
+        "grammars": [
+            {
                 "language": "psharp",
                 "scopeName": "source.psharp",
                 "path": "./syntaxes/psharp.tmLanguage.json"
-            }],
+            }
+        ],
         "snippets": [
             {
                 "language": "psharp",
