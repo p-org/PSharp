@@ -137,12 +137,12 @@ namespace Microsoft.PSharp.Timer
 			{
 				if(this.IsTimeoutSent)
 				{
-					this.Send(this.client, new eCancelFailure());
+					this.FailedCancellation();
 					this.Goto<NonzeroTimeouts>();
 				}
 				else
 				{
-					this.Send(this.client, new eCancelSucess());
+					this.SucceedCancellation();
 					this.IsTimerEnabled = false;
 					this.Goto<Quiescent>();
 				}
