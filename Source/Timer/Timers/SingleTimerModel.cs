@@ -72,6 +72,7 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			this.Goto<Quiescent>();
 		}
 
 		

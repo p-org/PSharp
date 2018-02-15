@@ -94,6 +94,7 @@ namespace Microsoft.PSharp.Timer
 			timer.AutoReset = false;    // one-off timer event required
 			this.IsTimerEnabled = false;
 			this.IsTimeoutSent = false;
+			this.Goto<Quiescent>();
 		}
 
 		private void ResetTimer()
