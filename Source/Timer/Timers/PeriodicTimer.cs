@@ -32,11 +32,12 @@ namespace Microsoft.PSharp.Timer
 		System.Timers.Timer timer;  // use a system timer to fire timeout events
 
 		[Start]
-		[OnEventDoAction(typeof(InitTimer), nameof(InitializeTimer))]
+		[OnEntry(nameof(InitializeTimer))]
 		internal sealed class Init : MachineState { }
 
 		private void InitializeTimer()
 		{
+			// Console.WriteLine("Initializing Periodic timer");
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
 			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
 			this.timeoutSent = false;

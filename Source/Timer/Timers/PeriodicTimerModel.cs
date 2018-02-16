@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.Timer
 
 		private void FailedCancellation()
 		{
-			this.Send(this.client, new eCancelFailure);
+			this.Send(this.client, new eCancelFailure());
 		}
 
 

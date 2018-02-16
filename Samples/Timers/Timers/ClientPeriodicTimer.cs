@@ -14,10 +14,10 @@ namespace Timers
 	class ClientPeriodicTimer : Machine
 	{
 		MachineId periodicTimerModel;
+		int k;
 
 		[Start]
 		[OnEntry(nameof(Initialize))]
-		[OnEventDoAction(typeof(Unit), nameof(SendCancellation))]
 		[OnEventDoAction(typeof(eTimeOut), nameof(HandleTimeout))]
 		[OnEventDoAction(typeof(eCancelSucess), nameof(HandleSuccessfulCancellation))]
 		[OnEventDoAction(typeof(eCancelFailure), nameof(HandleFailedCancellation))]
@@ -25,35 +25,24 @@ namespace Timers
 
 		private void Initialize()
 		{
-			periodicTimerModel = this.CreateMachine(typeof(PeriodicTimerModel));
-
-			// Initialize the timer. The period is unneccessary since we are dealing with a model.
-			this.Send(this.periodicTimerModel, new InitTimer(this.Id));
+			periodicTimerModel = this.CreateMachine(typeof(PeriodicTimer), new InitTimer(this.Id, 1000));
+			this.k = 0;
 
 			// Start the timer
 			this.Send(this.periodicTimerModel, new eStartTimer());
+			// this.Send(this.periodicTimerModel, new eCancelTimer());
 
-			// Raise Unit event to non-deterministically cancel the timer
-			this.Raise(new Unit());
-
-		}
-
-		private void SendCancellation()
-		{
-			// Non-deterministically choose to cancel the timer
-			bool choice = this.Random();
-
-			if (choice)
-			{
-				this.Send(this.periodicTimerModel, new eCancelTimer());
-			}
-			else
-				this.Raise(new Unit());
 		}
 
 		private void HandleTimeout()
 		{
-			Console.WriteLine("Client: Timeout received from timer");
+			Console.WriteLine("Client: Timeout received from timer with k: " + k);
+			this.k++;
+
+			if(this.k==20)
+			{
+				this.Send(this.periodicTimerModel, new eCancelTimer());
+			}
 		}
 
 		private void HandleSuccessfulCancellation()
@@ -65,16 +54,6 @@ namespace Timers
 		private void HandleFailedCancellation()
 		{
 			this.Send(this.Id, new MarkupEvent());
-
-			Object queuedEvent = this.ReceivedEvent;
-
-			while(queuedEvent!= null || (queuedEvent.GetType() != typeof(MarkupEvent)))
-			{
-				if (queuedEvent.GetType() == typeof(eTimeOut))
-					continue;
-				else
-					this.Send(this.Id, (Event)queuedEvent);
-			}
 
 			Console.WriteLine("Client: Timer cancellation failed");
 			this.Raise(new Halt());

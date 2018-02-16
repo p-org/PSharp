@@ -21,8 +21,9 @@ namespace Timers
 		[Microsoft.PSharp.Test]
 		public static void Execute(PSharpRuntime runtime)
 		{
+			Console.WriteLine("Starting machine...");
 			runtime.RegisterMonitor(typeof(SafetyMonitor));
-			runtime.CreateMachine(typeof(ClientSingleTimer));
+			runtime.CreateMachine(typeof(ClientPeriodicTimer));
 		}
 	}
 }
