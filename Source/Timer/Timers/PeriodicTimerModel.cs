@@ -37,28 +37,30 @@ namespace Microsoft.PSharp.Timer
 		#endregion
 
 		#region states
+		[Start]
+		[OnEntry(nameof(InitializeTimer))]
+		internal sealed class Init : MachineState { }
+
 		/// <summary>
 		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
 		/// </summary>		
-		[Start]
-		[OnEntry(nameof(InitializeTimer))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Init : MachineState { }
+		internal sealed class Quiescent : MachineState { }
 
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
 		/// </summary>
 		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(OnTimedEvent))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
 
 		/// <summary>
 		/// Timer state where at least one timeout event has been sent out.
 		/// </summary>
-		[OnEventDoAction(typeof(eCancelTimer), nameof(FailedCancellationState))]
-		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		[OnEventGotoState(typeof(eCancelTimer), typeof(FailedCancellationState), nameof(FailedCancellation))]
+		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(OnTimedEvent))]
 		internal sealed class NonzeroTimeouts : MachineState { }
 
 		/// <summary>
@@ -75,6 +77,7 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			this.Goto<Quiescent>();
 		}
 
 		private void SucceedCancellation()
@@ -89,7 +92,7 @@ namespace Microsoft.PSharp.Timer
 		}
 
 
-		private void SendTimeout()
+		private void OnTimedEvent()
 		{
 			this.Send(this.client, new eTimeOut());
 		}
@@ -99,13 +102,14 @@ namespace Microsoft.PSharp.Timer
 			if (this.Random())
 			{
 				this.Send(this.client, new eTimeOut());
-				this.Send(this.client, new eCancelFailure());
+				this.FailedCancellation();
 				this.Goto<FailedCancellationState>();
 			}
 
 			else
 			{
 				this.SucceedCancellation();
+				this.Goto<Quiescent>();
 			}
 		}
 

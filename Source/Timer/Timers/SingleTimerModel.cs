@@ -41,15 +41,20 @@ namespace Microsoft.PSharp.Timer
 		/// </summary>		
 		[Start]
 		[OnEntry(nameof(InitializeTimer))]
+		internal sealed class Init : MachineState { }
+
+		/// <summary>
+		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
+		/// </summary>	
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
-		internal sealed class Init : MachineState { }
+		internal sealed class Quiescent : MachineState { }
 
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
 		/// </summary>
 		[IgnoreEvents(typeof(eStartTimer))]
-		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(SendTimeout))]
+		[OnEventGotoState(typeof(Default), typeof(NonzeroTimeouts), nameof(OnTimedEvent))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
 
@@ -67,6 +72,7 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			this.Goto<Quiescent>();
 		}
 
 		
@@ -80,7 +86,7 @@ namespace Microsoft.PSharp.Timer
 			this.Send(this.client, new eCancelFailure());
 		}
 
-		private void SendTimeout()
+		private void OnTimedEvent()
 		{
 			this.Send(this.client, new eTimeOut());
 		}
@@ -90,13 +96,14 @@ namespace Microsoft.PSharp.Timer
 			if (this.Random())
 			{
 				this.Send(this.client, new eTimeOut());
-				this.Send(this.client, new eCancelFailure());
+				this.FailedCancellation();
+				this.Goto<NonzeroTimeouts>();
 			}
 
 			else
 			{
 				this.SucceedCancellation();
-				this.Goto<Init>();
+				this.Goto<Quiescent>();
 			}
 		}
 	}
