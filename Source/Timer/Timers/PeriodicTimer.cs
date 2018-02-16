@@ -73,6 +73,7 @@ namespace Microsoft.PSharp.Timer
 		/// Timer has been started with eStartTimer, and can send timeout events.
 		/// </summary>
 		[IgnoreEvents(typeof(eStartTimer))]
+		[OnEntry(nameof(StartSystemTimer))]
 		[OnEventDoAction(typeof(eCancelTimer), nameof(AttemptCancellation))]
 		internal sealed class Active : MachineState { }
 
@@ -95,7 +96,7 @@ namespace Microsoft.PSharp.Timer
 
 		private void InitializeTimer()
 		{
-			// Console.WriteLine("Initializing Periodic timer");
+			Console.WriteLine("Initializing Periodic timer");
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
 			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
 			timer = new System.Timers.Timer(this.period); 
@@ -109,6 +110,13 @@ namespace Microsoft.PSharp.Timer
 		{
 			this.IsTimeoutSent = false;
 			this.IsTimerEnabled = false;
+		}
+
+		private void StartSystemTimer()
+		{
+			this.IsTimerEnabled = true;
+			this.IsTimeoutSent = false;
+			this.timer.Start();
 		}
 
 		private void SucceedCancellation()

@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.Timer
 
 		/// <summary>
 		/// Timer is in quiescent state. Awaiting either eCancelTimer or eStartTimer from the client. 
-		/// </summary>		
+		/// </summary>
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		internal sealed class Quiescent : MachineState { }
