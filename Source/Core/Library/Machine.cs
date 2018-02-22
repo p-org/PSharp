@@ -1041,7 +1041,7 @@ namespace Microsoft.PSharp
         /// Executes the specified action.
         /// </summary>
         /// <param name="cachedAction">The cached methodInfo and corresponding delegate</param>
-        private async Task ExecuteAction(CachedAction cachedAction)
+        internal virtual async Task ExecuteAction(CachedAction cachedAction)
         {
             try
             {

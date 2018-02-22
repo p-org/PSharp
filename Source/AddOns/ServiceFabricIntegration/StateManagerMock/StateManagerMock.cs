@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         private Uri ToUri(string name)
         {
-            return new Uri("mock://" + name.Replace('(','_').Replace(')','_'), UriKind.Absolute);
+            return new Uri("mock://" + name.Replace('(','_').Replace(')','_').Replace('+','_'), UriKind.Absolute);
         }
     }
 }

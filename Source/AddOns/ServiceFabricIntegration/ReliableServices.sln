@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingServices", "..\..\Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateManagerMock", "StateManagerMock\StateManagerMock.csproj", "{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliableStateMachines.Tests.Unit", "ReliableStateMachines.Tests.Unit\ReliableStateMachines.Tests.Unit.csproj", "{549041C7-9D11-4753-A8D3-3812835FFA40}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,14 @@ Global
 		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|x64.ActiveCfg = Release|Any CPU
 		{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}.Release|x64.Build.0 = Release|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Debug|x64.Build.0 = Debug|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|x64.ActiveCfg = Release|Any CPU
+		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
