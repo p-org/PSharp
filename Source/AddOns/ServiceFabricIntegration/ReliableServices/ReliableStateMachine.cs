@@ -384,33 +384,45 @@ namespace Microsoft.PSharp.ReliableServices
             // remote machine creations
             var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
 
-            using (var tx = this.StateManager.CreateTransaction())
+            // TODO: include retry policy
+            while (true)
             {
-                var keys = new List<string>();
-
-                var enumerable = await remoteCreationMachineMap.CreateEnumerableAsync(tx);
-                var enumerator = enumerable.GetAsyncEnumerator();
-
-                // TODO: Add cancellation token
-                var ct = new System.Threading.CancellationToken();
-
-                while (await enumerator.MoveNextAsync(ct))
+                try
                 {
-                    keys.Add(enumerator.Current.Key);
-                    var tup = enumerator.Current.Value;
-                    // idempotent, so this can happen multiple times
-                    await this.Runtime.NetworkProvider.RemoteCreateMachine(tup.Item1, Type.GetType(tup.Item2), tup.Item3);
-                }
+                    using (var tx = this.StateManager.CreateTransaction())
+                    {
+                        var keys = new List<string>();
 
-                // TODO: ClearAsync doesn't work
-                foreach (var k in keys)
+                        var enumerable = await remoteCreationMachineMap.CreateEnumerableAsync(tx);
+                        var enumerator = enumerable.GetAsyncEnumerator();
+
+                        // TODO: Add cancellation token
+                        var ct = new System.Threading.CancellationToken();
+
+                        while (await enumerator.MoveNextAsync(ct))
+                        {
+                            keys.Add(enumerator.Current.Key);
+                            var tup = enumerator.Current.Value;
+                            // idempotent, so this can happen multiple times
+                            await this.Runtime.NetworkProvider.RemoteCreateMachine(tup.Item1, Type.GetType(tup.Item2), tup.Item3);
+                        }
+
+                        // TODO: ClearAsync doesn't work
+                        foreach (var k in keys)
+                        {
+                            await remoteCreationMachineMap.TryRemoveAsync(tx, k);
+                        }
+
+                        await tx.CommitAsync();
+                    }
+                    break;
+                }
+                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
                 {
-                    await remoteCreationMachineMap.TryRemoveAsync(tx, k);
+                    // retry
                 }
-
-                await tx.CommitAsync();
             }
-
+       
             // local machine creations
             foreach (var tcs in PendingMachineCreations.AsEnumerable())
             {
@@ -621,37 +633,51 @@ namespace Microsoft.PSharp.ReliableServices
         {
             EventInfo ret;
 
-            do
+            // TODO: retry policy
+            while (true)
             {
-                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
-                if (cv.HasValue)
+                try
                 {
-                    if (cv.Value.Event is TaggedRemoteEvent)
+
+                    while (true)
                     {
-                        var tg = (cv.Value.Event as TaggedRemoteEvent);
-                        var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
-                        if (currentCounter == tg.tag - 1)
+                        var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+                        if (cv.HasValue)
                         {
-                            ret = new EventInfo(tg.ev, cv.Value.OriginInfo);
-                            await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
+                            if (cv.Value.Event is TaggedRemoteEvent)
+                            {
+                                var tg = (cv.Value.Event as TaggedRemoteEvent);
+                                var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
+                                if (currentCounter == tg.tag - 1)
+                                {
+                                    ret = new EventInfo(tg.ev, cv.Value.OriginInfo);
+                                    await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                ret = cv.Value;
+                            }
+
+                            return ret;
                         }
                         else
                         {
-                            continue;
+                            return null;
                         }
                     }
-                    else
-                    {
-                        ret = cv.Value;
-                    }
-
-                    return ret;
                 }
-                else
+                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
                 {
-                    return null;
+                    //retry
+                    await Task.Delay(10);
                 }
-            } while (true);
+            }
+
         }
 
         /// <summary>
@@ -757,6 +783,7 @@ namespace Microsoft.PSharp.ReliableServices
                         await targetQueue.EnqueueAsync(tx, new EventInfo(e));
                         await tx.CommitAsync();
                     }
+                    break;
                 }
                 catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
                 {

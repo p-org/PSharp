@@ -15,20 +15,23 @@ namespace WordCount
     {
         static void Main(string[] args)
         {
-            var config = Configuration.Create().WithVerbosityEnabled(2);
+            //System.Diagnostics.Debugger.Launch();
+
+            var config = Configuration.Create(); //.WithVerbosityEnabled(2);
             var runtime = PSharpRuntime.Create(config);
             var stateManager = new StateManagerMock(runtime);
             runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
             var mid = runtime.CreateMachine(typeof(WordCount));
-
+            
             var rand = new Random();
             var cnt = 100;
             while(cnt > 0)
             {
                 cnt--;
                 var next = rand.Next('a', 'z' + 1);
-                ReliableStateMachine.ReliableSend(stateManager, mid, new WordEvent(next.ToString())).Wait();
+                ReliableStateMachine.ReliableSend(stateManager, mid, new WordEvent(((char)next).ToString())).Wait();
             }
+            Console.ReadLine();
         }
     }
 
@@ -78,6 +81,7 @@ namespace WordCount
         {
             // grab the word
             var word = (this.ReceivedEvent as WordEvent).word;
+            this.Logger.WriteLine("Including word: {0}", word);
 
             // increment frequency
             await WordFrequency.AddOrUpdateAsync(CurrentTransaction, word, 1, (k, v) => v + 1);
@@ -92,6 +96,8 @@ namespace WordCount
         /// <returns></returns>
         public override async Task OnActivate()
         {
+            this.Logger.WriteLine("Starting machine {0}", this.Id.Name);
+
             WordFrequency = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("WordFrequency");
             NumWords = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>("NumWords");
             NumWordsCache = await NumWords.GetOrAddAsync(CurrentTransaction, 0, 0);
