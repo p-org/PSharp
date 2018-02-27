@@ -14,8 +14,8 @@ namespace Microsoft.PSharp.ReliableServices
 {
     public interface ITxState : IReliableState
     {
-        void Commit();
+        void Commit(ITransaction tx);
 
-        void Abort();
+        void Abort(ITransaction tx);
     }
 }

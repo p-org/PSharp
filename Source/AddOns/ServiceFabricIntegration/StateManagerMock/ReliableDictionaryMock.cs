@@ -278,14 +278,14 @@ namespace Microsoft.PSharp.ReliableServices
             return mt;
         }
 
-        void ITxState.Abort()
+        void ITxState.Abort(ITransaction tx)
         {
             curr_dictionary = new ConcurrentDictionary<TKey, TValue>(persisted_dictionary);
             curr_tx = null;
         }
 
 
-        void ITxState.Commit()
+        void ITxState.Commit(ITransaction tx)
         {
             persisted_dictionary = new ConcurrentDictionary<TKey, TValue>(curr_dictionary);
             curr_tx = null;

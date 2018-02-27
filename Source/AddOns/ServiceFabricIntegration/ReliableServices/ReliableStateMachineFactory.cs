@@ -21,14 +21,9 @@ namespace Microsoft.PSharp.ReliableServices
         private IReliableStateManager StateManager;
 
         /// <summary>
-        /// Create machines in test mode
-        /// </summary>
-        private bool InTestMode;
-
-        /// <summary>
         /// Cache storing machine constructors.
         /// </summary>
-        private Dictionary<Type, Func<IReliableStateManager, bool, Machine>> MachineConstructorCache;
+        private Dictionary<Type, Func<IReliableStateManager, Machine>> MachineConstructorCache;
 
         #endregion
 
@@ -40,8 +35,8 @@ namespace Microsoft.PSharp.ReliableServices
         public ReliableStateMachineFactory(IReliableStateManager StateManager, bool testMode = false)
         {
             this.StateManager = StateManager;
-            MachineConstructorCache = new Dictionary<Type, Func<IReliableStateManager, bool, Machine>>();
-            this.InTestMode = testMode;
+            MachineConstructorCache = new Dictionary<Type, Func<IReliableStateManager, Machine>>();
+            ReliableStateMachine.testMode = testMode;
         }
 
         #endregion
@@ -67,18 +62,17 @@ namespace Microsoft.PSharp.ReliableServices
 
             lock (MachineConstructorCache)
             {
-                Func<IReliableStateManager, bool, Machine> constructor;
+                Func<IReliableStateManager, Machine> constructor;
                 if (!MachineConstructorCache.TryGetValue(type, out constructor))
                 {
                     var param1 = Expression.Parameter(typeof(IReliableStateManager), "stateManager");
-                    var param2 = Expression.Parameter(typeof(bool), "testMode");
-                    constructor = Expression.Lambda<Func<IReliableStateManager, bool, Machine>>(
-                        Expression.New(type.GetConstructor(new Type[] { typeof(IReliableStateManager), typeof(bool) }),
-                        param1, param2), param1, param2).Compile();
+                    constructor = Expression.Lambda<Func<IReliableStateManager, Machine>>(
+                        Expression.New(type.GetConstructor(new Type[] { typeof(IReliableStateManager) }),
+                        param1), param1).Compile();
                     MachineConstructorCache.Add(type, constructor);
                 }
 
-                newMachine = constructor(StateManager, InTestMode);
+                newMachine = constructor(StateManager);
             }
 
             return newMachine;
