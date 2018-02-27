@@ -344,7 +344,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 }
                 else
                 {
-                    Logger.Write($"'{PrioritizedSchedulableChoices[idx]}({1})'.\n");
+                    Logger.WriteLine($"'{PrioritizedSchedulableChoices[idx]}({1})'.");
                 }
             }
 
