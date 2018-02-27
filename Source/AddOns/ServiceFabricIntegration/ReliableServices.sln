@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliableServices", "ReliableServices\ReliableServices.csproj", "{BAB409E2-3370-401D-96BF-9A10A7BFFC91}"
 EndProject
@@ -14,6 +14,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateManagerMock", "StateManagerMock\StateManagerMock.csproj", "{B1A703F2-EF2B-4083-9A41-ABF897F94B7E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliableStateMachines.Tests.Unit", "ReliableStateMachines.Tests.Unit\ReliableStateMachines.Tests.Unit.csproj", "{549041C7-9D11-4753-A8D3-3812835FFA40}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{D084C36E-0971-4B11-8CEA-5BCCB5174BCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordCount", "Samples\WordCount\WordCount.csproj", "{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +67,14 @@ Global
 		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|Any CPU.Build.0 = Release|Any CPU
 		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|x64.ActiveCfg = Release|Any CPU
 		{549041C7-9D11-4753-A8D3-3812835FFA40}.Release|x64.Build.0 = Release|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Debug|x64.Build.0 = Debug|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Release|x64.ActiveCfg = Release|Any CPU
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +82,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7095295A-CD08-4F57-97D3-E482265B421E} = {39BBF28E-8EC4-4EB1-826F-224AC5101D69}
 		{C24174D7-A37A-46E7-A54E-2844251E8B6E} = {39BBF28E-8EC4-4EB1-826F-224AC5101D69}
+		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4A93451B-3795-4BFA-A2FD-FC961F52510A}

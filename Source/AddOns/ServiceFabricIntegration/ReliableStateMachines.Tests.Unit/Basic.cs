@@ -16,8 +16,8 @@ namespace Microsoft.PSharp.ReliableServices.Tests.Unit
 
         class M : ReliableStateMachine
         {
-            public M(IReliableStateManager stateManager, bool testMode)
-                : base(stateManager, testMode) { }
+            public M(IReliableStateManager stateManager)
+                : base(stateManager) { }
 
             IReliableDictionary<int, int> dictionary;
             int count;

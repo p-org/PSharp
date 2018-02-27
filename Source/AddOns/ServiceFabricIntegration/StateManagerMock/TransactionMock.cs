@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.ReliableServices
         {
             foreach(var obj in StateObjects)
             {
-                obj.Abort();
+                obj.Abort(this);
             }
 
             StateObjects.Clear();
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             foreach (var obj in StateObjects)
             {
-                obj.Commit();
+                obj.Commit(this);
             }
 
             StateObjects.Clear();

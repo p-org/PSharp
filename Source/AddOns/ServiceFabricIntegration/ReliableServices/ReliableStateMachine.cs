@@ -87,12 +87,17 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         private EventInfo LastDequeuedEvent;
 
+        /// <summary>
+        /// Create the machine in testing mode
+        /// </summary>
+        internal static bool testMode = false;
+
         #endregion
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected ReliableStateMachine(IReliableStateManager stateManager, bool testMode)
+        protected ReliableStateMachine(IReliableStateManager stateManager)
             : base()
         {
             this.StateManager = stateManager;
@@ -741,11 +746,22 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="options">Optional parameters</param>
         public static async Task ReliableSend(IReliableStateManager stateManager, MachineId mid, Event e)
         {
-            using (var tx = stateManager.CreateTransaction())
+            // TODO: retry policy
+            while (true)
             {
-                var targetQueue = await stateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
-                await targetQueue.EnqueueAsync(tx, new EventInfo(e));
-                await tx.CommitAsync();
+                try
+                {
+                    using (var tx = stateManager.CreateTransaction())
+                    {
+                        var targetQueue = await stateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
+                        await targetQueue.EnqueueAsync(tx, new EventInfo(e));
+                        await tx.CommitAsync();
+                    }
+                }
+                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
+                {
+                    // retry
+                }
             }
         }
 
