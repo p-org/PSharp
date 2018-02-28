@@ -364,7 +364,11 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             await CurrentTransaction.CommitAsync();
-            this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.TransactionId);
+
+            if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
+            {
+                this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.TransactionId);
+            }
 
             if (InTestMode)
             {
