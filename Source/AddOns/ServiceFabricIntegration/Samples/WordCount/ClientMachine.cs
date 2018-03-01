@@ -26,18 +26,18 @@ namespace WordCount
 
         async Task InitOnEntry()
         {
-            await SingleWordCountMachine();
-        }
-
-        async Task SingleWordCountMachine()
-        {
             var targetMachine = await this.ReliableCreateMachine(typeof(SimpleGatherResultsMachine), null);
-            var wordCountMachine = await this.ReliableCreateMachine(typeof(WordCountMachine), null, new WordCountInitEvent(targetMachine));
+            var wordCountMachines = new MachineId[Config.NumMachines];
+
+            for (int i = 0; i < Config.NumMachines; i++)
+            {
+                wordCountMachines[i] = await this.ReliableCreateMachine(typeof(WordCountMachine), null, new WordCountInitEvent(targetMachine));
+            }
 
             for (int i = 0; i < Config.NumWords; i++)
             {
                 var word = RandomString();
-                await this.ReliableSend(wordCountMachine, new WordEvent(word, i));
+                await this.ReliableSend(wordCountMachines[Math.Abs(word.GetHashCode() % Config.NumMachines)], new WordEvent(word, i));
             }
 
         }
