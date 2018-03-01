@@ -38,11 +38,6 @@ namespace WordCount
         IReliableDictionary<int, T> Register;
 
         /// <summary>
-        ///  Cached counter value
-        /// </summary>
-        T RegisterCache;
-
-        /// <summary>
         /// Creates a reliable counter meant only for sequential use
         /// </summary>
         /// <param name="name">Name of the counter</param>
@@ -68,7 +63,8 @@ namespace WordCount
                 await InitializeRegister(tx);
             }
 
-            return RegisterCache;
+            var cv = await Register.TryGetValueAsync(tx, 0);
+            return cv.Value;
         }
 
         /// <summary>
@@ -84,14 +80,13 @@ namespace WordCount
                 await InitializeRegister(tx);
             }
             await Register.AddOrUpdateAsync(tx, 0, value, (k, v) => value);
-            RegisterCache = value;
         }
 
 
         private async Task InitializeRegister(ITransaction tx)
         {
             Register = await StateManager.GetOrAddAsync<IReliableDictionary<int, T>>(Name);
-            RegisterCache = await Register.GetOrAddAsync(tx, 0, InitialRegisterValue);
+            await Register.TryAddAsync(tx, 0, InitialRegisterValue);
         }
 
     }

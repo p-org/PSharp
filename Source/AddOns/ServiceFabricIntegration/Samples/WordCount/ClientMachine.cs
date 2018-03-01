@@ -16,8 +16,6 @@ namespace WordCount
     /// </summary>
     class ClientMachine : ReliableStateMachine
     {
-        Random rand;
-
         /// <param name="stateManager"></param>
         public ClientMachine(IReliableStateManager stateManager)
             : base(stateManager) { }
@@ -28,7 +26,6 @@ namespace WordCount
 
         async Task InitOnEntry()
         {
-            rand = new Random();
             await SingleWordCountMachine();
         }
 
@@ -57,7 +54,7 @@ namespace WordCount
             var len = Config.StringLen;
             while (len > 0)
             {
-                ret += (char)rand.Next('0', '1' + 1);
+                ret += this.Random() ? "0" : "1"; 
                 len--;
             }
             return ret;

@@ -470,6 +470,9 @@ namespace Microsoft.PSharp.ReliableServices
             PendingStateChangesInverted.Clear();
             CurrentTransaction = null;
             RaisedEvent = null;
+
+            TestModeOutBuffer.Clear();
+            TestModeCreateBuffer.Clear();
         }
 
         /// <summary>
@@ -504,6 +507,7 @@ namespace Microsoft.PSharp.ReliableServices
                         catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
                         {
                             this.Logger.WriteLine("ReliableStateMachine encountered an exception trying to commit a transaction: {0}", ex.ToString());
+                            LastTxThrewException = true;
                             CleanupOnAbortedTransaction();
                             await TxAbortHandler();
                         }
@@ -517,6 +521,7 @@ namespace Microsoft.PSharp.ReliableServices
                         // Try to dequeue the next event, if there is one.
                         nextEventInfo = (LastTxThrewException && InTestMode) ? LastDequeuedEvent
                             : this.TryDequeueEvent();
+                        LastDequeuedEvent = nextEventInfo;
                     }
 
                     if (nextEventInfo == null && !InTestMode)

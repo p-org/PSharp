@@ -32,6 +32,8 @@ namespace WordCount
         async Task Update()
         {
             var ev = (this.ReceivedEvent as WordFreqEvent);
+            this.Logger.WriteLine("Got: word = {0}, freq = {1}, ts = {2}", ev.word, ev.freq, ev.timestamp);
+
             this.Assert(ev.freq > await HighestFrequency.Get(CurrentTransaction), "Frequency must be monotonically increasing");
             this.Logger.WriteLine("Highest Freq word = {0}, with freq {1}", ev.word, ev.freq);
             await HighestFrequency.Set(CurrentTransaction, ev.freq);

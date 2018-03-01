@@ -33,13 +33,20 @@ namespace WordCount
             Console.Out.Flush();
             Environment.Exit(1);
         }
+
+        [Test]
+        public static void Execute(PSharpRuntime runtime)
+        {
+            runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
+            runtime.CreateMachine(typeof(ClientMachine));
+        }
     }
 
     static class Config
     {
         public static readonly int WordCountMachines = 1;
         public static readonly int StringLen = 2;
-        public static readonly int NumWords = 20;
+        public static readonly int NumWords = 2;
     }
 
 }
