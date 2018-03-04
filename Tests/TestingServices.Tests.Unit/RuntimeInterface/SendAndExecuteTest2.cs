@@ -50,6 +50,38 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         }
 
+        class C : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            async Task InitOnEntry()
+            {
+                var d = this.CreateMachine(typeof(D));
+                var handled = await this.Runtime.SendEventAndExecute(d, new E1());
+                this.Assert(handled);
+            }
+        }
+
+        class D : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E1), nameof(Handle))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.Send(this.Id, new E1());
+            }
+
+            void Handle()
+            {
+
+            }
+        }
+
         [Fact]
         public void TestSyncSendToReceive()
         {
@@ -59,6 +91,17 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertSucceeded(config, test);
+        }
+
+        [Fact]
+        public void TestSyncSendSometimesDoesNotHandle()
+        {
+            var config = Configuration.Create().WithNumberOfIterations(1000);
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(C));
+            });
+
+            base.AssertFailed(config, test, 1, true);
         }
     }
 }
