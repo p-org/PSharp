@@ -50,9 +50,10 @@
   <ItemGroup>
     <Compile Include="ClientPeriodicTimer.cs" />
     <Compile Include="ClientSingleTimer.cs" />
+    <Compile Include="PeriodicSafetyMonitor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SafetyMonitor.cs" />
+    <Compile Include="SingleSafetyMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

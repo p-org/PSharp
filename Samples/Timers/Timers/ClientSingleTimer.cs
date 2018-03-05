@@ -40,12 +40,12 @@ namespace Timers
 
 		private void HandleTimeout()
 		{
-			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyTimeoutReceived());
+			this.Monitor<SingleSafetyMonitor>(new SingleSafetyMonitor.NotifyTimeoutReceived());
 		}
 
 		private void HandleSuccessfulCancellation()
 		{
-			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyCancelSuccess());
+			this.Monitor<SingleSafetyMonitor>(new SingleSafetyMonitor.NotifyCancelSuccess());
 		}
 
 		private void HandleFailedCancellation()
@@ -53,7 +53,7 @@ namespace Timers
 			// For a failed cancellation, a timeout event has already been fired. 
 			// Thus, there should be a single timeout event in this machine's queue.
 			
-			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyCancelFailure());
+			this.Monitor<SingleSafetyMonitor>(new SingleSafetyMonitor.NotifyCancelFailure());
 		}
 
 	}

@@ -13,7 +13,7 @@ namespace Timers
 
 	class ClientPeriodicTimer : Machine
 	{
-		MachineId periodicTimerModel;
+		MachineId periodicTimer;
 		int k;
 
 		[Start]
@@ -25,38 +25,31 @@ namespace Timers
 
 		private void Initialize()
 		{
-			periodicTimerModel = this.CreateMachine(typeof(PeriodicTimer), new InitTimer(this.Id, 1000));
-			this.k = 0;
+			periodicTimer = this.CreateMachine(typeof(PeriodicTimerModel), new InitTimer(this.Id, 1000));
 
 			// Start the timer
-			this.Send(this.periodicTimerModel, new eStartTimer());
-			// this.Send(this.periodicTimerModel, new eCancelTimer());
-
+			this.Send(this.periodicTimer, new eStartTimer());
 		}
 
 		private void HandleTimeout()
 		{
-			Console.WriteLine("Client: Timeout received from timer with k: " + k);
-			this.k++;
+			this.Monitor<PeriodicSafetyMonitor>(new PeriodicSafetyMonitor.NotifyTimeoutReceived());
 
-			if(this.k==20)
+			if(this.Random())
 			{
-				this.Send(this.periodicTimerModel, new eCancelTimer());
+				this.Send(this.periodicTimer, new eCancelTimer());
 			}
 		}
 
 		private void HandleSuccessfulCancellation()
 		{
-			Console.WriteLine("Client: Timer canceled successfully");
-			this.Raise(new Halt());
+			this.Monitor<PeriodicSafetyMonitor>(new PeriodicSafetyMonitor.NotifyCancelSuccess());
 		}
 
 		private void HandleFailedCancellation()
 		{
-			this.Send(this.Id, new MarkupEvent());
-
-			Console.WriteLine("Client: Timer cancellation failed");
-			this.Raise(new Halt());
+			this.Monitor<PeriodicSafetyMonitor>(new PeriodicSafetyMonitor.NotifyCancelFailure());
 		}
+		
 	}
 }
