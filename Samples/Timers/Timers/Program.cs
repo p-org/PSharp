@@ -23,7 +23,7 @@ namespace Timers
 		{
 			Console.WriteLine("Starting machine...");
 			runtime.RegisterMonitor(typeof(SafetyMonitor));
-			runtime.CreateMachine(typeof(ClientPeriodicTimer));
+			runtime.CreateMachine(typeof(ClientSingleTimer));
 		}
 	}
 }

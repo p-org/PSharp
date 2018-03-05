@@ -27,6 +27,8 @@ namespace Timers
 
 		[Start]
 		[OnEventDoAction(typeof(NotifyTimeoutReceived), nameof(HandleTimeout))]
+		[OnEventDoAction(typeof(NotifyCancelSuccess), nameof(HandleCancelSuccess))]
+		[OnEventDoAction(typeof(NotifyCancelFailure), nameof(HandleCancelFailure))]
 		internal sealed class Active : MonitorState { }
 
 		#endregion
@@ -35,13 +37,19 @@ namespace Timers
 		private void HandleTimeout()
 		{
 			this.Assert(!IsTimeoutSent && !IsCancelSuccess && !IsCancelFailed);
-			this.IsTimeoutSent = true;
+			IsTimeoutSent = true;
 		}
 
 		private void HandleCancelSuccess()
 		{
 			this.Assert(!IsTimeoutSent && !IsCancelSuccess && !(IsCancelFailed));
-			this.IsCancelSuccess = true;
+			IsCancelSuccess = true;
+		}
+
+		private void HandleCancelFailure()
+		{
+			this.Assert(IsTimeoutSent && !IsCancelSuccess && !IsCancelFailed);
+			IsCancelFailed = true;
 		}
 		#endregion
 	}

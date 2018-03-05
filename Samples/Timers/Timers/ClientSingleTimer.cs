@@ -8,12 +8,13 @@ using Microsoft.PSharp.Timer;
 
 namespace Timers
 {
+
 	/// <summary>
 	/// Create a client machine which uses a P# single-timeout machine.
 	/// </summary>
 	class ClientSingleTimer : Machine  
 	{
-		MachineId singleTimerModel;
+		MachineId singleTimer;
 
 		[Start]
 		[OnEntry(nameof(Initialize))]
@@ -24,32 +25,26 @@ namespace Timers
 
 		private void Initialize()
 		{
-			singleTimerModel = this.CreateMachine(typeof(SingleTimerModel));
-
-			// Initialize the timer. The period is unneccessary since we have a timer model.
-			this.Send(this.singleTimerModel, new InitTimer(this.Id));
+			singleTimer = this.CreateMachine(typeof(SingleTimerModel), new InitTimer(this.Id));
 
 			// Start the timer
-			this.Send(this.singleTimerModel, new eStartTimer());
+			this.Send(this.singleTimer, new eStartTimer());
 
-			// Non-deterministically choose to cancel the timer
-			bool choice = this.Random();
-
-			if( choice )
+			// Non-deterministically cancel the timer
+			if(this.Random())
 			{
-				this.Send(this.singleTimerModel, new eCancelTimer());
+				this.Send(this.singleTimer, new eCancelTimer());
 			}
+
 		}
 
 		private void HandleTimeout()
 		{
-			// Console.WriteLine("Client: Timeout received from timer");
 			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyTimeoutReceived());
 		}
 
 		private void HandleSuccessfulCancellation()
 		{
-			// Console.WriteLine("Client: Timer canceled successfully");
 			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyCancelSuccess());
 		}
 
@@ -57,12 +52,8 @@ namespace Timers
 		{
 			// For a failed cancellation, a timeout event has already been fired. 
 			// Thus, there should be a single timeout event in this machine's queue.
-			Object timeout = this.ReceivedEvent;
-			this.Assert(timeout.GetType() == typeof(eTimeOut));
-
+			
 			this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyCancelFailure());
-
-			// Console.WriteLine("Client: Timer cancellation failed");
 		}
 
 	}

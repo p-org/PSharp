@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Timer
 		[OnEventDoAction(typeof(eCancelTimer), nameof(SucceedCancellation))]
 		[OnEventGotoState(typeof(eStartTimer), typeof(Active))]
 		internal sealed class Quiescent : MachineState { }
-
+		
 		/// <summary>
 		/// Timer has been started with eStartTimer, and can send timeout events.
 		/// </summary>
@@ -90,6 +90,7 @@ namespace Microsoft.PSharp.Timer
 		private void InitializeTimer()
 		{
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
+			timer = new System.Timers.Timer();
 			timer.Elapsed += OnTimedEvent;  // associate handler for system timeout event
 			timer.AutoReset = false;    // one-off timer event required
 			this.IsTimerEnabled = false;
@@ -118,6 +119,7 @@ namespace Microsoft.PSharp.Timer
 				{
 					this.IsTimeoutSent = true;
 					this.Send(this.client, new eTimeOut());
+					this.Goto<NonzeroTimeouts>();
 				}
 			}
 		}

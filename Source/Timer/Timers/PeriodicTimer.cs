@@ -96,7 +96,6 @@ namespace Microsoft.PSharp.Timer
 
 		private void InitializeTimer()
 		{
-			Console.WriteLine("Initializing Periodic timer");
 			this.client = (this.ReceivedEvent as InitTimer).getClientId();
 			this.period = (this.ReceivedEvent as InitTimer).getPeriod();
 			timer = new System.Timers.Timer(this.period); 
@@ -159,6 +158,7 @@ namespace Microsoft.PSharp.Timer
 				{
 					this.Send(this.client, new eTimeOut());
 					this.IsTimeoutSent = true;
+					this.Goto<NonzeroTimeouts>();
 				}
 			}
 		}
