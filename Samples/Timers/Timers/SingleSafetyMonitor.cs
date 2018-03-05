@@ -41,6 +41,7 @@ namespace Timers
 			IsCancelSuccess = false;
 			IsCancelFailed = false;
 		}
+
 		private void HandleTimeout()
 		{
 			this.Assert(!IsTimeoutSent && !IsCancelSuccess && !IsCancelFailed);

@@ -26,6 +26,7 @@ namespace Timers
 		#region states
 
 		[Start]
+		[OnEntry(nameof(InitializeMonitor))]
 		[OnEventDoAction(typeof(NotifyTimeoutReceived), nameof(HandleTimeout))]
 		[OnEventDoAction(typeof(NotifyCancelSuccess), nameof(HandleCancelSuccess))]
 		[OnEventDoAction(typeof(NotifyCancelFailure), nameof(HandleCancelFailure))]
@@ -34,6 +35,13 @@ namespace Timers
 		#endregion
 
 		#region handlers
+		private void InitializeMonitor()
+		{
+			IsTimeoutSent = false;
+			IsCancelSuccess = false;
+			IsCancelFailed = false;
+		}
+
 		private void HandleTimeout()
 		{
 			this.Assert(!IsCancelSuccess && !IsCancelFailed);
