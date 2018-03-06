@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex1();
             }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if(ex is Ex1) { return true; }
                 return false;
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex1();
             }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if (ex is Ex1) { return true; }
                 return false;
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex1();
             }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if (ex is Ex1) { return true; }
                 return false;
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             class Done : MachineState { }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if (ex is Ex1) { return true; }
                 return false;
@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex2();
             }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if (ex is Ex1) { return true; }
                 return false;
@@ -164,7 +164,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert(false);
             }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if (ex is Ex1)
                 {
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert(false);
             }
 
-            protected override bool OnException(string method, Exception ex)
+            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
             {
                 if (ex is Ex1)
                 {
