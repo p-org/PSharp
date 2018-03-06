@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert(handled);
             }
 
-            protected override bool OnException(string methodName, Exception ex)
+            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
             {
                 this.Assert(false);
                 return false;
@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Exception();
             }
 
-            protected override bool OnException(string methodName, Exception ex)
+            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
             {
                 return HandleException;
             }

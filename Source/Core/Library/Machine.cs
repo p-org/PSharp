@@ -124,6 +124,12 @@ namespace Microsoft.PSharp
         /// </summary>
         private bool IsPopInvoked;
 
+        /// <summary>
+        /// User OnException asked for the machine to be gracefully halted
+        /// (suppressing the exception)
+        /// </summary>
+        private bool OnExceptionRequestedGracefulHalt;
+
         #endregion
 
         #region properties
@@ -234,6 +240,7 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsPopInvoked = false;
+            this.OnExceptionRequestedGracefulHalt = false;
         }
 
         #endregion
@@ -852,22 +859,21 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the machine.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        lock (this.Inbox)
-                        {
-                            this.Info.IsHalted = true;
-                            base.Runtime.NotifyHalted(this, this.Inbox);
-                            this.CleanUpResources();
-                        }
-
-                        // Invoke user callback outside the lock.
-                        this.OnHalt();
-
+                        HaltMachine();
                         return;
                     }
 
-                    // If the event cannot be handled then report an error and exit.
-                    this.Assert(false, $"Machine '{base.Id}' received event " +
-                        $"'{e.GetType().FullName}' that cannot be handled.");
+                    try
+                    {
+                        // If the event cannot be handled then report an error and exit.
+                        this.Assert(false, $"Machine '{base.Id}' received event " +
+                            $"'{e.GetType().FullName}' that cannot be handled.");
+                    }
+                    catch (Exception ex) when (OnUnhandledEventExceptionHandler("HandleEvent", ex))
+                    {
+                        HaltMachine();
+                        return;
+                    }
                 }
 
                 // Checks if the event is a goto state event.
@@ -1068,7 +1074,7 @@ namespace Microsoft.PSharp
                     {
                         // user handled the exception, return normally
                     }
-                    catch (Exception ex) when (InvokeOnFailureExceptionFilter(cachedAction, ex))
+                    catch (Exception ex) when (!OnExceptionRequestedGracefulHalt && InvokeOnFailureExceptionFilter(cachedAction, ex))
                     {
                         // If InvokeOnFailureExceptionFilter does not fail-fast, it returns
                         // false to process the exception normally.
@@ -1077,8 +1083,6 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
-                this.Info.IsHalted = true;
-
                 Exception innerException = ex;
                 while (innerException is TargetInvocationException)
                 {
@@ -1092,13 +1096,20 @@ namespace Microsoft.PSharp
 
                 if (innerException is ExecutionCanceledException)
                 {
+                    this.Info.IsHalted = true;
                     IO.Debug.WriteLine("<Exception> ExecutionCanceledException was " +
                         $"thrown from Machine '{base.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
+                    this.Info.IsHalted = true;
                     IO.Debug.WriteLine("<Exception> TaskSchedulerException was " +
                         $"thrown from Machine '{base.Id}'.");
+                }
+                else if (OnExceptionRequestedGracefulHalt)
+                {
+                    // gracefully halt
+                    HaltMachine();
                 }
                 else
                 {
@@ -1780,6 +1791,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Invokes user callback when a machine receives an event it cannot handle
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
+        private bool OnUnhandledEventExceptionHandler(string methodName, Exception ex)
+        {
+            OnException(methodName, ex, ref OnExceptionRequestedGracefulHalt);
+            return OnExceptionRequestedGracefulHalt;
+        }
+
+        /// <summary>
         /// Invokes user callback when a machine throws an exception.
         /// </summary>
         /// <param name="ex">The exception thrown by the machine</param>
@@ -1795,10 +1818,11 @@ namespace Microsoft.PSharp
 
             this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
 
-            var ret = OnException(methodName, ex);
+            var ret = OnException(methodName, ex, ref OnExceptionRequestedGracefulHalt);
 
             if(ret)
             {
+                OnExceptionRequestedGracefulHalt = false;
                 this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
             }
 
@@ -1809,9 +1833,10 @@ namespace Microsoft.PSharp
         /// User callback when a machine throws an exception.
         /// </summary>
         /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="gracefullyHalt">When set to true (and if the exception is not handled) then the machine gracefully halts</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
-        protected virtual bool OnException(string methodName, Exception ex)
+        protected virtual bool OnException(string methodName, Exception ex, ref bool gracefullyHalt)
         {
             return false;
         }
@@ -1838,6 +1863,22 @@ namespace Microsoft.PSharp
             this.Inbox.Clear();
             this.EventWaitHandlers.Clear();
             this.ReceivedEvent = null;
+        }
+
+        /// <summary>
+        /// Halts the machine
+        /// </summary>
+        private void HaltMachine()
+        {
+            lock (this.Inbox)
+            {
+                this.Info.IsHalted = true;
+                base.Runtime.NotifyHalted(this, this.Inbox);
+                this.CleanUpResources();
+            }
+
+            // Invoke user callback outside the lock.
+            this.OnHalt();
         }
 
         /// <summary>
