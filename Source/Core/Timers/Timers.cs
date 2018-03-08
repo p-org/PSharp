@@ -66,26 +66,12 @@ namespace Microsoft.PSharp.Timers
 
 		#endregion
 
-		#region internal events
-
-		private class InitTimer : Event
-		{
-			public MachineId client;
-
-			public InitTimer(MachineId client)
-			{
-				this.client = client;
-			}
-		}
-
-		#endregion
-
 		#region Timer API
 
 		/// <summary>
 		/// Start a timer. 
 		/// </summary>
-		protected void Start()
+		protected void StartTimer()
 		{
 			// For production code, use the system timer.
 			if (!IsTestingMode)
@@ -112,7 +98,8 @@ namespace Microsoft.PSharp.Timers
 		/// <summary>
 		/// Stop the timer.
 		/// </summary>
-		protected void Stop()
+		/// <param name="flush">True if the user wants to flush the input queue of all eTimeout events.</param>
+		protected void StopTimer(bool flush)
 		{
 			if (!IsPeriodic)
 			{
@@ -127,6 +114,14 @@ namespace Microsoft.PSharp.Timers
 			else
 			{
 				this.Send(this.modelTimer, new Halt());
+			}
+
+			// Clear the client machine's queue of eTimeout events.
+			if (flush)
+			{
+				this.Send(this.Id, new Markup());
+
+				while (this.Receive(typeof(Markup), typeof(eTimeout)).GetType() != (typeof(Markup))) { }
 			}
 		}
 
