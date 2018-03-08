@@ -12,7 +12,19 @@ namespace Microsoft.PSharp.Timers
 		/// <summary>
 		/// False if running in production mode.
 		/// </summary>
-		public static bool testMode;
+		public static bool IsTestingMode;
+
+		/// <summary>
+		/// False if the timer sends a single timeout event.
+		/// True if the timer sends timeouts at regular intervals.
+		/// </summary>
+		public static bool IsPeriodic;
+
+		/// <summary>
+		/// If the timer is periodic, periodicity of the timeout events.
+		/// Default is 100ms, same as the default in System.Timers.Timer
+		/// </summary>
+		public static int period = 100;
 
 		#endregion
 
@@ -24,14 +36,40 @@ namespace Microsoft.PSharp.Timers
 		private System.Timers.Timer timer;
 
 		/// <summary>
-		/// Flag to prevent timeout events being sent after stopping the timer.
+		/// Model timers generating timeout events in test mode.
 		/// </summary>
-		private volatile bool isTimerEnabled = false;
+		private MachineId modelTimer;
 
 		/// <summary>
-		/// Used to synchronize Elapsed event handler with timer stoppage.
+		/// Machine to which the timer model sends timeout events.
+		/// </summary>
+		private MachineId client;
+
+		/// <summary>
+		/// Flag to prevent timeout events being sent after stopping the timer.
+		/// </summary>
+		private volatile bool IsTimerEnabled = false;
+
+		/// <summary>
+		/// Used to synchronize the Elapsed event handler with timer stoppage.
 		/// </summary>
 		private readonly Object tlock = new object();
+
+		#endregion
+
+		#region internal events
+
+		private class InitTimer : Event
+		{
+			public MachineId client;
+
+			public InitTimer(MachineId client)
+			{
+				this.client = client;
+			}
+		}
+
+		private class Unit : Event { }
 
 		#endregion
 
@@ -39,33 +77,60 @@ namespace Microsoft.PSharp.Timers
 
 		/// <summary>
 		/// Start a timer. 
-		/// If isPeriodic is set, then timeout events are sent periodically (default period 100ms).
 		/// </summary>
-		/// <param name="isPeriodic">True if a periodic timer is desired.</param>
-		protected void Start(bool isPeriodic)
+		protected void Start()
 		{
 			// For production code, use the system timer.
-			if (!testMode)
+			if (!IsTestingMode)
 			{
-				if(isPeriodic)
+				this.timer = new System.Timers.Timer(period);
+
+				if(!IsPeriodic)
 				{
-					this.timer = new System.Timers.Timer();
-					this.timer.Elapsed += OnTimedEvent;
-					this.isTimerEnabled = true;
-					this.timer.Start();
+					this.timer.AutoReset = false;
 				}
+				
+				this.timer.Elapsed += ElapsedEventHandler;
+				this.IsTimerEnabled = true;
+				this.timer.Start();
+			}
+
+			else
+			{
+				this.modelTimer = this.CreateMachine(typeof(Timer), new InitTimer(this.Id));
 			}
 		}
 
 		/// <summary>
-		/// Start a timer.
-		/// If isPeriodic is set, then timeout events are sent periodically, with 'period' periodicity.
+		/// Stop the timer.
 		/// </summary>
-		/// <param name="isPeriodic">True if a periodic timer is desired.</param>
-		/// <param name="period">Periodicity of the timer.</param>
-		protected void Start(bool isPeriodic, int period)
+		protected void Stop()
 		{
+			if(!IsPeriodic)
+			{
+				lock(tlock)
+				{
+					IsTimerEnabled = false;
+					timer.Stop();
+					timer.Dispose();
+				}
+			}
 
+			else
+			{
+				this.Send(this.modelTimer, new Halt());
+			}
+		}
+
+		private void ElapsedEventHandler(Object source, ElapsedEventArgs e)
+		{
+			lock (tlock)
+			{
+				if (IsTimerEnabled)
+				{
+					Runtime.SendEvent(this.Id, new eTimeout());
+				}
+			}
 		}
 
 		#endregion
@@ -76,13 +141,49 @@ namespace Microsoft.PSharp.Timers
 		{
 			lock(this.tlock)
 			{
-				if(this.isTimerEnabled)
+				if(this.IsTimerEnabled)
 				{
 					Runtime.SendEvent(this.Id, new eTimeout());
 				}
 			}
 		}
 
+		#endregion
+
+		#region states
+
+		[Start]
+		[OnEntry(nameof(InitializeTimer))]
+		private class Init : MachineState { }
+
+		[OnEntry(nameof(SendTimeout))]
+		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
+		private class Active : MachineState { }
+		#endregion
+
+		#region event handlers
+		private void InitializeTimer()
+		{
+			this.client = (this.ReceivedEvent as InitTimer).client;
+			this.Goto<Active>();
+		}
+
+		private void SendTimeout()
+		{
+			// If not periodic, send a single timeout event
+			if(!IsPeriodic)
+			{
+				this.Send(this.client, new eTimeout());
+			}
+			else
+			{
+				if(this.Random())
+				{
+					this.Send(this.client, new eTimeout());
+				}
+				this.Raise(new Unit());
+			}
+		}
 		#endregion
 	}
 }
