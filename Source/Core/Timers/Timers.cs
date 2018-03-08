@@ -1,3 +1,17 @@
+//-----------------------------------------------------------------------
+// <copyright file="Timers.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
 using System;
 using System.Timers;
 
@@ -41,11 +55,6 @@ namespace Microsoft.PSharp.Timers
 		private MachineId modelTimer;
 
 		/// <summary>
-		/// Machine to which the timer model sends timeout events.
-		/// </summary>
-		private MachineId client;
-
-		/// <summary>
 		/// Flag to prevent timeout events being sent after stopping the timer.
 		/// </summary>
 		private volatile bool IsTimerEnabled = false;
@@ -69,8 +78,6 @@ namespace Microsoft.PSharp.Timers
 			}
 		}
 
-		private class Unit : Event { }
-
 		#endregion
 
 		#region Timer API
@@ -85,19 +92,20 @@ namespace Microsoft.PSharp.Timers
 			{
 				this.timer = new System.Timers.Timer(period);
 
-				if(!IsPeriodic)
+				if (!IsPeriodic)
 				{
 					this.timer.AutoReset = false;
 				}
-				
+
 				this.timer.Elapsed += ElapsedEventHandler;
 				this.IsTimerEnabled = true;
 				this.timer.Start();
 			}
 
+			// In testing mode, create a timer model, and pass the identifier of the calling machine.
 			else
 			{
-				this.modelTimer = this.CreateMachine(typeof(Timer), new InitTimer(this.Id));
+				this.modelTimer = this.CreateMachine(typeof(TimerModel), new InitTimer(this.Id));
 			}
 		}
 
@@ -106,9 +114,9 @@ namespace Microsoft.PSharp.Timers
 		/// </summary>
 		protected void Stop()
 		{
-			if(!IsPeriodic)
+			if (!IsPeriodic)
 			{
-				lock(tlock)
+				lock (tlock)
 				{
 					IsTimerEnabled = false;
 					timer.Stop();
@@ -139,51 +147,15 @@ namespace Microsoft.PSharp.Timers
 
 		private void OnTimedEvent(Object source, ElapsedEventArgs e)
 		{
-			lock(this.tlock)
+			lock (this.tlock)
 			{
-				if(this.IsTimerEnabled)
+				if (this.IsTimerEnabled)
 				{
 					Runtime.SendEvent(this.Id, new eTimeout());
 				}
 			}
 		}
 
-		#endregion
-
-		#region states
-
-		[Start]
-		[OnEntry(nameof(InitializeTimer))]
-		private class Init : MachineState { }
-
-		[OnEntry(nameof(SendTimeout))]
-		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
-		private class Active : MachineState { }
-		#endregion
-
-		#region event handlers
-		private void InitializeTimer()
-		{
-			this.client = (this.ReceivedEvent as InitTimer).client;
-			this.Goto<Active>();
-		}
-
-		private void SendTimeout()
-		{
-			// If not periodic, send a single timeout event
-			if(!IsPeriodic)
-			{
-				this.Send(this.client, new eTimeout());
-			}
-			else
-			{
-				if(this.Random())
-				{
-					this.Send(this.client, new eTimeout());
-				}
-				this.Raise(new Unit());
-			}
-		}
 		#endregion
 	}
 }
