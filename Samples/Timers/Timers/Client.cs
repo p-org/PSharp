@@ -8,6 +8,10 @@ namespace Timers
 {
     class Client : Timer
 	{
+		#region fields
+		int count;
+		#endregion
+
 		#region states
 		[Start]
 		[OnEntry(nameof(InitializeClient))]
@@ -19,14 +23,22 @@ namespace Timers
 		#region handlers
 		private void InitializeClient()
 		{
-			Timer.IsTestingMode = true;
+			this.count = 0;
+			Timer.IsTestingMode = false;
 			Timer.IsPeriodic = true;
-			this.Start();
+			Timer.period = 1000;
+			this.StartTimer();
 		}
 
 		private void HandleTimeout()
 		{
 			Console.WriteLine("Timeout received!");
+			this.count++;
+
+			if(count == 20)
+			{
+				this.StopTimer(true);
+			}
 		}
 		#endregion
 	}
