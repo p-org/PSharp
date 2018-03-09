@@ -203,6 +203,66 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
+        class Done: Event { }
+
+        class GetsDone : Monitor
+        {
+            [Start]
+            [Hot]
+            [OnEventGotoState(typeof(Done), typeof(Ok))]
+            class Init : MonitorState { }
+
+            [Cold]
+            class Ok : MonitorState { }
+        }
+
+        class M4 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.HaltMachine;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<GetsDone>(new Done());
+            }
+        }
+
+        class M5 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                if (ex is UnHandledEventException)
+                {
+                    return OnExceptionOutcome.HaltMachine;
+                }
+                return OnExceptionOutcome.ThrowException;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<GetsDone>(new Done());
+            }
+        }
+
         [Fact]
         public void TestExceptionSuppressed1()
         {
@@ -271,6 +331,29 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             AssertFailed(test, 1, true);
+        }
+
+        [Fact]
+        public void TestMachineHalt1()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(GetsDone));
+                r.CreateMachine(typeof(M4));
+            });
+
+            AssertSucceeded(test);
+        }
+
+        [Fact]
+        public void TestMachineHalt2()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(GetsDone));
+                var m = r.CreateMachine(typeof(M5));
+                r.SendEvent(m, new E());
+            });
+
+            AssertSucceeded(test);
         }
 
     }
