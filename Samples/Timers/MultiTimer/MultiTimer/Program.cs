@@ -1,11 +1,10 @@
 ﻿using System;
 using Microsoft.PSharp;
 
-namespace Timers
+namespace MultiTimer
 {
     class Program
     {
-
 		static void Main(string[] args)
 		{
 			var configuration = Configuration.Create().WithVerbosityEnabled(1);
