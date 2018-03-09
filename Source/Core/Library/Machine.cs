@@ -1806,11 +1806,11 @@ namespace Microsoft.PSharp
                 case OnExceptionOutcome.HaltMachine:
                 case OnExceptionOutcome.HandledException:
                     OnExceptionRequestedGracefulHalt = true;
-                    break;
+                    return true;
                 case OnExceptionOutcome.ThrowException:
                     return false;
             }
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -1838,13 +1838,13 @@ namespace Microsoft.PSharp
                     return false;
                 case OnExceptionOutcome.HandledException:
                     this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
-                    break;
+                    return true;
                 case OnExceptionOutcome.HaltMachine:
                     OnExceptionRequestedGracefulHalt = true;
-                    break;
+                    return false;
             }
 
-            return true;
+            return false;
         }
 
         /// <summary>
