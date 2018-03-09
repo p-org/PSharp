@@ -52,10 +52,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 tcs.TrySetResult(true);
             }
 
-            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 this.Assert(false);
-                return false;
+                return OnExceptionOutcome.ThrowException;
             }
         }
 
@@ -78,9 +78,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new Exception();
             }
 
-            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                return HandleException;
+                return HandleException ? OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException;
             }
         }
 
