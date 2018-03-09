@@ -6,7 +6,7 @@ using Microsoft.PSharp.Timers;
 
 namespace Timers
 {
-    class Client : Timer
+    class Client : TMachine
 	{
 		#region fields
 		int count;
