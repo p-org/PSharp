@@ -4,10 +4,13 @@ using System.Text;
 using Microsoft.PSharp;
 using Microsoft.PSharp.Timers;
 
-namespace Timers
+namespace SingleTimerModel
 {
+	/// <summary>
+	/// A client machine which uses a timer model.
+	/// </summary>
     class Client : TMachine
-	{
+    {
 		#region fields
 		int count;
 		#endregion
@@ -24,10 +27,10 @@ namespace Timers
 		private void InitializeClient()
 		{
 			this.count = 0;
-			Timer.IsTestingMode = false;
-			Timer.IsPeriodic = true;
-			Timer.period = 1000;
-			this.StartTimer();
+
+			// Start a periodic timer in test mode
+			// this.StartTimer(true, false) would generate a single timeout event.
+			this.StartTimer(true, false);
 		}
 
 		private void HandleTimeout()
@@ -35,11 +38,13 @@ namespace Timers
 			Console.WriteLine("Timeout received!");
 			this.count++;
 
-			if(count == 20)
+			if (count == 20)
 			{
+				// Stop the timer and flush the queue of this machine of all eTimeout events
 				this.StopTimer(true);
 			}
 		}
 		#endregion
 	}
 }
+

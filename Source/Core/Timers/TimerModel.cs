@@ -21,11 +21,22 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Timers
 {
+	/// <summary>
+	/// A timer model, used for testing purposes.
+	/// </summary>
     class TimerModel : Machine
     {
 		#region fields
 
+		/// <summary>
+		/// Machine to which eTimeout events are dispatched.
+		/// </summary>
 		MachineId client;
+
+		/// <summary>
+		/// True if periodic eTimeout events are desired.
+		/// </summary>
+		bool IsPeriodic;
 
 		#endregion
 
@@ -48,14 +59,16 @@ namespace Microsoft.PSharp.Timers
 		#region event handlers
 		private void InitializeTimer()
 		{
-			this.client = (this.ReceivedEvent as InitTimer).client;
+			InitTimer e = (this.ReceivedEvent as InitTimer);
+			this.client = e.client;
+			this.IsPeriodic = e.IsPeriodic;
 			this.Goto<Active>();
 		}
 
 		private void SendTimeout()
 		{
 			// If not periodic, send a single timeout event
-			if (!Timer.IsPeriodic)
+			if (!this.IsPeriodic)
 			{
 				this.Send(this.client, new eTimeout());
 			}
