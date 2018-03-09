@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
 

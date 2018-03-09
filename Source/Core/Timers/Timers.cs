@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Timers
 		/// <param name="flush">True if the user wants to flush the input queue of all eTimeout events.</param>
 		protected void StopTimer(bool flush)
 		{
-			if (!this.IsPeriodic)
+			if (!this.IsTestingMode)
 			{
 				lock (this.tlock)
 				{

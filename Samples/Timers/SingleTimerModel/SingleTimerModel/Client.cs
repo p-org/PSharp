@@ -30,7 +30,7 @@ namespace SingleTimerModel
 
 			// Start a periodic timer in test mode
 			// this.StartTimer(true, false) would generate a single timeout event.
-			this.StartTimer(true, false);
+			this.StartTimer(true, true);
 		}
 
 		private void HandleTimeout()
