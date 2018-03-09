@@ -46,10 +46,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();
             }
 
-            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return true;
+                return OnExceptionOutcome.HandledException;
             }
         }
 
@@ -67,10 +67,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();
             }
 
-            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return false;
+                return OnExceptionOutcome.ThrowException;
             }
 
         }
@@ -90,10 +90,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();                
             }
 
-            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return true;
+                return OnExceptionOutcome.HandledException;
             }
         }
 
@@ -112,10 +112,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();
             }
 
-            protected override bool OnException(string methodName, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return false;
+                return OnExceptionOutcome.ThrowException;
             }
 
         }

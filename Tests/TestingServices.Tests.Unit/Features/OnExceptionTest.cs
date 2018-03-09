@@ -46,10 +46,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex1();
             }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if(ex is Ex1) { return true; }
-                return false;
+                if(ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                return OnExceptionOutcome.ThrowException;
             }
         }
 
@@ -70,10 +70,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex1();
             }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return true; }
-                return false;
+                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                return OnExceptionOutcome.ThrowException;
             }
         }
 
@@ -95,10 +95,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex1();
             }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return true; }
-                return false;
+                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                return OnExceptionOutcome.ThrowException;
             }
         }
 
@@ -122,10 +122,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             class Done : MachineState { }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return true; }
-                return false;
+                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                return OnExceptionOutcome.ThrowException;
             }
         }
 
@@ -140,10 +140,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 throw new Ex2();
             }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return true; }
-                return false;
+                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                return OnExceptionOutcome.ThrowException;
             }
         }
 
@@ -164,14 +164,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert(false);
             }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
                     this.Raise(new E(this.Id));
-                    return true;
+                    return OnExceptionOutcome.HandledException;
                 }
-                return false;
+                return OnExceptionOutcome.HandledException;
             }
         }
 
@@ -192,14 +192,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert(false);
             }
 
-            protected override bool OnException(string method, Exception ex, ref bool gracefulHalt)
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
                     this.Send(this.Id, new E(this.Id));
-                    return true;
+                    return OnExceptionOutcome.HandledException;
                 }
-                return false;
+                return OnExceptionOutcome.ThrowException;
             }
         }
 

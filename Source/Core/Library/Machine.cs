@@ -850,6 +850,7 @@ namespace Microsoft.PSharp
         private async Task HandleEvent(Event e)
         {
             base.Info.CurrentActionCalledTransitionStatement = false;
+            var currentState = this.CurrentStateName;
 
             while (true)
             {
@@ -863,16 +864,17 @@ namespace Microsoft.PSharp
                         return;
                     }
 
-                    try
+                    var unhandledEx = new UnHandledEventException(this.Id, currentState, e, "Unhandled Event");
+                    if (OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
+                    {
+                        HaltMachine();
+                        return;
+                    }
+                    else
                     {
                         // If the event cannot be handled then report an error and exit.
                         this.Assert(false, $"Machine '{base.Id}' received event " +
                             $"'{e.GetType().FullName}' that cannot be handled.");
-                    }
-                    catch (Exception ex) when (OnUnhandledEventExceptionHandler("HandleEvent", ex))
-                    {
-                        HaltMachine();
-                        return;
                     }
                 }
 
@@ -1798,8 +1800,17 @@ namespace Microsoft.PSharp
         /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
         private bool OnUnhandledEventExceptionHandler(string methodName, Exception ex)
         {
-            OnException(methodName, ex, ref OnExceptionRequestedGracefulHalt);
-            return OnExceptionRequestedGracefulHalt;
+            var ret = OnException(methodName, ex);
+            switch(ret)
+            {
+                case OnExceptionOutcome.HaltMachine:
+                case OnExceptionOutcome.HandledException:
+                    OnExceptionRequestedGracefulHalt = true;
+                    break;
+                case OnExceptionOutcome.ThrowException:
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -1818,27 +1829,33 @@ namespace Microsoft.PSharp
 
             this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
 
-            var ret = OnException(methodName, ex, ref OnExceptionRequestedGracefulHalt);
+            var ret = OnException(methodName, ex);
+            OnExceptionRequestedGracefulHalt = false;
 
-            if(ret)
+            switch (ret)
             {
-                OnExceptionRequestedGracefulHalt = false;
-                this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
+                case OnExceptionOutcome.ThrowException:
+                    return false;
+                case OnExceptionOutcome.HandledException:
+                    this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
+                    break;
+                case OnExceptionOutcome.HaltMachine:
+                    OnExceptionRequestedGracefulHalt = true;
+                    break;
             }
 
-            return ret;
+            return true;
         }
 
         /// <summary>
         /// User callback when a machine throws an exception.
         /// </summary>
         /// <param name="ex">The exception thrown by the machine</param>
-        /// <param name="gracefullyHalt">When set to true (and if the exception is not handled) then the machine gracefully halts</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
-        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
-        protected virtual bool OnException(string methodName, Exception ex, ref bool gracefullyHalt)
+        /// <returns>The action that the runtime should take</returns>
+        protected virtual OnExceptionOutcome OnException(string methodName, Exception ex)
         {
-            return false;
+            return OnExceptionOutcome.ThrowException;
         }
 
         #endregion
