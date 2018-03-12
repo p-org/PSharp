@@ -31,27 +31,22 @@ namespace Microsoft.PSharp.Timers
 		/// <summary>
 		/// Machine to which eTimeout events are dispatched.
 		/// </summary>
-		MachineId client;
+		private MachineId client;
 
 		/// <summary>
 		/// True if periodic eTimeout events are desired.
 		/// </summary>
-		bool IsPeriodic;
-
-		#endregion
-
-		#region internal events
-
-		private class Unit : Event { }
-
+		private bool IsPeriodic;
 		#endregion
 
 		#region states
 		[Start]
 		[OnEntry(nameof(InitializeTimer))]
+		[OnEventDoAction(typeof(HaltTimer), nameof(DisposeTimer))]
 		private class Init : MachineState { }
 
 		[OnEntry(nameof(SendTimeout))]
+		[OnEventDoAction(typeof(HaltTimer), nameof(DisposeTimer))]
 		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
 		private class Active : MachineState { }
 		#endregion
@@ -70,16 +65,27 @@ namespace Microsoft.PSharp.Timers
 			// If not periodic, send a single timeout event
 			if (!this.IsPeriodic)
 			{
-				this.Send(this.client, new eTimeout());
+				this.Send(this.client, new eTimeout(this.Id));
 			}
 			else
 			{
 				if (this.Random())
 				{
-					this.Send(this.client, new eTimeout());
+					this.Send(this.client, new eTimeout(this.Id));
 				}
-				this.Raise(new Unit());
+				this.Send(this.Id, new Unit());
 			}
+			
+		}
+
+		private void DisposeTimer()
+		{
+			Console.WriteLine("Received halt signal in model");
+			MachineId ReceivedClient = (this.ReceivedEvent as HaltTimer).client;
+
+			// The client attempting to stop this timer must be the one who created it.
+			this.Assert(ReceivedClient == this.client);
+			this.Raise(new Halt());
 		}
 		#endregion
 	}

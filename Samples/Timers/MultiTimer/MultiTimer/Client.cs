@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.PSharp;
+using Microsoft.PSharp.Timers;
 
 namespace MultiTimer
 {
@@ -10,7 +11,7 @@ namespace MultiTimer
 	/// The idea is to define a "timer" machine T, which uses the timer APIs to send an appropriate event to the client, 
 	/// when T receives the eTimeout event.
 	/// </summary>
-	class Client : Machine
+	class Client : TMachine
     {
 		#region fields
 		MachineId t1;
@@ -21,41 +22,38 @@ namespace MultiTimer
 		#region states
 		[Start]
 		[OnEntry(nameof(InitClient))]
-		[OnEventDoAction(typeof(Timeout1), nameof(HandleTimeout1))]
-		[OnEventDoAction(typeof(Timeout2), nameof(HandleTimeout2))]
+		[OnEventDoAction(typeof(eTimeout), nameof(HandleTimeout))]
 		class Init : MachineState { }
 		#endregion
 
 		#region handlers
 		private void InitClient()
 		{
-			// create first timer
-			t1 = CreateMachine(typeof(Timer1), new InitializeTimer(this.Id));
-			t2 = CreateMachine(typeof(Timer2), new InitializeTimer(this.Id));
+			// create two production timers
+			IsTestingMode = false;
+			t1 = this.StartTimer(true, 1000);	// periodic timer with 1s periodicity
+			t2 = this.StartTimer(true, 500);	// periodic timer with .5s periodicity
 			count = 1;
 		}
 
-		private void HandleTimeout1()
+		private void HandleTimeout()
 		{
-			Console.WriteLine("Timer1 timeout received, count: " + count);
+			eTimeout e = this.ReceivedEvent as eTimeout;
+
+			if (e.id == t1)
+			{
+				Console.WriteLine("Timer 1 timeout processed");
+			}
+			if (e.id == t2)
+			{
+				Console.WriteLine("Timer 2 timeout processed");
+			}
 			count++;
 
 			if (count == 20)
 			{
-				Console.WriteLine("count hit 20, stopping Timer1");
-				Send(t1, new StopTimerEvent());
-			}
-		}
-
-		private void HandleTimeout2()
-		{
-			Console.WriteLine("Timer2 timeout received, count: " + count);
-			count++;
-
-			if(count == 30)
-			{
-				Console.WriteLine("count hit 30, stopping Timer2");
-				Send(t2, new StopTimerEvent());
+				this.StopTimer(t1, true);
+				this.StopTimer(t2, true);
 			}
 		}
 		#endregion
