@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.Timers
 
 				while (true)
 				{
-					Event e = await this.Receive(typeof(Markup), typeof(eTimeout));
+					Event e = await this.Receive(Tuple<typeof(Markup), true>);
 					if (e is Markup)
 					{
 						break;
