@@ -13,6 +13,7 @@ namespace SingleTimerModel
     {
 		#region fields
 		int count;
+		MachineId m1;
 		#endregion
 
 		#region states
@@ -29,19 +30,21 @@ namespace SingleTimerModel
 			this.count = 0;
 
 			// Start a periodic timer in test mode
-			// this.StartTimer(true, false) would generate a single timeout event.
-			this.StartTimer(true, true);
+			IsTestingMode = true;
+			m1 = StartTimer(true);
+			
 		}
 
 		private void HandleTimeout()
 		{
-			Console.WriteLine("Timeout received!");
-			this.count++;
+			eTimeout e = (this.ReceivedEvent as eTimeout);
 
-			if (count == 20)
+			count++;
+			// For a periodic counter, halt the timer after processing 10 eTimeout events.
+			if (count == 10)
 			{
 				// Stop the timer and flush the queue of this machine of all eTimeout events
-				this.StopTimer(true);
+				this.StopTimer(m1, true);	
 			}
 		}
 		#endregion

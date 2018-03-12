@@ -13,6 +13,7 @@ namespace SingleTimerProduction
 	{
 		#region fields
 		int count;
+		MachineId m;
 		#endregion
 
 		#region states
@@ -29,19 +30,19 @@ namespace SingleTimerProduction
 			this.count = 0;
 
 			// Start a periodic timer.
-			// this.StartTimer(true, false) would generate a single timeout event.
-			this.StartTimer(false, true, 1000);
+			// this.StartTimer(false) would generate a single timeout event.
+			m = this.StartTimer(true, 1000);
 		}
 
 		private void HandleTimeout()
 		{
-			Console.WriteLine("Timeout received!");
+			Console.WriteLine("Timeout received!: " + count);
 			this.count++;
 
 			if (count == 20)
 			{
 				// Stop the timer and flush the queue of this machine of all eTimeout events
-				this.StopTimer(true);
+				this.StopTimer(m, true);
 			}
 		}
 		#endregion
