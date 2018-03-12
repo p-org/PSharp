@@ -27,7 +27,8 @@ namespace MultiTimer
 			this.client = (this.ReceivedEvent as InitializeTimer).client;
 
 			// start a periodic timer with interval 2s
-			this.StartTimer(false, true, 2000);
+			this.StartTimer(false, false);
+			//this.StartTimer(false, true, 2000);
 		}
 
 		// The timer sends eTimeout to this machine, which then forwards the appropriate event to the client
