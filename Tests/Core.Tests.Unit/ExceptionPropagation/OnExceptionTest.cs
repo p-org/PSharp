@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                if(ex is UnHandledEventException)
+                if(ex is UnhandledEventException)
                 {
                     return OnExceptionOutcome.HaltMachine;
                 }
