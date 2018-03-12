@@ -19,7 +19,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Signals that a machine received an unhandled event
     /// </summary>
-    internal sealed class UnHandledEventException : RuntimeException
+    public sealed class UnhandledEventException : RuntimeException
     {
         /// <summary>
         /// The machine that threw the exception
@@ -43,7 +43,7 @@ namespace Microsoft.PSharp
         /// <param name="CurrentStateName">Current state name</param>
         /// <param name="UnhandledEvent">The event that was unhandled</param>
         /// <param name="message">Message</param>
-        internal UnHandledEventException(MachineId mid, string CurrentStateName, Event UnhandledEvent, string message)
+        internal UnhandledEventException(MachineId mid, string CurrentStateName, Event UnhandledEvent, string message)
             : base(message)
         {
             this.mid = mid;

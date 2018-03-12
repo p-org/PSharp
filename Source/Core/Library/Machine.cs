@@ -864,7 +864,7 @@ namespace Microsoft.PSharp
                         return;
                     }
 
-                    var unhandledEx = new UnHandledEventException(this.Id, currentState, e, "Unhandled Event");
+                    var unhandledEx = new UnhandledEventException(this.Id, currentState, e, "Unhandled Event");
                     if (OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
                     {
                         HaltMachine();
