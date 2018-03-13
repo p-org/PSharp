@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Timers
 	/// <summary>
 	/// A timer model, used for testing purposes.
 	/// </summary>
-    class TimerModel : Machine
+    public class TimerModel : Machine
     {
 		#region fields
 
@@ -37,18 +37,21 @@ namespace Microsoft.PSharp.Timers
 		/// True if periodic eTimeout events are desired.
 		/// </summary>
 		private bool IsPeriodic;
-		#endregion
 
-		#region states
-		[Start]
+        /// <summary>
+        /// Payload
+        /// </summary>
+        private object Payload;
+
+        #endregion
+
+        #region states
+        [Start]
 		[OnEntry(nameof(InitializeTimer))]
-		[OnEventDoAction(typeof(HaltTimer), nameof(DisposeTimer))]
-		private class Init : MachineState { }
+		[OnEventDoAction(typeof(HaltTimerEvent), nameof(DisposeTimer))]
+        [OnEventDoAction(typeof(RepeatTimeout), nameof(SendTimeout))]
+        private class Init : MachineState { }
 
-		[OnEntry(nameof(SendTimeout))]
-		[OnEventDoAction(typeof(HaltTimer), nameof(DisposeTimer))]
-		[OnEventDoAction(typeof(Unit), nameof(SendTimeout))]
-		private class Active : MachineState { }
 		#endregion
 
 		#region event handlers
@@ -57,7 +60,8 @@ namespace Microsoft.PSharp.Timers
 			InitTimer e = (this.ReceivedEvent as InitTimer);
 			this.client = e.client;
 			this.IsPeriodic = e.IsPeriodic;
-			this.Goto<Active>();
+            this.Payload = e.Payload;
+            this.Send(this.Id, new RepeatTimeout());
 		}
 
 		private void SendTimeout()
@@ -65,24 +69,22 @@ namespace Microsoft.PSharp.Timers
 			// If not periodic, send a single timeout event
 			if (!this.IsPeriodic)
 			{
-				this.Send(this.client, new eTimeout(this.Id));
-				// Halt the timer
-				this.Raise(new Halt());
+				this.Send(this.client, new TimerElapsedEvent(new TimerId(this.Id, this.Payload)));
 			}
 			else
 			{
 				if (this.Random())
 				{
-					this.Send(this.client, new eTimeout(this.Id));
+					this.Send(this.client, new TimerElapsedEvent(new TimerId(this.Id, this.Payload)));
 				}
-				this.Send(this.Id, new Unit());
+				this.Send(this.Id, new RepeatTimeout());
 			}
 			
 		}
 
 		private void DisposeTimer()
 		{
-			HaltTimer e = (this.ReceivedEvent as HaltTimer);
+			HaltTimerEvent e = (this.ReceivedEvent as HaltTimerEvent);
 
 			// The client attempting to stop this timer must be the one who created it.
 			this.Assert(e.client == this.client);

@@ -22,12 +22,17 @@ namespace Microsoft.PSharp.Timers
 		/// <summary>
 		/// Specify the periodicity of timeout events.
 		/// </summary>
-		private int period;
+		private int Period;
 
 		/// <summary>
 		/// Machine to which eTimeout events are dispatched.
 		/// </summary>
-		private MachineId client;
+		private MachineId Client;
+
+        /// <summary>
+        /// Payload
+        /// </summary>
+        private object Payload;
 
 		/// <summary>
 		/// System timer to generate Elapsed timeout events in production mode.
@@ -37,7 +42,7 @@ namespace Microsoft.PSharp.Timers
 		/// <summary>
 		/// Flag to prevent timeout events being sent after stopping the timer.
 		/// </summary>
-		private volatile bool IsTimerEnabled = false;
+		private bool IsTimerEnabled = false;
 
 		/// <summary>
 		/// Used to synchronize the Elapsed event handler with timer stoppage.
@@ -49,7 +54,7 @@ namespace Microsoft.PSharp.Timers
 		#region states
 		[Start]
 		[OnEntry(nameof(InitializeTimer))]
-		[OnEventDoAction(typeof(HaltTimer), nameof(DisposeTimer))]
+		[OnEventDoAction(typeof(HaltTimerEvent), nameof(DisposeTimer))]
 		private class Init : MachineState { }
 
 		#endregion
@@ -58,12 +63,13 @@ namespace Microsoft.PSharp.Timers
 		private void InitializeTimer()
 		{
 			InitTimer e = (this.ReceivedEvent as InitTimer);
-			this.client = e.client;
+			this.Client = e.client;
 			this.IsPeriodic = e.IsPeriodic;
-			this.period = e.period;
+			this.Period = e.Period;
+            this.Payload = e.Payload;
 
 			this.IsTimerEnabled = true;
-			this.timer = new System.Timers.Timer(period);
+			this.timer = new System.Timers.Timer(Period);
 
 			if (!IsPeriodic)
 			{
@@ -83,30 +89,21 @@ namespace Microsoft.PSharp.Timers
 		/// <param name="e"></param>
 		private void ElapsedEventHandler(Object source, ElapsedEventArgs e)
 		{
-			lock (this.tlock)
+            lock (this.tlock)
 			{
 				if (this.IsTimerEnabled)
 				{
-					Runtime.SendEvent(this.client, new eTimeout(this.Id));
-
-					// For a single timeout timer, stop this machine
-					if(!this.IsPeriodic)
-					{
-						this.IsTimerEnabled = false;
-						this.timer.Stop();
-						this.timer.Dispose();
-						this.Raise(new Halt());
-					}
+					Runtime.SendEvent(this.Client, new TimerElapsedEvent(new TimerId(this.Id, this.Payload)));
 				}
 			}
 		}
 
 		private void DisposeTimer()
 		{
-			HaltTimer e = (this.ReceivedEvent as HaltTimer);
+			HaltTimerEvent e = (this.ReceivedEvent as HaltTimerEvent);
 
 			// The client attempting to stop this timer must be the one who created it.
-			this.Assert(e.client == this.client);
+			this.Assert(e.client == this.Client);
 
 			lock (this.tlock)
 			{
@@ -119,7 +116,7 @@ namespace Microsoft.PSharp.Timers
 			// This marks the endpoint of all timeout events sent by this machine.
 			if (e.flush)
 			{
-				this.Send(this.client, new Markup());
+				this.Send(this.Client, new Markup());
 			}
 
 			// Stop this machine

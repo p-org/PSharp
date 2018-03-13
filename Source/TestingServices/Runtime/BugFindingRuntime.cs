@@ -878,6 +878,25 @@ namespace Microsoft.PSharp.TestingServices
 
         #endregion
 
+        #region Timers
+
+        /// <summary>
+        /// Return the timer machine type
+        /// </summary>
+        /// <returns></returns>
+        internal override Type GetTimerMachineType()
+        {
+            var timerType = base.GetTimerMachineType();
+            if (timerType == null)
+            {
+                return typeof(Timers.TimerModel);
+            }
+
+            return timerType;
+        }
+
+        #endregion
+
         #region specifications and error checking
 
         /// <summary>
