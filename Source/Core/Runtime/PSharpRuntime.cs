@@ -50,6 +50,11 @@ namespace Microsoft.PSharp
         /// </summary>
         protected ConcurrentDictionary<MachineId, Machine> MachineMap;
 
+        /// <summary>
+        /// Type of Timer machine (used by TMachine)
+        /// </summary>
+        private Type TimerMachineType = null;
+
         #endregion
 
         #region properties
@@ -454,6 +459,29 @@ namespace Microsoft.PSharp
         internal virtual bool CheckStartEventHandler(Machine machine)
         {
             return true;
+        }
+
+        #endregion
+
+        #region Timers
+
+        /// <summary>
+        /// Overrides the machine type for instantiating timers
+        /// </summary>
+        /// <param name="timerMachineType">Machine type</param>
+        public void SetTimerMachineType(Type timerMachineType)
+        {
+            this.Assert(timerMachineType.IsSubclassOf(typeof(Machine)), "TimerMachine must be a subclass of Machine");
+            this.TimerMachineType = timerMachineType;
+        }
+
+        /// <summary>
+        /// Return the timer machine type
+        /// </summary>
+        /// <returns></returns>
+        internal virtual Type GetTimerMachineType()
+        {
+            return TimerMachineType;
         }
 
         #endregion
