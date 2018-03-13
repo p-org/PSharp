@@ -82,12 +82,19 @@ namespace Microsoft.PSharp.Timers
 		public MachineId client;
 
 		/// <summary>
+		/// True if the user wants to flush the client's inbox of the relevant timeout messages.
+		/// </summary>
+		public bool flush;
+
+		/// <summary>
 		/// Constructor.
 		/// </summary>
 		/// <param name="client">Id of machine invoking the request to stop the timer. </param>
-		public HaltTimer(MachineId client)
+		/// <param name="flush">True if the user wants to flush the inbox of relevant timeout messages.</param>
+		public HaltTimer(MachineId client, bool flush)
 		{
 			this.client = client;
+			this.flush = flush;
 		}
 	}
 	#endregion
