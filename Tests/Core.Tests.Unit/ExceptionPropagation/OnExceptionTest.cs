@@ -32,6 +32,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
 
+        class F : Event { }
+
         class M1a : Machine
         {
             E e;
@@ -46,10 +48,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();
             }
 
-            protected override bool OnException(string methodName, Exception ex)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return true;
+                return OnExceptionOutcome.HandledException;
             }
         }
 
@@ -67,10 +69,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();
             }
 
-            protected override bool OnException(string methodName, Exception ex)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return false;
+                return OnExceptionOutcome.ThrowException;
             }
 
         }
@@ -90,10 +92,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();                
             }
 
-            protected override bool OnException(string methodName, Exception ex)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return true;
+                return OnExceptionOutcome.HandledException;
             }
         }
 
@@ -112,13 +114,67 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 throw new NotImplementedException();
             }
 
-            protected override bool OnException(string methodName, Exception ex)
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
                 e.x++;
-                return false;
+                return OnExceptionOutcome.ThrowException;
             }
 
         }
+
+        class M3 : Machine
+        {
+            E e;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.e = this.ReceivedEvent as E;
+                throw new NotImplementedException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.HaltMachine;
+            }
+
+            protected override void OnHalt()
+            {
+                e.tcs.TrySetResult(true);
+            }
+        }
+
+        class M4 : Machine
+        {
+            E e;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.e = this.ReceivedEvent as E;
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                if(ex is UnhandledEventException)
+                {
+                    return OnExceptionOutcome.HaltMachine;
+                }
+                return OnExceptionOutcome.ThrowException;
+            }
+
+            protected override void OnHalt()
+            {
+                e.tcs.TrySetResult(true);
+            }
+        }
+
 
         [Fact]
         public void TestOnExceptionCalledOnce1()
@@ -198,6 +254,47 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             tcs.Task.Wait(1000);
             Assert.True(failed);
             Assert.True(e.x == 1);
+        }
+
+        [Fact]
+        public void TestOnExceptionCanHalt()
+        {
+            var runtime = PSharpRuntime.Create();
+            var failed = false;
+            var tcs = new TaskCompletionSource<bool>();
+            runtime.OnFailure += delegate
+            {
+                failed = true;
+                tcs.TrySetResult(false);
+            };
+
+            var e = new E(tcs);
+            runtime.CreateMachine(typeof(M3), e);
+
+            tcs.Task.Wait(1000);
+            Assert.False(failed);
+            Assert.True(tcs.Task.Result);
+        }
+
+        [Fact]
+        public void TestUnHandledEventCanHalt()
+        {
+            var runtime = PSharpRuntime.Create();
+            var failed = false;
+            var tcs = new TaskCompletionSource<bool>();
+            runtime.OnFailure += delegate
+            {
+                failed = true;
+                tcs.TrySetResult(false);
+            };
+
+            var e = new E(tcs);
+            var m = runtime.CreateMachine(typeof(M4), e);
+            runtime.SendEvent(m, new F());
+
+            tcs.Task.Wait(1000);
+            Assert.False(failed);
+            Assert.True(tcs.Task.Result);
         }
 
     }
