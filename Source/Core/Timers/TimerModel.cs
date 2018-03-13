@@ -66,6 +66,8 @@ namespace Microsoft.PSharp.Timers
 			if (!this.IsPeriodic)
 			{
 				this.Send(this.client, new eTimeout(this.Id));
+				// Halt the timer
+				this.Raise(new Halt());
 			}
 			else
 			{
@@ -80,11 +82,19 @@ namespace Microsoft.PSharp.Timers
 
 		private void DisposeTimer()
 		{
-			Console.WriteLine("Received halt signal in model");
-			MachineId ReceivedClient = (this.ReceivedEvent as HaltTimer).client;
+			HaltTimer e = (this.ReceivedEvent as HaltTimer);
 
 			// The client attempting to stop this timer must be the one who created it.
-			this.Assert(ReceivedClient == this.client);
+			this.Assert(e.client == this.client);
+
+			// If the client wants to flush the inbox, send a markup event.
+			// This marks the endpoint of all timeout events sent by this machine.
+			if (e.flush)
+			{
+				this.Send(this.client, new Markup());
+			}
+
+			// Stop this machine
 			this.Raise(new Halt());
 		}
 		#endregion
