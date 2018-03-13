@@ -316,6 +316,11 @@ namespace Microsoft.PSharp.TestingServices
             if (this.ShouldPrintIteration(iteration + 1))
             {
                 base.Logger.WriteLine($"..... Iteration #{iteration + 1}");
+                // Flush when logging to console
+                if (base.Logger is ConsoleLogger)
+                {
+                    Console.Out.Flush();
+                }
             }
 
             // Runtime used to serialize and test the program in this iteration.
