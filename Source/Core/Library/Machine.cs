@@ -1798,13 +1798,17 @@ namespace Microsoft.PSharp
         /// <param name="ex">The exception thrown by the machine</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
         /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
-        private bool OnUnhandledEventExceptionHandler(string methodName, Exception ex)
+        private bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
         {
+            this.Logger.OnMachineExceptionThrown(this.Id, ex.CurrentStateName, methodName, ex);
+
             var ret = OnException(methodName, ex);
-            switch(ret)
+            OnExceptionRequestedGracefulHalt = false;
+            switch (ret)
             {
                 case OnExceptionOutcome.HaltMachine:
                 case OnExceptionOutcome.HandledException:
+                    this.Logger.OnMachineExceptionHandled(this.Id, ex.CurrentStateName, methodName, ex);
                     OnExceptionRequestedGracefulHalt = true;
                     return true;
                 case OnExceptionOutcome.ThrowException:
