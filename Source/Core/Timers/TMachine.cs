@@ -98,7 +98,15 @@ namespace Microsoft.PSharp.Timers
 			// Keep dequeuing eTimeout events (with payload being the timer being stopped), until we see the markup event.
 			if (flush)
 			{
-				while ((await this.Receive(typeof(Markup), typeof(eTimeout)) is Markup)) { }
+				while (true) {
+					var ev = await this.Receive(Tuple.Create(typeof(Markup), new Func<Event, bool>(e => true)),
+						Tuple.Create(typeof(eTimeout), new Func<Event, bool>(e => (e as eTimeout).id == timer)));
+
+					if(ev is Markup)
+					{
+						break;
+					}
+				}
 			}
 		}
 		#endregion
