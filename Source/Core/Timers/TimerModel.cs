@@ -39,9 +39,9 @@ namespace Microsoft.PSharp.Timers
 		private bool IsPeriodic;
 
         /// <summary>
-        /// Payload
+        /// TimerId
         /// </summary>
-        private object Payload;
+        private TimerId tid;
 
         #endregion
 
@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.Timers
 			InitTimer e = (this.ReceivedEvent as InitTimer);
 			this.client = e.client;
 			this.IsPeriodic = e.IsPeriodic;
-            this.Payload = e.Payload;
+            this.tid = e.tid;
             this.Send(this.Id, new RepeatTimeout());
 		}
 
@@ -69,13 +69,13 @@ namespace Microsoft.PSharp.Timers
 			// If not periodic, send a single timeout event
 			if (!this.IsPeriodic)
 			{
-				this.Send(this.client, new TimerElapsedEvent(new TimerId(this.Id, this.Payload)));
+				this.Send(this.client, new TimerElapsedEvent(tid));
 			}
 			else
 			{
 				if (this.Random())
 				{
-					this.Send(this.client, new TimerElapsedEvent(new TimerId(this.Id, this.Payload)));
+					this.Send(this.client, new TimerElapsedEvent(tid));
 				}
 				this.Send(this.Id, new RepeatTimeout());
 			}

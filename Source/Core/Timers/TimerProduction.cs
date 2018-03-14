@@ -30,9 +30,9 @@ namespace Microsoft.PSharp.Timers
 		private MachineId Client;
 
         /// <summary>
-        /// Payload
+        /// TimerId
         /// </summary>
-        private object Payload;
+        private TimerId tid;
 
 		/// <summary>
 		/// System timer to generate Elapsed timeout events in production mode.
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Timers
 			this.Client = e.client;
 			this.IsPeriodic = e.IsPeriodic;
 			this.Period = e.Period;
-            this.Payload = e.Payload;
+            this.tid = e.tid;
 
 			this.IsTimerEnabled = true;
 			this.timer = new System.Timers.Timer(Period);
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Timers
 			{
 				if (this.IsTimerEnabled)
 				{
-					Runtime.SendEvent(this.Client, new TimerElapsedEvent(new TimerId(this.Id, this.Payload)));
+					Runtime.SendEvent(this.Client, new TimerElapsedEvent(tid));
 				}
 			}
 		}
