@@ -40,16 +40,16 @@ namespace Microsoft.PSharp.Timers
 		public int Period;
 
         /// <summary>
-        /// Payload
+        /// TimerId
         /// </summary>
-        public object Payload;
+        public TimerId tid;
 
-        public InitTimer(MachineId client, object payload, bool IsPeriodic, int period)
+        public InitTimer(MachineId client, TimerId tid, bool IsPeriodic, int period)
 		{
 			this.client = client;
 			this.IsPeriodic = IsPeriodic;
 			this.Period = period;
-            this.Payload = payload;
+            this.tid = tid;
 		}
 	}
 

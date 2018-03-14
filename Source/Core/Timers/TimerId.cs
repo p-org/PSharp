@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.Timers
         /// <summary>
         /// The timer machine id
         /// </summary>
-        public readonly MachineId mid;
+        internal readonly MachineId mid;
 
         /// <summary>
         /// Payload
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Timers
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="Payload">Payload</param>
-        public TimerId(MachineId mid, object Payload)
+        internal TimerId(MachineId mid, object Payload)
         {
             this.mid = mid;
             this.Payload = Payload;
