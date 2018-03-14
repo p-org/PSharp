@@ -63,7 +63,8 @@ $samples = "BoundedAsync\BoundedAsync.PSharpLanguage\BoundedAsync.PSharpLanguage
     "Raft\Raft.PSharpLibrary\Raft.PSharpLibrary.csproj",
     "ReplicatingStorage\ReplicatingStorage.PSharpLanguage\ReplicatingStorage.PSharpLanguage.csproj",
     "ReplicatingStorage\ReplicatingStorage.PSharpLibrary\ReplicatingStorage.PSharpLibrary.csproj",
-    "TwoPhaseCommit\TwoPhaseCommit.PSharpLibrary\TwoPhaseCommit.PSharpLibrary.csproj"
+    "TwoPhaseCommit\TwoPhaseCommit.PSharpLibrary\TwoPhaseCommit.PSharpLibrary.csproj",
+    "Timers\TimerSample\TimerSample.csproj"
 Import-Module $PSScriptRoot\..\Scripts\common.psm1
 
 Write-Comment -prefix "." -text "Building P# samples using the '$framework' framework" -color "yellow"
