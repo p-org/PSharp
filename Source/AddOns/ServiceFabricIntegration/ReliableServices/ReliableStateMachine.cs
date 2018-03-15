@@ -43,6 +43,21 @@ namespace Microsoft.PSharp.ReliableServices
         protected IReliableDictionary<string, int> ReceiveCounters;
 
         /// <summary>
+        /// Set of active reliable timers
+        /// </summary>
+        private IReliableDictionary<string, Timers.ReliableTimerConfig> Timers;
+
+        /// <summary>
+        /// Pending set of timers to be created
+        /// </summary>
+        private Dictionary<string, Timers.ReliableTimerConfig> PendingTimerCreations;
+
+        /// <summary>
+        /// Active timers
+        /// </summary>
+        private Dictionary<string, Timers.ReliableTimer> TimerObjects;
+
+        /// <summary>
         /// Current transaction
         /// </summary>
         public ITransaction CurrentTransaction { get; internal set; }
@@ -155,6 +170,8 @@ namespace Microsoft.PSharp.ReliableServices
                 await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + Id.ToString());
             ReceiveCounters =
                 await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("ReceiveCounters_" + Id.ToString());
+            Timers =
+                await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Timers.ReliableTimerConfig>>("ReliableTimers_" + Id.ToString());
 
             var startState = this.StateStack.Peek();
 
@@ -183,6 +200,17 @@ namespace Microsoft.PSharp.ReliableServices
                         }
 
                         this.Assert(e == null, "Unexpected event passed on failover");
+
+                        // start timers
+                        var enumerator = (await Timers.CreateEnumerableAsync(CurrentTransaction))
+                            .GetAsyncEnumerator();
+                        var ct = new System.Threading.CancellationToken();
+
+                        while (await enumerator.MoveNextAsync(ct))
+                        {
+                            
+                        }
+
 
                         await OnActivate();
                     }
@@ -260,6 +288,40 @@ namespace Microsoft.PSharp.ReliableServices
 
             await remoteCreationMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
             return mid;
+        }
+
+        /// <summary>
+        /// Starts a period timer
+        /// </summary>
+        /// <param name="name">Name of the timer</param>
+        /// <param name="period">Periodic interval (ms)</param>
+        protected async void StartTimer(string name, int period)
+        {
+            var config = new Timers.ReliableTimerConfig(name, period);
+            var exists = await Timers.TryAddAsync(CurrentTransaction, name, config);
+            this.Assert(!exists, "Timer {0} already started", name);
+
+            PendingTimerCreations.Add(name, config);
+        }
+
+        /// <summary>
+        /// Stops a timer
+        /// </summary>
+        /// <param name="name"></param>
+        protected async void StopTimer(string name)
+        {
+            var cv = await Timers.TryRemoveAsync(CurrentTransaction, name);
+            this.Assert(cv.HasValue, "Attempt to stop a timer {0} that was not started", name);
+
+            if (PendingTimerCreations.ContainsKey(name))
+            {
+                // timer was pending, so just remove it
+                PendingTimerCreations.Remove(name);
+                return;
+            }
+
+            var success = TimerObjects[name].StopTimer();
+
         }
 
         /// <summary>
