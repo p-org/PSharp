@@ -19,12 +19,12 @@ namespace Microsoft.PSharp.ReliableServices.Timers
         /// <summary>
         /// Timeout duration
         /// </summary>
-        int Period;
+        public readonly int Period;
 
         /// <summary>
         ///  Name of the timer
         /// </summary>
-        string Name;
+        public readonly string Name;
 
         /// <summary>
         /// True if the timer has been cancelled

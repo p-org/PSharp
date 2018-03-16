@@ -28,6 +28,11 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         List<ITxState> StateObjects;
 
+        /// <summary>
+        /// To disable simulated failures
+        /// </summary>
+        static bool AllowFailures = true;
+
         public TransactionMock(PSharpRuntime runtime, long transactionId)
         {
             this.Runtime = runtime;
@@ -58,7 +63,7 @@ namespace Microsoft.PSharp.ReliableServices
                 throw new InvalidOperationException("Transaction Mock: multiple commits");
             }
             
-            if (this.Runtime.RandomInteger(100) == 0)
+            if (AllowFailures && this.Runtime.RandomInteger(100) == 0)
             {
                 throw new System.Fabric.TransactionFaultedException("TransactionMock: simulated fault");
             }
@@ -77,7 +82,13 @@ namespace Microsoft.PSharp.ReliableServices
 
         public void CheckTimeout(TimeSpan? timeout = null)
         {
-            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && Runtime.RandomInteger(100) == 0)
+            bool doThrow = false;
+            if(doThrow)
+            {
+                throw new TimeoutException("ReliableTx: simulated timeout");
+            }
+
+            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && AllowFailures && Runtime.RandomInteger(100) == 0)
             {
                 throw new TimeoutException("ReliableTx: simulated timeout");
             }

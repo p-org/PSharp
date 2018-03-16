@@ -48,9 +48,15 @@ namespace Microsoft.PSharp.ReliableServices
         private IReliableDictionary<string, Timers.ReliableTimerConfig> Timers;
 
         /// <summary>
-        /// Pending set of timers to be created
+        /// Pending set of timers to be started
         /// </summary>
         private Dictionary<string, Timers.ReliableTimerConfig> PendingTimerCreations;
+
+        /// <summary>
+        /// Pending set of timers to be stopped
+        /// </summary>
+        private HashSet<string> PendingTimerRemovals;
+
 
         /// <summary>
         /// Active timers
@@ -125,6 +131,10 @@ namespace Microsoft.PSharp.ReliableServices
             this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
             this.LastDequeuedEvent = null;
             this.LastTxThrewException = false;
+
+            this.TimerObjects = new Dictionary<string, ReliableServices.Timers.ReliableTimer>();
+            this.PendingTimerCreations = new Dictionary<string, ReliableServices.Timers.ReliableTimerConfig>();
+            this.PendingTimerRemovals = new HashSet<string>();
         }
 
         /// <summary>
@@ -201,6 +211,8 @@ namespace Microsoft.PSharp.ReliableServices
 
                         this.Assert(e == null, "Unexpected event passed on failover");
 
+                        await OnActivate();
+
                         // start timers
                         var enumerator = (await Timers.CreateEnumerableAsync(CurrentTransaction))
                             .GetAsyncEnumerator();
@@ -208,11 +220,12 @@ namespace Microsoft.PSharp.ReliableServices
 
                         while (await enumerator.MoveNextAsync(ct))
                         {
-                            
+                            var config = enumerator.Current.Value;
+
+                            var timer = new Timers.ReliableTimer(this.Id, config.Period, config.Name);
+                            timer.StartTimer();
+                            TimerObjects.Add(config.Name, timer);
                         }
-
-
-                        await OnActivate();
                     }
                     else
                     {
@@ -236,7 +249,6 @@ namespace Microsoft.PSharp.ReliableServices
                     CleanupOnAbortedTransaction();
                 }
             }
-            CurrentTransaction = StateManager.CreateTransaction();
         }
 
         #region CreateMachine
@@ -288,40 +300,6 @@ namespace Microsoft.PSharp.ReliableServices
 
             await remoteCreationMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
             return mid;
-        }
-
-        /// <summary>
-        /// Starts a period timer
-        /// </summary>
-        /// <param name="name">Name of the timer</param>
-        /// <param name="period">Periodic interval (ms)</param>
-        protected async void StartTimer(string name, int period)
-        {
-            var config = new Timers.ReliableTimerConfig(name, period);
-            var exists = await Timers.TryAddAsync(CurrentTransaction, name, config);
-            this.Assert(!exists, "Timer {0} already started", name);
-
-            PendingTimerCreations.Add(name, config);
-        }
-
-        /// <summary>
-        /// Stops a timer
-        /// </summary>
-        /// <param name="name"></param>
-        protected async void StopTimer(string name)
-        {
-            var cv = await Timers.TryRemoveAsync(CurrentTransaction, name);
-            this.Assert(cv.HasValue, "Attempt to stop a timer {0} that was not started", name);
-
-            if (PendingTimerCreations.ContainsKey(name))
-            {
-                // timer was pending, so just remove it
-                PendingTimerCreations.Remove(name);
-                return;
-            }
-
-            var success = TimerObjects[name].StopTimer();
-
         }
 
         /// <summary>
@@ -397,6 +375,76 @@ namespace Microsoft.PSharp.ReliableServices
                 }
             });
             return tcs;
+        }
+
+        #endregion
+
+        #region Timers
+
+        /// <summary>
+        /// Starts a period timer
+        /// </summary>
+        /// <param name="name">Name of the timer</param>
+        /// <param name="period">Periodic interval (ms)</param>
+        protected async void StartTimer(string name, int period)
+        {
+            var config = new Timers.ReliableTimerConfig(name, period);
+            var success = await Timers.TryAddAsync(CurrentTransaction, name, config);
+            this.Assert(success, "Timer {0} already started", name);
+
+            PendingTimerCreations.Add(name, config);
+        }
+
+        /// <summary>
+        /// Stops a timer
+        /// </summary>
+        /// <param name="name"></param>
+        protected async void StopTimer(string name)
+        {
+            var cv = await Timers.TryRemoveAsync(CurrentTransaction, name);
+            this.Assert(cv.HasValue, "Attempt to stop a timer {0} that was not started", name);
+
+            if (PendingTimerCreations.ContainsKey(name))
+            {
+                // timer was pending, so just remove it
+                PendingTimerCreations.Remove(name);
+            }
+            else
+            {
+                PendingTimerRemovals.Add(name);
+            }
+
+        }
+
+        /// <summary>
+        /// Actually start/stop the timers marked pending
+        /// </summary>
+        private async Task ProcessTimers()
+        {
+            foreach(var tup in PendingTimerCreations)
+            {
+                var timer = new Timers.ReliableTimer(this.Id, tup.Value.Period, tup.Key);
+                timer.StartTimer();
+                TimerObjects.Add(tup.Key, timer);
+            }
+
+            PendingTimerCreations.Clear();
+
+            foreach (var name in PendingTimerRemovals)
+            {
+                if (!TimerObjects.ContainsKey(name)) continue;
+
+                var success = TimerObjects[name].StopTimer();
+                if (!success)
+                {
+                    // wait for, and remove, the timeout
+                    await base.Receive(typeof(Timers.TimeoutEvent), ev => (ev as Timers.TimeoutEvent).Name == name);
+                }
+
+                TimerObjects.Remove(name);
+            }
+
+            PendingTimerRemovals.Clear();
         }
 
         #endregion
@@ -495,6 +543,8 @@ namespace Microsoft.PSharp.ReliableServices
                 tcs.SetResult(true);
             }
 
+            await ProcessTimers();
+
             CurrentTransaction.Dispose();
             PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             PendingStateChanges.Clear();
@@ -530,6 +580,8 @@ namespace Microsoft.PSharp.ReliableServices
             PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             PendingStateChanges.Clear();
             PendingStateChangesInverted.Clear();
+            PendingTimerCreations.Clear();
+            PendingTimerRemovals.Clear();
             CurrentTransaction = null;
             RaisedEvent = null;
 
@@ -543,6 +595,8 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         internal override async Task<bool> RunEventHandler()
         {
+            Timers.ReliableTimer lastTimer = null;
+
             if (this.Info.IsHalted)
             {
                 return true;
@@ -559,6 +613,12 @@ namespace Microsoft.PSharp.ReliableServices
 
                 if (nextEventInfo == null)
                 {
+                    var lastTimerStopped = false;
+                    if(lastTimer != null && PendingTimerRemovals.Contains(lastTimer.Name))
+                    {
+                        lastTimerStopped = true;
+                    }
+
                     // commit previous transaction
                     if (CurrentTransaction != null)
                     {
@@ -575,25 +635,41 @@ namespace Microsoft.PSharp.ReliableServices
                         }
                     }
 
+                    if (!LastTxThrewException && !lastTimerStopped && lastTimer != null)
+                    {
+                        var newTimer = new Timers.ReliableTimer(this.Id, lastTimer.Period, lastTimer.Name);
+                        TimerObjects[lastTimer.Name] = newTimer;
+                        newTimer.StartTimer();
+                    }
+
                     CurrentTransaction = StateManager.CreateTransaction();
                     var reliableDequeue = false;
 
                     lock (base.Inbox)
                     {
                         // Try to dequeue the next event, if there is one.
-                        nextEventInfo = (LastTxThrewException && InTestMode) ? LastDequeuedEvent
+                        nextEventInfo = (LastTxThrewException) ? LastDequeuedEvent
                             : this.TryDequeueEvent();
                         LastDequeuedEvent = nextEventInfo;
+                    }
+
+                    if (!LastTxThrewException)
+                    {
+                        lastTimer = null;
+                        if (nextEventInfo != null && nextEventInfo.Event is Timers.TimeoutEvent)
+                        {
+                            lastTimer = TimerObjects[(nextEventInfo.Event as Timers.TimeoutEvent).Name];
+                            TimerObjects.Remove(lastTimer.Name);
+                        }
                     }
 
                     if (nextEventInfo == null && !InTestMode)
                     {
                         nextEventInfo = await ReliableDequeue();
                         reliableDequeue = (nextEventInfo != null);
-
                     }
 
-                    if (!reliableDequeue && !InTestMode)
+                    if (nextEventInfo == null && !InTestMode)
                     {
                         CurrentTransaction.Dispose();
                         CurrentTransaction = null;
@@ -637,6 +713,7 @@ namespace Microsoft.PSharp.ReliableServices
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
+
                 if (this.LastTxThrewException)
                 {
                     CleanupOnAbortedTransaction();
