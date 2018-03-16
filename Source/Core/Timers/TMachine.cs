@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Timers
         /// </summary>
         /// <param name="payload">Payload of the timeout event.</param>
         /// <param name="IsPeriodic">Specifies whether a periodic timer is desired.</param>
-        /// <param name="period">Periodicity of the timeout events.</param>
+        /// <param name="period">Periodicity of the timeout events in ms.</param>
         /// <returns>The id of the created timer.</returns>
         protected TimerId StartTimer(object payload, bool IsPeriodic, int period)
         {
