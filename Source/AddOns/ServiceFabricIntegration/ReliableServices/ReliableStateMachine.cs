@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// Active timers
         /// </summary>
-        private Dictionary<string, Timers.ReliableTimer> TimerObjects;
+        private Dictionary<string, Timers.ISingleTimer> TimerObjects;
 
         /// <summary>
         /// Current transaction
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.ReliableServices
             this.LastDequeuedEvent = null;
             this.LastTxThrewException = false;
 
-            this.TimerObjects = new Dictionary<string, ReliableServices.Timers.ReliableTimer>();
+            this.TimerObjects = new Dictionary<string, Timers.ISingleTimer>();
             this.PendingTimerCreations = new Dictionary<string, ReliableServices.Timers.ReliableTimerConfig>();
             this.PendingTimerRemovals = new HashSet<string>();
         }
@@ -222,7 +222,7 @@ namespace Microsoft.PSharp.ReliableServices
                         {
                             var config = enumerator.Current.Value;
 
-                            var timer = new Timers.ReliableTimer(this.Id, config.Period, config.Name);
+                            var timer = CreateSingleTimer(config.Period, config.Name);
                             timer.StartTimer();
                             TimerObjects.Add(config.Name, timer);
                         }
@@ -382,11 +382,11 @@ namespace Microsoft.PSharp.ReliableServices
         #region Timers
 
         /// <summary>
-        /// Starts a period timer
+        /// Starts a periodic timer
         /// </summary>
         /// <param name="name">Name of the timer</param>
         /// <param name="period">Periodic interval (ms)</param>
-        protected async void StartTimer(string name, int period)
+        protected async Task StartTimer(string name, int period)
         {
             var config = new Timers.ReliableTimerConfig(name, period);
             var success = await Timers.TryAddAsync(CurrentTransaction, name, config);
@@ -399,7 +399,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// Stops a timer
         /// </summary>
         /// <param name="name"></param>
-        protected async void StopTimer(string name)
+        protected async Task StopTimer(string name)
         {
             var cv = await Timers.TryRemoveAsync(CurrentTransaction, name);
             this.Assert(cv.HasValue, "Attempt to stop a timer {0} that was not started", name);
@@ -423,7 +423,7 @@ namespace Microsoft.PSharp.ReliableServices
         {
             foreach(var tup in PendingTimerCreations)
             {
-                var timer = new Timers.ReliableTimer(this.Id, tup.Value.Period, tup.Key);
+                var timer = CreateSingleTimer(tup.Value.Period, tup.Key);
                 timer.StartTimer();
                 TimerObjects.Add(tup.Key, timer);
             }
@@ -445,6 +445,12 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             PendingTimerRemovals.Clear();
+        }
+
+        private Timers.ISingleTimer CreateSingleTimer(int period, string name)
+        {
+            return InTestMode ? (Timers.ISingleTimer)new Timers.ReliableTimerMock(this.Id, period, name)
+                : (Timers.ISingleTimer)new Timers.ReliableTimerProd(this.Id, period, name);
         }
 
         #endregion
@@ -595,7 +601,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         internal override async Task<bool> RunEventHandler()
         {
-            Timers.ReliableTimer lastTimer = null;
+            Timers.ISingleTimer lastTimer = null;
 
             if (this.Info.IsHalted)
             {
@@ -637,7 +643,7 @@ namespace Microsoft.PSharp.ReliableServices
 
                     if (!LastTxThrewException && !lastTimerStopped && lastTimer != null)
                     {
-                        var newTimer = new Timers.ReliableTimer(this.Id, lastTimer.Period, lastTimer.Name);
+                        var newTimer = CreateSingleTimer(lastTimer.TimePeriod, lastTimer.Name);
                         TimerObjects[lastTimer.Name] = newTimer;
                         newTimer.StartTimer();
                     }
@@ -682,6 +688,9 @@ namespace Microsoft.PSharp.ReliableServices
                 {
                     if (InTestMode)
                     {
+                        CurrentTransaction.Dispose();
+                        CurrentTransaction = null;
+
                         this.IsRunning = false;
                         break;
                     }

@@ -35,24 +35,24 @@ namespace SimpleTimers
         [OnEventDoAction(typeof(TimeoutEvent), nameof(OnTimeoutB))]
         class B : MachineState { }
 
-        private void OnEnterA()
+        private async Task OnEnterA()
         {
-            StartTimer("A", 10);
+            await StartTimer("A", 10);
         }
 
-        private void OnExitA()
+        private async Task OnExitA()
         {
-            StopTimer("A");
+            await StopTimer("A");
         }
 
-        private void OnEnterB()
+        private async Task OnEnterB()
         {
-            StartTimer("B", 10);
+            await StartTimer("B", 10);
         }
 
-        private void OnExitB()
+        private async Task OnExitB()
         {
-            StopTimer("B");
+            await StopTimer("B");
         }
 
         private async Task OnTimeoutA()

@@ -85,12 +85,12 @@ namespace Microsoft.PSharp.ReliableServices
             bool doThrow = false;
             if(doThrow)
             {
-                throw new TimeoutException("ReliableTx: simulated timeout");
+                throw new TimeoutException("ReliableTx: simulated timeout in Tx " + TransactionId);
             }
 
             if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && AllowFailures && Runtime.RandomInteger(100) == 0)
             {
-                throw new TimeoutException("ReliableTx: simulated timeout");
+                throw new TimeoutException("ReliableTx: simulated timeout in Tx " + TransactionId);
             }
         }
 

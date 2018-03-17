@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.ReliableServices.Timers
     /// <summary>
     /// A Timer for Reliable State Machines
     /// </summary>
-    class ReliableTimer
+    class ReliableTimerProd : ISingleTimer
     {
         /// <summary>
         /// For cancelling the timer
@@ -19,12 +19,28 @@ namespace Microsoft.PSharp.ReliableServices.Timers
         /// <summary>
         /// Timeout duration
         /// </summary>
-        public readonly int Period;
+        readonly int _Period;
+
+        public int TimePeriod
+        {
+            get
+            {
+                return _Period;
+            }
+        }
 
         /// <summary>
         ///  Name of the timer
         /// </summary>
-        public readonly string Name;
+        readonly string _Name;
+
+        public string Name
+        {
+            get
+            {
+                return _Name;
+            }
+        }
 
         /// <summary>
         /// True if the timer has been cancelled
@@ -49,11 +65,11 @@ namespace Microsoft.PSharp.ReliableServices.Timers
         /// Initializes a timer
         /// <param name="period">Period (ms)</param>
         /// <param name="name">Name</param>
-        public ReliableTimer(MachineId RSMId, int period, string name)
+        public ReliableTimerProd(MachineId RSMId, int period, string name)
         {
             this.RSMId = RSMId;
-            this.Period = period;
-            this.Name = name;
+            this._Period = period;
+            this._Name = name;
             this.TimerCancelled = false;
             this.TimeoutFired = false;
             this.lck = new object();
@@ -67,7 +83,7 @@ namespace Microsoft.PSharp.ReliableServices.Timers
         {
             Task.Run(async () =>
             {
-                await Task.Delay(Period, CancellationTokenSource.Token);
+                await Task.Delay(TimePeriod, CancellationTokenSource.Token);
                 var cancelled = false;
 
                 lock (lck)

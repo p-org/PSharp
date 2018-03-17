@@ -616,7 +616,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             IMachineFactory factory = MachineFactories[0];
-            for (int i = MachineFactories.Count - 1; i > 0; i++)
+            for (int i = MachineFactories.Count - 1; i > 0; i--)
             {
                 if (type.IsSubclassOf(MachineFactories[i].BaseClassType()))
                 {
@@ -1074,7 +1074,6 @@ namespace Microsoft.PSharp.TestingServices
             this.AssertCorrectCallerMachine(caller as Machine, "Random");
             if (caller != null && caller is Machine)
             {
-                this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
                 (caller as Machine).Info.ProgramCounter++;
             }
 
@@ -1099,7 +1098,6 @@ namespace Microsoft.PSharp.TestingServices
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
             if (caller != null && caller is Machine)
             {
-                this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
                 (caller as Machine).Info.ProgramCounter++;
             }
 
@@ -1122,10 +1120,6 @@ namespace Microsoft.PSharp.TestingServices
         internal override int GetNondeterministicIntegerChoice(AbstractMachine caller, int maxValue)
         {
             this.AssertCorrectCallerMachine(caller as Machine, "RandomInteger");
-            if (caller != null && caller is Machine)
-            {
-                this.AssertNoPendingTransitionStatement(caller as Machine, "RandomInteger");
-            }
 
             var choice = this.Scheduler.GetNextNondeterministicIntegerChoice(maxValue);
             base.Logger.OnRandom(caller?.Id, choice);

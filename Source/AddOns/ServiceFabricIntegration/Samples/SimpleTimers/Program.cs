@@ -32,5 +32,11 @@ namespace SimpleTimers
             Environment.Exit(1);
         }
 
+        [Test]
+        public static void Execute(PSharpRuntime runtime)
+        {
+            runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
+            runtime.CreateMachine(typeof(SimpleTimerMachine));
+        }
     }
 }
