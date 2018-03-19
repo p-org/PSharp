@@ -89,25 +89,25 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 			}
 		}
 
-		void HandleTimeout()
+		async Task HandleTimeout()
 		{
 			count++;
 
 			// for testing single timeout
 			if (!periodic)
 			{
+				// for a single timer, exactly one timeout should be received
 				if (count == 1)
 				{
-					StopTimer(tid, true).Wait();
-					try
-					{
-						this.Assert(false);
-					}
-					finally
-					{
-						tcs.SetResult(true);
-						this.Raise(new Halt());
-					}
+					await StopTimer(tid, true);
+					tcs.SetResult(true);
+					this.Raise(new Halt());
+				}
+				else
+				{
+					await StopTimer(tid, true);
+					tcs.SetResult(false);
+					this.Raise(new Halt());
 				}
 			}
 
@@ -116,16 +116,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 			{
 				if (count == 100)
 				{
-					StopTimer(tid, true).Wait();
-					try
-					{
-						this.Assert(false);
-					}
-					finally
-					{
-						tcs.SetResult(true);
-						this.Raise(new Halt());
-					}
+					await StopTimer(tid, true);
+					tcs.SetResult(true);
+					this.Raise(new Halt());
 				}
 			}
 		}
@@ -163,6 +156,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 		/// </summary>
 		[Start]
 		[OnEntry(nameof(DoPing))]
+		[IgnoreEvents(typeof(TimerElapsedEvent))]
 		class Ping : MachineState { }
 
 		/// <summary>
@@ -176,14 +170,15 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
 		#region event handlers
 
-		private void DoPing()
+		private async Task DoPing()
 		{
 			tcs = (this.ReceivedEvent as Configure).TCS;
 	
 			// Start a periodic timer with timeout interval of 1sec.
 			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pingTimer = StartTimer(payload, true, 100);
-			this.StopTimer(pingTimer, true).Wait();
+			pingTimer = StartTimer(payload, true, 5);
+			await Task.Delay(100);
+			await this.StopTimer(pingTimer, flush: true);
 			this.Goto<Pong>();
 		}
 
@@ -203,19 +198,12 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
 			if(e.Tid == this.pongTimer)
 			{
-				try
-				{
-					this.Assert(false);
-				}
-				finally
-				{
-					tcs.SetResult(true);
-					this.Raise(new Halt());
-				}
+				tcs.SetResult(true);
+				this.Raise(new Halt());
 			}
 			else
 			{
-				tcs.SetResult(true);
+				tcs.SetResult(false);
 				this.Raise(new Halt());
 			}
 			
@@ -270,18 +258,18 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
 		#region handlers
 
-		void Initialize()
+		async Task Initialize()
 		{
 			TimerId tid = (this.ReceivedEvent as TransferTimerAndTCS).tid;
 			TaskCompletionSource<bool> tcs = (this.ReceivedEvent as TransferTimerAndTCS).TCS;
 
+			// trying to stop a timer created by a different machine. 
+			// should throw an assertion violation
 			try
 			{
-				// trying to stop a timer created by a different machine. 
-				// should throw an assertion violation
-				this.StopTimer(tid, true).Wait();
+				await this.StopTimer(tid, true);
 			}
-			finally
+			catch (AssertionFailureException)
 			{
 				tcs.SetResult(true);
 				this.Raise(new Halt());
@@ -289,8 +277,6 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 		}
 
 		#endregion
-
-
 	}
 	#endregion
 
@@ -319,7 +305,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 			{
 				this.StartTimer(this.payload, true, period);
 			}
-			finally
+			catch(AssertionFailureException)
 			{
 				tcs.SetResult(true);
 				this.Raise(new Halt());

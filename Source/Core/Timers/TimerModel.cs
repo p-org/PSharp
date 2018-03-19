@@ -26,7 +26,16 @@ namespace Microsoft.PSharp.Timers
 	/// </summary>
     public class TimerModel : Machine
     {
-		#region fields
+		#region static fields
+
+		/// <summary>
+		/// Adjust the probability of firing a timeout event.
+		/// </summary>
+		public static int N;
+
+		#endregion
+
+		#region private fields
 
 		/// <summary>
 		/// Machine to which eTimeout events are dispatched.
@@ -73,7 +82,8 @@ namespace Microsoft.PSharp.Timers
 			}
 			else
 			{
-				if (this.Random())
+				// Probability of firing timeout is 1/N
+				if ((this.RandomInteger(N)==0) && this.FairRandom())
 				{
 					this.Send(this.client, new TimerElapsedEvent(tid));
 				}
