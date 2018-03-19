@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IllegalTimerStoppageTest.cs">
+// <copyright file="PeriodicTimerLivenessTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,91 +18,79 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Timers;
+using Microsoft.PSharp;
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class IllegalTimerStoppageTest : BaseTest
-    {
-		#region internal events
-		private class TransferTimer : Event
-		{
-			public TimerId tid;
-
-			public TransferTimer(TimerId tid)
-			{
-				this.tid = tid;
-			}
-		}
+	public class PeriodicTimerLivenessTest : BaseTest
+	{
+		#region events
+		class TimeoutReceivedEvent : Event { }
 		#endregion
 
-		#region check illegal timer stoppage
-		private class T2 : TMachine
+		#region machines/monitors
+
+		class Client : TMachine
 		{
 			#region fields
-
 			TimerId tid;
 			object payload = new object();
-			MachineId m;
-
 			#endregion
+
+			#region states
 			[Start]
 			[OnEntry(nameof(Initialize))]
-			[IgnoreEvents(typeof(TimerElapsedEvent))]
-			class Init : MachineState { }
-			#region states
+			[OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
+			private class Init : MachineState { }
 
 			#endregion
 
 			#region handlers
-			void Initialize()
+			private void Initialize()
 			{
-				tid = this.StartTimer(this.payload, true, 100);
-				m = CreateMachine(typeof(T3), new TransferTimer(tid));
-				this.Raise(new Halt());
+				tid = StartTimer(payload, true, 10);
 			}
 
+			private void HandleTimeout()
+			{
+				this.Monitor<LivenessMonitor>(new TimeoutReceivedEvent());
+			}
 			#endregion
 		}
 
-		private class T3 : TMachine
+		class LivenessMonitor : Monitor
 		{
-			#region states
-
 			[Start]
-			[OnEntry(nameof(Initialize))]
-			class Init : MachineState { }
+			[Hot]
+			[OnEventGotoState(typeof(TimeoutReceivedEvent), typeof(TimeoutReceived))]
+			class NoTimeoutReceived : MonitorState { }
 
-			#endregion
-
-			#region handlers
-
-			async Task Initialize()
-			{
-				TimerId tid = (this.ReceivedEvent as TransferTimer).tid;
-	
-				// trying to stop a timer created by a different machine. 
-				// should throw an assertion violation
-				await this.StopTimer(tid, true);
-				this.Raise(new Halt());
-			}
-			#endregion
+			[Cold]
+			class TimeoutReceived : MonitorState { }
 		}
+
 		#endregion
 
 		#region test
+
 		[Fact]
-		public void IllegalTimerStopTest()
+		public void PeriodicLivenessTest()
 		{
-			var config = Configuration.Create().WithNumberOfIterations(100);
-			config.MaxSchedulingSteps = 200;
-			config.SchedulingStrategy = Utilities.SchedulingStrategy.Portfolio;
+			var config = base.GetConfiguration();
+			config.LivenessTemperatureThreshold = 150;
+			config.MaxSchedulingSteps = 300;
+			config.SchedulingStrategy = Utilities.SchedulingStrategy.PCT;
 			config.RunAsParallelBugFindingTask = true;
+
 			var test = new Action<PSharpRuntime>((r) => {
-				r.CreateMachine(typeof(T2));
+				r.RegisterMonitor(typeof(LivenessMonitor));
+				r.CreateMachine(typeof(Client));
 			});
-			base.AssertFailed(test, 1, true);
+
+			base.AssertSucceeded(config, test);
 		}
+
 		#endregion
 	}
 }
