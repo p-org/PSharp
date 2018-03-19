@@ -28,124 +28,65 @@ namespace Microsoft.PSharp.Core.Tests.Unit
     {
 		#region tests
 
+		// Test to check assertion failure when attempting to create a timer whose type does not extend Machine
 		[Fact]
-		public void TestExceptionOnInvalidTimerType()
+		public void ExceptionOnInvalidTimerTypeTest()
 		{
 			PSharpRuntime runtime = PSharpRuntime.Create();
 
 			Exception ex = Assert.Throws<AssertionFailureException>(() => runtime.SetTimerMachineType(typeof(NonMachineSubClass)));
 		}
 
+		// Check basic functions of a periodic timer.
 		[Fact]
-		public void TestBasicPeriodicTimerOperation()
+		public async Task BasicPeriodicTimerOperationTest()
 		{
-			var tcsFail = new TaskCompletionSource<bool>();
-
 			PSharpRuntime runtime = PSharpRuntime.Create();
-			runtime.OnFailure += delegate (Exception exception)
-			{
-				if (!(exception is MachineActionExceptionFilterException))
-				{
-					tcsFail.SetException(exception);
-				}
-			};
-
 			var tcs = new TaskCompletionSource<bool>();
 			runtime.CreateMachine(typeof(T1), new Configure(tcs, true));
-			tcs.Task.Wait();
-
-			AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-			Assert.IsType<AssertionFailureException>(ex.InnerException);
-
+			var result = await tcs.Task;
+			Assert.True(result);
 		}
 
 		[Fact]
-		public void TestBasicSingleTimerOperation()
+		public async Task BasicSingleTimerOperationTest()
 		{
-			var tcsFail = new TaskCompletionSource<bool>();
-
 			PSharpRuntime runtime = PSharpRuntime.Create();
-			runtime.OnFailure += delegate (Exception exception)
-			{
-				if (!(exception is MachineActionExceptionFilterException))
-				{
-					tcsFail.SetException(exception);
-				}
-			};
-
 			var tcs = new TaskCompletionSource<bool>();
 			runtime.CreateMachine(typeof(T1), new Configure(tcs, false));
-			tcs.Task.Wait();
-
-			AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-			Assert.IsType<AssertionFailureException>(ex.InnerException);
+			var result = await tcs.Task;
+			Assert.True(result);
 		}
 
 		// Test if the flushing operation works correctly
 		[Fact]
-		public void TestInboxFlushOperation()
+		public async Task InboxFlushOperationTest()
 		{
-			var tcsFail = new TaskCompletionSource<bool>();
-
 			PSharpRuntime runtime = PSharpRuntime.Create();
-			runtime.OnFailure += delegate (Exception exception)
-			{
-				if (!(exception is MachineActionExceptionFilterException))
-				{
-					tcsFail.SetException(exception);
-				}
-			};
-
 			var tcs = new TaskCompletionSource<bool>();
 			runtime.CreateMachine(typeof(FlushingClient), new Configure(tcs, true));
-			tcs.Task.Wait();
-
-			AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-			Assert.IsType<AssertionFailureException>(ex.InnerException);
+			var result = await tcs.Task;
+			Assert.True(result);
 		}
 		
 		[Fact]
-		public void TestIllegalTimerStoppage()
+		public async Task IllegalTimerStoppageTest()
 		{
-			var tcsFail = new TaskCompletionSource<bool>();
-
 			PSharpRuntime runtime = PSharpRuntime.Create();
-			runtime.OnFailure += delegate (Exception exception)
-			{
-				if (!(exception is MachineActionExceptionFilterException))
-				{
-					tcsFail.SetException(exception);
-				}
-			};
-
 			var tcs = new TaskCompletionSource<bool>();
 			runtime.CreateMachine(typeof(T2), new Configure(tcs, true));
-			tcs.Task.Wait();
-
-			AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-			Assert.IsType<AssertionFailureException>(ex.InnerException);
+			var result = await tcs.Task;
+			Assert.True(result);
 		}
 
 		[Fact]
-		public void CheckIllegalPeriodSpecification()
+		public async Task IllegalPeriodSpecificationTest()
 		{
-			var tcsFail = new TaskCompletionSource<bool>();
-
 			PSharpRuntime runtime = PSharpRuntime.Create();
-			runtime.OnFailure += delegate (Exception exception)
-			{
-				if (!(exception is MachineActionExceptionFilterException))
-				{
-					tcsFail.SetException(exception);
-				}
-			};
-
 			var tcs = new TaskCompletionSource<bool>();
 			runtime.CreateMachine(typeof(T4), new ConfigureWithPeriod(tcs, -1));
-			tcs.Task.Wait();
-
-			AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-			Assert.IsType<AssertionFailureException>(ex.InnerException);
+			var result = await tcs.Task;
+			Assert.True(result);
 		}
 		#endregion
 

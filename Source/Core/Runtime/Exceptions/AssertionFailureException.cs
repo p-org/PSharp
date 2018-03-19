@@ -19,7 +19,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// The exception that is thrown by the P# runtime upon assertion failure.
     /// </summary>
-    internal class AssertionFailureException : RuntimeException
+    internal sealed class AssertionFailureException : RuntimeException
     {
         /// <summary>
         /// Initializes a new instance of the exception.
