@@ -56,11 +56,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			async Task HandleTimeout()
 			{
 				count++;
-				this.Assert(count <= 100);
+				this.Assert(count <= 10);
 
-				if(count == 100)
+				if(count == 10)
 				{
-					await StopTimer(tid, flush: true);
+					await StopTimer(tid, flush: false);
 				}
 			}
 			#endregion
@@ -71,10 +71,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 		[Fact]
 		public void PeriodicTimeoutTest()
 		{
-			var config = Configuration.Create().WithNumberOfIterations(100);
+			var config = Configuration.Create().WithNumberOfIterations(1000);
 			config.MaxSchedulingSteps = 200;
-			config.SchedulingStrategy = Utilities.SchedulingStrategy.Portfolio;
-			config.RunAsParallelBugFindingTask = true;
+
 			var test = new Action<PSharpRuntime>((r) => {
 				r.CreateMachine(typeof(T1));
 			});
