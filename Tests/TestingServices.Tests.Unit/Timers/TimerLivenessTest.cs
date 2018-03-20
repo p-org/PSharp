@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PeriodicTimerLivenessTest.cs">
+// <copyright file="TimerLivenessTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,7 +23,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-	public class PeriodicTimerLivenessTest : BaseTest
+	public class TimerLivenessTest : BaseTest
 	{
 		#region events
 		class TimeoutReceivedEvent : Event { }
@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			#region handlers
 			private void Initialize()
 			{
-				tid = StartTimer(payload, true, 10);
+				tid = StartTimer(payload, false, 10);
 			}
 
 			private void HandleTimeout()
@@ -80,8 +80,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			var config = base.GetConfiguration();
 			config.LivenessTemperatureThreshold = 150;
 			config.MaxSchedulingSteps = 300;
-			config.SchedulingStrategy = Utilities.SchedulingStrategy.PCT;
-			config.RunAsParallelBugFindingTask = true;
 
 			var test = new Action<PSharpRuntime>((r) => {
 				r.RegisterMonitor(typeof(LivenessMonitor));
