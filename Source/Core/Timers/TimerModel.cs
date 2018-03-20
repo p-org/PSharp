@@ -82,6 +82,7 @@ namespace Microsoft.PSharp.Timers
 			}
 			else
 			{
+				this.Assert(N >= 0);
 				// Probability of firing timeout is atmost 1/N
 				if ((this.RandomInteger(N)==0) && this.FairRandom())
 				{
