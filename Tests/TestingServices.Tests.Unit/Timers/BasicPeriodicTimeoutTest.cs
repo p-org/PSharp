@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
 				if(count == 10)
 				{
-					await StopTimer(tid, flush: false);
+					await StopTimer(tid, flush: true);
 				}
 			}
 			#endregion
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 		public void PeriodicTimeoutTest()
 		{
 			var config = Configuration.Create().WithNumberOfIterations(1000);
-			config.MaxSchedulingSteps = 200;
+            TimerModel.NumStepsToSkip = 1;
 
 			var test = new Action<PSharpRuntime>((r) => {
 				r.CreateMachine(typeof(T1));
