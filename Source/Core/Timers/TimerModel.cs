@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Timers
 		/// <summary>
 		/// Adjust the probability of firing a timeout event.
 		/// </summary>
-		public static int NumStepsToSkip = 2;
+		public static int NumStepsToSkip = 1;
 
 		#endregion
 
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Timers
 				// Probability of firing timeout is atmost 1/N
 				if ((this.RandomInteger(NumStepsToSkip)==0) && this.FairRandom())
 				{
-					this.Send(this.client, new TimerElapsedEvent(tid));
+				   this.Send(this.client, new TimerElapsedEvent(tid));
 				}
 				this.Send(this.Id, new RepeatTimeout());
 			}
