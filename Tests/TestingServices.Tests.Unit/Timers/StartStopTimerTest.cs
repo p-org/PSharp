@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			var config = base.GetConfiguration();
 			config.LivenessTemperatureThreshold = 150;
 			config.MaxSchedulingSteps = 300;
-            config.SchedulingIterations = 100;
+            config.SchedulingIterations = 1000;
 
 			var test = new Action<PSharpRuntime>((r) => {
 				r.RegisterMonitor(typeof(LivenessMonitor));

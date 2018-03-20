@@ -94,10 +94,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 		[Fact]
 		public void IllegalTimerStopTest()
 		{
-			var config = Configuration.Create().WithNumberOfIterations(100);
+			var config = Configuration.Create().WithNumberOfIterations(1000);
 			config.MaxSchedulingSteps = 200;
-			config.SchedulingStrategy = Utilities.SchedulingStrategy.Portfolio;
-			config.RunAsParallelBugFindingTask = true;
+		
 			var test = new Action<PSharpRuntime>((r) => {
 				r.CreateMachine(typeof(T2));
 			});
