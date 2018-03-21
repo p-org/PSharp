@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class BasicPeriodicTimeoutTest : BaseTest
     {
 		#region check basic StartTimer/StopTimer
-		private class T1 : TMachine
+		private class T1 : TimedMachine
 		{
 			#region fields
 
@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 				count = 0;
 
 				// Start a periodic timer 
-				tid = StartTimer(payload, true, 10);
+				tid = StartTimer(payload, 10, true);
 
 			}
 
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 		public void PeriodicTimeoutTest()
 		{
 			var config = Configuration.Create().WithNumberOfIterations(1000);
-            TimerModel.NumStepsToSkip = 1;
+            ModelTimerMachine.NumStepsToSkip = 1;
 
 			var test = new Action<PSharpRuntime>((r) => {
 				r.CreateMachine(typeof(T1));

@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
 		#region machines/monitors
 
-		class Client : TMachine
+		class Client : TimedMachine
 		{
 			#region fields
 			TimerId tid;
@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			#region handlers
 			private void Initialize()
 			{
-				tid = StartTimer(payload, false, 10);
+				tid = StartTimer(payload, 10, false);
 			}
 
 			private void HandleTimeout()

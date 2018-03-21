@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="Timers.cs">
+// <copyright file="TimedMachine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Timers
 	/// <summary>
 	/// Extends the P# Machine with a simple timer.
 	/// </summary>
-	public abstract class TMachine : Machine
+	public abstract class TimedMachine : Machine
 	{
 		#region private fields
 
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Timers
         /// <param name="IsPeriodic">Specifies whether a periodic timer is desired.</param>
         /// <param name="period">Periodicity of the timeout events in ms.</param>
         /// <returns>The id of the created timer.</returns>
-        protected TimerId StartTimer(object payload, bool IsPeriodic, int period)
+        protected TimerId StartTimer(object payload, int period, bool IsPeriodic)
         {
             // The specified period must be valid
             this.Assert(period >= 0, "Timer period must be non-negative");

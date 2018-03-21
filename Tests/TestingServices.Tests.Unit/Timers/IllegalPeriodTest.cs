@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class IllegalPeriodTest : BaseTest
     {
 		#region check illegal period specification
-		private class T4 : TMachine
+		private class T4 : TimedMachine
 		{
 			#region fields
 
@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			async Task Initialize()
 			{
 				// Incorrect period, will throw assertion violation
-				TimerId tid = this.StartTimer(payload, true, -1);
+				TimerId tid = this.StartTimer(payload, -1, true);
 				await this.StopTimer(tid, flush: true);
 			}
 			#endregion

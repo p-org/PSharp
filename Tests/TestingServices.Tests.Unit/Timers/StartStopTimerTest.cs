@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 		#endregion
 
 		#region machine/monitors
-		class Client : TMachine
+		class Client : TimedMachine
 		{
 			#region fields
 			object payload = new object();
@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			async Task Initialize()
 			{
 				// Start a timer, and stop it immediately
-				TimerId tid = StartTimer(payload, true, 10);
+				TimerId tid = StartTimer(payload, 10, true);
 				await this.StopTimer(tid, flush: false);
 			}
 
