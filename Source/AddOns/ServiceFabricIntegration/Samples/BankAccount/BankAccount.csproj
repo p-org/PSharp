@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}</ProjectGuid>
+    <ProjectGuid>{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>WordCount</RootNamespace>
-    <AssemblyName>WordCount</AssemblyName>
+    <RootNamespace>BankAccount</RootNamespace>
+    <AssemblyName>BankAccount</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -33,35 +33,35 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.ServiceFabric.Data, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.467\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.472\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Data.Interfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.467\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.472\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal.Strings, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Preview, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Fabric, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel.XmlSerializers, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Strings, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.Strings.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Strings.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
@@ -73,13 +73,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientMachine.cs" />
-    <Compile Include="GatherResultsMachine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SafetyMonitor.cs" />
-    <Compile Include="WordCountEvents.cs" />
-    <Compile Include="WordCountMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -89,6 +84,10 @@
     <ProjectReference Include="..\..\..\..\Core\Core.csproj">
       <Project>{7095295a-cd08-4f57-97d3-e482265b421e}</Project>
       <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\TestingServices\TestingServices.csproj">
+      <Project>{c24174d7-a37a-46e7-a54e-2844251e8b6e}</Project>
+      <Name>TestingServices</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ReliableServices\ReliableServices.csproj">
       <Project>{bab409e2-3370-401d-96bf-9a10a7bffc91}</Project>

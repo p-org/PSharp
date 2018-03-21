@@ -124,6 +124,7 @@
     <Compile Include="Timers\ReliableTimerConfig.cs" />
     <Compile Include="Timers\ReliableTimerMock.cs" />
     <Compile Include="Timers\TimeoutEvent.cs" />
+    <Compile Include="Utilities\ReliableRegister.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Core.csproj">
