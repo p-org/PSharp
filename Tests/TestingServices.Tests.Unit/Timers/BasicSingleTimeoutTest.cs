@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     {
 		
 		#region check basic StartTimer/StopTimer
-		private class T1 : TMachine
+		private class T1 : TimedMachine
 		{
 			#region fields
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 				count = 0;
 
 				// Start a one-off timer 
-				tid = StartTimer(payload, false, 10);
+				tid = StartTimer(payload, 10, false);
 				
 			}
 

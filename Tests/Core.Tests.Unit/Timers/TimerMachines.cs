@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 	#region timer machines
 
 	#region check basic StartTimer/StopTimer
-	class T1 : TMachine
+	class T1 : TimedMachine
 	{
 		#region fields
 		TimerId tid;
@@ -94,12 +94,12 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 			if (periodic)
 			{
 				// Start a periodic timer with 10ms timeouts
-				tid = StartTimer(payload, true, 10);
+				tid = StartTimer(payload, 10, true);
 			}
 			else
 			{
 				// Start a one-off timer 
-				tid = StartTimer(payload, false, 10);
+				tid = StartTimer(payload, 10, false);
 			}
 		}
 
@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 	#endregion
 
 	#region check flushing
-	class FlushingClient : TMachine
+	class FlushingClient : TimedMachine
 	{
 		#region fields
 		/// <summary>
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 	
 			// Start a periodic timer with timeout interval of 1sec.
 			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pingTimer = StartTimer(payload, true, 5);
+			pingTimer = StartTimer(payload, 5, true);
 			await Task.Delay(100);
 			await this.StopTimer(pingTimer, flush: true);
 			this.Goto<Pong>();
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 		{
 			// Start a periodic timer with timeout interval of 0.5sec.
 			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pongTimer = StartTimer(payload, false, 50);
+			pongTimer = StartTimer(payload, 50, false);
 		}
 
 		private void HandleTimeoutForPong()
@@ -228,7 +228,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
 	#region check illegal timer stoppage
 	
-	class T2 : TMachine
+	class T2 : TimedMachine
 	{
 		#region fields
 
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 		void Initialize()
 		{
 			tcs = (this.ReceivedEvent as Configure).TCS;
-			tid = this.StartTimer(this.payload, true, 100);
+			tid = this.StartTimer(this.payload, 100, true);
 			m = CreateMachine(typeof(T3), new TransferTimerAndTCS(tid, tcs));
 			this.Raise(new Halt());
 		}
@@ -260,7 +260,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
 	}
 
-	class T3 : TMachine
+	class T3 : TimedMachine
 	{
 		#region states
 
@@ -295,7 +295,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 	#endregion
 
 	#region check illegal period specification
-	class T4 : TMachine
+	class T4 : TimedMachine
 	{
 		#region fields
 
@@ -317,7 +317,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
 			try
 			{
-				this.StartTimer(this.payload, true, period);
+				this.StartTimer(this.payload, period, true);
 			}
 			catch(AssertionFailureException)
 			{

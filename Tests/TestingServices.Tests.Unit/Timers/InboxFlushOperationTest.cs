@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class InboxFlushOperationTest : BaseTest
     {
 		#region check flushing
-		private class FlushingClient : TMachine
+		private class FlushingClient : TimedMachine
 		{
 			#region fields
 			/// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			{
 				// Start a periodic timer with timeout interval of 1sec.
 				// The timer generates TimerElapsedEvent with 'm' as payload.
-				pingTimer = StartTimer(payload, true, 5);
+				pingTimer = StartTimer(payload, 5, true);
 				await this.StopTimer(pingTimer, flush: true);
 				this.Goto<Pong>();
 			}
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			{
 				// Start a periodic timer with timeout interval of 0.5sec.
 				// The timer generates TimerElapsedEvent with 'm' as payload.
-				pongTimer = StartTimer(payload, false, 50);
+				pongTimer = StartTimer(payload, 50, false);
 			}
 
 			private void HandleTimeoutForPong()
