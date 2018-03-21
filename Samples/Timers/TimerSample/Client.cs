@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TimerSample
 {
-	class Client : TMachine
+	class Client : TimedMachine
 	{
 		#region fields
 		/// <summary>
@@ -61,7 +61,7 @@ namespace TimerSample
 
 			// Start a periodic timer with timeout interval of 1sec.
 			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pingTimer = StartTimer(payload, true, 50);
+			pingTimer = StartTimer(payload, 50, true);
 		}
 
 		/// <summary>
@@ -101,7 +101,7 @@ namespace TimerSample
 
 			// Start a periodic timer with timeout interval of 0.5sec.
 			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pongTimer = StartTimer(payload, true, 50);
+			pongTimer = StartTimer(payload, 50, true);
 		}
 
 		private async Task HandleTimeoutForPong()

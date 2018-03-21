@@ -889,7 +889,7 @@ namespace Microsoft.PSharp.TestingServices
             var timerType = base.GetTimerMachineType();
             if (timerType == null)
             {
-                return typeof(Timers.TimerModel);
+                return typeof(Timers.ModelTimerMachine);
             }
 
             return timerType;

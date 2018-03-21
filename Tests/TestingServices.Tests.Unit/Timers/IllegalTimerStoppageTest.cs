@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 		#endregion
 
 		#region check illegal timer stoppage
-		private class T2 : TMachine
+		private class T2 : TimedMachine
 		{
 			#region fields
 
@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			#region handlers
 			void Initialize()
 			{
-				tid = this.StartTimer(this.payload, true, 100);
+				tid = this.StartTimer(this.payload, 100, true);
 				m = CreateMachine(typeof(T3), new TransferTimer(tid));
 				this.Raise(new Halt());
 			}
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			#endregion
 		}
 
-		private class T3 : TMachine
+		private class T3 : TimedMachine
 		{
 			#region states
 

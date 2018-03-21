@@ -543,7 +543,7 @@ namespace Microsoft.PSharp
             var timerType = base.GetTimerMachineType();
             if (timerType == null)
             {
-                return typeof(Timers.TimerProduction);
+                return typeof(Timers.ProductionTimerMachine);
             }
 
             return timerType;
