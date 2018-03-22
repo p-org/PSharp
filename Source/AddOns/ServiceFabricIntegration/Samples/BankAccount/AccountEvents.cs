@@ -22,14 +22,28 @@ namespace BankAccount
         }
     }
 
+    class AccountBalanceUpdatedEvent : Event
+    {
+        public MachineId Mid;
+        public int Balance;
+
+        public AccountBalanceUpdatedEvent(MachineId Mid, int balance)
+        {
+            this.Mid = Mid;
+            this.Balance = balance;
+        }
+    }
+
     class InitializeBrokerEvent : Event
     {
+        public MachineId Client;
         public MachineId Source;
         public MachineId Target;
         public int Amount;
 
-        public InitializeBrokerEvent(MachineId source, MachineId target, int amount)
+        public InitializeBrokerEvent(MachineId Client, MachineId source, MachineId target, int amount)
         {
+            this.Client = Client;
             this.Source = source;
             this.Target = target;
             this.Amount = amount;
@@ -70,6 +84,7 @@ namespace BankAccount
 
     class FailureEvent : Event { }
 
+    class AbortedEvent : Event { }
 
     class EnableEvent : Event { }
 }

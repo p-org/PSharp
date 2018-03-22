@@ -50,11 +50,15 @@ namespace BankAccount
             var ev = (this.ReceivedEvent as InitializeAccountEvent);
             await OwnerName.Set(CurrentTransaction, ev.Name);
             await Balance.Set(CurrentTransaction, ev.Balance);
+
+            this.Logger.WriteLine("Account {0} started with balance {1}", ev.Name, ev.Balance);
+
             this.Goto<WaitForOp>();
         }
 
         private async Task DoEnable()
         {
+            this.Logger.WriteLine("Account {0} enabled", await OwnerName.Get(CurrentTransaction));
             await Enabled.Set(CurrentTransaction, true);
         }
 
@@ -65,11 +69,15 @@ namespace BankAccount
 
             if(!enabled)
             {
+                this.Logger.WriteLine("Account {0}: Deposit of {1} failed because account is disabled", await OwnerName.Get(CurrentTransaction), ev.amount);
                 await this.ReliableSend(ev.sender, new FailureEvent());
                 return;
             }
 
-            await Balance.Set(CurrentTransaction, await Balance.Get(CurrentTransaction) + ev.amount);
+            var value = await Balance.Get(CurrentTransaction) + ev.amount;
+            this.Monitor<SafetyMonitor>(new AccountBalanceUpdatedEvent(this.Id, value));
+            await Balance.Set(CurrentTransaction, value);
+            this.Logger.WriteLine("Account {0}: Deposited {1}, current balance {2}", await OwnerName.Get(CurrentTransaction), ev.amount, value);
             await this.ReliableSend(ev.sender, new SuccessEvent());
         }
 
@@ -81,6 +89,7 @@ namespace BankAccount
 
             if (!enabled)
             {
+                this.Logger.WriteLine("Account {0}: Withdraw of {1} failed because account is disabled", await OwnerName.Get(CurrentTransaction), ev.amount);
                 await this.ReliableSend(ev.sender, new FailureEvent());
                 return;
             }
@@ -88,11 +97,15 @@ namespace BankAccount
             var balance = await Balance.Get(CurrentTransaction);
             if(balance < ev.amount)
             {
+                this.Logger.WriteLine("Account {0}: Withdraw of {1} failed, insufficient balance", await OwnerName.Get(CurrentTransaction), ev.amount);
                 await this.ReliableSend(ev.sender, new FailureEvent());
                 return;
             }
 
-            await Balance.Set(CurrentTransaction, balance - ev.amount);
+            var value = balance - ev.amount;
+            this.Monitor<SafetyMonitor>(new AccountBalanceUpdatedEvent(this.Id, value));
+            await Balance.Set(CurrentTransaction, value);
+            this.Logger.WriteLine("Account {0}: Withdrew {1}, current balance {2}", await OwnerName.Get(CurrentTransaction), ev.amount, value);
             await this.ReliableSend(ev.sender, new SuccessEvent());
         }
 

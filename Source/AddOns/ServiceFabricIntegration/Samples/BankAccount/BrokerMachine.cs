@@ -14,6 +14,11 @@ namespace BankAccount
     class BrokerMachine : ReliableStateMachine
     {
         /// <summary>
+        /// Client
+        /// </summary>
+        ReliableRegister<MachineId> Client;
+
+        /// <summary>
         /// Source account
         /// </summary>
         ReliableRegister<MachineId> Source;
@@ -34,6 +39,7 @@ namespace BankAccount
 
 
         [Start]
+        [OnEntry(nameof(InitOnEntry))]
         class Init : MachineState { }
 
         [OnEventDoAction(typeof(FailureEvent), nameof(OnWithdrawFailure))]
@@ -44,11 +50,14 @@ namespace BankAccount
         [OnEventDoAction(typeof(SuccessEvent), nameof(OnDepositSuccess))]
         class WaitForDeposit : MachineState { }
 
+        [OnEventDoAction(typeof(FailureEvent), nameof(OnCompensateFailure))]
+        [OnEventDoAction(typeof(SuccessEvent), nameof(OnCompensateSuccess))]
         class Compensate : MachineState { }
 
         private async Task InitOnEntry()
         {
             var ev = (this.ReceivedEvent as InitializeBrokerEvent);
+            await Client.Set(CurrentTransaction, ev.Client);
             await Source.Set(CurrentTransaction, ev.Source);
             await Target.Set(CurrentTransaction, ev.Target);
             await TransferAmount.Set(CurrentTransaction, ev.Amount);
@@ -58,9 +67,10 @@ namespace BankAccount
             this.Goto<WaitForWithdraw>();
         }
 
-        private void OnWithdrawFailure()
+        private async Task OnWithdrawFailure()
         {
             this.Logger.WriteLine("Transfer operation failed. Aborting");
+            await this.ReliableSend(await Client.Get(CurrentTransaction), new AbortedEvent());
             this.Raise(new Halt());
         }
 
@@ -70,12 +80,41 @@ namespace BankAccount
             this.Goto<WaitForDeposit>();
         }
 
+        private async Task OnDepositFailure()
+        {
+            this.Logger.WriteLine("Transfer operation failed. Aborting with undo");
+            await this.ReliableSend(await Source.Get(CurrentTransaction), new DepositEvent(this.Id, await TransferAmount.Get(CurrentTransaction)));
+            this.Goto<Compensate>();
+        }
+
+        private async Task OnDepositSuccess()
+        {
+            this.Logger.WriteLine("Transfer operation completed.");
+            await this.ReliableSend(await Client.Get(CurrentTransaction), new SuccessEvent());
+            this.Raise(new Halt());
+        }
+
+        private async Task OnCompensateFailure()
+        {
+            this.Logger.WriteLine("Transfer operation failed. Aborting with undo");
+            await this.ReliableSend(await Client.Get(CurrentTransaction), new FailureEvent());
+            this.Goto<Compensate>();
+        }
+
+        private async Task OnCompensateSuccess()
+        {
+            this.Logger.WriteLine("Transfer operation aborted successfully.");
+            await this.ReliableSend(await Client.Get(CurrentTransaction), new AbortedEvent());
+            this.Raise(new Halt());
+        }
+
         /// <summary>
         /// (Re-)Initialize
         /// </summary>
         /// <returns></returns>
         public override Task OnActivate()
         {
+            Client = new ReliableRegister<MachineId>(QualifyWithMachineName("Client"), StateManager);
             Source = new ReliableRegister<MachineId>(QualifyWithMachineName("Source"), StateManager);
             Target = new ReliableRegister<MachineId>(QualifyWithMachineName("Target"), StateManager);
             TransferAmount = new ReliableRegister<int>(QualifyWithMachineName("Amount"), StateManager);
