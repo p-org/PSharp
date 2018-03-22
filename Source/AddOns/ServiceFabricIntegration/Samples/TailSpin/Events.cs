@@ -145,10 +145,14 @@ namespace TailSpin
 	class SurveyResultsEvent : Event
 	{
 		[DataMember]
+		public int SurveyId;
+
+		[DataMember]
 		public int response;
 
-		public SurveyResultsEvent(int response)
+		public SurveyResultsEvent(int SurveyId, int response)
 		{
+			this.SurveyId = SurveyId;
 			this.response = response;
 		}
 	}

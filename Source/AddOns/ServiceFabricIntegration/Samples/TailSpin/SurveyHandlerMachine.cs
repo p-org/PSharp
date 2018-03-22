@@ -51,7 +51,7 @@ namespace TailSpin
 
 		private async Task Initialize()
 		{
-			this.Logger.WriteLine("SurveyHandlerMachine.Initialize()");
+			// this.Logger.WriteLine("SurveyHandlerMachine.Initialize()");
 			SurveyHandlerInitEvent e = (this.ReceivedEvent as SurveyHandlerInitEvent);
 			await TailSpinCoreMachine.Set(CurrentTransaction, e.TailSpinCoreMachine);
 			await SurveyDuration.Set(CurrentTransaction, e.SurveyDuration);
@@ -107,7 +107,7 @@ namespace TailSpin
 
 		public override Task OnActivate()
 		{
-			this.Logger.WriteLine("SurveyHandlerMachine.OnActivate()");
+			// this.Logger.WriteLine("SurveyHandlerMachine.OnActivate()");
 			TailSpinCoreMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("TailSpinCoreMachine"), this.StateManager, null);
 			SurveyDuration = new ReliableRegister<int>(QualifyWithMachineName("SurveyDuration"), this.StateManager, 0);
 			SubscriberId = new ReliableRegister<int>(QualifyWithMachineName("SubscriberId"), this.StateManager, 0);

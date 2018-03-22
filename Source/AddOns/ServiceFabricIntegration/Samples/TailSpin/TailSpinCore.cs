@@ -63,7 +63,7 @@ namespace TailSpin
 			// Send back the registration id
 			await this.ReliableSend(e.Subscriber, new RegistrationSuccessEvent(currentNumSubscribers));
 
-			this.Logger.WriteLine("Subscriber registered successfully");
+			// this.Logger.WriteLine("Subscriber registered successfully");
 		}
 
 		async Task UnregisterSubscriber()
@@ -118,8 +118,8 @@ namespace TailSpin
 			this.Assert(subscriberId == stag.SubscriberId);
 
 			// Return the survey result
-			MachineId subscriber = (await RegisteredSubscribers.TryGetValueAsync(CurrentTransaction, subscriberId)).Value;
-			await this.ReliableSend(subscriber, new SurveyResultsEvent(stag.response));
+			// MachineId subscriber = (await RegisteredSubscribers.TryGetValueAsync(CurrentTransaction, subscriberId)).Value;
+			// await this.ReliableSend(subscriber, new SurveyResultsEvent(stag.response));
 		}
 
 		async Task UpdateCompletedSurvey()
@@ -129,17 +129,14 @@ namespace TailSpin
 			int surveyId = e.SurveyId;
 			int finalVotes = e.FinalVotes;
 
-			this.Logger.WriteLine("Survey " + surveyId + " completed with votes: " + finalVotes);
+			// this.Logger.WriteLine("Survey " + surveyId + " completed with votes: " + finalVotes);
 
 			// Check if the subscriber is still registered
 			this.Assert(await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId));
 
-			// Check if the survey id is valid
-			this.Assert(surveyId <= await NumSurveys.Get(CurrentTransaction));
-
 			// Return the survey result
 			MachineId subscriber = (await RegisteredSubscribers.TryGetValueAsync(CurrentTransaction, subscriberId)).Value;
-			await this.ReliableSend(subscriber, new SurveyResultsEvent(finalVotes));
+			await this.ReliableSend(subscriber, new SurveyResultsEvent(surveyId, finalVotes));
 		}
 		#endregion
 

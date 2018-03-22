@@ -20,6 +20,7 @@ namespace TailSpin
 		ReliableRegister<MachineId> TailSpinCoreMachine;
 
 		ReliableRegister<int> SubscriberId;
+		IReliableDictionary<int, int> SurveyResponses;
 
 		ReliableRegister<int> SurveyId;
 
@@ -39,7 +40,7 @@ namespace TailSpin
 		[OnEventDoAction(typeof(RegistrationSuccessEvent), nameof(HandleRegistrationSuccess))]
 		[OnEventDoAction(typeof(StartSurveyEvent), nameof(InitiateSurvey))]
 		[OnEventDoAction(typeof(SurveyCreationSuccessEvent), nameof(HandleSuccssfulSurveyCreation))]
-		[OnEventDoAction(typeof(SurveyResultsEvent), nameof(PrintSurveyResults))]
+		[OnEventDoAction(typeof(SurveyResultsEvent), nameof(RecordSurveyResults))]
 		class Init : MachineState { }
 
 		#endregion
@@ -61,7 +62,7 @@ namespace TailSpin
 		async Task HandleRegistrationSuccess()
 		{
 			RegistrationSuccessEvent e = (this.ReceivedEvent as RegistrationSuccessEvent);
-			this.Logger.WriteLine("Registration successful!");
+			this.Logger.WriteLine("Subscriber " + this.Id + " registered with id: " + e.SubscriberId);
 			await SubscriberId.Set(CurrentTransaction, e.SubscriberId);
 			this.Raise(new StartSurveyEvent());
 		}
@@ -74,15 +75,32 @@ namespace TailSpin
 			await this.ReliableSend(tsCore, new CreateSurveyEvent(subscriberId));
 		}
 
-		void HandleSuccssfulSurveyCreation()
+		async Task HandleSuccssfulSurveyCreation()
 		{
-			this.Logger.WriteLine("Survey created successfully!");
+			// this.Logger.WriteLine("Survey created successfully!");
+			SurveyCreationSuccessEvent e = (this.ReceivedEvent as SurveyCreationSuccessEvent);
+
+			// Verify that the obtained survey id is unique
+			// this.Assert(await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId));
+
+			// Initialize the survey with some "invalid" response
+			await SurveyResponses.AddAsync(CurrentTransaction, e.SurveyId, -1);
 		}
 
-		void PrintSurveyResults()
+		async Task RecordSurveyResults()
 		{
 			SurveyResultsEvent e = (this.ReceivedEvent as SurveyResultsEvent);
-			this.Logger.WriteLine("Votes: " + e.response);
+			int surveyId = e.SurveyId;
+			int finalVotes = e.response;
+
+			// Verify that the obtained survey id is unique
+			// this.Assert(await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId));
+
+			this.Logger.WriteLine("Subscriber ID: " + this.Id + " SurveyID: " + surveyId + " Votes: " + finalVotes);
+
+			// Store the result
+			await SurveyResponses.TryRemoveAsync(CurrentTransaction, surveyId);
+			await SurveyResponses.AddAsync(CurrentTransaction, surveyId, finalVotes);
 		}
 
 		#endregion
@@ -90,12 +108,12 @@ namespace TailSpin
 		#region methods
 		public Subscriber(IReliableStateManager stateManager) : base(stateManager) { }
 
-		public override Task OnActivate()
+		public override async Task OnActivate()
 		{
 			TailSpinCoreMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("TSCoreMachine"), this.StateManager, null);
+			SurveyResponses = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("SurveyResponses"));
 			SubscriberId = new ReliableRegister<int>(QualifyWithMachineName("SubscriberId"), this.StateManager, 0);
 			SurveyId = new ReliableRegister<int>(QualifyWithMachineName("SurveyId"), this.StateManager, 0);
-			return Task.CompletedTask;
 		}
 
 		private string QualifyWithMachineName(string name)

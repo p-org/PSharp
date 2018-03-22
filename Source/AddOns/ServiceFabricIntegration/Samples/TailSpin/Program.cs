@@ -21,6 +21,8 @@ namespace TailSpin
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
 			var tsCore = runtime.CreateMachine(typeof(TailSpinCore));
 			var subs1 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+			var subs2 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+
 
 			Console.ReadLine();
 		}
