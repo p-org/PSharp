@@ -239,7 +239,18 @@ namespace Microsoft.PSharp.ReliableServices
                         await this.ExecuteCurrentStateOnEntry();
                     }
 
-                    await CommitCurrentTransaction();
+                    if (this.LastTxThrewException)
+                    {
+                        OnTxAbort();
+                        CleanupOnAbortedTransaction();
+                        LastTxThrewException = false;
+                        continue;
+                    }
+                    else
+                    {
+                        await CommitCurrentTransaction();
+                    }
+
                     break;
                 }
                 catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
@@ -295,7 +306,9 @@ namespace Microsoft.PSharp.ReliableServices
                 return await ReliableCreateMachine(type, friendlyName, e);
             }
 
-            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
+            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(
+                "remoteCreationMachineMap" + this.Id.Name);
+
             var mid = await this.Runtime.NetworkProvider.RemoteCreateMachineId(type, friendlyName, endpoint);
 
             await remoteCreationMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
@@ -488,6 +501,9 @@ namespace Microsoft.PSharp.ReliableServices
 
             if (InTestMode)
             {
+                // disable R/G/P check
+                this.Info.CurrentActionCalledTransitionStatement = false;
+
                 while (TestModeCreateBuffer.Count > 0)
                 {
                     var tup = TestModeCreateBuffer.Dequeue();
@@ -502,7 +518,8 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             // remote machine creations
-            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("remoteCreationMachineMap");
+            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(
+                "remoteCreationMachineMap" + this.Id.Name);
 
             // TODO: include retry policy
             while (true)

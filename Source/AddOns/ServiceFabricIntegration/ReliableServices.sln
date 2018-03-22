@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReliableServices", "ReliableServices\ReliableServices.csproj", "{BAB409E2-3370-401D-96BF-9A10A7BFFC91}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordCount", "Samples\WordCount\WordCount.csproj", "{CB0592AB-213C-41A0-B2C6-84A9FBD02C01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTimers", "Samples\SimpleTimers\SimpleTimers.csproj", "{817B3475-5854-4546-A1B1-72C0765300E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankAccount", "Samples\BankAccount\BankAccount.csproj", "{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +87,14 @@ Global
 		{817B3475-5854-4546-A1B1-72C0765300E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{817B3475-5854-4546-A1B1-72C0765300E3}.Release|x64.ActiveCfg = Release|Any CPU
 		{817B3475-5854-4546-A1B1-72C0765300E3}.Release|x64.Build.0 = Release|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Debug|x64.Build.0 = Debug|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|x64.ActiveCfg = Release|Any CPU
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,6 +104,7 @@ Global
 		{C24174D7-A37A-46E7-A54E-2844251E8B6E} = {39BBF28E-8EC4-4EB1-826F-224AC5101D69}
 		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
 		{817B3475-5854-4546-A1B1-72C0765300E3} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
+		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4A93451B-3795-4BFA-A2FD-FC961F52510A}

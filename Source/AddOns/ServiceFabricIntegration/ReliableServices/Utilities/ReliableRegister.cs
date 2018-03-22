@@ -10,12 +10,12 @@ using Microsoft.PSharp.ReliableServices;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 
-namespace WordCount
+namespace Microsoft.PSharp.ReliableServices.Utilities
 {
     /// <summary>
     /// A Reliable Register (Sequential)
     /// </summary>
-    class ReliableRegister<T>
+    public class ReliableRegister<T>
     {
         /// <summary>
         /// The state manager
