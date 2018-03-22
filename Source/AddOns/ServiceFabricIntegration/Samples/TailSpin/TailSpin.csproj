@@ -4,15 +4,31 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{549041C7-9D11-4753-A8D3-3812835FFA40}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ReliableServices.Tests.Unit</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.ReliableServices.Tests.Unit</AssemblyName>
+    <ProjectGuid>{D18D28E4-13B9-4F39-AFBD-2FCF0466104A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TailSpin</RootNamespace>
+    <AssemblyName>TailSpin</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -20,9 +36,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -30,44 +46,37 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.ServiceFabric.Data, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.456\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.467\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Data.Interfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.456\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.467\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal.Strings, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Preview, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Fabric, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\System.Fabric.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel.XmlSerializers, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Strings, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.456\lib\net45\System.Fabric.Strings.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.467\lib\net45\System.Fabric.Strings.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
@@ -79,34 +88,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Basic.cs" />
-    <Compile Include="BaseTest.cs" />
+    <Compile Include="Events.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Subscriber.cs" />
+    <Compile Include="SurveyHandlerMachine.cs" />
+    <Compile Include="SurveyTag.cs" />
+    <Compile Include="TailSpinCore.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Core.csproj">
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Core\Core.csproj">
       <Project>{7095295a-cd08-4f57-97d3-e482265b421e}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\TestingServices\TestingServices.csproj">
-      <Project>{c24174d7-a37a-46e7-a54e-2844251e8b6e}</Project>
-      <Name>TestingServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ReliableServices\ReliableServices.csproj">
+    <ProjectReference Include="..\..\ReliableServices\ReliableServices.csproj">
       <Project>{bab409e2-3370-401d-96bf-9a10a7bffc91}</Project>
       <Name>ReliableServices</Name>
     </ProjectReference>
-    <ProjectReference Include="..\StateManagerMock\StateManagerMock.csproj">
+    <ProjectReference Include="..\..\StateManagerMock\StateManagerMock.csproj">
       <Project>{b1a703f2-ef2b-4083-9a41-abf897f94b7e}</Project>
       <Name>StateManagerMock</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Key.snk" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
