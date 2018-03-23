@@ -32,10 +32,12 @@ namespace Microsoft.PSharp
     {
         #region static fields
 
+        private enum MachineDeclCacheResult { STARTED, DONE, ERROR };
+
         /// <summary>
         /// Is the machine state cached yet?
         /// </summary>
-        private static ConcurrentDictionary<Type, bool> MachineStateCached;
+        private static ConcurrentDictionary<Type, MachineDeclCacheResult> MachineStateCached;
 
         /// <summary>
         /// Map from machine types to a set of all
@@ -86,6 +88,16 @@ namespace Microsoft.PSharp
         /// Map from action names to actions.
         /// </summary>
         private Dictionary<string, CachedAction> ActionMap;
+
+        /// <summary>
+        /// For initializing the machine (as many as the type inheritance heirarchy)
+        /// </summary>
+        private static ConcurrentDictionary<Type, List<MethodInfo>> OnMachineCreationAllActionsCache;
+
+        /// <summary>
+        /// Machine initialization callback, per type
+        /// </summary>
+        private static ConcurrentDictionary<Type, MethodInfo> OnMachineCreationActionsCache;
 
         /// <summary>
         /// Inbox of the state-machine. Incoming events are
@@ -221,10 +233,12 @@ namespace Microsoft.PSharp
         /// </summary>
         static Machine()
         {
-            MachineStateCached = new ConcurrentDictionary<Type, bool>();
+            MachineStateCached = new ConcurrentDictionary<Type, MachineDeclCacheResult>();
             StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
             StateMap = new ConcurrentDictionary<Type, HashSet<MachineState>>();
             MachineActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
+            OnMachineCreationActionsCache = new ConcurrentDictionary<Type, MethodInfo>();
+            OnMachineCreationAllActionsCache = new ConcurrentDictionary<Type, List<MethodInfo>>();
         }
 
         /// <summary>
@@ -1442,10 +1456,11 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        internal Task GotoStartState(Event e)
+        internal async Task GotoStartState(Event e)
         {
+            await InvokeInitializationCallbacks(e);
             this.ReceivedEvent = e;
-            return this.ExecuteCurrentStateOnEntry();
+            await this.ExecuteCurrentStateOnEntry();
         }
 
         /// <summary>
@@ -1455,132 +1470,151 @@ namespace Microsoft.PSharp
         {
             Type machineType = this.GetType();
 
-            if (MachineStateCached.TryAdd(machineType, false))
+            if (MachineStateCached.TryAdd(machineType, MachineDeclCacheResult.STARTED))
             {
-                // Caches the available state types for this machine type.
-                if (StateTypeMap.TryAdd(machineType, new HashSet<Type>()))
+                try
                 {
-                    Type baseType = machineType;
-                    while (baseType != typeof(Machine))
+                    // Caches the available state types for this machine type.
+                    if (StateTypeMap.TryAdd(machineType, new HashSet<Type>()))
                     {
-                        foreach (var s in baseType.GetNestedTypes(BindingFlags.Instance |
-                            BindingFlags.NonPublic | BindingFlags.Public |
-                            BindingFlags.DeclaredOnly))
+                        Type baseType = machineType;
+                        while (baseType != typeof(Machine))
                         {
-                            this.ExtractStateTypes(s);
-                        }
-
-                        baseType = baseType.BaseType;
-                    }
-                }
-
-                // Caches the available state instances for this machine type.
-                if (StateMap.TryAdd(machineType, new HashSet<MachineState>()))
-                {
-                    foreach (var type in StateTypeMap[machineType])
-                    {
-                        Type stateType = type;
-                        if (type.IsAbstract)
-                        {
-                            continue;
-                        }
-
-                        if (type.IsGenericType)
-                        {
-                            // If the state type is generic (only possible if inherited by a
-                            // generic machine declaration), then iterate through the base
-                            // machine classes to identify the runtime generic type, and use
-                            // it to instantiate the runtime state type. This type can be
-                            // then used to create the state constructor.
-                            Type declaringType = this.GetType();
-                            while (!declaringType.IsGenericType ||
-                                !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
-                                0, declaringType.FullName.IndexOf('['))))
+                            foreach (var s in baseType.GetNestedTypes(BindingFlags.Instance |
+                                BindingFlags.NonPublic | BindingFlags.Public |
+                                BindingFlags.DeclaredOnly))
                             {
-                                declaringType = declaringType.BaseType;
+                                this.ExtractStateTypes(s);
                             }
 
-                            if (declaringType.IsGenericType)
-                            {
-                                stateType = type.MakeGenericType(declaringType.GetGenericArguments());
-                            }
-                        }
-
-                        ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
-                        var lambda = Expression.Lambda<Func<MachineState>>(
-                            Expression.New(constructor)).Compile();
-                        MachineState state = lambda();
-
-                        try
-                        {
-                            state.InitializeState();
-                        }
-                        catch (InvalidOperationException ex)
-                        {
-                            this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
-                        }
-                        
-                        StateMap[machineType].Add(state);
-                    }
-                }
-
-                // Caches the actions declarations for this machine type.
-                if (MachineActionMap.TryAdd(machineType, new Dictionary<string, MethodInfo>()))
-                {
-                    foreach (var state in StateMap[machineType])
-                    {
-                        if (state.EntryAction != null &&
-                            !MachineActionMap[machineType].ContainsKey(state.EntryAction))
-                        {
-                            MachineActionMap[machineType].Add(state.EntryAction,
-                                this.GetActionWithName(state.EntryAction));
-                        }
-
-                        if (state.ExitAction != null &&
-                            !MachineActionMap[machineType].ContainsKey(state.ExitAction))
-                        {
-                            MachineActionMap[machineType].Add(state.ExitAction,
-                                this.GetActionWithName(state.ExitAction));
-                        }
-
-                        foreach (var transition in state.GotoTransitions)
-                        {
-                            if (transition.Value.Lambda != null &&
-                                !MachineActionMap[machineType].ContainsKey(transition.Value.Lambda))
-                            {
-                                MachineActionMap[machineType].Add(transition.Value.Lambda,
-                                    this.GetActionWithName(transition.Value.Lambda));
-                            }
-                        }
-
-                        foreach (var action in state.ActionBindings)
-                        {
-                            if (!MachineActionMap[machineType].ContainsKey(action.Value.Name))
-                            {
-                                MachineActionMap[machineType].Add(action.Value.Name,
-                                    this.GetActionWithName(action.Value.Name));
-                            }
+                            baseType = baseType.BaseType;
                         }
                     }
-                }
 
-                // Cache completed.
-                lock(MachineStateCached)
+                    // Caches the available state instances for this machine type.
+                    if (StateMap.TryAdd(machineType, new HashSet<MachineState>()))
+                    {
+                        foreach (var type in StateTypeMap[machineType])
+                        {
+                            Type stateType = type;
+                            if (type.IsAbstract)
+                            {
+                                continue;
+                            }
+
+                            if (type.IsGenericType)
+                            {
+                                // If the state type is generic (only possible if inherited by a
+                                // generic machine declaration), then iterate through the base
+                                // machine classes to identify the runtime generic type, and use
+                                // it to instantiate the runtime state type. This type can be
+                                // then used to create the state constructor.
+                                Type declaringType = this.GetType();
+                                while (!declaringType.IsGenericType ||
+                                    !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
+                                    0, declaringType.FullName.IndexOf('['))))
+                                {
+                                    declaringType = declaringType.BaseType;
+                                }
+
+                                if (declaringType.IsGenericType)
+                                {
+                                    stateType = type.MakeGenericType(declaringType.GetGenericArguments());
+                                }
+                            }
+
+                            ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
+                            var lambda = Expression.Lambda<Func<MachineState>>(
+                                Expression.New(constructor)).Compile();
+                            MachineState state = lambda();
+
+                            try
+                            {
+                                state.InitializeState();
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
+                            }
+
+                            StateMap[machineType].Add(state);
+                        }
+                    }
+
+                    // Caches the actions declarations for this machine type.
+                    if (MachineActionMap.TryAdd(machineType, new Dictionary<string, MethodInfo>()))
+                    {
+                        foreach (var state in StateMap[machineType])
+                        {
+                            if (state.EntryAction != null &&
+                                !MachineActionMap[machineType].ContainsKey(state.EntryAction))
+                            {
+                                MachineActionMap[machineType].Add(state.EntryAction,
+                                    this.GetActionWithName(state.EntryAction));
+                            }
+
+                            if (state.ExitAction != null &&
+                                !MachineActionMap[machineType].ContainsKey(state.ExitAction))
+                            {
+                                MachineActionMap[machineType].Add(state.ExitAction,
+                                    this.GetActionWithName(state.ExitAction));
+                            }
+
+                            foreach (var transition in state.GotoTransitions)
+                            {
+                                if (transition.Value.Lambda != null &&
+                                    !MachineActionMap[machineType].ContainsKey(transition.Value.Lambda))
+                                {
+                                    MachineActionMap[machineType].Add(transition.Value.Lambda,
+                                        this.GetActionWithName(transition.Value.Lambda));
+                                }
+                            }
+
+                            foreach (var action in state.ActionBindings)
+                            {
+                                if (!MachineActionMap[machineType].ContainsKey(action.Value.Name))
+                                {
+                                    MachineActionMap[machineType].Add(action.Value.Name,
+                                        this.GetActionWithName(action.Value.Name));
+                                }
+                            }
+                        }
+                    }
+
+                    // caches initialization actions
+                    this.FindAllInitializationCallbacks(machineType);
+
+                    // Cache completed.
+                    lock (MachineStateCached)
+                    {
+                        MachineStateCached[machineType] = MachineDeclCacheResult.DONE;
+                        System.Threading.Monitor.PulseAll(MachineStateCached);
+                    }
+                }
+                catch(Exception)
                 {
-                    MachineStateCached[machineType] = true;
-                    System.Threading.Monitor.PulseAll(MachineStateCached);
+                    // Caching failed, signal other threads
+                    lock (MachineStateCached)
+                    {
+                        MachineStateCached[machineType] = MachineDeclCacheResult.ERROR;
+                        System.Threading.Monitor.PulseAll(MachineStateCached);
+                    }
+                    throw;
                 }
             }
-            else if (!MachineStateCached[machineType])
+            else if (MachineStateCached[machineType] == MachineDeclCacheResult.STARTED)
             {
                 lock (MachineStateCached)
                 {
-                    while (!MachineStateCached[machineType])
+                    while (MachineStateCached[machineType] == MachineDeclCacheResult.STARTED)
                     {
                         System.Threading.Monitor.Wait(MachineStateCached);
                     }
                 }
             }
+
+            this.Assert(MachineStateCached[machineType] == MachineDeclCacheResult.DONE, 
+                "Machine construction failed for {0}", machineType.Name);
 
             // Populates the map of actions for this machine instance.
             foreach (var kvp in MachineActionMap[machineType])
@@ -1754,6 +1788,101 @@ namespace Microsoft.PSharp
             }
 
             return pairs;
+        }
+
+        #endregion
+
+        #region Initialization callback
+
+        /// <summary>
+        /// Invokes machine initialization callbacks 
+        /// </summary>
+        private async Task InvokeInitializationCallbacks(Event e)
+        {
+            List<MethodInfo> methods;
+            OnMachineCreationAllActionsCache.TryGetValue(this.GetType(), out methods);
+
+            for (int i = methods.Count - 1; i >= 0; i--)
+            {
+                var ret = methods[i].Invoke(this, new object[] { e });
+                if(ret != null && ret is Task)
+                {
+                    await (ret as Task);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the methods with [MachineConstructor] attribute in this class and basetypes
+        /// </summary>
+        private void FindAllInitializationCallbacks(Type machineType)
+        {
+            var ret = new List<MethodInfo>();
+            var mType = machineType;
+
+            do
+            {
+                MethodInfo method;
+
+                if(!OnMachineCreationActionsCache.TryGetValue(mType, out method))
+                {
+                    method = FindInitializationCallback(mType);
+                    OnMachineCreationActionsCache.TryAdd(mType, method);
+                }
+
+                if(method != null)
+                {
+                    ret.Add(method);
+                }
+
+                mType = mType.BaseType;
+            }
+            while (mType != typeof(Machine));
+
+            OnMachineCreationAllActionsCache.TryAdd(machineType, ret);
+        }
+
+        /// <summary>
+        /// Finds the method with [MachineConstructor] attribute in this class
+        /// </summary>
+        private MethodInfo FindInitializationCallback(Type machineType)
+        {
+            List<MethodInfo> candidates;
+
+            candidates = machineType
+                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(mi => mi.GetCustomAttributes(typeof(MachineConstructor), false).Length > 0)
+                .ToList();
+
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            if (candidates.Count > 1)
+            {
+                var msg = $"Only one instance member of class {machineType.Name} can be marked with attribute {typeof(MachineConstructor).Name}.";
+                foreach (var mi in candidates)
+                {
+                    msg += Environment.NewLine;
+                    msg += $"Found {mi.Name}";
+                }
+                this.Assert(false, msg);
+            }
+
+            var ret = candidates[0];
+
+            this.Assert(ret.ReturnType == typeof(void) || ret.ReturnType == typeof(Task),
+                "Method {0} of class {1}, marked with attribute {2} must have return type either void or Task",
+                ret.Name, machineType.Name, typeof(MachineConstructor).Name);
+
+            var callParams = ret.GetParameters();
+
+            this.Assert(callParams.Length == 1 && callParams[0].ParameterType == typeof(Event),
+                "Method {0} of class {1}, marked with attribute {2} must accept a single parameter of type Event",
+                ret.Name, machineType.Name, typeof(MachineConstructor).Name);
+
+            return ret;
         }
 
         #endregion
