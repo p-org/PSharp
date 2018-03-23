@@ -8,6 +8,17 @@ using Microsoft.PSharp.ReliableServices;
 
 namespace TailSpin
 {
+	/*
+	 * General Idea: TailSpinCore is an application which:
+	 * 1. Allows subscribers to register themselves.
+	 * 2. Allows registered subscribers to create new surveys.
+	 * 3. Conducts surveys and sends the responses back to the correct subscribers.
+	 * 4. Allows registered subscribers to unregister themselves.
+	 * 
+	 * Each survey is just a sum of response.
+	 * A response may either be a no-show, or a number between 0-10.
+	 * Each survey lasts for 10sec.
+	 */
 	class Program
 	{
 		static void Main(string[] args)
@@ -19,9 +30,15 @@ namespace TailSpin
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
+			
+			// Create the main TailSpinCore machine
 			var tsCore = runtime.CreateMachine(typeof(TailSpinCore));
+
+			// Create 4 subcribers
 			var subs1 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
 			var subs2 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+			var subs3 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+			var subs4 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
 
 
 			Console.ReadLine();
@@ -38,8 +55,12 @@ namespace TailSpin
 		public static void Execute(PSharpRuntime runtime)
 		{
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
-			// runtime.RegisterMonitor(typeof(SafetyMonitor));
-			//runtime.CreateMachine(typeof(TailSpinCore));
+			var tsCore = runtime.CreateMachine(typeof(TailSpinCore));
+			var subs1 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+			var subs2 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+			var subs3 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+			var subs4 = runtime.CreateMachine(typeof(Subscriber), new SubscriberInitEvent(tsCore));
+
 		}
 	}
 

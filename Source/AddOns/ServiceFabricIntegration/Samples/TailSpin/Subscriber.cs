@@ -13,6 +13,10 @@ using Microsoft.ServiceFabric.Data.Collections;
 
 namespace TailSpin
 {
+	/*
+	 * Each subscriber registers himself/herself, starts a survey, and when the survey completes, stores the result.
+	 * 
+	 */
 	class Subscriber : ReliableStateMachine
 	{
 		#region fields
@@ -48,7 +52,6 @@ namespace TailSpin
 		#region handlers
 		async Task Initialize()
 		{
-			this.Logger.WriteLine("Subscriber " + this.Id + " starting");
 			SubscriberInitEvent e = (this.ReceivedEvent as SubscriberInitEvent);
 			await TailSpinCoreMachine.Set(CurrentTransaction, e.TailSpinCoreMachine);
 
@@ -64,7 +67,7 @@ namespace TailSpin
 			RegistrationSuccessEvent e = (this.ReceivedEvent as RegistrationSuccessEvent);
 			this.Logger.WriteLine("Subscriber " + this.Id + " registered with id: " + e.SubscriberId);
 			await SubscriberId.Set(CurrentTransaction, e.SubscriberId);
-			this.Raise(new StartSurveyEvent());
+			await this.ReliableSend(this.Id, new StartSurveyEvent());
 		}
 
 		async Task InitiateSurvey()
@@ -81,7 +84,8 @@ namespace TailSpin
 			SurveyCreationSuccessEvent e = (this.ReceivedEvent as SurveyCreationSuccessEvent);
 
 			// Verify that the obtained survey id is unique
-			// this.Assert(await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId));
+			bool IsSurveyIdObserved = await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId);
+			this.Assert(!IsSurveyIdObserved, "Subscriber ID which is not unique");
 
 			// Initialize the survey with some "invalid" response
 			await SurveyResponses.AddAsync(CurrentTransaction, e.SurveyId, -1);
@@ -93,14 +97,20 @@ namespace TailSpin
 			int surveyId = e.SurveyId;
 			int finalVotes = e.response;
 
-			// Verify that the obtained survey id is unique
-			// this.Assert(await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId));
+			// Verify that the survey corresponds to a survey id received previously
+			bool IsValidSurveyId = await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId);
+			this.Assert(IsValidSurveyId, "Survey ID is not valid");
 
 			this.Logger.WriteLine("Subscriber ID: " + this.Id + " SurveyID: " + surveyId + " Votes: " + finalVotes);
 
 			// Store the result
 			await SurveyResponses.TryRemoveAsync(CurrentTransaction, surveyId);
 			await SurveyResponses.AddAsync(CurrentTransaction, surveyId, finalVotes);
+
+			// Unregister myself
+			MachineId tsCore = await TailSpinCoreMachine.Get(CurrentTransaction);
+			int subscriberId = await SubscriberId.Get(CurrentTransaction);
+			await this.ReliableSend(tsCore, new UnregisterSubscriberEvent(subscriberId));
 		}
 
 		#endregion

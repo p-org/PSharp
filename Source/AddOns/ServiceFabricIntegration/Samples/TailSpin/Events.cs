@@ -12,6 +12,8 @@ using System.Runtime.Serialization;
 
 namespace TailSpin
 {
+	#region events
+
 	[DataContract]
 	class SurveyHandlerInitEvent : Event
 	{
@@ -176,4 +178,5 @@ namespace TailSpin
 			this.FinalVotes = FinalVotes;
 		}
 	}
+	#endregion
 }

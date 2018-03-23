@@ -34,7 +34,6 @@ namespace TailSpin
 		[OnEventDoAction(typeof(RegisterSubscriberEvent), nameof(RegisterSubscriber))]
 		[OnEventDoAction(typeof(UnregisterSubscriberEvent), nameof(UnregisterSubscriber))]
 		[OnEventDoAction(typeof(CreateSurveyEvent), nameof(CreateSurvey))]
-		[OnEventDoAction(typeof(AnalyzeSurveyEvent), nameof(AnalyzeSurvey))]
 		[OnEventDoAction(typeof(CompletedSurveyEvent), nameof(UpdateCompletedSurvey))]
 		class Init : MachineState { }
 
@@ -44,7 +43,7 @@ namespace TailSpin
 
 		void InitializeTailSpin()
 		{
-			this.Logger.WriteLine("TailSpin starting...");
+			this.Logger.WriteLine("***Starting TailSpin Surveys***");
 		}
 
 		async Task RegisterSubscriber()
@@ -52,9 +51,10 @@ namespace TailSpin
 			RegisterSubscriberEvent e = (this.ReceivedEvent as RegisterSubscriberEvent);
 			int currentNumSubscribers = await NumSubscribers.Get(CurrentTransaction);
 			currentNumSubscribers++;
-			
+
 			// Ensure the id does not already exist among RegisteredSubscribers
-			this.Assert(!(await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, currentNumSubscribers)));
+			bool IsSubscriberAlreadyRegistered = await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, currentNumSubscribers);
+			this.Assert(!IsSubscriberAlreadyRegistered, "TailSpinCore: Subscriber with ID already exists");
 
 			// Register subscriber
 			await NumSubscribers.Set(CurrentTransaction, currentNumSubscribers);
@@ -72,10 +72,13 @@ namespace TailSpin
 			int subscriberId = e.SubscriberId;
 
 			// Check if a valid subscriber is trying to unregister
-			this.Assert(await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId));
+			bool IsSubscriberRegistered = await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId);
+			this.Assert(IsSubscriberRegistered, "TailSpinCore: Subscriber is not registered");
 
 			// Remove the subscriber
 			await RegisteredSubscribers.TryRemoveAsync(CurrentTransaction, subscriberId);
+
+			this.Logger.WriteLine("Subscriber ID: " + subscriberId + " unregistered successfully");
 		}
 
 		async Task CreateSurvey()
@@ -83,8 +86,9 @@ namespace TailSpin
 			CreateSurveyEvent e = (this.ReceivedEvent as CreateSurveyEvent);
 			int subscriberId = e.SubscriberId;
 
-			// Check if a valid subscriber is trying to unregister
-			this.Assert(await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId));
+			// Check if a valid subscriber is trying to create the survey
+			bool IsSubscriberRegistered = await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId);
+			this.Assert(IsSubscriberRegistered, "TailSpinCore: Subscriber " + subscriberId + " is not registered");
 
 			// Update the survey ID
 			int currentNumSurveys = await NumSurveys.Get(CurrentTransaction);
@@ -99,29 +103,6 @@ namespace TailSpin
 			this.Logger.WriteLine("Survey " + currentNumSurveys + " started for subcscriber " + subscriberId);
 		}
 
-		async Task AnalyzeSurvey()
-		{
-			AnalyzeSurveyEvent e = (this.ReceivedEvent as AnalyzeSurveyEvent);
-			int surveyId = e.SurveyId;
-			int subscriberId = e.SubscriberId;
-
-			// Check if a valid subscriber is trying to unregister
-			this.Assert(await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId));
-
-			// Check if the subscriber is seeking the results of a valid survey
-			this.Assert(surveyId <= await NumSurveys.Get(CurrentTransaction));
-
-			// Get the survey results
-			SurveyTag stag = (await SurveyResponses.TryGetValueAsync(CurrentTransaction, surveyId)).Value;
-
-			// Check if the survey is being sought by the right subscriber
-			this.Assert(subscriberId == stag.SubscriberId);
-
-			// Return the survey result
-			// MachineId subscriber = (await RegisteredSubscribers.TryGetValueAsync(CurrentTransaction, subscriberId)).Value;
-			// await this.ReliableSend(subscriber, new SurveyResultsEvent(stag.response));
-		}
-
 		async Task UpdateCompletedSurvey()
 		{
 			CompletedSurveyEvent e = (this.ReceivedEvent as CompletedSurveyEvent);
@@ -132,7 +113,8 @@ namespace TailSpin
 			// this.Logger.WriteLine("Survey " + surveyId + " completed with votes: " + finalVotes);
 
 			// Check if the subscriber is still registered
-			this.Assert(await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId));
+			bool IsSubscriberRegistered = await RegisteredSubscribers.ContainsKeyAsync(CurrentTransaction, subscriberId);
+			this.Assert(IsSubscriberRegistered, "TailSpinCore: Subscriber is not registered");
 
 			// Return the survey result
 			MachineId subscriber = (await RegisteredSubscribers.TryGetValueAsync(CurrentTransaction, subscriberId)).Value;

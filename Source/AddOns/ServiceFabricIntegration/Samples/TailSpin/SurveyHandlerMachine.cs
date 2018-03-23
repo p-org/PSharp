@@ -13,7 +13,10 @@ using Microsoft.ServiceFabric.Data.Collections;
 namespace TailSpin
 {
 	/// <summary>
-	/// A machine which coordinates incoming surveys from SurveyMachines
+	/// A machine which conducts surveys.
+	/// A survey is a sum of responses.
+	/// A response is may be a no-show, or a number between 0-10.
+	/// Each response is made at 10ms time intervals.
 	/// </summary>
 	class SurveyHandlerMachine : ReliableStateMachine
 	{
