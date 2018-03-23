@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTimers", "Samples\Sim
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankAccount", "Samples\BankAccount\BankAccount.csproj", "{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppBuilder", "Samples\AppBuilder\AppBuilder.csproj", "{6154BEC3-3155-4597-B523-63F3D463F023}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,14 @@ Global
 		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|x64.ActiveCfg = Release|Any CPU
 		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}.Release|x64.Build.0 = Release|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Debug|x64.Build.0 = Debug|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Release|x64.ActiveCfg = Release|Any CPU
+		{6154BEC3-3155-4597-B523-63F3D463F023}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -105,6 +115,7 @@ Global
 		{CB0592AB-213C-41A0-B2C6-84A9FBD02C01} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
 		{817B3475-5854-4546-A1B1-72C0765300E3} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
 		{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
+		{6154BEC3-3155-4597-B523-63F3D463F023} = {D084C36E-0971-4B11-8CEA-5BCCB5174BCF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4A93451B-3795-4BFA-A2FD-FC961F52510A}
