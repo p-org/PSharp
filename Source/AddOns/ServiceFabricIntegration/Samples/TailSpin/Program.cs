@@ -18,6 +18,8 @@ namespace TailSpin
 	 * Each survey is just a sum of response.
 	 * A response may either be a no-show, or a number between 0-10.
 	 * Each survey lasts for 10sec.
+	 * 
+	 * The full scenario description is available at: https://msdn.microsoft.com/en-us/library/hh534482.aspx
 	 */
 	class Program
 	{
@@ -51,6 +53,7 @@ namespace TailSpin
 			Environment.Exit(1);
 		}
 
+		// The test contains a single TaipSpinCore application with 4 concurrent subscribers.
 		[Test]
 		public static void Execute(PSharpRuntime runtime)
 		{

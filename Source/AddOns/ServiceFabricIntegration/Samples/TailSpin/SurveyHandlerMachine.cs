@@ -22,19 +22,28 @@ namespace TailSpin
 	{
 		#region fields
 
+		/// <summary>
+		/// Handle to the main TailSpinCore machine.
+		/// </summary>
 		ReliableRegister<MachineId> TailSpinCoreMachine;
 
 		/// <summary>
-		/// How long does a survey last
+		/// How long does a survey last. A default of 10s is assumed.
 		/// </summary>
 		ReliableRegister<int> SurveyDuration;
 
+		/// <summary>
+		/// Reliably store the id of the subscriber who created the survey.
+		/// </summary>
 		ReliableRegister<int> SubscriberId;
 
+		/// <summary>
+		/// Reliably store the id of the survey.
+		/// </summary>
 		ReliableRegister<int> SurveyId;
 
 		/// <summary>
-		/// A survey is abstracted as "number of votes".
+		/// A reliable accumulator, abstracting a survey as a "number of votes".
 		/// </summary>
 		ReliableRegister<int> Survey;
 
@@ -54,7 +63,7 @@ namespace TailSpin
 
 		private async Task Initialize()
 		{
-			// this.Logger.WriteLine("SurveyHandlerMachine.Initialize()");
+			// Initialize all the fields
 			SurveyHandlerInitEvent e = (this.ReceivedEvent as SurveyHandlerInitEvent);
 			await TailSpinCoreMachine.Set(CurrentTransaction, e.TailSpinCoreMachine);
 			await SurveyDuration.Set(CurrentTransaction, e.SurveyDuration);
@@ -72,6 +81,7 @@ namespace TailSpin
 		{
 			TimeoutEvent e = (this.ReceivedEvent as TimeoutEvent);
 
+			// If timeout is from a response timer, nondeterministically submit a response.
 			if(e.Name == QualifyWithMachineName("ResponseTimer"))
 			{
 				int response = this.RandomInteger(11);
@@ -80,13 +90,18 @@ namespace TailSpin
 					await this.ReliableSend(this.Id, new SurveyResponse(response));
 				}
 			}
+			// If the survey time is up, send the survey summary to TailSpinCore machine
 			if(e.Name == QualifyWithMachineName("SurveyTimer"))
 			{
+				// Stop the timers
 				await this.StopTimer(QualifyWithMachineName("ResponseTimer"));
 				await this.StopTimer(QualifyWithMachineName("SurveyTimer"));
+
+				// Get the final vote count, which should be non-negative
 				int finalVote = await Survey.Get(CurrentTransaction);
 				this.Assert(finalVote >= 0);
 
+				// Compile the results and send it back to TailSpinCore
 				MachineId tsMachine = await TailSpinCoreMachine.Get(CurrentTransaction);
 				int subscriberId = await SubscriberId.Get(CurrentTransaction);
 				int surveyId = await SurveyId.Get(CurrentTransaction);
@@ -94,9 +109,12 @@ namespace TailSpin
 			}
 		}
 
+		/// <summary>
+		/// Increment the accumulator with the received set of votes.
+		/// </summary>
+		/// <returns></returns>
 		private async Task HandleSurveyResponse()
 		{
-			//this.Logger.WriteLine("SurveyHandlerMachine:HandleSurveyResponse()");
 			SurveyResponse e = (this.ReceivedEvent as SurveyResponse);
 			int currentCount = await Survey.Get(CurrentTransaction);
 			await Survey.Set(CurrentTransaction, currentCount + e.response);

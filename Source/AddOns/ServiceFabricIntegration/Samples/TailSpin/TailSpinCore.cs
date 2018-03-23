@@ -13,16 +13,27 @@ using Microsoft.ServiceFabric.Data.Collections;
 
 namespace TailSpin
 {
+	/// <summary>
+	/// The machine which models the "Surveys" application.
+	/// TailSpinCore handles subscriber registration, deletion, creation and management of surveys.
+	/// </summary>
 	class TailSpinCore : ReliableStateMachine
 	{
 		#region fields
-
+		
+		/// <summary>
+		/// Reliably store the list of registered subscribers.
+		/// </summary>
 		IReliableDictionary<int, MachineId> RegisteredSubscribers;
 
-		IReliableDictionary<int, SurveyTag> SurveyResponses;
-
+		/// <summary>
+		/// Reliably store a monotonically increasing count of number of subcribers who have registered so far.
+		/// </summary>
 		ReliableRegister<int> NumSubscribers;
 
+		/// <summary>
+		/// Reliably store the number of surveys created so far.
+		/// </summary>
 		ReliableRegister<int> NumSurveys;
 
 		#endregion
@@ -46,6 +57,10 @@ namespace TailSpin
 			this.Logger.WriteLine("***Starting TailSpin Surveys***");
 		}
 
+		/// <summary>
+		/// Register a subscriber by assigning a unique id.
+		/// </summary>
+		/// <returns></returns>
 		async Task RegisterSubscriber()
 		{
 			RegisterSubscriberEvent e = (this.ReceivedEvent as RegisterSubscriberEvent);
@@ -66,6 +81,10 @@ namespace TailSpin
 			// this.Logger.WriteLine("Subscriber registered successfully");
 		}
 
+		/// <summary>
+		/// Unregister the subscriber by removing the reference from RegisteredSubscribers.
+		/// </summary>
+		/// <returns></returns>
 		async Task UnregisterSubscriber()
 		{
 			UnregisterSubscriberEvent e = (this.ReceivedEvent as UnregisterSubscriberEvent);
@@ -81,6 +100,10 @@ namespace TailSpin
 			this.Logger.WriteLine("Subscriber ID: " + subscriberId + " unregistered successfully");
 		}
 
+		/// <summary>
+		/// Start a survey handler machine. Each survey runs for 10s.
+		/// </summary>
+		/// <returns></returns>
 		async Task CreateSurvey()
 		{
 			CreateSurveyEvent e = (this.ReceivedEvent as CreateSurveyEvent);
@@ -103,6 +126,10 @@ namespace TailSpin
 			this.Logger.WriteLine("Survey " + currentNumSurveys + " started for subcscriber " + subscriberId);
 		}
 
+		/// <summary>
+		/// On receiving a completed survey from a survey handler machine, sanitize and pass the response back to the subscriber.
+		/// </summary>
+		/// <returns></returns>
 		async Task UpdateCompletedSurvey()
 		{
 			CompletedSurveyEvent e = (this.ReceivedEvent as CompletedSurveyEvent);
@@ -129,8 +156,6 @@ namespace TailSpin
 		{
 			RegisteredSubscribers = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, MachineId>>
 				(QualifyWithMachineName("RegisteredSubscribers"));
-			SurveyResponses = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, SurveyTag>>
-				(QualifyWithMachineName("SurveyResponses"));
 			NumSubscribers = new ReliableRegister<int>(QualifyWithMachineName("NumSubscribers"), this.StateManager, 0);
 			NumSurveys = new ReliableRegister<int>(QualifyWithMachineName("NumSurveys"), this.StateManager, 0);
 		}
