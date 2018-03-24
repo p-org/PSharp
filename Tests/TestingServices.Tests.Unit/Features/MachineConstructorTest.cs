@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             protected int x = 5;
 
             [MachineConstructor]
-            void Cons(Event e)
+            void Cons()
             {
                 x = x * 2;
             }
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         class M2 : M1
         {
             [MachineConstructor]
-            void Cons(Event e)
+            void Cons()
             {
                 x = x + 2;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             protected int x = 5;
 
             [MachineConstructor]
-            async Task Cons(Event e)
+            async Task Cons()
             {
                 await Task.Yield();
                 x = x * 2;
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         class M4 : M3
         {
             [MachineConstructor]
-            async Task Cons(Event e)
+            async Task Cons()
             {
                 await Task.Yield();
                 x = x + 2;
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             class Init : MachineState { }
 
             [MachineConstructor]
-            bool IncorrectReturn(Event e)
+            bool IncorrectReturn()
             {
                 return false;
             }
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             // The replay engine gives a different error message
-            var exptectedOutputs = new HashSet<string> { "Method IncorrectArg of class IncorrectDecl2, marked with attribute MachineConstructor must accept a single parameter of type Event" ,
+            var exptectedOutputs = new HashSet<string> { "Method IncorrectArg of class IncorrectDecl2, marked with attribute MachineConstructor cannot accept parameters" ,
                 "Machine construction failed for IncorrectDecl2" };
             var config = Configuration.Create();
 
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             // The replay engine gives a different error message
-            var exptectedOutputs = new HashSet<string> { "Method IncorrectArgs of class IncorrectDecl3, marked with attribute MachineConstructor must accept a single parameter of type Event" ,
+            var exptectedOutputs = new HashSet<string> { "Method IncorrectArgs of class IncorrectDecl3, marked with attribute MachineConstructor cannot accept parameters" ,
                 "Machine construction failed for IncorrectDecl3" };
             var config = Configuration.Create();
 

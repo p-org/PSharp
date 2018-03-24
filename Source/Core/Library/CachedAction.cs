@@ -21,6 +21,7 @@ namespace Microsoft.PSharp
     internal class CachedAction
     {
         internal readonly MethodInfo MethodInfo;
+        internal readonly Event Argument;
         private Action Action;
         private Func<Task> TaskFunc;
 

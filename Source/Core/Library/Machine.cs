@@ -57,6 +57,16 @@ namespace Microsoft.PSharp
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
 
+        /// <summary>
+        /// For initializing the machine (as many as the type inheritance heirarchy)
+        /// </summary>
+        private static ConcurrentDictionary<Type, List<MethodInfo>> OnMachineCreationAllActionsCache;
+
+        /// <summary>
+        /// Machine initialization callback, per type
+        /// </summary>
+        private static ConcurrentDictionary<Type, MethodInfo> OnMachineCreationActionsCache;
+
         #endregion
 
         #region fields
@@ -88,16 +98,6 @@ namespace Microsoft.PSharp
         /// Map from action names to actions.
         /// </summary>
         private Dictionary<string, CachedAction> ActionMap;
-
-        /// <summary>
-        /// For initializing the machine (as many as the type inheritance heirarchy)
-        /// </summary>
-        private static ConcurrentDictionary<Type, List<MethodInfo>> OnMachineCreationAllActionsCache;
-
-        /// <summary>
-        /// Machine initialization callback, per type
-        /// </summary>
-        private static ConcurrentDictionary<Type, MethodInfo> OnMachineCreationActionsCache;
 
         /// <summary>
         /// Inbox of the state-machine. Incoming events are
@@ -1269,6 +1269,7 @@ namespace Microsoft.PSharp
 
             this.StateStack.Push(state);
             this.ActionHandlerStack.Push(eventHandlerMap);
+            OnStatePush(state.GetType().AssemblyQualifiedName);
         }
 
         /// <summary>
@@ -1290,6 +1291,7 @@ namespace Microsoft.PSharp
                 this.GotoTransitions = null;
                 this.PushTransitions = null;
             }
+            OnStatePop();
         }
 
         /// <summary>
@@ -1456,11 +1458,33 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        internal async Task GotoStartState(Event e)
+        internal virtual async Task GotoStartState(Event e)
         {
-            await InvokeInitializationCallbacks(e);
-            this.ReceivedEvent = e;
-            await this.ExecuteCurrentStateOnEntry();
+            if (e is ResumeEvent)
+            {
+                var re = e as ResumeEvent;
+
+                // Pop the stack state
+                DoStatePop();
+
+                foreach (var s in re.StateStack)
+                {
+                    var nextState = StateMap[this.GetType()].First(val
+                                => val.GetType().AssemblyQualifiedName.Equals(s));
+
+                    base.Runtime.NotifyEnteredState(this);
+                    DoStatePush(nextState);
+                }
+
+                this.ReceivedEvent = re.StartingEvent;
+                await InvokeInitializationCallbacks();
+            }
+            else
+            {
+                this.ReceivedEvent = e;
+                await InvokeInitializationCallbacks();
+                await this.ExecuteCurrentStateOnEntry();
+            }
         }
 
         /// <summary>
@@ -1797,19 +1821,20 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Invokes machine initialization callbacks 
         /// </summary>
-        private async Task InvokeInitializationCallbacks(Event e)
+        private async Task InvokeInitializationCallbacks()
         {
             List<MethodInfo> methods;
             OnMachineCreationAllActionsCache.TryGetValue(this.GetType(), out methods);
 
             for (int i = methods.Count - 1; i >= 0; i--)
             {
-                var ret = methods[i].Invoke(this, new object[] { e });
-                if(ret != null && ret is Task)
-                {
-                    await (ret as Task);
-                }
+                base.Runtime.NotifyInvokedAction(this, methods[i], this.ReceivedEvent);
+                await this.ExecuteAction(new CachedAction(methods[i], this));
+                base.Runtime.NotifyCompletedAction(this, methods[i], this.ReceivedEvent);                
             }
+
+            this.Assert(!this.Info.CurrentActionCalledTransitionStatement,
+                "Machine '{0}' invoked a raise, goto, pop or push inside a machine constructor", this.Id);
         }
 
         /// <summary>
@@ -1878,8 +1903,8 @@ namespace Microsoft.PSharp
 
             var callParams = ret.GetParameters();
 
-            this.Assert(callParams.Length == 1 && callParams[0].ParameterType == typeof(Event),
-                "Method {0} of class {1}, marked with attribute {2} must accept a single parameter of type Event",
+            this.Assert(callParams.Length == 0,
+                "Method {0} of class {1}, marked with attribute {2} cannot accept parameters",
                 ret.Name, machineType.Name, typeof(MachineConstructor).Name);
 
             return ret;
@@ -1990,6 +2015,16 @@ namespace Microsoft.PSharp
         {
             return OnExceptionOutcome.ThrowException;
         }
+
+        #endregion
+
+        #region Internal callbacks
+
+        internal virtual void OnStatePush(string nextState)
+        { }
+
+        internal virtual void OnStatePop()
+        { }
 
         #endregion
 
