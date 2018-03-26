@@ -22,6 +22,8 @@ namespace AppBuilder
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
+			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
+			MachineId User1 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(1, AppBuilder));
 
 			Console.ReadLine();
 		}

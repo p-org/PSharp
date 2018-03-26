@@ -34,7 +34,16 @@ namespace AppBuilder
 	/// Sent by AppBuilder to register a new user.
 	/// </summary>
 	[DataContract]
-	class RegisterNewUserEvent : Event { }
+	class RegisterNewUserEvent : Event
+	{
+		[DataMember]
+		public MachineId user;
+
+		public RegisterNewUserEvent(MachineId user)
+		{
+			this.user = user;
+		}
+	}
 
 	/// <summary>
 	/// Reply to AppBuilder with the public key of new user.
@@ -44,10 +53,14 @@ namespace AppBuilder
 	{
 		[DataMember]
 		public int response;
+
+		[DataMember]
+		public MachineId user;
 		
-		public RegistrationResponseEvent(int response)
+		public RegistrationResponseEvent(int response, MachineId user)
 		{
 			this.response = response;
+			this.user = user;
 		}
 	}
 
@@ -135,21 +148,22 @@ namespace AppBuilder
 		{
 			RegisterNewUserEvent e = (this.ReceivedEvent as RegisterNewUserEvent);
 
-			int currentUsers = await NumUsers.Get(CurrentTransaction);
+			int numUsers = await NumUsers.Get(CurrentTransaction);
+			numUsers++;
 
 			// present value of NumUsers is the public key of the new users
 			// private key is computed based on this public key
-			int privateKey = ComputePrivateKey(currentUsers);
+			int privateKey = ComputePrivateKey(numUsers);
 
 			// Verify that the public key is unique (uniqueness of private key follows from ComputePrivateKey)
-			bool IsPublicKeyExists = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, currentUsers);
-			this.Assert(!IsPublicKeyExists);
+			bool IsPublicKeyExists = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, numUsers);
+			this.Assert(!IsPublicKeyExists, "AzureKeyVault:RegisterUser(): Public key already exists");
 
 			// Store the public-private key pair 
-			await RegisteredUsers.AddAsync(CurrentTransaction, currentUsers, privateKey);
+			await RegisteredUsers.AddAsync(CurrentTransaction, numUsers, privateKey);
 
 			// return the public key to AppBuilder
-			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new RegistrationResponseEvent(currentUsers));
+			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new RegistrationResponseEvent(numUsers, e.user));
 		}
 
 		/// <summary>
@@ -194,7 +208,7 @@ namespace AppBuilder
 
 			RegisteredUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("RegisteredUsers"));
 			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
-			
+			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
 		}
 
 		private string QualifyWithMachineName(string name)
@@ -211,6 +225,7 @@ namespace AppBuilder
 		{
 			return publicKey + 1;
 		}
+	
 		#endregion
 	}
 }
