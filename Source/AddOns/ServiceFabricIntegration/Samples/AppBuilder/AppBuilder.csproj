@@ -31,7 +31,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.ServiceFabric.Data, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
       <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.467\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
     </Reference>
@@ -73,13 +73,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureKeyVaultMock.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-   <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\Core\Core.csproj">
       <Project>{7095295a-cd08-4f57-97d3-e482265b421e}</Project>
       <Name>Core</Name>
