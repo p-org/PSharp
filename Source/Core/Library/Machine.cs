@@ -140,7 +140,7 @@ namespace Microsoft.PSharp
         /// User OnException asked for the machine to be gracefully halted
         /// (suppressing the exception)
         /// </summary>
-        private bool OnExceptionRequestedGracefulHalt;
+        internal bool OnExceptionRequestedGracefulHalt;
 
         #endregion
 

@@ -8,9 +8,9 @@ namespace Microsoft.PSharp.ReliableServices
 {
     public class RsmInitEvent : Event
     {
-        public readonly IRsmHost Host;
+        public readonly RsmHost Host;
 
-        public RsmInitEvent(IRsmHost host)
+        public RsmInitEvent(RsmHost host)
         {
             this.Host = host;
         }
