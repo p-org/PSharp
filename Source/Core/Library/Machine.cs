@@ -1952,7 +1952,7 @@ namespace Microsoft.PSharp
         /// <param name="ex">The exception thrown by the machine</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
         /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
-        private bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
+        internal virtual bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
         {
             this.Logger.OnMachineExceptionThrown(this.Id, ex.CurrentStateName, methodName, ex);
 
@@ -1977,7 +1977,7 @@ namespace Microsoft.PSharp
         /// <param name="ex">The exception thrown by the machine</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
-        private bool OnExceptionHandler(string methodName, Exception ex)
+        internal virtual bool OnExceptionHandler(string methodName, Exception ex)
         {
             if(ex is ExecutionCanceledException)
             {
