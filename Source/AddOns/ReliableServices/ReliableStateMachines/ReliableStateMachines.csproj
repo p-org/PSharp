@@ -82,6 +82,7 @@
     <Compile Include="IRsmId.cs" />
     <Compile Include="ReliableStateMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RsmEvents.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />
