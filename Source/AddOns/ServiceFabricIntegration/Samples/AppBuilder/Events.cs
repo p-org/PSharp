@@ -18,12 +18,12 @@ namespace AppBuilder
 	/// Initialize the key vault with a handle back to AppBuilder.
 	/// </summary>
 	[DataContract]
-	class AzureKeyVaultInitEvent : Event
+	class StorageBlobInitEvent : Event
 	{
 		[DataMember]
 		public MachineId AppBuilderMachine;
 
-		public AzureKeyVaultInitEvent(MachineId AppBuilderMachine)
+		public StorageBlobInitEvent(MachineId AppBuilderMachine)
 		{
 			this.AppBuilderMachine = AppBuilderMachine;
 		}
@@ -75,42 +75,35 @@ namespace AppBuilder
 		}
 	}
 
-	/// <summary>
-	/// Reply to AppBuilder with the id of new user.
-	/// </summary>
-	[DataContract]
-	class RegistrationResponseEvent : Event
-	{
-		[DataMember]
-		public int response;
-
-		[DataMember]
-		public MachineId user;
-
-		public RegistrationResponseEvent(int response, MachineId user)
-		{
-			this.response = response;
-			this.user = user;
-		}
-	}
-
 	#endregion
 
 	#region transaction
 
+	/// <summary>
+	/// Raise a request to transfer ether from 'to' to 'from'
+	/// </summary>
 	[DataContract]
 	class TransferEvent : Event
 	{
-		[DataMember]
-		public int to;
-
+		/// <summary>
+		/// ID of account initiating transfer
+		/// </summary>
 		[DataMember]
 		public int from;
 
+		/// <summary>
+		/// ID to which transfer is to be made
+		/// </summary>
+		[DataMember]
+		public int to;
+
+		/// <summary>
+		/// Amount of ether to be transferred
+		/// </summary>
 		[DataMember]
 		public int amount;
 
-		public TransferEvent(int to, int from, int amount)
+		public TransferEvent(int from, int to, int amount)
 		{
 			this.to = to;
 			this.from = from;
@@ -118,5 +111,16 @@ namespace AppBuilder
 		}
 	}
 
+	[DataContract]
+	class TxIdEvent : Event
+	{
+		[DataMember]
+		public int txid;
+
+		public TxIdEvent(int txid)
+		{
+			this.txid = txid;
+		}
+	}
 	#endregion
 }

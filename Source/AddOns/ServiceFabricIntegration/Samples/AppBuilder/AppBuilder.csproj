@@ -74,7 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppBuilder.cs" />
-    <Compile Include="AzureKeyVaultMock.cs" />
     <Compile Include="AzureStorageBlobMock.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Program.cs" />

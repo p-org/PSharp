@@ -18,18 +18,32 @@ namespace AppBuilder
 		#region fields
 
 		/// <summary>
-		/// Handle to the AzureKeyVault mock
+		/// Models the Azure Key Vault
 		/// </summary>
-		ReliableRegister<MachineId> AzureKeyVaultMachine;
+		IReliableDictionary<int, MachineId> RegisteredUsers;
+
+		/// <summary>
+		/// Monotonically increasing count of number of users registered so far
+		/// </summary>
+		ReliableRegister<int> NumUsers;
+
+		/// <summary>
+		/// Unique transaction id
+		/// </summary>
+		ReliableRegister<int> TxId;
+
+		/// <summary>
+		/// Handle to the storage blob, containing the dapps.
+		/// </summary>
+		ReliableRegister<MachineId> StorageBlobMachine;
 
 		#endregion
 
 		#region states
 		[Start]
 		[OnEntry(nameof(Initialize))]
-		[OnEventDoAction(typeof(UserRegisterEvent), nameof(RequestRegistration))]
-		[OnEventDoAction(typeof(RegistrationResponseEvent), nameof(CompleteRegistration))]
-		
+		[OnEventDoAction(typeof(UserRegisterEvent), nameof(RegisterUser))]
+		[OnEventDoAction(typeof(TransferEvent), nameof(InitiateTransfer))]
 		class Init : MachineState { }
 		#endregion
 
@@ -37,28 +51,57 @@ namespace AppBuilder
 
 		private async Task Initialize()
 		{
-			MachineId keyVaultMachine = await this.ReliableCreateMachine(typeof(AzureKeyVaultMock), null, new AzureKeyVaultInitEvent(this.Id));
-			await AzureKeyVaultMachine.Set(CurrentTransaction, keyVaultMachine);
+			this.Logger.WriteLine("AppBuilder:Initialize()");
+
+			// Create Storage Blob 
+			MachineId storageBlob = await ReliableCreateMachine(typeof(AzureStorageBlobMock), null,
+						new StorageBlobInitEvent(this.Id));
+			await StorageBlobMachine.Set(CurrentTransaction, storageBlob);
 		}
 
 		/// <summary>
 		/// Raise a registration request with AzureKeyVault
 		/// </summary>
-		private async Task RequestRegistration()
+		private async Task RegisterUser()
 		{
 			UserRegisterEvent e = this.ReceivedEvent as UserRegisterEvent;
 
-			// Forward the registration request to KeyVault
-			await this.ReliableSend(await AzureKeyVaultMachine.Get(CurrentTransaction),
-				new UserRegisterEvent(e.user));
+			int numUsers = await NumUsers.Get(CurrentTransaction);
+			numUsers++;
+
+			// Regiser user
+			await NumUsers.Set(CurrentTransaction, numUsers);
+			await RegisteredUsers.AddAsync(CurrentTransaction, numUsers, e.user);
+
+			// Send registration id back to user
+			await this.ReliableSend(e.user, new UserRegisterResponseEvent(numUsers));
+
+
+
 		}
 
-		private async Task CompleteRegistration()
+		/// <summary>
+		/// Initiate a transaction to transfer either from source acc --> dest acc
+		/// </summary>
+		/// <returns></returns>
+		private async Task InitiateTransfer()
 		{
-			RegistrationResponseEvent e = this.ReceivedEvent as RegistrationResponseEvent;
+			TransferEvent e = this.ReceivedEvent as TransferEvent;
 
-			await this.ReliableSend(e.user, new UserRegisterResponseEvent(e.response));
+			// Verify if the source and destinate accounts are registered
+			bool SourceAccRegistered = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.from);
+			bool DestAccRegistered = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.to);
+			this.Assert(SourceAccRegistered && DestAccRegistered);
+
+			// Assign a new transaction id
+			int txid = await TxId.Get(CurrentTransaction);
+			txid++;
+
+			// send the initiator the transaction id
+			MachineId initiator = (await RegisteredUsers.TryGetValueAsync(CurrentTransaction, e.from)).Value;
+			await ReliableSend(initiator, new TxIdEvent(txid));
 		}
+
 		#endregion
 
 		#region methods
@@ -72,13 +115,14 @@ namespace AppBuilder
 		/// Initialize the reliable fields.
 		/// </summary>
 		/// <returns></returns>
-		public override Task OnActivate()
+		public override async Task OnActivate()
 		{
 			this.Logger.WriteLine("AppBuilder starting.");
 
-			AzureKeyVaultMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("KeyVault"), this.StateManager, null);
-
-			return Task.CompletedTask;
+			RegisteredUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, MachineId>>(QualifyWithMachineName("RegisteredUsers"));
+			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
+			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
+			StorageBlobMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("StorageBlobMachine"), this.StateManager, null);
 
 		}
 
@@ -87,7 +131,7 @@ namespace AppBuilder
 			return name + "_" + this.Id.Name;
 		}
 
-				#endregion
+		#endregion
 
 
 	}

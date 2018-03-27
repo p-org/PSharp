@@ -30,6 +30,7 @@ namespace AppBuilder
 		[Start]
 		[OnEntry(nameof(Initialize))]
 		[OnEventDoAction(typeof(UserRegisterResponseEvent), nameof(CompleteRegistration))]
+		[OnEventDoAction(typeof(TxIdEvent), nameof(NewTransaction))]
 		class Init : MachineState { }
 		#endregion
 
@@ -48,6 +49,24 @@ namespace AppBuilder
 			await Identifier.Set(CurrentTransaction, e.id);
 
 			this.Logger.WriteLine("UserMock:CompleteRegistration() Public Key: " + await Identifier.Get(CurrentTransaction));
+
+			// Initiate a transfer
+			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction),
+					new TransferEvent(1, 2, 10));
+		}
+
+		private void NewTransaction()
+		{
+			TxIdEvent e = this.ReceivedEvent as TxIdEvent;
+
+			if(e.txid == -1)
+			{
+				this.Logger.WriteLine("UserMock:NewTransaction(): Failed to create new transaction");
+			}
+			else
+			{
+				this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully");
+			}
 		}
 		#endregion
 
