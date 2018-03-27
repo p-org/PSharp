@@ -22,7 +22,7 @@ namespace AppBuilder
 		/// </summary>
 		IReliableDictionary<int, int> TxIdObserved;
 
-		ReliableRegister<MachineId> AppBuilderMachine;
+		ReliableRegister<MachineId> Blockchain;
 
 		#endregion
 
@@ -36,7 +36,7 @@ namespace AppBuilder
 		private async Task Initialize()
 		{
 			StorageBlobInitEvent e = this.ReceivedEvent as StorageBlobInitEvent;
-			await AppBuilderMachine.Set(CurrentTransaction, e.AppBuilderMachine);
+			await Blockchain.Set(CurrentTransaction, e.blockchain);
 
 		}
 		#endregion
@@ -57,7 +57,7 @@ namespace AppBuilder
 			this.Logger.WriteLine("AzureStorageBlobMock starting.");
 			TxIdObserved = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>
 							(QualifyWithMachineName("TxIdObserved"));
-			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"),
+			Blockchain = new ReliableRegister<MachineId>(QualifyWithMachineName("Blockchain"),
 							this.StateManager, null);
 
 		}

@@ -21,11 +21,11 @@ namespace AppBuilder
 	class StorageBlobInitEvent : Event
 	{
 		[DataMember]
-		public MachineId AppBuilderMachine;
+		public MachineId blockchain;
 
-		public StorageBlobInitEvent(MachineId AppBuilderMachine)
+		public StorageBlobInitEvent(MachineId blockchain)
 		{
-			this.AppBuilderMachine = AppBuilderMachine;
+			this.blockchain = blockchain;
 		}
 	}
 
@@ -122,5 +122,29 @@ namespace AppBuilder
 			this.txid = txid;
 		}
 	}
+	#endregion
+
+	#region database
+
+	class UpdateTxStatusDBEvent : Event
+	{
+		/// <summary>
+		/// Transaction id
+		/// </summary>
+		public int txid;
+
+		/// <summary>
+		/// Status of transaction
+		/// </summary>
+		public string status;
+
+		public UpdateTxStatusDBEvent(int txid, string status)
+		{
+			this.txid = txid;
+			this.status = status;
+		}
+
+	}
+
 	#endregion
 }

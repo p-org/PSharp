@@ -37,6 +37,13 @@ namespace AppBuilder
 		/// </summary>
 		ReliableRegister<MachineId> StorageBlobMachine;
 
+		/// <summary>
+		/// Handle to the mock of the SQL Database
+		/// </summary>
+		ReliableRegister<MachineId> SQLDatabaseMachine;
+
+		ReliableRegister<MachineId> Blockchain;
+
 		#endregion
 
 		#region states
@@ -53,10 +60,18 @@ namespace AppBuilder
 		{
 			this.Logger.WriteLine("AppBuilder:Initialize()");
 
+			// Create the blockchain
+			MachineId blockchain = await ReliableCreateMachine(typeof(Blockchain), null);
+			await Blockchain.Set(CurrentTransaction, blockchain);
+
 			// Create Storage Blob 
 			MachineId storageBlob = await ReliableCreateMachine(typeof(AzureStorageBlobMock), null,
-						new StorageBlobInitEvent(this.Id));
+						new StorageBlobInitEvent(blockchain));
 			await StorageBlobMachine.Set(CurrentTransaction, storageBlob);
+
+			// Create the database where transaction statuses are kept
+			MachineId sqlDatabase = await ReliableCreateMachine(typeof(SQLDatabaseMock), null);
+			await SQLDatabaseMachine.Set(CurrentTransaction, sqlDatabase);
 		}
 
 		/// <summary>
@@ -75,9 +90,6 @@ namespace AppBuilder
 
 			// Send registration id back to user
 			await this.ReliableSend(e.user, new UserRegisterResponseEvent(numUsers));
-
-
-
 		}
 
 		/// <summary>
@@ -100,6 +112,14 @@ namespace AppBuilder
 			// send the initiator the transaction id
 			MachineId initiator = (await RegisteredUsers.TryGetValueAsync(CurrentTransaction, e.from)).Value;
 			await ReliableSend(initiator, new TxIdEvent(txid));
+
+			// start the transfer by invoking the appropriate action in StorageBlob
+			await ReliableSend(await StorageBlobMachine.Get(CurrentTransaction),
+								new StorageBlobTransferEvent(txid, e.from, e.to, e.amount));
+
+			// record the status of the transaction in the SQLDatabase
+			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction),
+								new UpdateTxStatusDBEvent(txid, "processing"));
 		}
 
 		#endregion
@@ -123,7 +143,8 @@ namespace AppBuilder
 			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
 			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
 			StorageBlobMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("StorageBlobMachine"), this.StateManager, null);
-
+			SQLDatabaseMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabaseMachine"), this.StateManager, null);
+			Blockchain = new ReliableRegister<MachineId>(QualifyWithMachineName("Blockchain"), this.StateManager, null);
 		}
 
 		private string QualifyWithMachineName(string name)
