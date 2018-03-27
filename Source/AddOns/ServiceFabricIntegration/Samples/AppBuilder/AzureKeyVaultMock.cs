@@ -157,10 +157,13 @@ namespace AppBuilder
 
 			// Verify that the public key is unique (uniqueness of private key follows from ComputePrivateKey)
 			bool IsPublicKeyExists = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, numUsers);
-			this.Assert(!IsPublicKeyExists, "AzureKeyVault:RegisterUser(): Public key already exists");
+			this.Assert(!IsPublicKeyExists, "AzureKeyVault:RegisterUser(): Public key " + numUsers + " already exists");
 
 			// Store the public-private key pair 
 			await RegisteredUsers.AddAsync(CurrentTransaction, numUsers, privateKey);
+
+			// Update NumUsers
+			await NumUsers.Set(CurrentTransaction, numUsers);
 
 			// return the public key to AppBuilder
 			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new RegistrationResponseEvent(numUsers, e.user));

@@ -24,6 +24,7 @@ namespace AppBuilder
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
 			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
 			MachineId User1 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(1, AppBuilder));
+			MachineId User2 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(2, AppBuilder));
 
 			Console.ReadLine();
 		}
@@ -40,7 +41,9 @@ namespace AppBuilder
 		{
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
 			// runtime.RegisterMonitor(typeof(SafetyMonitor));
-			// runtime.CreateMachine(typeof(ClientMachine));
+			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
+			runtime.CreateMachine(typeof(UserMock), new UserInitEvent(1, AppBuilder));
+			runtime.CreateMachine(typeof(UserMock), new UserInitEvent(2, AppBuilder));
 		}
 	}
 
