@@ -12,40 +12,7 @@ using System.Runtime.Serialization;
 
 namespace AppBuilder
 {
-	#region events
-
-	/// <summary>
-	/// Issued by user to register himself/herself with AppBuilder.
-	/// </summary>
-	[DataContract]
-	class UserRegisterEvent : Event
-	{
-		[DataMember]
-		public MachineId user;
-
-		public UserRegisterEvent(MachineId user)
-		{
-			this.user = user;
-		}
-	}
-
-	/// <summary>
-	/// AppBuilder sends back the public key of new user on successful registration.
-	/// </summary>
-	[DataContract]
-	class UserRegisterResponseEvent : Event
-	{
-		[DataMember]
-		public int publicKey;
-
-		public UserRegisterResponseEvent(int publicKey)
-		{
-			this.publicKey = publicKey;
-		}
-	}
-
-	#endregion
-
+	
 	class AppBuilder : ReliableStateMachine
 	{
 		#region fields
@@ -80,8 +47,10 @@ namespace AppBuilder
 		private async Task RequestRegistration()
 		{
 			UserRegisterEvent e = this.ReceivedEvent as UserRegisterEvent;
+
+			// Forward the registration request to KeyVault
 			await this.ReliableSend(await AzureKeyVaultMachine.Get(CurrentTransaction),
-				new RegisterNewUserEvent(e.user));
+				new UserRegisterEvent(e.user));
 		}
 
 		private async Task CompleteRegistration()

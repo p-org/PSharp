@@ -14,23 +14,7 @@ namespace AppBuilder
 {
 	#region events
 
-	[DataContract]
-	class UserInitEvent : Event
-	{
-		[DataMember]
-		public int id;
-
-		[DataMember]
-		public MachineId AppBuilderMachine;
-
-		public UserInitEvent(int id, MachineId AppBuilderMachine)
-		{
-			this.id = id;
-			this.AppBuilderMachine = AppBuilderMachine;
-		}
-	}
-
-	#endregion
+		#endregion
 
 	class UserMock : ReliableStateMachine
 	{
@@ -39,8 +23,6 @@ namespace AppBuilder
 		ReliableRegister<MachineId> AppBuilderMachine;
 
 		ReliableRegister<int> Identifier;
-
-		ReliableRegister<int> PublicKey;
 
 		#endregion
 
@@ -56,7 +38,6 @@ namespace AppBuilder
 		{
 			UserInitEvent e = this.ReceivedEvent as UserInitEvent;
 			await AppBuilderMachine.Set(CurrentTransaction, e.AppBuilderMachine);
-			await Identifier.Set(CurrentTransaction, e.id);
 
 			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new UserRegisterEvent(this.Id));
 		}
@@ -64,9 +45,9 @@ namespace AppBuilder
 		private async Task CompleteRegistration()
 		{
 			UserRegisterResponseEvent e = this.ReceivedEvent as UserRegisterResponseEvent;
-			await PublicKey.Set(CurrentTransaction, e.publicKey);
+			await Identifier.Set(CurrentTransaction, e.id);
 
-			this.Logger.WriteLine("UserMock:CompleteRegistration() Public Key: " + await PublicKey.Get(CurrentTransaction));
+			this.Logger.WriteLine("UserMock:CompleteRegistration() Public Key: " + await Identifier.Get(CurrentTransaction));
 		}
 		#endregion
 
@@ -85,7 +66,6 @@ namespace AppBuilder
 		public override Task OnActivate()
 		{
 			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
-			PublicKey = new ReliableRegister<int>(QualifyWithMachineName("PublicKey"), this.StateManager, 0);
 			Identifier = new ReliableRegister<int>(QualifyWithMachineName("Identifier"), this.StateManager, 0);
 			return Task.CompletedTask;
 		}
