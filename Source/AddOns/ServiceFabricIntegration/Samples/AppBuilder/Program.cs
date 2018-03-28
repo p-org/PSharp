@@ -22,9 +22,11 @@ namespace AppBuilder
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
-			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
-			MachineId User1 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
-			MachineId User2 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
+				MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
+				MachineId User1 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
+				MachineId User2 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
+			// MachineId t1 = runtime.CreateMachine(typeof(TimerTest));
+			// MachineId t2 = runtime.CreateMachine(typeof(TimerTest));
 
 			Console.ReadLine();
 		}

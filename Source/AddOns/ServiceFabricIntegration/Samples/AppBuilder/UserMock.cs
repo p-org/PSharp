@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ReliableServices;
 using Microsoft.PSharp.ReliableServices.Utilities;
+using Microsoft.PSharp.ReliableServices.Timers;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 using System.Runtime.Serialization;
@@ -24,6 +25,8 @@ namespace AppBuilder
 
 		ReliableRegister<int> Identifier;
 
+		ReliableRegister<int> TxId;
+
 		#endregion
 
 		#region states
@@ -31,6 +34,8 @@ namespace AppBuilder
 		[OnEntry(nameof(Initialize))]
 		[OnEventDoAction(typeof(UserRegisterResponseEvent), nameof(CompleteRegistration))]
 		[OnEventDoAction(typeof(TxIdEvent), nameof(NewTransaction))]
+		[OnEventDoAction(typeof(TimeoutEvent), nameof(HandleTimeout))]
+		[OnEventDoAction(typeof(TxDBStatus), nameof(HandleTxStatus))]
 		class Init : MachineState { }
 		#endregion
 
@@ -48,24 +53,47 @@ namespace AppBuilder
 			UserRegisterResponseEvent e = this.ReceivedEvent as UserRegisterResponseEvent;
 			await Identifier.Set(CurrentTransaction, e.id);
 
-			this.Logger.WriteLine("UserMock:CompleteRegistration() Public Key: " + await Identifier.Get(CurrentTransaction));
+			this.Logger.WriteLine("UserMock:CompleteRegistration() ID: " + await Identifier.Get(CurrentTransaction));
 
 			// Initiate a transfer
 			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction),
 					new TransferEvent(1, 2, 10));
 		}
 
-		private void NewTransaction()
+		private async Task NewTransaction()
 		{
 			TxIdEvent e = this.ReceivedEvent as TxIdEvent;
 
 			if(e.txid == -1)
 			{
 				this.Logger.WriteLine("UserMock:NewTransaction(): Failed to create new transaction");
+				return;
+			}
+			
+			this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully");
+			await TxId.Set(CurrentTransaction, e.txid);
+
+			await StartTimer(QualifyWithMachineName("PollTx"), 2000);
+		}
+
+		private async Task HandleTimeout()
+		{
+			// Enquire status of transaction
+			await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new GetTxStatusDBEvent(await TxId.Get(CurrentTransaction), this.Id));
+		}
+
+		private async Task HandleTxStatus()
+		{
+			TxDBStatus e = this.ReceivedEvent as TxDBStatus;
+
+			if (e.txStatus == "committed" || e.txStatus == "aborted")
+			{
+				await StopTimer(QualifyWithMachineName("PollTx"));
+				this.Logger.WriteLine("Tx " + e.txid + " " + e.txStatus);
 			}
 			else
 			{
-				this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully");
+				this.Logger.WriteLine("Tx " + e.txid + " " + e.txStatus);
 			}
 		}
 		#endregion
@@ -86,6 +114,7 @@ namespace AppBuilder
 		{
 			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
 			Identifier = new ReliableRegister<int>(QualifyWithMachineName("Identifier"), this.StateManager, 0);
+			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
 			return Task.CompletedTask;
 		}
 
