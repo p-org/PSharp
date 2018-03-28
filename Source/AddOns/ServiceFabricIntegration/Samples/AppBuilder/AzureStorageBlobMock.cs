@@ -22,13 +22,23 @@ namespace AppBuilder
 		/// </summary>
 		IReliableDictionary<int, int> TxIdObserved;
 
+		/// <summary>
+		/// Handle to the blockchain.
+		/// </summary>
 		ReliableRegister<MachineId> Blockchain;
+
+		/// <summary>
+		/// Handle to the SQLDatabase machine.
+		/// </summary>
+		ReliableRegister<MachineId> SQLDatabase;
 
 		#endregion
 
 		#region states
 		[Start]
 		[OnEntry(nameof(Initialize))]
+		[OnEventDoAction(typeof(StorageBlobTransferEvent), nameof(StartAmountTransfer))]
+		[OnEventDoAction(typeof(ValidateBalanceResponseEvent), nameof(PushTransferToBlockChain))]
 		class Init : MachineState { }
 		#endregion
 
@@ -37,8 +47,47 @@ namespace AppBuilder
 		{
 			StorageBlobInitEvent e = this.ReceivedEvent as StorageBlobInitEvent;
 			await Blockchain.Set(CurrentTransaction, e.blockchain);
+			await SQLDatabase.Set(CurrentTransaction, e.sqlDatabase);
+		}
+
+		private async Task StartAmountTransfer()
+		{
+			StorageBlobTransferEvent e = this.ReceivedEvent as StorageBlobTransferEvent;
+
+			// Check if we have already received this transaction earlier
+			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, e.txid);
+
+			// If we have seen this tx already, then we have begun processing it, so do nothing
+			if(IsTxReceived)
+			{
+				return;
+			}
+			// Else, add it to the list of observed tx, and start processing it
+			else
+			{
+				await TxIdObserved.AddAsync(CurrentTransaction, e.txid, 0);
+				await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateBalanceEvent(e, this.Id));
+			}
 
 		}
+
+		private async Task PushTransferToBlockChain()
+		{
+			ValidateBalanceResponseEvent ev = this.ReceivedEvent as ValidateBalanceResponseEvent;
+
+			if(!ev.validation)
+			{
+				// Update the status of the tx in the database to aborted
+				await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.e.txid, "aborted"));
+				return;
+			}
+
+			// Create the transaction object
+			TxObject tx = new TxObject(ev.e.txid, ev.e.from, ev.e.to, ev.e.amount);
+			ReliableSend(await Blockchain.Get(CurrentTransaction), new BlockchainTxEvent(tx));
+		}
+
+
 		#endregion
 
 		#region methods
@@ -58,6 +107,8 @@ namespace AppBuilder
 			TxIdObserved = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>
 							(QualifyWithMachineName("TxIdObserved"));
 			Blockchain = new ReliableRegister<MachineId>(QualifyWithMachineName("Blockchain"),
+							this.StateManager, null);
+			SQLDatabase = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabase"),
 							this.StateManager, null);
 
 		}

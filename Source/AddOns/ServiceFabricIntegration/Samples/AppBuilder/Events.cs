@@ -15,17 +15,27 @@ namespace AppBuilder
 	#region machine initialization
 
 	/// <summary>
-	/// Initialize the storage blob with a handle back to AppBuilder.
+	/// Initialize the storage blob.
 	/// </summary>
 	[DataContract]
 	class StorageBlobInitEvent : Event
 	{
+		/// <summary>
+		/// Handle to the blockchain machine.
+		/// </summary>
 		[DataMember]
 		public MachineId blockchain;
 
-		public StorageBlobInitEvent(MachineId blockchain)
+		/// <summary>
+		/// Handle to the database machine.
+		/// </summary>
+		[DataMember]
+		public MachineId sqlDatabase;
+
+		public StorageBlobInitEvent(MachineId blockchain, MachineId sqlDatabase)
 		{
 			this.blockchain = blockchain;
+			this.sqlDatabase = sqlDatabase;
 		}
 	}
 
@@ -180,6 +190,60 @@ namespace AppBuilder
 		}
 	}
 
+	/// <summary>
+	/// Sent by app in Storage blob to the uncommitted pool of txs in the blockchain.
+	/// </summary>
+	[DataContract]
+	class BlockchainTxEvent : Event
+	{
+		/// <summary>
+		/// Fresh tx to be committed to the blockchain.
+		/// </summary>
+		[DataMember]
+		public TxObject tx;
+
+		public BlockchainTxEvent(TxObject tx)
+		{
+			this.tx = tx;
+		}
+	}
+
+	#endregion
+
+	#region validation events
+
+	[DataContract]
+	class ValidateBalanceEvent : Event
+	{
+		[DataMember]
+		public StorageBlobTransferEvent e;
+
+		[DataMember]
+		public MachineId requestFrom;
+
+		public ValidateBalanceEvent(StorageBlobTransferEvent e, MachineId requestFrom)
+		{
+			this.e = e;
+			this.requestFrom = requestFrom;
+		}
+	}
+
+	[DataContract]
+	class ValidateBalanceResponseEvent : Event
+	{
+		[DataMember]
+		public StorageBlobTransferEvent e;
+
+		[DataMember]
+		public bool validation;
+
+		public ValidateBalanceResponseEvent(StorageBlobTransferEvent e, bool validation)
+		{
+			this.e = e;
+			this.validation = validation;
+		}
+	}
+
 	#endregion
 
 	#region database
@@ -284,7 +348,7 @@ namespace AppBuilder
 		/// </summary>
 		public int amount;
 
-		public TxObject(int txid, int to, int from, int amount)
+		public TxObject(int txid, int from, int to, int amount)
 		{
 			this.txid = txid;
 			this.to = to;
