@@ -22,20 +22,28 @@ namespace AppBuilder
 		/// </summary>
 		IReliableDictionary<int, string> TxStatus;
 
+		/// <summary>
+		/// Handle to the AppBuilder machine.
+		/// </summary>
+		ReliableRegister<MachineId> AppBuilderMachine;
+
 		#endregion
 
 		#region states
 		[Start]
 		[OnEntry(nameof(Initialize))]
 		[OnEventDoAction(typeof(UpdateTxStatusDBEvent), nameof(UpdateDB))]
+		[OnEventDoAction(typeof(GetTxStatusDBEvent), nameof(ReturnTxStatus))]
 		class Init : MachineState { }
 
 		#endregion
 
 		#region handlers
-		private void Initialize()
+		private async Task Initialize()
 		{
 			this.Logger.WriteLine("SQLDatabaseMock starting");
+			SQLDatabaseInitEvent e = this.ReceivedEvent as SQLDatabaseInitEvent;
+			await AppBuilderMachine.Set(CurrentTransaction, e.appBuilderMachine);
 		}
 
 		private async Task UpdateDB()
@@ -50,11 +58,42 @@ namespace AppBuilder
 			{
 				await TxStatus.AddAsync(CurrentTransaction, e.txid, e.status);
 			}
-			// otherwise, remove the earlier status, and add the new one
 			else
 			{
+				string currentStatus = (await TxStatus.TryGetValueAsync(CurrentTransaction, e.txid)).Value;
+
+				// The transaction has already finished, don't update status further
+				if(currentStatus == "aborted" || currentStatus == "committed")
+				{
+					return;
+				}
+
+				// otherwise, remove the earlier status, and add the new one
 				await TxStatus.TryRemoveAsync(CurrentTransaction, e.txid);
 				await TxStatus.TryAddAsync(CurrentTransaction, e.txid, e.status);
+			}
+		}
+
+		private async Task ReturnTxStatus()
+		{
+			GetTxStatusDBEvent e = this.ReceivedEvent as GetTxStatusDBEvent;
+
+			// Check if the transaction exists in the database
+			bool txInDB = await TxStatus.ContainsKeyAsync(CurrentTransaction, e.txid);
+
+			// Transaction status is always requested by users, which are forwarded by AppBuilder.
+			// So responses are always returned to AppBuilder, who forwards it appropriately.
+			if (!txInDB)
+			{
+				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), 
+							new TxDBStatus(e.txid, "status unavailable", e.requestFrom));
+			}
+			else
+			{
+				string currentStatus = (await TxStatus.TryGetValueAsync(CurrentTransaction, e.txid)).Value;
+				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction),
+							new TxDBStatus(e.txid, currentStatus, e.requestFrom));
+
 			}
 		}
 
@@ -76,6 +115,7 @@ namespace AppBuilder
 		{
 			TxStatus = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, string>>
 									(QualifyWithMachineName("TxStatus"));
+			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
 		}
 
 		private string QualifyWithMachineName(string name)

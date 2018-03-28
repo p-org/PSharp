@@ -51,6 +51,8 @@ namespace AppBuilder
 		[OnEntry(nameof(Initialize))]
 		[OnEventDoAction(typeof(UserRegisterEvent), nameof(RegisterUser))]
 		[OnEventDoAction(typeof(TransferEvent), nameof(InitiateTransfer))]
+		[OnEventDoAction(typeof(GetTxStatusDBEvent), nameof(ForwardTxStatusRequest))]
+		[OnEventDoAction(typeof(TxDBStatus), nameof(ForwardTxStatusResponse))]
 		class Init : MachineState { }
 		#endregion
 
@@ -70,7 +72,8 @@ namespace AppBuilder
 			await StorageBlobMachine.Set(CurrentTransaction, storageBlob);
 
 			// Create the database where transaction statuses are kept
-			MachineId sqlDatabase = await ReliableCreateMachine(typeof(SQLDatabaseMock), null);
+			MachineId sqlDatabase = await ReliableCreateMachine(typeof(SQLDatabaseMock), null,
+						new SQLDatabaseInitEvent(this.Id));
 			await SQLDatabaseMachine.Set(CurrentTransaction, sqlDatabase);
 		}
 
@@ -120,6 +123,22 @@ namespace AppBuilder
 			// record the status of the transaction in the SQLDatabase
 			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction),
 								new UpdateTxStatusDBEvent(txid, "processing"));
+		}
+
+		private async Task ForwardTxStatusRequest()
+		{
+			GetTxStatusDBEvent e = this.ReceivedEvent as GetTxStatusDBEvent;
+
+			// Forward the TxStatus request to the SQL Database
+			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction), e);
+		}
+
+		private async Task ForwardTxStatusResponse()
+		{
+			TxDBStatus e = this.ReceivedEvent as TxDBStatus;
+
+			// Forward the TxStatus response from the database to the appropriate user
+			await ReliableSend(e.requestFrom, e);
 		}
 
 		#endregion

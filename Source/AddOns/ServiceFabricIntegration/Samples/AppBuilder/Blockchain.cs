@@ -15,8 +15,20 @@ namespace AppBuilder
 	{
 		#region fields
 
-		IReliableQueue<>
+		/// <summary>
+		/// Set of uncommitted transactions
+		/// </summary>
+		IReliableQueue<TxObject> UncommittedTxPool;
 
+		/// <summary>
+		/// Caches the balances of each user.
+		/// </summary>
+		IReliableDictionary<int, int> Balances;
+
+		/// <summary>
+		/// The ledger maps a block id to a set of committed transactions
+		/// </summary>
+		IReliableDictionary<int, TxBlock> Ledger;
 		#endregion
 
 		#region states
@@ -28,7 +40,31 @@ namespace AppBuilder
 		#endregion
 
 		#region methods
+		/// <summary>
+		/// Constructor.
+		/// </summary>
+		/// <param name="stateManager"></param>
+		public Blockchain(IReliableStateManager stateManager) : base(stateManager) { }
 
+		/// <summary>
+		/// Initialize the reliable fields.
+		/// </summary>
+		/// <returns></returns>
+		public override async Task OnActivate()
+		{
+			this.Logger.WriteLine("Blockchain starting.");
+
+			UncommittedTxPool = await this.StateManager.GetOrAddAsync<IReliableQueue<TxObject>>(QualifyWithMachineName("UncommittedTxPool"));
+
+			Balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("Balances"));
+
+			Ledger = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, TxBlock>>(QualifyWithMachineName("Ledger"));
+		}
+
+		private string QualifyWithMachineName(string name)
+		{
+			return name + "_" + this.Id.Name;
+		}
 		#endregion
 	}
 }
