@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ReliableServices;
+using Microsoft.PSharp.ReliableServices.Timers;
 using Microsoft.PSharp.ReliableServices.Utilities;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
@@ -18,7 +19,7 @@ namespace AppBuilder
 		/// <summary>
 		/// Set of uncommitted transactions
 		/// </summary>
-		IReliableQueue<TxObject> UncommittedTxPool;
+		IReliableConcurrentQueue<TxObject> UncommittedTxPool;
 
 		/// <summary>
 		/// Caches the balances of each user.
@@ -40,6 +41,8 @@ namespace AppBuilder
 		[Start]
 		[OnEntry(nameof(Initialize))]
 		[OnEventDoAction(typeof(ValidateBalanceEvent), nameof(ValidateBalance))]
+		[OnEventDoAction(typeof(BlockchainTxEvent), nameof(AddNewTxToQueue))]
+		[OnEventDoAction(typeof(TimeoutEvent), nameof(CommitTxToLedger))]
 		class Init : MachineState { }
 		#endregion
 
@@ -68,6 +71,9 @@ namespace AppBuilder
 			// Update the block id
 			blockId++;
 			await BlockId.Set(CurrentTransaction, blockId);
+
+			// Start a timer. Every 10s, push all transactions from the uncommitted queue to the ledger.
+			await StartTimer("CommitTxTimer", 10000);
 		}
 
 		/// <summary>
@@ -100,6 +106,44 @@ namespace AppBuilder
 				return;
 			}
 		}
+
+		private async Task AddNewTxToQueue()
+		{
+			BlockchainTxEvent e = this.ReceivedEvent as BlockchainTxEvent;
+
+			// Add the fresh transaction to the pool of uncommitted transactions
+			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, e.tx);
+		}
+
+		/// <summary>
+		/// Commit the tx pending in the uncomitted pool to the ledger
+		/// </summary>
+		/// <returns></returns>
+		private async Task CommitTxToLedger()
+		{
+			long numTxInQueue = UncommittedTxPool.Count;
+
+			// No outstanding tx to commit
+			if(numTxInQueue == 0)
+			{
+				return;
+			}
+
+			// Commit at most 5 pending tx to the ledger at a time
+			long numToCommit = numTxInQueue < 5 ? numTxInQueue : 5;
+
+			TxBlock txBlock = new TxBlock();
+
+			for(long i=0; i<numToCommit; i++)
+			{
+				TxObject tx = (await UncommittedTxPool.TryDequeueAsync(CurrentTransaction)).Value;
+				txBlock.numTx++;
+				txBlock.transactions.Add(tx);
+			}
+
+			int blockId = await BlockId.Get(CurrentTransaction);
+			await Ledger.AddAsync(CurrentTransaction, blockId, txBlock);
+		}
 		#endregion
 
 		#region methods
@@ -117,7 +161,7 @@ namespace AppBuilder
 		{
 			this.Logger.WriteLine("Blockchain starting.");
 
-			UncommittedTxPool = await this.StateManager.GetOrAddAsync<IReliableQueue<TxObject>>(QualifyWithMachineName("UncommittedTxPool"));
+			UncommittedTxPool = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<TxObject>>(QualifyWithMachineName("UncommittedTxPool"));
 
 			Balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("Balances"));
 

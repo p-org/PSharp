@@ -84,7 +84,10 @@ namespace AppBuilder
 
 			// Create the transaction object
 			TxObject tx = new TxObject(ev.e.txid, ev.e.from, ev.e.to, ev.e.amount);
-			ReliableSend(await Blockchain.Get(CurrentTransaction), new BlockchainTxEvent(tx));
+			await ReliableSend(await Blockchain.Get(CurrentTransaction), new BlockchainTxEvent(tx));
+
+			// Update DB with status
+			await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(tx.txid, "committed"));
 		}
 
 

@@ -62,14 +62,14 @@ namespace AppBuilder
 		{
 			this.Logger.WriteLine("AppBuilder:Initialize()");
 
-			// Create the blockchain
-			MachineId blockchain = await ReliableCreateMachine(typeof(Blockchain), null);
-			await Blockchain.Set(CurrentTransaction, blockchain);
-
 			// Create the database where transaction statuses are kept
 			MachineId sqlDatabase = await ReliableCreateMachine(typeof(SQLDatabaseMock), null,
 						new SQLDatabaseInitEvent(this.Id));
 			await SQLDatabaseMachine.Set(CurrentTransaction, sqlDatabase);
+
+			// Create the blockchain
+			MachineId blockchain = await ReliableCreateMachine(typeof(Blockchain), null);
+			await Blockchain.Set(CurrentTransaction, blockchain);
 
 			// Create Storage Blob 
 			MachineId storageBlob = await ReliableCreateMachine(typeof(AzureStorageBlobMock), null,
