@@ -129,7 +129,10 @@ namespace AppBuilder
 			int txid = await TxId.Get(CurrentTransaction);
 			txid++;
 
-			if ( !SourceAccRegistered || !DestAccRegistered)
+			// Set the transaction id
+			await TxId.Set(CurrentTransaction, txid);
+
+			if ( !SourceAccRegistered && !DestAccRegistered)
 			{
 				// send back the txid to the user
 				await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));
@@ -139,9 +142,6 @@ namespace AppBuilder
 									new UpdateTxStatusDBEvent(txid, "aborted"));
 				return;
 			}
-
-			// Set the transaction id
-			await TxId.Set(CurrentTransaction, txid);
 
 			// send back the txid to the user
 			await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));

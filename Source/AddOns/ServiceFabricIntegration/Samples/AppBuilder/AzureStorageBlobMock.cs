@@ -32,6 +32,8 @@ namespace AppBuilder
 		/// </summary>
 		ReliableRegister<MachineId> SQLDatabase;
 
+		IReliableDictionary<int, int> AccountsUnderProcessing;
+
 		#endregion
 
 		#region states
@@ -57,8 +59,17 @@ namespace AppBuilder
 			// Check if we have already received this transaction earlier
 			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, e.txid);
 			// The exact-once semantics should ensure we haven't seen this txid earlier
-			this.Assert(!IsTxReceived, "TxId " + e.txid + " has been processed already");
+			this.Assert(!IsTxReceived, "AzureStorageBlob: txId " + e.txid + " has been processed already");
 
+			// Check if the "from" account is already under process. Akin to holding a "lock" on the "from" acc.
+			// A hacky solution to prevent double-spending.
+			/*if(await AccountsUnderProcessing.ContainsKeyAsync(CurrentTransaction, e.from))
+			{
+				await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(e.txid, "aborted"));
+				return;
+			}
+			await AccountsUnderProcessing.AddAsync(CurrentTransaction, e.from, 0);
+			*/
 			// add the txid to the set of observed txids
 			await TxIdObserved.AddAsync(CurrentTransaction, e.txid, 0);
 
@@ -78,6 +89,11 @@ namespace AppBuilder
 				await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.e.txid, "aborted"));
 				return;
 			}
+
+			// Release the lock on the "from" account
+			//Assert(await AccountsUnderProcessing.ContainsKeyAsync(CurrentTransaction, ev.e.from),
+						//"AzureStorageBlob: account: " + ev.e.from + " should be under process");
+			//await AccountsUnderProcessing.TryRemoveAsync(CurrentTransaction, ev.e.from);
 
 			// Create the transaction object
 			TxObject tx = new TxObject(ev.e.txid, ev.e.from, ev.e.to, ev.e.amount);
@@ -110,6 +126,8 @@ namespace AppBuilder
 							this.StateManager, null);
 			SQLDatabase = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabase"),
 							this.StateManager, null);
+			AccountsUnderProcessing = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>
+							(QualifyWithMachineName("AccountsUnderProcessing"));
 
 		}
 

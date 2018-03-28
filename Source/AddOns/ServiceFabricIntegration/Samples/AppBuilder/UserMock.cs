@@ -22,7 +22,7 @@ namespace AppBuilder
 		#region fields
 		ReliableRegister<MachineId> AppBuilderMachine;
 		ReliableRegister<int> NumUsers;
-		ReliableRegister<HashSet<int>> TxIds;
+		IReliableDictionary<int, int> TxIds;
 		#endregion
 
 		#region states
@@ -62,10 +62,15 @@ namespace AppBuilder
 			}
 
 			// this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully, id: " + e.txid);
-			HashSet<int> txids = await TxIds.Get(CurrentTransaction);
-			HashSet<int> new_txids = new HashSet<int>(txids);
-			new_txids.Add(e.txid);
-			await TxIds.Set(CurrentTransaction, new_txids);
+			// HashSet<int> txids = await TxIds.Get(CurrentTransaction);
+			// HashSet<int> new_txids = new HashSet<int>(txids);
+			// new_txids.Add(e.txid);
+			// await TxIds.Set(CurrentTransaction, new_txids);
+
+			// Ensure txid is fresh
+			Assert(!(await TxIds.ContainsKeyAsync(CurrentTransaction, e.txid)), 
+						"UserMock: txid " + e.txid + " is not unique");
+			await TxIds.AddAsync(CurrentTransaction, e.txid, 0);
 		}
 
 		private async Task HandleTimeout()
@@ -100,12 +105,11 @@ namespace AppBuilder
 		/// Initialize the reliable fields.
 		/// </summary>
 		/// <returns></returns>
-		public override Task OnActivate()
+		public override async Task OnActivate()
 		{
 			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
 			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
-			TxIds = new ReliableRegister<HashSet<int>>(QualifyWithMachineName("TxIds"), this.StateManager, new HashSet<int>());
-			return Task.CompletedTask;
+			TxIds = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("TxIds"));
 		}
 
 		private string QualifyWithMachineName(string name)

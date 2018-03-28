@@ -121,13 +121,29 @@ namespace AppBuilder
 			// Check if we have already received this transaction earlier
 			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, e.tx.txid);
 			// The exact-once semantics should guarantee we haven't seen this txid earlier
-			this.Assert(!IsTxReceived);
+			this.Assert(!IsTxReceived, "Blockchain:AddNewTxToQueue(): txid " + e.tx.txid + " not unique");
 
 			// Add the fresh transaction to the pool of observed transactions
 			await TxIdObserved.AddAsync(CurrentTransaction, e.tx.txid, 0);
 
 			// Add the fresh transaction to the pool of uncommitted transactions
 			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, e.tx);
+
+			// Update balances
+			int fromBalance = (await Balances.TryGetValueAsync(CurrentTransaction, e.tx.from)).Value;
+			await Balances.TryRemoveAsync(CurrentTransaction, e.tx.from);
+			await Balances.AddAsync(CurrentTransaction, e.tx.from, fromBalance - e.tx.amount);
+
+			if (await Balances.ContainsKeyAsync(CurrentTransaction, e.tx.to))
+			{
+				int toBalance = (await Balances.TryGetValueAsync(CurrentTransaction, e.tx.to)).Value;
+				await Balances.TryRemoveAsync(CurrentTransaction, e.tx.to);
+				await Balances.AddAsync(CurrentTransaction, e.tx.to, toBalance + e.tx.amount);
+			}
+			else
+			{
+				await Balances.AddAsync(CurrentTransaction, e.tx.to, e.tx.amount);
+			}
 		}
 
 		/// <summary>
@@ -154,22 +170,6 @@ namespace AppBuilder
 				TxObject tx = (await UncommittedTxPool.TryDequeueAsync(CurrentTransaction)).Value;
 				txBlock.numTx++;
 				txBlock.transactions.Add(tx);
-
-				// Update balances
-				int fromBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.from)).Value;
-				await Balances.TryRemoveAsync(CurrentTransaction, tx.from);
-				await Balances.AddAsync(CurrentTransaction, tx.from, fromBalance - tx.amount);
-
-				if(await Balances.ContainsKeyAsync(CurrentTransaction, tx.to))
-				{
-					int toBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.to)).Value;
-					await Balances.TryRemoveAsync(CurrentTransaction, tx.to);
-					await Balances.AddAsync(CurrentTransaction, tx.to, toBalance + tx.amount);
-				}
-				else
-				{
-					await Balances.AddAsync(CurrentTransaction, tx.to, tx.amount);
-				}
 			}
 
 			int blockId = await BlockId.Get(CurrentTransaction);
