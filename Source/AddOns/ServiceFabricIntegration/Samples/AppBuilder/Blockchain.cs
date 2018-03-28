@@ -174,6 +174,10 @@ namespace AppBuilder
 
 			int blockId = await BlockId.Get(CurrentTransaction);
 			await Ledger.AddAsync(CurrentTransaction, blockId, txBlock);
+
+			// Update BlockId
+			blockId++;
+			await BlockId.Set(CurrentTransaction, blockId);
 		}
 
 		/// <summary>
