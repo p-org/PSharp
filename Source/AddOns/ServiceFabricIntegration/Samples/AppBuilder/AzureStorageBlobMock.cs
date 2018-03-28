@@ -56,18 +56,15 @@ namespace AppBuilder
 
 			// Check if we have already received this transaction earlier
 			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, e.txid);
+			// The exact-once semantics should ensure we haven't seen this txid earlier
+			this.Assert(!IsTxReceived, "TxId " + e.txid + " has been processed already");
 
-			// If we have seen this tx already, then we have begun processing it, so do nothing
-			if(IsTxReceived)
-			{
-				return;
-			}
-			// Else, add it to the list of observed tx, and start processing it
-			else
-			{
-				await TxIdObserved.AddAsync(CurrentTransaction, e.txid, 0);
-				await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateBalanceEvent(e, this.Id));
-			}
+			// add the txid to the set of observed txids
+			await TxIdObserved.AddAsync(CurrentTransaction, e.txid, 0);
+
+			// validate the balances from the blockchain
+			await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateBalanceEvent(e, this.Id));
+			
 
 		}
 

@@ -17,6 +17,12 @@ namespace AppBuilder
 		#region fields
 
 		/// <summary>
+		/// Store the set of transaction ids which have already been processed.
+		/// </summary>
+		IReliableDictionary<int, int> TxIdObserved;
+
+
+		/// <summary>
 		/// Set of uncommitted transactions
 		/// </summary>
 		IReliableConcurrentQueue<TxObject> UncommittedTxPool;
@@ -111,6 +117,14 @@ namespace AppBuilder
 		{
 			BlockchainTxEvent e = this.ReceivedEvent as BlockchainTxEvent;
 
+			// Check if we have already received this transaction earlier
+			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, e.tx.txid);
+			// The exact-once semantics should guarantee we haven't seen this txid earlier
+			this.Assert(!IsTxReceived);
+
+			// Add the fresh transaction to the pool of observed transactions
+			await TxIdObserved.AddAsync(CurrentTransaction, e.tx.txid, 0);
+
 			// Add the fresh transaction to the pool of uncommitted transactions
 			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, e.tx);
 		}
@@ -160,6 +174,9 @@ namespace AppBuilder
 		public override async Task OnActivate()
 		{
 			this.Logger.WriteLine("Blockchain starting.");
+
+			TxIdObserved = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>
+							(QualifyWithMachineName("TxIdObserved"));
 
 			UncommittedTxPool = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<TxObject>>(QualifyWithMachineName("UncommittedTxPool"));
 

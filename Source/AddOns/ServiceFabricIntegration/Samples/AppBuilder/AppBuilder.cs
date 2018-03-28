@@ -112,6 +112,9 @@ namespace AppBuilder
 			int txid = await TxId.Get(CurrentTransaction);
 			txid++;
 
+			// Set the transaction id
+			await TxId.Set(CurrentTransaction, txid);
+
 			// send the initiator the transaction id
 			MachineId initiator = (await RegisteredUsers.TryGetValueAsync(CurrentTransaction, e.from)).Value;
 			await ReliableSend(initiator, new TxIdEvent(txid));
@@ -123,6 +126,7 @@ namespace AppBuilder
 			// record the status of the transaction in the SQLDatabase
 			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction),
 								new UpdateTxStatusDBEvent(txid, "processing"));
+
 		}
 
 		private async Task ForwardTxStatusRequest()
