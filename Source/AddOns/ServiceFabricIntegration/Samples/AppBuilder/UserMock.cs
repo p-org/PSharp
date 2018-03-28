@@ -70,7 +70,7 @@ namespace AppBuilder
 				return;
 			}
 			
-			this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully");
+			this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully, id: " + e.txid);
 			await TxId.Set(CurrentTransaction, e.txid);
 
 			await StartTimer(QualifyWithMachineName("PollTx"), 2000);

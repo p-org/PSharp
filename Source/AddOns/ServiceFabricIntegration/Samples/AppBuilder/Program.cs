@@ -17,7 +17,7 @@ namespace AppBuilder
 		{
 			System.Diagnostics.Debugger.Launch();
 
-			var config = Configuration.Create(); //.WithVerbosityEnabled(2);
+			var config = Configuration.Create().WithVerbosityEnabled(2);
 			var runtime = PSharpRuntime.Create(config);
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
