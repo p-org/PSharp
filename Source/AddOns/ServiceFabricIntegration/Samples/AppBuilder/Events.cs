@@ -55,14 +55,45 @@ namespace AppBuilder
 	}
 
 	[DataContract]
-	class UserInitEvent : Event
+	class UserMockInitEvent : Event
 	{
 		[DataMember]
 		public MachineId AppBuilderMachine;
 
-		public UserInitEvent(MachineId AppBuilderMachine)
+		[DataMember]
+		public int numUsers;
+
+		public UserMockInitEvent(MachineId AppBuilderMachine, int numUsers)
 		{
 			this.AppBuilderMachine = AppBuilderMachine;
+			this.numUsers = numUsers;
+		}
+	}
+
+	[DataContract]
+	class AppBuilderInitEvent : Event
+	{
+		[DataMember]
+		public MachineId userMock;
+
+		public AppBuilderInitEvent(MachineId userMock)
+		{
+			this.userMock = userMock;
+		}
+	}
+
+	/// <summary>
+	/// Initialize BlockchainPrinter with handle to the blockchain.
+	/// </summary>
+	[DataContract]
+	class BlockchainPrinterInitEvent : Event
+	{
+		[DataMember]
+		public MachineId blockchain;
+
+		public BlockchainPrinterInitEvent(MachineId blockchain)
+		{
+			this.blockchain = blockchain;
 		}
 	}
 
@@ -74,16 +105,23 @@ namespace AppBuilder
 	/// Issued by user to register himself/herself with AppBuilder.
 	/// </summary>
 	[DataContract]
-	class UserRegisterEvent : Event
+	class RegisterUserEvent : Event
 	{
+		[DataMember]
+		public int id;
+
 		[DataMember]
 		public MachineId user;
 
-		public UserRegisterEvent(MachineId user)
+		public RegisterUserEvent(int id, MachineId user)
 		{
+			this.id = id;
 			this.user = user;
 		}
 	}
+
+	[DataContract]
+	class ReadyToProcessTransactionEvent : Event { }
 
 	/// <summary>
 	/// AppBuilder sends back the public key of new user on successful registration.
@@ -130,8 +168,8 @@ namespace AppBuilder
 
 		public TransferEvent(int from, int to, int amount)
 		{
-			this.to = to;
 			this.from = from;
+			this.to = to;
 			this.amount = amount;
 		}
 	}
@@ -320,8 +358,17 @@ namespace AppBuilder
 	}
 	#endregion
 
+	#region blockchain specific
+
+	/// <summary>
+	/// Request to print the current status of the ledger.
+	/// </summary>
+	[DataContract]
+	class PrintLedgerEvent : Event { }
+	#endregion
+
 	#region additional classes
-	
+
 	/// <summary>
 	/// Holds transaction objects in the uncommitted queue of the blockchain.
 	/// </summary>

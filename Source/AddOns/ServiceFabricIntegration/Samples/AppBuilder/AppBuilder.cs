@@ -27,6 +27,8 @@ namespace AppBuilder
 		/// </summary>
 		ReliableRegister<int> NumUsers;
 
+		ReliableRegister<int> CurrentNumUsers;
+
 		/// <summary>
 		/// Unique transaction id
 		/// </summary>
@@ -44,12 +46,16 @@ namespace AppBuilder
 
 		ReliableRegister<MachineId> Blockchain;
 
+		ReliableRegister<MachineId> UserMock;
+
+		
+
 		#endregion
 
 		#region states
 		[Start]
 		[OnEntry(nameof(Initialize))]
-		[OnEventDoAction(typeof(UserRegisterEvent), nameof(RegisterUser))]
+		[OnEventDoAction(typeof(RegisterUserEvent), nameof(RegisterUser))]
 		[OnEventDoAction(typeof(TransferEvent), nameof(InitiateTransfer))]
 		[OnEventDoAction(typeof(GetTxStatusDBEvent), nameof(ForwardTxStatusRequest))]
 		[OnEventDoAction(typeof(TxDBStatus), nameof(ForwardTxStatusResponse))]
@@ -61,6 +67,9 @@ namespace AppBuilder
 		private async Task Initialize()
 		{
 			this.Logger.WriteLine("AppBuilder:Initialize()");
+			MachineId userMock = await ReliableCreateMachine(typeof(UserMock), null,
+								new UserMockInitEvent(this.Id, await NumUsers.Get(CurrentTransaction)));
+			await UserMock.Set(CurrentTransaction, userMock);
 
 			// Create the database where transaction statuses are kept
 			MachineId sqlDatabase = await ReliableCreateMachine(typeof(SQLDatabaseMock), null,
@@ -75,24 +84,25 @@ namespace AppBuilder
 			MachineId storageBlob = await ReliableCreateMachine(typeof(AzureStorageBlobMock), null,
 						new StorageBlobInitEvent(blockchain, sqlDatabase));
 			await StorageBlobMachine.Set(CurrentTransaction, storageBlob);
+
+			// Create the blockchain printer
+			MachineId blockchainPrinter = await ReliableCreateMachine(typeof(BlockchainPrinter), null,
+						new BlockchainPrinterInitEvent(blockchain));
 		}
 
-		/// <summary>
-		/// Raise a registration request with AzureKeyVault
-		/// </summary>
 		private async Task RegisterUser()
 		{
-			UserRegisterEvent e = this.ReceivedEvent as UserRegisterEvent;
+			RegisterUserEvent e = this.ReceivedEvent as RegisterUserEvent;
 
-			int numUsers = await NumUsers.Get(CurrentTransaction);
-			numUsers++;
+			// Validate unique id
+			bool IsIdExists = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.id);
+			Assert(!IsIdExists, "Registered id: " + e.id + " is not unique");
 
-			// Regiser user
-			await NumUsers.Set(CurrentTransaction, numUsers);
-			await RegisteredUsers.AddAsync(CurrentTransaction, numUsers, e.user);
+			// Add to registered users
+			await RegisteredUsers.AddAsync(CurrentTransaction, e.id, e.user);
 
-			// Send registration id back to user
-			await this.ReliableSend(e.user, new UserRegisterResponseEvent(numUsers));
+			int currNumUsers = await CurrentNumUsers.Get(CurrentTransaction);
+			await CurrentNumUsers.Set(CurrentTransaction, currNumUsers + 1);
 		}
 
 		/// <summary>
@@ -101,23 +111,40 @@ namespace AppBuilder
 		/// <returns></returns>
 		private async Task InitiateTransfer()
 		{
+			int currNumUsers = await CurrentNumUsers.Get(CurrentTransaction);
+			int numUsers = await NumUsers.Get(CurrentTransaction);
+
+			if (currNumUsers != numUsers)
+			{
+				return;
+			}
+
 			TransferEvent e = this.ReceivedEvent as TransferEvent;
 
 			// Verify if the source and destinate accounts are registered
 			bool SourceAccRegistered = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.from);
 			bool DestAccRegistered = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.to);
-			this.Assert(SourceAccRegistered && DestAccRegistered);
 
 			// Assign a new transaction id
 			int txid = await TxId.Get(CurrentTransaction);
 			txid++;
 
+			if ( !SourceAccRegistered || !DestAccRegistered)
+			{
+				// send back the txid to the user
+				await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));
+
+				// record the status of the transaction in the SQLDatabase
+				await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction),
+									new UpdateTxStatusDBEvent(txid, "aborted"));
+				return;
+			}
+
 			// Set the transaction id
 			await TxId.Set(CurrentTransaction, txid);
 
-			// send the initiator the transaction id
-			MachineId initiator = (await RegisteredUsers.TryGetValueAsync(CurrentTransaction, e.from)).Value;
-			await ReliableSend(initiator, new TxIdEvent(txid));
+			// send back the txid to the user
+			await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));
 
 			// start the transfer by invoking the appropriate action in StorageBlob
 			await ReliableSend(await StorageBlobMachine.Get(CurrentTransaction),
@@ -163,11 +190,13 @@ namespace AppBuilder
 			this.Logger.WriteLine("AppBuilder starting.");
 
 			RegisteredUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, MachineId>>(QualifyWithMachineName("RegisteredUsers"));
-			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
+			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 10);
+			CurrentNumUsers = new ReliableRegister<int>(QualifyWithMachineName("CurrNumUsers"), this.StateManager, 0);
 			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
 			StorageBlobMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("StorageBlobMachine"), this.StateManager, null);
 			SQLDatabaseMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabaseMachine"), this.StateManager, null);
 			Blockchain = new ReliableRegister<MachineId>(QualifyWithMachineName("Blockchain"), this.StateManager, null);
+			UserMock = new ReliableRegister<MachineId>(QualifyWithMachineName("UserMock"), this.StateManager, null);
 		}
 
 		private string QualifyWithMachineName(string name)

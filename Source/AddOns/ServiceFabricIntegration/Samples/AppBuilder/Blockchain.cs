@@ -49,6 +49,7 @@ namespace AppBuilder
 		[OnEventDoAction(typeof(ValidateBalanceEvent), nameof(ValidateBalance))]
 		[OnEventDoAction(typeof(BlockchainTxEvent), nameof(AddNewTxToQueue))]
 		[OnEventDoAction(typeof(TimeoutEvent), nameof(CommitTxToLedger))]
+		[OnEventDoAction(typeof(PrintLedgerEvent), nameof(PrintLedger))]
 		class Init : MachineState { }
 		#endregion
 
@@ -78,8 +79,8 @@ namespace AppBuilder
 			blockId++;
 			await BlockId.Set(CurrentTransaction, blockId);
 
-			// Start a timer. Every 10s, push all transactions from the uncommitted queue to the ledger.
-			await StartTimer("CommitTxTimer", 10000);
+			// Start a timer. Every 5s, push all transactions from the uncommitted queue to the ledger.
+			await StartTimer("CommitTxTimer", 5000);
 		}
 
 		/// <summary>
@@ -153,10 +154,52 @@ namespace AppBuilder
 				TxObject tx = (await UncommittedTxPool.TryDequeueAsync(CurrentTransaction)).Value;
 				txBlock.numTx++;
 				txBlock.transactions.Add(tx);
+
+				// Update balances
+				int fromBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.from)).Value;
+				await Balances.TryRemoveAsync(CurrentTransaction, tx.from);
+				await Balances.AddAsync(CurrentTransaction, tx.from, fromBalance - tx.amount);
+
+				if(await Balances.ContainsKeyAsync(CurrentTransaction, tx.to))
+				{
+					int toBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.to)).Value;
+					await Balances.TryRemoveAsync(CurrentTransaction, tx.to);
+					await Balances.AddAsync(CurrentTransaction, tx.to, toBalance + tx.amount);
+				}
+				else
+				{
+					await Balances.AddAsync(CurrentTransaction, tx.to, tx.amount);
+				}
 			}
 
 			int blockId = await BlockId.Get(CurrentTransaction);
 			await Ledger.AddAsync(CurrentTransaction, blockId, txBlock);
+		}
+
+		/// <summary>
+		/// Print out the current status of the blockchain
+		/// </summary>
+		/// <returns></returns>
+		private async Task PrintLedger()
+		{
+			long numOutstandingTx = UncommittedTxPool.Count;
+			long numBlocks = await Ledger.GetCountAsync(CurrentTransaction);
+
+			this.Logger.WriteLine("\n****** Blockchain Status ******");
+			this.Logger.WriteLine("#Outstanding transactions: " + numOutstandingTx);
+			this.Logger.WriteLine("#Num blocks: " + numBlocks);
+
+			for(int i=0; i<numBlocks; i++)
+			{
+				this.Logger.WriteLine("Block " + i + " --> ");
+				TxBlock txBlock = (await Ledger.TryGetValueAsync(CurrentTransaction, i)).Value;
+				foreach(var tx in txBlock.transactions)
+				{
+					this.Logger.WriteLine("Tx " + tx.txid + " Transfer " + tx.amount + " eth from " + tx.from + " to " + tx.to);
+				}
+				this.Logger.WriteLine("\n");
+			}
+			this.Logger.WriteLine("************");
 		}
 		#endregion
 

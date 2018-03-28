@@ -15,85 +15,75 @@ namespace AppBuilder
 {
 	#region events
 
-		#endregion
+	#endregion
 
 	class UserMock : ReliableStateMachine
 	{
 		#region fields
-
 		ReliableRegister<MachineId> AppBuilderMachine;
-
-		ReliableRegister<int> Identifier;
-
-		ReliableRegister<int> TxId;
-
+		ReliableRegister<int> NumUsers;
+		ReliableRegister<HashSet<int>> TxIds;
 		#endregion
 
 		#region states
 		[Start]
 		[OnEntry(nameof(Initialize))]
-		[OnEventDoAction(typeof(UserRegisterResponseEvent), nameof(CompleteRegistration))]
-		[OnEventDoAction(typeof(TxIdEvent), nameof(NewTransaction))]
 		[OnEventDoAction(typeof(TimeoutEvent), nameof(HandleTimeout))]
-		[OnEventDoAction(typeof(TxDBStatus), nameof(HandleTxStatus))]
+		[OnEventDoAction(typeof(TxIdEvent), nameof(StoreTxId))]
 		class Init : MachineState { }
 		#endregion
 
 		#region handler
 		private async Task Initialize()
 		{
-			UserInitEvent e = this.ReceivedEvent as UserInitEvent;
+			UserMockInitEvent e = this.ReceivedEvent as UserMockInitEvent;
 			await AppBuilderMachine.Set(CurrentTransaction, e.AppBuilderMachine);
+			await NumUsers.Set(CurrentTransaction, e.numUsers);
 
-			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new UserRegisterEvent(this.Id));
+			// Register all the users
+			for (int i = 1; i <= e.numUsers; i++)
+			{
+				await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new RegisterUserEvent(i, null));
+			}
+
+			// Start generating transactions
+			await StartTimer("TxTimer", 500);
 		}
 
-		private async Task CompleteRegistration()
-		{
-			UserRegisterResponseEvent e = this.ReceivedEvent as UserRegisterResponseEvent;
-			await Identifier.Set(CurrentTransaction, e.id);
 
-			this.Logger.WriteLine("UserMock:CompleteRegistration() ID: " + await Identifier.Get(CurrentTransaction));
-
-			// Initiate a transfer
-			await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction),
-					new TransferEvent(1, 2, 10));
-		}
-
-		private async Task NewTransaction()
+		private async Task StoreTxId()
 		{
 			TxIdEvent e = this.ReceivedEvent as TxIdEvent;
 
-			if(e.txid == -1)
+			if (e.txid == -1)
 			{
 				this.Logger.WriteLine("UserMock:NewTransaction(): Failed to create new transaction");
 				return;
 			}
-			
-			this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully, id: " + e.txid);
-			await TxId.Set(CurrentTransaction, e.txid);
 
-			await StartTimer(QualifyWithMachineName("PollTx"), 2000);
+			// this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully, id: " + e.txid);
+			HashSet<int> txids = await TxIds.Get(CurrentTransaction);
+			HashSet<int> new_txids = new HashSet<int>(txids);
+			new_txids.Add(e.txid);
+			await TxIds.Set(CurrentTransaction, new_txids);
 		}
 
 		private async Task HandleTimeout()
 		{
-			// Enquire status of transaction
-			await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new GetTxStatusDBEvent(await TxId.Get(CurrentTransaction), this.Id));
-		}
+			TimeoutEvent e = this.ReceivedEvent as TimeoutEvent;
 
-		private async Task HandleTxStatus()
-		{
-			TxDBStatus e = this.ReceivedEvent as TxDBStatus;
+			// Start a new transaction
+			if (e.Name == "TxTimer")
+			{
+				int from = 0, to = 0;
+				while (from == to)
+				{
+					from = RandomInteger(await NumUsers.Get(CurrentTransaction));
+					to = RandomInteger(await NumUsers.Get(CurrentTransaction));
+				}
+				int amount = RandomInteger(100);
 
-			if (e.txStatus == "committed" || e.txStatus == "aborted")
-			{
-				await StopTimer(QualifyWithMachineName("PollTx"));
-				this.Logger.WriteLine("Tx " + e.txid + " " + e.txStatus);
-			}
-			else
-			{
-				this.Logger.WriteLine("Tx " + e.txid + " " + e.txStatus);
+				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new TransferEvent(from, to, amount));
 			}
 		}
 		#endregion
@@ -112,9 +102,9 @@ namespace AppBuilder
 		/// <returns></returns>
 		public override Task OnActivate()
 		{
+			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
 			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
-			Identifier = new ReliableRegister<int>(QualifyWithMachineName("Identifier"), this.StateManager, 0);
-			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
+			TxIds = new ReliableRegister<HashSet<int>>(QualifyWithMachineName("TxIds"), this.StateManager, new HashSet<int>());
 			return Task.CompletedTask;
 		}
 

@@ -76,6 +76,7 @@
     <Compile Include="AppBuilder.cs" />
     <Compile Include="AzureStorageBlobMock.cs" />
     <Compile Include="Blockchain.cs" />
+    <Compile Include="BlockchainPrinter.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -17,14 +17,12 @@ namespace AppBuilder
 		{
 			System.Diagnostics.Debugger.Launch();
 
-			var config = Configuration.Create().WithVerbosityEnabled(2);
+			var config = Configuration.Create(); // .WithVerbosityEnabled(2);
 			var runtime = PSharpRuntime.Create(config);
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
-				MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
-				MachineId User1 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
-				MachineId User2 = runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
+			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
 			// MachineId t1 = runtime.CreateMachine(typeof(TimerTest));
 			// MachineId t2 = runtime.CreateMachine(typeof(TimerTest));
 
@@ -44,8 +42,6 @@ namespace AppBuilder
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
 			// runtime.RegisterMonitor(typeof(SafetyMonitor));
 			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
-			runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
-			runtime.CreateMachine(typeof(UserMock), new UserInitEvent(AppBuilder));
 		}
 	}
 
