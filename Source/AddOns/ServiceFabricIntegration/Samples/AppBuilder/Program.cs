@@ -11,6 +11,14 @@ using Microsoft.ServiceFabric.Data.Collections;
 
 namespace AppBuilder
 {
+	/// <summary>
+	/// Model of AppBuilder. There are 5 components that are modeled:
+	/// 1. Azure Key Vault (for authentication): merged with AppBuilder here, for simplicity
+	/// 2. Azure Storage Blob: where dapps are hosted (here we only support a simple transfer op)
+	/// 3. SQL Database: where tx statuses are kept, to be polled by the UI
+	/// 4. Blockchain: mocked here by reliable collections
+	/// 5. AppBuilder: orchestrates all the components.
+	/// </summary>
 	class Program
 	{
 		static void Main(string[] args)
