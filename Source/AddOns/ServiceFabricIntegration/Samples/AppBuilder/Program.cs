@@ -30,6 +30,9 @@ namespace AppBuilder
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
+
+			// Start off the AppBuilder
+			// Users are mocked in UserMock. The number of users is controlled in AppBuilder and set to 100 by default.
 			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
 			
 			Console.ReadLine();
@@ -46,6 +49,8 @@ namespace AppBuilder
 		public static void Execute(PSharpRuntime runtime)
 		{
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
+
+			// NumUsers set in AppBuilder and set to 100 by default
 			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
 		}
 	}

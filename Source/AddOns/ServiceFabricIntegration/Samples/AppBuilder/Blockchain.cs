@@ -12,6 +12,9 @@ using Microsoft.ServiceFabric.Data.Collections;
 
 namespace AppBuilder
 {
+	/// <summary>
+	/// Mock of a blockchain.
+	/// </summary>
 	class Blockchain : ReliableStateMachine
 	{
 		#region fields
@@ -83,16 +86,24 @@ namespace AppBuilder
 		}
 
 		/// <summary>
-		/// Check if the "from" account has enough balance to do a transaction
+		/// Check if the "from" account has enough balance to do a transaction. 
+		/// If validation passes, add the tx to the uncommitted pool.
 		/// </summary>
 		/// <returns></returns>
 		private async Task ValidateAndCommit()
 		{
 			ValidateAndCommitEvent ev = this.ReceivedEvent as ValidateAndCommitEvent;
 
+			/*
+			 * Strictly speaking, the following validation should be done by the dapp in Storage Blob.
+			 * We include it here for simplicity.
+			*/
+
 			// Check if the "from" account has the requisite balance
 			bool IsFromAccInBalances = await Balances.ContainsKeyAsync(CurrentTransaction, ev.e.from);
 
+			// If "from" isn't present in Balances, then it has never been cached => there are no prior tx which
+			// has transferred ether to it.
 			if( !IsFromAccInBalances )
 			{
 				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, false));
@@ -108,11 +119,23 @@ namespace AppBuilder
 			}
 			else
 			{
+				/* Validation passed.
+				 * Add tx to the uncommitted pool of tx.
+				 * Note that we immediately set the status of the tx to committed, even though it has not yet been
+				 * written to the ledger. Once a tx is in the uncommitted pool, it is guaranteed to be eventually 
+				 * committed to the ledger (but it may take awhile). This is why we cache the balances so that 
+				 * subsequent txs can go ahead.
+				*/
 				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, true));
 				await AddNewTxToQueue(ev.e);
 			}
 		}
 
+		/// <summary>
+		/// Add the tx to the uncommitted pool of transactions.
+		/// </summary>
+		/// <param name="tx"></param>
+		/// <returns></returns>
 		private async Task AddNewTxToQueue(TxObject tx)
 		{
 
@@ -127,7 +150,7 @@ namespace AppBuilder
 			// Add the fresh transaction to the pool of uncommitted transactions
 			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, tx);
 
-			// Update balances
+			// Update balances in cache
 			int fromBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.from)).Value;
 			await Balances.TryRemoveAsync(CurrentTransaction, tx.from);
 			await Balances.AddAsync(CurrentTransaction, tx.from, fromBalance - tx.amount);
@@ -179,7 +202,7 @@ namespace AppBuilder
 		}
 
 		/// <summary>
-		/// Print out the current status of the blockchain
+		/// Pretty print the current status of the blockchain.
 		/// </summary>
 		/// <returns></returns>
 		private async Task PrintLedger()

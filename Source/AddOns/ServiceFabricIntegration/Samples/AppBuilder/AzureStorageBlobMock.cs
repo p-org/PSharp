@@ -32,8 +32,6 @@ namespace AppBuilder
 		/// </summary>
 		ReliableRegister<MachineId> SQLDatabase;
 
-		IReliableDictionary<int, int> AccountsUnderProcessing;
-
 		#endregion
 
 		#region states
@@ -52,6 +50,11 @@ namespace AppBuilder
 			await SQLDatabase.Set(CurrentTransaction, e.sqlDatabase);
 		}
 
+		/// <summary>
+		/// A sample dapp. This app simply transfers ether from acc A to B.
+		/// More sophisticated smart contracts can be easily built, with an associated ReliableRegister<int> balance.
+		/// </summary>
+		/// <returns></returns>
 		private async Task StartAmountTransfer()
 		{
 			StorageBlobTransferEvent e = this.ReceivedEvent as StorageBlobTransferEvent;
@@ -63,15 +66,20 @@ namespace AppBuilder
 
 			// add the txid to the set of observed txids
 			await TxIdObserved.AddAsync(CurrentTransaction, e.txid, 0);
-
+			
+			// Create a transaction object
 			TxObject tx = new TxObject(e.txid, e.from, e.to, e.amount);
 
-			// validate the balances from the blockchain
+			// forward the transaction request to the blockchain, which validates and commits it to the ledger.
 			await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateAndCommitEvent(tx, this.Id));
 			
 
 		}
 
+		/// <summary>
+		/// Updates the status of a transaction to the database.
+		/// </summary>
+		/// <returns></returns>
 		private async Task UpdateTxStatusToDB()
 		{
 			ValidateAndCommitResponseEvent ev = this.ReceivedEvent as ValidateAndCommitResponseEvent;
@@ -83,7 +91,7 @@ namespace AppBuilder
 				return;
 			}
 
-			// Update DB with status
+			// Validation has passed: update status of tx to committed
 			await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.txid, "committed"));
 		}
 
@@ -110,9 +118,6 @@ namespace AppBuilder
 							this.StateManager, null);
 			SQLDatabase = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabase"),
 							this.StateManager, null);
-			AccountsUnderProcessing = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>
-							(QualifyWithMachineName("AccountsUnderProcessing"));
-
 		}
 
 		private string QualifyWithMachineName(string name)

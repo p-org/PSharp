@@ -12,7 +12,7 @@ using Microsoft.ServiceFabric.Data;
 namespace AppBuilder
 {
 	/// <summary>
-	/// Prints out the entire blockchain at intervals of time
+	/// Prints out the entire blockchain at intervals of time (def: 7s)
 	/// </summary>
 	class BlockchainPrinter : ReliableStateMachine
 	{
@@ -38,9 +38,13 @@ namespace AppBuilder
 		{
 			BlockchainPrinterInitEvent e = this.ReceivedEvent as BlockchainPrinterInitEvent;
 			await Blockchain.Set(CurrentTransaction, e.blockchain);
-			await StartTimer("BlockchainPrinter", 5000);
+			await StartTimer("BlockchainPrinter", 7000);
 		}
 
+		/// <summary>
+		/// At predefined intervals of time, request Blockchain to pretty print the ledger.
+		/// </summary>
+		/// <returns></returns>
 		private async Task HandleTimeout()
 		{
 			await ReliableSend(await Blockchain.Get(CurrentTransaction), new PrintLedgerEvent());

@@ -54,6 +54,9 @@ namespace AppBuilder
 		}
 	}
 
+	/// <summary>
+	/// Initialize the machine mocking a bunch of users interacting with AppBuilder.
+	/// </summary>
 	[DataContract]
 	class UserMockInitEvent : Event
 	{
@@ -67,18 +70,6 @@ namespace AppBuilder
 		{
 			this.AppBuilderMachine = AppBuilderMachine;
 			this.numUsers = numUsers;
-		}
-	}
-
-	[DataContract]
-	class AppBuilderInitEvent : Event
-	{
-		[DataMember]
-		public MachineId userMock;
-
-		public AppBuilderInitEvent(MachineId userMock)
-		{
-			this.userMock = userMock;
 		}
 	}
 
@@ -117,24 +108,6 @@ namespace AppBuilder
 		{
 			this.id = id;
 			this.user = user;
-		}
-	}
-
-	[DataContract]
-	class ReadyToProcessTransactionEvent : Event { }
-
-	/// <summary>
-	/// AppBuilder sends back the public key of new user on successful registration.
-	/// </summary>
-	[DataContract]
-	class UserRegisterResponseEvent : Event
-	{
-		[DataMember]
-		public int id;
-
-		public UserRegisterResponseEvent(int id)
-		{
-			this.id = id;
 		}
 	}
 
@@ -227,29 +200,14 @@ namespace AppBuilder
 			this.amount = amount;
 		}
 	}
-	/*
-	/// <summary>
-	/// Sent by app in Storage blob to the uncommitted pool of txs in the blockchain.
-	/// </summary>
-	[DataContract]
-	class BlockchainTxEvent : Event
-	{
-		/// <summary>
-		/// Fresh tx to be committed to the blockchain.
-		/// </summary>
-		[DataMember]
-		public TxObject tx;
-
-		public BlockchainTxEvent(TxObject tx)
-		{
-			this.tx = tx;
-		}
-	}*/
-
+	
 	#endregion
 
 	#region validation events
 
+	/// <summary>
+	/// Request from StorageBlob to the Blockchain to validate and commit a tx.
+	/// </summary>
 	[DataContract]
 	class ValidateAndCommitEvent : Event
 	{
@@ -266,6 +224,9 @@ namespace AppBuilder
 		}
 	}
 
+	/// <summary>
+	/// Response from Blockchain --> StorageBlob with the status of a tx.
+	/// </summary>
 	[DataContract]
 	class ValidateAndCommitResponseEvent : Event
 	{
@@ -286,6 +247,10 @@ namespace AppBuilder
 
 	#region database
 
+	/// <summary>
+	/// Updates the status of a tx in the database. 
+	/// Status \in {processing, committed, aborted}
+	/// </summary>
 	class UpdateTxStatusDBEvent : Event
 	{
 		/// <summary>

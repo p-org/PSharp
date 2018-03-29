@@ -17,11 +17,25 @@ namespace AppBuilder
 
 	#endregion
 
+	/// <summary>
+	/// Mocks a bunch of users interacting with the AppBuilder.
+	/// </summary>
 	class UserMock : ReliableStateMachine
 	{
 		#region fields
+		/// <summary>
+		/// Handle to the AppBuilder machine.
+		/// </summary>
 		ReliableRegister<MachineId> AppBuilderMachine;
+
+		/// <summary>
+		/// Preset the number of users in the system. Can be adjusted in AppBuilder.
+		/// </summary>
 		ReliableRegister<int> NumUsers;
+
+		/// <summary>
+		/// Store the set of transaction ids.
+		/// </summary>
 		IReliableDictionary<int, int> TxIds;
 		#endregion
 
@@ -46,11 +60,14 @@ namespace AppBuilder
 				await this.ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new RegisterUserEvent(i, null));
 			}
 
-			// Start generating transactions
-			await StartTimer("TxTimer", 500);
+			// Start generating transactions every 50ms
+			await StartTimer("TxTimer", 50);
 		}
 
-
+		/// <summary>
+		/// Receive a fresh tx id for each initiated transaction.
+		/// </summary>
+		/// <returns></returns>
 		private async Task StoreTxId()
 		{
 			TxIdEvent e = this.ReceivedEvent as TxIdEvent;
@@ -61,15 +78,11 @@ namespace AppBuilder
 				return;
 			}
 
-			// this.Logger.WriteLine("UserMock:NewTransaction(): Transaction created successfully, id: " + e.txid);
-			// HashSet<int> txids = await TxIds.Get(CurrentTransaction);
-			// HashSet<int> new_txids = new HashSet<int>(txids);
-			// new_txids.Add(e.txid);
-			// await TxIds.Set(CurrentTransaction, new_txids);
-
 			// Ensure txid is fresh
 			Assert(!(await TxIds.ContainsKeyAsync(CurrentTransaction, e.txid)), 
 						"UserMock: txid " + e.txid + " is not unique");
+
+			// Store the txid
 			await TxIds.AddAsync(CurrentTransaction, e.txid, 0);
 		}
 
@@ -80,6 +93,7 @@ namespace AppBuilder
 			// Start a new transaction
 			if (e.Name == "TxTimer")
 			{
+				// Randomly generate the "from" and "to" accounts, and amount of ether to be transferred
 				int from = 0, to = 0;
 				while (from == to)
 				{
@@ -88,6 +102,7 @@ namespace AppBuilder
 				}
 				int amount = RandomInteger(100);
 
+				// Send request for the transfer to the AppBuilder
 				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new TransferEvent(from, to, amount));
 			}
 		}

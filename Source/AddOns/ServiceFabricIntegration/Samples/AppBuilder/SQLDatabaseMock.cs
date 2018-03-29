@@ -12,13 +12,17 @@ using System.Runtime.Serialization;
 
 namespace AppBuilder
 {
+	/// <summary>
+	/// Mocks an SQL Database, which stores the status of all transactions. 
+	/// The UI polls this to display the tx status, on a webpage (say).
+	/// </summary>
 	class SQLDatabaseMock : ReliableStateMachine
 	{
 		#region fields
 
 		/// <summary>
 		/// Stores the current status of each transaction.
-		/// Status \in {Processing, Aborted, Committed}
+		/// Status \in {processing, aborted, committed}
 		/// </summary>
 		IReliableDictionary<int, string> TxStatus;
 
@@ -46,6 +50,10 @@ namespace AppBuilder
 			await AppBuilderMachine.Set(CurrentTransaction, e.appBuilderMachine);
 		}
 
+		/// <summary>
+		/// Update the database with the status of a tx.
+		/// </summary>
+		/// <returns></returns>
 		private async Task UpdateDB()
 		{
 			UpdateTxStatusDBEvent e = this.ReceivedEvent as UpdateTxStatusDBEvent;
@@ -74,6 +82,10 @@ namespace AppBuilder
 			}
 		}
 
+		/// <summary>
+		/// Return the status of a tx.
+		/// </summary>
+		/// <returns></returns>
 		private async Task ReturnTxStatus()
 		{
 			GetTxStatusDBEvent e = this.ReceivedEvent as GetTxStatusDBEvent;

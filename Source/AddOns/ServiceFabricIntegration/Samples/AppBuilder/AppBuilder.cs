@@ -23,14 +23,17 @@ namespace AppBuilder
 		IReliableDictionary<int, MachineId> RegisteredUsers;
 
 		/// <summary>
-		/// Monotonically increasing count of number of users registered so far
+		/// Set the number of users interacting with AppBuilder.
 		/// </summary>
 		ReliableRegister<int> NumUsers;
 
+		/// <summary>
+		/// Monotonically increasing count of the num users registered so far.
+		/// </summary>
 		ReliableRegister<int> CurrentNumUsers;
 
 		/// <summary>
-		/// Unique transaction id
+		/// Unique transaction id assigned to every transaction
 		/// </summary>
 		ReliableRegister<int> TxId;
 
@@ -44,8 +47,14 @@ namespace AppBuilder
 		/// </summary>
 		ReliableRegister<MachineId> SQLDatabaseMachine;
 
+		/// <summary>
+		/// Handle to the actual blockchain machine.
+		/// </summary>
 		ReliableRegister<MachineId> Blockchain;
 
+		/// <summary>
+		/// Mock of a bunch of users interacting with AppBuilder.
+		/// </summary>
 		ReliableRegister<MachineId> UserMock;
 
 		
@@ -64,6 +73,10 @@ namespace AppBuilder
 
 		#region handlers
 
+		/// <summary>
+		/// Create the component machines.
+		/// </summary>
+		/// <returns></returns>
 		private async Task Initialize()
 		{
 			this.Logger.WriteLine("AppBuilder:Initialize()");
@@ -90,6 +103,11 @@ namespace AppBuilder
 						new BlockchainPrinterInitEvent(blockchain));
 		}
 
+		/// <summary>
+		/// Register a new user. Here, we abstract away any authentication logic.
+		/// In production, this would be substituted with a call to the AzureStorageVault service for authentication.
+		/// </summary>
+		/// <returns></returns>
 		private async Task RegisterUser()
 		{
 			RegisterUserEvent e = this.ReceivedEvent as RegisterUserEvent;
@@ -103,10 +121,16 @@ namespace AppBuilder
 
 			int currNumUsers = await CurrentNumUsers.Get(CurrentTransaction);
 			await CurrentNumUsers.Set(CurrentTransaction, currNumUsers + 1);
+
+			// #users registered must be less than the total number of users
+			this.Assert(await CurrentNumUsers.Get(CurrentTransaction) <= await NumUsers.Get(CurrentTransaction),
+					"AppBuilder: Num Registered users exceed NumUsers");
 		}
 
 		/// <summary>
 		/// Initiate a transaction to transfer either from source acc --> dest acc
+		/// Transfer of ether from A to B is the only operation supported in this sample.
+		/// Additional ops can easily be added to AzureStorageBlobMock.
 		/// </summary>
 		/// <returns></returns>
 		private async Task InitiateTransfer()
@@ -114,6 +138,10 @@ namespace AppBuilder
 			int currNumUsers = await CurrentNumUsers.Get(CurrentTransaction);
 			int numUsers = await NumUsers.Get(CurrentTransaction);
 
+			/*
+			 * currNumUsers tracks the number of users registered so far.
+			 * Since we know there are numUsers, we defer handling tx until everyone has been registered.
+			*/
 			if (currNumUsers != numUsers)
 			{
 				return;
@@ -121,7 +149,7 @@ namespace AppBuilder
 
 			TransferEvent e = this.ReceivedEvent as TransferEvent;
 
-			// Verify if the source and destinate accounts are registered
+			// Verify if the source and destinatation accounts are registered
 			bool SourceAccRegistered = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.from);
 			bool DestAccRegistered = await RegisteredUsers.ContainsKeyAsync(CurrentTransaction, e.to);
 
@@ -132,6 +160,7 @@ namespace AppBuilder
 			// Set the transaction id
 			await TxId.Set(CurrentTransaction, txid);
 
+			// Abort the tx if one of the accounts isn't registered
 			if ( !SourceAccRegistered && !DestAccRegistered)
 			{
 				// send back the txid to the user
@@ -147,6 +176,7 @@ namespace AppBuilder
 			await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));
 
 			// start the transfer by invoking the appropriate action in StorageBlob
+			// at present, we only support a simple transfer op from acc A to acc B
 			await ReliableSend(await StorageBlobMachine.Get(CurrentTransaction),
 								new StorageBlobTransferEvent(txid, e.from, e.to, e.amount));
 
@@ -156,6 +186,10 @@ namespace AppBuilder
 
 		}
 
+		/// <summary>
+		/// An enquiry from the user (UI) about the status of a tx is forwarded to the database machine
+		/// </summary>
+		/// <returns></returns>
 		private async Task ForwardTxStatusRequest()
 		{
 			GetTxStatusDBEvent e = this.ReceivedEvent as GetTxStatusDBEvent;
@@ -164,6 +198,10 @@ namespace AppBuilder
 			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction), e);
 		}
 
+		/// <summary>
+		/// Once the tx status is received from the database machine, the response is fwd back to user (UI)
+		/// </summary>
+		/// <returns></returns>
 		private async Task ForwardTxStatusResponse()
 		{
 			TxDBStatus e = this.ReceivedEvent as TxDBStatus;
@@ -205,7 +243,5 @@ namespace AppBuilder
 		}
 
 		#endregion
-
-
 	}
 }
