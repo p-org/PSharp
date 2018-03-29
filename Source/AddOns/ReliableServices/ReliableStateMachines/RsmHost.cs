@@ -29,27 +29,32 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// Hosted P# runtime
         /// </summary>
-        private PSharpRuntime Runtime;
+        internal PSharpRuntime Runtime;
 
         /// <summary>
         /// Hosted machine ID
         /// </summary>
-        private MachineId Mid;
+        internal MachineId Mid;
+
+        /// <summary>
+        /// Type of machine hosted
+        /// </summary>
+        internal Type HostedMachineType;
 
         /// <summary>
         /// Stack of the P# machine
         /// </summary>
-        private Stack<string> StateStack;
+        internal Stack<string> StateStack;
 
         /// <summary>
         /// Changes made to the machine stack
         /// </summary>
-        private StackDelta StackChanges;
+        internal StackDelta StackChanges;
 
         /// <summary>
         /// State Manager
         /// </summary>
-        private IReliableStateManager StateManager;
+        internal IReliableStateManager StateManager;
 
         #endregion
 
