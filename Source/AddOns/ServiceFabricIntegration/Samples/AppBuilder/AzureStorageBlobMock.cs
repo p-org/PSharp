@@ -40,7 +40,7 @@ namespace AppBuilder
 		[Start]
 		[OnEntry(nameof(Initialize))]
 		[OnEventDoAction(typeof(StorageBlobTransferEvent), nameof(StartAmountTransfer))]
-		[OnEventDoAction(typeof(ValidateBalanceResponseEvent), nameof(PushTransferToBlockChain))]
+		[OnEventDoAction(typeof(ValidateAndCommitResponseEvent), nameof(UpdateTxStatusToDB))]
 		class Init : MachineState { }
 		#endregion
 
@@ -61,46 +61,30 @@ namespace AppBuilder
 			// The exact-once semantics should ensure we haven't seen this txid earlier
 			this.Assert(!IsTxReceived, "AzureStorageBlob: txId " + e.txid + " has been processed already");
 
-			// Check if the "from" account is already under process. Akin to holding a "lock" on the "from" acc.
-			// A hacky solution to prevent double-spending.
-			/*if(await AccountsUnderProcessing.ContainsKeyAsync(CurrentTransaction, e.from))
-			{
-				await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(e.txid, "aborted"));
-				return;
-			}
-			await AccountsUnderProcessing.AddAsync(CurrentTransaction, e.from, 0);
-			*/
 			// add the txid to the set of observed txids
 			await TxIdObserved.AddAsync(CurrentTransaction, e.txid, 0);
 
+			TxObject tx = new TxObject(e.txid, e.from, e.to, e.amount);
+
 			// validate the balances from the blockchain
-			await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateBalanceEvent(e, this.Id));
+			await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateAndCommitEvent(tx, this.Id));
 			
 
 		}
 
-		private async Task PushTransferToBlockChain()
+		private async Task UpdateTxStatusToDB()
 		{
-			ValidateBalanceResponseEvent ev = this.ReceivedEvent as ValidateBalanceResponseEvent;
+			ValidateAndCommitResponseEvent ev = this.ReceivedEvent as ValidateAndCommitResponseEvent;
 
 			if(!ev.validation)
 			{
 				// Update the status of the tx in the database to aborted
-				await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.e.txid, "aborted"));
+				await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.txid, "aborted"));
 				return;
 			}
 
-			// Release the lock on the "from" account
-			//Assert(await AccountsUnderProcessing.ContainsKeyAsync(CurrentTransaction, ev.e.from),
-						//"AzureStorageBlob: account: " + ev.e.from + " should be under process");
-			//await AccountsUnderProcessing.TryRemoveAsync(CurrentTransaction, ev.e.from);
-
-			// Create the transaction object
-			TxObject tx = new TxObject(ev.e.txid, ev.e.from, ev.e.to, ev.e.amount);
-			await ReliableSend(await Blockchain.Get(CurrentTransaction), new BlockchainTxEvent(tx));
-
 			// Update DB with status
-			await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(tx.txid, "committed"));
+			await ReliableSend(await SQLDatabase.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.txid, "committed"));
 		}
 
 

@@ -190,7 +190,7 @@ namespace AppBuilder
 			this.Logger.WriteLine("AppBuilder starting.");
 
 			RegisteredUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, MachineId>>(QualifyWithMachineName("RegisteredUsers"));
-			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 10);
+			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 50);
 			CurrentNumUsers = new ReliableRegister<int>(QualifyWithMachineName("CurrNumUsers"), this.StateManager, 0);
 			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
 			StorageBlobMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("StorageBlobMachine"), this.StateManager, null);

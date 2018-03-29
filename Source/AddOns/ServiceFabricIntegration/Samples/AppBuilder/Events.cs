@@ -227,7 +227,7 @@ namespace AppBuilder
 			this.amount = amount;
 		}
 	}
-
+	/*
 	/// <summary>
 	/// Sent by app in Storage blob to the uncommitted pool of txs in the blockchain.
 	/// </summary>
@@ -244,22 +244,22 @@ namespace AppBuilder
 		{
 			this.tx = tx;
 		}
-	}
+	}*/
 
 	#endregion
 
 	#region validation events
 
 	[DataContract]
-	class ValidateBalanceEvent : Event
+	class ValidateAndCommitEvent : Event
 	{
 		[DataMember]
-		public StorageBlobTransferEvent e;
+		public TxObject e;
 
 		[DataMember]
 		public MachineId requestFrom;
 
-		public ValidateBalanceEvent(StorageBlobTransferEvent e, MachineId requestFrom)
+		public ValidateAndCommitEvent(TxObject e, MachineId requestFrom)
 		{
 			this.e = e;
 			this.requestFrom = requestFrom;
@@ -267,17 +267,17 @@ namespace AppBuilder
 	}
 
 	[DataContract]
-	class ValidateBalanceResponseEvent : Event
+	class ValidateAndCommitResponseEvent : Event
 	{
 		[DataMember]
-		public StorageBlobTransferEvent e;
+		public int txid;
 
 		[DataMember]
 		public bool validation;
 
-		public ValidateBalanceResponseEvent(StorageBlobTransferEvent e, bool validation)
+		public ValidateAndCommitResponseEvent(int txid, bool validation)
 		{
-			this.e = e;
+			this.txid = txid;
 			this.validation = validation;
 		}
 	}

@@ -23,9 +23,7 @@ namespace AppBuilder
 			var stateManager = new StateManagerMock(runtime);
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(stateManager));
 			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
-			// MachineId t1 = runtime.CreateMachine(typeof(TimerTest));
-			// MachineId t2 = runtime.CreateMachine(typeof(TimerTest));
-
+			
 			Console.ReadLine();
 		}
 
@@ -40,7 +38,6 @@ namespace AppBuilder
 		public static void Execute(PSharpRuntime runtime)
 		{
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
-			// runtime.RegisterMonitor(typeof(SafetyMonitor));
 			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
 		}
 	}

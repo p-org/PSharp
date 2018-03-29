@@ -46,8 +46,7 @@ namespace AppBuilder
 		#region states
 		[Start]
 		[OnEntry(nameof(Initialize))]
-		[OnEventDoAction(typeof(ValidateBalanceEvent), nameof(ValidateBalance))]
-		[OnEventDoAction(typeof(BlockchainTxEvent), nameof(AddNewTxToQueue))]
+		[OnEventDoAction(typeof(ValidateAndCommitEvent), nameof(ValidateAndCommit))]
 		[OnEventDoAction(typeof(TimeoutEvent), nameof(CommitTxToLedger))]
 		[OnEventDoAction(typeof(PrintLedgerEvent), nameof(PrintLedger))]
 		class Init : MachineState { }
@@ -87,16 +86,16 @@ namespace AppBuilder
 		/// Check if the "from" account has enough balance to do a transaction
 		/// </summary>
 		/// <returns></returns>
-		private async Task ValidateBalance()
+		private async Task ValidateAndCommit()
 		{
-			ValidateBalanceEvent ev = this.ReceivedEvent as ValidateBalanceEvent;
+			ValidateAndCommitEvent ev = this.ReceivedEvent as ValidateAndCommitEvent;
 
 			// Check if the "from" account has the requisite balance
 			bool IsFromAccInBalances = await Balances.ContainsKeyAsync(CurrentTransaction, ev.e.from);
 
 			if( !IsFromAccInBalances )
 			{
-				await ReliableSend(ev.requestFrom, new ValidateBalanceResponseEvent(ev.e, false));
+				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, false));
 				return;
 			}
 
@@ -104,45 +103,44 @@ namespace AppBuilder
 
 			if(fromBalance < ev.e.amount)
 			{
-				await ReliableSend(ev.requestFrom, new ValidateBalanceResponseEvent(ev.e, false));
+				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, false));
 				return;
 			}
 			else
 			{
-				await ReliableSend(ev.requestFrom, new ValidateBalanceResponseEvent(ev.e, true));
-				return;
+				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, true));
+				await AddNewTxToQueue(ev.e);
 			}
 		}
 
-		private async Task AddNewTxToQueue()
+		private async Task AddNewTxToQueue(TxObject tx)
 		{
-			BlockchainTxEvent e = this.ReceivedEvent as BlockchainTxEvent;
 
 			// Check if we have already received this transaction earlier
-			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, e.tx.txid);
+			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, tx.txid);
 			// The exact-once semantics should guarantee we haven't seen this txid earlier
-			this.Assert(!IsTxReceived, "Blockchain:AddNewTxToQueue(): txid " + e.tx.txid + " not unique");
+			this.Assert(!IsTxReceived, "Blockchain:AddNewTxToQueue(): txid " + tx.txid + " not unique");
 
 			// Add the fresh transaction to the pool of observed transactions
-			await TxIdObserved.AddAsync(CurrentTransaction, e.tx.txid, 0);
+			await TxIdObserved.AddAsync(CurrentTransaction, tx.txid, 0);
 
 			// Add the fresh transaction to the pool of uncommitted transactions
-			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, e.tx);
+			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, tx);
 
 			// Update balances
-			int fromBalance = (await Balances.TryGetValueAsync(CurrentTransaction, e.tx.from)).Value;
-			await Balances.TryRemoveAsync(CurrentTransaction, e.tx.from);
-			await Balances.AddAsync(CurrentTransaction, e.tx.from, fromBalance - e.tx.amount);
+			int fromBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.from)).Value;
+			await Balances.TryRemoveAsync(CurrentTransaction, tx.from);
+			await Balances.AddAsync(CurrentTransaction, tx.from, fromBalance - tx.amount);
 
-			if (await Balances.ContainsKeyAsync(CurrentTransaction, e.tx.to))
+			if (await Balances.ContainsKeyAsync(CurrentTransaction, tx.to))
 			{
-				int toBalance = (await Balances.TryGetValueAsync(CurrentTransaction, e.tx.to)).Value;
-				await Balances.TryRemoveAsync(CurrentTransaction, e.tx.to);
-				await Balances.AddAsync(CurrentTransaction, e.tx.to, toBalance + e.tx.amount);
+				int toBalance = (await Balances.TryGetValueAsync(CurrentTransaction, tx.to)).Value;
+				await Balances.TryRemoveAsync(CurrentTransaction, tx.to);
+				await Balances.AddAsync(CurrentTransaction, tx.to, toBalance + tx.amount);
 			}
 			else
 			{
-				await Balances.AddAsync(CurrentTransaction, e.tx.to, e.tx.amount);
+				await Balances.AddAsync(CurrentTransaction, tx.to, tx.amount);
 			}
 		}
 
