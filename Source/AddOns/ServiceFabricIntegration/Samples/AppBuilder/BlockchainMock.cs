@@ -15,7 +15,7 @@ namespace AppBuilder
 	/// <summary>
 	/// Mock of a blockchain.
 	/// </summary>
-	class Blockchain : ReliableStateMachine
+	class BlockchainMock : ReliableStateMachine
 	{
 		#region fields
 
@@ -44,11 +44,17 @@ namespace AppBuilder
 		/// The ledger maps a block id to a set of committed transactions
 		/// </summary>
 		IReliableDictionary<int, TxBlock> Ledger;
+
+		/// <summary>
+		/// Handle to the DLT machine
+		/// </summary>
+		ReliableRegister<MachineId> DLT;
+
 		#endregion
 
 		#region states
 		[Start]
-		[OnEntry(nameof(Initialize))]
+		[OnEventDoAction(typeof(BlockchainInitEvent), nameof(Initialize))]
 		[OnEventDoAction(typeof(ValidateAndCommitEvent), nameof(ValidateAndCommit))]
 		[OnEventDoAction(typeof(TimeoutEvent), nameof(CommitTxToLedger))]
 		[OnEventDoAction(typeof(PrintLedgerEvent), nameof(PrintLedger))]
@@ -58,6 +64,11 @@ namespace AppBuilder
 		#region handlers
 		private async Task Initialize()
 		{
+			BlockchainInitEvent e = this.ReceivedEvent as BlockchainInitEvent;
+
+			// Set handle to the dlt machine
+			await DLT.Set(CurrentTransaction, e.dlt);
+
 			// Initialize the blockchain by giving 100 ether to the first 2 users!
 			TxObject tx1 = new TxObject(-1, 0, 1, 100);
 			TxObject tx2 = new TxObject(0, 0, 2, 100);
@@ -87,17 +98,12 @@ namespace AppBuilder
 
 		/// <summary>
 		/// Check if the "from" account has enough balance to do a transaction. 
-		/// If validation passes, add the tx to the uncommitted pool.
+		/// If validation passes, add the tx to the uncommitted pool. Pass tx status to the dlt.
 		/// </summary>
 		/// <returns></returns>
 		private async Task ValidateAndCommit()
 		{
 			ValidateAndCommitEvent ev = this.ReceivedEvent as ValidateAndCommitEvent;
-
-			/*
-			 * Strictly speaking, the following validation should be done by the dapp in Storage Blob.
-			 * We include it here for simplicity.
-			*/
 
 			// Check if the "from" account has the requisite balance
 			bool IsFromAccInBalances = await Balances.ContainsKeyAsync(CurrentTransaction, ev.e.from);
@@ -106,7 +112,7 @@ namespace AppBuilder
 			// has transferred ether to it.
 			if( !IsFromAccInBalances )
 			{
-				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, false));
+				await ReliableSend(await DLT.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.e.txid, "aborted"));
 				return;
 			}
 
@@ -114,7 +120,7 @@ namespace AppBuilder
 
 			if(fromBalance < ev.e.amount)
 			{
-				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, false));
+				await ReliableSend(await DLT.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.e.txid, "aborted"));
 				return;
 			}
 			else
@@ -126,7 +132,7 @@ namespace AppBuilder
 				 * committed to the ledger (but it may take awhile). This is why we cache the balances so that 
 				 * subsequent txs can go ahead.
 				*/
-				await ReliableSend(ev.requestFrom, new ValidateAndCommitResponseEvent(ev.e.txid, true));
+				await ReliableSend(await DLT.Get(CurrentTransaction), new UpdateTxStatusDBEvent(ev.e.txid, "committed"));
 				await AddNewTxToQueue(ev.e);
 			}
 		}
@@ -233,7 +239,7 @@ namespace AppBuilder
 		/// Constructor.
 		/// </summary>
 		/// <param name="stateManager"></param>
-		public Blockchain(IReliableStateManager stateManager) : base(stateManager) { }
+		public BlockchainMock(IReliableStateManager stateManager) : base(stateManager) { }
 
 		/// <summary>
 		/// Initialize the reliable fields.
@@ -247,12 +253,10 @@ namespace AppBuilder
 							(QualifyWithMachineName("TxIdObserved"));
 
 			UncommittedTxPool = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<TxObject>>(QualifyWithMachineName("UncommittedTxPool"));
-
 			Balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("Balances"));
-
 			BlockId = new ReliableRegister<int>(QualifyWithMachineName("BlockId"), this.StateManager, 0);
-
 			Ledger = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, TxBlock>>(QualifyWithMachineName("Ledger"));
+			DLT = new ReliableRegister<MachineId>(QualifyWithMachineName("DLT"), this.StateManager, null);
 		}
 
 		private string QualifyWithMachineName(string name)

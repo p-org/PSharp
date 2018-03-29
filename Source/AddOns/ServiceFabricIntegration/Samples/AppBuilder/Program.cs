@@ -33,8 +33,18 @@ namespace AppBuilder
 
 			// Start off the AppBuilder
 			// Users are mocked in UserMock. The number of users is controlled in AppBuilder and set to 100 by default.
-			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
+			MachineId sqldb = runtime.CreateMachine(typeof(SQLDatabase));
+			MachineId users = runtime.CreateMachine(typeof(UserMock));
+			MachineId blockchain = runtime.CreateMachine(typeof(BlockchainMock));
+			MachineId appBuilder = runtime.CreateMachine(typeof(AppBuilder));
 			
+
+			// Initialize and start off the machines
+			runtime.SendEvent(appBuilder, new AppBuilderInitEvent(blockchain, sqldb));
+			
+			// Start off with a bunch of users
+			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 100));
+
 			Console.ReadLine();
 		}
 

@@ -23,16 +23,6 @@ namespace AppBuilder
 		IReliableDictionary<int, MachineId> RegisteredUsers;
 
 		/// <summary>
-		/// Set the number of users interacting with AppBuilder.
-		/// </summary>
-		ReliableRegister<int> NumUsers;
-
-		/// <summary>
-		/// Monotonically increasing count of the num users registered so far.
-		/// </summary>
-		ReliableRegister<int> CurrentNumUsers;
-
-		/// <summary>
 		/// Unique transaction id assigned to every transaction
 		/// </summary>
 		ReliableRegister<int> TxId;
@@ -40,7 +30,7 @@ namespace AppBuilder
 		/// <summary>
 		/// Handle to the storage blob, containing the dapps.
 		/// </summary>
-		ReliableRegister<MachineId> StorageBlobMachine;
+		IReliableDictionary<int, Object> AzureStorageBlob;
 
 		/// <summary>
 		/// Handle to the mock of the SQL Database
@@ -52,23 +42,15 @@ namespace AppBuilder
 		/// </summary>
 		ReliableRegister<MachineId> Blockchain;
 
-		/// <summary>
-		/// Mock of a bunch of users interacting with AppBuilder.
-		/// </summary>
-		ReliableRegister<MachineId> UserMock;
-
-		
-
 		#endregion
 
 		#region states
 		[Start]
-		[OnEntry(nameof(Initialize))]
+		[OnEventDoAction(typeof(AppBuilderInitEvent), nameof(Initialize))]
 		[OnEventDoAction(typeof(RegisterUserEvent), nameof(RegisterUser))]
 		[OnEventDoAction(typeof(TransferEvent), nameof(InitiateTransfer))]
-		[OnEventDoAction(typeof(GetTxStatusDBEvent), nameof(ForwardTxStatusRequest))]
-		[OnEventDoAction(typeof(TxDBStatus), nameof(ForwardTxStatusResponse))]
 		class Init : MachineState { }
+
 		#endregion
 
 		#region handlers
@@ -80,27 +62,21 @@ namespace AppBuilder
 		private async Task Initialize()
 		{
 			this.Logger.WriteLine("AppBuilder:Initialize()");
-			MachineId userMock = await ReliableCreateMachine(typeof(UserMock), null,
-								new UserMockInitEvent(this.Id, await NumUsers.Get(CurrentTransaction)));
-			await UserMock.Set(CurrentTransaction, userMock);
+			AppBuilderInitEvent e = this.ReceivedEvent as AppBuilderInitEvent;
+			
+			// Set handle to the database
+			await SQLDatabaseMachine.Set(CurrentTransaction, e.sqlDatabase);
 
-			// Create the database where transaction statuses are kept
-			MachineId sqlDatabase = await ReliableCreateMachine(typeof(SQLDatabaseMock), null,
-						new SQLDatabaseInitEvent(this.Id));
-			await SQLDatabaseMachine.Set(CurrentTransaction, sqlDatabase);
+			// Set handle to the blockchain
+			await Blockchain.Set(CurrentTransaction, e.blockchain);
 
-			// Create the blockchain
-			MachineId blockchain = await ReliableCreateMachine(typeof(Blockchain), null);
-			await Blockchain.Set(CurrentTransaction, blockchain);
-
-			// Create Storage Blob 
-			MachineId storageBlob = await ReliableCreateMachine(typeof(AzureStorageBlobMock), null,
-						new StorageBlobInitEvent(blockchain, sqlDatabase));
-			await StorageBlobMachine.Set(CurrentTransaction, storageBlob);
+			// Create the DLT machine 
+			MachineId dlt = await ReliableCreateMachine(typeof(DLT), null,
+						new DLTInitEvent(e.blockchain, e.sqlDatabase));
 
 			// Create the blockchain printer
 			MachineId blockchainPrinter = await ReliableCreateMachine(typeof(BlockchainPrinter), null,
-						new BlockchainPrinterInitEvent(blockchain));
+						new BlockchainPrinterInitEvent(e.blockchain));
 		}
 
 		/// <summary>
@@ -118,13 +94,6 @@ namespace AppBuilder
 
 			// Add to registered users
 			await RegisteredUsers.AddAsync(CurrentTransaction, e.id, e.user);
-
-			int currNumUsers = await CurrentNumUsers.Get(CurrentTransaction);
-			await CurrentNumUsers.Set(CurrentTransaction, currNumUsers + 1);
-
-			// #users registered must be less than the total number of users
-			this.Assert(await CurrentNumUsers.Get(CurrentTransaction) <= await NumUsers.Get(CurrentTransaction),
-					"AppBuilder: Num Registered users exceed NumUsers");
 		}
 
 		/// <summary>
@@ -135,18 +104,6 @@ namespace AppBuilder
 		/// <returns></returns>
 		private async Task InitiateTransfer()
 		{
-			int currNumUsers = await CurrentNumUsers.Get(CurrentTransaction);
-			int numUsers = await NumUsers.Get(CurrentTransaction);
-
-			/*
-			 * currNumUsers tracks the number of users registered so far.
-			 * Since we know there are numUsers, we defer handling tx until everyone has been registered.
-			*/
-			if (currNumUsers != numUsers)
-			{
-				return;
-			}
-
 			TransferEvent e = this.ReceivedEvent as TransferEvent;
 
 			// Verify if the source and destinatation accounts are registered
@@ -164,7 +121,7 @@ namespace AppBuilder
 			if ( !SourceAccRegistered && !DestAccRegistered)
 			{
 				// send back the txid to the user
-				await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));
+				await ReliableSend(e.source, new TxIdEvent(txid));
 
 				// record the status of the transaction in the SQLDatabase
 				await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction),
@@ -173,12 +130,13 @@ namespace AppBuilder
 			}
 
 			// send back the txid to the user
-			await ReliableSend(await UserMock.Get(CurrentTransaction), new TxIdEvent(txid));
+			await ReliableSend(e.source, new TxIdEvent(txid));
 
-			// start the transfer by invoking the appropriate action in StorageBlob
-			// at present, we only support a simple transfer op from acc A to acc B
-			await ReliableSend(await StorageBlobMachine.Get(CurrentTransaction),
-								new StorageBlobTransferEvent(txid, e.from, e.to, e.amount));
+			// Create a transaction object
+			TxObject tx = new TxObject(txid, e.from, e.to, e.amount);
+
+			// forward the transaction request to the blockchain, which validates and commits it to the ledger.
+			await ReliableSend(await Blockchain.Get(CurrentTransaction), new ValidateAndCommitEvent(tx));
 
 			// record the status of the transaction in the SQLDatabase
 			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction),
@@ -228,13 +186,10 @@ namespace AppBuilder
 			this.Logger.WriteLine("AppBuilder starting.");
 
 			RegisteredUsers = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, MachineId>>(QualifyWithMachineName("RegisteredUsers"));
-			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 50);
-			CurrentNumUsers = new ReliableRegister<int>(QualifyWithMachineName("CurrNumUsers"), this.StateManager, 0);
 			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
 			StorageBlobMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("StorageBlobMachine"), this.StateManager, null);
 			SQLDatabaseMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabaseMachine"), this.StateManager, null);
 			Blockchain = new ReliableRegister<MachineId>(QualifyWithMachineName("Blockchain"), this.StateManager, null);
-			UserMock = new ReliableRegister<MachineId>(QualifyWithMachineName("UserMock"), this.StateManager, null);
 		}
 
 		private string QualifyWithMachineName(string name)

@@ -16,7 +16,7 @@ namespace AppBuilder
 	/// Mocks an SQL Database, which stores the status of all transactions. 
 	/// The UI polls this to display the tx status, on a webpage (say).
 	/// </summary>
-	class SQLDatabaseMock : ReliableStateMachine
+	class SQLDatabase : ReliableStateMachine
 	{
 		#region fields
 
@@ -117,7 +117,7 @@ namespace AppBuilder
 		/// Constructor.
 		/// </summary>
 		/// <param name="stateManager"></param>
-		public SQLDatabaseMock(IReliableStateManager stateManager) : base(stateManager) { }
+		public SQLDatabase(IReliableStateManager stateManager) : base(stateManager) { }
 
 		/// <summary>
 		/// Initialize the reliable fields.

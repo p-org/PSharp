@@ -29,6 +29,11 @@ namespace AppBuilder
 		ReliableRegister<MachineId> AppBuilderMachine;
 
 		/// <summary>
+		/// Handle to the sql database.
+		/// </summary>
+		ReliableRegister<MachineId> SqlDb;
+
+		/// <summary>
 		/// Preset the number of users in the system. Can be adjusted in AppBuilder.
 		/// </summary>
 		ReliableRegister<int> NumUsers;
@@ -41,7 +46,7 @@ namespace AppBuilder
 
 		#region states
 		[Start]
-		[OnEntry(nameof(Initialize))]
+		[OnEventDoAction(typeof(UserMockInitEvent), nameof(Initialize))]
 		[OnEventDoAction(typeof(TimeoutEvent), nameof(HandleTimeout))]
 		[OnEventDoAction(typeof(TxIdEvent), nameof(StoreTxId))]
 		class Init : MachineState { }
@@ -51,7 +56,8 @@ namespace AppBuilder
 		private async Task Initialize()
 		{
 			UserMockInitEvent e = this.ReceivedEvent as UserMockInitEvent;
-			await AppBuilderMachine.Set(CurrentTransaction, e.AppBuilderMachine);
+			await AppBuilderMachine.Set(CurrentTransaction, e.appBuilderMachine);
+			await SqlDb.Set(CurrentTransaction, e.sqlDb);
 			await NumUsers.Set(CurrentTransaction, e.numUsers);
 
 			// Register all the users
@@ -62,6 +68,9 @@ namespace AppBuilder
 
 			// Start generating transactions every 50ms
 			await StartTimer("TxTimer", 50);
+
+			// Poll the sql database every 5s
+			await StartTimer("DbTimer", 5000);
 		}
 
 		/// <summary>
@@ -103,9 +112,21 @@ namespace AppBuilder
 				int amount = RandomInteger(100);
 
 				// Send request for the transfer to the AppBuilder
-				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new TransferEvent(from, to, amount));
+				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new TransferEvent(from, to, amount, this.Id));
+			}
+
+			if (e.Name == "DbTimer")
+			{
+				// Poll the database for the status of arbitrary transactions
+				PollDbForTx();
 			}
 		}
+
+		private void PollDbForTx()
+		{
+
+		}
+
 		#endregion
 
 		#region methods
@@ -124,6 +145,7 @@ namespace AppBuilder
 		{
 			NumUsers = new ReliableRegister<int>(QualifyWithMachineName("NumUsers"), this.StateManager, 0);
 			AppBuilderMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("AppBuilderMachine"), this.StateManager, null);
+			SqlDb = new ReliableRegister<MachineId>(QualifyWithMachineName("SqlDb"), this.StateManager, null);
 			TxIds = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("TxIds"));
 		}
 
