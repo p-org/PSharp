@@ -41,6 +41,7 @@ namespace AppBuilder
 
 			// Initialize and start off the machines
 			runtime.SendEvent(appBuilder, new AppBuilderInitEvent(blockchain, sqldb));
+			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
 			
 			// Start off with a bunch of users
 			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 100));
@@ -60,8 +61,20 @@ namespace AppBuilder
 		{
 			runtime.AddMachineFactory(new ReliableStateMachineFactory(new StateManagerMock(runtime), true));
 
-			// NumUsers set in AppBuilder and set to 100 by default
-			MachineId AppBuilder = runtime.CreateMachine(typeof(AppBuilder));
+			// Start off the AppBuilder
+			// Users are mocked in UserMock. The number of users is controlled in AppBuilder and set to 100 by default.
+			MachineId sqldb = runtime.CreateMachine(typeof(SQLDatabase));
+			MachineId users = runtime.CreateMachine(typeof(UserMock));
+			MachineId blockchain = runtime.CreateMachine(typeof(BlockchainMock));
+			MachineId appBuilder = runtime.CreateMachine(typeof(AppBuilder));
+
+
+			// Initialize and start off the machines
+			runtime.SendEvent(appBuilder, new AppBuilderInitEvent(blockchain, sqldb));
+			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
+
+			// Start off with a bunch of users
+			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 100));
 		}
 	}
 

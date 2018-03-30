@@ -35,7 +35,7 @@ namespace AppBuilder
 
 		#region states
 		[Start]
-		[OnEntry(nameof(Initialize))]
+		[OnEventDoAction(typeof(SQLDatabaseInitEvent), nameof(Initialize))]
 		[OnEventDoAction(typeof(UpdateTxStatusDBEvent), nameof(UpdateDB))]
 		[OnEventDoAction(typeof(GetTxStatusDBEvent), nameof(ReturnTxStatus))]
 		class Init : MachineState { }
@@ -123,7 +123,7 @@ namespace AppBuilder
 		/// Initialize the reliable fields.
 		/// </summary>
 		/// <returns></returns>
-		public async override Task OnActivate()
+		public override async Task OnActivate()
 		{
 			TxStatus = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, string>>
 									(QualifyWithMachineName("TxStatus"));
