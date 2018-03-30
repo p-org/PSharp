@@ -168,7 +168,7 @@ namespace Microsoft.PSharp.ReliableServices
             return string.Format("{0}.{1}", name, id.Name);
         }
 
-        protected void SetReliableRegisterTx()
+        internal void SetReliableRegisterTx()
         {
             foreach(var reg in CreatedRegisters)
             {
