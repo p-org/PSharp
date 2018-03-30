@@ -119,6 +119,12 @@ namespace AppBuilder
 				// get number of txs
 				int numTx = (int) await TxIds.GetCountAsync(CurrentTransaction);
 
+				// Try only when there are enough number of tx
+				if(numTx <= 1)
+				{
+					return;
+				}
+
 				int numTxToPoll = RandomInteger(numTx - 1) + 1;
 				
 				int[] txIdToPoll = new int[numTxToPoll];
