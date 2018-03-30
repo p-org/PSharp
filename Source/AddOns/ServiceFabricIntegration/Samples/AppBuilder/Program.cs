@@ -25,7 +25,7 @@ namespace AppBuilder
 		{
 			System.Diagnostics.Debugger.Launch();
 
-			var config = Configuration.Create(); // .WithVerbosityEnabled(2);
+			var config = Configuration.Create(); //.WithVerbosityEnabled(2);
 			var runtime = PSharpRuntime.Create(config);
 			runtime.OnFailure += Runtime_OnFailure;
 			var stateManager = new StateManagerMock(runtime);
@@ -44,7 +44,7 @@ namespace AppBuilder
 			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
 			
 			// Start off with a bunch of users
-			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 100));
+			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 3));
 
 			Console.ReadLine();
 		}
@@ -74,7 +74,7 @@ namespace AppBuilder
 			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
 
 			// Start off with a bunch of users
-			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 100));
+			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 3));
 		}
 	}
 

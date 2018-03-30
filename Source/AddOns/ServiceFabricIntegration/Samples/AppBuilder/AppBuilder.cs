@@ -73,10 +73,15 @@ namespace AppBuilder
 			// Create the DLT machine 
 			MachineId dlt = await ReliableCreateMachine(typeof(DLT), null,
 						new DLTInitEvent(e.blockchain, e.sqlDatabase));
+			// Initialize the dlt
+			await ReliableSend(dlt, new DLTInitEvent(e.blockchain, e.sqlDatabase));
 
 			// Create the blockchain printer
 			MachineId blockchainPrinter = await ReliableCreateMachine(typeof(BlockchainPrinter), null,
 						new BlockchainPrinterInitEvent(e.blockchain));
+
+			// Inform the blockchain of the dlt
+			await ReliableSend(e.blockchain, new BlockchainInitEvent(dlt));
 		}
 
 		/// <summary>
