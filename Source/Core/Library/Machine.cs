@@ -1464,7 +1464,7 @@ namespace Microsoft.PSharp
             {
                 var re = e as ResumeEvent;
 
-                // Pop the stack state
+                // Pop the start state
                 DoStatePop();
 
                 foreach (var s in re.StateStack)
@@ -1483,6 +1483,8 @@ namespace Microsoft.PSharp
             {
                 this.ReceivedEvent = e;
                 await InvokeInitializationCallbacks();
+                // report initial state
+                OnStatePush(CurrentStateName);
                 await this.ExecuteCurrentStateOnEntry();
             }
         }

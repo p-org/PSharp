@@ -46,6 +46,11 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         internal IReliableStateManager StateManager;
 
+        /// <summary>
+        /// ReliableRegisters created by the machine
+        /// </summary>
+        List<Utilities.RsmRegister> CreatedRegisters;
+
         #endregion
 
         internal RsmHost(IReliableStateManager StateManager)
@@ -58,6 +63,7 @@ namespace Microsoft.PSharp.ReliableServices
             this.Mid = null;
             
             StackChanges = new StackDelta();
+            CreatedRegisters = new List<Utilities.RsmRegister>();
         }
 
         public static RsmHost Create(IReliableStateManager stateManager, string partitionName)
@@ -107,6 +113,20 @@ namespace Microsoft.PSharp.ReliableServices
             return StateManager.GetOrAddAsync<T>(RsmQualifliedName(this.Id, name));
         }
 
+        /// <summary>
+        /// Creates reliable state using the underlying Service Fabric StateManger
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Utilities.ReliableRegister<T> GetOrAddRegister<T>(string name, T initialValue = default(T)) 
+        {
+            var reg = new Utilities.ReliableRegister<T>(RsmQualifliedName(this.Id, name), this.StateManager, initialValue);
+            reg.SetTransaction(this.CurrentTransaction);
+            CreatedRegisters.Add(reg);
+            return reg;
+        }
+
         #endregion
 
         #region Notifications
@@ -148,6 +168,13 @@ namespace Microsoft.PSharp.ReliableServices
             return string.Format("{0}.{1}", name, id.Name);
         }
 
+        protected void SetReliableRegisterTx()
+        {
+            foreach(var reg in CreatedRegisters)
+            {
+                reg.SetTransaction(this.CurrentTransaction);
+            }
+        }
         #endregion
     }
 }

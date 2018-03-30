@@ -73,19 +73,29 @@ namespace Microsoft.PSharp.ReliableServices
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(this.Id));
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>(string.Format("StateStackStore.{0}", this.Id.Name));
 
-            Runtime = PSharpRuntime.Create();
+            var config = Configuration.Create().WithVerbosityEnabled(2);
+            Runtime = PSharpRuntime.Create(config);
 
             RunMachine(machineType, ev);
         }
 
         private void RunMachine(Type machineType, RsmInitEvent ev)
         {
-            Task.Run(async () =>
+            // Attached child task: propagates exception to
+            // its parent
+            Task.Factory.StartNew(async () =>
             {
                 bool firstExecution = true;
 
                 while (true)
                 {
+
+                    if(!Runtime.IsRunning)
+                    {
+                        // TODO: Replace with a custom exception
+                        throw new Exception("Unexpected failure of the P# runtime");
+                    }
+
                     await EventHandlerLoop(machineType, ev, firstExecution);
                     firstExecution = false;
 
@@ -93,10 +103,11 @@ namespace Microsoft.PSharp.ReliableServices
                     {
                         return;
                     }
+
                     // Inbox empty, wait
-                    await Task.Delay(1000);
+                    await Task.Delay(100);
                 }
-            });
+            }, TaskCreationOptions.AttachedToParent);
         }
 
         private async Task InitializationTransaction(Type machineType, RsmInitEvent ev)
@@ -116,6 +127,7 @@ namespace Microsoft.PSharp.ReliableServices
             }
             else
             {
+                ev.Host = this;
                 this.Mid = await Runtime.CreateMachineAndExecute(machineType, ev);
             }
 
@@ -132,15 +144,17 @@ namespace Microsoft.PSharp.ReliableServices
             var machineRestartRequired = firstExecution;
 
             // TODO: retry policy
-            while (!MachineHalted)
+            while (!MachineHalted && Runtime.IsRunning)
             {
                 try
                 {
                     var writeTx = false;
-                    var inboxEmpty = false;
+                    var dequeued = true;
 
                     using (CurrentTransaction = StateManager.CreateTransaction())
                     {
+                        SetReliableRegisterTx();
+
                         if(firstExecution)
                         {
                             await ReadPendingWorkOnStart();
@@ -155,9 +169,9 @@ namespace Microsoft.PSharp.ReliableServices
                         }
                         else
                         {
-                            inboxEmpty = await EventHandler();
+                            dequeued = await EventHandler();
                             var stackChanged = await PersistStateStack();
-                            writeTx = (inboxEmpty || stackChanged);
+                            writeTx = (dequeued || stackChanged);
                         }
 
                         if (writeTx)
@@ -170,7 +184,7 @@ namespace Microsoft.PSharp.ReliableServices
                     await ExecutePendingWork();
                     firstExecution = false;
 
-                    if (inboxEmpty)
+                    if (!dequeued)
                     {
                         return;
                     }
@@ -191,6 +205,10 @@ namespace Microsoft.PSharp.ReliableServices
             }
         }
 
+        /// <summary>
+        /// Returns true if dequeued
+        /// </summary>
+        /// <returns></returns>
         private async Task<bool> EventHandler()
         {
             var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
@@ -264,6 +282,12 @@ namespace Microsoft.PSharp.ReliableServices
 
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
         {
+            if(startingEvent == null)
+            {
+                //TODO: Specific exception
+                throw new Exception("StartingEvent cannot be null");
+            }
+
             if(CreatedMachines == null)
             {
                 CreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
@@ -272,10 +296,28 @@ namespace Microsoft.PSharp.ReliableServices
 
             var id = IdFactory.Generate(typeof(T).Name);
 
-            await CreatedMachines.AddAsync(CurrentTransaction, id, 
-                Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+            if (this.Mid != null)
+            {
+                await CreatedMachines.AddAsync(CurrentTransaction, id,
+                    Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
 
-            PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+                // delay creation until machine commits its current transaction
+                PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+            }
+            else
+            {
+                using (var tx = StateManager.CreateTransaction())
+                {
+                    await CreatedMachines.AddAsync(tx, id,
+                        Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+                    await tx.CommitAsync();
+                }
+
+                PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+
+                await ExecutePendingWork();
+            }
+
 
             return id;
         }
@@ -293,7 +335,20 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(target));
-            await targetQueue.EnqueueAsync(CurrentTransaction, e);
+
+            if (this.Mid != null)
+            {
+                await targetQueue.EnqueueAsync(CurrentTransaction, e);
+            }
+            else
+            {
+                using (var tx = StateManager.CreateTransaction())
+                {
+                    await targetQueue.EnqueueAsync(tx, e);
+                    await tx.CommitAsync();
+                }
+            }
+
         }
 
         internal override void NotifyFailure(Exception ex, string methodName)

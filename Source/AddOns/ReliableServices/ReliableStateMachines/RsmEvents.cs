@@ -16,13 +16,20 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// The host
         /// </summary>
-        public RsmHost Host { get; internal set; }
+        internal RsmHost Host { get; set; }
 
         /// <summary>
         /// Initializes a new RsmInitEvent
         /// </summary>
-        /// <param name="host"></param>
-        public RsmInitEvent(RsmHost host)
+        public RsmInitEvent()
+        {
+            this.Host = null;
+        }
+
+        /// <summary>
+        /// Initializes a new RsmInitEvent
+        /// </summary>
+        internal RsmInitEvent(RsmHost host)
         {
             this.Host = host;
         }

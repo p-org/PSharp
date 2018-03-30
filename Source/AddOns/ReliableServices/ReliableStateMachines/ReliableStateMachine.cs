@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="nextState"></param>
         internal override void OnStatePush(string nextState)
         {
-            Host.NotifyStatePush(nextState);
+            Host?.NotifyStatePush(nextState);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         internal override void OnStatePop()
         {
-            Host.NotifyStatePop();
+            Host?.NotifyStatePop();
         }
 
         #endregion
