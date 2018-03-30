@@ -25,6 +25,11 @@ namespace Microsoft.PSharp.ReliableServices
         public Dictionary<IRsmId, Tuple<string, RsmInitEvent>> PendingMachineCreations;
 
         /// <summary>
+        /// Pending Sends
+        /// </summary>
+        public List<Tuple<MachineId, Event>> PendingSends;
+
+        /// <summary>
         /// Has the machine halted
         /// </summary>
         public bool MachineHalted;
@@ -34,11 +39,22 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         public Exception MachineFailureException;
 
+        /// <summary>
+        /// Type of hosted machine
+        /// </summary>
+        Type MachineType;
+
+        /// <summary>
+        /// Initial event of the hosted machine
+        /// </summary>
+        RsmInitEvent StartingEvent;
+
         private BugFindingRsmHost(IReliableStateManager stateManager, BugFindingRsmId id, PSharpRuntime runtime)
             : base(stateManager)
         {
             this.Id = id;
             this.PendingMachineCreations = new Dictionary<IRsmId, Tuple<string, RsmInitEvent>>();
+            this.PendingSends = new List<Tuple<MachineId, Event>>();
             this.Runtime = runtime;
             MachineHalted = false;
             MachineFailureException = null;
@@ -52,35 +68,15 @@ namespace Microsoft.PSharp.ReliableServices
         private async Task Initialize(Type machineType, RsmInitEvent ev)
         {
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>(string.Format("StateStackStore.{0}", this.Id.Name));
-            RunMachine(machineType, ev);
+            this.MachineType = machineType;
+            this.StartingEvent = ev;
+
+            var mid = (this.Id as BugFindingRsmId).Mid;
+            Runtime.CreateMachine(mid, typeof(BugFindingRsmHostMachine),
+                new BugFindingRsmHostMachineInitEvent(this, machineType, ev));
         }
 
-        private void RunMachine(Type machineType, RsmInitEvent ev)
-        {
-
-            // Attached child task: propagates exception to
-            // its parent
-            Task.Factory.StartNew(async () =>
-            {
-                bool firstExecution = true;
-
-                while (true)
-                {
-                    await EventHandlerLoop(machineType, ev, firstExecution);
-                    firstExecution = false;
-
-                    if (MachineHalted)
-                    {
-                        return;
-                    }
-
-                    // Inbox empty, wait
-                    await Task.Delay(100);
-                }
-            }, TaskCreationOptions.AttachedToParent);
-        }
-
-        private async Task InitializationTransaction(Type machineType, RsmInitEvent ev)
+        internal async Task InitializationTransaction(Type machineType, RsmInitEvent ev)
         {
             var stack = new List<string>();
 
@@ -109,92 +105,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         }
 
-        private async Task EventHandlerLoop(Type machineType, RsmInitEvent ev, bool firstExecution)
-        {
-            var machineRestartRequired = firstExecution;
-
-            // TODO: retry policy
-            while (!MachineHalted && Runtime.IsRunning)
-            {
-                try
-                {
-                    var writeTx = false;
-                    var dequeued = true;
-
-                    using (CurrentTransaction = StateManager.CreateTransaction())
-                    {
-                        SetReliableRegisterTx();
-
-                        if (machineRestartRequired)
-                        {
-                            machineRestartRequired = false;
-                            await InitializationTransaction(machineType, ev);
-                            await PersistStateStack();
-                            writeTx = true;
-                        }
-                        else
-                        {
-                            dequeued = await EventHandler();
-                            var stackChanged = await PersistStateStack();
-                            writeTx = (dequeued || stackChanged);
-                        }
-
-                        if (writeTx)
-                        {
-                            await CurrentTransaction.CommitAsync();
-                        }
-                    }
-
-                    StackChanges = new StackDelta();
-                    await ExecutePendingWork();
-                    firstExecution = false;
-
-                    if (!dequeued)
-                    {
-                        return;
-                    }
-                }
-                catch (Exception ex) when (ex is TimeoutException || ex is System.Fabric.TransactionFaultedException)
-                {
-                    MachineFailureException = null;
-                    MachineHalted = false;
-                    machineRestartRequired = true;
-
-                    StackChanges = new StackDelta();
-                    PendingMachineCreations.Clear();
-
-                    // retry
-                    await Task.Delay(100);
-                    continue;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns true if dequeued
-        /// </summary>
-        /// <returns></returns>
-        private async Task<bool> EventHandler()
-        {
-            var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
-            if (!cv.HasValue)
-            {
-                return false;
-            }
-
-            var ev = cv.Value;
-            await Runtime.SendEventAndExecute(Mid, ev);
-
-            if (MachineFailureException != null &&
-                (MachineFailureException is TimeoutException || MachineFailureException is System.Fabric.TransactionFaultedException))
-            {
-                throw MachineFailureException;
-            }
-
-            return true;
-        }
-
-        private async Task<bool> PersistStateStack()
+        internal async Task<bool> PersistStateStack()
         {
             if (StackChanges.PopDepth == 0 && StackChanges.PushedSuffix.Count == 0)
             {
@@ -216,16 +127,81 @@ namespace Microsoft.PSharp.ReliableServices
             return true;
         }
 
-        private async Task ExecutePendingWork()
+        internal async Task EventHandlerLoop(bool machineRestartRequired, Event ev)
+        {
+            while (true)
+            {
+                try
+                {
+                    using (CurrentTransaction = StateManager.CreateTransaction())
+                    {
+                        SetReliableRegisterTx();
+
+                        if (machineRestartRequired)
+                        {
+                            machineRestartRequired = false;
+                            await InitializationTransaction(MachineType, StartingEvent);
+                            await PersistStateStack();
+                        }
+                        else
+                        {
+                            await EventHandler(ev);
+                            var stackChanged = await PersistStateStack();
+                        }
+
+                        await CurrentTransaction.CommitAsync();
+                    }
+
+                    StackChanges = new StackDelta();
+                    await ExecutePendingWork();
+                    break;
+                }
+                catch (Exception ex) when (ex is TimeoutException || ex is System.Fabric.TransactionFaultedException)
+                {
+                    MachineFailureException = null;
+                    MachineHalted = false;
+                    machineRestartRequired = true;
+
+                    StackChanges = new StackDelta();
+                    PendingMachineCreations.Clear();
+                    PendingSends.Clear();
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Returns true if dequeued
+        /// </summary>
+        /// <returns></returns>
+        private async Task EventHandler(Event ev)
+        {
+            await Runtime.SendEventAndExecute(Mid, ev);
+
+            if (MachineFailureException != null &&
+                (MachineFailureException is TimeoutException || MachineFailureException is System.Fabric.TransactionFaultedException))
+            {
+                throw MachineFailureException;
+            }
+        }
+
+        internal async Task ExecutePendingWork()
         {
             // machine creations
             foreach (var tup in PendingMachineCreations)
             {
-                var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory);
+                var host = new BugFindingRsmHost(this.StateManager, tup.Key as BugFindingRsmId, Runtime);
                 await host.Initialize(Type.GetType(tup.Value.Item1), tup.Value.Item2);
             }
 
+            // send
+            foreach(var tup in PendingSends)
+            {
+                Runtime.SendEvent(tup.Item1, tup.Item2);
+            }
+
             PendingMachineCreations.Clear();
+            PendingSends.Clear();
         }
 
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
@@ -236,38 +212,17 @@ namespace Microsoft.PSharp.ReliableServices
                 throw new Exception("StartingEvent cannot be null");
             }
 
-            if (CreatedMachines == null)
-            {
-                CreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
-                    GetCreatedMachineMapName(this.Id));
-            }
+            var mid = Runtime.CreateMachineId(typeof(BugFindingRsmHostMachine));
+            var rid = new BugFindingRsmId(mid, this.Id.PartitionName);
 
-            var id = IdFactory.Generate(typeof(T).Name);
+            PendingMachineCreations.Add(rid, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
 
             if (this.Mid != null)
-            {
-                await CreatedMachines.AddAsync(CurrentTransaction, id,
-                    Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-
-                // delay creation until machine commits its current transaction
-                PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-            }
-            else
-            {
-                using (var tx = StateManager.CreateTransaction())
-                {
-                    await CreatedMachines.AddAsync(tx, id,
-                        Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-                    await tx.CommitAsync();
-                }
-
-                PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-
+            { 
                 await ExecutePendingWork();
             }
 
-
-            return id;
+            return rid;
         }
 
         public override Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
@@ -282,21 +237,12 @@ namespace Microsoft.PSharp.ReliableServices
                 throw new NotImplementedException();
             }
 
-            var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(target));
+            PendingSends.Add(Tuple.Create((target as BugFindingRsmId).Mid, e));
 
             if (this.Mid != null)
             {
-                await targetQueue.EnqueueAsync(CurrentTransaction, e);
+                await ExecutePendingWork();
             }
-            else
-            {
-                using (var tx = StateManager.CreateTransaction())
-                {
-                    await targetQueue.EnqueueAsync(tx, e);
-                    await tx.CommitAsync();
-                }
-            }
-
         }
 
         internal override void NotifyFailure(Exception ex, string methodName)
@@ -307,16 +253,6 @@ namespace Microsoft.PSharp.ReliableServices
         internal override void NotifyHalt()
         {
             MachineHalted = true;
-        }
-
-        static string GetInputQueueName(IRsmId id)
-        {
-            return string.Format("InputQueue.{0}", id.Name);
-        }
-
-        static string GetCreatedMachineMapName(IRsmId id)
-        {
-            return string.Format("CreatedMachines.{0}", id.Name);
         }
     }
 
