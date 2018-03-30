@@ -28,7 +28,8 @@ namespace AppBuilder
 		ReliableRegister<int> TxId;
 
 		/// <summary>
-		/// Handle to the storage blob, containing the dapps.
+		/// Handle to the storage blob, containing the dapps. 
+		/// Unused in this sample.
 		/// </summary>
 		IReliableDictionary<int, Object> AzureStorageBlob;
 
@@ -41,6 +42,11 @@ namespace AppBuilder
 		/// Handle to the actual blockchain machine.
 		/// </summary>
 		ReliableRegister<MachineId> Blockchain;
+
+		/// <summary>
+		/// Store the set of transaction ids which have already been generated.
+		/// </summary>
+		IReliableDictionary<int, int> TxIdGenerated;
 
 		#endregion
 
@@ -118,8 +124,16 @@ namespace AppBuilder
 			// Assign a new transaction id
 			int txid = await TxId.Get(CurrentTransaction);
 			txid++;
-
 			// Set the transaction id
+
+			// Check if we have already received this transaction earlier
+			bool IsTxReceived = await TxIdGenerated.ContainsKeyAsync(CurrentTransaction, txid);
+			// The exact-once semantics should guarantee we haven't seen this txid earlier
+			this.Assert(!IsTxReceived, "AppBuilder: txid " + txid + " not unique");
+
+			// Add the fresh transaction to the pool of observed transactions
+			await TxIdGenerated.AddAsync(CurrentTransaction, txid, 0);
+
 			await TxId.Set(CurrentTransaction, txid);
 
 			// Abort the tx if one of the accounts isn't registered
@@ -149,30 +163,6 @@ namespace AppBuilder
 
 		}
 
-		/// <summary>
-		/// An enquiry from the user (UI) about the status of a tx is forwarded to the database machine
-		/// </summary>
-		/// <returns></returns>
-		private async Task ForwardTxStatusRequest()
-		{
-			GetTxStatusDBEvent e = this.ReceivedEvent as GetTxStatusDBEvent;
-
-			// Forward the TxStatus request to the SQL Database
-			await ReliableSend(await SQLDatabaseMachine.Get(CurrentTransaction), e);
-		}
-
-		/// <summary>
-		/// Once the tx status is received from the database machine, the response is fwd back to user (UI)
-		/// </summary>
-		/// <returns></returns>
-		private async Task ForwardTxStatusResponse()
-		{
-			TxDBStatus e = this.ReceivedEvent as TxDBStatus;
-
-			// Forward the TxStatus response from the database to the appropriate user
-			await ReliableSend(e.requestFrom, e);
-		}
-
 		#endregion
 
 		#region methods
@@ -194,6 +184,7 @@ namespace AppBuilder
 			TxId = new ReliableRegister<int>(QualifyWithMachineName("TxId"), this.StateManager, 0);
 			SQLDatabaseMachine = new ReliableRegister<MachineId>(QualifyWithMachineName("SQLDatabaseMachine"), this.StateManager, null);
 			Blockchain = new ReliableRegister<MachineId>(QualifyWithMachineName("Blockchain"), this.StateManager, null);
+			TxIdGenerated = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("TxIdGenerated"));
 		}
 
 		private string QualifyWithMachineName(string name)

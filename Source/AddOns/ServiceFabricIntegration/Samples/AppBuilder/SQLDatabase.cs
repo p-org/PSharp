@@ -97,14 +97,14 @@ namespace AppBuilder
 			// So responses are always returned to AppBuilder, who forwards it appropriately.
 			if (!txInDB)
 			{
-				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), 
-							new TxDBStatus(e.txid, "status unavailable", e.requestFrom));
+				await ReliableSend(e.requestFrom, 
+							new TxDBStatusResponseEvent(e.txid, "status unavailable"));
 			}
 			else
 			{
 				string currentStatus = (await TxStatus.TryGetValueAsync(CurrentTransaction, e.txid)).Value;
-				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction),
-							new TxDBStatus(e.txid, currentStatus, e.requestFrom));
+				await ReliableSend(e.requestFrom,
+							new TxDBStatusResponseEvent(e.txid, currentStatus));
 
 			}
 		}

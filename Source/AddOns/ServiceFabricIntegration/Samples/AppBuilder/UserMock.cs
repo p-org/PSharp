@@ -49,6 +49,7 @@ namespace AppBuilder
 		[OnEventDoAction(typeof(UserMockInitEvent), nameof(Initialize))]
 		[OnEventDoAction(typeof(TimeoutEvent), nameof(HandleTimeout))]
 		[OnEventDoAction(typeof(TxIdEvent), nameof(StoreTxId))]
+		[OnEventDoAction(typeof(TxDBStatusResponseEvent), nameof(PrintTxStatus))]
 		class Init : MachineState { }
 		#endregion
 
@@ -87,10 +88,6 @@ namespace AppBuilder
 				return;
 			}
 
-			// Ensure txid is fresh
-			Assert(!(await TxIds.ContainsKeyAsync(CurrentTransaction, e.txid)), 
-						"UserMock: txid " + e.txid + " is not unique");
-
 			// Store the txid
 			await TxIds.AddAsync(CurrentTransaction, e.txid, 0);
 		}
@@ -114,17 +111,46 @@ namespace AppBuilder
 				// Send request for the transfer to the AppBuilder
 				await ReliableSend(await AppBuilderMachine.Get(CurrentTransaction), new TransferEvent(from, to, amount, this.Id));
 			}
-
+			// Periodically poll the status of some of the transactions
 			if (e.Name == "DbTimer")
 			{
 				// Poll the database for the status of arbitrary transactions
-				PollDbForTx();
+
+				// get number of txs
+				int numTx = (int) await TxIds.GetCountAsync(CurrentTransaction);
+
+				int numTxToPoll = RandomInteger(numTx - 1) + 1;
+				
+				int[] txIdToPoll = new int[numTxToPoll];
+
+				// Randomly generate the tx to poll
+				for(int i=0; i<numTxToPoll; i++)
+				{
+					int tx = RandomInteger(numTx);
+
+					if(await TxIds.ContainsKeyAsync(CurrentTransaction, tx))
+					{
+						txIdToPoll[i] = tx;
+					}
+					else
+					{
+						txIdToPoll[i] = 0;
+					}
+				}
+
+				// Generate status requests
+				for(int i=0; i<txIdToPoll.Length; i++)
+				{
+					await ReliableSend(await SqlDb.Get(CurrentTransaction), new GetTxStatusDBEvent(txIdToPoll[i], this.Id));
+				}
 			}
 		}
 
-		private void PollDbForTx()
+		private void PrintTxStatus()
 		{
+			TxDBStatusResponseEvent e = this.ReceivedEvent as TxDBStatusResponseEvent;
 
+			//this.Logger.WriteLine("Tx Status: " + e.txid + " : " + e.txStatus);
 		}
 
 		#endregion

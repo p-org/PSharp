@@ -18,13 +18,6 @@ namespace AppBuilder
 	class BlockchainMock : ReliableStateMachine
 	{
 		#region fields
-
-		/// <summary>
-		/// Store the set of transaction ids which have already been processed.
-		/// </summary>
-		IReliableDictionary<int, int> TxIdObserved;
-
-
 		/// <summary>
 		/// Set of uncommitted transactions
 		/// </summary>
@@ -144,15 +137,6 @@ namespace AppBuilder
 		/// <returns></returns>
 		private async Task AddNewTxToQueue(TxObject tx)
 		{
-
-			// Check if we have already received this transaction earlier
-			bool IsTxReceived = await TxIdObserved.ContainsKeyAsync(CurrentTransaction, tx.txid);
-			// The exact-once semantics should guarantee we haven't seen this txid earlier
-			this.Assert(!IsTxReceived, "Blockchain:AddNewTxToQueue(): txid " + tx.txid + " not unique");
-
-			// Add the fresh transaction to the pool of observed transactions
-			await TxIdObserved.AddAsync(CurrentTransaction, tx.txid, 0);
-
 			// Add the fresh transaction to the pool of uncommitted transactions
 			await UncommittedTxPool.EnqueueAsync(CurrentTransaction, tx);
 
@@ -248,9 +232,6 @@ namespace AppBuilder
 		public override async Task OnActivate()
 		{
 			this.Logger.WriteLine("Blockchain starting.");
-
-			TxIdObserved = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>
-							(QualifyWithMachineName("TxIdObserved"));
 
 			UncommittedTxPool = await this.StateManager.GetOrAddAsync<IReliableConcurrentQueue<TxObject>>(QualifyWithMachineName("UncommittedTxPool"));
 			Balances = await this.StateManager.GetOrAddAsync<IReliableDictionary<int, int>>(QualifyWithMachineName("Balances"));

@@ -291,7 +291,7 @@ namespace AppBuilder
 	/// Returns the current status of a transaction.
 	/// </summary>
 	[DataContract]
-	class TxDBStatus : Event
+	class TxDBStatusResponseEvent : Event
 	{
 		/// <summary>
 		/// Transaction id.
@@ -305,17 +305,10 @@ namespace AppBuilder
 		[DataMember]
 		public string txStatus;
 
-		/// <summary>
-		/// MachineId of user requesting status.
-		/// </summary>
-		[DataMember]
-		public MachineId requestFrom;
-
-		public TxDBStatus(int txid, string txStatus, MachineId requestFrom)
+		public TxDBStatusResponseEvent(int txid, string txStatus)
 		{
 			this.txid = txid;
 			this.txStatus = txStatus;
-			this.requestFrom = requestFrom;
 		}
 	}
 	#endregion
