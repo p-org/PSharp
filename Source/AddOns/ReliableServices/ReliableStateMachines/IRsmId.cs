@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.ReliableServices
     /// <summary>
     /// Unique identifier for an RSM
     /// </summary>
-    public interface IRsmId : IComparable
+    public interface IRsmId : IComparable<IRsmId>, IEquatable<IRsmId>
     {
         /// <summary>
         /// Name of the identifier

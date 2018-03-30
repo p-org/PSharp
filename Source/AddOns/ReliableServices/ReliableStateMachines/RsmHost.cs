@@ -37,16 +37,6 @@ namespace Microsoft.PSharp.ReliableServices
         internal MachineId Mid;
 
         /// <summary>
-        /// Type of machine hosted
-        /// </summary>
-        internal Type HostedMachineType;
-
-        /// <summary>
-        /// Stack of the P# machine
-        /// </summary>
-        internal Stack<string> StateStack;
-
-        /// <summary>
         /// Changes made to the machine stack
         /// </summary>
         internal StackDelta StackChanges;
@@ -66,13 +56,14 @@ namespace Microsoft.PSharp.ReliableServices
             this.Id = null;
             this.Runtime = null;
             this.Mid = null;
-            this.StateStack = new Stack<string>();
+            
             StackChanges = new StackDelta();
         }
 
-        public static RsmHost Create()
+        public static RsmHost Create(IReliableStateManager stateManager, string partitionName)
         {
-            return new ServiceFabricRsmHost();
+            var factory = new ServiceFabricRsmIdFactory(0, partitionName);
+            return ServiceFabricRsmHost.Create(stateManager, factory);
         }
 
         #region Reliable communication API
