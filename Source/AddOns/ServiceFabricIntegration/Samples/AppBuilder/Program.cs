@@ -44,7 +44,7 @@ namespace AppBuilder
 			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
 			
 			// Start off with a bunch of users
-			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 2));
+			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 10));
 
 			Console.ReadLine();
 		}
@@ -74,7 +74,7 @@ namespace AppBuilder
 			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
 
 			// Start off with a bunch of users
-			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 2));
+			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 10));
 		}
 	}
 
