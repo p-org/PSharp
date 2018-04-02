@@ -12,11 +12,12 @@ using Microsoft.ServiceFabric.Data.Collections;
 namespace AppBuilder
 {
 	/// <summary>
-	/// Model of AppBuilder. There are 5 components that are modeled:
+	/// AppBuilder, modeled using RSMs. The following components are modeled:
 	/// 1. Azure Key Vault (for authentication): merged with AppBuilder here, for simplicity
-	/// 2. Azure Storage Blob: where dapps are hosted (here we only support a simple transfer op)
+	/// 2. Azure Storage Blob: modeled as a reliable dictionary in AppBuilder.
 	/// 3. SQL Database: where tx statuses are kept, to be polled by the UI
 	/// 4. Blockchain: mocked here by reliable collections
+	/// 5. Distributed Ledger Technology (DLT): provides a comms channel between blockchain and the db.
 	/// 5. AppBuilder: orchestrates all the components.
 	/// </summary>
 	class Program
@@ -73,7 +74,7 @@ namespace AppBuilder
 			runtime.SendEvent(appBuilder, new AppBuilderInitEvent(blockchain, sqldb));
 			runtime.SendEvent(sqldb, new SQLDatabaseInitEvent(sqldb));
 
-			// Start off with a bunch of users
+			// Start off with a bunch of users 
 			runtime.SendEvent(users, new UserMockInitEvent(appBuilder, sqldb, 10));
 		}
 	}

@@ -31,7 +31,10 @@ namespace AppBuilder
 			this.dlt = dlt;
 		}
 	}
-
+	
+	/// <summary>
+	/// Initialize the DLT.
+	/// </summary>
 	[DataContract]
 	class DLTInitEvent : Event
 	{
@@ -207,7 +210,7 @@ namespace AppBuilder
 	#region validation events
 
 	/// <summary>
-	/// Request from StorageBlob to the Blockchain to validate and commit a tx.
+	/// Request from AppBuilder to the Blockchain to validate and commit a tx.
 	/// </summary>
 	[DataContract]
 	class ValidateAndCommitEvent : Event
@@ -218,25 +221,6 @@ namespace AppBuilder
 		public ValidateAndCommitEvent(TxObject e)
 		{
 			this.e = e;
-		}
-	}
-
-	/// <summary>
-	/// Response from Blockchain --> StorageBlob with the status of a tx.
-	/// </summary>
-	[DataContract]
-	class ValidateAndCommitResponseEvent : Event
-	{
-		[DataMember]
-		public int txid;
-
-		[DataMember]
-		public bool validation;
-
-		public ValidateAndCommitResponseEvent(int txid, bool validation)
-		{
-			this.txid = txid;
-			this.validation = validation;
 		}
 	}
 
