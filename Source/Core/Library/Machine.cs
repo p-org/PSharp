@@ -444,6 +444,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Clears a previously raised event. This will also clear a previous (i.e., pending)
+        /// call to Goto, Pop or Push.
+        /// </summary>
+        protected void ClearPreviousRaisedEvent()
+        {
+            base.Runtime.NotifyClearRaisedEvent(this, this.RaisedEvent);
+            this.RaisedEvent = null;
+        }
+
+        /// <summary>
         /// Waits to receive an <see cref="Event"/> of the specified types.
         /// </summary>
         /// <param name="eventTypes">Event types</param>

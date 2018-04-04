@@ -189,6 +189,15 @@ namespace Microsoft.PSharp.IO
         /// <param name="eventName">The name of the event being raised.</param>
         public void OnMachineEvent(MachineId machineId, string currentStateName, string eventName) { }
 
+
+        /// <summary>
+        /// Called when a machine clears a raised event.
+        /// </summary>
+        /// <param name="machineId">The id of the machine.</param>
+        /// <param name="currentStateName">The name of the current state of the machine.</param>
+        /// <param name="eventName">The name of the event being cleared.</param>
+        public void OnMachineClearEvent(MachineId machineId, string currentStateName, string eventName) { }
+
         /// <summary>
         /// Called when a machine executes an action.
         /// </summary>

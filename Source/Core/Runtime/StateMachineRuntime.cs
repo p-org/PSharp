@@ -788,6 +788,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine cleared previous raised <see cref="Event"/>.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyClearRaisedEvent(Machine machine, EventInfo eventInfo)
+        {
+            if (base.Configuration.Verbose <= 1)
+            {
+                return;
+            }
+
+            base.Logger.OnMachineClearEvent(machine.Id, machine.CurrentStateName, eventInfo == null ? "null" : eventInfo.EventName);
+        }
+
+        /// <summary>
         /// Notifies that a monitor raised an <see cref="Event"/>.
         /// </summary>
         /// <param name="monitor">Monitor</param>

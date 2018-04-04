@@ -653,6 +653,17 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine cleared previous raised <see cref="Event"/>.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyClearRaisedEvent(Machine machine, EventInfo eventInfo)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
         /// Notifies that a monitor raised an <see cref="Event"/>.
         /// </summary>
         /// <param name="monitor">Monitor</param>

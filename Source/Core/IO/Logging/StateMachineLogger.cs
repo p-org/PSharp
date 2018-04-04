@@ -511,6 +511,31 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
+        /// Called when a machine clears a raised event.
+        /// </summary>
+        /// <param name="machineId">The id of the machine.</param>
+        /// <param name="currentStateName">The name of the current state of the machine.</param>
+        /// <param name="eventName">The name of the event being cleared.</param>
+        public virtual void OnMachineClearEvent(MachineId machineId, string currentStateName, string eventName)
+        {
+            if (this.IsVerbose)
+            {
+                this.WriteLine(FormatOnMachineClearEventString(machineId, currentStateName, eventName));
+            }
+        }
+
+        /// <summary>
+        /// Returns a string formatted for the <see cref="OnMachineClearEvent"/> event and its parameters.
+        /// </summary>
+        /// <param name="machineId">The id of the machine.</param>
+        /// <param name="currentStateName">The name of the current state of the machine.</param>
+        /// <param name="eventName">The name of the event being cleared.</param>
+        public virtual string FormatOnMachineClearEventString(MachineId machineId, string currentStateName, string eventName)
+        {
+            return $"<RaiseLog> Machine '{machineId}' in state '{currentStateName}' cleared raised event '{eventName}'.";
+        }
+
+        /// <summary>
         /// Called when a machine executes an action.
         /// </summary>
         /// <param name="machineId">The id of the machine executing the action.</param>
