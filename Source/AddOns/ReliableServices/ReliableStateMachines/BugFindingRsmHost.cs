@@ -60,6 +60,12 @@ namespace Microsoft.PSharp.ReliableServices
             MachineFailureException = null;
         }
 
+        internal static RsmHost Create(IReliableStateManager stateManager, string partitionName, PSharpRuntime runtime)
+        {
+            var id = new BugFindingRsmId(runtime.CreateMachineId(typeof(BugFindingRsmHostMachine)), partitionName);
+            return new BugFindingRsmHost(stateManager, id, runtime);
+        }
+
         public void SetTransaction(ITransaction tx)
         {
             this.CurrentTransaction = tx;
@@ -73,7 +79,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             var mid = (this.Id as BugFindingRsmId).Mid;
             Runtime.CreateMachine(mid, typeof(BugFindingRsmHostMachine),
-                new BugFindingRsmHostMachineInitEvent(this, machineType, ev));
+                new BugFindingRsmHostMachineInitEvent(this));
         }
 
         internal async Task InitializationTransaction(Type machineType, RsmInitEvent ev)

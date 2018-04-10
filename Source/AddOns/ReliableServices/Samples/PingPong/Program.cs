@@ -23,5 +23,15 @@ namespace PingPong
             Console.ReadLine();
         }
 
+        [Test]
+        public static void Execute(PSharpRuntime runtime)
+        {
+            System.Diagnostics.Debugger.Launch();
+            var stateManager = new StateManagerMock(runtime);
+            stateManager.DisallowFailures();
+
+            var origHost = RsmHost.CreateForTesting(stateManager, "SinglePartition", runtime);
+            origHost.ReliableCreateMachine<PingMachine>(new RsmInitEvent());
+        }
     }
 }

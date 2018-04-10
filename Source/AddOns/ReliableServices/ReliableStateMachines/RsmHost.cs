@@ -72,6 +72,11 @@ namespace Microsoft.PSharp.ReliableServices
             return ServiceFabricRsmHost.Create(stateManager, factory);
         }
 
+        public static RsmHost CreateForTesting(IReliableStateManager stateManager, string partitionName, PSharpRuntime runtime)
+        {
+            return BugFindingRsmHost.Create(stateManager, partitionName, runtime);
+        }
+
         #region Reliable communication API
 
         /// <summary>

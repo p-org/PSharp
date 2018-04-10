@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.ReliableServices
     class BugFindingRsmHostMachine : Machine
     {
         BugFindingRsmHost Host;
-        Type machineType;
-        RsmInitEvent initEvent;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -21,8 +19,6 @@ namespace Microsoft.PSharp.ReliableServices
         {
             var ev = (this.ReceivedEvent as BugFindingRsmHostMachineInitEvent);
             this.Host = ev.Host;
-            this.initEvent = ev.StartingEvent;
-            this.machineType = ev.MachineType;
             await Host.EventHandlerLoop(true, null);
         }
 
@@ -37,14 +33,10 @@ namespace Microsoft.PSharp.ReliableServices
     class BugFindingRsmHostMachineInitEvent : Event
     {
         public BugFindingRsmHost Host;
-        public Type MachineType;
-        public RsmInitEvent StartingEvent;
 
-        public BugFindingRsmHostMachineInitEvent(BugFindingRsmHost host, Type machineType, RsmInitEvent startingEvent)
+        public BugFindingRsmHostMachineInitEvent(BugFindingRsmHost host)
         {
             this.Host = host;
-            this.MachineType = machineType;
-            this.StartingEvent = startingEvent;
         }
     }
 }
