@@ -12,7 +12,7 @@ namespace PingPong
     {
         static void Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
             var stateManager = new StateManagerMock(null);
             stateManager.DisallowFailures();
@@ -23,12 +23,17 @@ namespace PingPong
             Console.ReadLine();
         }
 
+        [TestInit]
+        public static void TestInit()
+        {
+            //System.Diagnostics.Debugger.Launch();
+        }
+
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            System.Diagnostics.Debugger.Launch();
             var stateManager = new StateManagerMock(runtime);
-            stateManager.DisallowFailures();
+            //stateManager.DisallowFailures();
 
             var origHost = RsmHost.CreateForTesting(stateManager, "SinglePartition", runtime);
             origHost.ReliableCreateMachine<PingMachine>(new RsmInitEvent());

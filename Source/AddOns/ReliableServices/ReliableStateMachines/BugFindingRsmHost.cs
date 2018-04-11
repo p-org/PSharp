@@ -196,8 +196,18 @@ namespace Microsoft.PSharp.ReliableServices
             // machine creations
             foreach (var tup in PendingMachineCreations)
             {
+                //var ty = Type.GetType(tup.Value.Item1);
+
+                // Temporary workaround
+                var ty = Type.GetType(tup.Value.Item1, 
+                    new Func<System.Reflection.AssemblyName, System.Reflection.Assembly>(
+                      an => AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.FullName == an.FullName)
+                    ), new Func<System.Reflection.Assembly, string, bool, Type>(
+                        (a, s, b) => a.GetType(s, false, b)
+                    ));
+
                 var host = new BugFindingRsmHost(this.StateManager, tup.Key as BugFindingRsmId, Runtime);
-                await host.Initialize(Type.GetType(tup.Value.Item1), tup.Value.Item2);
+                await host.Initialize(ty, tup.Value.Item2);
             }
 
             // send
@@ -223,7 +233,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             PendingMachineCreations.Add(rid, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
 
-            if (this.Mid != null)
+            if (this.Mid == null)
             { 
                 await ExecutePendingWork();
             }

@@ -1269,7 +1269,7 @@ namespace Microsoft.PSharp
 
             this.StateStack.Push(state);
             this.ActionHandlerStack.Push(eventHandlerMap);
-            OnStatePush(state.GetType().AssemblyQualifiedName);
+            OnStatePush(state.GetType().FullName);
         }
 
         /// <summary>
@@ -1470,7 +1470,7 @@ namespace Microsoft.PSharp
                 foreach (var s in re.StateStack)
                 {
                     var nextState = StateMap[this.GetType()].First(val
-                                => val.GetType().AssemblyQualifiedName.Equals(s));
+                                => val.GetType().FullName.Equals(s));
 
                     base.Runtime.NotifyEnteredState(this);
                     DoStatePush(nextState);
@@ -1484,7 +1484,7 @@ namespace Microsoft.PSharp
                 this.ReceivedEvent = e;
                 await InvokeInitializationCallbacks();
                 // report initial state
-                OnStatePush(CurrentStateName);
+                OnStatePush(CurrentState.FullName);
                 await this.ExecuteCurrentStateOnEntry();
             }
         }
