@@ -25,7 +25,7 @@ namespace PingPong
 
         private async Task InitOnEntry()
         {
-            var pongMachineId = await this.Host.ReliableCreateMachine<PongMachine>(new PongEvent(this.Host.Id));
+            var pongMachineId = await this.ReliableCreateMachine<PongMachine>(new PongEvent(this.Host.Id));
             await PongMachine.Set(pongMachineId);
             this.Goto<Waiting>();
         }
@@ -35,7 +35,7 @@ namespace PingPong
             var cnt = await Count.Get();
             if (cnt < 5)
             {
-                await this.Host.ReliableSend(await PongMachine.Get(), new PongEvent(this.Host.Id));
+                await this.ReliableSend(await PongMachine.Get(), new PongEvent(this.Host.Id));
                 await Count.Set(cnt + 1);
             }
         }

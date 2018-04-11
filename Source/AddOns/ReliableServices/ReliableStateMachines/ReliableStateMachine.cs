@@ -37,6 +37,43 @@ namespace Microsoft.PSharp.ReliableServices
             await OnActivate();
         }
 
+        #region RSM User API
+
+        /// <summary>
+        /// Creates an RSM in the local partition
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="startingEvent">Starting event for the machine</param>
+        /// <returns>Unique identifier for the machine</returns>
+        protected Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent) where T : ReliableStateMachine
+        {
+            return Host.ReliableCreateMachine<T>(startingEvent);
+        }
+
+        /// <summary>
+        /// Creates an RSM in the specified partition
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="startingEvent">Starting event for the machine</param>
+        /// <returns>Unique identifier for the machine</returns>
+        protected Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName) where T : ReliableStateMachine
+        {
+            return Host.ReliableCreateMachine<T>(startingEvent, partitionName);
+        }
+
+        /// <summary>
+        /// Sends an event to an RSM
+        /// </summary>
+        /// <param name="target">Target RSM identifier</param>
+        /// <param name="e">Event</param>
+        /// <returns></returns>
+        protected Task ReliableSend(IRsmId target, Event e)
+        {
+            return Host.ReliableSend(target, e);
+        }
+
+        #endregion
+
         #region Internal callbacks
 
         /// <summary>

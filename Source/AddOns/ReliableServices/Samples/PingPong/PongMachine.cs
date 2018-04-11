@@ -22,7 +22,7 @@ namespace PingPong
         {
             var sender = (this.ReceivedEvent as PongEvent).PingMachineId;
 
-            await this.Host.ReliableSend(sender, new PingEvent());
+            await this.ReliableSend(sender, new PingEvent());
         }
 
         protected override Task OnActivate()
