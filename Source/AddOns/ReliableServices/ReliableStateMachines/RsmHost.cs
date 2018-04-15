@@ -51,6 +51,32 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         List<Utilities.RsmRegister> CreatedRegisters;
 
+        /// <summary>
+        /// Does this RSM host a machine
+        /// </summary>
+        internal bool MachineHosted;
+
+        /// <summary>
+        /// Set of active timers
+        /// </summary>
+        protected IReliableDictionary<string, Timers.ReliableTimerConfig> Timers;
+
+        /// <summary>
+        /// Pending set of timers to be started
+        /// </summary>
+        protected Dictionary<string, Timers.ReliableTimerConfig> PendingTimerCreations;
+
+        /// <summary>
+        /// Pending set of timers to be stopped
+        /// </summary>
+        protected HashSet<string> PendingTimerRemovals;
+
+        /// <summary>
+        /// Active timers
+        /// </summary>
+        internal Dictionary<string, Timers.ISingleTimer> TimerObjects;
+
+
         #endregion
 
         internal RsmHost(IReliableStateManager StateManager)
@@ -61,15 +87,20 @@ namespace Microsoft.PSharp.ReliableServices
             this.Id = null;
             this.Runtime = null;
             this.Mid = null;
-            
+            this.MachineHosted = false;
+
             StackChanges = new StackDelta();
             CreatedRegisters = new List<Utilities.RsmRegister>();
+
+            this.TimerObjects = new Dictionary<string, Timers.ISingleTimer>();
+            this.PendingTimerCreations = new Dictionary<string, Timers.ReliableTimerConfig>();
+            this.PendingTimerRemovals = new HashSet<string>();
         }
 
-        public static RsmHost Create(IReliableStateManager stateManager, string partitionName)
+        public static RsmHost Create(IReliableStateManager stateManager, string partitionName, Configuration psharpConfig)
         {
             var factory = new ServiceFabricRsmIdFactory(0, partitionName);
-            return ServiceFabricRsmHost.Create(stateManager, factory);
+            return ServiceFabricRsmHost.Create(stateManager, factory, psharpConfig);
         }
 
         public static RsmHost CreateForTesting(IReliableStateManager stateManager, string partitionName, PSharpRuntime runtime)
@@ -102,6 +133,51 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="e">Event</param>
         /// <returns></returns>
         public abstract Task ReliableSend(IRsmId target, Event e);
+
+        /// <summary>
+        /// Starts a periodic timer
+        /// </summary>
+        /// <param name="name">Name of the timer</param>
+        /// <param name="period">Periodic interval (ms)</param>
+        /// <returns></returns>
+        public async Task StartTimer(string name, int period)
+        {
+            var config = new Timers.ReliableTimerConfig(name, period);
+            var success = await Timers.TryAddAsync(CurrentTransaction, name, config);
+            if (!success)
+            {
+                // TODO: Specific exception
+                throw new Exception($"Timer {name} already started");
+            }
+
+            PendingTimerCreations.Add(name, config);
+            PendingTimerRemovals.Remove(name);
+        }
+
+        /// <summary>
+        /// Stops a timer
+        /// </summary>
+        /// <param name="name">Name of the timer</param>
+        /// <returns></returns>
+        public async Task StopTimer(string name)
+        {
+            var cv = await Timers.TryRemoveAsync(CurrentTransaction, name);
+            if (!cv.HasValue)
+            {
+                // TODO: Specific exception
+                throw new Exception($"Attempt to stop a timer {name} that was not started (or stopped already)");
+            }
+
+            if (PendingTimerCreations.ContainsKey(name))
+            {
+                // timer was pending, so just remove it
+                PendingTimerCreations.Remove(name);
+            }
+            else
+            {
+                PendingTimerRemovals.Add(name);
+            }
+        }
 
         #endregion
 

@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.ReliableServices
         private Dictionary<IRsmId, Tuple<string, RsmInitEvent>> PendingMachineCreations;
 
         /// <summary>
+        /// Queue of timeouts
+        /// </summary>
+        private LinkedList<string> TimeoutQueue;
+
+        /// <summary>
         /// For creating unique RsmIds
         /// </summary>
         private ServiceFabricRsmIdFactory IdFactory;
@@ -50,31 +55,40 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         private Exception MachineFailureException;
 
-        private ServiceFabricRsmHost(IReliableStateManager stateManager, ServiceFabricRsmId id, ServiceFabricRsmIdFactory factory)
+        /// <summary>
+        /// P# runtime config
+        /// </summary>
+        private Configuration PSharpRuntimeConfiguration;
+
+        private ServiceFabricRsmHost(IReliableStateManager stateManager, ServiceFabricRsmId id, ServiceFabricRsmIdFactory factory, Configuration config)
             : base(stateManager)
         {
             this.Id = id;
             this.IdFactory = factory;
             this.CreatedMachines = null;
             this.PendingMachineCreations = new Dictionary<IRsmId, Tuple<string, RsmInitEvent>>();
+            this.PSharpRuntimeConfiguration = config;
 
             MachineHalted = false;
             MachineFailureException = null;
+
+            this.TimeoutQueue = new LinkedList<string>();
         }
 
-        internal static RsmHost Create(IReliableStateManager stateManager, ServiceFabricRsmIdFactory factory)
+        internal static RsmHost Create(IReliableStateManager stateManager, ServiceFabricRsmIdFactory factory, Configuration config)
         {
             var id = factory.Generate("Root");
-            return new ServiceFabricRsmHost(stateManager, id, factory);
+            return new ServiceFabricRsmHost(stateManager, id, factory, config);
         }
 
         private async Task Initialize(Type machineType, RsmInitEvent ev)
         {
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(this.Id));
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>(string.Format("StateStackStore.{0}", this.Id.Name));
+            Timers = await StateManager.GetOrAddAsync<IReliableDictionary<string, Timers.ReliableTimerConfig>>(string.Format("Timers.{0}", this.Id.Name));
 
-            var config = Configuration.Create().WithVerbosityEnabled(2);
-            Runtime = PSharpRuntime.Create(config);
+            Runtime = PSharpRuntime.Create(PSharpRuntimeConfiguration);
+            MachineHosted = true;
 
             RunMachine(machineType, ev);
         }
@@ -131,8 +145,7 @@ namespace Microsoft.PSharp.ReliableServices
                 this.Mid = await Runtime.CreateMachineAndExecute(machineType, ev);
             }
 
-            if (MachineFailureException != null &&
-                (MachineFailureException is TimeoutException || MachineFailureException is System.Fabric.TransactionFaultedException))
+            if (MachineFailureException != null)
             {
                 throw MachineFailureException;
             }
@@ -197,6 +210,8 @@ namespace Microsoft.PSharp.ReliableServices
 
                     StackChanges = new StackDelta();
                     PendingMachineCreations.Clear();
+                    PendingTimerCreations.Clear();
+                    PendingTimerRemovals.Clear();
 
                     // retry
                     await Task.Delay(100);
@@ -211,19 +226,53 @@ namespace Microsoft.PSharp.ReliableServices
         /// <returns></returns>
         private async Task<bool> EventHandler()
         {
-            var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
-            if (!cv.HasValue)
+            Event ev = null;
+            string lastTimer = null;
+
+            // TODO: wakeup host (which sleeps when there is nothing to do) when
+            // a timeout is delivered
+            lock(TimeoutQueue)
             {
-                return false;
+                if(TimeoutQueue.Count != 0)
+                {
+                    lastTimer = TimeoutQueue.Last();
+                    ev = new Timers.TimeoutEvent(lastTimer);
+                    TimeoutQueue.RemoveLast();
+                }
             }
 
-            var ev = cv.Value;
+            if (ev == null)
+            {
+                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+                if (!cv.HasValue)
+                {
+                    return false;
+                }
+
+                ev = cv.Value;
+            }
+
             await Runtime.SendEventAndExecute(Mid, ev);
 
-            if (MachineFailureException != null &&
-                (MachineFailureException is TimeoutException || MachineFailureException is System.Fabric.TransactionFaultedException))
+            if (MachineFailureException != null)
             {
+                if (lastTimer != null)
+                {
+                    lock (TimeoutQueue)
+                    {
+                        TimeoutQueue.AddLast(lastTimer);
+                    }
+                }
+
                 throw MachineFailureException;
+            }
+
+            if(lastTimer != null && !PendingTimerRemovals.Contains(lastTimer))
+            {
+                // restart timer
+                PendingTimerCreations.Add(lastTimer,
+                    new Timers.ReliableTimerConfig(TimerObjects[lastTimer].Name, TimerObjects[lastTimer].TimePeriod));
+                TimerObjects.Remove(lastTimer);
             }
 
             return true;
@@ -256,11 +305,35 @@ namespace Microsoft.PSharp.ReliableServices
             // machine creations
             foreach(var tup in PendingMachineCreations)
             {
-                var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory);
+                var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory, PSharpRuntimeConfiguration);
                 await host.Initialize(Type.GetType(tup.Value.Item1), tup.Value.Item2);
             }
 
             PendingMachineCreations.Clear();
+
+            // timers
+            foreach(var tup in PendingTimerCreations)
+            {
+                var timer = new Timers.ReliableTimerProd(this.TimeoutQueue, tup.Value.Period, tup.Value.Name);
+                timer.StartTimer();
+                TimerObjects.Add(tup.Key, timer);
+            }
+
+            PendingTimerCreations.Clear();
+
+            foreach(var name in PendingTimerRemovals)
+            {
+                if(!TimerObjects.ContainsKey(name))
+                {
+                    continue;
+                }
+
+                TimerObjects[name].StopTimer();
+
+                TimerObjects.Remove(name);
+            }
+
+            PendingTimerRemovals.Clear();
         }
 
         private async Task ReadPendingWorkOnStart()
@@ -278,6 +351,18 @@ namespace Microsoft.PSharp.ReliableServices
             {
                 PendingMachineCreations.Add(enumerator.Current.Key, enumerator.Current.Value);
             }
+
+            var enumerable2 = await Timers.CreateEnumerableAsync(CurrentTransaction);
+            var enumerator2 = enumerable2.GetAsyncEnumerator();
+
+            // TODO: Add cancellation token
+            var ct2 = new System.Threading.CancellationToken();
+
+            while (await enumerator2.MoveNextAsync(ct2))
+            {
+                PendingTimerCreations.Add(enumerator2.Current.Key, enumerator2.Current.Value);
+            }
+
         }
 
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
@@ -296,7 +381,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             var id = IdFactory.Generate(typeof(T).Name);
 
-            if (this.Mid != null)
+            if (MachineHosted)
             {
                 await CreatedMachines.AddAsync(CurrentTransaction, id,
                     Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
@@ -336,7 +421,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(target));
 
-            if (this.Mid != null)
+            if (MachineHosted)
             {
                 await targetQueue.EnqueueAsync(CurrentTransaction, e);
             }

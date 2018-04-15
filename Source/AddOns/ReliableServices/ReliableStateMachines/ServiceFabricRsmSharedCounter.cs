@@ -39,7 +39,8 @@ namespace Microsoft.PSharp.ReliableServices
         /// <returns></returns>
         internal ServiceFabricRsmId Generate(string name)
         {
-            return new ServiceFabricRsmId(Counter, name, PartitionName);
+            var cnt = Interlocked.Increment(ref Counter);
+            return new ServiceFabricRsmId(cnt, name, PartitionName);
         }
 
     }

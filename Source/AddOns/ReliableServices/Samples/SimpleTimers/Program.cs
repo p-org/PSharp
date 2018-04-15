@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ReliableServices;
+using Microsoft.ServiceFabric.Data;
+using Microsoft.ServiceFabric.Data.Collections;
 
-namespace PingPong
+namespace SimpleTimers
 {
     class Program
     {
@@ -19,25 +21,19 @@ namespace PingPong
 
             var config = Configuration.Create().WithVerbosityEnabled(2);
             var origHost = RsmHost.Create(stateManager, "SinglePartition", config);
-            origHost.ReliableCreateMachine<PingMachine>(new RsmInitEvent());
+            origHost.ReliableCreateMachine<SimpleTimerMachine>(new RsmInitEvent());
 
             Console.ReadLine();
-        }
-
-        [TestInit]
-        public static void TestInit()
-        {
-            //System.Diagnostics.Debugger.Launch();
         }
 
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
             var stateManager = new StateManagerMock(runtime);
-            //stateManager.DisallowFailures();
+            stateManager.DisallowFailures();
 
             var origHost = RsmHost.CreateForTesting(stateManager, "SinglePartition", runtime);
-            origHost.ReliableCreateMachine<PingMachine>(new RsmInitEvent());
+            origHost.ReliableCreateMachine<SimpleTimerMachine>(new RsmInitEvent()).Wait();
         }
     }
 }

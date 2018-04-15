@@ -18,6 +18,17 @@ namespace Microsoft.PSharp.ReliableServices
         protected RsmHost Host { get; private set; }
 
         /// <summary>
+        /// Currently executing transaction
+        /// </summary>
+        protected ITransaction CurrentTransaction
+        {
+            get
+            {
+                return Host.CurrentTransaction;
+            }
+        }
+
+        /// <summary>
         /// For initializing a machine, on creation or restart
         /// </summary>
         /// <returns></returns>
@@ -38,6 +49,17 @@ namespace Microsoft.PSharp.ReliableServices
         }
 
         #region RSM User API
+
+        /// <summary>
+        /// Reliable (persistent, failover resistant) identifier of this machine
+        /// </summary>
+        protected IRsmId ReliableId
+        {
+            get
+            {
+                return this.Host.Id;
+            }
+        }
 
         /// <summary>
         /// Creates an RSM in the local partition
@@ -70,6 +92,27 @@ namespace Microsoft.PSharp.ReliableServices
         protected Task ReliableSend(IRsmId target, Event e)
         {
             return Host.ReliableSend(target, e);
+        }
+
+        /// <summary>
+        /// Starts a periodic timer
+        /// </summary>
+        /// <param name="name">Name of the timer</param>
+        /// <param name="period">Periodic interval (ms)</param>
+        /// <returns></returns>
+        protected Task StartTimer(string name, int period)
+        {
+            return Host.StartTimer(name, period);
+        }
+
+        /// <summary>
+        /// Stops a timer
+        /// </summary>
+        /// <param name="name">Name of the timer</param>
+        /// <returns></returns>
+        protected Task StopTimer(string name)
+        {
+            return Host.StopTimer(name);
         }
 
         #endregion

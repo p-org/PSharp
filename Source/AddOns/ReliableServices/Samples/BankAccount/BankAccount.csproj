@@ -4,25 +4,26 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{36B7957D-7411-4016-A15D-AE292C3781B3}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.ReliableServices</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.ReliableServices</AssemblyName>
+    <ProjectGuid>{F76AA327-108F-4B1C-AC1E-AE1BCBC0214D}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BankAccount</RootNamespace>
+    <AssemblyName>BankAccount</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\bin\net46\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -30,43 +31,37 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.ServiceFabric.Data, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.472\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.472\lib\net45\Microsoft.ServiceFabric.Data.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Data.Interfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.472\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.Data.3.0.472\lib\net45\Microsoft.ServiceFabric.Data.Interfaces.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Internal.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Internal.Strings, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Internal.Strings.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceFabric.Preview, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\Microsoft.ServiceFabric.Preview.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Fabric, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Management.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Management.ServiceModel.XmlSerializers, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Management.ServiceModel.XmlSerializers.dll</HintPath>
     </Reference>
     <Reference Include="System.Fabric.Strings, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64">
-      <HintPath>..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Strings.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.ServiceFabric.6.1.472\lib\net45\System.Fabric.Strings.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
@@ -78,39 +73,34 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BugFindingRsmHost.cs" />
-    <Compile Include="BugFindingRsmHostMachine.cs" />
-    <Compile Include="BugFindingRsmId.cs" />
-    <Compile Include="RsmHost.cs" />
-    <Compile Include="IRsmId.cs" />
-    <Compile Include="ReliableStateMachine.cs" />
+    <Compile Include="AccountEvents.cs" />
+    <Compile Include="AccountMachine.cs" />
+    <Compile Include="BrokerMachine.cs" />
+    <Compile Include="ClientMachine.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RsmEvents.cs" />
-    <Compile Include="ServiceFabricRsmHost.cs" />
-    <Compile Include="ServiceFabricRsmId.cs" />
-    <Compile Include="ServiceFabricRsmSharedCounter.cs" />
-    <Compile Include="StackDelta.cs" />
-    <Compile Include="Timers\ISingleTimer.cs" />
-    <Compile Include="Timers\MockTimerMachine.cs" />
-    <Compile Include="Timers\ReliableTimer.cs" />
-    <Compile Include="Timers\ReliableTimerConfig.cs" />
-    <Compile Include="Timers\ReliableTimerMock.cs" />
-    <Compile Include="Timers\TimeoutEvent.cs" />
-    <Compile Include="Utilities\RsmRegister.cs" />
-    <Compile Include="Utilities\ReliableRegister.cs" />
+    <Compile Include="SafetyMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Key.snk" />
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Core.csproj">
+    <ProjectReference Include="..\..\..\..\Core\Core.csproj">
       <Project>{d1fb59f5-d032-4159-bdbc-5220750f4468}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\TestingServices\TestingServices.csproj">
+    <ProjectReference Include="..\..\..\..\TestingServices\TestingServices.csproj">
       <Project>{c1b3142c-705f-407a-83ed-06a7fe043407}</Project>
       <Name>TestingServices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ReliableStateMachines\ReliableStateMachines.csproj">
+      <Project>{36b7957d-7411-4016-a15d-ae292c3781b3}</Project>
+      <Name>ReliableStateMachines</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\StateManagerMock\StateManagerMock.csproj">
+      <Project>{b1a703f2-ef2b-4083-9a41-abf897f94b7e}</Project>
+      <Name>StateManagerMock</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

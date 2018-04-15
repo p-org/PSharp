@@ -49,6 +49,11 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         RsmInitEvent StartingEvent;
 
+        /// <summary>
+        /// Action for removing timeout messages
+        /// </summary>
+        internal Func<string, Task> RemoveSpuriousTimeouts;
+
         private BugFindingRsmHost(IReliableStateManager stateManager, BugFindingRsmId id, PSharpRuntime runtime)
             : base(stateManager)
         {
@@ -135,6 +140,8 @@ namespace Microsoft.PSharp.ReliableServices
 
         internal async Task EventHandlerLoop(bool machineRestartRequired, Event ev)
         {
+            var eventProcessed = false;
+
             while (true)
             {
                 try
@@ -153,6 +160,7 @@ namespace Microsoft.PSharp.ReliableServices
                         {
                             await EventHandler(ev);
                             var stackChanged = await PersistStateStack();
+                            eventProcessed = true;
                         }
 
                         await CurrentTransaction.CommitAsync();
@@ -160,17 +168,25 @@ namespace Microsoft.PSharp.ReliableServices
 
                     StackChanges = new StackDelta();
                     await ExecutePendingWork();
-                    break;
+                    
+                    if(ev == null || eventProcessed)
+                    {
+                        break;
+                    }
                 }
                 catch (Exception ex) when (ex is TimeoutException || ex is System.Fabric.TransactionFaultedException)
                 {
                     MachineFailureException = null;
                     MachineHalted = false;
                     machineRestartRequired = true;
+                    eventProcessed = false;
 
                     StackChanges = new StackDelta();
                     PendingMachineCreations.Clear();
                     PendingSends.Clear();
+
+                    PendingTimerCreations.Clear();
+                    PendingTimerRemovals.Clear();
                 }
             }
 
@@ -184,8 +200,7 @@ namespace Microsoft.PSharp.ReliableServices
         {
             await Runtime.SendEventAndExecute(Mid, ev);
 
-            if (MachineFailureException != null &&
-                (MachineFailureException is TimeoutException || MachineFailureException is System.Fabric.TransactionFaultedException))
+            if (MachineFailureException != null)
             {
                 throw MachineFailureException;
             }
@@ -193,6 +208,34 @@ namespace Microsoft.PSharp.ReliableServices
 
         internal async Task ExecutePendingWork()
         {
+            // timers
+            foreach (var tup in PendingTimerCreations)
+            {
+                var timer = new Timers.ReliableTimerMock((this.Id as BugFindingRsmId).Mid, tup.Value.Period, tup.Value.Name);
+                timer.StartTimer();
+                TimerObjects.Add(tup.Key, timer);
+            }
+
+            PendingTimerCreations.Clear();
+
+            foreach (var name in PendingTimerRemovals)
+            {
+                if (!TimerObjects.ContainsKey(name))
+                {
+                    continue;
+                }
+
+                var success = TimerObjects[name].StopTimer();
+                if(!success)
+                {
+                    await RemoveSpuriousTimeouts(name);
+                }
+
+                TimerObjects.Remove(name);
+            }
+
+            PendingTimerRemovals.Clear();
+
             // machine creations
             foreach (var tup in PendingMachineCreations)
             {
@@ -233,7 +276,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             PendingMachineCreations.Add(rid, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
 
-            if (this.Mid == null)
+            if (!MachineHosted)
             { 
                 await ExecutePendingWork();
             }
@@ -255,7 +298,7 @@ namespace Microsoft.PSharp.ReliableServices
 
             PendingSends.Add(Tuple.Create((target as BugFindingRsmId).Mid, e));
 
-            if (this.Mid != null)
+            if (!MachineHosted)
             {
                 await ExecutePendingWork();
             }
