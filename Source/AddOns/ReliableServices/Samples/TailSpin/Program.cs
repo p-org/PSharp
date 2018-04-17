@@ -25,12 +25,8 @@ namespace TailSpin
 	{
 		static void Main(string[] args)
 		{
-			System.Diagnostics.Debugger.Launch();
-		
-            System.Diagnostics.Debugger.Launch();
-
             var stateManager = new StateManagerMock(null);
-            stateManager.DisallowFailures();
+            //stateManager.DisallowFailures();
 
             var config = Configuration.Create(); //.WithVerbosityEnabled(2);
             var origHost = RsmHost.Create(stateManager, "SinglePartition", config);
@@ -53,7 +49,7 @@ namespace TailSpin
 		public static void Execute(PSharpRuntime runtime)
 		{
             var stateManager = new StateManagerMock(runtime);
-            stateManager.DisallowFailures();
+            //stateManager.DisallowFailures();
 
             var origHost = RsmHost.CreateForTesting(stateManager, "SinglePartition", runtime);
 

@@ -65,6 +65,16 @@ namespace Microsoft.PSharp.ReliableServices
         /// Creates an RSM in the local partition
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <returns>Unique identifier for the machine</returns>
+        protected Task<IRsmId> ReliableCreateMachine<T>() where T : ReliableStateMachine
+        {
+            return Host.ReliableCreateMachine<T>(new RsmInitEvent());
+        }
+
+        /// <summary>
+        /// Creates an RSM in the local partition
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="startingEvent">Starting event for the machine</param>
         /// <returns>Unique identifier for the machine</returns>
         protected Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent) where T : ReliableStateMachine
@@ -76,7 +86,19 @@ namespace Microsoft.PSharp.ReliableServices
         /// Creates an RSM in the specified partition
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="partitionName">Partition name</param>
+        /// <returns>Unique identifier for the machine</returns>
+        protected Task<IRsmId> ReliableCreateMachine<T>(string partitionName) where T : ReliableStateMachine
+        {
+            return Host.ReliableCreateMachine<T>(new RsmInitEvent(), partitionName);
+        }
+
+        /// <summary>
+        /// Creates an RSM in the specified partition
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="startingEvent">Starting event for the machine</param>
+        /// <param name="partitionName">Partition name</param>
         /// <returns>Unique identifier for the machine</returns>
         protected Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName) where T : ReliableStateMachine
         {

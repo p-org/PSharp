@@ -15,11 +15,11 @@ namespace WordCount
     {
         static void Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
             var stateManager = new StateManagerMock(null);
 
-            var config = Configuration.Create().WithVerbosityEnabled(2);
+            var config = Configuration.Create(); //.WithVerbosityEnabled(2);
             var origHost = RsmHost.Create(stateManager, "SinglePartition", config);
             origHost.ReliableCreateMachine<ClientMachine>(new RsmInitEvent());
            

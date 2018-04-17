@@ -117,7 +117,7 @@ namespace TailSpin
 			int currentNumSurveys = await NumSurveys.Get();
 			currentNumSurveys++;
 
-			await this.ReliableCreateMachine<SurveyHandlerMachine>(new SurveyHandlerInitEvent(this.ReliableId, 10000, subscriberId, currentNumSurveys));
+			await this.ReliableCreateMachine<SurveyHandlerMachine>(new SurveyHandlerInitEvent(this.ReliableId, 1000, subscriberId, currentNumSurveys));
 			
 			// Send ack back to subscriber
 			var mid = (await RegisteredSubscribers.TryGetValueAsync(CurrentTransaction, subscriberId)).Value;

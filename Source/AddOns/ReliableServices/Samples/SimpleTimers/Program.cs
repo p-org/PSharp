@@ -17,9 +17,9 @@ namespace SimpleTimers
             //System.Diagnostics.Debugger.Launch();
 
             var stateManager = new StateManagerMock(null);
-            stateManager.DisallowFailures();
+            //stateManager.DisallowFailures();
 
-            var config = Configuration.Create().WithVerbosityEnabled(2);
+            var config = Configuration.Create(); //.WithVerbosityEnabled(2);
             var origHost = RsmHost.Create(stateManager, "SinglePartition", config);
             origHost.ReliableCreateMachine<SimpleTimerMachine>(new RsmInitEvent());
 
@@ -30,7 +30,7 @@ namespace SimpleTimers
         public static void Execute(PSharpRuntime runtime)
         {
             var stateManager = new StateManagerMock(runtime);
-            stateManager.DisallowFailures();
+            //stateManager.DisallowFailures();
 
             var origHost = RsmHost.CreateForTesting(stateManager, "SinglePartition", runtime);
             origHost.ReliableCreateMachine<SimpleTimerMachine>(new RsmInitEvent()).Wait();

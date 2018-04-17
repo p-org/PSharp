@@ -81,6 +81,7 @@ namespace Microsoft.PSharp.ReliableServices
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>(string.Format("StateStackStore.{0}", this.Id.Name));
             this.MachineType = machineType;
             this.StartingEvent = ev;
+            MachineHosted = true;
 
             var mid = (this.Id as BugFindingRsmId).Mid;
             Runtime.CreateMachine(mid, typeof(BugFindingRsmHostMachine),

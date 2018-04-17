@@ -52,5 +52,10 @@ namespace Microsoft.PSharp.ReliableServices
         {
             return Value.Equals((other as ServiceFabricRsmId).Value);
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

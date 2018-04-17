@@ -79,7 +79,7 @@ namespace TailSpin
 		async Task HandleRegistrationSuccess()
 		{
 			RegistrationSuccessEvent e = (this.ReceivedEvent as RegistrationSuccessEvent);
-			this.Logger.WriteLine("Subscriber " + this.Id + " registered with id: " + e.SubscriberId);
+			this.Logger.WriteLine("Subscriber " + this.ReliableId + " registered with id: " + e.SubscriberId);
 			await SubscriberId.Set(e.SubscriberId);
 			await this.ReliableSend(this.ReliableId, new StartSurveyEvent());
 		}
@@ -119,7 +119,7 @@ namespace TailSpin
 			bool IsValidSurveyId = await SurveyResponses.ContainsKeyAsync(CurrentTransaction, e.SurveyId);
 			this.Assert(IsValidSurveyId, "Survey ID is not valid");
 
-			this.Logger.WriteLine("Subscriber ID: " + this.Id + " SurveyID: " + surveyId + " Votes: " + finalVotes);
+			this.Logger.WriteLine("Subscriber ID: " + this.ReliableId + " SurveyID: " + surveyId + " Votes: " + finalVotes);
 
 			// Store the result
 			await SurveyResponses.TryRemoveAsync(CurrentTransaction, surveyId);

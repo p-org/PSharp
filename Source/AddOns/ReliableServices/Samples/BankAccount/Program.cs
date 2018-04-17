@@ -14,7 +14,7 @@ namespace BankAccount
     {
         static void Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
             var stateManager = new StateManagerMock(null);
             stateManager.DisallowFailures();
@@ -29,7 +29,7 @@ namespace BankAccount
         [TestInit]
         public static void TestStart()
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
         }
 
         [Test]

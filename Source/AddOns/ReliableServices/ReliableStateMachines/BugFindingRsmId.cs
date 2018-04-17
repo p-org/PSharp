@@ -46,6 +46,11 @@ namespace Microsoft.PSharp.ReliableServices
         {
             return Mid.Equals((other as BugFindingRsmId).Mid);
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }
 
