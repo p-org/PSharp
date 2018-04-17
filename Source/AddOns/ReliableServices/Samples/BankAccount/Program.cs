@@ -17,11 +17,13 @@ namespace BankAccount
             //System.Diagnostics.Debugger.Launch();
 
             var stateManager = new StateManagerMock(null);
-            stateManager.DisallowFailures();
+            //stateManager.DisallowFailures();
 
             var config = Configuration.Create(); //.WithVerbosityEnabled(2);
+            var clientRuntime = PSharpRuntime.Create(config);
             var origHost = RsmHost.Create(stateManager, "SinglePartition", config);
-            origHost.ReliableCreateMachine<ClientMachine>(new RsmInitEvent());
+
+            clientRuntime.CreateMachine(typeof(ClientMachine), new InitClientEvent(origHost));
 
             Console.ReadLine();
         }
@@ -37,10 +39,10 @@ namespace BankAccount
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
             var stateManager = new StateManagerMock(runtime);
-            stateManager.DisallowFailures();
-
+            //stateManager.DisallowFailures();
             var origHost = RsmHost.CreateForTesting(stateManager, "SinglePartition", runtime);
-            origHost.ReliableCreateMachine<ClientMachine>(new RsmInitEvent());
+
+            runtime.CreateMachine(typeof(ClientMachine), new InitClientEvent(origHost));
         }
     }
 }

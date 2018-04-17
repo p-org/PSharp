@@ -10,6 +10,18 @@ using Microsoft.PSharp.ReliableServices.Utilities;
 namespace BankAccount
 {
 
+    class InitClientEvent : Event
+    {
+        public RsmHost Host;
+
+        public InitClientEvent(RsmHost host)
+        {
+            this.Host = host;
+        }
+
+    }
+
+
     class InitializeAccountEvent : RsmInitEvent
     {
         public string Name;

@@ -65,7 +65,12 @@ namespace BankAccount
         private async Task OnWithdrawFailure()
         {
             this.Logger.WriteLine("Transfer operation failed. Aborting");
-            await this.ReliableSend(await Client.Get(), new AbortedEvent());
+            var client = await Client.Get();
+            if (client != null)
+            {
+                await this.ReliableSend(client, new AbortedEvent());
+            }
+
             this.Raise(new Halt());
         }
 
@@ -85,21 +90,33 @@ namespace BankAccount
         private async Task OnDepositSuccess()
         {
             this.Logger.WriteLine("Transfer operation completed.");
-            await this.ReliableSend(await Client.Get(), new SuccessEvent());
+            var client = await Client.Get();
+            if (client != null)
+            {
+                await this.ReliableSend(client, new SuccessEvent());
+            }
             this.Raise(new Halt());
         }
 
         private async Task OnCompensateFailure()
         {
             this.Logger.WriteLine("Transfer operation failed. Aborting with undo");
-            await this.ReliableSend(await Client.Get(), new FailureEvent());
+            var client = await Client.Get();
+            if (client != null)
+            {
+                await this.ReliableSend(client, new FailureEvent());
+            }
             this.Goto<Compensate>();
         }
 
         private async Task OnCompensateSuccess()
         {
             this.Logger.WriteLine("Transfer operation aborted successfully.");
-            await this.ReliableSend(await Client.Get(), new AbortedEvent());
+            var client = await Client.Get();
+            if (client != null)
+            {
+                await this.ReliableSend(client, new AbortedEvent());
+            }
             this.Raise(new Halt());
         }
 
