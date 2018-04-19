@@ -81,6 +81,8 @@
     <Compile Include="BugFindingRsmHost.cs" />
     <Compile Include="BugFindingRsmHostMachine.cs" />
     <Compile Include="BugFindingRsmId.cs" />
+    <Compile Include="Net\DefaultRsmNetworkProvider.cs" />
+    <Compile Include="Net\IRsmNetworkProvider.cs" />
     <Compile Include="RsmHost.cs" />
     <Compile Include="IRsmId.cs" />
     <Compile Include="ReliableStateMachine.cs" />

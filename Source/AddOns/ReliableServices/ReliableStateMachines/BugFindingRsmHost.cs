@@ -71,6 +71,12 @@ namespace Microsoft.PSharp.ReliableServices
             return new BugFindingRsmHost(stateManager, id, runtime);
         }
 
+        internal override RsmHost CreateHost(string partition)
+        {
+            var id = new BugFindingRsmId(Runtime.CreateMachineId(typeof(BugFindingRsmHostMachine)), partition);
+            return new BugFindingRsmHost(this.StateManager, id, this.Runtime);
+        }
+
         public void SetTransaction(ITransaction tx)
         {
             this.CurrentTransaction = tx;
@@ -264,6 +270,16 @@ namespace Microsoft.PSharp.ReliableServices
             PendingSends.Clear();
         }
 
+        /// <summary>
+        /// Creates a fresh Id
+        /// </summary>
+        /// <typeparam name="T">Machine Type</typeparam>
+        /// <returns>Unique Id</returns>
+        public override Task<IRsmId> ReliableCreateMachineId<T>()
+        {
+            return Task.FromResult(new BugFindingRsmId(Runtime.CreateMachineId(typeof(BugFindingRsmHostMachine)), this.Id.PartitionName) as IRsmId);
+        }
+
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
         {
             if (startingEvent == null)
@@ -286,6 +302,18 @@ namespace Microsoft.PSharp.ReliableServices
         }
 
         public override Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates an RSM in the specified partition with the given ID
+        /// </summary>
+        /// <typeparam name="T">Machine Type</typeparam>
+        /// <param name="id">ID to attach to the machine</param>
+        /// <param name="startingEvent">Starting event for the machine</param>
+        /// <param name="partitionName">Partition where the machine will be created</param>
+        public override Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent, string partitionName)
         {
             throw new NotImplementedException();
         }

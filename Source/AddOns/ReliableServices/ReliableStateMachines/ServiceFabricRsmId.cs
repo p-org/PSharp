@@ -39,18 +39,27 @@ namespace Microsoft.PSharp.ReliableServices
         internal ServiceFabricRsmId(long value, string name, string partitionName)
         {
             this.Value = value;
-            this.Name = string.Format("{0}({1})", name, value);
+            this.Name = string.Format("{0}({1},{2})", name, value, partitionName);
             this.PartitionName = partitionName;
         }
 
         public int CompareTo(IRsmId other)
         {
-            return Value.CompareTo((other as ServiceFabricRsmId).Value);
+            var c = Value.CompareTo((other as ServiceFabricRsmId).Value);
+            if (c == 0)
+            {
+                return PartitionName.CompareTo((other as ServiceFabricRsmId).PartitionName);
+            }
+            else
+            {
+                return c;
+            }
         }
 
         public bool Equals(IRsmId other)
         {
-            return Value.Equals((other as ServiceFabricRsmId).Value);
+            return Value.Equals((other as ServiceFabricRsmId).Value)
+                && PartitionName.Equals((other as ServiceFabricRsmId).PartitionName);
         }
 
         public override string ToString()

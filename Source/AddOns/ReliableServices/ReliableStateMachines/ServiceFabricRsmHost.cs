@@ -81,6 +81,17 @@ namespace Microsoft.PSharp.ReliableServices
             return new ServiceFabricRsmHost(stateManager, id, factory, config);
         }
 
+        /// <summary>
+        /// Create a host with the specified partition name
+        /// </summary>
+        /// <param name="partition">Partition Name</param>
+        /// <returns>Host</returns>
+        internal override RsmHost CreateHost(string partition)
+        {
+            var factory = new ServiceFabricRsmIdFactory(0, partition);
+            return new ServiceFabricRsmHost(this.StateManager, factory.Generate("Root"), factory, this.Runtime.Configuration);
+        }
+
         private async Task Initialize(Type machineType, RsmInitEvent ev)
         {
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(this.Id));
@@ -365,6 +376,16 @@ namespace Microsoft.PSharp.ReliableServices
 
         }
 
+        /// <summary>
+        /// Creates a fresh Id
+        /// </summary>
+        /// <typeparam name="T">Machine Type</typeparam>
+        /// <returns>Unique Id</returns>
+        public override Task<IRsmId> ReliableCreateMachineId<T>() 
+        {
+            return Task.FromResult(IdFactory.Generate(typeof(T).Name) as IRsmId);
+        }
+
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
         {
             if(startingEvent == null)
@@ -408,6 +429,18 @@ namespace Microsoft.PSharp.ReliableServices
         }
 
         public override Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates an RSM in the specified partition with the given ID
+        /// </summary>
+        /// <typeparam name="T">Machine Type</typeparam>
+        /// <param name="id">ID to attach to the machine</param>
+        /// <param name="startingEvent">Starting event for the machine</param>
+        /// <param name="partitionName">Partition where the machine will be created</param>
+        public override Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent, string partitionName)
         {
             throw new NotImplementedException();
         }

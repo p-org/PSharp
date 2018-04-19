@@ -108,12 +108,26 @@ namespace Microsoft.PSharp.ReliableServices
             return BugFindingRsmHost.Create(stateManager, partitionName, runtime);
         }
 
+        /// <summary>
+        /// Create a host with the specified partition name
+        /// </summary>
+        /// <param name="partition">Partition Name</param>
+        /// <returns>Host</returns>
+        internal abstract RsmHost CreateHost(string partition);
+
         #region Reliable communication API
+
+        /// <summary>
+        /// Creates a fresh Id
+        /// </summary>
+        /// <typeparam name="T">Machine Type</typeparam>
+        /// <returns>Unique Id</returns>
+        public abstract Task<IRsmId> ReliableCreateMachineId<T>() where T : ReliableStateMachine;
 
         /// <summary>
         /// Creates an RSM in the local partition
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">Machine Type</typeparam>
         /// <param name="startingEvent">Starting event for the machine</param>
         /// <returns>Unique identifier for the machine</returns>
         public abstract Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent) where T : ReliableStateMachine;
@@ -121,10 +135,18 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// Creates an RSM in the specified partition
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">Machine Type</typeparam>
         /// <param name="startingEvent">Starting event for the machine</param>
-        /// <returns>Unique identifier for the machine</returns>
         public abstract Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName) where T : ReliableStateMachine;
+
+        /// <summary>
+        /// Creates an RSM in the specified partition with the given ID
+        /// </summary>
+        /// <typeparam name="T">Machine Type</typeparam>
+        /// <param name="id">ID to attach to the machine</param>
+        /// <param name="startingEvent">Starting event for the machine</param>
+        /// <param name="partitionName">Partition where the machine will be created</param>
+        public abstract Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent, string partitionName) where T : ReliableStateMachine;
 
         /// <summary>
         /// Sends an event to an RSM
