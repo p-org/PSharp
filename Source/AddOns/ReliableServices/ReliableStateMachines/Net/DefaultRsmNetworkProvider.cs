@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.ReliableServices.Net
         public Task RemoteCreateMachine<T>(IRsmId mid, RsmInitEvent e) where T : ReliableStateMachine
         {
             var host = GetPartitionHost(mid.PartitionName);
-            return host.ReliableCreateMachine<T>(mid, e, mid.PartitionName);
+            return host.ReliableCreateMachine<T>(mid, e);
         }
 
         public Task<IRsmId> RemoteCreateMachineId<T>(string endpoint) where T : ReliableStateMachine

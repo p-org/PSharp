@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// </summary>
         private Configuration PSharpRuntimeConfiguration;
 
-        private ServiceFabricRsmHost(IReliableStateManager stateManager, ServiceFabricRsmId id, ServiceFabricRsmIdFactory factory, Configuration config)
+        private ServiceFabricRsmHost(IReliableStateManager stateManager, ServiceFabricRsmId id, ServiceFabricRsmIdFactory factory, Net.IRsmNetworkProvider netProvider, Configuration config)
             : base(stateManager)
         {
             this.Id = id;
@@ -73,12 +73,14 @@ namespace Microsoft.PSharp.ReliableServices
             MachineFailureException = null;
 
             this.TimeoutQueue = new LinkedList<string>();
+
+            this.NetworkProvider = netProvider;
         }
 
-        internal static RsmHost Create(IReliableStateManager stateManager, ServiceFabricRsmIdFactory factory, Configuration config)
+        internal static RsmHost Create(IReliableStateManager stateManager, ServiceFabricRsmIdFactory factory, Net.IRsmNetworkProvider netProvider, Configuration config)
         {
             var id = factory.Generate("Root");
-            return new ServiceFabricRsmHost(stateManager, id, factory, config);
+            return new ServiceFabricRsmHost(stateManager, id, factory, netProvider, config);
         }
 
         /// <summary>
@@ -89,7 +91,7 @@ namespace Microsoft.PSharp.ReliableServices
         internal override RsmHost CreateHost(string partition)
         {
             var factory = new ServiceFabricRsmIdFactory(0, partition);
-            return new ServiceFabricRsmHost(this.StateManager, factory.Generate("Root"), factory, this.Runtime.Configuration);
+            return new ServiceFabricRsmHost(this.StateManager, factory.Generate("Root"), factory, NetworkProvider, this.Runtime.Configuration);
         }
 
         private async Task Initialize(Type machineType, RsmInitEvent ev)
@@ -316,7 +318,7 @@ namespace Microsoft.PSharp.ReliableServices
             // machine creations
             foreach(var tup in PendingMachineCreations)
             {
-                var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory, PSharpRuntimeConfiguration);
+                var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory, NetworkProvider, PSharpRuntimeConfiguration);
                 await host.Initialize(Type.GetType(tup.Value.Item1), tup.Value.Item2);
             }
 
@@ -439,8 +441,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <typeparam name="T">Machine Type</typeparam>
         /// <param name="id">ID to attach to the machine</param>
         /// <param name="startingEvent">Starting event for the machine</param>
-        /// <param name="partitionName">Partition where the machine will be created</param>
-        public override Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent, string partitionName)
+        public override Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent)
         {
             throw new NotImplementedException();
         }

@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// Pending Sends
         /// </summary>
-        public List<Tuple<MachineId, Event>> PendingSends;
+        public List<Tuple<BugFindingRsmId, Event>> PendingSends;
 
         /// <summary>
         /// Has the machine halted
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.ReliableServices
         {
             this.Id = id;
             this.PendingMachineCreations = new Dictionary<IRsmId, Tuple<string, RsmInitEvent>>();
-            this.PendingSends = new List<Tuple<MachineId, Event>>();
+            this.PendingSends = new List<Tuple<BugFindingRsmId, Event>>();
             this.Runtime = runtime;
             MachineHalted = false;
             MachineFailureException = null;
@@ -261,9 +261,17 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             // send
-            foreach(var tup in PendingSends)
+            foreach (var tup in PendingSends)
             {
-                Runtime.SendEvent(tup.Item1, tup.Item2);
+                if (tup.Item1.PartitionName == this.Id.PartitionName)
+                {
+                    Runtime.SendEvent(tup.Item1.Mid, tup.Item2);
+                }
+                else
+                {
+                    await this.NetworkProvider.RemoteSend(tup.Item1, tup.Item2);
+                }
+
             }
 
             PendingMachineCreations.Clear();
@@ -282,28 +290,21 @@ namespace Microsoft.PSharp.ReliableServices
 
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
         {
-            if (startingEvent == null)
-            {
-                //TODO: Specific exception
-                throw new Exception("StartingEvent cannot be null");
-            }
-
-            var mid = Runtime.CreateMachineId(typeof(BugFindingRsmHostMachine));
-            var rid = new BugFindingRsmId(mid, this.Id.PartitionName);
-
-            PendingMachineCreations.Add(rid, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-
-            if (!MachineHosted)
-            { 
-                await ExecutePendingWork();
-            }
-
-            return rid;
+            var id = await ReliableCreateMachineId<T>();
+            await ReliableCreateMachine<T>(id, startingEvent);
+            return id;
         }
 
-        public override Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
+        public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
         {
-            throw new NotImplementedException();
+            if(partitionName == this.Id.PartitionName)
+            {
+                return await ReliableCreateMachine<T>(startingEvent);
+            }
+
+            var id = await this.NetworkProvider.RemoteCreateMachineId<T>(partitionName);
+            await ReliableCreateMachine<T>(id, startingEvent);
+            return id;
         }
 
         /// <summary>
@@ -313,19 +314,33 @@ namespace Microsoft.PSharp.ReliableServices
         /// <param name="id">ID to attach to the machine</param>
         /// <param name="startingEvent">Starting event for the machine</param>
         /// <param name="partitionName">Partition where the machine will be created</param>
-        public override Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent, string partitionName)
+        public override async Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent)
         {
-            throw new NotImplementedException();
+            if (startingEvent == null)
+            {
+                //TODO: Specific exception
+                throw new Exception("StartingEvent cannot be null");
+            }
+
+           // var mid = Runtime.CreateMachineId(typeof(BugFindingRsmHostMachine));
+            //var rid = new BugFindingRsmId(mid, this.Id.PartitionName);
+
+            PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+
+            if (!MachineHosted)
+            {
+                await ExecutePendingWork();
+            }
         }
 
         public override async Task ReliableSend(IRsmId target, Event e)
         {
             if (target.PartitionName != this.Id.PartitionName)
             {
-                throw new NotImplementedException();
+                await this.NetworkProvider.RemoteSend(target, e);
             }
 
-            PendingSends.Add(Tuple.Create((target as BugFindingRsmId).Mid, e));
+            PendingSends.Add(Tuple.Create(target as BugFindingRsmId, e));
 
             if (!MachineHosted)
             {
