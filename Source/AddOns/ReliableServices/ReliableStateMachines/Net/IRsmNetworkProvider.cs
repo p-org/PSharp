@@ -22,11 +22,11 @@ namespace Microsoft.PSharp.ReliableServices.Net
         /// <summary>
         /// Creates a machine with the given ID
         /// </summary>
-        /// <typeparam name="T">Machine Type</typeparam>
+        /// <param name="machineType">Type of machine to create</param>
         /// <param name="mid">ID for the machine</param>
         /// <param name="e">Starting event</param>
         /// <returns></returns>
-        Task RemoteCreateMachine<T>(IRsmId mid, RsmInitEvent e) where T : ReliableStateMachine;
+        Task RemoteCreateMachine(Type machineType, IRsmId mid, RsmInitEvent e);
 
         /// <summary>
         /// Sends an event to a machine

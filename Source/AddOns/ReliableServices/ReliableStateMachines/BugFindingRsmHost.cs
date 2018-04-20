@@ -291,7 +291,7 @@ namespace Microsoft.PSharp.ReliableServices
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
         {
             var id = await ReliableCreateMachineId<T>();
-            await ReliableCreateMachine<T>(id, startingEvent);
+            await ReliableCreateMachine(typeof(T), id, startingEvent);
             return id;
         }
 
@@ -303,18 +303,17 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             var id = await this.NetworkProvider.RemoteCreateMachineId<T>(partitionName);
-            await ReliableCreateMachine<T>(id, startingEvent);
+            await ReliableCreateMachine(typeof(T), id, startingEvent);
             return id;
         }
 
         /// <summary>
         /// Creates an RSM in the specified partition with the given ID
         /// </summary>
-        /// <typeparam name="T">Machine Type</typeparam>
+        /// <param name="machineType">Machine Type</typeparam>
         /// <param name="id">ID to attach to the machine</param>
         /// <param name="startingEvent">Starting event for the machine</param>
-        /// <param name="partitionName">Partition where the machine will be created</param>
-        public override async Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent)
+        public override async Task ReliableCreateMachine(Type machineType, IRsmId id, RsmInitEvent startingEvent)
         {
             if (startingEvent == null)
             {
@@ -325,7 +324,7 @@ namespace Microsoft.PSharp.ReliableServices
            // var mid = Runtime.CreateMachineId(typeof(BugFindingRsmHostMachine));
             //var rid = new BugFindingRsmId(mid, this.Id.PartitionName);
 
-            PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
+            PendingMachineCreations.Add(id, Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
 
             if (!MachineHosted)
             {

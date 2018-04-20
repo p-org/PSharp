@@ -27,13 +27,39 @@ namespace Microsoft.PSharp.ReliableServices
 
         /// <summary>
         /// RSMs created by this host
+        /// TODO: Remove entries on HALT
         /// </summary>
         private IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>> CreatedMachines;
+
+        /// <summary>
+        /// Remote RSMs created by this host
+        /// </summary>
+        private IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>> RemoteCreatedMachines;
+
+        /// <summary>
+        /// Remote messages to be sent
+        /// </summary>
+        private IReliableQueue<Tuple<IRsmId, Event>> RemoteMessages;
 
         /// <summary>
         /// Machines that haven't been started yet
         /// </summary>
         private Dictionary<IRsmId, Tuple<string, RsmInitEvent>> PendingMachineCreations;
+
+        /// <summary>
+        /// Machines that haven't been started yet
+        /// </summary>
+        private Queue<Tuple<IRsmId, Event>> PendingMessages;
+
+        /// <summary>
+        /// Counters for reliable remote send
+        /// </summary>
+        private IReliableDictionary<string, int> SendCounters;
+
+        /// <summary>
+        /// Counters for reliable remote receive
+        /// </summary>
+        private IReliableDictionary<string, int> ReceiveCounters;
 
         /// <summary>
         /// Queue of timeouts
@@ -68,6 +94,7 @@ namespace Microsoft.PSharp.ReliableServices
             this.CreatedMachines = null;
             this.PendingMachineCreations = new Dictionary<IRsmId, Tuple<string, RsmInitEvent>>();
             this.PSharpRuntimeConfiguration = config;
+            this.PendingMessages = new Queue<Tuple<IRsmId, Event>>();
 
             MachineHalted = false;
             MachineFailureException = null;
@@ -99,6 +126,9 @@ namespace Microsoft.PSharp.ReliableServices
             InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(this.Id));
             StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>(string.Format("StateStackStore.{0}", this.Id.Name));
             Timers = await StateManager.GetOrAddAsync<IReliableDictionary<string, Timers.ReliableTimerConfig>>(string.Format("Timers.{0}", this.Id.Name));
+            SendCounters = await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>(string.Format("SendCounters.{0}", this.Id.Name));
+            ReceiveCounters = await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>(string.Format("ReceiveCounters.{0}", this.Id.Name));
+            RemoteMessages = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<IRsmId, Event>>>(string.Format("RemoteMessages.{0}", this.Id.Name));
 
             Runtime = PSharpRuntime.Create(PSharpRuntimeConfiguration);
             MachineHosted = true;
@@ -225,6 +255,7 @@ namespace Microsoft.PSharp.ReliableServices
                     PendingMachineCreations.Clear();
                     PendingTimerCreations.Clear();
                     PendingTimerRemovals.Clear();
+                    PendingMessages.Clear();
 
                     // retry
                     await Task.Delay(100);
@@ -263,6 +294,22 @@ namespace Microsoft.PSharp.ReliableServices
                 }
 
                 ev = cv.Value;
+
+                if (ev is TaggedRemoteEvent)
+                {
+                    var tg = (ev as TaggedRemoteEvent);
+                    var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
+                    if (currentCounter == tg.tag - 1)
+                    {
+                        ev = tg.ev;
+                        await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
+                    }
+                    else
+                    {
+                        // drop the message and return
+                        return true;
+                    }
+                }
             }
 
             await Runtime.SendEventAndExecute(Mid, ev);
@@ -313,16 +360,35 @@ namespace Microsoft.PSharp.ReliableServices
             return true;
         }
 
+        // TODO: This can probably be done in the background
         private async Task ExecutePendingWork()
         {
+            var remoteMachines = new HashSet<IRsmId>();
+
             // machine creations
             foreach(var tup in PendingMachineCreations)
             {
-                var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory, NetworkProvider, PSharpRuntimeConfiguration);
-                await host.Initialize(Type.GetType(tup.Value.Item1), tup.Value.Item2);
+                if (tup.Key.PartitionName == this.Id.PartitionName)
+                {
+                    var host = new ServiceFabricRsmHost(this.StateManager, tup.Key as ServiceFabricRsmId, this.IdFactory, NetworkProvider, PSharpRuntimeConfiguration);
+                    await host.Initialize(Type.GetType(tup.Value.Item1), tup.Value.Item2);
+                }
+                else
+                {
+                    remoteMachines.Add(tup.Key);
+                    await this.NetworkProvider.RemoteCreateMachine(Type.GetType(tup.Value.Item1), tup.Key, tup.Value.Item2);
+                }
             }
 
             PendingMachineCreations.Clear();
+
+            // remote send
+            foreach(var tup in PendingMessages)
+            {
+                await this.NetworkProvider.RemoteSend(tup.Item1, tup.Item2);
+            }
+
+            PendingMessages.Clear();
 
             // timers
             foreach(var tup in PendingTimerCreations)
@@ -347,10 +413,31 @@ namespace Microsoft.PSharp.ReliableServices
             }
 
             PendingTimerRemovals.Clear();
+
+            await ClearOutBuffers(remoteMachines);
+        }
+
+        private async Task ClearOutBuffers(HashSet<IRsmId> remoteMachines)
+        {
+            using (var tx = StateManager.CreateTransaction())
+            {
+                foreach (var id in remoteMachines)
+                {
+                    await RemoteCreatedMachines.TryRemoveAsync(tx, id);
+                }
+
+                while(await RemoteMessages.GetCountAsync(tx) > 0)
+                {
+                    await RemoteMessages.TryDequeueAsync(tx);
+                }
+
+                await tx.CommitAsync();
+            }
         }
 
         private async Task ReadPendingWorkOnStart()
         {
+            // Created machines
             CreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
                 GetCreatedMachineMapName(this.Id));
 
@@ -365,7 +452,23 @@ namespace Microsoft.PSharp.ReliableServices
                 PendingMachineCreations.Add(enumerator.Current.Key, enumerator.Current.Value);
             }
 
-            var enumerable2 = await Timers.CreateEnumerableAsync(CurrentTransaction);
+            // Pending remote creations
+            RemoteCreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
+                GetRemoteCreatedMachineMapName(this.Id));
+
+            enumerable = await RemoteCreatedMachines.CreateEnumerableAsync(CurrentTransaction);
+            enumerator = enumerable.GetAsyncEnumerator();
+
+            // TODO: Add cancellation token
+            ct = new System.Threading.CancellationToken();
+
+            while (await enumerator.MoveNextAsync(ct))
+            {
+                PendingMachineCreations.Add(enumerator.Current.Key, enumerator.Current.Value);
+            }
+
+            // Pending remote messages
+            var enumerable2 = await RemoteMessages.CreateEnumerableAsync(CurrentTransaction);
             var enumerator2 = enumerable2.GetAsyncEnumerator();
 
             // TODO: Add cancellation token
@@ -373,7 +476,18 @@ namespace Microsoft.PSharp.ReliableServices
 
             while (await enumerator2.MoveNextAsync(ct2))
             {
-                PendingTimerCreations.Add(enumerator2.Current.Key, enumerator2.Current.Value);
+                PendingMessages.Enqueue(enumerator2.Current);
+            }
+
+            var enumerable3 = await Timers.CreateEnumerableAsync(CurrentTransaction);
+            var enumerator3 = enumerable3.GetAsyncEnumerator();
+
+            // TODO: Add cancellation token
+            var ct3 = new System.Threading.CancellationToken();
+
+            while (await enumerator3.MoveNextAsync(ct3))
+            {
+                PendingTimerCreations.Add(enumerator3.Current.Key, enumerator3.Current.Value);
             }
 
         }
@@ -390,49 +504,21 @@ namespace Microsoft.PSharp.ReliableServices
 
         public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent)
         {
-            if(startingEvent == null)
-            {
-                //TODO: Specific exception
-                throw new Exception("StartingEvent cannot be null");
-            }
-
-            if(CreatedMachines == null)
-            {
-                CreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
-                    GetCreatedMachineMapName(this.Id));
-            }
-
             var id = IdFactory.Generate(typeof(T).Name);
-
-            if (MachineHosted)
-            {
-                await CreatedMachines.AddAsync(CurrentTransaction, id,
-                    Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-
-                // delay creation until machine commits its current transaction
-                PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-            }
-            else
-            {
-                using (var tx = StateManager.CreateTransaction())
-                {
-                    await CreatedMachines.AddAsync(tx, id,
-                        Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-                    await tx.CommitAsync();
-                }
-
-                PendingMachineCreations.Add(id, Tuple.Create(typeof(T).AssemblyQualifiedName, startingEvent));
-
-                await ExecutePendingWork();
-            }
-
-
+            await ReliableCreateMachine(typeof(T), id, startingEvent);
             return id;
         }
 
-        public override Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
+        public override async Task<IRsmId> ReliableCreateMachine<T>(RsmInitEvent startingEvent, string partitionName)
         {
-            throw new NotImplementedException();
+            if(partitionName == this.Id.PartitionName)
+            {
+                return await ReliableCreateMachine<T>(startingEvent);
+            }
+
+            var id = await this.NetworkProvider.RemoteCreateMachineId<T>(partitionName);
+            await ReliableCreateMachine(typeof(T), id, startingEvent);
+            return id;
         }
 
         /// <summary>
@@ -441,16 +527,89 @@ namespace Microsoft.PSharp.ReliableServices
         /// <typeparam name="T">Machine Type</typeparam>
         /// <param name="id">ID to attach to the machine</param>
         /// <param name="startingEvent">Starting event for the machine</param>
-        public override Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent)
+        public override async Task ReliableCreateMachine(Type machineType, IRsmId id, RsmInitEvent startingEvent)
         {
-            throw new NotImplementedException();
+            if (startingEvent == null)
+            {
+                //TODO: Specific exception
+                throw new Exception("StartingEvent cannot be null");
+            }
+
+            if (!machineType.IsSubclassOf(typeof(ReliableStateMachine)))
+            {
+                //TODO: Specific exception
+                throw new Exception($"Type {machineType.Name} is not an instance of ReliableStateMachine");
+            }
+
+            if(id.PartitionName == this.Id.PartitionName)
+            {
+                await ReliableCreateMachineLocal(machineType, id, startingEvent);
+            }
+            else
+            {
+                await ReliableCreateMachineRemote(machineType, id, startingEvent);
+            }
+        }
+
+        private async Task ReliableCreateMachineLocal(Type machineType, IRsmId id, RsmInitEvent startingEvent)
+        {
+            if (CreatedMachines == null)
+            {
+                CreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
+                    GetCreatedMachineMapName(this.Id));
+            }
+
+            if (MachineHosted)
+            {
+                await CreatedMachines.AddAsync(CurrentTransaction, id,
+                    Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
+
+                // delay creation until machine commits its current transaction
+                PendingMachineCreations.Add(id, Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
+            }
+            else
+            {
+                using (var tx = StateManager.CreateTransaction())
+                {
+                    await CreatedMachines.AddAsync(tx, id,
+                        Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
+                    await tx.CommitAsync();
+                }
+
+                PendingMachineCreations.Add(id, Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
+
+                await ExecutePendingWork();
+            }
+        }
+
+        private async Task ReliableCreateMachineRemote(Type machineType, IRsmId id, RsmInitEvent startingEvent)
+        {
+            if (RemoteCreatedMachines == null)
+            {
+                RemoteCreatedMachines = await StateManager.GetOrAddAsync<IReliableDictionary<IRsmId, Tuple<string, RsmInitEvent>>>(
+                    GetRemoteCreatedMachineMapName(this.Id));
+            }
+
+            if (MachineHosted)
+            {
+                await RemoteCreatedMachines.AddAsync(CurrentTransaction, id,
+                    Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
+
+                // delay creation until machine commits its current transaction
+                PendingMachineCreations.Add(id, Tuple.Create(machineType.AssemblyQualifiedName, startingEvent));
+            }
+            else
+            {
+                await this.NetworkProvider.RemoteCreateMachine(machineType, id, startingEvent);
+            }
         }
 
         public override async Task ReliableSend(IRsmId target, Event e)
         {
             if (target.PartitionName != this.Id.PartitionName)
             {
-                throw new NotImplementedException();
+                await ReliableSendRemote(target, e);
+                return;
             }
 
             var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(GetInputQueueName(target));
@@ -468,6 +627,21 @@ namespace Microsoft.PSharp.ReliableServices
                 }
             }
 
+        }
+
+        private async Task ReliableSendRemote(IRsmId target, Event e)
+        {
+            if (MachineHosted)
+            {
+                var tag = await SendCounters.AddOrUpdateAsync(CurrentTransaction, target.Name, 1, (key, oldValue) => oldValue + 1);
+                var tev = new TaggedRemoteEvent(this.Id, e, tag);
+                await RemoteMessages.EnqueueAsync(CurrentTransaction, Tuple.Create(target, tev as Event));
+                PendingMessages.Enqueue(Tuple.Create(target, tev as Event));
+            }
+            else
+            {
+                await this.NetworkProvider.RemoteSend(target, e);
+            }
         }
 
         internal override void NotifyFailure(Exception ex, string methodName)
@@ -488,6 +662,11 @@ namespace Microsoft.PSharp.ReliableServices
         static string GetCreatedMachineMapName(IRsmId id)
         {
             return string.Format("CreatedMachines.{0}", id.Name);
+        }
+
+        static string GetRemoteCreatedMachineMapName(IRsmId id)
+        {
+            return string.Format("RemoteCreatedMachines.{0}", id.Name);
         }
     }
 }

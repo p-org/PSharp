@@ -92,6 +92,7 @@
     <Compile Include="ServiceFabricRsmId.cs" />
     <Compile Include="ServiceFabricRsmSharedCounter.cs" />
     <Compile Include="StackDelta.cs" />
+    <Compile Include="TaggedRemoteEvent.cs" />
     <Compile Include="Timers\ISingleTimer.cs" />
     <Compile Include="Timers\MockTimerMachine.cs" />
     <Compile Include="Timers\ReliableTimer.cs" />

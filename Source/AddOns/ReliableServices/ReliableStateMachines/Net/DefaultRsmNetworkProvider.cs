@@ -18,10 +18,10 @@ namespace Microsoft.PSharp.ReliableServices.Net
             PartitionToHost.Add(startingHost.Id.PartitionName, startingHost);
         }
 
-        public Task RemoteCreateMachine<T>(IRsmId mid, RsmInitEvent e) where T : ReliableStateMachine
+        public Task RemoteCreateMachine(Type machineType, IRsmId mid, RsmInitEvent e) 
         {
             var host = GetPartitionHost(mid.PartitionName);
-            return host.ReliableCreateMachine<T>(mid, e);
+            return host.ReliableCreateMachine(machineType, mid, e);
         }
 
         public Task<IRsmId> RemoteCreateMachineId<T>(string endpoint) where T : ReliableStateMachine

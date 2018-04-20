@@ -156,10 +156,10 @@ namespace Microsoft.PSharp.ReliableServices
         /// <summary>
         /// Creates an RSM with the given ID
         /// </summary>
-        /// <typeparam name="T">Machine Type</typeparam>
+        /// <param name="machineType">Machine Type</typeparam>
         /// <param name="id">ID to attach to the machine</param>
         /// <param name="startingEvent">Starting event for the machine</param>
-        public abstract Task ReliableCreateMachine<T>(IRsmId id, RsmInitEvent startingEvent) where T : ReliableStateMachine;
+        public abstract Task ReliableCreateMachine(Type machineType, IRsmId id, RsmInitEvent startingEvent);
 
         /// <summary>
         /// Sends an event to an RSM
