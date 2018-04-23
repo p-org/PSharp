@@ -12,7 +12,7 @@ using Microsoft.ServiceFabric.Data.Notifications;
 
 namespace Microsoft.PSharp.ReliableServices
 {
-    public class ReliableConcurrentQueueMock<T> : IReliableConcurrentQueue<T>, ITxState
+    public class ReliableConcurrentQueueMock<T> : IReliableConcurrentQueue<T>, IReliableQueue<T>, ITxState
     {
         private List<T> persisted_queue = new List<T>();
 
@@ -38,6 +38,16 @@ namespace Microsoft.PSharp.ReliableServices
 
         Uri IReliableState.Name => throw new NotImplementedException();
 
+        public Task ClearAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IAsyncEnumerable<T>> CreateEnumerableAsync(ITransaction tx)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task EnqueueAsync(ITransaction tx, T value, CancellationToken cancellationToken = default(CancellationToken), TimeSpan? timeout = null)
         {
             var mt = tx as TransactionMock;
@@ -55,6 +65,21 @@ namespace Microsoft.PSharp.ReliableServices
 
             }
             return Task.FromResult(true);
+        }
+
+        public Task EnqueueAsync(ITransaction tx, T item)
+        {
+            return EnqueueAsync(tx, item, default(CancellationToken), null);
+        }
+
+        public Task EnqueueAsync(ITransaction tx, T item, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            return EnqueueAsync(tx, item, cancellationToken, timeout);
+        }
+
+        public Task<long> GetCountAsync(ITransaction tx)
+        {
+            return Count;
         }
 
         public Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken = default(CancellationToken), TimeSpan? timeout = null)
@@ -89,6 +114,36 @@ namespace Microsoft.PSharp.ReliableServices
 
                 return Task.FromResult(new ConditionalValue<T>(true, item));
             }
+        }
+
+        public Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ConditionalValue<T>> TryPeekAsync(ITransaction tx)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ConditionalValue<T>> TryPeekAsync(ITransaction tx, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ConditionalValue<T>> TryPeekAsync(ITransaction tx, LockMode lockMode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ConditionalValue<T>> TryPeekAsync(ITransaction tx, LockMode lockMode, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         void ITxState.Abort(ITransaction tx)

@@ -29,7 +29,8 @@ namespace Microsoft.PSharp.ReliableServices
         private Dictionary<Type, Type> dependencyMap = new Dictionary<Type, Type>()
         {
             {typeof(IReliableDictionary<,>), typeof(ReliableDictionaryMock<,>)},
-            { typeof(IReliableConcurrentQueue<>), typeof(ReliableConcurrentQueueMock<>)}
+            { typeof(IReliableConcurrentQueue<>), typeof(ReliableConcurrentQueueMock<>)},
+            { typeof(IReliableQueue<>), typeof(ReliableConcurrentQueueMock<>)}
         };
 
         public StateManagerMock(PSharpRuntime runtime)
@@ -203,7 +204,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         private Uri ToUri(string name)
         {
-            return new Uri("mock://" + name.Replace('(','_').Replace(')','_').Replace('+','_'), UriKind.Absolute);
+            return new Uri("mock://" + name.Replace('(','_').Replace(')','_').Replace('+','_').Replace(',','_'), UriKind.Absolute);
         }
     }
 }
