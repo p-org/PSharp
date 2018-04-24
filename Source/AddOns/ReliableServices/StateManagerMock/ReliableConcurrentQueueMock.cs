@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.ReliableServices
 
         public Task<long> GetCountAsync(ITransaction tx)
         {
-            return Count;
+            return Task.FromResult(Count);
         }
 
         public Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken = default(CancellationToken), TimeSpan? timeout = null)
