@@ -14,7 +14,7 @@ With location being either "-g" or "--save-dev", run:
 
 ## Release Notes
 
-### 04/06/2018
+### 05/08/2018
 
 * Initial merge to master
 
