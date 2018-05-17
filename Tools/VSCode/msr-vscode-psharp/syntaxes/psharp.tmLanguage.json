@@ -17,7 +17,7 @@
 			},
 			{
 				"name": "keyword.control",
-				"match": "\\b(on|do|defer|ignore|default|with|receive|push|jump)\\b"
+				"match": "\\b(on|do|defer|ignore|default|with|receive|push|pop|jump)\\b"
 			},
 			{
 				"name": "storage.modifier",
@@ -56,7 +56,7 @@
 				"match": "\\b(null|true|false)\\b"
 			},
 			{
-				"name": "keyword.operator",
+				"name": "keyword.operator.expression",
 				"match": "\\b(sizeof|in|as|keys|values)\\b"
 			},
 			{

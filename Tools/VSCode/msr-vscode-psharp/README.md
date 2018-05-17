@@ -12,9 +12,10 @@ With location being either "-g" or "--save-dev", run:
 - npm install location vscode
 - npm install (this appears to be necessary in order to get node_modules\vscode\vscode.d.ts to be installed; it is not part of DefinitelyTyped as it is version-dependent)
 
-## Building
+## Building and Testing
 - Select Tasks->Run Build Task.
     - If you see "error TS5001: The current host does not support the '--watch' option.", then run the Dependencies above, then rerun "Run Build Task".
+    - copy the msr-vscode-psharp directory tree to <user directory>\.vscode\extensions\msr-vscode-psharp
 
 ## Release Notes
 

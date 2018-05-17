@@ -25,7 +25,7 @@ export const tokenTips: Map<string, string> = new Map<string, string>([
     //["TokenType.CreateRemoteMachine", "Create a remote instance of a P# state machine class"],
     ["send", "Send an event from one machine to another"],
     ["raise", "Send an event from this machine to itself"],
-    ["jump", "Transition this machine to another state"],
+    ["jump", "Transition this machine to another state at the end of the current handler"],
     ["assert", "Assert that a condition is true"],
     ["assume", "Assume that a condition is true"],
     ["pop", "Pop a state from the state queue"],
