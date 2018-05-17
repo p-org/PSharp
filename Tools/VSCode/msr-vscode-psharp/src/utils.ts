@@ -14,7 +14,7 @@ export const tokenTips: Map<string, string> = new Map<string, string>([
     ["event", "An event that will be sent from one machine to another machine or raised to itself, usually triggering a state transition"],
     ["start", "The initial state for this P# state machine"],
     ["hot", "A liveness monitor state indicating that an operation is required and has not yet occurred"],
-    ["", "A liveness monitor state indicating that an operation required by a hot state has been completed"],
+    ["cold", "A liveness monitor state indicating that an operation required by a hot state has been completed"],
     //["TokenType.EventIdentifier", "An event that will be sent from one machine to another machine or raised to itself"],
     //["TokenType.MachineIdentifier", "A P# state machine class definition"],
     //["TokenType.StateIdentifier", "A state in a P# state machine"],
