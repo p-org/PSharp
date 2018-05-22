@@ -1,0 +1,93 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "P#",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control",
+				"match": "\\b(if|else|while|for|foreach|break|continue|return|goto)\\b"
+			},
+			{
+				"name": "keyword.control",
+				"match": "\\b(on|do|defer|ignore|default|with|receive|push|pop|jump)\\b"
+			},
+			{
+				"name": "storage.modifier",
+				"match": "\\b(public|private|protected|internal|abstract|virtual|override)\\b"
+			},
+			{
+				"name": "keyword.other",
+				"match": "\\b(using|namespace)\\b"
+			},
+			{
+				"name": "entity.name.class",
+				"match": "\\b(machine|model|monitor|state|event)\\b"
+			},
+			{
+				"name": "entity.name.tag",
+				"match": "\\b(entry|exit)\\b"
+			},
+			{
+				"name": "keyword.other.attribute",
+				"match": "\\b(start|hot|cold)\\b"
+			},
+			{
+				"name": "entity.name.function",
+				"match": "\\b(action|fun|to)\\b"
+			},
+			{
+				"name": "entity.name.function",
+				"match": "\\b(assert|assume|raise|send|delete|payload)\\b"
+			},
+			{
+				"name": "variable.language",
+				"match": "\\b(this|base)\\b"
+			},
+			{
+				"name": "constant.language",
+				"match": "\\b(null|true|false)\\b"
+			},
+			{
+				"name": "keyword.operator.expression",
+				"match": "\\b(sizeof|in|as|keys|values)\\b"
+			},
+			{
+				"name": "keyword.operator.new",
+				"match": "\\b(new)\\b"
+			},
+			{
+				"name": "storage.type",
+				"match": "\\b(var|int|bool|float|double|string|foreign|any|seq|map)\\b"
+			},
+			{
+				"name": "comment.block",
+				"begin": "/\\*(?!/)",
+				"end": "\\*/"
+			},
+			{
+				"name": "comment.line",
+				"match": "//.*"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.psharp",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.psharp",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.psharp"
+}
