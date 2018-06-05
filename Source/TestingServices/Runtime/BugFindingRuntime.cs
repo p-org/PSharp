@@ -1396,6 +1396,12 @@ namespace Microsoft.PSharp.TestingServices
             machine.Info.IsWaitingToReceive = false;
             (machine.Info as SchedulableInfo).IsEnabled = true;
             (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
+
+            if (base.Configuration.ReportActivityCoverage)
+            {
+                this.ReportActivityCoverageOfReceivedEvent(machine, eventInfo);
+            }
+
         }
 
         /// <summary>
@@ -1545,7 +1551,7 @@ namespace Microsoft.PSharp.TestingServices
                 edgeLabel = "goto";
                 destState = StateGroup.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
             }
-            if (eventInfo.Event is PushStateEvent)
+            else if (eventInfo.Event is PushStateEvent)
             {
                 edgeLabel = "push";
                 destState = StateGroup.GetQualifiedStateName((eventInfo.Event as PushStateEvent).State);
