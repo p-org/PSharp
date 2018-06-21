@@ -48,6 +48,106 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
+        [Fact]
+        public void TestMachineInheritanceDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M1: M2 {
+start state S { }
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M1 : M2
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestMachineInheritanceDeclarationWithGenerics1()
+        {
+            var test = @"
+namespace Foo {
+machine M1<T1,T2>: M2 {
+start state S { }
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M1<T1,T2> : M2
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestMachineInheritanceDeclarationWithGenerics2()
+        {
+            var test = @"
+namespace Foo {
+machine M1: M2<int,int> {
+start state S { }
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M1 : M2<int,int>
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
+        [Fact]
+        public void TestMachineInheritanceDeclarationWithGenerics3()
+        {
+            var test = @"
+namespace Foo {
+machine M1<T1,T2>: M2<int,int,T1,T2> {
+start state S { }
+}
+}";
+            var expected = @"
+using Microsoft.PSharp;
+
+namespace Foo
+{
+    class M1<T1,T2> : M2<int,int,T1,T2>
+    {
+        [Microsoft.PSharp.Start]
+        class S : MachineState
+        {
+        }
+    }
+}";
+            LanguageTestUtilities.AssertRewritten(expected, test);
+        }
+
         #endregion
 
         #region failure tests
