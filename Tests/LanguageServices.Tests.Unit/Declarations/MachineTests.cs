@@ -112,7 +112,7 @@ using Microsoft.PSharp;
 
 namespace Foo
 {
-    class M1 : M2<int,int>
+    class M1 : M2<int, int>
     {
         [Microsoft.PSharp.Start]
         class S : MachineState
@@ -137,7 +137,7 @@ using Microsoft.PSharp;
 
 namespace Foo
 {
-    class M1<T1,T2> : M2<int,int,T1,T2>
+    class M1<T1,T2> : M2<int, int, T1, T2>
     {
         [Microsoft.PSharp.Start]
         class S : MachineState

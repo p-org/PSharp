@@ -182,12 +182,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             // Consumes qualified name.
             var qualifiedName = ConsumeQualifiedName(replacement);
 
+            // consures template parameters
+            qualifiedName.AddRange(ConsumeTemplateParams());
+
+            return qualifiedName;
+        }
+
+        /// <summary>
+        /// Consumes template parameters:
+        /// LBR matched RBR
+        /// </summary>
+        /// <returns>Tokens</returns>
+        internal List<Token> ConsumeTemplateParams()
+        {
+            var templateParams = new List<Token>();
+
             if (!base.TokenStream.Done && base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
                 var balancedCount = 0;
 
                 // Consumes bracket.
-                qualifiedName.Add(base.TokenStream.Peek());
+                templateParams.Add(base.TokenStream.Peek());
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
@@ -224,21 +239,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     if (base.TokenStream.Peek().Type == TokenType.RightAngleBracket)
                     {
-                        qualifiedName.Add(base.TokenStream.Peek());
+                        templateParams.Add(base.TokenStream.Peek());
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                         if (balancedCount == 0)
                         {
                             // Done.
-                            return qualifiedName;
+                            return templateParams;
                         }
 
                         balancedCount--;
                     }
                     else if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
                     {
-                        qualifiedName.Add(base.TokenStream.Peek());
+                        templateParams.Add(base.TokenStream.Peek());
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
@@ -246,7 +261,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     }
                     else
                     {
-                        qualifiedName.Add(base.TokenStream.Peek());
+                        templateParams.Add(base.TokenStream.Peek());
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
                     }
@@ -260,7 +275,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            return qualifiedName;
+            return templateParams;
         }
 
         /// <summary>

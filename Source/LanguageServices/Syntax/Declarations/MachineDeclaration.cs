@@ -63,6 +63,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token Identifier;
 
         /// <summary>
+        /// The template parameters
+        /// </summary>
+        internal List<Token> TemplateParameters;
+
+        /// <summary>
         /// The colon token.
         /// </summary>
         internal Token ColonToken;
@@ -132,6 +137,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.AccessModifier = modSet.AccessModifier;
             this.InheritanceModifier = modSet.InheritanceModifier;
             this.IsPartial = modSet.IsPartial;
+            this.TemplateParameters = new List<Token>();
             this.BaseNameTokens = new List<Token>();
             this.EventDeclarations = new EventDeclarations();
             this.FieldDeclarations = new List<FieldDeclaration>();
@@ -293,7 +299,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "abstract ";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : ";
+            text += "class " + this.Identifier.TextUnit.Text;
+
+            foreach (var node in this.TemplateParameters)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            text += " : ";
 
             if (this.ColonToken != null)
             {

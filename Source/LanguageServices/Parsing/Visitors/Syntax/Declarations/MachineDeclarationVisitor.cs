@@ -76,6 +76,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
+            var nameVisitor = new NameVisitor(base.TokenStream);
+            node.TemplateParameters = nameVisitor.ConsumeTemplateParams();
+
             if (base.TokenStream.Program is PSharpProgram)
             {
                 if (base.TokenStream.Done ||
@@ -97,38 +100,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                    if (base.TokenStream.Done ||
-                        base.TokenStream.Peek().Type != TokenType.Identifier)
-                    {
-                        throw new ParsingException("Expected base machine identifier.",
-                            new List<TokenType>
-                        {
-                                TokenType.Identifier
-                        });
-                    }
-
-                    while (!base.TokenStream.Done &&
-                        base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
-                    {
-                        if (base.TokenStream.Peek().Type != TokenType.Identifier &&
-                            base.TokenStream.Peek().Type != TokenType.Dot &&
-                            base.TokenStream.Peek().Type != TokenType.NewLine)
-                        {
-                            throw new ParsingException("Expected base machine identifier.",
-                                new List<TokenType>
-                            {
-                                    TokenType.Identifier,
-                                    TokenType.Dot
-                            });
-                        }
-                        else
-                        {
-                            node.BaseNameTokens.Add(base.TokenStream.Peek());
-                        }
-
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    }
+                    var baseNameTokensVisitor = new NameVisitor(base.TokenStream);
+                    node.BaseNameTokens = baseNameTokensVisitor.ConsumeGenericName(TokenType.MachineIdentifier);
                 }
             }
 
