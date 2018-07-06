@@ -2,15 +2,17 @@
   <Import Project="..\..\Build\common.props" />
   <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.PSharp</AssemblyName>
     <Description>The P# framework core libraries and runtime.</Description>
-    <AssemblyTitle>Microsoft.PSharp</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <AssemblyName>Microsoft.PSharp</AssemblyName>
+    <RootNamespace>Microsoft.PSharp</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netstandard2.0;net46;net45</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 </Project>

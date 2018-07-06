@@ -2,20 +2,23 @@
   <Import Project="..\..\Build\common.props" />
   <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyName>
     <Description>Unit tests for P#.</Description>
-    <AssemblyTitle>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Unit</RootNamespace>
     <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netcoreapp2.1;net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\TestingServices\TestingServices.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.console" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>

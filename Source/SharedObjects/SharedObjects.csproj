@@ -2,16 +2,18 @@
   <Import Project="..\..\Build\common.props" />
   <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.PSharp.SharedObjects</AssemblyName>
     <Description>The P# shared objects library.</Description>
-    <AssemblyTitle>Microsoft.PSharp.SharedObjects</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <AssemblyName>Microsoft.PSharp.SharedObjects</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.SharedObjects</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netstandard2.0;net46;net45</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TestingServices\TestingServices.csproj" />

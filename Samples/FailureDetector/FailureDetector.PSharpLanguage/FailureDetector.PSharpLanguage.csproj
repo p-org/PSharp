@@ -1,19 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\bin\net46\PSharp.vs2017.targets" />
+  <Import Project="..\..\..\Build\common.samples.language.props" />
   <PropertyGroup>
-    <AssemblyName>FailureDetector.PSharpLanguage</AssemblyName>
     <Description>The FailureDetector P# sample.</Description>
-    <AssemblyTitle>FailureDetector.PSharpLanguage</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>FailureDetector.PSharpLanguage</AssemblyName>
+    <RootNamespace>FailureDetector.PSharpLanguage</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PSharp Include="Driver.psharp" />
     <PSharp Include="FailureDetector.psharp" />

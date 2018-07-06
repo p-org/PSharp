@@ -2,14 +2,17 @@
   <Import Project="..\..\Build\common.props" />
   <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.PSharp.Core.Tests.Performance</AssemblyName>
     <Description>Performance tests for P#.</Description>
-    <AssemblyTitle>Microsoft.PSharp.Core.Tests.Performance</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <AssemblyName>Microsoft.PSharp.Core.Tests.Performance</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.Core.Tests.Performance</RootNamespace>
     <OutputType>Exe</OutputType>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netcoreapp2.1;net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\Core\Core.csproj" />

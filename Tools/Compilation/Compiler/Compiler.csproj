@@ -2,17 +2,23 @@
   <Import Project="..\..\..\Build\common.props" />
   <Import Project="..\..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>PSharpCompiler</AssemblyName>
     <Description>The P# compiler.</Description>
-    <AssemblyTitle>PSharpCompiler</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>PSharpCompiler</AssemblyName>
+    <RootNamespace>PSharpCompiler</RootNamespace>
     <PackageTags>compiler;psharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
     <ProjectReference Include="..\..\..\Source\StaticAnalysis\StaticAnalysis.csproj" />
   </ItemGroup>

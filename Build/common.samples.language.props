@@ -1,0 +1,14 @@
+<Project>
+  <Import Project="common.props" />
+  <Import Project="..\net46\PSharp.vs2017.targets" />
+  <PropertyGroup>
+    <TargetFrameworks>net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -28,15 +28,17 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// A P# testing process.
     /// </summary>
+#if NET46 || NET45
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+#endif
     internal sealed class TestingProcess : ITestingProcess
     {
-        #region fields
-
+#if NET46 || NET45
         /// <summary>
         /// The notification listening service.
         /// </summary>
         private ServiceHost NotificationService;
+#endif
 
         /// <summary>
         /// Configuration.
@@ -49,14 +51,12 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private ITestingEngine TestingEngine;
 
+#if NET46 || NET45
         /// <summary>
         /// The remote testing scheduler.
         /// </summary>
         private ITestingProcessScheduler TestingScheduler;
-
-        #endregion
-
-        #region remote testing process methods
+#endif
 
         /// <summary>
         /// Returns the test report.
@@ -75,10 +75,6 @@ namespace Microsoft.PSharp.TestingServices
             this.TestingEngine.Stop();
         }
 
-        #endregion
-
-        #region internal methods
-
         /// <summary>
         /// Creates a P# testing process.
         /// </summary>
@@ -94,6 +90,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Start()
         {
+#if NET46 || NET45
             // Opens the remote notification listener.
             this.OpenNotificationListener();
 
@@ -103,9 +100,11 @@ namespace Microsoft.PSharp.TestingServices
                 timer = this.CreateParentStatusMonitorTimer();
                 timer.Start();
             }
-            
+#endif
+
             this.TestingEngine.Run();
 
+#if NET46 || NET45
             if (this.Configuration.RunAsParallelBugFindingTask)
             {
                 if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
@@ -119,6 +118,7 @@ namespace Microsoft.PSharp.TestingServices
 
                 this.SendTestReport();
             }
+#endif
 
             if (!this.Configuration.PerformFullExploration)
             {
@@ -134,6 +134,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
+#if NET46 || NET45
             // Closes the remote notification listener.
             this.CloseNotificationListener();
 
@@ -141,11 +142,8 @@ namespace Microsoft.PSharp.TestingServices
             {
                 timer.Stop();
             }
+#endif
         }
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -170,10 +168,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration);
         }
 
-        #endregion
-
-        #region private methods
-
+#if NET46 || NET45
         /// <summary>
         /// Opens the remote notification listener. If this is
         /// not a parallel testing process, then this operation
@@ -244,44 +239,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Sends the test report associated with this testing process.
-        /// </summary>
-        private void SendTestReport()
-        {
-            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/" +
-                $"{this.Configuration.TestingSchedulerEndPoint}");
-
-            NetNamedPipeBinding binding = new NetNamedPipeBinding();
-            binding.MaxReceivedMessageSize = Int32.MaxValue;
-
-            EndpointAddress endpoint = new EndpointAddress(address);
-
-            if (this.TestingScheduler == null)
-            {
-                this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
-                    CreateChannel(binding, endpoint);
-            }
-
-            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport.Clone(),
-                this.Configuration.TestingProcessId);
-        }
-
-        /// <summary>
-        /// Emits the testing traces.
-        /// </summary>
-        private void EmitTraces()
-        {
-            string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
-            file += "_" + this.Configuration.TestingProcessId;
-
-            // If this is a separate (sub-)process, CodeCoverageInstrumentation.OutputDirectory may not have been set up.
-            CodeCoverageInstrumentation.SetOutputDirectory(this.Configuration, makeHistory: false);
-
-            Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
-            this.TestingEngine.TryEmitTraces(CodeCoverageInstrumentation.OutputDirectory, file);
-        }
-
-        /// <summary>
         /// Notifies the remote testing scheduler
         /// about a discovered bug.
         /// </summary>
@@ -304,6 +261,46 @@ namespace Microsoft.PSharp.TestingServices
             this.TestingScheduler.NotifyBugFound(this.Configuration.TestingProcessId);
         }
 
+        /// <summary>
+        /// Sends the test report associated with this testing process.
+        /// </summary>
+        private void SendTestReport()
+        {
+            Uri address = new Uri("net.pipe://localhost/psharp/testing/scheduler/" +
+                $"{this.Configuration.TestingSchedulerEndPoint}");
+
+            NetNamedPipeBinding binding = new NetNamedPipeBinding();
+            binding.MaxReceivedMessageSize = Int32.MaxValue;
+
+            EndpointAddress endpoint = new EndpointAddress(address);
+
+            if (this.TestingScheduler == null)
+            {
+                this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
+                    CreateChannel(binding, endpoint);
+            }
+
+            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport.Clone(),
+                this.Configuration.TestingProcessId);
+        }
+#endif
+
+        /// <summary>
+        /// Emits the testing traces.
+        /// </summary>
+        private void EmitTraces()
+        {
+            string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
+            file += "_" + this.Configuration.TestingProcessId;
+
+            // If this is a separate (sub-)process, CodeCoverageInstrumentation.OutputDirectory may not have been set up.
+            CodeCoverageInstrumentation.SetOutputDirectory(this.Configuration, makeHistory: false);
+
+            Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
+            this.TestingEngine.TryEmitTraces(CodeCoverageInstrumentation.OutputDirectory, file);
+        }
+
+#if NET46 || NET45
         /// <summary>
         /// Creates a timer that monitors the status of the parent process.
         /// </summary>
@@ -331,7 +328,6 @@ namespace Microsoft.PSharp.TestingServices
                 Environment.Exit(1);
             }
         }
-
-        #endregion
+#endif
     }
 }

@@ -1,19 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\bin\net46\PSharp.vs2017.targets" />
+  <Import Project="..\..\..\Build\common.samples.language.props" />
   <PropertyGroup>
-    <AssemblyName>BoundedAsync.PSharpLanguage</AssemblyName>
     <Description>The BoundedAsync P# sample.</Description>
-    <AssemblyTitle>BoundedAsync.PSharpLanguage</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>BoundedAsync.PSharpLanguage</AssemblyName>
+    <RootNamespace>BoundedAsync.PSharpLanguage</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PSharp Include="Process.psharp" />
     <PSharp Include="Scheduler.psharp" />

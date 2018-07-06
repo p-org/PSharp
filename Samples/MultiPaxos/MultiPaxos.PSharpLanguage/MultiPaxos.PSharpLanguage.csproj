@@ -1,19 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\bin\net46\PSharp.vs2017.targets" />
+  <Import Project="..\..\..\Build\common.samples.language.props" />
   <PropertyGroup>
-    <AssemblyName>MultiPaxos.PSharpLanguage</AssemblyName>
     <Description>The MultiPaxos P# sample.</Description>
-    <AssemblyTitle>MultiPaxos.PSharpLanguage</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>MultiPaxos.PSharpLanguage</AssemblyName>
+    <RootNamespace>MultiPaxos.PSharpLanguage</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PSharp Include="Client.psharp" />
     <PSharp Include="Events.psharp" />

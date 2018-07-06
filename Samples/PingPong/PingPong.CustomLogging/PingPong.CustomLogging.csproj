@@ -1,19 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\bin\net46\PSharp.vs2017.targets" />
+  <Import Project="..\..\..\Build\common.samples.language.props" />
   <PropertyGroup>
-    <AssemblyName>PingPong.CustomLogging</AssemblyName>
     <Description>The PingPong P# sample.</Description>
-    <AssemblyTitle>PingPong.CustomLogging</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>PingPong.CustomLogging</AssemblyName>
+    <RootNamespace>PingPong.CustomLogging</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PSharp Include="NetworkEnvironment.psharp" />
     <PSharp Include="Client.psharp" />

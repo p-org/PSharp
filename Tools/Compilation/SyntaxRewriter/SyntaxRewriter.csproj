@@ -2,20 +2,27 @@
   <Import Project="..\..\..\Build\common.props" />
   <Import Project="..\..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>PSharpSyntaxRewriter</AssemblyName>
     <Description>The P# syntax rewriter.</Description>
-    <AssemblyTitle>PSharpSyntaxRewriter</AssemblyTitle>
+    <AssemblyName>PSharpSyntaxRewriter</AssemblyName>
+    <RootNamespace>PSharpSyntaxRewriter</RootNamespace>
     <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
     <PackageTags>syntax;rewriter;psharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <None Include="PSharp.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -24,7 +31,7 @@
     </None>
     <None Include="PSharp.WithCompiler.targets" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
   </ItemGroup>
 </Project>

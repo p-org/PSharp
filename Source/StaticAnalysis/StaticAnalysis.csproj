@@ -2,18 +2,23 @@
   <Import Project="..\..\Build\common.props" />
   <Import Project="..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.PSharp.StaticAnalysis</AssemblyName>
     <Description>The P# static analysis library.</Description>
-    <AssemblyTitle>Microsoft.PSharp.StaticAnalysis</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <AssemblyName>Microsoft.PSharp.StaticAnalysis</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.StaticAnalysis</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <ProjectReference Include="..\LanguageServices\LanguageServices.csproj" />
     <ProjectReference Include="..\AddOns\DataFlowAnalysis\DataFlowAnalysis.csproj" />
   </ItemGroup>

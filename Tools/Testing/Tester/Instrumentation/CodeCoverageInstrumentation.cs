@@ -19,7 +19,9 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if NET46 || NET45
 using Tester.Utilities;
+#endif
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -29,6 +31,7 @@ namespace Microsoft.PSharp.TestingServices
     internal static class CodeCoverageInstrumentation
     {
         internal static string OutputDirectory = string.Empty;
+#if NET46 || NET45
         internal static List<string> InstrumentedAssemblyNames = new List<string>();
 
         internal static void Instrument(Configuration configuration)
@@ -229,6 +232,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             return toolPath;
         }
+#endif
 
         /// <summary>
         /// Set the <see cref="OutputDirectory"/> to either the user-specified <see cref="Configuration.OutputFilePath"/> 

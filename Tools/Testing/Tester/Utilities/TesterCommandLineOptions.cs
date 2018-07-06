@@ -412,6 +412,18 @@ namespace Microsoft.PSharp.Utilities
                     "must have a max scheduling steps bound, which can be given using " +
                     "'/max-steps:[bound]', where [bound] > 0.");
             }
+
+#if NETCOREAPP2_1
+            if (base.Configuration.ParallelBugFindingTasks > 1)
+            {
+                Error.ReportAndExit("We do not yet support parallel testing when using the .NET Core runtime.");
+            }
+
+            if (base.Configuration.ReportCodeCoverage || base.Configuration.ReportActivityCoverage)
+            {
+                Error.ReportAndExit("We do not yet support coverage reports when using the .NET Core runtime.");
+            }
+#endif
         }
 
         /// <summary>

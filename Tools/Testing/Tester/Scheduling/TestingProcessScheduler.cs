@@ -27,20 +27,22 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// The P# testing process scheduler.
     /// </summary>
+#if NET46 || NET45
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+#endif
     internal sealed class TestingProcessScheduler : ITestingProcessScheduler
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
         private Configuration Configuration;
 
+#if NET46 || NET45
         /// <summary>
         /// The notification listening service.
         /// </summary>
         private ServiceHost NotificationService;
+#endif
 
         /// <summary>
         /// Map from testing process ids to testing processes.
@@ -84,14 +86,12 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal static bool ProcessCanceled;
 
+#if NET46 || NET45
         /// <summary>
         /// Set true if we have multiple parallel processes or are running code coverage.
         /// </summary>
         private bool runOutOfProcess;
-
-        #endregion
-
-        #region constructors
+#endif
 
         /// <summary>
         /// Constructor.
@@ -107,6 +107,7 @@ namespace Microsoft.PSharp.TestingServices
             this.SchedulerLock = new object();
             this.BugFoundByProcess = null;
 
+#if NET46 || NET45
             // Code coverage should be run out-of-process; otherwise VSPerfMon won't shutdown correctly
             // because an instrumented process (this one) is still running.
             this.runOutOfProcess = configuration.ParallelBugFindingTasks > 1 || configuration.ReportCodeCoverage;
@@ -116,15 +117,12 @@ namespace Microsoft.PSharp.TestingServices
                 configuration.Verbose = 1;
                 configuration.EnableDataRaceDetection = false;
             }
+#endif
 
             configuration.EnableColoredConsoleOutput = true;
 
             this.Configuration = configuration;
         }
-
-        #endregion
-
-        #region remote testing process methods
 
         /// <summary>
         /// Notifies the testing process scheduler
@@ -182,10 +180,6 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        #endregion
-
-        #region internal methods
-
         /// <summary>
         /// Creates a new P# testing process scheduler.
         /// </summary>
@@ -201,11 +195,14 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Run()
         {
+#if NET46 || NET45
             // Opens the remote notification listener.
             this.OpenNotificationListener();
+#endif
 
             this.Profiler.StartMeasuringExecutionTime();
 
+#if NET46 || NET45
             if (runOutOfProcess)
             {
                 this.CreateParallelTestingProcesses();
@@ -215,11 +212,16 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.CreateAndRunInMemoryTestingProcess();
             }
+#else
+            this.CreateAndRunInMemoryTestingProcess();
+#endif
 
             this.Profiler.StopMeasuringExecutionTime();
 
+#if NET46 || NET45
             // Closes the remote notification listener.
             this.CloseNotificationListener();
+#endif
 
             // Merges and emits the test report.
             if (!ProcessCanceled)
@@ -228,10 +230,7 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        #endregion
-
-        #region private methods
-
+#if NET46 || NET45
         /// <summary>
         /// Creates the user specified number of parallel testing processes.
         /// </summary>
@@ -272,6 +271,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Creates and runs an in-memory testing process.
@@ -294,6 +294,7 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
+#if NET46 || NET45
         /// <summary>
         /// Opens the remote notification listener. If there are
         /// less than two parallel testing processes, then this
@@ -378,6 +379,7 @@ namespace Microsoft.PSharp.TestingServices
 
             return ChannelFactory<ITestingProcess>.CreateChannel(binding, endpoint);
         }
+#endif
 
         /// <summary>
         /// Stops the testing process.
@@ -459,6 +461,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
+#if NET46 || NET45
             if (this.Configuration.ReportActivityCoverage)
             {
                 Output.WriteLine($"... Emitting coverage reports:");
@@ -473,11 +476,10 @@ namespace Microsoft.PSharp.TestingServices
                     Reporter.EmitTestingCoverageReport(report.Value, report.Key, isDebug: true);
                 }
             }
+#endif
 
             Output.WriteLine(this.GlobalTestReport.GetText(this.Configuration, "..."));
             Output.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
-
-        #endregion
     }
 }

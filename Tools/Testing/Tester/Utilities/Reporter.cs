@@ -25,8 +25,7 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal sealed class Reporter
     {
-        #region internal static methods
-
+#if NET46 || NET45
         /// <summary>
         /// Emits the testing coverage report.
         /// </summary>
@@ -50,6 +49,7 @@ namespace Microsoft.PSharp.TestingServices
 
             EmitTestingCoverageOutputFiles(report, directory, file);
         }
+#endif
 
         /// <summary>
         /// Returns (and creates if it does not exist) the output
@@ -93,10 +93,6 @@ namespace Microsoft.PSharp.TestingServices
             return directoryPath;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Emits all the testing coverage related output files.
         /// </summary>
@@ -124,7 +120,5 @@ namespace Microsoft.PSharp.TestingServices
                 serializer.WriteObject(fs, report.CoverageInfo);
             }
         }
-
-        #endregion
     }
 }
