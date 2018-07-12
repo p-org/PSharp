@@ -9,6 +9,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>data-flow;analysis;dotnet;csharp</PackageTags>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>
