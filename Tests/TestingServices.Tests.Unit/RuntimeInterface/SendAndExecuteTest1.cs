@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(A), new Configure(true));
             });
 
-            base.AssertFailed(config, test, "Livelock detected. 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest1+A()' and 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest1+B()' are waiting for an event, but no other schedulable choices are enabled.", true);
+            base.AssertFailed(config, test, "Livelock detected. '(Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest1+A)-0' and '(Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest1+B)-0' are waiting for an event, but no other schedulable choices are enabled.", true);
         }
     }
 }

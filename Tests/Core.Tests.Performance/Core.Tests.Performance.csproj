@@ -7,6 +7,7 @@
     <AssemblyTitle>Microsoft.PSharp.Core.Tests.Performance</AssemblyTitle>
     <TargetFrameworks>net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>.\bin\</OutputPath>
