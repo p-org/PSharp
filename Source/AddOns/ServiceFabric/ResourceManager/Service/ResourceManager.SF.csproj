@@ -1,11 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\..\Build\common.props" />
-  <Import Project="..\..\..\..\Build\key.props" />
+  <Import Project="..\..\..\..\..\Build\common.props" />
+  <Import Project="..\..\..\..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.ServiceFabric.Grpc</AssemblyName>
+    <AssemblyName>ResourceManager.SF</AssemblyName>
     <Description>The P# runtime and base services for service fabric.</Description>
-    <AssemblyTitle>Microsoft.ServiceFabric.Grpc</AssemblyTitle>
+    <AssemblyTitle>ResourceManager.SF</AssemblyTitle>
     <TargetFrameworks>net462</TargetFrameworks>
+    <TargetFramework>net462</TargetFramework> <!-- Sad hack - https://github.com/Azure/service-fabric-issues/issues/828 -->
+    <IsServiceFabricServiceProject>True</IsServiceFabricServiceProject>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
@@ -13,13 +16,17 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\bin\</OutputPath>
-    <RootNamespace>Microsoft.ServiceFabric.Grpc</RootNamespace>
+    <RootNamespace>ResourceManager.SF</RootNamespace>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Grpc" Version="1.13.0" />
     <PackageReference Include="Grpc.Core" Version="1.13.0" />
     <PackageReference Include="Grpc.Tools" Version="1.13.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="6.2.306" />
     <PackageReference Include="Microsoft.ServiceFabric.Data" Version="3.1.306" />
     <PackageReference Include="Microsoft.ServiceFabric.Data.Extensions" Version="1.3.306" />
@@ -31,5 +38,12 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory">
       <Version>2.1.1</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PackageRoot\Config\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Grpc\Grpc.csproj" />
+    <ProjectReference Include="..\Contracts\ResourceManager.Contracts.csproj" />
   </ItemGroup>
 </Project>

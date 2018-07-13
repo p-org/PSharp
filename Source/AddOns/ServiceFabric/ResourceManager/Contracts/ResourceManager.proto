@@ -83,5 +83,9 @@ message ListResourceTypesRequest {
 }
 
 message ResourceTypesResponse {
-  string ResourceType = 1; 
+  // The resource type
+  string ResourceType = 1;
+
+  // The total number of resource managed in this service
+  uint64 Count = 2;
 }
