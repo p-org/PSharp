@@ -1402,7 +1402,7 @@ namespace Microsoft.PSharp
                 var hash = 19;
 
                 hash = hash * 31 + this.GetType().GetHashCode();
-                if (base.Id.Value != 0)
+                if (this.Runtime.IsTest())
                 {
                     hash = hash * 31 + base.Id.Value.GetHashCode();
                 }

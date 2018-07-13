@@ -84,7 +84,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            if(this.Id.Value != 0)
+            if(this.Runtime.IsTest())
             {
                 return this.Id.Value == m.Id.Value;
             }
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            if (this.Id.Value != 0)
+            if (this.Runtime.IsTest())
             {
                 return this.Id.Value.GetHashCode();
             }
