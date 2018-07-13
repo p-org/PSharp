@@ -1744,6 +1744,11 @@ namespace Microsoft.PSharp.TestingServices
             return (ulong)Interlocked.Increment(ref this.MachineIdCounter) - 1;
         }
 
+        internal override bool IsTest()
+        {
+            return true;
+        }
+
         #endregion
     }
 }

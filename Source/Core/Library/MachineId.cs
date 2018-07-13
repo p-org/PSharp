@@ -85,9 +85,12 @@ namespace Microsoft.PSharp
             Type = type;
             Runtime = runtime;
 
-            this.Value = runtime.GenerateTestId();
-            // Checks for overflow.
-            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
+            if (this.Runtime.IsTest())
+            {
+                this.Value = runtime.GenerateTestId();
+                // Checks for overflow.
+                Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
+            }
 
             if (string.IsNullOrWhiteSpace(friendlyName))
             {
@@ -131,13 +134,13 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            if (Value == 0)
+            if (Runtime.IsTest())
             {
-                return Name == mid.Name;
+                return Value == mid.Value;
             }
             else
             {
-                return Value == mid.Value;
+                return Name == mid.Name;
             }
         }
 
@@ -148,8 +151,7 @@ namespace Microsoft.PSharp
         public override int GetHashCode()
         {
             int hash = 17;
-            // If we are running tests - Value != 0
-            if (Value == 0)
+            if (Runtime.IsTest())
             {
                 hash = hash * 23 + Value.GetHashCode();
             }

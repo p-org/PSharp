@@ -300,6 +300,15 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         public abstract void InvokeMonitor(Type type, Event e);
 
+        /// <summary>
+        /// Returns if the runtime is our test environment
+        /// </summary>
+        /// <returns>true; if test and false otherwise</returns>
+        internal virtual bool IsTest()
+        {
+            return false;
+        }
+
         internal string GetFriendlyName(string type)
         {
             return typeCounter.AddOrUpdate(type, 0, UpdateCounter).ToString();
