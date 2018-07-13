@@ -6,6 +6,7 @@
     <Description>Unit tests for P#.</Description>
     <AssemblyTitle>Microsoft.PSharp.SharedObjects.Tests.Unit</AssemblyTitle>
     <TargetFrameworks>net46</TargetFrameworks>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>.\bin\</OutputPath>

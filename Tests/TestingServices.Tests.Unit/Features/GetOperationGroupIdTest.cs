@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M3));
             });
 
-            string bugReport = "Trying to access the operation group id of 'Microsoft.PSharp.TestingServices.Tests.Unit.GetOperationGroupIdTest+M4()', which is not the currently executing machine.";
+            string bugReport = "Trying to access the operation group id of '(Microsoft.PSharp.TestingServices.Tests.Unit.GetOperationGroupIdTest+M4)-0', which is not the currently executing machine.";
             AssertFailed(test, bugReport, true);
         }
     }

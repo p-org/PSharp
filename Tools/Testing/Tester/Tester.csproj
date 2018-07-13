@@ -7,6 +7,7 @@
     <TargetFrameworks>net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <PackageTags>systematic;tester;psharp</PackageTags>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>

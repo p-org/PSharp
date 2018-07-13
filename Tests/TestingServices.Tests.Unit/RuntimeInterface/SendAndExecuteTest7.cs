@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Harness));
             });
 
-            base.AssertFailed(test, "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+M()' received event 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.", true);
+            base.AssertFailed(test, "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+M)-0' received event 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.", true);
         }
 
     }
