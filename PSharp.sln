@@ -71,6 +71,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceFabric", "Source\Add
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Grpc", "Source\AddOns\ServiceFabric\Grpc\Grpc.csproj", "{9355A2D8-8BF4-4CAC-8585-9E0F8961F93E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceManager.Contracts", "Source\AddOns\ServiceFabric\ResourceManager\Contracts\ResourceManager.Contracts.csproj", "{AB7798DF-297F-4CB6-88AE-613652D03542}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -263,6 +265,14 @@ Global
 		{9355A2D8-8BF4-4CAC-8585-9E0F8961F93E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9355A2D8-8BF4-4CAC-8585-9E0F8961F93E}.Release|x64.ActiveCfg = Release|x64
 		{9355A2D8-8BF4-4CAC-8585-9E0F8961F93E}.Release|x64.Build.0 = Release|x64
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Debug|x64.ActiveCfg = Debug|x64
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Debug|x64.Build.0 = Debug|x64
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Release|x64.ActiveCfg = Release|x64
+		{AB7798DF-297F-4CB6-88AE-613652D03542}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -295,6 +305,7 @@ Global
 		{2A3D4399-787C-4F97-8591-6A8021775AE0} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
 		{FEA85222-5599-4DE3-A4AD-286C6B5A698B} = {65338B9B-4990-4C3A-9BB1-2B9E30115157}
 		{9355A2D8-8BF4-4CAC-8585-9E0F8961F93E} = {65338B9B-4990-4C3A-9BB1-2B9E30115157}
+		{AB7798DF-297F-4CB6-88AE-613652D03542} = {65338B9B-4990-4C3A-9BB1-2B9E30115157}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DC84FA00-A3A9-43A9-B63D-57053852DA18}
