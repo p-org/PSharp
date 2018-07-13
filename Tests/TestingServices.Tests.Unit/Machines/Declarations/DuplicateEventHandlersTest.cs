@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M1));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M1()' declared multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M1)-0' declared multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M1+Init'.";
             AssertFailed(test, bugReport, false);
@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M2));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M2()' declared multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M2)-0' declared multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M2+Init'.";
             AssertFailed(test, bugReport, false);
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M3));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M3()' declared multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M3)-0' declared multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M3+Init'.";
             AssertFailed(test, bugReport, false);
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M4));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M4()' inherited multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M4)-0' inherited multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' from state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M4+BaseState' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M4+Init'.";
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M5));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M5()' inherited multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M5)-0' inherited multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' from state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M5+BaseState' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M5+Init'.";
@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M6));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M6()' inherited multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M6)-0' inherited multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' from state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M6+BaseState' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M6+Init'.";
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M7));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M7()' declared multiple " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M7)-0' declared multiple " +
                 "handlers for 'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+E' in state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.DuplicateEventHandlersTest+M7+Init'.";
             AssertFailed(test, bugReport, false);

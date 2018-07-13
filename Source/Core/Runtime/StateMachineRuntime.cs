@@ -374,9 +374,9 @@ namespace Microsoft.PSharp
             }
             else
             {
-                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Name);
                 this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
-                    mid.Value, mid.Type, type.FullName);
+                    mid.Name, mid.Type, type.FullName);
                 mid.Bind(this);
             }
 
@@ -386,10 +386,10 @@ namespace Microsoft.PSharp
             machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +
+            this.Assert(result, "MachineId {0} = This typically occurs " +
                 "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
                 "runtime generation was deserialized, but the current runtime has not increased its generation value.",
-                mid.Value, mid.Generation);
+                mid.Name);
 
             return machine;
         }
@@ -855,6 +855,11 @@ namespace Microsoft.PSharp
         {
             base.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);
+        }
+
+        internal override ulong GenerateTestId()
+        {
+            return 0;
         }
 
         #endregion

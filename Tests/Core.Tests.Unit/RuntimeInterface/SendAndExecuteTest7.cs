@@ -80,10 +80,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             };
             runtime.CreateMachine(typeof(Harness), new Config(tcs));
             tcs.Task.Wait();
-
+            
             Assert.True(failed);
-            Assert.Equal("Machine 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+M(1)' received event 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.",
-                message);
+            Assert.Equal($"Machine '({typeof(M).FullName})-0' received event '{typeof(E).FullName}' that cannot be handled.", message);
         }
 
     }

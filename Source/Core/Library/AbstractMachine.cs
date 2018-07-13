@@ -84,7 +84,12 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return this.Id.Value == m.Id.Value;
+            if(this.Id.Value != 0)
+            {
+                return this.Id.Value == m.Id.Value;
+            }
+
+            return this.Id.Equals(m.Id);
         }
 
         /// <summary>
@@ -93,7 +98,12 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return this.Id.Value.GetHashCode();
+            if (this.Id.Value != 0)
+            {
+                return this.Id.Value.GetHashCode();
+            }
+
+            return this.Id.GetHashCode();
         }
 
         /// <summary>

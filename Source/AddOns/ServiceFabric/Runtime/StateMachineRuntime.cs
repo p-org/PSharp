@@ -149,6 +149,11 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             throw new NotImplementedException();
         }
+
+        internal override ulong GenerateTestId()
+        {
+            return 0;
+        }
     }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

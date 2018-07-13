@@ -17,6 +17,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.TestingServices.Coverage;
@@ -34,6 +35,10 @@ namespace Microsoft.PSharp.TestingServices
     internal sealed class BugFindingRuntime : PSharpRuntime
     {
         #region fields
+        /// <summary>
+        /// Monotonically increasing machine id counter.
+        /// </summary>
+        internal long MachineIdCounter;
 
         /// <summary>
         /// The bug-finding scheduler.
@@ -688,7 +693,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
             this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
-                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid.Generation, mid);
+                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid, mid);
             this.Assert(sender != null && (sender is Machine), "Only a machine can execute CreateMachineAndExecute. " +
                 "Avoid calling directly from the PSharp Test method. " +
                 "Instead call through a 'harness' machine.");
@@ -1732,6 +1737,11 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineMap.Clear();
             this.TaskMap.Clear();
             base.Dispose();
+        }
+
+        internal override ulong GenerateTestId()
+        {
+            return (ulong)Interlocked.Increment(ref this.MachineIdCounter);
         }
 
         #endregion

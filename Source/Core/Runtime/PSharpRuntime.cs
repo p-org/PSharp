@@ -29,16 +29,15 @@ namespace Microsoft.PSharp
     public abstract class PSharpRuntime : IDisposable
     {
         #region fields
+        /// <summary>
+        /// Counter for each type of object in that runtime
+        /// </summary>
+        internal ConcurrentDictionary<string, ulong> typeCounter;
 
         /// <summary>
         /// The configuration used by the runtime.
         /// </summary>
         internal Configuration Configuration;
-
-        /// <summary>
-        /// Monotonically increasing machine id counter.
-        /// </summary>
-        internal long MachineIdCounter;
 
         /// <summary>
         /// Records if the runtime is running.
@@ -136,10 +135,10 @@ namespace Microsoft.PSharp
         private void Initialize()
         {
             this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
-            this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
             this.IsRunning = true;
+            this.typeCounter = new ConcurrentDictionary<string, ulong>();
         }
 
         #endregion
@@ -300,6 +299,16 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
         public abstract void InvokeMonitor(Type type, Event e);
+
+        internal string GetFriendlyName(string type)
+        {
+            return typeCounter.AddOrUpdate(type, 0, UpdateCounter).ToString();
+        }
+
+        private ulong UpdateCounter(string key, ulong current)
+        {
+            return current + 1;
+        }
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled
@@ -560,6 +569,12 @@ namespace Microsoft.PSharp
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
         protected internal abstract int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue);
+        
+        /// <summary>
+        /// Generates the state machine test Id
+        /// </summary>
+        /// <returns>A test ID for the state machine</returns>
+        internal abstract ulong GenerateTestId();
 
         #endregion
 
@@ -913,7 +928,6 @@ namespace Microsoft.PSharp
         /// </summary>
         public virtual void Dispose()
         {
-            this.MachineIdCounter = 0;
             this.NetworkProvider.Dispose();
         }
 

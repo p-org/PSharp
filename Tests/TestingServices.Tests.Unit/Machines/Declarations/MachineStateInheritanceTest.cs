@@ -449,7 +449,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M2));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MachineStateInheritanceTest+M2()' " +
+            var bugReport = "Machine '(Microsoft.PSharp.TestingServices.Tests.Unit.MachineStateInheritanceTest+M2)-0' " +
                 "can not declare more than one start states.";
             AssertFailed(test, bugReport, false);
         }
