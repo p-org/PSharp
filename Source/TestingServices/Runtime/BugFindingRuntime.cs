@@ -1741,7 +1741,7 @@ namespace Microsoft.PSharp.TestingServices
 
         internal override ulong GenerateTestId()
         {
-            return (ulong)Interlocked.Increment(ref this.MachineIdCounter);
+            return (ulong)Interlocked.Increment(ref this.MachineIdCounter) - 1;
         }
 
         #endregion
