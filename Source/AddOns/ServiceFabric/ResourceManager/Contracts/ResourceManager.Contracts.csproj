@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\..\..\Build\common.props" />
   <Import Project="..\..\..\..\..\Build\key.props" />
-  <Target Name="ProtoGen" BeforeTargets="BeforeBuild" Inputs="ResourceManager.proto" Outputs="Codegen">  
-    <Exec Command="generate_protos.bat" />  
-  </Target>
   <PropertyGroup>
     <AssemblyName>ResourceManager.Contracts</AssemblyName>
     <Description>The P# runtime and base services for service fabric.</Description>
@@ -19,10 +16,6 @@
     <RootNamespace>ResourceManager.Contracts</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
-    <PackageReference Include="Google.Protobuf.Tools" Version="3.6.0" />
-    <PackageReference Include="Grpc" Version="1.13.0" />
-    <PackageReference Include="Grpc.Core" Version="1.13.0" />
-    <PackageReference Include="Grpc.Tools" Version="1.13.0" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="3.1.306" />
   </ItemGroup>
 </Project>

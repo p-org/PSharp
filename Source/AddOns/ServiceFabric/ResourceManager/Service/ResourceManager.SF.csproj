@@ -22,9 +22,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Grpc" Version="1.13.0" />
-    <PackageReference Include="Grpc.Core" Version="1.13.0" />
-    <PackageReference Include="Grpc.Tools" Version="1.13.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="6.2.306" />
@@ -34,16 +31,10 @@
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.1.306" />
     <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="3.1.306" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory">
-      <Version>2.1.1</Version>
-    </PackageReference>
-  </ItemGroup>
   <ItemGroup>
     <Folder Include="PackageRoot\Config\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Grpc\Grpc.csproj" />
     <ProjectReference Include="..\Contracts\ResourceManager.Contracts.csproj" />
   </ItemGroup>
 </Project>
