@@ -50,14 +50,17 @@ message CreateResourceRequest {
 }
 
 message CreateResourceResponse {
-  // The URI of the service which owns the resource
-  string ServiceLocation = 1;
+  // Result of the creation request
+  string Result = 1;
 
   // The URI of the service which owns the resource
-  string PartitionDetails = 2;
+  string ServiceLocation = 2;
+
+  // The URI of the service which owns the resource
+  string PartitionDetails = 3;
 
   // The resource ID of the resource created
-  string ResourceId = 3;
+  string ResourceId = 4;
 }
 
 message DeleteResourceRequest {
@@ -77,6 +80,15 @@ message DeleteResourceRequest {
 message DeleteResourceResponse {
   // Result of the deletion request
   string Result = 1;
+
+  // The URI of the service which owns the resource
+  string ServiceLocation = 2;
+
+  // The URI of the service which owns the resource
+  string PartitionDetails = 3;
+
+  // The resource ID of the resource created
+  string ResourceId = 4;
 }
 
 message ListResourceTypesRequest {
