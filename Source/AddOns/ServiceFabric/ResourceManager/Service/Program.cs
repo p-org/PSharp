@@ -13,7 +13,7 @@
             ConsoleLogger logger = new ConsoleLogger("RMService", null, false);
             try
             {
-                ServiceRuntime.RegisterServiceAsync("PPS.VMManagerType",
+                ServiceRuntime.RegisterServiceAsync("ResourceManager.SFType",
                         context =>
                         {
                             return new ResourceManagerService(context, logger);
@@ -25,6 +25,7 @@
             }
             catch (Exception ex)
             {
+                ServiceEventSource.Current.ServiceHostInitializationFailed(ex.ToString());
                 logger.LogCritical(ex, "Exiting application");
                 throw;
             }

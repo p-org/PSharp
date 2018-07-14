@@ -59,14 +59,16 @@
             {
                 var server = new Server
                 {
-                    Ports = { new ServerPort(host, port, ServerCredentials.Insecure) },
+                    Ports = { new ServerPort(host, port, ServerCredentials.Insecure) }
                 };
-                foreach (var service in Services)
+
+                foreach (ServerServiceDefinition service in Services)
                 {
                     // Intercept calls for each service
                     service.Intercept(new UnaryServerLoggingInterceptor(Log));
                     server.Services.Add(service);
                 }
+
                 _server = server;
                 server.Start();
                 return $"http://{host}:{port}";
@@ -75,7 +77,6 @@
             {
                 Log.LogError(ex, "Error starting server: {Exception}", ex.Message);
                 await StopServerAsync().ConfigureAwait(false);
-
                 throw;
             }
         }

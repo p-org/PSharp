@@ -1,13 +1,14 @@
-﻿using System.Fabric;
-using System.Threading.Tasks;
-using Grpc.Core;
-using Microsoft.Extensions.Logging;
-using Microsoft.ServiceFabric.Data;
-using ResourceManager.Contracts;
-
-namespace ResourceManager.SF
+﻿namespace ResourceManager.SF
 {
-    public class RmRpc : Contracts.ResourceManagerService.ResourceManagerServiceBase
+    using System.Fabric;
+    using System.Threading.Tasks;
+    using Grpc.Core;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.ServiceFabric.Data;
+    using ResourceManager.Contracts;
+    using static ResourceManager.Contracts.ResourceManagerService;
+
+    public class RmRpc : ResourceManagerServiceBase
     {
         private StatefulServiceContext context;
         private ILogger logger;
@@ -20,14 +21,14 @@ namespace ResourceManager.SF
             this.stateManager = stateManager;
         }
 
-        public override Task<CreateResourceResponse> CreateResource(CreateResourceRequest request, ServerCallContext context)
+        public override async Task<CreateResourceResponse> CreateResource(CreateResourceRequest request, ServerCallContext context)
         {
-            return base.CreateResource(request, context);
+            return new CreateResourceResponse() { ResourceId = "SUPER!" };
         }
 
-        public override Task<DeleteResourceResponse> DeleteResource(DeleteResourceRequest request, ServerCallContext context)
+        public override async Task<DeleteResourceResponse> DeleteResource(DeleteResourceRequest request, ServerCallContext context)
         {
-            return base.DeleteResource(request, context);
+            return new DeleteResourceResponse() { Result = "SUPER!" };
         }
 
         public override Task ListResourceTypes(ListResourceTypesRequest request, IServerStreamWriter<ResourceTypesResponse> responseStream, ServerCallContext context)
