@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
@@ -28,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <returns>Text</returns>
         public static string GetText(TokenType type)
         {
-            var text = "";
+            var text = String.Empty;
 
             switch (type)
             {

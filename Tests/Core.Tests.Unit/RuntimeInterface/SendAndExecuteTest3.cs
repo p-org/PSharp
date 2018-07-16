@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SendAndExecuteTest3.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -12,9 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -53,8 +52,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
                 var e = new E();
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                await this.Runtime.SendEventAndExecute(m, e);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var m = await runtime.CreateMachineAndExecute(typeof(M));
+                await runtime.SendEventAndExecute(m, e);
                 this.Assert(e.x == 1);
                 tcs.SetResult(true);
             }
@@ -92,7 +92,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestSyncSendBlocks()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

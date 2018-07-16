@@ -42,16 +42,15 @@ namespace Microsoft.PSharp.IO
         public bool IsVerbose => this.Configuration.Verbose >= LoggingVerbosity;
 
         /// <summary>
-        /// Constructs the logger. The logger will be assigned the Runtime's Configuration
-        /// object when it is passed to <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
+        /// Constructs the logger. The logger will be assigned the runtime
+        /// <see cref="PSharp.Configuration"/> object when it is passed to
+        /// <see cref="IPSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public StateMachineLogger(int loggingVerbosity = 2)
         {
             this.LoggingVerbosity = loggingVerbosity;
         }
-
-        #region output
 
         /// <summary>
         /// Writes the specified string value.
@@ -80,10 +79,6 @@ namespace Microsoft.PSharp.IO
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
         public abstract void WriteLine(string format, params object[] args);
-
-        #endregion output
-
-        #region events
 
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
@@ -164,7 +159,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="newStateName">The target state of goto.</param>
         public void OnGoto(MachineId machineId, string currentStateName, string newStateName)
         {
-            if(this.IsVerbose)
+            if (this.IsVerbose)
             {
                 this.WriteLine(FormatOnGotoString(machineId, currentStateName, newStateName));
             }
@@ -229,7 +224,7 @@ namespace Microsoft.PSharp.IO
         public virtual string FormatOnPopString(MachineId machineId, string currentStateName, string restoredStateName)
         {
             var curStateName = string.IsNullOrEmpty(currentStateName) ? "[not recorded]" : currentStateName;
-            var reenteredStateName = restoredStateName ?? string.Empty;
+            var reenteredStateName = restoredStateName ?? String.Empty;
             return $"<PopLog> Machine '{machineId}' popped state '{currentStateName}' and reentered state '{reenteredStateName}'.";
         }
 
@@ -259,7 +254,7 @@ namespace Microsoft.PSharp.IO
         public virtual string FormatOnPopUnhandledEventString(MachineId machineId, string currentStateName, string eventName)
         {
             var reenteredStateName = string.IsNullOrEmpty(currentStateName)
-                ? string.Empty
+                ? String.Empty
                 : $" and reentered state '{currentStateName}";
             return $"<PopLog> Machine '{machineId}' popped with unhandled event '{eventName}'{reenteredStateName}.";
         }
@@ -290,7 +285,7 @@ namespace Microsoft.PSharp.IO
         ///     and <paramref name="eventName"/> was one of them</param>
         public virtual string FormatOnReceiveString(MachineId machineId, string currentStateName, string eventName, bool wasBlocked)
         {
-            var unblocked = wasBlocked ? " and unblocked" : string.Empty;
+            var unblocked = wasBlocked ? " and unblocked" : String.Empty;
             return $"<ReceiveLog> Machine '{machineId}' in state '{currentStateName}' dequeued event '{eventName}'{unblocked}.";
         }
 
@@ -328,8 +323,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>        
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an AbstractMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
@@ -347,8 +341,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>        
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an AbstractMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
@@ -620,7 +613,7 @@ namespace Microsoft.PSharp.IO
         ///     else no liveness state is available.</param>
         public virtual string FormatOnMonitorStateString(string monitorTypeName, MachineId monitorId, string stateName, bool isEntry, bool? isInHotState)
         {
-            var liveness = isInHotState.HasValue ? (isInHotState.Value ? "'hot' " : "'cold' ") : string.Empty;
+            var liveness = isInHotState.HasValue ? (isInHotState.Value ? "'hot' " : "'cold' ") : String.Empty;
             var direction = isEntry ? "enters" : "exits";
             return $"<MonitorLog> Monitor '{monitorTypeName}' with id '{monitorId}' {direction} {liveness}state '{stateName}'.";
         }
@@ -725,19 +718,13 @@ namespace Microsoft.PSharp.IO
         /// <param name="strategyDescription">More information about the scheduling strategy.</param>
         public virtual string FormatOnStrategyErrorString(SchedulingStrategy strategy, string strategyDescription)
         {
-            var desc = string.IsNullOrEmpty(strategyDescription) ? $" Description: {strategyDescription}" : string.Empty;
+            var desc = string.IsNullOrEmpty(strategyDescription) ? $" Description: {strategyDescription}" : String.Empty;
             return $"<StrategyLog> Found bug using '{strategy}' strategy.{desc}";
         }
-
-        #endregion output
-
-        #region IDisposable
 
         /// <summary>
         /// Disposes the logger.
         /// </summary>
         public abstract void Dispose();
-
-        #endregion IDisposable
     }
 }

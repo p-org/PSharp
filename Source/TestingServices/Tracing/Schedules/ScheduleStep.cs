@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
     /// <summary>
     /// Class implementing a P# program schedule step.
     /// </summary>
-    internal sealed class ScheduleStep
+    public sealed class ScheduleStep
     {
         /// <summary>
         /// The unique index of this schedule step.

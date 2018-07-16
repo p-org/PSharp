@@ -12,9 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -44,8 +43,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var m = await runtime.CreateMachineAndExecute(typeof(M));
+                var handled = await runtime.SendEventAndExecute(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
@@ -103,10 +103,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestMachineHaltsOnSendExec()
         {
-            var config = Configuration.Create();
-            config.EnableMonitorsInProduction = true;
+            var configuration = Configuration.Create();
+            configuration.EnableMonitorsInProduction = true;
 
-            var runtime = PSharpRuntime.Create(config);
+            var runtime = new ProductionRuntime(configuration);
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
@@ -120,6 +120,5 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             Assert.False(failed);
         }
-
     }
 }

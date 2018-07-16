@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -66,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices
             // Perform sanity checking on the P# program.
             BasicTypeChecking();
 
-            var text = "";
+            var text = String.Empty;
             const int indentLevel = 0;
 
             foreach (var node in this.UsingDeclarations)
@@ -75,7 +76,7 @@ namespace Microsoft.PSharp.LanguageServices
                 text += node.TextUnit.Text;
             }
 
-            var newLine = "";
+            var newLine = String.Empty;
             foreach (var node in this.NamespaceDeclarations)
             {
                 text += newLine;

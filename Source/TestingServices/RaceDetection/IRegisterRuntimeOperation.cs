@@ -30,6 +30,12 @@ namespace Microsoft.PSharp.TestingServices
     public interface IRegisterRuntimeOperation
     {
         /// <summary>
+        /// Registers the testing runtime.
+        /// </summary>
+        /// <param name="runtime">ITestingRuntime</param>
+        void RegisterRuntime(ITestingRuntime runtime);
+
+        /// <summary>
         /// InAction[machineId.Value] = true iff the runtime executing an action
         /// in machine with Id machineId
         /// Reads and writes are instrumented only provided we're in an action.
@@ -89,12 +95,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="target">The id of the machine that is freshly created</param>
         /// </summary>
         void RegisterCreateMachine(MachineId source, MachineId target);
-
-        /// <summary>
-        /// Set the runtime an implementer should forward TryGetCurrentMachineId calls to.
-        /// </summary>
-        /// <param name="runtime"></param>
-        void SetRuntime(PSharpRuntime runtime);
 
         /// <summary>
         /// Return true if the runtime is currently executing a machine's action.

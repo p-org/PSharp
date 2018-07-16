@@ -299,7 +299,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             MethodDeclarationSyntax action = null;
 
-            string actionName = "";
+            string actionName = String.Empty;
             if (expr is InvocationExpressionSyntax)
             {
                 var invocation = expr as InvocationExpressionSyntax;

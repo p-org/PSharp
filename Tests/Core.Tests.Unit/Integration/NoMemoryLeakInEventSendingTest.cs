@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -93,7 +93,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         public void TestNoMemoryLeakInEventSending()
         {
             var tcs = new TaskCompletionSource<bool>();
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
             runtime.Stop();

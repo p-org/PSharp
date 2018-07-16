@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             if (expectedLines.Length != actualLines.Length)
             {
                 // Ignore one extra trailing crlf from actual (some of the tests may have forgotten to add it to expected).
-                if ((actualLines.Length != expectedLines.Length + 1) || (actualLines[actualLines.Length - 1] != string.Empty))
+                if ((actualLines.Length != expectedLines.Length + 1) || (actualLines[actualLines.Length - 1] != String.Empty))
                 {
                     var line = expectedLines.Length > actualLines.Length ? expectedLines[numLines] : actualLines[numLines];
                     var message = string.Format("{0} has more lines, starting at line {1}:{2}",

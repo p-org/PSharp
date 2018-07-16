@@ -5,13 +5,13 @@ namespace FailureDetector.PSharpLibrary
 {
     /// <summary>
     /// A sample application written using P# as a C# library.
-    /// 
+    ///
     /// This program implements a failure detection protocol. A failure detector state
     /// machine is given a list of machines, each of which represents a daemon running
     /// at a computing node in a distributed system. The failure detector sends each
     /// machine in the list a 'Ping' event and determines whether the machine has failed
     /// if it does not respond with a 'Pong' event within a certain time period.
-    ///  
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -23,7 +23,7 @@ namespace FailureDetector.PSharpLibrary
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -35,7 +35,7 @@ namespace FailureDetector.PSharpLibrary
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             // Monitors must be registered before the first P# machine
             // gets created (which will kickstart the runtime).

@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = String.Empty;
 
             foreach (var node in this.StateGroupDeclarations)
             {
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            var newLine = "";  // no newline for the first
+            var newLine = String.Empty;  // no newline for the first
             foreach (var node in this.StateGroupDeclarations)
             {
                 text += newLine + node.TextUnit.Text;

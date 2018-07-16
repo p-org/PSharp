@@ -12,29 +12,30 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Shared counter that can be safely shared by multiple P# state-machines.
+    /// Shared counter that can be safely shared by multiple P# machines.
     /// </summary>
     public static class SharedCounter
     {
         /// <summary>
         /// Creates a new shared counter.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
+        /// <param name="runtime">IPSharpRuntime</param>
         /// <param name="value">Initial value</param>
-        public static ISharedCounter Create(PSharpRuntime runtime, int value = 0)
+        public static ISharedCounter Create(IPSharpRuntime runtime, int value = 0)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedCounter(value);
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is ITestingRuntime testingRuntime)
             {
-                return new MockSharedCounter(value, runtime as BugFindingRuntime);
+                return new MockSharedCounter(value, testingRuntime);
             }
             else
             {

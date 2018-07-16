@@ -12,25 +12,25 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Outcome of Machine.OnException
+    /// Outcome of <see cref="Machine.OnException(string, System.Exception)"/>.
     /// </summary>
     public enum OnExceptionOutcome
     {
         /// <summary>
-        /// Throw the exception causing the runtime to fail
+        /// Throw the exception causing the runtime to fail.
         /// </summary>
         ThrowException = 0,
 
         /// <summary>
-        /// The exception was handled and Machine should continue execution
+        /// The exception was handled and Machine should continue execution.
         /// </summary>
         HandledException = 1,
 
         /// <summary>
-        /// Halt the machine (do not throw the exception)
+        /// Halt the machine (do not throw the exception).
         /// </summary>
         HaltMachine = 2
     }

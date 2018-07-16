@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices
 
         private static void RunMonitorProcess(bool isStarting)
         {
-            var error = string.Empty;
+            var error = String.Empty;
             var exitCode = 0;
             var outputFile = GetOutputName();
             var arguments = isStarting ? $"/start:coverage /output:{outputFile}" : "/shutdown";

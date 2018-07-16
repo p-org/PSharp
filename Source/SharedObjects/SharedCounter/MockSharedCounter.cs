@@ -24,25 +24,25 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Machine modeling the shared counter.
         /// </summary>
-        MachineId CounterMachine;
+        private MachineId CounterMachine;
 
         /// <summary>
-        /// The bug-finding runtime hosting this shared counter.
+        /// The testing runtime hosting this shared counter.
         /// </summary>
-        BugFindingRuntime Runtime;
+        private ITestingRuntime Runtime;
 
         /// <summary>
         /// Initializes the shared counter.
         /// </summary>
         /// <param name="value">Initial value</param>
-        /// <param name="Runtime">BugFindingRuntime</param>
-        public MockSharedCounter(int value, BugFindingRuntime Runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        public MockSharedCounter(int value, ITestingRuntime runtime)
         {
-            this.Runtime = Runtime;
-            CounterMachine = Runtime.CreateMachine(typeof(SharedCounterMachine));
+            this.Runtime = runtime;
+            this.CounterMachine = this.Runtime.CreateMachine(typeof(SharedCounterMachine));
 
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
             currentMachine.Receive(typeof(SharedCounterResponseEvent)).Wait();
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Increment()
         {
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.IncrementEvent());
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.IncrementEvent());
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Decrement()
         {
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.DecrementEvent());
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.DecrementEvent());
         }
 
         /// <summary>
@@ -68,8 +68,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>Current value</returns>
         public int GetValue()
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.GetEvent(currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.GetEvent(currentMachine.Id));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
         }
@@ -81,8 +81,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>The new value of the counter</returns>
         public int Add(int value)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.AddEvent(currentMachine.Id, value));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.AddEvent(currentMachine.Id, value));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
         }
@@ -94,8 +94,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>The original value of the counter</returns>
         public int Exchange(int value)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
         }
@@ -108,8 +108,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>The original value of the counter</returns>
         public int CompareExchange(int value, int comparand)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(CounterMachine, SharedCounterEvent.CasEvent(currentMachine.Id, value, comparand));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.CasEvent(currentMachine.Id, value, comparand));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
         }

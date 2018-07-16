@@ -32,7 +32,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var b = this.CreateMachine(typeof(B));
-                var handled = await this.Runtime.SendEventAndExecute(b, new E1());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var handled = await runtime.SendEventAndExecute(b, new E1());
                 this.Assert(!handled);
             }
         }
@@ -59,7 +60,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var d = this.CreateMachine(typeof(D));
-                var handled = await this.Runtime.SendEventAndExecute(d, new E1());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var handled = await runtime.SendEventAndExecute(d, new E1());
                 this.Assert(handled);
             }
         }
@@ -86,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestSyncSendToReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(A));
             });
 
@@ -97,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestSyncSendSometimesDoesNotHandle()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(C));
             });
 

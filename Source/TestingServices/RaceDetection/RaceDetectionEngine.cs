@@ -12,12 +12,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState;
-using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState;
+using Microsoft.PSharp.TestingServices.RaceDetection.Util;
+using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.TestingServices.RaceDetection
 {
@@ -62,13 +64,16 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// </summary>
         private Configuration Config;
 
+        /// <summary>
+        /// Test report.
+        /// </summary>
         private TestReport TestReport;
 
         /// <summary>
         /// We need a reference to the runtime to query it for the currently
         /// executing machine's Id at read/write operations
         /// </summary>
-        private BugFindingRuntime Runtime;
+        private ITestingRuntime Runtime;
 
         /// <summary>
         /// Counter to track the number of enqueue operations.
@@ -95,6 +100,10 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// </summary>
         private ulong CreateCount;
 
+        public Dictionary<ulong, bool> InAction { get; set; }
+
+        public long InMonitor { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -112,9 +121,14 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             ResetCounters();
         }
 
-        public Dictionary<ulong, bool> InAction { get; set; }
-
-        public long InMonitor { get; set; }
+        /// <summary>
+        /// Registers the testing runtime.
+        /// </summary>
+        /// <param name="runtime">ITestingRuntime</param>
+        public void RegisterRuntime(ITestingRuntime runtime)
+        {
+            this.Runtime = runtime;
+        }
 
         public bool TryGetCurrentMachineId(out ulong machineId)
         {
@@ -126,13 +140,6 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
             machineId = mid.Value;
             return true;
-        }
-
-        public void SetRuntime(PSharpRuntime runtime)
-        {
-            runtime.Assert((runtime as BugFindingRuntime) != null,
-                "Requires passed runtime to support method GetCurrentMachineId");
-            this.Runtime = runtime as BugFindingRuntime;
         }
 
         public void RegisterCreateMachine(MachineId source, MachineId target)

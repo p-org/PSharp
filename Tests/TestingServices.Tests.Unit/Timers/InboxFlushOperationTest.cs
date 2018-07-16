@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			config.MaxSchedulingSteps = 200;
 			config.SchedulingStrategy = Utilities.SchedulingStrategy.Portfolio;
 			config.RunAsParallelBugFindingTask = true;
-			var test = new Action<PSharpRuntime>((r) => {
+			var test = new Action<IPSharpRuntime>((r) => {
 				r.CreateMachine(typeof(FlushingClient));
 			});
 			base.AssertSucceeded(test);

@@ -14,7 +14,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using BenchmarkDotNet.Attributes;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
@@ -60,7 +60,8 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         [Benchmark]
         public void CreateMachines()
         {
-            var runtime = new StateMachineRuntime();
+            var configuration = PSharp.Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
 
             var tcs = new TaskCompletionSource<bool>();
             Node.Configure evt = new Node.Configure(tcs, Size);

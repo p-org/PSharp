@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.PCT;
             configuration.MaxSchedulingSteps = 300;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(M));
             });

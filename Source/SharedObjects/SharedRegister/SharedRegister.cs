@@ -12,29 +12,30 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Shared register that can be safely shared by multiple P# state-machines.
+    /// Shared register that can be safely shared by multiple P# machines.
     /// </summary>
     public static class SharedRegister
     {
         /// <summary>
         /// Creates a new shared register.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
+        /// <param name="runtime">IPSharpRuntime</param>
         /// <param name="value">Initial value</param>
-        public static ISharedRegister<T> Create<T>(PSharpRuntime runtime, T value = default(T)) where T : struct
+        public static ISharedRegister<T> Create<T>(IPSharpRuntime runtime, T value = default(T)) where T : struct
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedRegister<T>(value);
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is ITestingRuntime testingRuntime)
             {
-                return new MockSharedRegister<T>(value, runtime as BugFindingRuntime);
+                return new MockSharedRegister<T>(value, testingRuntime);
             }
             else
             {

@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = String.Empty;
 
             try
             {
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenFieldDeclaration()
         {
-            string text = "";
+            string text = String.Empty;
 
             if (this.AccessModifier == AccessModifier.Protected)
             {

@@ -6,7 +6,7 @@
     <AssemblyName>Microsoft.PSharp</AssemblyName>
     <RootNamespace>Microsoft.PSharp</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
+    <PackageTags>psharp;state-machines;asynchronous;event-driven;dotnet;csharp</PackageTags>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">

@@ -93,9 +93,9 @@ namespace Microsoft.PSharp
             }
             TestingProcessScheduler.ProcessCanceled = true;
 #if NET46 || NET45
-            var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
+            var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : String.Empty;
 #else
-            var monitorMessage = string.Empty;
+            var monitorMessage = String.Empty;
 #endif
             Output.WriteLine($". Process canceled by user.{monitorMessage}");
             Shutdown();

@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M));
             });
 

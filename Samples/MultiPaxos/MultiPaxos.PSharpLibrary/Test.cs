@@ -6,10 +6,10 @@ namespace MultiPaxos.PSharpLibrary
     /// <summary>
     /// A single-process implementation of the MultiPaxos consensus protocol written using
     /// P# as a C# library.
-    /// 
+    ///
     /// A brief description of the MultiPaxos protocol can be found here:
     /// http://amberonrails.com/paxosmulti-paxos-algorithm/
-    ///  
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -21,7 +21,7 @@ namespace MultiPaxos.PSharpLibrary
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -31,9 +31,9 @@ namespace MultiPaxos.PSharpLibrary
             Console.WriteLine("Press Enter to terminate...");
             Console.ReadLine();
         }
-        
+
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(ValidityCheck));
             runtime.CreateMachine(typeof(GodMachine));

@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointRandomChoice()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 if (r.Random())
                 {
                     r.CreateMachine(typeof(M));

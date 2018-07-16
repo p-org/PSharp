@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestSendInExitUnhandledEvent()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Real1));
             });
 

@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = String.Empty;
 
             try
             {
@@ -167,7 +167,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var indent1 = GetIndent(indentLevel + 1);
             var indent2 = GetIndent(indentLevel + 2);
 
-            string text = "";
+            string text = String.Empty;
 
             if ((this.Program as AbstractPSharpProgram).GetProject().CompilationContext.
                 Configuration.CompilationTarget == CompilationTarget.Remote)
@@ -219,7 +219,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += "\n" + indent0 + "{\n";
 
-            var newLine = "";
+            var newLine = String.Empty;
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
             {
                 text += indent1 + "public ";
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += indent1 + "public ";
             text += this.Identifier.TextUnit.Text + "(";
 
-            var separator = string.Empty;
+            var separator = String.Empty;
             foreach (var decl in allDecls)
             {
                 for (int i = 0; i < decl.PayloadIdentifiers.Count; i++)
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (allDecls.Length > 1)
             {
                 // We don't pass the most-derived decl's params to the base class
-                separator = string.Empty;
+                separator = String.Empty;
                 foreach (var decl in allDecls.Take(allDecls.Length - 1))
                 {
                     for (int i = 0; i < decl.PayloadIdentifiers.Count; i++)

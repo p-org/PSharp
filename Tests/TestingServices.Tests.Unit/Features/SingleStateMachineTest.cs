@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             protected override void OnHalt()
             {
                 count++;
-                this.Runtime.SendEvent(sender, new E(count, this.Id));
+                this.Send(sender, new E(count, this.Id));
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSingleStateMachine()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Harness));
             });
             var configuration = Configuration.Create();

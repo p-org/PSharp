@@ -12,9 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -53,8 +52,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
-                var handled = await this.Runtime.SendEventAndExecute(m, new LE());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var m = await runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
+                var handled = await runtime.SendEventAndExecute(m, new LE());
                 this.Assert(handled);
                 tcs.SetResult(true);
             }
@@ -70,7 +70,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var creator = (this.ReceivedEvent as E).mid;
-                var handled = await this.Id.Runtime.SendEventAndExecute(creator, new LE());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var handled = await runtime.SendEventAndExecute(creator, new LE());
                 this.Assert(!handled);
             }
 
@@ -80,7 +81,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestSendCycleDoesNotDeadlock()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
@@ -94,6 +96,5 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             Assert.False(failed);
         }
-
     }
 }

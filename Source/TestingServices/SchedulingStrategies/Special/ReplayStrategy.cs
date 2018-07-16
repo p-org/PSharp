@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             IsSchedulerFair = isFair;
             IsReplaying = true;
             SuffixStrategy = suffixStrategy;
-            ErrorText = "";
+            ErrorText = String.Empty;
         }
 
         /// <summary>

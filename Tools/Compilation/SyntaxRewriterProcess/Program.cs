@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
 
 using Microsoft.Build.Framework;
@@ -44,7 +45,7 @@ namespace Microsoft.PSharp
                 string outputFileName = args[count];
                 count++;
                 // Get input file as string
-                var inputString = "";
+                var inputString = String.Empty;
                 try
                 {
                     inputString = System.IO.File.ReadAllText(inputFileName);
@@ -56,7 +57,7 @@ namespace Microsoft.PSharp
                 }
 
                 // Translate and write to output file
-                string errors = "";
+                string errors = String.Empty;
                 var outputString = Translate(inputString, out errors);
                 if (outputString == null)
                 {
@@ -123,7 +124,7 @@ namespace Microsoft.PSharp
 
         public bool Execute()
         {
-            string processInputString = "";
+            string processInputString = String.Empty;
             for (int i = 0; i < InputFiles.Length; i++)
             {
                 processInputString += InputFiles[i].ItemSpec;

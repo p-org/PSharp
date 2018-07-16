@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointThrowException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 MachineId m = r.CreateMachine(typeof(M));
                 throw new InvalidOperationException();
             });
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointNoMachinesThrowException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 throw new InvalidOperationException();
             });
 

@@ -6,10 +6,10 @@ namespace TwoPhaseCommit.PSharpLibrary
     /// <summary>
     /// A single-process implementation of the two phase commit protocol written using
     /// P# as a C# library.
-    /// 
+    ///
     /// A description of the two phase commit protocol is available here:
     /// https://en.wikipedia.org/wiki/Two-phase_commit_protocol
-    ///  
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -21,7 +21,7 @@ namespace TwoPhaseCommit.PSharpLibrary
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -33,7 +33,7 @@ namespace TwoPhaseCommit.PSharpLibrary
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             runtime.CreateMachine(typeof(TwoPhaseCommit));
         }

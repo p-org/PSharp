@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.SharedObjects.Tests.Unit
@@ -75,7 +75,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         [Fact]
         public void TestCounter()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var counter = SharedCounter.Create(runtime, 0);
             var tcs1 = new TaskCompletionSource<bool>();
             var tcs2 = new TaskCompletionSource<bool>();

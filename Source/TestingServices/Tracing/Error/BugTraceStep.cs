@@ -23,8 +23,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     [DataContract(IsReference = true)]
     internal sealed class BugTraceStep
     {
-        #region fields
-
         /// <summary>
         /// The unique index of this bug trace step.
         /// </summary>
@@ -95,10 +93,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         internal BugTraceStep Next;
 
-        #endregion
-
-        #region internal methods
-
         /// <summary>
         /// Creates a bug trace step.
         /// </summary>
@@ -143,10 +137,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             return traceStep;
         }
 
-        #endregion
-
-        #region generic public and override methods
-
         /// <summary>
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
@@ -177,7 +167,5 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         {
             return this.Index.GetHashCode();
         }
-
-        #endregion
     }
 }

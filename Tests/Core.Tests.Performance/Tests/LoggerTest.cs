@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="MailboxTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -12,11 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Threading.Tasks;
-
-using BenchmarkDotNet.Attributes;
 using System.Collections.Concurrent;
-using Microsoft.PSharp.IO;
+using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
+using BenchmarkDotNet.Attributes;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
 {
@@ -25,10 +24,10 @@ namespace Microsoft.PSharp.Core.Tests.Performance
     {
         public partial class SimpleMachine
         {
-            private PSharpRuntime instance;
-            
+            private IStateMachineRuntime instance;
+
             public SimpleMachine()
-            {                
+            {
                 this.Counter = 0;
             }
 
@@ -42,18 +41,14 @@ namespace Microsoft.PSharp.Core.Tests.Performance
                 });
             }
 
-            public void PersistInline()
-            {
-
-            }
+            public void PersistInline() { }
         }
-
 
         public class SetContextMessage : Event
         {
-            public PSharpRuntime runtime;
+            public IStateMachineRuntime runtime;
 
-            public SetContextMessage(PSharpRuntime runtime)
+            public SetContextMessage(IStateMachineRuntime runtime)
                 : base()
             {
                 this.runtime = runtime;
@@ -66,8 +61,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             {
                 public Timeout()
                     : base()
-                {
-                }
+                { }
             }
 
             //ISimpleMachineContext context;
@@ -76,21 +70,15 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
             [Microsoft.PSharp.Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Unknown : MachineState
-            {
-            }
+            class Unknown : MachineState { }
 
             [OnEntry("psharp_SimpleThinking_on_entry_action")]
             [OnEventDoAction(typeof(SimpleMachine.Timeout), "IncrementCounter")]
-            class SimpleThinking : MachineState
-            {
-            }
+            class SimpleThinking : MachineState { }
 
             [OnEntry("psharp_AdvancedThinking_on_entry_action")]
             [OnEventDoAction(typeof(SimpleMachine.Timeout), "IncrementCounter")]
-            class AdvancedThinking : MachineState
-            {
-            }
+            class AdvancedThinking : MachineState { }
 
             void InitOnEntry()
             {
@@ -146,7 +134,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         public void RunWithLogger()
         {
             var configuration = PSharp.Configuration.Create().WithVerbosityEnabled(0);
-            var runtime = new StateMachineRuntime(configuration);            
+            var runtime = new ProductionRuntime(configuration);
             ConcurrentQueue<MachineId> machines = new ConcurrentQueue<MachineId>();
             Parallel.For(0, Clients, index =>
             {
@@ -157,6 +145,6 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             {
                 runtime.SendEvent(machine, new Halt());
             }
-        }        
+        }
     }
 }

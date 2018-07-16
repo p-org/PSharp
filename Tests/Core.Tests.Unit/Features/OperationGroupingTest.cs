@@ -14,6 +14,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 
@@ -77,7 +78,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                Runtime.SendEvent(Id, new E(), OperationGroup1);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent(Id, new E(), OperationGroup1);
             }
 
             void CheckEvent()
@@ -147,7 +149,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M6S));
-                Runtime.SendEvent(target, new E(), OperationGroup1);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent(target, new E(), OperationGroup1);
             }
         }
 
@@ -174,7 +177,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8));
-                Runtime.SendEvent(target, new E(Id), OperationGroup1);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
@@ -208,7 +212,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8S));
-                Runtime.SendEvent(target, new E(Id), OperationGroup1);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
@@ -228,7 +233,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var id = this.OperationGroupId;
                 Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
-                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -242,7 +248,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M10S));
-                Runtime.SendEvent(target, new E(Id), OperationGroup1);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
@@ -263,7 +270,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 var target = CreateMachine(typeof(M11S));
                 var id = this.OperationGroupId;
                 Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
-                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -282,7 +290,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
         private void AssertSucceeded(Type machine)
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

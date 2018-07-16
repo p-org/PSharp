@@ -183,7 +183,7 @@ namespace Tester.Utilities
             var assemblyNameToFullPathMap = allNames.ToDictionary(name => Path.GetFileNameWithoutExtension(name), name => name);
 
             string getAssemblyFullPath(AssemblyName assemblyName) =>
-                assemblyNameToFullPathMap.ContainsKey(assemblyName.Name) ? assemblyNameToFullPathMap[assemblyName.Name] : string.Empty;
+                assemblyNameToFullPathMap.ContainsKey(assemblyName.Name) ? assemblyNameToFullPathMap[assemblyName.Name] : String.Empty;
 
             string[] getDependencies(string fullPath)
             {

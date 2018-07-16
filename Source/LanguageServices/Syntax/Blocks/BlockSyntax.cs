@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 // All-blank lines may have a misleadingly small number of spaces (if not 0)
                 if (string.IsNullOrWhiteSpace(line))
                 {
-                    yield return Tuple.Create(string.Empty, string.Empty);
+                    yield return Tuple.Create(String.Empty, String.Empty);
                 }
                 else
                 {
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var indent = new string(' ', numIndentSpaces);
                 adjustIndent = ws => indent + ws;
             }
-            return splitLines.Select(line => line.Item2.Length == 0 ? string.Empty : adjustIndent(line.Item1) + line.Item2);
+            return splitLines.Select(line => line.Item2.Length == 0 ? String.Empty : adjustIndent(line.Item1) + line.Item2);
         }
 
         #endregion

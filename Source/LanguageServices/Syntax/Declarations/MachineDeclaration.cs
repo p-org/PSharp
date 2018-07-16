@@ -178,8 +178,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 node.Rewrite(indentLevel + 1);
             }
 
-            string text = "";
-            string newLine = "";
+            string text = String.Empty;
+            string newLine = String.Empty;
             try
             {
                 text = this.GetRewrittenMachineDeclaration(indentLevel, ref newLine);
@@ -335,7 +335,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.FieldDeclarations.Count > 0)
             {
                 text += newLine;
-                newLine = "";
+                newLine = String.Empty;
             }
 
             foreach (var node in this.FieldDeclarations)
@@ -347,7 +347,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.StateDeclarations.Count > 0)
             {
                 text += newLine;
-                newLine = "";
+                newLine = String.Empty;
             }
 
             foreach (var node in this.StateDeclarations)
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.StateGroupDeclarations.Count > 0)
             {
                 text += newLine;
-                newLine = "";
+                newLine = String.Empty;
             }
 
             foreach (var node in this.StateGroupDeclarations)
@@ -377,7 +377,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine)
         {
-            string text = "";
+            string text = String.Empty;
             foreach (var state in this.GetAllStateDeclarations())
             {
                 if (state.EntryDeclaration != null)
@@ -404,7 +404,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenWithActions(int indentLevel, ref string newLine)
         {
-            string text = "";
+            string text = String.Empty;
             var indent = GetIndent(indentLevel);
 
             foreach (var state in this.GetAllStateDeclarations())

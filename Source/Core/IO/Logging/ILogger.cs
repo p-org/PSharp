@@ -139,8 +139,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>        
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an AbstractMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>

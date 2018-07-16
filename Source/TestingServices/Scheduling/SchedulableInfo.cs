@@ -14,6 +14,7 @@
 
 using System;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -24,8 +25,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     internal sealed class SchedulableInfo : MachineInfo, ISchedulable
     {
-        #region properties
-
         /// <summary>
         /// Id of the task executing the event handler of the machine.
         /// </summary>
@@ -73,10 +72,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal ulong EventHandlerOperationCount { get; private set; }
 
-        #endregion
-
-        #region fields
-
         /// <summary>
         /// Is the machine active.
         /// </summary>
@@ -93,10 +88,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// event handler.
         /// </summary>
         internal bool SkipNextReceiveSchedulingPoint;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -115,10 +106,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             OperationCount = 0;
             EventHandlerOperationCount = 0;
         }
-
-        #endregion
-
-        #region interface
 
         /// <summary>
         /// Sets the next operation to schedule.
@@ -165,7 +152,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             SkipNextReceiveSchedulingPoint = true;
             NextOperationMatchingSendIndex = 0;
         }
-
-        #endregion
     }
 }

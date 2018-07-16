@@ -5,12 +5,12 @@ namespace BoundedAsync.PSharpLanguage
 {
     /// <summary>
     /// A sample P# application written using the P# high-level syntax.
-    /// 
+    ///
     /// The P# runtime starts by creating the P# machine 'Scheduler'. The 'Scheduler' machine
     /// then creates a user-defined number of 'Process' machines, which communicate with each
     /// other by exchanging a 'count' value. The processes assert that their count value is
     /// always equal (or minus one) to their neighbour's count value.
-    /// 
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -22,7 +22,7 @@ namespace BoundedAsync.PSharpLanguage
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -34,7 +34,7 @@ namespace BoundedAsync.PSharpLanguage
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             runtime.CreateMachine(typeof(Scheduler), new Scheduler.Config(3));
         }

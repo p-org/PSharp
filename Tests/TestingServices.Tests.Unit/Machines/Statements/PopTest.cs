@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestUnbalancedPop()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M), "M"); });
+            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(M), "M"); });
             var bugReport = "Machine 'M()' popped with no matching push.";
             base.AssertFailed(test, bugReport, true);
         }
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestPopDuringOnExit()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });
+            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });
             var bugReport = "Machine 'N()' has called raise, goto, push or pop inside an OnExit method.";
             base.AssertFailed(test, bugReport, true);
         }

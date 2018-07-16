@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         protected void AssertFailed(Configuration configuration, string test, int numExpectedErrors, bool isPSharpProgram = true)
         {
-            AssertFailed(configuration, test, numExpectedErrors, string.Empty, isPSharpProgram);
+            AssertFailed(configuration, test, numExpectedErrors, String.Empty, isPSharpProgram);
         }
 
         protected void AssertFailed(Configuration configuration, string test, int numExpectedErrors, string expectedOutput, bool isPSharpProgram = true)
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
                 if (!string.IsNullOrEmpty(expectedOutput))
                 {
                     var actual = logger.ToString();
-                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, string.Empty),
+                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, String.Empty),
                        actual.Substring(0, actual.IndexOf(Environment.NewLine)));
                 }
             }
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         protected void AssertWarning(Configuration configuration, string test, int numExpectedWarnings, bool isPSharpProgram = true)
         {
-            AssertWarning(configuration, test, numExpectedWarnings, string.Empty, isPSharpProgram);
+            AssertWarning(configuration, test, numExpectedWarnings, String.Empty, isPSharpProgram);
         }
 
         protected void AssertWarning(Configuration configuration, string test, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 
         protected void AssertFailedAndWarning(Configuration configuration, string test, int numExpectedErrors, int numExpectedWarnings, bool isPSharpProgram = true)
         {
-            AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, string.Empty, isPSharpProgram);
+            AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, String.Empty, isPSharpProgram);
         }
 
         protected void AssertFailedAndWarning(Configuration configuration, string test, int numExpectedErrors, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
@@ -162,8 +162,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
                 if (!string.IsNullOrEmpty(expectedOutput))
                 {
                     var actual = logger.ToString();
-                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, string.Empty),
-                       actual.Replace(Environment.NewLine, string.Empty));
+                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, String.Empty),
+                       actual.Replace(Environment.NewLine, String.Empty));
                 }
             }
             finally

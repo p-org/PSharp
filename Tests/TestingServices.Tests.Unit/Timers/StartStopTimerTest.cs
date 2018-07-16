@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="StartStopTimerTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -23,28 +23,19 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class StartStopTimerTest : BaseTest
-    {
-		#region internal events
+   public class StartStopTimerTest : BaseTest
+   {
 		class TimeoutReceivedEvent : Event { }
 
-		#endregion
-
-		#region machine/monitors
 		class Client : TimedMachine
 		{
-			#region fields
 			object payload = new object();
-			#endregion
 
-			#region states
 			[Start]
 			[OnEntry(nameof(Initialize))]
 			[OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
 			class Init : MachineState { }
-			#endregion
 
-			#region handlers
 			async Task Initialize()
 			{
 				// Start a timer, and stop it immediately
@@ -57,7 +48,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			{
 				this.Monitor<LivenessMonitor>(new TimeoutReceivedEvent());
 			}
-			#endregion
 		}
 
 		class LivenessMonitor : Monitor
@@ -70,9 +60,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			[Cold]
 			class TimeoutReceived : MonitorState { }
 		}
-		#endregion
 
-		#region test
 		// Test the fact that no timeouts may arrive between StartTimer and StopTimer
 		[Fact]
 		public void StartStopTest()
@@ -80,18 +68,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			var config = base.GetConfiguration();
 			config.LivenessTemperatureThreshold = 150;
 			config.MaxSchedulingSteps = 300;
-            config.SchedulingIterations = 1000;
+			config.SchedulingIterations = 1000;
 
             var test = new Action<PSharpRuntime>((r) => {
 				r.RegisterMonitor(typeof(LivenessMonitor));
 				r.CreateMachine(typeof(Client));
 			});
-            
+
 			base.AssertFailed(config, test,
                 "Monitor 'LivenessMonitor' detected liveness bug in hot state 'Microsoft.PSharp.TestingServices.Tests.Unit.StartStopTimerTest+LivenessMonitor.NoTimeoutReceived' at the end of program execution.",
                 true);
 		}
-		#endregion
-
 	}
 }

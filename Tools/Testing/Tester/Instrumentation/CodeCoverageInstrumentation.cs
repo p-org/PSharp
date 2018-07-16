@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal static class CodeCoverageInstrumentation
     {
-        internal static string OutputDirectory = string.Empty;
+        internal static string OutputDirectory = String.Empty;
 #if NET46 || NET45
         internal static List<string> InstrumentedAssemblyNames = new List<string>();
 
@@ -155,7 +155,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             finally
             {
-                OutputDirectory = string.Empty;
+                OutputDirectory = String.Empty;
                 InstrumentedAssemblyNames.Clear();
             }
         }
@@ -208,7 +208,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Tool path</returns>
         internal static string GetToolPath(string settingName, string toolName)
         {
-            string toolPath = "";
+            string toolPath = String.Empty;
             try
             {
                 toolPath = Environment.GetEnvironmentVariable(settingName);

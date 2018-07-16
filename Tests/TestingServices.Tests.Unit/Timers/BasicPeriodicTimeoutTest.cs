@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			var config = Configuration.Create().WithNumberOfIterations(1000);
             ModelTimerMachine.NumStepsToSkip = 1;
 
-			var test = new Action<PSharpRuntime>((r) => {
+			var test = new Action<IPSharpRuntime>((r) => {
 				r.CreateMachine(typeof(T1));
 			});
 			base.AssertSucceeded(test);

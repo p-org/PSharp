@@ -22,10 +22,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
     /// A trace is a series of transitions from some
     /// initial state to some end state.
     /// </summary>
-    internal sealed class ScheduleTrace : IEnumerable, IEnumerable<ScheduleStep>
+    public sealed class ScheduleTrace : IEnumerable, IEnumerable<ScheduleStep>
     {
-        #region fields
-
         /// <summary>
         /// The steps of the schedule trace.
         /// </summary>
@@ -49,10 +47,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Constructor.
@@ -193,10 +187,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             return this.Steps.GetEnumerator();
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Pushes a new step to the trace.
         /// </summary>
@@ -211,7 +201,5 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             this.Steps.Add(step);
         }
-
-        #endregion
     }
 }

@@ -590,7 +590,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });

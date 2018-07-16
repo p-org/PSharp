@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using Microsoft.PSharp.LanguageServices.Parsing;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
@@ -58,7 +59,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected string GetIndent(int indentLevel)
         {
             return indentLevel == 0
-                ? string.Empty
+                ? String.Empty
                 : new System.Text.StringBuilder().Insert(0, OneIndent, indentLevel).ToString();
         }
 

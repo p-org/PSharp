@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.SharedObjects.Tests.Unit
@@ -63,7 +63,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         [Fact]
         public void TestRegister()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var counter = SharedRegister.Create<int>(runtime, 0);
             counter.SetValue(5);
 

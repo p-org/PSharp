@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -56,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration, Action<IPSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
         }
@@ -156,6 +157,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (base.Configuration.EnableDataRaceDetection)
             {
+                // Create a reporter to monitor operations for race detection.
                 this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
             }
 
@@ -183,7 +185,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        private BugFindingEngine(Configuration configuration, Action<IPSharpRuntime> action)
             : base(configuration, action)
         {
             if (base.Configuration.EnableDataRaceDetection)
@@ -199,8 +201,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
-            this.ReadableTrace = "";
-            this.ReproducableTrace = "";
+            this.ReadableTrace = String.Empty;
+            this.ReproducableTrace = String.Empty;
 
             if (base.Configuration.EnableDataRaceDetection)
             {
@@ -215,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices
 
         private Task CreateBugFindingTask()
         {
-            string options = "";
+            string options = String.Empty;
             if (base.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
@@ -310,7 +312,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             // Runtime used to serialize and test the program in this iteration.
-            BugFindingRuntime runtime = null;
+            ITestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -325,18 +327,18 @@ namespace Microsoft.PSharp.TestingServices
                 // Creates a new instance of the bug-finding runtime.
                 if (base.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                    runtime = (ITestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
                         new object[] { base.Configuration, base.Strategy, base.Reporter });
                 }
                 else
                 {
-                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = TestingRuntime.Create(base.Configuration, base.Strategy, base.Reporter);
                 }
 
                 if (base.Configuration.EnableDataRaceDetection)
                 {
-                    // Create a reporter to monitor interesting operations for race detection
-                    this.Reporter.SetRuntime(runtime);
+                    // Register the runtime with the reporter.
+                    this.Reporter.RegisterRuntime(runtime);
                 }
 
                 // If verbosity is turned off, then intercept the program log, and also dispose
@@ -355,7 +357,14 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 // Runs the test inside the P# test-harness machine.
-                runtime.RunTestHarness(base.TestMethod, base.TestAction);
+                if (base.TestMethod != null)
+                {
+                    runtime.RunTestHarness(base.TestMethod);
+                }
+                else if (base.TestAction != null)
+                {
+                    runtime.RunTestHarness(base.TestAction);
+                }
 
                 // Wait for the test to terminate.
                 runtime.Wait();
@@ -387,7 +396,7 @@ namespace Microsoft.PSharp.TestingServices
                 // checked if no safety property violations have been found.
                 if (!runtime.Scheduler.BugFound)
                 {
-                    runtime.AssertNoMonitorInHotStateAtTermination();
+                    runtime.CheckNoMonitorInHotStateAtTermination();
                 }
 
                 if (runtime.Scheduler.BugFound)
@@ -438,8 +447,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Gathers the exploration strategy statistics for
         /// the latest testing iteration.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        private void GatherIterationStatistics(BugFindingRuntime runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        private void GatherIterationStatistics(ITestingRuntime runtime)
         {
             TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
@@ -449,8 +458,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        private void ConstructReproducableTrace(BugFindingRuntime runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        private void ConstructReproducableTrace(ITestingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
 

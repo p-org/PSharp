@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.Utilities;
 
@@ -63,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>ReplayEngine</returns>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static ReplayEngine Create(Configuration configuration, Action<IPSharpRuntime> action)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration, action);
@@ -76,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="action">Action</param>
         /// <param name="trace">Reproducable trace</param>
         /// <returns>ReplayEngine</returns>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action, string trace)
+        public static ReplayEngine Create(Configuration configuration, Action<IPSharpRuntime> action, string trace)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             configuration.ScheduleTrace = trace;
@@ -137,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        private ReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
+        private ReplayEngine(Configuration configuration, Action<IPSharpRuntime> action)
             : base(configuration, action)
         {
 
@@ -152,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices
             Task task = new Task(() =>
             {
                 // Runtime used to serialize and test the program.
-                BugFindingRuntime runtime = null;
+                ITestingRuntime runtime = null;
 
                 // Logger used to intercept the program output if no custom logger
                 // is installed and if verbosity is turned off.
@@ -173,12 +174,12 @@ namespace Microsoft.PSharp.TestingServices
                     // Creates a new instance of the bug-finding runtime.
                     if (base.TestRuntimeFactoryMethod != null)
                     {
-                        runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                        runtime = (ITestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
                             new object[] { base.Configuration, base.Strategy, base.Reporter });
                     }
                     else
                     {
-                        runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                        runtime = TestingRuntime.Create(base.Configuration, base.Strategy, base.Reporter);
                     }
 
 
@@ -195,7 +196,14 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     // Runs the test inside the P# test-harness machine.
-                    runtime.RunTestHarness(base.TestMethod, base.TestAction);
+                    if (base.TestMethod != null)
+                    {
+                        runtime.RunTestHarness(base.TestMethod);
+                    }
+                    else if (base.TestAction != null)
+                    {
+                        runtime.RunTestHarness(base.TestAction);
+                    }
 
                     // Wait for the test to terminate.
                     runtime.Wait();
@@ -220,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices
                     // checked if no safety property violations have been found.
                     if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                     {
-                        runtime.AssertNoMonitorInHotStateAtTermination();
+                        runtime.CheckNoMonitorInHotStateAtTermination();
                     }
 
                     if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)

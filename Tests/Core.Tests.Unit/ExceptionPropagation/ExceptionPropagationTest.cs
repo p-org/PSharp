@@ -14,7 +14,7 @@
 
 using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -74,7 +74,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestAssertFailureNoEventHandler()
         {
-            PSharpRuntime runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
@@ -86,7 +87,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var tcsFail = new TaskCompletionSource<bool>();
             int count = 0;
 
-            PSharpRuntime runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             runtime.OnFailure += delegate (Exception exception)
             {
                 if (!(exception is MachineActionExceptionFilterException))
@@ -113,7 +115,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             int count = 0;
             bool sawFilterException = false;
 
-            PSharpRuntime runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             runtime.OnFailure += delegate (Exception exception)
             {
                 // This test throws an exception that we should receive a filter call for

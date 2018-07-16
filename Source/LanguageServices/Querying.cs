@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -260,7 +261,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// <returns>Callee</returns>
         private static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
         {
-            string callee = "";
+            string callee = String.Empty;
 
             if (invocation.Expression is MemberAccessExpressionSyntax)
             {

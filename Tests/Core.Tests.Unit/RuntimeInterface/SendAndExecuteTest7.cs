@@ -14,7 +14,7 @@
 
 using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -46,8 +46,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config).tcs;
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var m = await runtime.CreateMachineAndExecute(typeof(M));
+                var handled = await runtime.SendEventAndExecute(m, new E());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
             }
@@ -64,10 +65,11 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestUnhandledEventOnSendExec()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
-            var message = "";
+            var message = String.Empty;
 
             runtime.OnFailure += delegate (Exception ex)
             {
@@ -85,6 +87,5 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             Assert.Equal("Machine 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+M(1)' received event 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.",
                 message);
         }
-
     }
 }

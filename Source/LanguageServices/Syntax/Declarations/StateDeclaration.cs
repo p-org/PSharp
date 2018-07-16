@@ -344,7 +344,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = String.Empty;
             try
             {
                 text = this.GetRewrittenStateDeclaration(indentLevel);
@@ -390,13 +390,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var resolvedEvent = this.ResolvedEventIdentifierTokens[eventIdentifier];
             var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(
                 tok => tok.Type != TokenType.LeftAngleBracket);
-            string qualifiedEventIdentifier = "";
+            string qualifiedEventIdentifier = String.Empty;
             foreach (var tok in eventIdentifierTokens.Where(tok => tok.Type != TokenType.Dot))
             {
                 qualifiedEventIdentifier += $"_{tok.TextUnit.Text}";
             }
 
-            string typeId = "";
+            string typeId = String.Empty;
             if (eventIdentifierTokens.Count() != resolvedEvent.Item1.Count)
             {
                 typeId += "_type_" + this.ResolvedEventIdentifierTokens[eventIdentifier].Item2;
@@ -416,7 +416,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private string GetRewrittenStateDeclaration(int indentLevel)
         {
             var indent = GetIndent(indentLevel);
-            string text = "";
+            string text = String.Empty;
 
             if (this.IsStart)
             {
@@ -499,7 +499,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var suffix = this.EntryDeclaration.IsAsync ? "_async" : string.Empty;
+            var suffix = this.EntryDeclaration.IsAsync ? "_async" : String.Empty;
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + $"_on_entry_action{suffix}";
             this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
                 this.Machine.Identifier.TextUnit.Text,
@@ -519,7 +519,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var suffix = this.ExitDeclaration.IsAsync ? "_async" : string.Empty;
+            var suffix = this.ExitDeclaration.IsAsync ? "_async" : String.Empty;
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + $"_on_exit_action{suffix}";
             this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
                 this.Machine.Identifier.TextUnit.Text,
@@ -539,15 +539,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "";
+            string text = String.Empty;
 
             foreach (var transition in this.GotoStateTransitions)
             {
-                var onExitName = "";
+                var onExitName = String.Empty;
                 AnonymousActionHandler handler;
                 if (this.TransitionsOnExitActions.TryGetValue(transition.Key, out handler))
                 {
-                    var suffix = handler.IsAsync ? "_async" : string.Empty;
+                    var suffix = handler.IsAsync ? "_async" : String.Empty;
                     onExitName = "psharp_" + this.GetFullyQualifiedName() +
                         this.GetResolvedEventHandlerName(transition.Key) + $"_action{suffix}";
                     this.RewrittenMethods.Add(new QualifiedMethod(onExitName,
@@ -602,7 +602,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "";
+            string text = String.Empty;
 
             foreach (var transition in this.PushStateTransitions)
             {
@@ -648,15 +648,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "";
+            string text = String.Empty;
 
             foreach (var binding in this.ActionBindings)
             {
-                var actionName = "";
+                var actionName = String.Empty;
                 AnonymousActionHandler handler;
                 if (this.ActionHandlers.TryGetValue(binding.Key, out handler))
                 {
-                    var suffix = handler.IsAsync ? "_async" : string.Empty;
+                    var suffix = handler.IsAsync ? "_async" : String.Empty;
                     actionName = "psharp_" + this.GetFullyQualifiedName() +
                         this.GetResolvedEventHandlerName(binding.Key) + $"_action{suffix}";
                     this.RewrittenMethods.Add(new QualifiedMethod(actionName,

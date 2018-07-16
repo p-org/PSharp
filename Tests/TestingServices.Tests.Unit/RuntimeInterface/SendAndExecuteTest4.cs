@@ -42,8 +42,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
-                var handled = await this.Runtime.SendEventAndExecute(m, new LE());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var m = await runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
+                var handled = await runtime.SendEventAndExecute(m, new LE());
                 this.Assert(handled);
             }
         }
@@ -58,7 +59,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var creator = (this.ReceivedEvent as E).mid;
-                var handled = await this.Id.Runtime.SendEventAndExecute(creator, new LE());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var handled = await runtime.SendEventAndExecute(creator, new LE());
                 this.Assert(!handled);
             }
 
@@ -68,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSendCycleDoesNotDeadlock()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Harness));
             });
             var config = Configuration.Create().WithNumberOfIterations(100);
