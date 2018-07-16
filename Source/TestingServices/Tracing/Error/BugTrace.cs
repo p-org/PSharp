@@ -25,10 +25,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     /// some end state.
     /// </summary>
     [DataContract]
-    internal sealed class BugTrace : IEnumerable, IEnumerable<BugTraceStep>
+    public sealed class BugTrace : IEnumerable, IEnumerable<BugTraceStep>
     {
-        #region fields
-
         /// <summary>
         /// The steps of the bug trace.
         /// </summary>
@@ -53,10 +51,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Constructor.
@@ -281,10 +275,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             return this.Steps.GetEnumerator();
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Pushes a new step to the trace.
         /// </summary>
@@ -299,7 +289,5 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
 
             this.Steps.Add(step);
         }
-
-        #endregion
     }
 }

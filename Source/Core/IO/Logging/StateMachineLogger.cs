@@ -42,16 +42,15 @@ namespace Microsoft.PSharp.IO
         public bool IsVerbose => this.Configuration.Verbose >= LoggingVerbosity;
 
         /// <summary>
-        /// Constructs the logger. The logger will be assigned the Runtime's Configuration
-        /// object when it is passed to <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
+        /// Constructs the logger. The logger will be assigned the runtime
+        /// <see cref="PSharp.Configuration"/> object when it is passed to
+        /// <see cref="IPSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public StateMachineLogger(int loggingVerbosity = 2)
         {
             this.LoggingVerbosity = loggingVerbosity;
         }
-
-        #region output
 
         /// <summary>
         /// Writes the specified string value.
@@ -80,10 +79,6 @@ namespace Microsoft.PSharp.IO
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
         public abstract void WriteLine(string format, params object[] args);
-
-        #endregion output
-
-        #region events
 
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
@@ -164,7 +159,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="newStateName">The target state of goto.</param>
         public void OnGoto(MachineId machineId, string currentStateName, string newStateName)
         {
-            if(this.IsVerbose)
+            if (this.IsVerbose)
             {
                 this.WriteLine(FormatOnGotoString(machineId, currentStateName, newStateName));
             }
@@ -328,8 +323,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>        
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an AbstractMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
@@ -347,8 +341,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>        
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an AbstractMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
@@ -729,15 +722,9 @@ namespace Microsoft.PSharp.IO
             return $"<StrategyLog> Found bug using '{strategy}' strategy.{desc}";
         }
 
-        #endregion output
-
-        #region IDisposable
-
         /// <summary>
         /// Disposes the logger.
         /// </summary>
         public abstract void Dispose();
-
-        #endregion IDisposable
     }
 }

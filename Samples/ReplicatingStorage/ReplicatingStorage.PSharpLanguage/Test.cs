@@ -6,13 +6,13 @@ namespace ReplicatingStorage.PSharpLanguage
     /// <summary>
     /// A single-process implementation of a replicating storage written using the P#
     /// high-level syntax.
-    /// 
+    ///
     /// This is a (much) simplified version of the system described in the following paper:
     /// https://www.usenix.org/system/files/conference/fast16/fast16-papers-deligiannis.pdf
-    /// 
+    ///
     /// The liveness bug (discussed in the paper) is injected in:
     ///     NodeManager.cs, line 181
-    ///  
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -24,7 +24,7 @@ namespace ReplicatingStorage.PSharpLanguage
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -36,7 +36,7 @@ namespace ReplicatingStorage.PSharpLanguage
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(LivenessMonitor));
             runtime.CreateMachine(typeof(Environment));

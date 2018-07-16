@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.SchedulingIterations = 5;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Entry));
             });
 

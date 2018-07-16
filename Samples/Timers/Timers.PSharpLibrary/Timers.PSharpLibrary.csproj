@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\Build\common.samples.props" />
+  <PropertyGroup>
+    <Description>P# sample using Timers.</Description>
+    <AssemblyName>Timers.PSharpLibrary</AssemblyName>
+    <RootNamespace>Timers.PSharpLibrary</RootNamespace>
+  </PropertyGroup>
+</Project>

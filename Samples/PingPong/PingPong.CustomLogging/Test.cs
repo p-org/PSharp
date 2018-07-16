@@ -25,7 +25,7 @@ namespace PingPong.CustomLogging
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Creates and installs a custom logger.
             ILogger myLogger = new MyLogger();
@@ -50,7 +50,7 @@ namespace PingPong.CustomLogging
         /// </summary>
         /// <param name="runtime"></param>
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             // Assigns a user-defined name to this network environment machine.
             runtime.CreateMachine(typeof(NetworkEnvironment), "TheUltimateNetworkEnvironmentMachine");

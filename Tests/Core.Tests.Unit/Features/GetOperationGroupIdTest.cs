@@ -14,6 +14,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
@@ -42,7 +43,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = RuntimeService.GetRuntime(this.Id).GetCurrentOperationGroupId(this.Id);
                 Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
@@ -56,7 +57,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                Runtime.SendEvent(Id, new E(Id), OperationGroup);
+                RuntimeService.GetRuntime(this.Id).SendEvent(this.Id, new E(Id), OperationGroup);
             }
 
             void CheckEvent()
@@ -68,7 +69,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
         private void AssertSucceeded(Type machine)
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

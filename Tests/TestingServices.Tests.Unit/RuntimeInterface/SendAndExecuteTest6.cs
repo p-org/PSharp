@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SendAndExecuteTest6.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -14,7 +14,7 @@
 
 using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
@@ -43,8 +43,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M), this.ReceivedEvent);
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = RuntimeService.GetRuntime(this.Id);
+                var m = await runtime.CreateMachineAndExecute(typeof(M), this.ReceivedEvent);
+                var handled = await runtime.SendEventAndExecute(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
             }
@@ -98,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestHandledExceptionOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(true));
             });
@@ -110,7 +111,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(false));
             });

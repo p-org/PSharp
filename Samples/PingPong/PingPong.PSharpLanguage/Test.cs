@@ -25,7 +25,7 @@ namespace PingPong.PSharpLanguage
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -47,7 +47,7 @@ namespace PingPong.PSharpLanguage
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             // This is the root machine to the P# PingPong program. CreateMachine
             // executes asynchronously (i.e. non-blocking).

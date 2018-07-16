@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// An exception that is thrown by the P# runtime.

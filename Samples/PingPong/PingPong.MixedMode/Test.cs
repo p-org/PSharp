@@ -8,12 +8,12 @@ namespace PingPong.MixedMode
     /// program are written using the high-level P# syntax, and others are written
     /// using P# as a C# library. This approach (based on partial classes) helps to
     /// seperate the high-level state machine transitions from the underlying logic.
-    /// 
+    ///
     /// The P# runtime starts by creating the P# machine 'NetworkEnvironment'. The
     /// 'NetworkEnvironment' machine then creates a 'Server' and a 'Client' machine,
     /// which then communicate by sending 'Ping' and 'Pong' events to each other for
     /// a limited amount of turns.
-    /// 
+    ///
     /// Note: this is an abstract implementation aimed primarily to showcase the testing
     /// capabilities of P#.
     /// </summary>
@@ -25,7 +25,7 @@ namespace PingPong.MixedMode
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = PSharpRuntime.Create(configuration);
+            var runtime = RuntimeService.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
@@ -39,7 +39,7 @@ namespace PingPong.MixedMode
         /// <summary>
         /// The P# testing engine uses a method annotated with the 'Microsoft.PSharp.Test'
         /// attribute as an entry point.
-        /// 
+        ///
         /// During testing, the testing engine takes control of the underlying scheduler
         /// and any declared in P# sources of non-determinism (e.g. P# asynchronous APIs,
         /// P# non-determinstic choices) and systematically executes the test method a user
@@ -47,7 +47,7 @@ namespace PingPong.MixedMode
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IStateMachineRuntime runtime)
         {
             // This is the root machine to the P# PingPong program. CreateMachine
             // executes asynchronously (i.e. non-blocking).

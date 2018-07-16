@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// The exception that is thrown by the P# runtime upon a machine action failure.

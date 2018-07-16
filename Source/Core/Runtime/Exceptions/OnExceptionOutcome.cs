@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Outcome of Machine.OnException

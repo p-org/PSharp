@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(M));
                 r.CreateMachine(typeof(Master));
             });

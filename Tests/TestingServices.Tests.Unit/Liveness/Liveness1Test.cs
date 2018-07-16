@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            [OnEventGotoState(typeof(Unit), typeof(WaitForUser))]
+            [OnEventGotoState(typeof(Unit), typeof(WaitingForUser))]
             class Init : MachineState { }
 
             void InitOnEntry()
@@ -41,8 +41,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(WaitForUserOnEntry))]
-            [OnEventGotoState(typeof(UserEvent), typeof(HandleEvent))]
-            class WaitForUser : MachineState { }
+            [OnEventGotoState(typeof(UserEvent), typeof(HandlingEvent))]
+            class WaitingForUser : MachineState { }
 
             void WaitForUserOnEntry()
             {
@@ -51,8 +51,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(HandleEventOnEntry))]
-            [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
-            class HandleEvent : MachineState { }
+            [OnEventGotoState(typeof(Done), typeof(WaitingForUser))]
+            class HandlingEvent : MachineState { }
 
             void HandleEventOnEntry()
             {
@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 300;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
             });

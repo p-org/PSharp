@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="TimerMachines.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -12,323 +12,262 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.Timers;
-using Microsoft.PSharp;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-	#region internal events and classes
+    internal class NonMachineSubClass { }
 
-	internal class NonMachineSubClass { }
+    internal class Configure : Event
+    {
+        public TaskCompletionSource<bool> TCS;
+        public bool periodic;
 
-	internal class Configure : Event
-	{
-		public TaskCompletionSource<bool> TCS;
-		public bool periodic;
+        public Configure(TaskCompletionSource<bool> tcs, bool periodic)
+        {
+            this.TCS = tcs;
+            this.periodic = periodic;
+        }
+    }
 
-		public Configure(TaskCompletionSource<bool> tcs, bool periodic)
-		{
-			this.TCS = tcs;
-			this.periodic = periodic;
-		}
-	}
+    internal class ConfigureWithPeriod : Event
+    {
+        public TaskCompletionSource<bool> TCS;
+        public int period;
 
-	internal class ConfigureWithPeriod : Event
-	{
-		public TaskCompletionSource<bool> TCS;
-		public int period;
+        public ConfigureWithPeriod(TaskCompletionSource<bool> tcs, int period)
+        {
+            this.TCS = tcs;
+            this.period = period;
+        }
+    }
 
-		public ConfigureWithPeriod(TaskCompletionSource<bool> tcs, int period)
-		{
-			this.TCS = tcs;
-			this.period = period;
-		}
-	}
+    internal class Marker : Event { }
 
-	internal class Marker : Event { }
+    internal class TransferTimerAndTCS : Event
+    {
+        public TimerId tid;
+        public TaskCompletionSource<bool> TCS;
 
-	internal class TransferTimerAndTCS : Event
-	{
-		public TimerId tid;
-		public TaskCompletionSource<bool> TCS;
+        public TransferTimerAndTCS(TimerId tid, TaskCompletionSource<bool> TCS)
+        {
+            this.tid = tid;
+            this.TCS = TCS;
+        }
+    }
 
-		public TransferTimerAndTCS(TimerId tid, TaskCompletionSource<bool> TCS)
-		{
-			this.tid = tid;
-			this.TCS = TCS;
-		}
-	}
+    class T1 : TimedMachine
+    {
+        TimerId tid;
+        object payload = new object();
+        TaskCompletionSource<bool> tcs;
+        int count;
+        bool periodic;
 
-	#endregion
+        [Start]
+        [OnEntry(nameof(InitOnEntry))]
+        [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
+        class Init : MachineState { }
 
-	#region timer machines
+        void InitOnEntry()
+        {
+            Configure e = (this.ReceivedEvent as Configure);
+            tcs = e.TCS;
+            periodic = e.periodic;
+            count = 0;
 
-	#region check basic StartTimer/StopTimer
-	class T1 : TimedMachine
-	{
-		#region fields
-		TimerId tid;
-		object payload = new object();
-		TaskCompletionSource<bool> tcs;
-		int count;
-		bool periodic;
+            if (periodic)
+            {
+                // Start a periodic timer with 10ms timeouts
+                tid = StartTimer(payload, 10, true);
+            }
+            else
+            {
+                // Start a one-off timer.
+                tid = StartTimer(payload, 10, false);
+            }
+        }
 
-		#endregion
-		[Start]
-		[OnEntry(nameof(InitOnEntry))]
-		[OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-		class Init : MachineState { }
+        async Task HandleTimeout()
+        {
+            count++;
 
-		void InitOnEntry()
-		{
-			Configure e = (this.ReceivedEvent as Configure);
-			tcs = e.TCS;
-			periodic = e.periodic;
-			count = 0;
+            // for testing single timeout
+            if (!periodic)
+            {
+                // for a single timer, exactly one timeout should be received
+                if (count == 1)
+                {
+                    await StopTimer(tid, true);
+                    tcs.SetResult(true);
+                    this.Raise(new Halt());
+                }
+                else
+                {
+                    await StopTimer(tid, true);
+                    tcs.SetResult(false);
+                    this.Raise(new Halt());
+                }
+            }
 
-			if (periodic)
-			{
-				// Start a periodic timer with 10ms timeouts
-				tid = StartTimer(payload, 10, true);
-			}
-			else
-			{
-				// Start a one-off timer 
-				tid = StartTimer(payload, 10, false);
-			}
-		}
+            // for testing periodic timeouts
+            else
+            {
+                if (count == 100)
+                {
+                    await StopTimer(tid, true);
+                    tcs.SetResult(true);
+                    this.Raise(new Halt());
+                }
+            }
+        }
+    }
 
-		async Task HandleTimeout()
-		{
-			count++;
+    class FlushingClient : TimedMachine
+    {
+        /// <summary>
+        /// A dummy payload object received with timeout events.
+        /// </summary>
+        object payload = new object();
 
-			// for testing single timeout
-			if (!periodic)
-			{
-				// for a single timer, exactly one timeout should be received
-				if (count == 1)
-				{
-					await StopTimer(tid, true);
-					tcs.SetResult(true);
-					this.Raise(new Halt());
-				}
-				else
-				{
-					await StopTimer(tid, true);
-					tcs.SetResult(false);
-					this.Raise(new Halt());
-				}
-			}
+        /// <summary>
+        /// Timer used in the Ping State.
+        /// </summary>
+        TimerId pingTimer;
 
-			// for testing periodic timeouts
-			else
-			{
-				if (count == 100)
-				{
-					await StopTimer(tid, true);
-					tcs.SetResult(true);
-					this.Raise(new Halt());
-				}
-			}
-		}
-	}
-	#endregion
+        /// <summary>
+        /// Timer used in the Pong state.
+        /// </summary>
+        TimerId pongTimer;
 
-	#region check flushing
-	class FlushingClient : TimedMachine
-	{
-		#region fields
-		/// <summary>
-		/// A dummy payload object received with timeout events.
-		/// </summary>
-		object payload = new object();
+        TaskCompletionSource<bool> tcs;
 
-		/// <summary>
-		/// Timer used in the Ping State.
-		/// </summary>
-		TimerId pingTimer;
+        /// <summary>
+        /// Start the pingTimer and start handling the timeout events from it.
+        /// After handling 10 events, stop pingTimer and move to the Pong state.
+        /// </summary>
+        [Start]
+        [OnEntry(nameof(DoPing))]
+        [IgnoreEvents(typeof(TimerElapsedEvent))]
+        class Ping : MachineState { }
 
-		/// <summary>
-		/// Timer used in the Pong state.
-		/// </summary>
-		TimerId pongTimer;
+        /// <summary>
+        /// Start the pongTimer and start handling the timeout events from it.
+        /// After handling 10 events, stop pongTimer and move to the Ping state.
+        /// </summary>
+        [OnEntry(nameof(DoPong))]
+        [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeoutForPong))]
+        class Pong : MachineState { }
 
-		TaskCompletionSource<bool> tcs;
+        private async Task DoPing()
+        {
+            tcs = (this.ReceivedEvent as Configure).TCS;
 
-		#endregion
+            // Start a periodic timer with timeout interval of 1sec.
+            // The timer generates TimerElapsedEvent with 'm' as payload.
+            pingTimer = StartTimer(payload, 5, true);
+            await Task.Delay(100);
+            await this.StopTimer(pingTimer, flush: true);
+            this.Goto<Pong>();
+        }
 
-		#region states
+        /// <summary>
+        /// Handle timeout events from the pongTimer.
+        /// </summary>
+        private void DoPong()
+        {
+            // Start a periodic timer with timeout interval of 0.5sec.
+            // The timer generates TimerElapsedEvent with 'm' as payload.
+            pongTimer = StartTimer(payload, 50, false);
+        }
 
-		/// <summary>
-		/// Start the pingTimer and start handling the timeout events from it.
-		/// After handling 10 events, stop pingTimer and move to the Pong state.
-		/// </summary>
-		[Start]
-		[OnEntry(nameof(DoPing))]
-		[IgnoreEvents(typeof(TimerElapsedEvent))]
-		class Ping : MachineState { }
+        private void HandleTimeoutForPong()
+        {
+            TimerElapsedEvent e = (this.ReceivedEvent as TimerElapsedEvent);
 
-		/// <summary>
-		/// Start the pongTimer and start handling the timeout events from it.
-		/// After handling 10 events, stop pongTimer and move to the Ping state.
-		/// </summary>
-		[OnEntry(nameof(DoPong))]
-		[OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeoutForPong))]
-		class Pong : MachineState { }
-		#endregion
+            if (e.Tid == this.pongTimer)
+            {
+                tcs.SetResult(true);
+                this.Raise(new Halt());
+            }
+            else
+            {
+                tcs.SetResult(false);
+                this.Raise(new Halt());
+            }
+        }
+    }
 
-		#region event handlers
+    class T2 : TimedMachine
+    {
+        TimerId tid;
+        TaskCompletionSource<bool> tcs;
+        object payload = new object();
+        MachineId m;
 
-		private async Task DoPing()
-		{
-			tcs = (this.ReceivedEvent as Configure).TCS;
-	
-			// Start a periodic timer with timeout interval of 1sec.
-			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pingTimer = StartTimer(payload, 5, true);
-			await Task.Delay(100);
-			await this.StopTimer(pingTimer, flush: true);
-			this.Goto<Pong>();
-		}
+        [Start]
+        [OnEntry(nameof(Initialize))]
+        [IgnoreEvents(typeof(TimerElapsedEvent))]
+        class Init : MachineState { }
 
-		/// <summary>
-		/// Handle timeout events from the pongTimer.
-		/// </summary>
-		private void DoPong()
-		{
-			// Start a periodic timer with timeout interval of 0.5sec.
-			// The timer generates TimerElapsedEvent with 'm' as payload.
-			pongTimer = StartTimer(payload, 50, false);
-		}
+        void Initialize()
+        {
+            tcs = (this.ReceivedEvent as Configure).TCS;
+            tid = this.StartTimer(this.payload, 100, true);
+            m = CreateMachine(typeof(T3), new TransferTimerAndTCS(tid, tcs));
+            this.Raise(new Halt());
+        }
+    }
 
-		private void HandleTimeoutForPong()
-		{
-			TimerElapsedEvent e = (this.ReceivedEvent as TimerElapsedEvent);
+    class T3 : TimedMachine
+    {
+        [Start]
+        [OnEntry(nameof(Initialize))]
+        class Init : MachineState { }
 
-			if(e.Tid == this.pongTimer)
-			{
-				tcs.SetResult(true);
-				this.Raise(new Halt());
-			}
-			else
-			{
-				tcs.SetResult(false);
-				this.Raise(new Halt());
-			}
-			
-		}
-		#endregion
-	}
-	#endregion
+        async Task Initialize()
+        {
+            TimerId tid = (this.ReceivedEvent as TransferTimerAndTCS).tid;
+            TaskCompletionSource<bool> tcs = (this.ReceivedEvent as TransferTimerAndTCS).TCS;
 
-	#region check illegal timer stoppage
-	
-	class T2 : TimedMachine
-	{
-		#region fields
+            // trying to stop a timer created by a different machine. 
+            // should throw an assertion violation
+            try
+            {
+                await this.StopTimer(tid, true);
+            }
+            catch (AssertionFailureException)
+            {
+                tcs.SetResult(true);
+                this.Raise(new Halt());
+            }
+        }
+    }
 
-		TimerId tid;
-		TaskCompletionSource<bool> tcs;
-		object payload = new object();
-		MachineId m;
+    class T4 : TimedMachine
+    {
+        object payload = new object();
 
-		#endregion
-		[Start]
-		[OnEntry(nameof(Initialize))]
-		[IgnoreEvents(typeof(TimerElapsedEvent))]
-		class Init : MachineState { }
-		#region states
+        [Start]
+        [OnEntry(nameof(Initialize))]
+        class Init : MachineState { }
 
-		#endregion
+        void Initialize()
+        {
+            var tcs = (this.ReceivedEvent as ConfigureWithPeriod).TCS;
+            var period = (this.ReceivedEvent as ConfigureWithPeriod).period;
 
-		#region handlers
-		void Initialize()
-		{
-			tcs = (this.ReceivedEvent as Configure).TCS;
-			tid = this.StartTimer(this.payload, 100, true);
-			m = CreateMachine(typeof(T3), new TransferTimerAndTCS(tid, tcs));
-			this.Raise(new Halt());
-		}
-
-		#endregion
-
-
-	}
-
-	class T3 : TimedMachine
-	{
-		#region states
-
-		[Start]
-		[OnEntry(nameof(Initialize))]
-		class Init : MachineState { }
-
-		#endregion
-
-		#region handlers
-
-		async Task Initialize()
-		{
-			TimerId tid = (this.ReceivedEvent as TransferTimerAndTCS).tid;
-			TaskCompletionSource<bool> tcs = (this.ReceivedEvent as TransferTimerAndTCS).TCS;
-
-			// trying to stop a timer created by a different machine. 
-			// should throw an assertion violation
-			try
-			{
-				await this.StopTimer(tid, true);
-			}
-			catch (AssertionFailureException)
-			{
-				tcs.SetResult(true);
-				this.Raise(new Halt());
-			}
-		}
-
-		#endregion
-	}
-	#endregion
-
-	#region check illegal period specification
-	class T4 : TimedMachine
-	{
-		#region fields
-
-		object payload = new object();
-
-		#endregion
-
-		#region states
-		[Start]
-		[OnEntry(nameof(Initialize))]
-		class Init : MachineState { }
-		#endregion
-
-		#region handlers
-		void Initialize()
-		{
-			var tcs = (this.ReceivedEvent as ConfigureWithPeriod).TCS;
-			var period = (this.ReceivedEvent as ConfigureWithPeriod).period;
-
-			try
-			{
-				this.StartTimer(this.payload, period, true);
-			}
-			catch(AssertionFailureException)
-			{
-				tcs.SetResult(true);
-				this.Raise(new Halt());
-			}
-		}
-		#endregion
-	}
-	#endregion
-
-
-	#endregion
+            try
+            {
+                this.StartTimer(this.payload, period, true);
+            }
+            catch (AssertionFailureException)
+            {
+                tcs.SetResult(true);
+                this.Raise(new Halt());
+            }
+        }
+    }
 }

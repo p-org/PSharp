@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.SharedObjects.Tests.Unit
@@ -102,7 +102,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         [Fact]
         public void TestDictionaryCount()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var dictionary = SharedDictionary.Create<int, string>(runtime);
             var counter = SharedCounter.Create(runtime);
             var tcs1 = new TaskCompletionSource<bool>();

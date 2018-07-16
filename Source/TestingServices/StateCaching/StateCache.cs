@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 
 namespace Microsoft.PSharp.TestingServices.StateCaching
@@ -25,9 +26,9 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
     internal sealed class StateCache
     {
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private readonly BugFindingRuntime Runtime;
+        private readonly BaseTestingRuntime Runtime;
 
         /// <summary>
         /// Set of fingerprints.
@@ -37,8 +38,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        internal StateCache(BugFindingRuntime runtime)
+        /// <param name="runtime">BaseTestingRuntime</param>
+        internal StateCache(BaseTestingRuntime runtime)
         {
             Runtime = runtime;
             Fingerprints = new HashSet<Fingerprint>();

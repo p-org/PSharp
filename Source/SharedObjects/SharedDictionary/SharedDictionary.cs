@@ -14,28 +14,29 @@
 
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Shared dictionary that can be safely shared by multiple P# state-machines.
+    /// Shared dictionary that can be safely shared by multiple P# machines.
     /// </summary>
     public static class SharedDictionary
     {
         /// <summary>
         /// Creates a new shared dictionary.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
-        public static ISharedDictionary<TKey, TValue> Create<TKey, TValue>(PSharpRuntime runtime)
+        /// <param name="runtime">IPSharpRuntime</param>
+        public static ISharedDictionary<TKey, TValue> Create<TKey, TValue>(IPSharpRuntime runtime)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedDictionary<TKey, TValue>();
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is ITestingRuntime testingRuntime)
             {
-                return new MockSharedDictionary<TKey, TValue>(null, runtime as BugFindingRuntime);
+                return new MockSharedDictionary<TKey, TValue>(null, testingRuntime);
             }
             else
             {
@@ -47,16 +48,16 @@ namespace Microsoft.PSharp.SharedObjects
         /// Creates a new shared dictionary.
         /// </summary>
         /// <param name="comparer">Comparer for keys</param>
-        /// <param name="runtime">PSharp runtime</param>
-        public static ISharedDictionary<TKey, TValue> Create<TKey, TValue>(IEqualityComparer<TKey> comparer, PSharpRuntime runtime)
+        /// <param name="runtime">IPSharpRuntime</param>
+        public static ISharedDictionary<TKey, TValue> Create<TKey, TValue>(IEqualityComparer<TKey> comparer, IPSharpRuntime runtime)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedDictionary<TKey, TValue>(comparer);
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is ITestingRuntime testingRuntime)
             {
-                return new MockSharedDictionary<TKey, TValue>(comparer, runtime as BugFindingRuntime);
+                return new MockSharedDictionary<TKey, TValue>(comparer, testingRuntime);
             }
             else
             {

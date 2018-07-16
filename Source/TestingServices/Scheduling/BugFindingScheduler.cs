@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="BugFindingScheduler.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -17,6 +17,8 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -24,14 +26,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class implementing the basic P# bug-finding scheduler.
     /// </summary>
-    internal sealed class BugFindingScheduler
+    public sealed class BugFindingScheduler
     {
-        #region fields
-
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private BugFindingRuntime Runtime;
+        private BaseTestingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for bug-finding.
@@ -47,16 +47,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// The scheduler completion source.
         /// </summary>
         private readonly TaskCompletionSource<bool> CompletionSource;
-        
+
         /// <summary>
         /// Checks if the scheduler is running.
         /// </summary>
         private bool IsSchedulerRunning;
 
-        #endregion
-
-        #region properties
-        
         /// <summary>
         /// The currently schedulable info.
         /// </summary>
@@ -82,16 +78,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal string BugReport { get; private set; }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
+        /// <param name="runtime">BaseTestingRuntime</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal BugFindingScheduler(BugFindingRuntime runtime, ISchedulingStrategy strategy)
+        internal BugFindingScheduler(BaseTestingRuntime runtime, ISchedulingStrategy strategy)
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
@@ -101,10 +93,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.BugFound = false;
             this.HasFullyExploredSchedule = false;
         }
-
-        #endregion
-
-        #region scheduling methods
 
         /// <summary>
         /// Schedules the next <see cref="ISchedulable"/> operation to execute.
@@ -165,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     this.ScheduledMachine.IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
-                
+
                 lock (current)
                 {
                     if (!current.IsEventHandlerRunning)
@@ -217,7 +205,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
-            
+
             return choice;
         }
 
@@ -297,10 +285,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Blocks until the scheduler terminates.
         /// </summary>
         internal void Wait() => this.CompletionSource.Task.Wait();
-
-        #endregion
-
-        #region notifications
 
         /// <summary>
         /// Notify that an event handler has been created.
@@ -385,10 +369,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
         }
 
-        #endregion
-
-        #region utilities
-
         /// <summary>
         /// Returns the enabled schedulable ids.
         /// </summary>
@@ -459,10 +439,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             return report;
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the number of available machines to schedule.
@@ -571,7 +547,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
         }
-
-        #endregion
     }
 }

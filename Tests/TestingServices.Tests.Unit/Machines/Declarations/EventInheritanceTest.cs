@@ -12,8 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
@@ -295,7 +295,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestEventInheritanceRun()
         {
             var tcs = new TaskCompletionSource<bool>();
-            var runtime = new StateMachineRuntime();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var a = runtime.CreateMachine(typeof(A), null, new A.Configure(tcs), null);
             runtime.SendEvent(a, new A.E3());
             runtime.SendEvent(a, new E1());
