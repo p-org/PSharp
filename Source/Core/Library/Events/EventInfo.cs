@@ -22,7 +22,7 @@ namespace Microsoft.PSharp
     /// associated information.
     /// </summary>
     [DataContract]
-    internal class EventInfo
+    public class EventInfo
     {
         /// <summary>
         /// Contained event.

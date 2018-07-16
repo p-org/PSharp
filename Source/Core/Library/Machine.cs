@@ -603,7 +603,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        internal void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        internal virtual void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
         {
             lock (this.Inbox)
             {
@@ -1402,7 +1402,14 @@ namespace Microsoft.PSharp
                 var hash = 19;
 
                 hash = hash * 31 + this.GetType().GetHashCode();
-                hash = hash * 31 + base.Id.Value.GetHashCode();
+                if (this.Runtime.IsTest())
+                {
+                    hash = hash * 31 + base.Id.Value.GetHashCode();
+                }
+                else
+                {
+                    hash = hash * 31 + base.Id.GetHashCode();
+                }
                 hash = hash * 31 + this.IsRunning.GetHashCode();
 
                 hash = hash * 31 + this.Info.IsHalted.GetHashCode();

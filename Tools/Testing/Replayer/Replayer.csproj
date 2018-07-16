@@ -8,6 +8,7 @@
     <TargetFrameworks>net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <PackageTags>bug;trace;replay;psharp</PackageTags>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>

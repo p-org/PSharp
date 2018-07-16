@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.Serialization;
 using System.Threading;
 
@@ -25,7 +26,6 @@ namespace Microsoft.PSharp
     public sealed class MachineId
     {
         #region fields
-
         /// <summary>
         /// The P# runtime that executes the machine with this id.
         /// </summary>
@@ -50,16 +50,10 @@ namespace Microsoft.PSharp
         public readonly string Type;
 
         /// <summary>
-        /// Unique id value.
+        /// Unique id value typically used for testing.
         /// </summary>
         [DataMember]
-        public readonly ulong Value;
-
-        /// <summary>
-        /// Generation of the runtime that created this machine id.
-        /// </summary>
-        [DataMember]
-        public readonly ulong Generation;
+        internal readonly ulong Value;
 
         /// <summary>
         /// Endpoint.
@@ -70,64 +64,42 @@ namespace Microsoft.PSharp
         #endregion
 
         #region constructors
-
         /// <summary>
         /// Creates a new machine id.
         /// </summary>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="runtime">PSharpRuntime</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime)
+        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime) : this(type.FullName, friendlyName, runtime)
         {
-            FriendlyName = friendlyName;
-            Runtime = runtime;
-            Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
-            
-            // Atomically increments and safely wraps into an unsigned long.
-            Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
-
-            // Checks for overflow.
-            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-
-            Generation = runtime.Configuration.RuntimeGeneration;
-
-            Type = type.FullName;
-            if (friendlyName != null && friendlyName.Length > 0)
-            {
-                Name = string.Format("{0}({1})", friendlyName, Value);
-            }
-            else
-            {
-                Name = string.Format("{0}({1})", Type, Value);
-            }
         }
 
         /// <summary>
-        /// Create a fresh MachineId borrowing information from a given id.
+        /// Creates a new machine id.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal MachineId(MachineId mid)
+        /// <param name="type">Machine type string</param>
+        /// <param name="friendlyName">Friendly machine name</param>
+        /// <param name="runtime">PSharpRuntime</param>
+        internal MachineId(string type, string friendlyName, PSharpRuntime runtime)
         {
-            Runtime = mid.Runtime;
-            Endpoint = mid.Endpoint;
+            Type = type;
+            Runtime = runtime;
 
-            // Atomically increments and safely wraps into an unsigned long.
-            Value = (ulong)Interlocked.Increment(ref Runtime.MachineIdCounter) - 1;
-
-            // Checks for overflow.
-            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-
-            Generation = mid.Generation;
-            Type = mid.Type;
-
-            if (FriendlyName != null && FriendlyName.Length > 0)
+            if (this.Runtime.IsTest())
             {
-                Name = string.Format("{0}({1})", FriendlyName, Value);
+                this.Value = runtime.GenerateTestId();
+                // Checks for overflow.
+                Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
             }
-            else
+
+            if (string.IsNullOrWhiteSpace(friendlyName))
             {
-                Name = string.Format("{0}({1})", Type, Value);
+                friendlyName = Runtime.GetFriendlyName(Type);
             }
+
+            FriendlyName = friendlyName;
+            Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
+            Name = $"({Type})-{FriendlyName}";
         }
 
         /// <summary>
@@ -142,7 +114,7 @@ namespace Microsoft.PSharp
         #endregion
 
         #region generic public and override methods
-        
+
         /// <summary>
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
@@ -162,7 +134,14 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return Value == mid.Value && Generation == mid.Generation;
+            if (Runtime.IsTest())
+            {
+                return Value == mid.Value;
+            }
+            else
+            {
+                return Name == mid.Name;
+            }
         }
 
         /// <summary>
@@ -172,8 +151,15 @@ namespace Microsoft.PSharp
         public override int GetHashCode()
         {
             int hash = 17;
-            hash = hash * 23 + Value.GetHashCode();
-            hash = hash * 23 + Generation.GetHashCode();
+            if (Runtime.IsTest())
+            {
+                hash = hash * 23 + Value.GetHashCode();
+            }
+            else
+            {
+                hash = hash * 23 + Name.GetHashCode();
+            }
+
             return hash;
         }
 
