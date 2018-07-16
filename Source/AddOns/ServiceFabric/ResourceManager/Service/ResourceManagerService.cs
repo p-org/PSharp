@@ -8,6 +8,7 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
+    using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
     using ResourceManager.Contracts;
@@ -47,7 +48,12 @@
             KeyedCollection<string, EndpointResourceDescription> endpoints = this.Context.CodePackageActivationContext.GetEndpoints();
             ServiceReplicaListener listener = new ServiceReplicaListener((context) =>
             {
-                return new FabricTransportServiceRemotingListener(context, this, new Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime.FabricTransportRemotingListenerSettings() { EndpointResourceName = "ResourceManagerEndpoint" });
+                return new FabricTransportServiceRemotingListener(context, 
+                    this, 
+                    new FabricTransportRemotingListenerSettings()
+                    {
+                        EndpointResourceName = "ResourceManagerEndpoint",
+                    });
             });
 
             listeners.Add(listener);

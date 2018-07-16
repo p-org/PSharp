@@ -603,7 +603,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        internal void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        internal virtual void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
         {
             lock (this.Inbox)
             {
