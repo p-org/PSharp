@@ -6,7 +6,7 @@
 
     public interface IReactiveReliableQueue<T>
     {
-        Task EnqueueAsync(ITransaction tx, T item);
+        Task EnqueueAsync(ITransaction tx, T item, CancellationToken cancellationToken);
 
         Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken);
 

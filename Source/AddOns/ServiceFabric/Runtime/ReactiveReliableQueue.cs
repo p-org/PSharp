@@ -17,9 +17,9 @@
             _signal = new SemaphoreSlim(1);
         }
 
-        public async Task EnqueueAsync(ITransaction tx, T item)
+        public async Task EnqueueAsync(ITransaction tx, T item, CancellationToken cancellationToken)
         {
-            await _queue.EnqueueAsync(tx, item);
+            await _queue.EnqueueAsync(tx, item, TimeSpan.FromMinutes(1), cancellationToken);
             _signal.Release();
         }
 

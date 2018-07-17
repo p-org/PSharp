@@ -35,7 +35,7 @@
                 ServiceEventSource.Current.Message($"[QUEUE] {this.queueName}: ADD STARTING DELAY");
                 await Task.Delay(TimeSpan.FromSeconds(4));
                 ServiceEventSource.Current.Message($"[QUEUE] {this.queueName}: Enqueue item has value {count}");
-                await queue.EnqueueAsync(tx, count++);
+                await queue.EnqueueAsync(tx, count++, token);
                 if (!this.shouldAbort)
                 {
                     ServiceEventSource.Current.Message($"[QUEUE] {this.queueName}: Delaying commit by few seconds");
