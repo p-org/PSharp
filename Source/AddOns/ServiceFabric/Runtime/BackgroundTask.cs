@@ -43,7 +43,6 @@
                         }
                         catch (Exception ex)
                         {
-                            ServiceEventSource.Current.Message($"Ran into exception: {ex} in {this.GetType()}");
                             this.LogFailedRun(ex, (long)DateTime.UtcNow.Subtract(beforeTime).TotalMilliseconds, true);
                         }
 

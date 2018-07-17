@@ -30,16 +30,13 @@
 
         public async Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken)
         {
-            ServiceEventSource.Current.Message($"[FRAMEWORK] Waiting for signal {_queue.Name}");
-            await _signal.WaitAsync(cancellationToken);
-            ServiceEventSource.Current.Message($"[FRAMEWORK] Waiting to dequeue from {_queue.Name}");
-            var result = await _queue.TryDequeueAsync(tx, TimeSpan.FromMinutes(1), cancellationToken);
-            ServiceEventSource.Current.Message($"[FRAMEWORK] Dequeue from {_queue.Name} and has value = {result.HasValue}");
+            await _signal.WaitAsync(cancellationToken).ConfigureAwait(false);
+            // Setting up 1 minute timeout - when enqueue lock takes more time, we might run into TimeoutException
+            var result = await _queue.TryDequeueAsync(tx, TimeSpan.FromMinutes(1), cancellationToken).ConfigureAwait(false);
             var countDiff = await GetCountDiff(tx);
 
             if (countDiff > 0)
             {
-                ServiceEventSource.Current.Message($"[FRAMEWORK] Signal release for {_queue.Name} with count {countDiff}");
                 _signal.Release(countDiff);
             }
 
@@ -48,7 +45,7 @@
 
         private async Task<int> GetCountDiff(ITransaction tx)
         {
-            return (int)await _queue.GetCountAsync(tx) - _signal.CurrentCount;
+            return (int)await _queue.GetCountAsync(tx).ConfigureAwait(false) - _signal.CurrentCount;
         }
     }
 }
