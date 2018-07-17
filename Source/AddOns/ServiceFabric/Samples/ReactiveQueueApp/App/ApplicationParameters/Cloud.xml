@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fabric:/ReactiveQueueApp" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Parameters>
+    <Parameter Name="ReactiveQueueService_TargetReplicaSetSize" Value="5" />
+    <Parameter Name="ReactiveQueueService_MinReplicaSetSize" Value="3" />
+  </Parameters>
+</Application>

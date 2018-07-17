@@ -2,6 +2,7 @@
 {
     using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Data.Collections;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -29,14 +30,16 @@
 
         public async Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken)
         {
-            await _signal.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-            var result = await _queue.TryDequeueAsync(tx).ConfigureAwait(false);
-
+            ServiceEventSource.Current.Message($"[FRAMEWORK] Waiting for signal {_queue.Name}");
+            await _signal.WaitAsync(cancellationToken);
+            ServiceEventSource.Current.Message($"[FRAMEWORK] Waiting to dequeue from {_queue.Name}");
+            var result = await _queue.TryDequeueAsync(tx, TimeSpan.FromMinutes(1), cancellationToken);
+            ServiceEventSource.Current.Message($"[FRAMEWORK] Dequeue from {_queue.Name} and has value = {result.HasValue}");
             var countDiff = await GetCountDiff(tx);
 
             if (countDiff > 0)
             {
+                ServiceEventSource.Current.Message($"[FRAMEWORK] Signal release for {_queue.Name} with count {countDiff}");
                 _signal.Release(countDiff);
             }
 
@@ -45,7 +48,7 @@
 
         private async Task<int> GetCountDiff(ITransaction tx)
         {
-            return (int)await _queue.GetCountAsync(tx).ConfigureAwait(false) - _signal.CurrentCount;
+            return (int)await _queue.GetCountAsync(tx) - _signal.CurrentCount;
         }
     }
 }

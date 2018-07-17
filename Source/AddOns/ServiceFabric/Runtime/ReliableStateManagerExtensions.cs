@@ -10,9 +10,7 @@
 
         public static async Task<IReactiveReliableQueue<T>> GetOrAddReactiveReliableQueue<T>(this IReliableStateManager reliableStateManager, string name)
         {
-            var queue = await reliableStateManager.GetOrAddAsync<IReliableQueue<T>>(name)
-                .ConfigureAwait(false);
-
+            var queue = await reliableStateManager.GetOrAddAsync<IReliableQueue<T>>(name);
             return _reactiveReliableQueueManager.GetOrCreateAsync(queue);
         }
     }
