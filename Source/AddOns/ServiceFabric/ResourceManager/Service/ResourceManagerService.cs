@@ -1,4 +1,6 @@
-﻿namespace ResourceManager.SF
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+namespace ResourceManager.SF
 {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;

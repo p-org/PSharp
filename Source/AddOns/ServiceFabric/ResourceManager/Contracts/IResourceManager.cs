@@ -1,4 +1,6 @@
-﻿namespace ResourceManager.Contracts
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+namespace ResourceManager.Contracts
 {
 
     using Microsoft.ServiceFabric.Services.Remoting;
