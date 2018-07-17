@@ -8,7 +8,8 @@
 
     public class QueueTask : BackgroundTask
     {
-        int count = 0;
+        int count = 100;
+
         public QueueTask(IReliableStateManager manager, string queueName, bool shouldAbort = false)
         {
             this.Manager = manager;

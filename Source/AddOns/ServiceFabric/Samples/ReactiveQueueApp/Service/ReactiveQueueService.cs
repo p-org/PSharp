@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using Microsoft.PSharp.ServiceFabric;
     using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Services.Runtime;
 
@@ -23,7 +24,16 @@
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1", true);
+            //IReactiveReliableQueue<int> queue = await this.StateManager.GetOrAddReactiveReliableQueue<int>("QUEUE1");
+            //using (ITransaction tx = this.StateManager.CreateTransaction())
+            //{
+            //    await queue.EnqueueAsync(tx, 1);
+            //    await queue.EnqueueAsync(tx, 2);
+            //    await tx.CommitAsync();
+            //}
+
+            QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1");
+            // QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1", true);
             DequeueTask dq1 = new DequeueTask(this.StateManager, "QUEUE1");
 
             Task t1 = dq1.Start(cancellationToken);
