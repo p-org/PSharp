@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.ServiceFabric
 {
-    public class StateMachineRuntime : PSharpRuntime
+    internal class ServiceFabricPSharpRuntime : StateMachineRuntime
     {
-        protected StateMachineRuntime()
+        protected ServiceFabricPSharpRuntime()
         {
         }
 
-        protected StateMachineRuntime(Configuration configuration) : base(configuration)
+        protected ServiceFabricPSharpRuntime(Configuration configuration) : base(configuration)
         {
         }
 
