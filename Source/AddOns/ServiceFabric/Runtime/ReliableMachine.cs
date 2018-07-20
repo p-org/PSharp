@@ -48,16 +48,6 @@ namespace Microsoft.PSharp.ServiceFabric
         public ITransaction CurrentTransaction { get; internal set; }
 
         /// <summary>
-        /// Current transaction
-        /// </summary>
-        private bool LastTxThrewException;
-
-        /// <summary>
-        /// Pending machine creations
-        /// </summary>
-        private ConcurrentBag<TaskCompletionSource<bool>> PendingMachineCreations;
-
-        /// <summary>
         /// State changes (inverted, for undo)
         /// </summary>
         private List<MachineStateChangeOp> PendingStateChangesInverted;
@@ -101,7 +91,6 @@ namespace Microsoft.PSharp.ServiceFabric
             : base()
         {
             this.StateManager = stateManager;
-            this.PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             this.PendingStateChangesInverted = new List<MachineStateChangeOp>();
             this.PendingStateChanges = new List<MachineStateChangeOp>();
 
@@ -109,7 +98,6 @@ namespace Microsoft.PSharp.ServiceFabric
             this.TestModeOutBuffer = new Queue<Tuple<MachineId, Event>>();
             this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
             this.LastDequeuedEvent = null;
-            this.LastTxThrewException = false;
         }
 
         /// <summary>
@@ -158,288 +146,42 @@ namespace Microsoft.PSharp.ServiceFabric
 
             var startState = this.StateStack.Peek();
 
-            // TODO: include a retry policy
-            while (true)
+            this.StateStack.Clear();
+            this.PendingStateChanges.Clear();
+            this.PendingStateChangesInverted.Clear();
+
+            CurrentTransaction = this.StateManager.CreateTransaction();
+
+            var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
+            if (cnt != 0)
             {
-                CurrentTransaction = this.StateManager.CreateTransaction();
-                this.StateStack.Clear();
-                this.PendingStateChanges.Clear();
-                this.PendingStateChangesInverted.Clear();
-
-                try
+                for (int i = 0; i < cnt; i++)
                 {
-                    var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
-                    if (cnt != 0)
-                    {
-                        for (int i = 0; i < cnt; i++)
-                        {
-                            var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
-                            this.Assert(s.HasValue, "Error reading store for the state stack");
+                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
+                    this.Assert(s.HasValue, "Error reading store for the state stack");
 
-                            var nextState = StateMap[this.GetType()].First(val
-                                => val.GetType().AssemblyQualifiedName.Equals(s.Value));
+                    var nextState = StateMap[this.GetType()].First(val
+                        => val.GetType().AssemblyQualifiedName.Equals(s.Value));
 
-                            base.DoStatePush(nextState);
-                        }
-
-                        this.Assert(e == null, "Unexpected event passed on failover");
-
-                        await OnActivate();
-
-                        // start timers
-                        var enumerator = (await Timers.CreateEnumerableAsync(CurrentTransaction))
-                            .GetAsyncEnumerator();
-                        var ct = new System.Threading.CancellationToken();
-
-                        while (await enumerator.MoveNextAsync(ct))
-                        {
-                            var config = enumerator.Current.Value;
-
-                            var timer = CreateSingleTimer(config.Period, config.Name);
-                            timer.StartTimer();
-                            TimerObjects.Add(config.Name, timer);
-                        }
-                    }
-                    else
-                    {
-                        // fresh start
-                        base.DoStatePush(startState);
-                        await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName);
-
-                        await OnActivate();
-
-                        this.ReceivedEvent = e;
-                        await this.ExecuteCurrentStateOnEntry();
-                    }
-
-                    if (this.LastTxThrewException)
-                    {
-                        OnTxAbort();
-                        CleanupOnAbortedTransaction();
-                        LastTxThrewException = false;
-                        continue;
-                    }
-                    else
-                    {
-                        await CommitCurrentTransaction();
-                    }
-
-                    break;
+                    base.DoStatePush(nextState);
                 }
-                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
-                {
-                    this.Logger.WriteLine("ReliableStateMachine::GotoStartState encountered an exception trying to commit a transaction: {0}", ex.ToString());
-                    OnTxAbort();
-                    CleanupOnAbortedTransaction();
-                }
-            }
-        }
 
-        #region CreateMachine
+                this.Assert(e == null, "Unexpected event passed on failover");
 
-        /// <summary>
-        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
-        /// and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="e">Event</param>
-        protected async Task<MachineId> ReliableCreateMachine(Type type, string friendlyName, Event e = null)
-        {
-            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
-            var mid = this.Runtime.CreateMachineId(type, friendlyName);
-
-            await createdMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
-            if (!InTestMode)
-            {
-                var tcs = SpawnMachineCreationTask(this.Runtime, mid, type, e);
-                PendingMachineCreations.Add(tcs);
+                await OnActivate();
             }
             else
             {
-                TestModeCreateBuffer.Enqueue(Tuple.Create(mid, type, e));
+                // fresh start
+                base.DoStatePush(startState);
+                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName);
+
+                await OnActivate();
+
+                this.ReceivedEvent = e;
+                await this.ExecuteCurrentStateOnEntry();
             }
-            return mid;
         }
-
-        /// <summary>
-        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
-        /// and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="endpoint">Endpoint where to create the machine</param>
-        /// <param name="e">Event</param>
-        protected async Task<MachineId> ReliableRemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e = null)
-        {
-            if (InTestMode)
-            {
-                return await ReliableCreateMachine(type, friendlyName, e);
-            }
-
-            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(
-                "remoteCreationMachineMap" + this.Id.Name);
-
-            var mid = await this.Runtime.NetworkProvider.RemoteCreateMachineId(type, friendlyName, endpoint);
-
-            await remoteCreationMachineMap.AddAsync(CurrentTransaction, mid.ToString(), Tuple.Create<MachineId, string, Event>(mid, type.AssemblyQualifiedName, e));
-            return mid;
-        }
-
-        /// <summary>
-        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
-        /// and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="e">Event</param>
-        public static async Task<MachineId> ReliableCreateMachine(IReliableStateManager stateManager, PSharpRuntime runtime, Type type, string friendlyName, Event e = null)
-        {
-            var createdMachineMap = await stateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
-            var mid = runtime.CreateMachineId(type, friendlyName);
-
-            using (var tx = stateManager.CreateTransaction())
-            {
-                await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
-                await tx.CommitAsync();
-            }
-
-            var tcs = SpawnMachineCreationTask(runtime, mid, type, e);
-            tcs.SetResult(true);
-            return mid;
-        }
-
-        /// <summary>
-        /// Creates a new Reliable State Machine of the specified <see cref="Type"/> and name, 
-        /// and passes the specified optional <see cref="Event"/>. This event
-        /// can only be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="mid">MachineId of the machine to be created</param>
-        /// <param name="e">Event</param>
-        /// <returns>False, if machine was already created</returns>
-        public static async Task<bool> ReliableCreateMachine(IReliableStateManager stateManager, PSharpRuntime runtime, MachineId mid, Type type, Event e = null)
-        {
-            var createdMachineMap = await stateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
-            var alreadyCreated = false;
-
-            using (var tx = stateManager.CreateTransaction())
-            {
-                var cv = await createdMachineMap.TryGetValueAsync(tx, mid.ToString());
-                if (cv.HasValue)
-                {
-                    alreadyCreated = true;
-                }
-                else
-                {
-                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
-                    await tx.CommitAsync();
-                }
-            }
-
-            if (!alreadyCreated)
-            {
-                var tcs = SpawnMachineCreationTask(runtime, mid, type, e);
-                tcs.SetResult(true);
-            }
-
-            return !alreadyCreated;
-        }
-
-        private static TaskCompletionSource<bool> SpawnMachineCreationTask(PSharpRuntime runtime, MachineId mid, Type type, Event e)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            Task.Run(async () =>
-            {
-                var r = await tcs.Task;
-                if (r)
-                {
-                    runtime.CreateMachine(mid, type, e);
-                }
-            });
-            return tcs;
-        }
-
-        #endregion
-
-        #region Timers
-
-        /// <summary>
-        /// Starts a periodic timer
-        /// </summary>
-        /// <param name="name">Name of the timer</param>
-        /// <param name="period">Periodic interval (ms)</param>
-        protected async Task StartTimer(string name, int period)
-        {
-            var config = new Timers.ReliableTimerConfig(name, period);
-            var success = await Timers.TryAddAsync(CurrentTransaction, name, config);
-            this.Assert(success, "Timer {0} already started", name);
-
-            PendingTimerCreations.Add(name, config);
-        }
-
-        /// <summary>
-        /// Stops a timer
-        /// </summary>
-        /// <param name="name"></param>
-        protected async Task StopTimer(string name)
-        {
-            var cv = await Timers.TryRemoveAsync(CurrentTransaction, name);
-            this.Assert(cv.HasValue, "Attempt to stop a timer {0} that was not started", name);
-
-            if (PendingTimerCreations.ContainsKey(name))
-            {
-                // timer was pending, so just remove it
-                PendingTimerCreations.Remove(name);
-            }
-            else
-            {
-                PendingTimerRemovals.Add(name);
-            }
-
-        }
-
-        /// <summary>
-        /// Actually start/stop the timers marked pending
-        /// </summary>
-        private async Task ProcessTimers()
-        {
-            foreach (var tup in PendingTimerCreations)
-            {
-                var timer = CreateSingleTimer(tup.Value.Period, tup.Key);
-                timer.StartTimer();
-                TimerObjects.Add(tup.Key, timer);
-            }
-
-            PendingTimerCreations.Clear();
-
-            foreach (var name in PendingTimerRemovals)
-            {
-                if (!TimerObjects.ContainsKey(name)) continue;
-
-                var success = TimerObjects[name].StopTimer();
-                if (!success)
-                {
-                    // wait for, and remove, the timeout
-                    await base.Receive(typeof(Timers.TimeoutEvent), ev => (ev as Timers.TimeoutEvent).Name == name);
-                }
-
-                TimerObjects.Remove(name);
-            }
-
-            PendingTimerRemovals.Clear();
-        }
-
-        private Timers.ISingleTimer CreateSingleTimer(int period, string name)
-        {
-            return InTestMode ? (Timers.ISingleTimer)new Timers.ReliableTimerMock(this.Id, period, name)
-                : (Timers.ISingleTimer)new Timers.ReliableTimerProd(this.Id, period, name);
-        }
-
-        #endregion
 
         #region internal methods
 
@@ -472,6 +214,8 @@ namespace Microsoft.PSharp.ServiceFabric
                 this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.TransactionId);
             }
 
+            (this.Runtime as ServiceFabricPSharpRuntime).NotifyTransactionCommit(CurrentTransaction);
+
             if (InTestMode)
             {
                 // disable R/G/P check
@@ -490,99 +234,10 @@ namespace Microsoft.PSharp.ServiceFabric
                 }
             }
 
-            // remote machine creations
-            var remoteCreationMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(
-                "remoteCreationMachineMap" + this.Id.Name);
-
-            // TODO: include retry policy
-            while (true)
-            {
-                try
-                {
-                    using (var tx = this.StateManager.CreateTransaction())
-                    {
-                        var keys = new List<string>();
-
-                        var enumerable = await remoteCreationMachineMap.CreateEnumerableAsync(tx);
-                        var enumerator = enumerable.GetAsyncEnumerator();
-
-                        // TODO: Add cancellation token
-                        var ct = new System.Threading.CancellationToken();
-
-                        while (await enumerator.MoveNextAsync(ct))
-                        {
-                            keys.Add(enumerator.Current.Key);
-                            var tup = enumerator.Current.Value;
-                            // idempotent, so this can happen multiple times
-                            await this.Runtime.NetworkProvider.RemoteCreateMachine(tup.Item1, Type.GetType(tup.Item2), tup.Item3);
-                        }
-
-                        // TODO: ClearAsync doesn't work
-                        foreach (var k in keys)
-                        {
-                            await remoteCreationMachineMap.TryRemoveAsync(tx, k);
-                        }
-
-                        await tx.CommitAsync();
-                    }
-                    break;
-                }
-                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
-                {
-                    // retry
-                }
-            }
-
-            // local machine creations
-            foreach (var tcs in PendingMachineCreations.AsEnumerable())
-            {
-                tcs.SetResult(true);
-            }
-
-            await ProcessTimers();
-
             CurrentTransaction.Dispose();
-            PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
             PendingStateChanges.Clear();
             PendingStateChangesInverted.Clear();
             CurrentTransaction = null;
-        }
-
-        private void CleanupOnAbortedTransaction()
-        {
-            foreach (var tcs in PendingMachineCreations.AsEnumerable())
-            {
-                tcs.SetResult(false);
-            }
-
-            // restore state stack
-            for (int i = PendingStateChangesInverted.Count - 1; i >= 0; i--)
-            {
-                if (PendingStateChangesInverted[i] is PopStateChangeOp)
-                {
-                    base.DoStatePop();
-                }
-                else
-                {
-                    base.DoStatePush((PendingStateChangesInverted[i] as PushStateChangeOp).state);
-                }
-            }
-
-            if (CurrentTransaction != null)
-            {
-                CurrentTransaction.Dispose();
-            }
-
-            PendingMachineCreations = new ConcurrentBag<TaskCompletionSource<bool>>();
-            PendingStateChanges.Clear();
-            PendingStateChangesInverted.Clear();
-            PendingTimerCreations.Clear();
-            PendingTimerRemovals.Clear();
-            CurrentTransaction = null;
-            RaisedEvent = null;
-
-            TestModeOutBuffer.Clear();
-            TestModeCreateBuffer.Clear();
         }
 
         /// <summary>
@@ -591,8 +246,6 @@ namespace Microsoft.PSharp.ServiceFabric
         /// </summary>
         internal override async Task<bool> RunEventHandler()
         {
-            Timers.ISingleTimer lastTimer = null;
-
             if (this.Info.IsHalted)
             {
                 return true;
@@ -609,54 +262,19 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 if (nextEventInfo == null)
                 {
-                    var lastTimerStopped = false;
-                    if (lastTimer != null && PendingTimerRemovals.Contains(lastTimer.Name))
+                    if(CurrentTransaction != null)
                     {
-                        lastTimerStopped = true;
+                        await CommitCurrentTransaction();
+                        CurrentTransaction = this.StateManager.CreateTransaction();
                     }
 
-                    // commit previous transaction
-                    if (CurrentTransaction != null)
-                    {
-                        try
-                        {
-                            await CommitCurrentTransaction();
-                        }
-                        catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
-                        {
-                            this.Logger.WriteLine("ReliableStateMachine encountered an exception trying to commit a transaction: {0}", ex.ToString());
-                            LastTxThrewException = true;
-                            CleanupOnAbortedTransaction();
-                            await TxAbortHandler();
-                        }
-                    }
-
-                    if (!LastTxThrewException && !lastTimerStopped && lastTimer != null)
-                    {
-                        var newTimer = CreateSingleTimer(lastTimer.TimePeriod, lastTimer.Name);
-                        TimerObjects[lastTimer.Name] = newTimer;
-                        newTimer.StartTimer();
-                    }
-
-                    CurrentTransaction = StateManager.CreateTransaction();
                     var reliableDequeue = false;
 
                     lock (base.Inbox)
                     {
                         // Try to dequeue the next event, if there is one.
-                        nextEventInfo = (LastTxThrewException) ? LastDequeuedEvent
-                            : this.TryDequeueEvent();
+                        nextEventInfo = this.TryDequeueEvent();
                         LastDequeuedEvent = nextEventInfo;
-                    }
-
-                    if (!LastTxThrewException)
-                    {
-                        lastTimer = null;
-                        if (nextEventInfo != null && nextEventInfo.Event is Timers.TimeoutEvent)
-                        {
-                            lastTimer = TimerObjects[(nextEventInfo.Event as Timers.TimeoutEvent).Name];
-                            TimerObjects.Remove(lastTimer.Name);
-                        }
                     }
 
                     if (nextEventInfo == null && !InTestMode)
@@ -708,145 +326,50 @@ namespace Microsoft.PSharp.ServiceFabric
                 this.ReceivedEvent = nextEventInfo.Event;
 
                 this.LastDequeuedEvent = nextEventInfo;
-                this.LastTxThrewException = false;
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
-
-                if (this.LastTxThrewException)
-                {
-                    CleanupOnAbortedTransaction();
-                    await TxAbortHandler();
-                }
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Executes the specified action.
-        /// </summary>
-        /// <param name="cachedAction">The cached methodInfo and corresponding delegate</param>
-        internal override async Task ExecuteAction(CachedAction cachedAction)
-        {
-            if (!LastTxThrewException)
-            {
-                await base.ExecuteAction(cachedAction);
-            }
-        }
-
-        private async Task TxAbortHandler()
-        {
-            if (InTestMode)
-            {
-                if (this.Random())
-                {
-                    // simulating a failure
-
-                    this.Assert(CurrentTransaction == null);
-
-                    // TODO: Bound number of iterations
-                    // of this retry loop
-                    while (true)
-                    {
-                        try
-                        {
-                            await ClearVolatileState();
-                            CurrentTransaction = StateManager.CreateTransaction();
-                            await OnActivate();
-                            await CurrentTransaction.CommitAsync();
-                            break;
-                        }
-                        catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
-                        {
-                            CurrentTransaction.Dispose();
-                        }
-                    }
-                    CurrentTransaction = null;
-                }
-                else
-                {
-                    // or a normal abort
-                    OnTxAbort();
-                }
-            }
-            else
-            {
-                OnTxAbort();
-            }
         }
 
         private async Task<EventInfo> ReliableDequeue()
         {
             EventInfo ret;
 
-            // TODO: retry policy
             while (true)
             {
-                try
+                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+                if (cv.HasValue)
                 {
-
-                    while (true)
+                    if (cv.Value.Event is TaggedRemoteEvent)
                     {
-                        var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
-                        if (cv.HasValue)
+                        var tg = (cv.Value.Event as TaggedRemoteEvent);
+                        var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
+                        if (currentCounter == tg.tag - 1)
                         {
-                            if (cv.Value.Event is TaggedRemoteEvent)
-                            {
-                                var tg = (cv.Value.Event as TaggedRemoteEvent);
-                                var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
-                                if (currentCounter == tg.tag - 1)
-                                {
-                                    ret = new EventInfo(tg.ev, cv.Value.OriginInfo);
-                                    await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                ret = cv.Value;
-                            }
-
-                            return ret;
+                            ret = new EventInfo(tg.ev, cv.Value.OriginInfo);
+                            await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
                         }
                         else
                         {
-                            return null;
+                            continue;
                         }
                     }
+                    else
+                    {
+                        ret = cv.Value;
+                    }
+
+                    return ret;
                 }
-                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
+                else
                 {
-                    //retry
-                    await Task.Delay(10);
+                    return null;
                 }
             }
 
-        }
-
-        /// <summary>
-        /// Invokes user callback when a machine throws an exception.
-        /// </summary>
-        /// <param name="ex">The exception thrown by the machine</param>
-        /// <param name="methodName">The handler (outermost) that threw the exception</param>
-        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
-        internal override bool OnExceptionHandler(string methodName, Exception ex)
-        {
-            if (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
-            {
-                this.LastTxThrewException = true;
-                this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
-                this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
-                // TODO: We have to ensure that if a handler throws this exception (i.e., tx aborts)
-                // then subsequent exit or entry handlers are not invoked. This requires a change in
-                // Machine.HandleEvent
-                return true;
-            }
-
-            return base.OnExceptionHandler(methodName, ex);
         }
 
         /// <summary>
@@ -873,86 +396,7 @@ namespace Microsoft.PSharp.ServiceFabric
         }
         #endregion
 
-        #region Send
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        protected async Task ReliableSend(MachineId mid, Event e)
-        {
-            if (!InTestMode)
-            {
-                var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
-                await targetQueue.EnqueueAsync(CurrentTransaction, new EventInfo(e));
-            }
-            else
-            {
-                TestModeOutBuffer.Enqueue(Tuple.Create(mid, e));
-            }
-        }
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine executing on a different StateManager
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        protected async Task ReliableRemoteSend(MachineId mid, Event e)
-        {
-            if (!InTestMode)
-            {
-                var tag = await SendCounters.AddOrUpdateAsync(CurrentTransaction, mid.Name, 1, (key, oldValue) => oldValue + 1);
-                await this.RemoteSend(mid, new TaggedRemoteEvent(this.Id, e, tag));
-            }
-            else
-            {
-                TestModeOutBuffer.Enqueue(Tuple.Create(mid, e));
-            }
-        }
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
-        public static async Task ReliableSend(IReliableStateManager stateManager, MachineId mid, Event e)
-        {
-            // TODO: retry policy
-            while (true)
-            {
-                try
-                {
-                    using (var tx = stateManager.CreateTransaction())
-                    {
-                        var targetQueue = await stateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
-                        await targetQueue.EnqueueAsync(tx, new EventInfo(e));
-                        await tx.CommitAsync();
-                    }
-                    break;
-                }
-                catch (Exception ex) when (ex is System.Fabric.TransactionFaultedException || ex is TimeoutException)
-                {
-                    // retry
-                }
-            }
-        }
-
-
-
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
-        protected override void Send(MachineId mid, Event e, SendOptions options = null)
-        {
-            this.Assert(false, $"ReliableStateMachines ('{base.Id}') don't support Send. Use ReliableSend instead.");
-            throw new NotImplementedException();
-        }
+        #region Unsupported        
 
         /// <summary>
         /// Waits to receive an <see cref="Event"/> of the specified types.
