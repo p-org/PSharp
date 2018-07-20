@@ -32,9 +32,9 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\ResourceManager\Service\ResourceManager.SF.csproj" />
     <ProjectReference Include="..\Service\PoolDriver\PoolDriver.csproj" />
     <ProjectReference Include="..\Service\PoolManager\PoolManager.csproj" />
-    <ProjectReference Include="..\Service\ResourceManager.SF.csproj" />
     <ProjectReference Include="..\Service\VMManager\VMManager.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
