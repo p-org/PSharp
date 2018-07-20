@@ -10,7 +10,7 @@ using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data.Notifications;
 using System.Threading;
 
-namespace Microsoft.PSharp.ReliableServices
+namespace Microsoft.PSharp.ServiceFabric
 {
     /// <summary>
     /// Mock of IReliableStateManager

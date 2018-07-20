@@ -1,4 +1,4 @@
-﻿namespace Microsoft.PSharp.ReliableServices
+﻿namespace Microsoft.PSharp.ServiceFabric
 {
     using Microsoft.ServiceFabric.Data;
     using System.Collections.Generic;

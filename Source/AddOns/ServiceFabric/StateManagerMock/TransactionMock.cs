@@ -9,7 +9,7 @@ using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data.Notifications;
 
-namespace Microsoft.PSharp.ReliableServices
+namespace Microsoft.PSharp.ServiceFabric
 {
     public class TransactionMock : ITransaction
     {

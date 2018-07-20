@@ -48,6 +48,11 @@ namespace Microsoft.PSharp.ServiceFabric
         public ITransaction CurrentTransaction { get; internal set; }
 
         /// <summary>
+        /// ReliableRegisters created by the machine
+        /// </summary>
+        List<Utilities.RsmRegister> CreatedRegisters;
+
+        /// <summary>
         /// State changes (inverted, for undo)
         /// </summary>
         private List<MachineStateChangeOp> PendingStateChangesInverted;
@@ -98,13 +103,15 @@ namespace Microsoft.PSharp.ServiceFabric
             this.TestModeOutBuffer = new Queue<Tuple<MachineId, Event>>();
             this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
             this.LastDequeuedEvent = null;
+
+            this.CreatedRegisters = new List<Utilities.RsmRegister>();
         }
 
         /// <summary>
         /// User-supplied initialization. Called when the machine is
         /// created for the first time or resurrected on failure.
         /// </summary>
-        public abstract Task OnActivate();
+        protected abstract Task OnActivate();
 
 
         /// <summary>
@@ -131,6 +138,21 @@ namespace Microsoft.PSharp.ServiceFabric
         }
 
         /// <summary>
+        /// Creates a reliable register
+        /// </summary>
+        /// <typeparam name="T">Value type</typeparam>
+        /// <param name="name">Name of the register</param>
+        /// <param name="initialValue">Initial value of the register</param>
+        /// <returns></returns>
+        public Utilities.ReliableRegister<T> GetOrAddRegister<T>(string name, T initialValue = default(T))
+        {
+            var reg = new Utilities.ReliableRegister<T>(name + this.Id.ToString(), this.StateManager, initialValue);
+            reg.SetTransaction(this.CurrentTransaction);
+            CreatedRegisters.Add(reg);
+            return reg;
+        }
+
+        /// <summary>
         /// Initializes the reliable structures, calls OnActivate,
         /// and transitions to the previously known state
         /// </summary>
@@ -151,6 +173,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.PendingStateChangesInverted.Clear();
 
             CurrentTransaction = this.StateManager.CreateTransaction();
+            SetReliableRegisterTx();
 
             var cnt = await StateStackStore.GetCountAsync(CurrentTransaction);
             if (cnt != 0)
@@ -266,6 +289,7 @@ namespace Microsoft.PSharp.ServiceFabric
                     {
                         await CommitCurrentTransaction();
                         CurrentTransaction = this.StateManager.CreateTransaction();
+                        SetReliableRegisterTx();
                     }
 
                     var reliableDequeue = false;
@@ -395,6 +419,14 @@ namespace Microsoft.PSharp.ServiceFabric
             base.DoStatePop();
         }
         #endregion
+
+        internal void SetReliableRegisterTx()
+        {
+            foreach (var reg in CreatedRegisters)
+            {
+                reg.SetTransaction(this.CurrentTransaction);
+            }
+        }
 
         #region Unsupported        
 

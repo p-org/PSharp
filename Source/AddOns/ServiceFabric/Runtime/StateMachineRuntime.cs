@@ -25,14 +25,14 @@ namespace Microsoft.PSharp.ServiceFabric
         /// </summary>
         Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>> PendingMachineCreations;
        
-        protected ServiceFabricPSharpRuntime(IReliableStateManager stateManager)
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager)
             : base()
         {
             this.StateManager = stateManager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
         }
 
-        protected ServiceFabricPSharpRuntime(IReliableStateManager stateManager, Configuration configuration) 
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, Configuration configuration) 
             : base(configuration)
         {
             this.StateManager = stateManager;
@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.ServiceFabric
         protected internal async Task CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
-            this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator.GetType().Name);
+            this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
             var reliableCreator = creator as ReliableMachine;
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
