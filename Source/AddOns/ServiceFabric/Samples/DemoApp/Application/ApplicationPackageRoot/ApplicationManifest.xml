@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="DemoAppType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Parameters>
+    <Parameter Name="ResourceManager_TargetReplicaSetSize" DefaultValue="5" />
+    <Parameter Name="ResourceManager_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="PoolDriver_TargetReplicaSetSize" DefaultValue="5" />
+    <Parameter Name="PoolDriver_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="PoolManager_TargetReplicaSetSize" DefaultValue="5" />
+    <Parameter Name="PoolManager_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="VMManager_TargetReplicaSetSize" DefaultValue="5" />
+    <Parameter Name="VMManager_MinReplicaSetSize" DefaultValue="3" />
+  </Parameters>
+  <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
+       should match the Name and Version attributes of the ServiceManifest element defined in the 
+       ServiceManifest.xml file. -->
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="ResourceManager.SF" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="PoolDriver" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="PoolManager" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="VMManager" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <DefaultServices>
+    <Service Name="ResourceManager.SF" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="ResourceManager.SFType" TargetReplicaSetSize="[ResourceManager_TargetReplicaSetSize]" MinReplicaSetSize="[ResourceManager_MinReplicaSetSize]">
+        <NamedPartition>
+          <Partition Name="0" />
+        </NamedPartition>
+      </StatefulService>
+    </Service>
+    <Service Name="PoolDriver" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="PoolDriverType" TargetReplicaSetSize="[PoolDriver_TargetReplicaSetSize]" MinReplicaSetSize="[PoolDriver_MinReplicaSetSize]">
+        <NamedPartition>
+          <Partition Name="0" />
+        </NamedPartition>
+      </StatefulService>
+    </Service>
+    <Service Name="PoolManager" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="PoolManagerType" TargetReplicaSetSize="[PoolManager_TargetReplicaSetSize]" MinReplicaSetSize="[PoolManager_MinReplicaSetSize]">
+        <NamedPartition>
+          <Partition Name="0" />
+        </NamedPartition>
+      </StatefulService>
+    </Service>
+    <Service Name="VMManager" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="VMManagerType" TargetReplicaSetSize="[VMManager_TargetReplicaSetSize]" MinReplicaSetSize="[VMManager_MinReplicaSetSize]">
+        <NamedPartition>
+          <Partition Name="0" />
+        </NamedPartition>
+      </StatefulService>
+    </Service>
+  </DefaultServices>
+</ApplicationManifest>
