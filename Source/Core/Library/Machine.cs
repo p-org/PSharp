@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
         /// Map from machine types to a set of all
         /// available states.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
+        internal static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
 
         /// <summary>
         /// Map from machine types to a set of all
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
-        private Stack<MachineState> StateStack;
+        internal Stack<MachineState> StateStack;
 
         /// <summary>
         /// A stack of maps that determine event handling action for
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp
         /// Inbox of the state-machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
-        private LinkedList<EventInfo> Inbox;
+        internal LinkedList<EventInfo> Inbox;
 
         /// <summary>
         /// Gets the raised event. If no event has been raised
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Is the machine running.
         /// </summary>
-        private bool IsRunning;
+        internal bool IsRunning;
 
         /// <summary>
         /// Is pop invoked in the current action.
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp
         /// Gets the latest received <see cref="Event"/>, or null if
         /// no <see cref="Event"/> has been received.
         /// </summary>
-        protected internal Event ReceivedEvent { get; private set; }
+        protected internal Event ReceivedEvent { get; set; }
 
         /// <summary>
         /// User-defined hashed state of the machine. Override to improve the
@@ -448,7 +448,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(params Type[] eventTypes)
+        protected internal virtual Task<Event> Receive(params Type[] eventTypes)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -472,7 +472,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
+        protected internal virtual Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -492,7 +492,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Event received</returns>
-        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        protected internal virtual Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Receive while halted.");
             base.Runtime.NotifyReceiveCalled(this);
@@ -730,7 +730,7 @@ namespace Microsoft.PSharp
         /// there is one available, else returns null.
         /// </summary>
         /// <returns>EventInfo</returns>
-        private EventInfo TryGetRaisedEvent()
+        internal EventInfo TryGetRaisedEvent()
         {
             EventInfo raisedEventInfo = null;
             if (this.RaisedEvent != null)
@@ -767,7 +767,7 @@ namespace Microsoft.PSharp
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        internal async Task<bool> RunEventHandler()
+        internal virtual async Task<bool> RunEventHandler()
         {
             if (this.Info.IsHalted)
             {
@@ -847,7 +847,7 @@ namespace Microsoft.PSharp
         /// Handles the specified <see cref="Event"/>.
         /// </summary>
         /// <param name="e">Event to handle</param>
-        private async Task HandleEvent(Event e)
+        internal async Task HandleEvent(Event e)
         {
             base.Info.CurrentActionCalledTransitionStatement = false;
             var currentState = this.CurrentStateName;
@@ -965,7 +965,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
-        private async Task ExecuteCurrentStateOnEntry()
+        internal async Task ExecuteCurrentStateOnEntry()
         {
             base.Runtime.NotifyEnteredState(this);
 
@@ -995,7 +995,7 @@ namespace Microsoft.PSharp
         /// Executes the on exit function of the current state.
         /// </summary>
         /// <param name="eventHandlerExitActionName">Action name</param>
-        private async Task ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
+        internal async Task ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             base.Runtime.NotifyExitedState(this);
 
@@ -1192,7 +1192,7 @@ namespace Microsoft.PSharp
         /// when a state is pushed on to the stack.
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
-        private void DoStatePush(MachineState state)
+        internal virtual void DoStatePush(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
@@ -1261,7 +1261,7 @@ namespace Microsoft.PSharp
         /// Configures the state transitions of the machine
         /// when a state is popped.
         /// </summary>
-        private void DoStatePop()
+        internal virtual void DoStatePop()
         {
             this.StateStack.Pop();
             this.ActionHandlerStack.Pop();
@@ -1449,7 +1449,7 @@ namespace Microsoft.PSharp
         /// entry action, if there is any.
         /// </summary>
         /// <param name="e">Event</param>
-        internal Task GotoStartState(Event e)
+        internal virtual Task GotoStartState(Event e)
         {
             this.ReceivedEvent = e;
             return this.ExecuteCurrentStateOnEntry();

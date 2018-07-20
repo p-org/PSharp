@@ -1,34 +1,218 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+
+using Microsoft.ServiceFabric;
+using Microsoft.ServiceFabric.Data;
+using Microsoft.ServiceFabric.Data.Collections;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace Microsoft.PSharp.ServiceFabric
 {
-    public class StateMachineRuntime : PSharpRuntime
+    internal class ServiceFabricPSharpRuntime : StateMachineRuntime
     {
-        protected StateMachineRuntime()
+        /// <summary>
+        /// State Manager
+        /// </summary>
+        IReliableStateManager StateManager;
+
+        /// <summary>
+        /// Pending machine creations
+        /// </summary>
+        Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>> PendingMachineCreations;
+       
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager)
+            : base()
         {
+            this.StateManager = stateManager;
+            this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
         }
 
-        protected StateMachineRuntime(Configuration configuration) : base(configuration)
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, Configuration configuration) 
+            : base(configuration)
         {
+            this.StateManager = stateManager;
         }
 
-        public override MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null)
+        #region Monitor
+
+        public override void InvokeMonitor<T>(Event e)
         {
-            throw new NotImplementedException();
+            // no-op
         }
 
-        public override void CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
+        public override void InvokeMonitor(Type type, Event e)
         {
-            throw new NotImplementedException();
+            // no-op
         }
 
-        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
+        public override void RegisterMonitor(Type type)
         {
-            throw new NotImplementedException();
+            // no-op
         }
+
+        #endregion
+
+        #region CreateMachine
+
+        protected internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        {
+            if (mid == null)
+            {
+                mid = new MachineId(type, friendlyName, this);
+            }
+
+            // TODO: Make async
+            CreateMachineAsync(mid, type, friendlyName, e, creator, operationGroupId).Wait();
+
+            return mid;
+        }
+
+        protected internal async Task CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        {
+            this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
+            this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
+
+            var reliableCreator = creator as ReliableMachine;
+            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
+
+            if (reliableCreator == null)
+            {
+                using (var tx = this.StateManager.CreateTransaction())
+                {
+                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
+                    await tx.CommitAsync();
+                }
+                StartMachine(mid, type, friendlyName, e, creator?.Id);
+            }
+            else
+            {
+                this.Assert(reliableCreator.CurrentTransaction != null, "Creator's transaction cannot be null");
+                await createdMachineMap.AddAsync(reliableCreator.CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
+                
+                if(!PendingMachineCreations.ContainsKey(reliableCreator.CurrentTransaction))
+                {
+                    PendingMachineCreations[reliableCreator.CurrentTransaction] = new List<Tuple<MachineId, Type, string, Event, MachineId>>();
+                }
+                PendingMachineCreations[reliableCreator.CurrentTransaction].Add(
+                    Tuple.Create(mid, type, friendlyName, e, reliableCreator.Id));
+            }
+
+        }
+
+        private void StartMachine(MachineId mid, Type type, string friendlyName, Event e, MachineId creator)
+        {
+            this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Name);
+            this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                mid.Name, mid.Type, type.FullName);
+            mid.Bind(this);
+
+            Machine machine = ReliableMachineFactory.Create(type, StateManager);
+
+            machine.Initialize(this, mid, new MachineInfo(mid));
+            machine.InitializeStateInformation();
+
+            bool result = this.MachineMap.TryAdd(mid, machine);
+            this.Assert(result, "MachineId {0} = This typically occurs " +
+                "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
+                "runtime generation was deserialized, but the current runtime has not increased its generation value.",
+                mid.Name);
+
+            base.Logger.OnCreateMachine(machine.Id, creator);
+            this.RunMachineEventHandler(machine, e, true);
+        }
+
+        #endregion
+
+        #region Send
+
+        protected internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        {
+            // TODO: Make async
+            SendEventAsync(mid, e, sender, options).Wait();
+        }
+
+        protected internal async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        {
+            var reliableSender = sender as ReliableMachine;
+            var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
+
+            if (reliableSender == null || reliableSender.CurrentTransaction == null)
+            {
+                using (var tx = this.StateManager.CreateTransaction())
+                {
+                    await targetQueue.EnqueueAsync(tx, new EventInfo(e));
+                    await tx.CommitAsync();
+                }
+            }
+            else
+            {
+                await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, new EventInfo(e));
+            }
+        }
+
+        #endregion
+
+        #region Internal
+
+        internal void NotifyTransactionCommit(ITransaction tx)
+        {
+            if (PendingMachineCreations.ContainsKey(tx))
+            {
+                foreach (var tup in PendingMachineCreations[tx])
+                {
+                    StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
+                }
+                PendingMachineCreations.Remove(tx);
+            }
+
+        }
+
+        /// <summary>
+        /// Runs a new asynchronous machine event handler.
+        /// This is a fire and forget invocation.
+        /// </summary>
+        /// <param name="machine">Machine that executes this event handler.</param>
+        /// <param name="initialEvent">Event for initializing the machine.</param>
+        /// <param name="isFresh">If true, then this is a new machine.</param>
+        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    if (isFresh)
+                    {
+                        await machine.GotoStartState(initialEvent);
+                    }
+
+                    await machine.RunEventHandler();
+                }
+                catch (Exception ex)
+                {
+                    if(machine is ReliableMachine && (machine as ReliableMachine).CurrentTransaction != null)
+                    {
+                        (machine as ReliableMachine).CurrentTransaction.Dispose();
+                    }
+
+                    base.IsRunning = false;
+                    base.RaiseOnFailureEvent(ex);
+                }
+            });
+        }
+
+        internal override ulong GenerateTestId()
+        {
+            return 0;
+        }
+        #endregion
+
+
+        #region Unsupported
 
         public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
         {
@@ -41,26 +225,6 @@ namespace Microsoft.PSharp.ServiceFabric
         }
 
         public override Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void InvokeMonitor<T>(Event e)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void InvokeMonitor(Type type, Event e)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void RegisterMonitor(Type type)
         {
             throw new NotImplementedException();
         }
@@ -80,11 +244,6 @@ namespace Microsoft.PSharp.ServiceFabric
             throw new NotImplementedException();
         }
 
-        public override void SendEvent(MachineId target, Event e, SendOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
-
         public override Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
         {
             throw new NotImplementedException();
@@ -95,47 +254,7 @@ namespace Microsoft.PSharp.ServiceFabric
             throw new NotImplementedException();
         }
 
-        protected internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
-        {
-            throw new NotImplementedException();
-        }
-
         protected internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint, Event e, Machine creator, Guid? operationGroupId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void Monitor(Type type, AbstractMachine sender, Event e)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             throw new NotImplementedException();
         }
@@ -150,10 +269,19 @@ namespace Microsoft.PSharp.ServiceFabric
             throw new NotImplementedException();
         }
 
-        internal override ulong GenerateTestId()
+        protected internal override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
-            return 0;
+            throw new NotImplementedException();
         }
+
+
+        protected internal override Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
     }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

@@ -23,7 +23,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Runtime for executing state-machines in production.
     /// </summary>
-    internal sealed class StateMachineRuntime : PSharpRuntime
+    internal class StateMachineRuntime : PSharpRuntime
     {
         #region fields
 
