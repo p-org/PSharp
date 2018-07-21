@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.ServiceFabric
         Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>> PendingMachineCreations;
 
         /// <summary>
+        /// RSM network provider
+        /// </summary>
+        Net.IRsmNetworkProvider RsmNetworkProvider;
+
+        /// <summary>
         /// The remote machine manager used for creating/sending messages
         /// </summary>
         public IRemoteMachineManager RemoteMachineManager { get; }
@@ -39,6 +44,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.StateManager = stateManager;
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
+            StartClearOutboxTasks();
         }
 
         internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager, Configuration configuration) 
@@ -47,6 +53,12 @@ namespace Microsoft.PSharp.ServiceFabric
             this.StateManager = stateManager;
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
+            StartClearOutboxTasks();
+        }
+
+        internal void SetRsmNetworkProvider(Net.IRsmNetworkProvider rsmNetworkProvider)
+        {
+            this.RsmNetworkProvider = rsmNetworkProvider;
         }
 
         #region Monitor
@@ -70,24 +82,45 @@ namespace Microsoft.PSharp.ServiceFabric
 
         #region CreateMachine
 
-        public Task<MachineId> CreateMachine(string type, Guid requestId, Machine creator)
-        { 
-            return this.RemoteMachineManager.CreateMachine(requestId, type, creator, CancellationToken.None);
-        }
-
         protected internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
-            mid = CreateMachineAsync(mid, type, friendlyName, e, creator, operationGroupId).Result;
-            return mid;
-        }
-
-        internal async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
-        {
-            if (mid == null)
+            if(mid == null)
             {
+                // TODO: route through the RM
                 mid = new MachineId(type, friendlyName, this);
             }
 
+            if(RemoteMachineManager.IsLocalMachine(mid))
+            {
+                CreateMachineLocalAsync(mid, type, friendlyName, e, creator, operationGroupId).Wait();
+            }
+            else
+            {
+                CreateMachineRemoteAsync(mid, type, friendlyName, e, creator, operationGroupId).Wait();
+            }
+            return mid;
+
+        }
+
+        internal async Task<MachineId> CreateMachineRemoteAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        {
+            var reliableCreator = creator as ReliableMachine;
+
+            if (reliableCreator == null)
+            {
+                RsmNetworkProvider.RemoteCreateMachine(type, mid, e).Wait();
+            }
+            else
+            {
+                var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>("RemoteCreationsOutbox");
+                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e));
+            }
+
+            return mid;
+        }
+
+        internal async Task<MachineId> CreateMachineLocalAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        {
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
             this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
@@ -152,10 +185,48 @@ namespace Microsoft.PSharp.ServiceFabric
             SendEventAsync(mid, e, sender, options).Wait();
         }
 
-        protected internal Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        protected internal async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
-            // TODO: Propogate the cancellation token.
-            return this.RemoteMachineManager.SendEvent(mid, e, sender, options, CancellationToken.None);
+            var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
+            base.Logger.OnSend(mid, sender?.Id, senderState, 
+                e.GetType().FullName, options?.OperationGroupId, isTargetHalted: false);
+
+            var reliableSender = sender as ReliableMachine;
+            if (RemoteMachineManager.IsLocalMachine(mid))
+            {
+                var targetQueue = await StateManager.GetLocalMachineQueue(mid);
+                
+                if (reliableSender == null || reliableSender.CurrentTransaction == null)
+                {
+                    using (var tx = this.StateManager.CreateTransaction())
+                    {
+                        await targetQueue.EnqueueAsync(tx, new EventInfo(e), CancellationToken.None);
+                        await tx.CommitAsync();
+                    }
+                }
+                else
+                {
+                    await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, new EventInfo(e));
+                }
+            }
+            else
+            {
+                if (reliableSender == null || reliableSender.CurrentTransaction == null)
+                {
+                    await RsmNetworkProvider.RemoteSend(mid, e);
+                }
+                else
+                {
+                    var SendCounters = await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + reliableSender.Id.ToString());
+                    var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>("RemoteMessagesOutbox");
+
+                    var tag = await SendCounters.AddOrUpdateAsync(reliableSender.CurrentTransaction, mid.ToString(), 1, (key, oldValue) => oldValue + 1);
+                    var tev = new TaggedRemoteEvent(reliableSender.Id, e, tag);
+
+                    await RemoteMessagesOutbox.EnqueueAsync(reliableSender.CurrentTransaction, Tuple.Create(mid, tev as Event));
+                }
+                
+            }
         }
 
         #endregion
@@ -214,6 +285,57 @@ namespace Microsoft.PSharp.ServiceFabric
         }
         #endregion
 
+        private void StartClearOutboxTasks()
+        {
+            Task.Run(async () => await ClearCreationsOutbox());
+            Task.Run(async () => await ClearMessagesOutbox());
+        }
+
+        private async Task ClearCreationsOutbox()
+        {
+            var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>("RemoteCreationsOutbox");
+            while(true)
+            {
+                var found = false;
+                using (var tx = this.StateManager.CreateTransaction())
+                {
+                    var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
+                    if(cv.HasValue)
+                    {
+                        await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
+                        await tx.CommitAsync();
+                    }
+                }
+
+                if(!found)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        }
+
+        private async Task ClearMessagesOutbox()
+        {
+            var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>("RemoteMessagesOutbox");
+            while (true)
+            {
+                var found = false;
+                using (var tx = this.StateManager.CreateTransaction())
+                {
+                    var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
+                    if (cv.HasValue)
+                    {
+                        await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
+                        await tx.CommitAsync();
+                    }
+                }
+
+                if (!found)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        }
 
         #region Unsupported
 

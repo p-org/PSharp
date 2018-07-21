@@ -18,5 +18,7 @@ namespace Microsoft.PSharp.ServiceFabric
         Task<MachineId> CreateMachine(Guid requestId, string resourceType, Machine sender, CancellationToken token);
 
         Task SendEvent(MachineId id, Event e, AbstractMachine sender, SendOptions options, CancellationToken token);
+
+        bool IsLocalMachine(MachineId mid);
     }
 }

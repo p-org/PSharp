@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.ServiceFabric
             return ServiceProxy.Create<IResourceManager>(this.ResourceManagerServiceLocation);
         }
 
-        protected internal override bool IsLocalMachine(MachineId id)
+        public override bool IsLocalMachine(MachineId id)
         {
             string[] parts = id.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
             if(parts.Length != 3)

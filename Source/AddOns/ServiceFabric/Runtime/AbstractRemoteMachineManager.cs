@@ -46,6 +46,6 @@ namespace Microsoft.PSharp.ServiceFabric
         }
 
         protected internal abstract Task RemoteSend(MachineId id, Event e, AbstractMachine sender, SendOptions options, CancellationToken token);
-        protected internal abstract bool IsLocalMachine(MachineId id);
+        public abstract bool IsLocalMachine(MachineId id);
     }
 }
