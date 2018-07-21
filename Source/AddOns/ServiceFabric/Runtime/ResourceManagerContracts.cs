@@ -1,8 +1,5 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
-namespace ResourceManager.Contracts
+﻿namespace Microsoft.PSharp.ServiceFabric
 {
-
     using Microsoft.ServiceFabric.Services.Remoting;
     using System;
     using System.Collections.Generic;
@@ -38,7 +35,7 @@ namespace ResourceManager.Contracts
 
         // The service partition requesting the resource creation
         [DataMember]
-        public string OwningPartition;
+        public Guid OwningPartition;
 
         // The resource in the service requesting the resource creation
         [DataMember]
@@ -58,7 +55,7 @@ namespace ResourceManager.Contracts
 
         // The partition ID of the service which owns the resource
         [DataMember]
-        public string Partition;
+        public Guid Partition;
 
         // The resource ID of the resource created
         [DataMember]
@@ -78,7 +75,7 @@ namespace ResourceManager.Contracts
 
         // The URI of the service which owns the resource
         [DataMember]
-        public string Partition;
+        public Guid Partition;
 
         // The resource ID of the resource created
         [DataMember]
@@ -98,7 +95,7 @@ namespace ResourceManager.Contracts
 
         // The URI of the service which owns the resource
         [DataMember]
-        public string Partition;
+        public Guid Partition;
 
         // The resource ID of the resource created
         [DataMember]

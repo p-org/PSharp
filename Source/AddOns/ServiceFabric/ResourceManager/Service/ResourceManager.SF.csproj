@@ -35,6 +35,6 @@
     <Folder Include="PackageRoot\Config\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Contracts\ResourceManager.Contracts.csproj" />
+    <ProjectReference Include="..\..\Runtime\ServiceFabric.csproj" />
   </ItemGroup>
 </Project>

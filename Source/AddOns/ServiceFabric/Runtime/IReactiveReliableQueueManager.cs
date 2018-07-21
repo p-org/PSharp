@@ -3,6 +3,7 @@
 namespace Microsoft.PSharp.ServiceFabric
 {
     using Microsoft.ServiceFabric.Data.Collections;
+    using System.Fabric;
 
     public interface IReactiveReliableQueueManager
     {

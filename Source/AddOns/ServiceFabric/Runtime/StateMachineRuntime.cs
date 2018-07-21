@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.ServiceFabric;
@@ -15,6 +16,8 @@ namespace Microsoft.PSharp.ServiceFabric
 {
     internal class ServiceFabricPSharpRuntime : StateMachineRuntime
     {
+        private const string CreatedMachinesDictionaryName = "CreatedMachines";
+
         /// <summary>
         /// State Manager
         /// </summary>
@@ -24,18 +27,26 @@ namespace Microsoft.PSharp.ServiceFabric
         /// Pending machine creations
         /// </summary>
         Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>> PendingMachineCreations;
-       
-        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager)
+
+        /// <summary>
+        /// The remote machine manager used for creating/sending messages
+        /// </summary>
+        public IRemoteMachineManager RemoteMachineManager { get; }
+
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager)
             : base()
         {
             this.StateManager = stateManager;
+            this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
         }
 
-        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, Configuration configuration) 
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager, Configuration configuration) 
             : base(configuration)
         {
             this.StateManager = stateManager;
+            this.RemoteMachineManager = manager;
+            this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
         }
 
         #region Monitor
@@ -59,26 +70,29 @@ namespace Microsoft.PSharp.ServiceFabric
 
         #region CreateMachine
 
+        public Task<MachineId> CreateMachine(string type, Guid requestId, Machine creator)
+        { 
+            return this.RemoteMachineManager.CreateMachine(requestId, type, creator, CancellationToken.None);
+        }
+
         protected internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        {
+            mid = CreateMachineAsync(mid, type, friendlyName, e, creator, operationGroupId).Result;
+            return mid;
+        }
+
+        internal async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
             if (mid == null)
             {
                 mid = new MachineId(type, friendlyName, this);
             }
 
-            // TODO: Make async
-            CreateMachineAsync(mid, type, friendlyName, e, creator, operationGroupId).Wait();
-
-            return mid;
-        }
-
-        protected internal async Task CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
-        {
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
             this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
             var reliableCreator = creator as ReliableMachine;
-            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>("CreatedMachines");
+            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
 
             if (reliableCreator == null)
             {
@@ -101,6 +115,8 @@ namespace Microsoft.PSharp.ServiceFabric
                 PendingMachineCreations[reliableCreator.CurrentTransaction].Add(
                     Tuple.Create(mid, type, friendlyName, e, reliableCreator.Id));
             }
+
+            return mid;
 
         }
 
@@ -136,23 +152,10 @@ namespace Microsoft.PSharp.ServiceFabric
             SendEventAsync(mid, e, sender, options).Wait();
         }
 
-        protected internal async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        protected internal Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
-            var reliableSender = sender as ReliableMachine;
-            var targetQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + mid.ToString());
-
-            if (reliableSender == null || reliableSender.CurrentTransaction == null)
-            {
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    await targetQueue.EnqueueAsync(tx, new EventInfo(e));
-                    await tx.CommitAsync();
-                }
-            }
-            else
-            {
-                await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, new EventInfo(e));
-            }
+            // TODO: Propogate the cancellation token.
+            return this.RemoteMachineManager.SendEvent(mid, e, sender, options, CancellationToken.None);
         }
 
         #endregion

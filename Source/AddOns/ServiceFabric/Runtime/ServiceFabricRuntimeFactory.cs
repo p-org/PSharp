@@ -7,6 +7,8 @@ namespace Microsoft.PSharp.ServiceFabric
     /// </summary>
     public static class ServiceFabricRuntimeFactory
     {
+        internal static ServiceFabricPSharpRuntime Current { get; private set; }
+
         /// <summary>
         /// Creates the ServiceFabric runtime for P#
         /// </summary>
@@ -15,7 +17,8 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <returns></returns>
         public static PSharpRuntime Create(IReliableStateManager stateManager, Configuration config)
         {
-            return new ServiceFabricPSharpRuntime(stateManager, config);
+            Current = new ServiceFabricPSharpRuntime(stateManager,new SingleProcessMachineManager(stateManager), config);
+            return Current;
         }
 
     }

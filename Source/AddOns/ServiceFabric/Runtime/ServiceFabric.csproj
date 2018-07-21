@@ -16,15 +16,17 @@
     <RootNamespace>Microsoft.PSharp.ServiceFabric</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Grpc" Version="1.13.0" />
-    <PackageReference Include="Grpc.Core" Version="1.13.0" />
-    <PackageReference Include="Grpc.Tools" Version="1.13.0" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="6.2.306" />
     <PackageReference Include="Microsoft.ServiceFabric.Data" Version="3.1.306" />
     <PackageReference Include="Microsoft.ServiceFabric.Data.Extensions" Version="1.3.306" />
     <PackageReference Include="Microsoft.ServiceFabric.Data.Interfaces" Version="3.1.306" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="3.1.306" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Core.csproj" />
+    <!-- Ideally we want this to be pluggable via some abstraction but for Hackathon sake adding a project reference -->
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
 </Project>
