@@ -15,7 +15,9 @@
         [OperationContract]
         Task<DeleteResourceResponse> DeleteResourceAsync(DeleteResourceRequest request);
         [OperationContract]
-        Task<List<ResourceTypesResponse>> ListResourceTypesAsync(ListResourceTypesRequest request);
+        Task<List<ResourceTypesResponse>> ListResourceTypesAsync();
+        [OperationContract]
+        Task<List<ResourceDetailsResponse>> ListResourcesAsync();
     }
 
     [DataContract]
@@ -101,12 +103,7 @@
         [DataMember]
         public string ResourceId;
     }
-
-    [DataContract]
-    public class ListResourceTypesRequest
-    {
-    }
-
+    
     [DataContract]
     public class ResourceTypesResponse
     {
@@ -120,5 +117,16 @@
 
         [DataMember]
         ulong MaxCapacity;
+    }
+
+    [DataContract]
+    public class ResourceDetailsResponse
+    {
+        // The resource type
+        [DataMember]
+        public string ResourceType;
+
+        [DataMember]
+        public string ResourceId;
     }
 }
