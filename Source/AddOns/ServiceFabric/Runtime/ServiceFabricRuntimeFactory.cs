@@ -18,6 +18,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public static PSharpRuntime Create(IReliableStateManager stateManager, Configuration config)
         {
             Current = new ServiceFabricPSharpRuntime(stateManager,new SingleProcessMachineManager(stateManager), config);
+            Current.SetRsmNetworkProvider(new Net.DefaultRsmNetworkProvider(Current));
             return Current;
         }
 

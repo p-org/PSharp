@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public override Task<MachineId> CreateMachine(Guid requestId, string resourceType, Machine creator, CancellationToken token)
         {
             Type type = this.typeMap.GetOrAdd(resourceType, CreateType);
-            return ServiceFabricRuntimeFactory.Current.CreateMachineAsync(null, type, requestId.ToString(), null, creator, null);
+            return ServiceFabricRuntimeFactory.Current.CreateMachineLocalAsync(null, type, requestId.ToString(), null, creator, null);
         }
 
         private Type CreateType(string typeFullName)
@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.ServiceFabric
             throw new InvalidOperationException($"Unable to find type {typeFullName}");
         }
 
-        protected internal override bool IsLocalMachine(MachineId id)
+        public override bool IsLocalMachine(MachineId id)
         {
             return true;
         }
