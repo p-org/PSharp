@@ -4,12 +4,13 @@ namespace Microsoft.PSharp.ServiceFabric
 {
     using Microsoft.PSharp;
     using Microsoft.ServiceFabric.Data;
+    using Microsoft.ServiceFabric.Data.Collections;
+    using Microsoft.ServiceFabric.Services.Client;
     using Microsoft.ServiceFabric.Services.Remoting.Client;
 
     using System;
     using System.Collections.Concurrent;
     using System.Fabric;
-    using System.Fabric.Health;
     using System.Fabric.Query;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,13 +18,17 @@ namespace Microsoft.PSharp.ServiceFabric
     public class ResourceManagerBasedRemoteMachineManager : AbstractRemoteMachineManager
     {
         private const string Delimiter = "|||";
+        private const string PartitionTableName = "SFPSharp-PartitionTable";
         private readonly ConcurrentDictionary<Uri, IResourceManager> serviceProxyMap;
+        private readonly IReliableDictionary<Guid, string> partitionNameMap;
+        private readonly FabricClient fabricClient;
 
         public ResourceManagerBasedRemoteMachineManager(StatefulServiceContext context, IReliableStateManager manager, string resourceManagerService) : base(manager)
         {
             this.ServiceContext = context;
             this.ResourceManagerServiceLocation = new Uri(resourceManagerService);
             this.serviceProxyMap = new ConcurrentDictionary<Uri, IResourceManager>();
+            this.fabricClient = new FabricClient();
         }
 
         public StatefulServiceContext ServiceContext { get; }
@@ -70,8 +75,39 @@ namespace Microsoft.PSharp.ServiceFabric
             string[] parts = id.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
             Uri serviceName = new Uri(parts[0]);
             Guid partitionId = Guid.Parse(parts[1]);
+
+            ServicePartitionKey key = new ServicePartitionKey(await GetPartitionName(serviceName, partitionId));
             // todo - create a service proxy for a known type on this partition
             throw new NotImplementedException();
+        }
+
+        private async Task<string> GetPartitionName(Uri serviceName, Guid partitionId)
+        {
+            IReliableDictionary<Guid, string> partitionMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, string>>(PartitionTableName);
+            using (ITransaction tx = this.StateManager.CreateTransaction())
+            {
+                bool added = false;
+                string name = await partitionMap.GetOrAddAsync(tx, partitionId, (id) =>
+                {
+                    ServicePartitionList partitionList = fabricClient.QueryManager.GetPartitionListAsync(serviceName, partitionId).Result;
+                    foreach (Partition partition in partitionList)
+                    {
+                        NamedPartitionInformation namedPartitionInfo = partition.PartitionInformation as NamedPartitionInformation;
+                        string partitionName = namedPartitionInfo.Name;
+                        added = true;
+                        return partitionName;
+                    }
+
+                    throw new InvalidOperationException($"Did not find Service {serviceName} with partition {partitionId}");
+                });
+
+                if (added)
+                {
+                    await tx.CommitAsync();
+                }
+
+                return name;
+            }
         }
     }
 }
