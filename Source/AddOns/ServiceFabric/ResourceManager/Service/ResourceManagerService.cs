@@ -8,12 +8,12 @@ namespace ResourceManager.SF
     using System.Fabric.Description;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
+    using Microsoft.PSharp.ServiceFabric;
     using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
-    using ResourceManager.Contracts;
 
     public class ResourceManagerService : StatefulService, IResourceManager
     {

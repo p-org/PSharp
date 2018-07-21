@@ -41,7 +41,7 @@ namespace Microsoft.PSharp
         /// Optional friendly name of the machine.
         /// </summary>
         [DataMember]
-        private readonly string FriendlyName;
+        public readonly string FriendlyName;
 
         /// <summary>
         /// Type of the machine with this id.
