@@ -39,11 +39,16 @@ namespace ResourceManager.SF
             throw new System.NotImplementedException();
         }
 
-        public Task<List<ResourceTypesResponse>> ListResourceTypesAsync(ListResourceTypesRequest request)
+        public Task<List<ResourceDetailsResponse>> ListResourcesAsync()
         {
             throw new System.NotImplementedException();
         }
 
+        public Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+        
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
             List<ServiceReplicaListener> listeners = new List<ServiceReplicaListener>();
@@ -54,7 +59,7 @@ namespace ResourceManager.SF
                     this, 
                     new FabricTransportRemotingListenerSettings()
                     {
-                        EndpointResourceName = "ResourceManagerEndpoint",
+                        EndpointResourceName = "ResourceManagerServiceEndpoint",
                     });
             });
 

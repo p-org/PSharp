@@ -25,7 +25,7 @@
            listen. Please note that if your service is partitioned, this port is shared with 
            replicas of different partitions that are placed in your code. -->
 
-      <Endpoint Protocol="http" Name="ResourceManagerEndpoint" Type="Input" />
+      <Endpoint Protocol="http" Name="ResourceManagerServiceEndpoint" Type="Input" />
       <Endpoint Protocol="http" Name="ServiceEndpoint" Type="Input" />
       <!-- This endpoint is used by the replicator for replicating the state of your service.
            This endpoint is configured through a ReplicatorSettings config section in the Settings.xml
