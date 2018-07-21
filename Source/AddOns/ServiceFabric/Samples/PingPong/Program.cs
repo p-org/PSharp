@@ -19,10 +19,16 @@ namespace PingPong
 
             var config = Configuration.Create().WithVerbosityEnabled(2);
             var runtime = ServiceFabricRuntimeFactory.Create(stateManager, config);
+            runtime.OnFailure += Runtime_OnFailure;
             runtime.CreateMachine(typeof(PingMachine));
 
             Console.ReadLine();
         }
 
+        private static void Runtime_OnFailure(Exception ex)
+        {
+            Console.WriteLine("Exception in the runtime: {0}", ex.Message);
+            System.Diagnostics.Debugger.Launch();
+        }
     }
 }

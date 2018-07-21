@@ -285,12 +285,12 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 if (nextEventInfo == null)
                 {
-                    if(CurrentTransaction != null)
+                    if (CurrentTransaction != null)
                     {
                         await CommitCurrentTransaction();
-                        CurrentTransaction = this.StateManager.CreateTransaction();
-                        SetReliableRegisterTx();
                     }
+                    CurrentTransaction = this.StateManager.CreateTransaction();
+                    SetReliableRegisterTx();
 
                     var reliableDequeue = false;
 
