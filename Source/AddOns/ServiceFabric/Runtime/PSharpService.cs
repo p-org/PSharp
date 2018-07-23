@@ -73,11 +73,21 @@
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration());
+            var logger = this.GetPSharpRuntimeLogger();
+            if (logger != null)
+            {
+                ServiceFabricRuntimeFactory.Current.SetLogger(new EventSourcePSharpLogger(logger));
+            }
 
             // Lets have a runtime.Initialize(cancellationToken);
             // that should ideally be used for rehydration and restarting the machines
 
             await Task.Yield();
+        }
+
+        protected virtual IPSharpEventSourceLogger GetPSharpRuntimeLogger()
+        {
+            return null;
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()

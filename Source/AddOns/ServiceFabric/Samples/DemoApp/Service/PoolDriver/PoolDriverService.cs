@@ -43,5 +43,23 @@
             await base.RunAsync(cancellationToken);
             await Task.Delay(-1, cancellationToken);
         }
+
+        protected override IPSharpEventSourceLogger GetPSharpRuntimeLogger()
+        {
+            return new MyLogger();
+        }
+
+        private class MyLogger : IPSharpEventSourceLogger
+        {
+            public void Message(string message)
+            {
+                ServiceEventSource.Current.Message(message);
+            }
+
+            public void Message(string message, params object[] args)
+            {
+                ServiceEventSource.Current.Message(message, args);
+            }
+        }
     }
 }

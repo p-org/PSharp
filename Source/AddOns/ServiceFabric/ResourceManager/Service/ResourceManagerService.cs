@@ -6,13 +6,11 @@ namespace ResourceManager.SF
     using System.Collections.ObjectModel;
     using System.Fabric;
     using System.Fabric.Description;
-    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Microsoft.PSharp.ServiceFabric;
     using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
-    using Microsoft.ServiceFabric.Services.Remoting.Client;
     using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
@@ -67,21 +65,6 @@ namespace ResourceManager.SF
 
             listeners.Add(listener);
             return listeners;
-        }
-
-        protected override async Task RunAsync(CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                FabricClient c = new FabricClient();
-
-                c.QueryManager.GetApplicationListAsync();
-                c.QueryManager.GetServiceListAsync(new System.Uri());
-                c.QueryManager.GetPartitionListAsync();
-                ServiceProxy<IResourceManager> sp = new ServiceProxy<IResourceManager>();
-
-                await Task.Delay(30000, cancellationToken);
-            }
         }
     }
 }
