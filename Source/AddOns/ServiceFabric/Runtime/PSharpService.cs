@@ -7,6 +7,7 @@
     using System.Fabric.Description;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
@@ -43,6 +44,32 @@
             }
         }
 
+        protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes, IReliableStateManagerReplica reliableStateManagerReplica) : base(serviceContext, reliableStateManagerReplica)
+        {
+            this.knownTypes = new List<Type>(knownTypes);
+            //TODO: add framework known types here.
+
+            this.eventSerializationProvider = new EventSerializationProvider(this.knownTypes);
+
+            if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<MachineId>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
+            if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<Tuple<MachineId, Event>>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
+            if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<Event>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+        }
+
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration());
@@ -50,7 +77,7 @@
             // Lets have a runtime.Initialize(cancellationToken);
             // that should ideally be used for rehydration and restarting the machines
 
-            await Task.Delay(-1, cancellationToken);
+            await Task.Yield();
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
@@ -99,10 +126,28 @@
             return Configuration.Create().WithVerbosityEnabled(4);
         }
 
-        public abstract Task<List<ResourceTypesResponse>> ListResourceTypesAsync();
-        public abstract Task<List<ResourceDetailsResponse>> ListResourcesAsync();
+        public virtual Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
+        {
+            //TODO: Implement
+            return Task.FromResult(new List<ResourceTypesResponse>());
+        }
 
-        public abstract Task CreateMachine(MachineId machineId, MachineId creator, Event e);
-        public abstract Task SendEvent(MachineId machineId, MachineId sender, Event e);
+        public virtual Task<List<ResourceDetailsResponse>> ListResourcesAsync()
+        {
+            //TODO: Implement
+            return Task.FromResult(new List<ResourceDetailsResponse>());
+        }
+
+        public virtual Task CreateMachine(MachineId machineId, MachineId creator, Event e)
+        {
+            //TODO: Implement
+            return Task.FromResult(true);
+        }
+
+        public virtual Task SendEvent(MachineId machineId, MachineId sender, Event e)
+        {
+            //TODO: Implement
+            return Task.FromResult(true);
+        }
     }
 }
