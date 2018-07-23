@@ -17,6 +17,8 @@ namespace Microsoft.PSharp.ServiceFabric
     internal class ServiceFabricPSharpRuntime : StateMachineRuntime
     {
         private const string CreatedMachinesDictionaryName = "CreatedMachines";
+        private const string RemoteMessagesOutboxName = "RemoteMessagesOutbox";
+        private const string RemoteCreationsOutboxName = "RemoteCreationsOutbox";
 
         /// <summary>
         /// State Manager
@@ -194,7 +196,7 @@ namespace Microsoft.PSharp.ServiceFabric
             var reliableSender = sender as ReliableMachine;
             if (RemoteMachineManager.IsLocalMachine(mid))
             {
-                var targetQueue = await StateManager.GetLocalMachineQueue(mid);
+                var targetQueue = await StateManager.GetMachineInputQueue(mid);
                 
                 if (reliableSender == null || reliableSender.CurrentTransaction == null)
                 {
@@ -217,8 +219,8 @@ namespace Microsoft.PSharp.ServiceFabric
                 }
                 else
                 {
-                    var SendCounters = await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + reliableSender.Id.ToString());
-                    var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>("RemoteMessagesOutbox");
+                    var SendCounters = await StateManager.GetMachineSendCounters(reliableSender.Id);
+                    var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
 
                     var tag = await SendCounters.AddOrUpdateAsync(reliableSender.CurrentTransaction, mid.ToString(), 1, (key, oldValue) => oldValue + 1);
                     var tev = new TaggedRemoteEvent(reliableSender.Id, e, tag);
@@ -316,7 +318,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
         private async Task ClearMessagesOutbox()
         {
-            var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>("RemoteMessagesOutbox");
+            var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
             while (true)
             {
                 var found = false;

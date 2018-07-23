@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.ServiceFabric
             if (this.IsLocalMachine(id))
             {
                 // QUESTION: For sending to local machines this is fine. For a remote machine this seems slightly confusing.
-                var targetQueue = await StateManager.GetLocalMachineQueue(id);
+                var targetQueue = await StateManager.GetMachineInputQueue(id);
 
                 if (reliableSender == null || reliableSender.CurrentTransaction == null)
                 {

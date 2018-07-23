@@ -159,12 +159,10 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <param name="e">Initial event</param>
         internal override async Task GotoStartState(Event e)
         {
-            StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>("StateStackStore_" + Id.ToString());
-            InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
-            SendCounters =
-                await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + Id.ToString());
-            ReceiveCounters =
-                await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("ReceiveCounters_" + Id.ToString());
+            StateStackStore = await StateManager.GetMachineStackStore(Id);
+            InputQueue = await StateManager.GetMachineInputQueue(Id);
+            SendCounters = await StateManager.GetMachineSendCounters(Id);
+            ReceiveCounters = await StateManager.GetMachineReceiveCounters(Id);
 
             var startState = this.StateStack.Peek();
 
