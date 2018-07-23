@@ -23,7 +23,7 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId
+    public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
     {
         #region fields
         /// <summary>
@@ -170,6 +170,23 @@ namespace Microsoft.PSharp
         public override string ToString()
         {
             return Name;
+        }
+
+        public bool Equals(MachineId other)
+        {
+            return this.Equals((object)other);
+        }
+
+        public int CompareTo(MachineId other)
+        {
+            if (Runtime.IsTest())
+            {
+                return Value.CompareTo(other.Value);
+            }
+            else
+            {
+                return Name.CompareTo(other.Name);
+            }
         }
 
         #endregion
