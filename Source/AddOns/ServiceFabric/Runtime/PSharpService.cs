@@ -30,7 +30,7 @@
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
-            
+
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<Tuple<MachineId, Event>>(this.knownTypes)))
             {
@@ -137,8 +137,11 @@
             //TODO: Implement
             return Task.FromResult(new List<ResourceDetailsResponse>());
         }
-        
-        public abstract Task<MachineId> CreateMachineId(string machineType, string friendlyName);
+
+        public virtual Task<MachineId> CreateMachineId(string machineType, string friendlyName)
+        {
+            return Task.FromResult(new MachineId(machineType, friendlyName, ServiceFabricRuntimeFactory.Current));
+        }
 
         public virtual Task CreateMachine(MachineId machineId, Event e)
         {
