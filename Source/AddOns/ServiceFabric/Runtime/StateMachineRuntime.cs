@@ -200,14 +200,31 @@ namespace Microsoft.PSharp.ServiceFabric
                 
                 if (reliableSender == null || reliableSender.CurrentTransaction == null)
                 {
+                    // Environment sending to a local machine
                     using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await targetQueue.EnqueueAsync(tx, new EventInfo(e), CancellationToken.None);
-                        await tx.CommitAsync();
+                        if (e is TaggedRemoteEvent)
+                        {
+                            var ReceiveCounters = await StateManager.GetMachineReceiveCounters(mid);
+                            var tg = (e as TaggedRemoteEvent);
+                            var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0);
+                            if (currentCounter == tg.tag - 1)
+                            {
+                                await targetQueue.EnqueueAsync(tx, new EventInfo(tg.ev));
+                                await ReceiveCounters.AddOrUpdateAsync(tx, tg.mid.Name, 0, (k, v) => tg.tag);
+                                await tx.CommitAsync();
+                            }
+                        }
+                        else
+                        {
+                            await targetQueue.EnqueueAsync(tx, new EventInfo(e));
+                            await tx.CommitAsync();
+                        }
                     }
                 }
                 else
                 {
+                    // Machine to machine
                     await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, new EventInfo(e));
                 }
             }
@@ -215,10 +232,12 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 if (reliableSender == null || reliableSender.CurrentTransaction == null)
                 {
+                    // Environment to remote machine
                     await RsmNetworkProvider.RemoteSend(mid, e);
                 }
                 else
                 {
+                    // Machine to remote machine
                     var SendCounters = await StateManager.GetMachineSendCounters(reliableSender.Id);
                     var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
 
