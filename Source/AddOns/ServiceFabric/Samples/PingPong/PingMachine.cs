@@ -47,11 +47,12 @@ namespace PingPong
 
         private async Task Reply()
         {
-            var cnt = await Count.Get();
+            int cnt = await Count.Get();
             if (cnt < 5)
             {
                 Send(await PongMachine.Get(), new PongEvent(this.Id));
                 await Count.Set(cnt + 1);
+                this.Logger.WriteLine("#Pings: {0} / 5", cnt + 1);
             }
         }
 
