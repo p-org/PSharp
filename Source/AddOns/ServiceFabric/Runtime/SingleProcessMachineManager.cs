@@ -22,12 +22,17 @@ namespace Microsoft.PSharp.ServiceFabric
             return true;
         }
 
-        public Task<MachineId> CreateMachineId(Type machineType, string friendlyName)
+        public string GetLocalEndpoint()
         {
-            return Task.FromResult(new MachineId(machineType, friendlyName, null));
+            return "";
         }
 
-        public void ParseMachineIdEndpoint(MachineId mid, out string serviceName, out string partitionName)
+        public Task<string> CreateMachineIdEndpoint(Type machineType)
+        {
+            return Task.FromResult("");
+        }
+
+        public void ParseMachineIdEndpoint(string endpoint, out string serviceName, out string partitionName)
         {
             serviceName = "";
             partitionName = "";

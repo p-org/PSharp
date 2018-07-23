@@ -18,9 +18,7 @@ namespace Microsoft.PSharp.ServiceFabric
     public class ResourceManagerBasedRemoteMachineManager : IRemoteMachineManager
     {
         private const string Delimiter = "|||";
-        private const string PartitionTableName = "SFPSharp-PartitionTable";
         private readonly ConcurrentDictionary<Uri, IResourceManager> serviceProxyMap;
-        private readonly IReliableDictionary<Guid, string> partitionNameMap;
         private readonly FabricClient fabricClient;
         private IReliableStateManager StateManager;
 
@@ -36,7 +34,12 @@ namespace Microsoft.PSharp.ServiceFabric
         public StatefulServiceContext ServiceContext { get; }
         public Uri ResourceManagerServiceLocation { get; }
 
-        public async Task<MachineId> CreateMachineId(Type machineType, string friendlyName)
+        public string GetLocalEndpoint()
+        {
+            return this.ServiceContext.ServiceName + Delimiter + this.ServiceContext.PartitionId;
+        }
+
+        public async Task<string> CreateMachineIdEndpoint(Type machineType)
         {
             IResourceManager manager = this.serviceProxyMap.GetOrAdd(this.ResourceManagerServiceLocation, GetResourceManagerProxy);
             CreateResourceRequest request = new CreateResourceRequest();
@@ -46,9 +49,7 @@ namespace Microsoft.PSharp.ServiceFabric
             request.RequestId = Guid.Empty;  // not needed
             request.ResourceType = machineType.AssemblyQualifiedName;
             CreateResourceResponse response = await manager.CreateResourceAsync(request);
-            friendlyName = response.Service + Delimiter + response.Partition + Delimiter + response.ResourceId;
-
-            return new MachineId(machineType, friendlyName, null);
+            return response.Service + Delimiter + response.Partition;
         }
 
         private IResourceManager GetResourceManagerProxy(Uri arg)
@@ -59,7 +60,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public bool IsLocalMachine(MachineId id)
         {
             string[] parts = id.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
-            if(parts.Length != 3)
+            if(parts.Length != 2)
             {
                 throw new InvalidOperationException($"Parts mismatch = Unable to find a machine with id = {id}");
             }
@@ -72,45 +73,28 @@ namespace Microsoft.PSharp.ServiceFabric
             return false;
         }
 
-        public void ParseMachineIdEndpoint(MachineId mid, out string serviceName, out string partitionName)
+        public void ParseMachineIdEndpoint(string endpoint, out string serviceName, out string partitionName)
         {
-            string[] parts = mid.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = endpoint.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 3)
             {
-                throw new InvalidOperationException($"Parts mismatch = Unable to find a machine with id = {mid}");
+                throw new InvalidOperationException($"Parts mismatch = Unable to find a machine with id = {endpoint}");
             }
 
             serviceName = parts[0];
-            partitionName = parts[1];
+            partitionName = GetPartitionName(new Uri(serviceName), Guid.Parse(parts[1]));
         }
 
-        private async Task<string> GetPartitionName(Uri serviceName, Guid partitionId)
+        private string GetPartitionName(Uri serviceName, Guid partitionId)
         {
-            IReliableDictionary<Guid, string> partitionMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, string>>(PartitionTableName);
-            using (ITransaction tx = this.StateManager.CreateTransaction())
+            ServicePartitionList partitionList = fabricClient.QueryManager.GetPartitionListAsync(serviceName, partitionId).Result;
+            foreach (Partition partition in partitionList)
             {
-                bool added = false;
-                string name = await partitionMap.GetOrAddAsync(tx, partitionId, (id) =>
-                {
-                    ServicePartitionList partitionList = fabricClient.QueryManager.GetPartitionListAsync(serviceName, partitionId).Result;
-                    foreach (Partition partition in partitionList)
-                    {
-                        NamedPartitionInformation namedPartitionInfo = partition.PartitionInformation as NamedPartitionInformation;
-                        string partitionName = namedPartitionInfo.Name;
-                        added = true;
-                        return partitionName;
-                    }
-
-                    throw new InvalidOperationException($"Did not find Service {serviceName} with partition {partitionId}");
-                });
-
-                if (added)
-                {
-                    await tx.CommitAsync();
-                }
-
-                return name;
+                NamedPartitionInformation namedPartitionInfo = partition.PartitionInformation as NamedPartitionInformation;
+                return namedPartitionInfo.Name;
             }
+
+            throw new InvalidOperationException($"Did not find Service {serviceName} with partition {partitionId}");
         }
     }
 }

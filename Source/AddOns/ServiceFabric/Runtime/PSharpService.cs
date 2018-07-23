@@ -102,6 +102,7 @@
         public abstract Task<List<ResourceTypesResponse>> ListResourceTypesAsync();
         public abstract Task<List<ResourceDetailsResponse>> ListResourcesAsync();
 
+        public abstract Task<MachineId> CreateMachineId(string machineType, string friendlyName);
         public abstract Task CreateMachine(MachineId machineId, Event e);
         public abstract Task SendEvent(MachineId machineId, Event e);
     }

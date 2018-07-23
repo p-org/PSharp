@@ -12,6 +12,15 @@ namespace Microsoft.PSharp.ServiceFabric.Net
     public interface IRsmNetworkProvider
     {
         /// <summary>
+        /// Creates a new ID for a specified machine type and partition
+        /// </summary>
+        /// <param name="endpoint">Partition where to create the ID</param>
+        /// <param name="friendlyName">Friendly name associated with the machine</param>
+        /// <param name="machineType">Type of the machine to bind to the ID</param>
+        /// <returns></returns>
+        Task<MachineId> RemoteCreateMachineId(string machineType, string friendlyName, string endpoint);
+
+        /// <summary>
         /// Creates a machine with the given ID
         /// </summary>
         /// <param name="machineType">Type of machine to create</param>

@@ -61,6 +61,7 @@ namespace Microsoft.PSharp.ServiceFabric
         internal void SetRsmNetworkProvider(Net.IRsmNetworkProvider rsmNetworkProvider)
         {
             this.RsmNetworkProvider = rsmNetworkProvider;
+            base.SetNetworkProvider(new Net.NullNetworkProvider(this.RemoteMachineManager.GetLocalEndpoint()));
         }
 
         #region Monitor
@@ -88,7 +89,8 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             if(mid == null)
             {
-                mid = RemoteMachineManager.CreateMachineId(type, friendlyName).Result;
+                var endpoint = RemoteMachineManager.CreateMachineIdEndpoint(type).Result;
+                mid = RsmNetworkProvider.RemoteCreateMachineId(type.AssemblyQualifiedName, friendlyName, endpoint).Result;
             }
 
             if(RemoteMachineManager.IsLocalMachine(mid))
@@ -325,10 +327,6 @@ namespace Microsoft.PSharp.ServiceFabric
             });
         }
 
-        internal override ulong GenerateTestId()
-        {
-            return 0;
-        }
         #endregion
 
         private void StartClearOutboxTasks()

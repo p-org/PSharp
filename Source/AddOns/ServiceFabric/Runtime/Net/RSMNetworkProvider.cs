@@ -36,6 +36,19 @@ namespace RSM
         }
 
         /// <summary>
+        /// Creates a new ID for a specified machine type and partition
+        /// </summary>
+        /// <param name="friendlyName">Friendly name associated with the machine</param>
+        /// <param name="endpoint">Partition where to create the ID</param>
+        /// <param name="machineType">Type of the machine to bind to the ID</param>
+        /// <returns></returns>
+        public Task<MachineId> RemoteCreateMachineId(string machineType, string friendlyName, string endpoint)
+        {
+            var service = GetService(endpoint);
+            return service.CreateMachineId(machineType, friendlyName);
+        }
+
+        /// <summary>
         /// Creates a machine with the given ID
         /// </summary>
         /// <param name="machineType">Type of machine to create</param>
@@ -44,7 +57,7 @@ namespace RSM
         /// <returns></returns>
         public Task RemoteCreateMachine(Type machineType, MachineId mid, Event e)
         {
-            var service = GetService(mid);
+            var service = GetService(mid.Endpoint);
             return service.CreateMachine(mid, e);
         }
 
@@ -56,15 +69,15 @@ namespace RSM
         /// <returns></returns>
         public Task RemoteSend(MachineId target, Event e)
         {
-            var service = GetService(target);
+            var service = GetService(target.Endpoint);
             return service.SendEvent(target, e);
         }
 
-        private IPSharpService GetService(MachineId mid)
+        private IPSharpService GetService(string endpoint)
         {
             IPSharpService service;
 
-            if (partitionToService.TryGetValue(mid.Endpoint, out service))
+            if (partitionToService.TryGetValue(endpoint, out service))
             {
                 return service;
             }
@@ -77,13 +90,13 @@ namespace RSM
             });
 
             string serviceName, partitionName;
-            RemoteMachineManager.ParseMachineIdEndpoint(mid, out serviceName, out partitionName);
+            RemoteMachineManager.ParseMachineIdEndpoint(endpoint, out serviceName, out partitionName);
 
             service = proxyFactory.CreateServiceProxy<IPSharpService>(
                 new Uri(serviceName),
                 new Microsoft.ServiceFabric.Services.Client.ServicePartitionKey(partitionName));
 
-            partitionToService.TryAdd(mid.Endpoint, service);
+            partitionToService.TryAdd(endpoint, service);
             return service;
         }
     }

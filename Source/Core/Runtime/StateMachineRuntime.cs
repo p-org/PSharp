@@ -857,11 +857,6 @@ namespace Microsoft.PSharp
             this.MachineMap.TryRemove(machine.Id, out machine);
         }
 
-        internal override ulong GenerateTestId()
-        {
-            return 0;
-        }
-
         #endregion
 
         #region cleanup

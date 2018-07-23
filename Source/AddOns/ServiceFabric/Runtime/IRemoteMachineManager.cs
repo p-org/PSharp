@@ -23,19 +23,24 @@ namespace Microsoft.PSharp.ServiceFabric
         bool IsLocalMachine(MachineId mid);
 
         /// <summary>
+        /// Returns local endpoint
+        /// </summary>
+        /// <returns></returns>
+        string GetLocalEndpoint();
+
+        /// <summary>
         /// Returns a fresh MachineId (perhaps remote)
         /// </summary>
         /// <param name="machineType"></param>
-        /// <param name="friendlyName"></param>
-        /// <returns></returns>
-        Task<MachineId> CreateMachineId(Type machineType, string friendlyName);
+        /// <returns>Endpoint</returns>
+        Task<string> CreateMachineIdEndpoint(Type machineType);
 
         /// <summary>
         /// Returns the service and partition hosting the given MachineId
         /// </summary>
-        /// <param name="mid"></param>
+        /// <param name="endpoint"></param>
         /// <param name="serviceName"></param>
         /// <param name="partitionName"></param>
-        void ParseMachineIdEndpoint(MachineId mid, out string serviceName, out string partitionName);
+        void ParseMachineIdEndpoint(string endpoint, out string serviceName, out string partitionName);
     }
 }
