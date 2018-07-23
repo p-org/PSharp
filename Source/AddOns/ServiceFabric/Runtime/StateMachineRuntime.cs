@@ -177,6 +177,31 @@ namespace Microsoft.PSharp.ServiceFabric
             this.RunMachineEventHandler(machine, e, true);
         }
 
+        // Restarts created machines (on failover)
+        private async Task ReHydrateMachines()
+        {
+            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
+
+            using (var tx = this.StateManager.CreateTransaction())
+            {
+                var enumerable = await createdMachineMap.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
+
+                // TODO: Add cancellation token
+                var ct = new CancellationToken();
+
+                while (await enumerator.MoveNextAsync(ct))
+                {
+                    if (MachineMap.ContainsKey(enumerator.Current.Value.Item1))
+                    {
+                        continue;
+                    }
+
+                    await CreateMachineLocalAsync(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), null, enumerator.Current.Value.Item3, null, null);
+                }
+            }
+        }
+
         #endregion
 
         #region Send
@@ -308,6 +333,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
         private void StartClearOutboxTasks()
         {
+            ReHydrateMachines().Wait();
             Task.Run(async () => await ClearCreationsOutbox());
             Task.Run(async () => await ClearMessagesOutbox());
         }
