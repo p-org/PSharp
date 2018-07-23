@@ -92,7 +92,7 @@
                     {
                         EndpointResourceName = "ResourceManagerServiceEndpoint",
                     });
-            });
+            }, "ResourceManagerServiceEndpoint");
 
             ServiceReplicaListener listener2 = new ServiceReplicaListener((context) =>
             {
@@ -103,7 +103,7 @@
                         EndpointResourceName = "PSharpServiceEndpoint",
                     },
                     this.eventSerializationProvider);
-            });
+            }, "PSharpServiceEndpoint");
 
             listeners.Add(listener1);
             listeners.Add(listener2);
