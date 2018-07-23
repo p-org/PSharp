@@ -1,45 +1,47 @@
 ﻿namespace VMManager
 {
+    using System;
+    using System.Collections.Generic;
     using System.Fabric;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Microsoft.PSharp.ServiceFabric;
     using Microsoft.ServiceFabric.Data;
-    using Microsoft.ServiceFabric.Services.Runtime;
 
-    public class VMManagerService : StatefulService
+    public class VMManagerService : PSharpService
     {
-        public VMManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext)
+        public VMManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext, new List<Type>())
         {
             this.Logger = logger;
         }
 
-        public VMManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, reliableStateManagerReplica)
+        public VMManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, new List<Type>(), reliableStateManagerReplica)
         {
             this.Logger = logger;
         }
 
         public ILogger Logger { get; }
 
+        public override async Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
+        {
+            // Ideally this should also be on PSharp service - the runtime should go over known types
+            // and figure out the reliable machines that it can host
+            var data = await base.ListResourceTypesAsync();
+            data.Add(new ResourceTypesResponse()
+            {
+                ResourceType = "VMManagerMachine",
+                Count = 1,
+                MaxCapacity = 100
+            });
+
+            return data;
+        }
+
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            //IReactiveReliableQueue<int> queue = await this.StateManager.GetOrAddReactiveReliableQueue<int>("QUEUE1");
-            //using (ITransaction tx = this.StateManager.CreateTransaction())
-            //{
-            //    await queue.EnqueueAsync(tx, 1);
-            //    await queue.EnqueueAsync(tx, 2);
-            //    await tx.CommitAsync();
-            //}
-
-            QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1");
-            // QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1", true);
-            DequeueTask dq1 = new DequeueTask(this.StateManager, "QUEUE1");
-
-            Task t1 = dq1.Start(cancellationToken);
-            await Task.Delay(10000);
-            Task t2 = q1.Start(cancellationToken);
-            await Task.WhenAll(t1, t2);
+            await base.RunAsync(cancellationToken);
+            await Task.Delay(-1, cancellationToken);
         }
     }
 }

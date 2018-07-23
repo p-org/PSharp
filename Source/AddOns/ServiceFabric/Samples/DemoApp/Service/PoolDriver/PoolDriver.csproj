@@ -36,5 +36,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Runtime\ServiceFabric.csproj" />
+    <ProjectReference Include="..\Contracts\PoolServicesContract.csproj" />
   </ItemGroup>
 </Project>
