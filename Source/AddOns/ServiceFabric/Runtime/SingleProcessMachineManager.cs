@@ -10,45 +10,32 @@ namespace Microsoft.PSharp.ServiceFabric
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class SingleProcessMachineManager : AbstractRemoteMachineManager
+    public class SingleProcessMachineManager : IRemoteMachineManager
     {
-        ConcurrentDictionary<string, Type> typeMap;
-
-        public SingleProcessMachineManager(IReliableStateManager manager) : base(manager)
+        public SingleProcessMachineManager() 
         {
-            this.typeMap = new ConcurrentDictionary<string, Type>();
+            
         }
 
-        public override Task<MachineId> CreateMachine(Guid requestId, string resourceType, Machine creator, CancellationToken token)
-        {
-            Type type = this.typeMap.GetOrAdd(resourceType, CreateType);
-            return ServiceFabricRuntimeFactory.Current.CreateMachineLocalAsync(null, type, requestId.ToString(), null, creator, null);
-        }
-
-        private Type CreateType(string typeFullName)
-        {
-            foreach (Assembly item in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (Type type in item.GetTypes())
-                {
-                    if(type.FullName == typeFullName)
-                    {
-                        return type;
-                    }
-                }
-            }
-
-            throw new InvalidOperationException($"Unable to find type {typeFullName}");
-        }
-
-        public override bool IsLocalMachine(MachineId id)
+        public bool IsLocalMachine(MachineId id)
         {
             return true;
         }
 
-        protected internal override Task RemoteSend(MachineId id, Event e, AbstractMachine sender, SendOptions options, CancellationToken token)
+        public string GetLocalEndpoint()
         {
-            throw new InvalidOperationException($"RemoteSend unexpected for {id} as all machines are supposed to be local machines");
+            return "";
+        }
+
+        public Task<string> CreateMachineIdEndpoint(Type machineType)
+        {
+            return Task.FromResult("");
+        }
+
+        public void ParseMachineIdEndpoint(string endpoint, out string serviceName, out string partitionName)
+        {
+            serviceName = "";
+            partitionName = "";
         }
     }
 }

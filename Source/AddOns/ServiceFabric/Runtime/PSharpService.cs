@@ -137,14 +137,16 @@
             //TODO: Implement
             return Task.FromResult(new List<ResourceDetailsResponse>());
         }
+        
+        public abstract Task<MachineId> CreateMachineId(string machineType, string friendlyName);
 
-        public virtual Task CreateMachine(MachineId machineId, MachineId creator, Event e)
+        public virtual Task CreateMachine(MachineId machineId, Event e)
         {
             //TODO: Implement
             return Task.FromResult(true);
         }
 
-        public virtual Task SendEvent(MachineId machineId, MachineId sender, Event e)
+        public virtual Task SendEvent(MachineId machineId, Event e)
         {
             //TODO: Implement
             return Task.FromResult(true);

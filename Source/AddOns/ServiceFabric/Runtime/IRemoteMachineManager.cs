@@ -15,10 +15,32 @@ namespace Microsoft.PSharp.ServiceFabric
     /// </summary>
     public interface IRemoteMachineManager
     {
-        Task<MachineId> CreateMachine(Guid requestId, string resourceType, Machine sender, CancellationToken token);
-
-        Task SendEvent(MachineId id, Event e, AbstractMachine sender, SendOptions options, CancellationToken token);
-
+        /// <summary>
+        /// Returns true if the MachineId is local
+        /// </summary>
+        /// <param name="mid"></param>
+        /// <returns></returns>
         bool IsLocalMachine(MachineId mid);
+
+        /// <summary>
+        /// Returns local endpoint
+        /// </summary>
+        /// <returns></returns>
+        string GetLocalEndpoint();
+
+        /// <summary>
+        /// Returns a fresh MachineId (perhaps remote)
+        /// </summary>
+        /// <param name="machineType"></param>
+        /// <returns>Endpoint</returns>
+        Task<string> CreateMachineIdEndpoint(Type machineType);
+
+        /// <summary>
+        /// Returns the service and partition hosting the given MachineId
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="partitionName"></param>
+        void ParseMachineIdEndpoint(string endpoint, out string serviceName, out string partitionName);
     }
 }

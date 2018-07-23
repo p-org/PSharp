@@ -35,10 +35,6 @@ namespace Microsoft.PSharp.TestingServices
     internal sealed class BugFindingRuntime : PSharpRuntime
     {
         #region fields
-        /// <summary>
-        /// Monotonically increasing machine id counter.
-        /// </summary>
-        internal long MachineIdCounter;
 
         /// <summary>
         /// The bug-finding scheduler.
@@ -1737,11 +1733,6 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineMap.Clear();
             this.TaskMap.Clear();
             base.Dispose();
-        }
-
-        internal override ulong GenerateTestId()
-        {
-            return (ulong)Interlocked.Increment(ref this.MachineIdCounter) - 1;
         }
 
         internal override bool IsTest()
