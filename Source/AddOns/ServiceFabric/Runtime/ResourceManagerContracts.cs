@@ -113,10 +113,10 @@
 
         // The total number of resource managed in this service
         [DataMember]
-        ulong Count;
+        public ulong Count;
 
         [DataMember]
-        ulong MaxCapacity;
+        public ulong MaxCapacity;
     }
 
     [DataContract]
