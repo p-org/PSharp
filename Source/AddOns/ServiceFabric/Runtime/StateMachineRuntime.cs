@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.ServiceFabric
             }
             else
             {
-                var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>("RemoteCreationsOutbox");
+                var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
                 await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e));
             }
 
@@ -295,7 +295,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
         private async Task ClearCreationsOutbox()
         {
-            var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>("RemoteCreationsOutbox");
+            var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
             while(true)
             {
                 var found = false;
