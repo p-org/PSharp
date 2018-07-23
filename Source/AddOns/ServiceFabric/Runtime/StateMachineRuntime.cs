@@ -88,8 +88,7 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             if(mid == null)
             {
-                // TODO: route through the RM
-                mid = new MachineId(type, friendlyName, this);
+                mid = RemoteMachineManager.CreateMachineId(type, friendlyName).Result;
             }
 
             if(RemoteMachineManager.IsLocalMachine(mid))
@@ -197,6 +196,7 @@ namespace Microsoft.PSharp.ServiceFabric
                         continue;
                     }
 
+                    this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
                     await CreateMachineLocalAsync(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), null, enumerator.Current.Value.Item3, null, null);
                 }
             }

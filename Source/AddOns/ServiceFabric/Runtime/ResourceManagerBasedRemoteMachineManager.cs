@@ -15,38 +15,40 @@ namespace Microsoft.PSharp.ServiceFabric
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class ResourceManagerBasedRemoteMachineManager : AbstractRemoteMachineManager
+    public class ResourceManagerBasedRemoteMachineManager : IRemoteMachineManager
     {
         private const string Delimiter = "|||";
         private const string PartitionTableName = "SFPSharp-PartitionTable";
         private readonly ConcurrentDictionary<Uri, IResourceManager> serviceProxyMap;
         private readonly IReliableDictionary<Guid, string> partitionNameMap;
         private readonly FabricClient fabricClient;
+        private IReliableStateManager StateManager;
 
-        public ResourceManagerBasedRemoteMachineManager(StatefulServiceContext context, IReliableStateManager manager, string resourceManagerService) : base(manager)
+        public ResourceManagerBasedRemoteMachineManager(StatefulServiceContext context, IReliableStateManager manager, string resourceManagerService)
         {
             this.ServiceContext = context;
             this.ResourceManagerServiceLocation = new Uri(resourceManagerService);
             this.serviceProxyMap = new ConcurrentDictionary<Uri, IResourceManager>();
             this.fabricClient = new FabricClient();
+            this.StateManager = manager;
         }
 
         public StatefulServiceContext ServiceContext { get; }
         public Uri ResourceManagerServiceLocation { get; }
 
-        public override async Task<MachineId> CreateMachine(Guid requestId, string resourceType, Machine sender, CancellationToken token)
+        public async Task<MachineId> CreateMachineId(Type machineType, string friendlyName)
         {
             IResourceManager manager = this.serviceProxyMap.GetOrAdd(this.ResourceManagerServiceLocation, GetResourceManagerProxy);
             CreateResourceRequest request = new CreateResourceRequest();
             request.OwningService = this.ServiceContext.ServiceName;
             request.OwningPartition = this.ServiceContext.PartitionId;
-            request.OwningResource = sender == null ? "RUNTIME" : sender.Id.ToString();
-            request.RequestId = requestId;
-            request.ResourceType = resourceType;
+            request.OwningResource = "RUNTIME"; // not needed
+            request.RequestId = Guid.Empty;  // not needed
+            request.ResourceType = machineType.AssemblyQualifiedName;
             CreateResourceResponse response = await manager.CreateResourceAsync(request);
-            string friendlyName = response.Service + Delimiter + response.Partition + Delimiter + response.ResourceId;
-            MachineId id = new MachineId(resourceType, friendlyName, ServiceFabricRuntimeFactory.Current);
-            return id;
+            friendlyName = response.Service + Delimiter + response.Partition + Delimiter + response.ResourceId;
+
+            return new MachineId(machineType, friendlyName, null);
         }
 
         private IResourceManager GetResourceManagerProxy(Uri arg)
@@ -54,7 +56,7 @@ namespace Microsoft.PSharp.ServiceFabric
             return ServiceProxy.Create<IResourceManager>(this.ResourceManagerServiceLocation);
         }
 
-        public override bool IsLocalMachine(MachineId id)
+        public bool IsLocalMachine(MachineId id)
         {
             string[] parts = id.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
             if(parts.Length != 3)
@@ -70,15 +72,16 @@ namespace Microsoft.PSharp.ServiceFabric
             return false;
         }
 
-        protected internal override async Task RemoteSend(MachineId id, Event e, AbstractMachine sender, SendOptions options, CancellationToken token)
+        public void ParseMachineIdEndpoint(MachineId mid, out string serviceName, out string partitionName)
         {
-            string[] parts = id.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
-            Uri serviceName = new Uri(parts[0]);
-            Guid partitionId = Guid.Parse(parts[1]);
+            string[] parts = mid.FriendlyName.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 3)
+            {
+                throw new InvalidOperationException($"Parts mismatch = Unable to find a machine with id = {mid}");
+            }
 
-            ServicePartitionKey key = new ServicePartitionKey(await GetPartitionName(serviceName, partitionId));
-            // todo - create a service proxy for a known type on this partition
-            throw new NotImplementedException();
+            serviceName = parts[0];
+            partitionName = parts[1];
         }
 
         private async Task<string> GetPartitionName(Uri serviceName, Guid partitionId)

@@ -21,12 +21,6 @@ namespace Microsoft.PSharp.ServiceFabric.Net
             return Task.CompletedTask;
         }
 
-        public Task<MachineId> RemoteCreateMachineId(Type machineType, string endpoint)
-        {
-            // TODO: endpoint?
-            return Task.FromResult(Runtime.CreateMachineId(machineType));
-        }
-
         public Task RemoteSend(MachineId target, Event e)
         {
             Runtime.SendEvent(target, e);

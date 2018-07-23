@@ -85,7 +85,7 @@ namespace Microsoft.PSharp
             Type = type;
             Runtime = runtime;
 
-            if (this.Runtime.IsTest())
+            if (this.Runtime != null && this.Runtime.IsTest())
             {
                 this.Value = runtime.GenerateTestId();
                 // Checks for overflow.

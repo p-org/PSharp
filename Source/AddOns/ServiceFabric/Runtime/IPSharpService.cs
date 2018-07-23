@@ -8,8 +8,8 @@
     public interface IPSharpService : IService
     {
         [OperationContract]
-        Task CreateMachine(MachineId machineId, MachineId creator, Event e);
+        Task CreateMachine(MachineId machineId, Event e);
         [OperationContract]
-        Task SendEvent(MachineId machineId, MachineId sender, Event e);
+        Task SendEvent(MachineId machineId, Event e);
     }
 }
