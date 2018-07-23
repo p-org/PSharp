@@ -12,7 +12,7 @@ namespace PingPong
     {
         static void Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
             var stateManager = new StateManagerMock(null);
             stateManager.DisallowFailures();
