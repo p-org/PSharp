@@ -192,13 +192,13 @@
         public virtual async Task<MachineId> CreateMachineId(string machineType, string friendlyName)
         {
             var runtime = await RuntimeTcs.Task;
-            return new MachineId(machineType, friendlyName, runtime);
+            return runtime.CreateMachineId(Type.GetType(machineType), friendlyName);
         }
 
-        public virtual async Task CreateMachine(MachineId machineId, Event e)
+        public virtual async Task CreateMachine(MachineId machineId, string machineType, Event e)
         {
             var runtime = await RuntimeTcs.Task;
-            runtime.CreateMachine(machineId, Type.GetType(machineId.Type), e);
+            runtime.CreateMachine(machineId, Type.GetType(machineType), e);
         }
 
         public virtual async Task SendEvent(MachineId machineId, Event e)

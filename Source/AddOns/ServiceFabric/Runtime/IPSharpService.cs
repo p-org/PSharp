@@ -10,7 +10,7 @@
         [OperationContract]
         Task<MachineId> CreateMachineId(string machineType, string friendlyName);
         [OperationContract]
-        Task CreateMachine(MachineId machineId, Event e);
+        Task CreateMachine(MachineId machineId, string machineType, Event e);
         [OperationContract]
         Task SendEvent(MachineId machineId, Event e);
     }

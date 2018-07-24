@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.ServiceFabric.Net
         public Task RemoteCreateMachine(Type machineType, MachineId mid, Event e)
         {
             var service = GetService(mid.Endpoint);
-            return service.CreateMachine(mid, e);
+            return service.CreateMachine(mid, machineType.AssemblyQualifiedName, e);
         }
 
         /// <summary>

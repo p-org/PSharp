@@ -52,8 +52,9 @@ namespace PingPongApp
             Task.Run(async () =>
             {
                 // start a ping machine
-                var mid = await this.CreateMachineId(typeof(PingPong.PingMachine).FullName, "PingPong");
-                await this.CreateMachine(mid, null);
+                var machineType = typeof(PingPong.PingMachine).AssemblyQualifiedName;
+                var mid = await this.CreateMachineId(machineType, "PingMachine");
+                await this.CreateMachine(mid, machineType, null);
             });
         }
 
