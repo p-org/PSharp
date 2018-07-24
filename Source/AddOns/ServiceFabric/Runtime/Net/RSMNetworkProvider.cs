@@ -10,13 +10,10 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
 
-namespace RSM
+namespace Microsoft.PSharp.ServiceFabric.Net
 {
     public class RsmNetworkProvider : Microsoft.PSharp.ServiceFabric.Net.IRsmNetworkProvider
     {
-        // partition name
-        readonly string currentPartitionName;
-        readonly Uri currentService;
         readonly IServiceRemotingMessageSerializationProvider serializationProvider;
 
         // cache
@@ -24,12 +21,9 @@ namespace RSM
 
         IRemoteMachineManager RemoteMachineManager;
 
-        public RsmNetworkProvider(string currentPartitionName, Uri currentService,
-            IRemoteMachineManager remoteMachineManager,
+        public RsmNetworkProvider(IRemoteMachineManager remoteMachineManager,
             IServiceRemotingMessageSerializationProvider serializationProvider)
         {
-            this.currentPartitionName = currentPartitionName;
-            this.currentService = currentService;
             this.serializationProvider = serializationProvider;
             this.RemoteMachineManager = remoteMachineManager;
             this.partitionToService = new ConcurrentDictionary<string, IPSharpService>();

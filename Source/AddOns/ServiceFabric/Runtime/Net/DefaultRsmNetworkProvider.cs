@@ -8,9 +8,9 @@ namespace Microsoft.PSharp.ServiceFabric.Net
 {
     class DefaultRsmNetworkProvider : IRsmNetworkProvider
     {
-        ServiceFabricPSharpRuntime Runtime;
+        PSharpRuntime Runtime;
 
-        public DefaultRsmNetworkProvider(ServiceFabricPSharpRuntime runtime)
+        public DefaultRsmNetworkProvider(PSharpRuntime runtime)
         {
             this.Runtime = runtime;
         }

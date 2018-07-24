@@ -90,7 +90,12 @@
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            this.Runtime = ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration());
+            var machineManager = new SingleProcessMachineManager();
+
+            this.Runtime = ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration(),
+                machineManager,
+                new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, eventSerializationProvider)));
+            
             var logger = this.GetPSharpRuntimeLogger();
             if (logger != null)
             {
