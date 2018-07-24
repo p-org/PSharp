@@ -40,9 +40,62 @@ namespace ResourceManager.SF
 
         public ILogger Logger { get; }
 
-        public Task<GetServicePartitionResponse> GetServicePartitionAsync(GetServicePartitionRequest request)
+        public async Task<GetServicePartitionResponse> GetServicePartitionAsync(GetServicePartitionRequest request)
         {
-            throw new System.NotImplementedException();
+            GetServicePartitionResponse response = null;
+            string resourceType = request.ResourceType;
+            ServiceEventSource.Current.Message(string.Format("Received GetServicePartitionAsync request for resource type {0}", resourceType));
+            IReliableDictionary<string, HashSet<Guid>> resourceTypeToPartitionIds = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, HashSet<Guid>>>(ResourceToPartitionDictionary);
+            IReliableDictionary<Guid, Tuple<Uri, double>> partitionInformation = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<Uri, double>>>(PartitionInformationDictionary);
+            using (ITransaction transaction = this.StateManager.CreateTransaction())
+            {
+                ConditionalValue<HashSet<Guid>> partitionList = await resourceTypeToPartitionIds.TryGetValueAsync(transaction, resourceType);
+                if (partitionList.HasValue)
+                {
+                    double currentUtilization = 1.1;
+                    foreach (Guid partitionId in partitionList.Value)
+                    {
+                        ConditionalValue<Tuple<Uri, double>> partitionsDetails = await partitionInformation.TryGetValueAsync(transaction, partitionId);
+                        if (partitionsDetails.HasValue)
+                        {
+                            Tuple<Uri, double> detail = partitionsDetails.Value;
+                            if (response == null)
+                            {
+                                response = new GetServicePartitionResponse();
+                                response.Result = "Success";
+                            }
+
+                            if (currentUtilization > detail.Item2)
+                            {
+                                response.Partition = partitionId;
+                                response.Service = detail.Item1;
+                                currentUtilization = detail.Item2;
+                            }
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Details for Partition {0} not found", partitionId.ToString());
+                        }
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("Resource type of {0} not found", resourceType);
+                }
+            }
+
+            if (response == null)
+            {
+                response = new GetServicePartitionResponse { Result = "Failure" };
+                ServiceEventSource.Current.Message(string.Format("Failed to get result GetServicePartitionAsync request for resource type {0}", resourceType));
+            }
+            else
+            {
+                ServiceEventSource.Current.Message(string.Format("Sending response for resource type {0}, with service {1}, partition {2}", resourceType, response.Service, response.Partition));
+            }
+
+            return response;
+
         }
 
         public Task<List<ResourceDetailsResponse>> ListResourcesAsync()
@@ -213,7 +266,7 @@ namespace ResourceManager.SF
         private async Task SaveResourceTypeInformation(ResourceTypesResponse response, Query.Service service, Query.Partition partition)
         {
             IReliableDictionary<string, HashSet<Guid>> resourceTypeToPartitionIds = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, HashSet<Guid>>>(ResourceToPartitionDictionary);
-            IReliableDictionary<Guid, Tuple<string, Uri, double>> partitionInformation = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<string, Uri, double>>>(PartitionInformationDictionary);
+            IReliableDictionary<Guid, Tuple<Uri, double>> partitionInformation = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<Uri, double>>>(PartitionInformationDictionary);
             using (ITransaction transaction = this.StateManager.CreateTransaction())
             {
 
@@ -230,8 +283,8 @@ namespace ResourceManager.SF
                 await partitionInformation.AddOrUpdateAsync(
                     transaction,
                     partition.PartitionInformation.Id,
-                    Tuple.Create(response.ResourceType, service.ServiceName, ((double)response.Count)/response.MaxCapacity),
-                    (key,oldvalue) => Tuple.Create(response.ResourceType, service.ServiceName, ((double)response.Count) / response.MaxCapacity));
+                    Tuple.Create(service.ServiceName, ((double)response.Count)/response.MaxCapacity),
+                    (key,oldvalue) => Tuple.Create(service.ServiceName, ((double)response.Count) / response.MaxCapacity));
                 await transaction.CommitAsync();
             }
         }

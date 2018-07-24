@@ -94,7 +94,7 @@
 
         protected override IRemoteMachineManager GetMachineManager()
         {
-            return new ResourceBasedRemoteMachineManager(this.Partition, this.StateManager, this.Context);
+            return new ResourceBasedRemoteMachineManager(this.Partition, this.StateManager, this.Context, this.PSharpLogger);
         }
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
