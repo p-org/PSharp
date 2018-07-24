@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{458F6344-4ADE-475F-8A31-4DF3D01CF364}"
 	ProjectSection(SolutionItems) = preProject
@@ -92,6 +92,10 @@ EndProject
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "DemoApp", "Source\AddOns\ServiceFabric\Samples\DemoApp\Application\DemoApp.sfproj", "{540905E1-B7A7-44C8-92B0-710C6F7690DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoolServicesContract", "Source\AddOns\ServiceFabric\Samples\DemoApp\Service\Contracts\PoolServicesContract.csproj", "{85D05D93-25F0-4468-AC4F-3571F4E2A02D}"
+EndProject
+Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "PingPongService", "Source\AddOns\ServiceFabric\Samples\PingPongService\PingPongService.sfproj", "{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPongApp", "Source\AddOns\ServiceFabric\Samples\PingPongApp\PingPongApp.csproj", "{183FF9A1-BF1A-4988-B7CB-3716AF999793}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -357,6 +361,20 @@ Global
 		{85D05D93-25F0-4468-AC4F-3571F4E2A02D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{85D05D93-25F0-4468-AC4F-3571F4E2A02D}.Release|x64.ActiveCfg = Release|x64
 		{85D05D93-25F0-4468-AC4F-3571F4E2A02D}.Release|x64.Build.0 = Release|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Debug|x64.ActiveCfg = Debug|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Debug|x64.Build.0 = Debug|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Debug|x64.Deploy.0 = Debug|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Release|Any CPU.ActiveCfg = Release|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Release|x64.ActiveCfg = Release|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Release|x64.Build.0 = Release|x64
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B}.Release|x64.Deploy.0 = Release|x64
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793}.Debug|x64.ActiveCfg = Debug|x64
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793}.Debug|x64.Build.0 = Debug|x64
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793}.Release|Any CPU.ActiveCfg = Release|x64
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793}.Release|x64.ActiveCfg = Release|x64
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -400,6 +418,8 @@ Global
 		{FE5B9A61-E336-45AF-8749-41D28F8065DB} = {65338B9B-4990-4C3A-9BB1-2B9E30115157}
 		{540905E1-B7A7-44C8-92B0-710C6F7690DC} = {FE5B9A61-E336-45AF-8749-41D28F8065DB}
 		{85D05D93-25F0-4468-AC4F-3571F4E2A02D} = {FE5B9A61-E336-45AF-8749-41D28F8065DB}
+		{2C3AF7BA-5423-4268-AE5E-DB48B28DE30B} = {99BBC3D0-DB63-48B6-8A60-7DDB63CFA25E}
+		{183FF9A1-BF1A-4988-B7CB-3716AF999793} = {99BBC3D0-DB63-48B6-8A60-7DDB63CFA25E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DC84FA00-A3A9-43A9-B63D-57053852DA18}

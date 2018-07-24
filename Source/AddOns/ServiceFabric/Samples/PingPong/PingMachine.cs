@@ -11,7 +11,7 @@ using Microsoft.ServiceFabric.Data.Collections;
 
 namespace PingPong
 {
-    class PingMachine : ReliableMachine
+    public class PingMachine : ReliableMachine
     {
         /// <summary>
         /// Constructor.

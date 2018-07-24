@@ -107,17 +107,18 @@
 
         public async Task SubmitRequest(Config value)
         {
+            var runtime = await this.RuntimeTcs.Task;
             try
             {
                 using (ITransaction tx = this.StateManager.CreateTransaction())
                 {
                     var cv = await this.dict.AddOrUpdateAsync(tx, "DATA", (key) =>
                     {
-                        return this.Runtime.CreateMachine(typeof(PoolDriverMachine), MakeConfig(value));
+                        return runtime.CreateMachine(typeof(PoolDriverMachine), MakeConfig(value));
                     },
                     (key, macId) =>
                     {
-                        this.Runtime.SendEvent(macId, MakeConfig(value));
+                        runtime.SendEvent(macId, MakeConfig(value));
                         return macId;
                     });
 
