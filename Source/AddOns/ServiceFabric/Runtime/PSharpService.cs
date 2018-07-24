@@ -135,8 +135,6 @@
 
             this.RuntimeTcs.SetResult(runtime);
 
-            
-
             // Lets have a runtime.Initialize(cancellationToken);
             // that should ideally be used for rehydration and restarting the machines
 
@@ -176,16 +174,29 @@
 
         public virtual async Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
         {
-            this.PSharpLogger.Message($"Received call for ListResourceTypes for {this.Context.ServiceName}");
+            Dictionary<string, ulong> typeMapping = new Dictionary<string, ulong>();
             var details = new List<ResourceTypesResponse>();
             var types = this.GetMachineTypesWithMaxLoad();
             var runtime = await this.RuntimeTcs.Task;
+            HashSet<MachineId> list = runtime.GetCreatedMachines();
+            foreach (MachineId id in list)
+            {
+                if (!typeMapping.ContainsKey(id.Type))
+                {
+                    typeMapping[id.Type] = 1;
+                }
+                else
+                {
+                    typeMapping[id.Type] = typeMapping[id.Type]  + 1;
+                }
+            }
+
             foreach (var type in types)
             {
                 ResourceTypesResponse response = new ResourceTypesResponse();
                 response.ResourceType = type.Key.FullName;
                 response.MaxCapacity = type.Value;
-                // TODO: Get the current count from runtime for a give type
+                response.Count = typeMapping.ContainsKey(type.Key.FullName) ? typeMapping[type.Key.FullName] : 0;
             }
 
             return details;

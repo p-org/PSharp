@@ -4,9 +4,7 @@ namespace Microsoft.PSharp.ServiceFabric
 {
     using Microsoft.PSharp;
     using Microsoft.ServiceFabric.Data;
-    using Microsoft.ServiceFabric.Services.Runtime;
     using System;
-    using System.Collections.Generic;
     using System.Fabric;
     using System.Threading;
     using System.Threading.Tasks;
@@ -36,6 +34,12 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             // TODO: ASK the background task
             // !!!!!!!!! - FOR THE TIME BEING RETURN A HARD CODED PARTITION
+
+            if (machineType.FullName.Contains("PoolDriver"))
+            {
+                return Task.FromResult("fabric:/DemoApp/PoolDriver" + Delimiter + "0");
+            }
+
             return Task.FromResult("fabric:/DemoApp/PoolManager" + Delimiter + "0");
         }
 

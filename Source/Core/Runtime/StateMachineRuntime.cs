@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -66,6 +65,11 @@ namespace Microsoft.PSharp
         #endregion
 
         #region runtime interface
+        internal override HashSet<MachineId> GetCreatedMachines()
+        {
+            HashSet<MachineId> list = new HashSet<MachineId>(this.MachineMap.Keys);
+            return list;
+        }
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with

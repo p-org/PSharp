@@ -284,6 +284,34 @@ namespace Microsoft.PSharp.ServiceFabric
 
         #region Internal
 
+        internal override HashSet<MachineId> GetCreatedMachines()
+        {
+            //TODO: plumb in cancellation token
+            return this.GetCreatedMachinesAsync(CancellationToken.None).Result;
+        }
+
+        private async Task<HashSet<MachineId>> GetCreatedMachinesAsync(CancellationToken token)
+        {
+            HashSet<MachineId> list = new HashSet<MachineId>();
+            using (ITransaction tx = this.StateManager.CreateTransaction())
+            {
+                var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
+
+                IAsyncEnumerable<KeyValuePair<string, Tuple<MachineId, string, Event>>> enumerable = await createdMachineMap.CreateEnumerableAsync(tx);
+                using (IAsyncEnumerator<KeyValuePair<string, Tuple<MachineId, string, Event>>> dictEnumerator = enumerable.GetAsyncEnumerator())
+                {
+                    while (await dictEnumerator.MoveNextAsync(token))
+                    {
+                        token.ThrowIfCancellationRequested();
+
+                        list.Add(dictEnumerator.Current.Value.Item1);
+                    }
+                }
+            }
+
+            return list;
+        }
+
         internal void NotifyTransactionCommit(ITransaction tx)
         {
             if (PendingMachineCreations.ContainsKey(tx))

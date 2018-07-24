@@ -151,6 +151,11 @@ namespace Microsoft.PSharp
 
         #region runtime interface
 
+        /// <summary>
+        /// Gets the set of created machines
+        /// </summary>
+        /// <returns>The list of machine IDs</returns>
+        internal abstract HashSet<MachineId> GetCreatedMachines();
 
         /// <summary>
         /// Creates a fresh machine id that has not yet been bound to any machine.

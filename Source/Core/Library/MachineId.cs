@@ -155,7 +155,7 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return (string.IsNullOrWhiteSpace(Endpoint) ? Name : $"{Name} at {Endpoint}");
+            return (string.IsNullOrWhiteSpace(Endpoint) ? Name : $"{Name} at {Endpoint} with Type {Type}");
         }
 
         public bool Equals(MachineId other)
