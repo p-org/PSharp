@@ -31,7 +31,7 @@ namespace WordCount
 
             for (int i = 0; i < Config.NumMachines; i++)
             {
-                wordCountMachines[i] = this.CreateMachine(typeof(WordCountMachine));
+                wordCountMachines[i] = this.CreateMachine(typeof(WordCountMachine), new WordCountInitEvent(targetMachine));
             }
 
             for (int i = 0; i < Config.NumWords; i++)
