@@ -60,6 +60,11 @@
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
+
+            if(!this.StateManager.TryAddStateSerializer(new EventDataSeralizer<Tuple<string, MachineId, Event>>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
         }
 
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes, IReliableStateManagerReplica reliableStateManagerReplica) : base(serviceContext, reliableStateManagerReplica)
@@ -91,6 +96,11 @@
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<Event>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
+            if (!this.StateManager.TryAddStateSerializer(new EventDataSeralizer<Tuple<string, MachineId, Event>>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }

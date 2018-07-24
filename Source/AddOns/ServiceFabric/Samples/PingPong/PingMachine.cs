@@ -32,9 +32,17 @@ namespace PingPong
 
         private async Task InitOnEntry()
         {
-            var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
-            await PongMachine.Set(pongMachineId);
-            this.Goto<Waiting>();
+            try
+            {
+                var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
+                await PongMachine.Set(pongMachineId);
+                this.Goto<Waiting>();
+            }
+            catch (Exception ex)
+            {
+                this.Logger.WriteLine($"{ex}");
+                throw ex;
+            }
         }
 
         private async Task Reply()

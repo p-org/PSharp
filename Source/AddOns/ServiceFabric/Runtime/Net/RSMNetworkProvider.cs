@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
+using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
@@ -88,7 +89,8 @@ namespace Microsoft.PSharp.ServiceFabric.Net
 
             service = proxyFactory.CreateServiceProxy<IPSharpService>(
                 new Uri(serviceName),
-                new Microsoft.ServiceFabric.Services.Client.ServicePartitionKey(partitionName));
+                new ServicePartitionKey(partitionName),
+                listenerName: "PSharpServiceEndpoint");
 
             partitionToService.TryAdd(endpoint, service);
             return service;

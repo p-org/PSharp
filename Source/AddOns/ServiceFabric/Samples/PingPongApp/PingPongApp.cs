@@ -45,6 +45,7 @@ namespace PingPongApp
             }
 
             await base.RunAsync(cancellationToken);
+            await Task.Delay(-1, cancellationToken);
         }
 
         private void FakeClient()
