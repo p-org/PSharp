@@ -37,5 +37,10 @@ namespace Microsoft.PSharp.ServiceFabric
             serviceName = "";
             partitionName = "";
         }
+
+        public Task Initialize(CancellationToken token)
+        {
+            return Task.FromResult(true);
+        }
     }
 }

@@ -3,7 +3,6 @@
 namespace Microsoft.PSharp.ServiceFabric
 {
     using Microsoft.PSharp;
-    using Microsoft.ServiceFabric.Data;
     using System;
     using System.Collections;
     using System.Collections.Concurrent;
@@ -51,6 +50,11 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             serviceName = this.ServiceName;
             partitionName = endpoint;
+        }
+
+        public Task Initialize(CancellationToken token)
+        {
+            return Task.FromResult(true);
         }
     }
 }

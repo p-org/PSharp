@@ -107,6 +107,8 @@
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             IRemoteMachineManager machineManager = this.GetMachineManager();
+            await machineManager.Initialize(cancellationToken);
+
             var runtime =
             ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration(),
                 machineManager,

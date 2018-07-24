@@ -16,6 +16,13 @@ namespace Microsoft.PSharp.ServiceFabric
     public interface IRemoteMachineManager
     {
         /// <summary>
+        ///  Call initialize before using the manager
+        /// </summary>
+        /// <param name="token">The cancellation token</param>
+        /// <returns>A task</returns>
+        Task Initialize(CancellationToken token);
+
+        /// <summary>
         /// Returns true if the MachineId is local
         /// </summary>
         /// <param name="mid"></param>

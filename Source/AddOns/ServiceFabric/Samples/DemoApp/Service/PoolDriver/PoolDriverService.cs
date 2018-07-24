@@ -92,6 +92,11 @@
             return data;
         }
 
+        protected override IRemoteMachineManager GetMachineManager()
+        {
+            return new ResourceBasedRemoteMachineManager(this.Partition, this.StateManager, this.Context);
+        }
+
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             ServiceEventSource.Current.Message("Starting PoolDriverService");
