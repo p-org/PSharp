@@ -110,14 +110,9 @@
             return listeners;
         }
 
-        public Task<CreateResourceResponse> CreateResourceAsync(CreateResourceRequest request)
+        public Task<GetServicePartitionResponse> GetServicePartitionAsync(GetServicePartitionRequest request)
         {
             throw new InvalidOperationException("Cannot create using resource manager API");
-        }
-
-        public Task<DeleteResourceResponse> DeleteResourceAsync(DeleteResourceRequest request)
-        {
-            throw new InvalidOperationException("Cannot delete using resource manager API");
         }
 
         protected virtual Configuration GetRuntimeConfiguration()
