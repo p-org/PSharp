@@ -168,13 +168,13 @@
 
         public virtual Task CreateMachine(MachineId machineId, Event e)
         {
-            //TODO: Implement
+            ServiceFabricRuntimeFactory.Current.CreateMachine(machineId, Type.GetType(machineId.Type), e);
             return Task.FromResult(true);
         }
 
         public virtual Task SendEvent(MachineId machineId, Event e)
         {
-            //TODO: Implement
+            ServiceFabricRuntimeFactory.Current.SendEvent(machineId, e);
             return Task.FromResult(true);
         }
     }

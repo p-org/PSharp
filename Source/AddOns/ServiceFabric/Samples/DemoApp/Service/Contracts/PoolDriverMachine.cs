@@ -102,8 +102,8 @@ namespace PoolServicesContract
                              * NOTE: This mechanism needs to change
                              *****************************************************************/
                             // persist the machine id
-                            MachineId macId = this.CreateRemoteMachine(typeof(PoolManagerMachine),
-                                // NOTE: This is my key for the CreateRemoteMachine!!!
+                            MachineId macId = this.CreateMachine(typeof(PoolManagerMachine),
+                                // NOTE: This is my key for the CreateMachine!!!
                                 dictEnumerator.Current.Value.ToString(),
                                 new ePoolResizeRequestEvent() { Size = config.PoolData[dictEnumerator.Current.Key] });
 

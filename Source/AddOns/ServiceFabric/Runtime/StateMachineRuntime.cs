@@ -127,11 +127,19 @@ namespace Microsoft.PSharp.ServiceFabric
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
             this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
+            // Idempotence check
+            if (MachineMap.ContainsKey(mid))
+            {
+                // machine already created
+                return mid;
+            }
+
             var reliableCreator = creator as ReliableMachine;
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
 
             if (reliableCreator == null)
             {
+
                 using (var tx = this.StateManager.CreateTransaction())
                 {
                     await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
@@ -193,11 +201,6 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 while (await enumerator.MoveNextAsync(ct))
                 {
-                    if (MachineMap.ContainsKey(enumerator.Current.Value.Item1))
-                    {
-                        continue;
-                    }
-
                     this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
                     await CreateMachineLocalAsync(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), null, enumerator.Current.Value.Item3, null, null);
                 }
