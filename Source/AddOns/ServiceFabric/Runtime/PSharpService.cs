@@ -135,7 +135,7 @@
 
             this.RuntimeTcs.SetResult(runtime);
 
-            RuntimeLoadReporter reporter = new RuntimeLoadReporter(this, this.Partition);
+            RuntimeLoadReporter reporter = new RuntimeLoadReporter(this, this.PSharpLogger, this.Partition);
 
             #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             reporter.Start(cancellationToken);
@@ -203,6 +203,8 @@
                 response.ResourceType = type.Key.FullName;
                 response.MaxCapacity = type.Value;
                 response.Count = typeMapping.ContainsKey(type.Key.FullName) ? typeMapping[type.Key.FullName] : 0;
+
+                details.Add(response);
             }
 
             return details;
