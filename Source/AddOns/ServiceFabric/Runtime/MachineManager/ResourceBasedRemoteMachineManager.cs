@@ -20,6 +20,7 @@ namespace Microsoft.PSharp.ServiceFabric
         private IReliableStateManager stateManager;
         private StatefulServiceContext context;
         private IPSharpEventSourceLogger logger;
+        private ResourceTypeLearnerBackgroundTask resourceTypeLearnerTask;
 
         public ResourceBasedRemoteMachineManager(IStatefulServicePartition partition, IReliableStateManager stateManager, StatefulServiceContext context, IPSharpEventSourceLogger logger)
         {
@@ -45,6 +46,10 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             this.partitionName = this.GetPartitionName();
             // Spawn off background tasks
+            resourceTypeLearnerTask = new ResourceTypeLearnerBackgroundTask(this.stateManager, TimeSpan.FromSeconds(10), this.logger);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            resourceTypeLearnerTask.Start(new CancellationToken());
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             await Task.Yield();
         }
 
