@@ -4,6 +4,7 @@ using System.Fabric;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.PSharp.ServiceFabric;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -29,8 +30,20 @@ namespace PingPongApp
         };
 
         public PingPongApp(StatefulServiceContext context)
-            : base(context, KnownTypes, TypeToPartitionMap)
+            : base(context, KnownTypes)
         { }
+
+        protected override IRemoteMachineManager GetMachineManager()
+        {
+            if (!(this.Partition.PartitionInfo is NamedPartitionInformation))
+            {
+                throw new InvalidOperationException("Service must have named paritions");
+            }
+
+            var partitionName = (this.Partition.PartitionInfo as NamedPartitionInformation).Name;
+
+            return new SingleServiceMachineManager(this.Context.ServiceName.ToString(), partitionName, TypeToPartitionMap);
+        }
 
         /// <summary>
         /// This is the main entry point for your service replica.

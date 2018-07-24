@@ -64,9 +64,17 @@ namespace Microsoft.PSharp.ServiceFabric
                 throw new InvalidOperationException($"Parts mismatch = Unable to find a machine with id = {id}");
             }
 
-            if(new Uri(parts[0]) == this.ServiceContext.ServiceName && Guid.Parse(parts[1]) == this.ServiceContext.PartitionId)
+            try
             {
-                return true;
+                if (parts[0] == this.ServiceContext.ServiceName.ToString() && Guid.Parse(parts[1]) == this.ServiceContext.PartitionId)
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw;
             }
 
             return false;

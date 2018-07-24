@@ -18,21 +18,14 @@
         private List<Type> knownTypes;
         private EventSerializationProvider eventSerializationProvider;
 
-        // For debugging purposes
-        private Dictionary<Type, string> TypeToPartitionMap = null;
-
         public TaskCompletionSource<PSharpRuntime> RuntimeTcs { get; private set; }
 
-        protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes)
-            : this(serviceContext, knownTypes, typeToPartitionMap: null) { }
-
-        protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes, Dictionary<Type, string> typeToPartitionMap) : base(serviceContext)
+        protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes) : base(serviceContext)
         {
             var localKnownTypes = new List<Type> { typeof(Event), typeof(TaggedRemoteEvent) };
             localKnownTypes.AddRange(knownTypes);
             
             this.knownTypes = localKnownTypes;
-            this.TypeToPartitionMap = typeToPartitionMap;
             this.RuntimeTcs = new TaskCompletionSource<PSharpRuntime>();
 
             this.eventSerializationProvider = new EventSerializationProvider(this.knownTypes);
@@ -106,22 +99,14 @@
             }
         }
 
+        protected virtual IRemoteMachineManager GetMachineManager()
+        {
+            return new SingleProcessMachineManager();
+        }
+
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            IRemoteMachineManager machineManager = new SingleProcessMachineManager();
-
-            if(TypeToPartitionMap != null)
-            {
-                if (!(this.Partition.PartitionInfo is NamedPartitionInformation))
-                {
-                    throw new InvalidOperationException("Service must have named paritions");
-                }
-
-                var partitionName = (this.Partition.PartitionInfo as NamedPartitionInformation).Name;
-
-                machineManager = new SingleServiceMachineManager(base.Context.ServiceName.ToString(), partitionName, TypeToPartitionMap);
-            }
-
+            IRemoteMachineManager machineManager = this.GetMachineManager();
             var runtime =
             ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration(),
                 machineManager,
