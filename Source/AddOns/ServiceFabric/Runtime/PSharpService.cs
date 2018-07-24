@@ -21,8 +21,6 @@
             typeof(TaggedRemoteEvent),
             typeof(ResourceTypesResponse),
             typeof(ResourceDetailsResponse),
-            typeof(CurrentResourceDetailsResponse),
-            typeof(CurrentResourceTypesResponse),
             // The below 2 types needs additional work
             typeof(List<ResourceTypesResponse>),
             typeof(List<ResourceDetailsResponse>)
@@ -176,7 +174,7 @@
             return Configuration.Create().WithVerbosityEnabled(4);
         }
 
-        public virtual async Task<CurrentResourceTypesResponse> ListResourceTypesAsync()
+        public virtual async Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
         {
             this.PSharpLogger.Message($"Received call for ListResourceTypes for {this.Context.ServiceName}");
             var details = new List<ResourceTypesResponse>();
@@ -190,14 +188,14 @@
                 // TODO: Get the current count from runtime for a give type
             }
 
-            return new CurrentResourceTypesResponse() { Result = details};
+            return details;
         }
 
-        public virtual Task<CurrentResourceDetailsResponse> ListResourcesAsync()
+        public virtual Task<List<ResourceDetailsResponse>> ListResourcesAsync()
         {
             this.PSharpLogger.Message($"Received call for ListResourcesAsync for {this.Context.ServiceName}");
             //TODO: Implement - contact runtime and report
-            return Task.FromResult(new CurrentResourceDetailsResponse());
+            return Task.FromResult(new List<ResourceDetailsResponse>());
         }
 
         public virtual async Task<MachineId> CreateMachineId(string machineType, string friendlyName)

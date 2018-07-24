@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     IPSharpService resourceManagerClient = this.proxyFactory.CreateServiceProxy<IPSharpService>(service.ServiceName, key,
                         listenerName: PSharpServiceEndpoint);
-                    List<ResourceTypesResponse> responseList = (await resourceManagerClient.ListResourceTypesAsync()).Result;
+                    List<ResourceTypesResponse> responseList = await resourceManagerClient.ListResourceTypesAsync();
                     foreach (ResourceTypesResponse response in responseList)
                     {
                         try

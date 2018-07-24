@@ -12,12 +12,23 @@
 
     public class PoolManagerService : PSharpService
     {
-        public PoolManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext, new List<Type>())
+        public static List<Type> KnownTypes = new List<Type>()
+        {
+            // Events
+            typeof(ePoolDeletionRequestEvent),
+            typeof(ePoolDriverConfigChangeEvent),
+            typeof(ePoolResizeRequestEvent),
+
+            // Contracts
+            typeof(PoolDriverConfig)
+        };
+
+        public PoolManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext, KnownTypes)
         {
             this.Logger = logger;
         }
 
-        public PoolManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, new List<Type>(), reliableStateManagerReplica)
+        public PoolManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, KnownTypes, reliableStateManagerReplica)
         {
             this.Logger = logger;
         }
