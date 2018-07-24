@@ -6,6 +6,8 @@ namespace ResourceManager.SF
     using System.Collections.ObjectModel;
     using System.Fabric;
     using System.Fabric.Description;
+    using Query = System.Fabric.Query;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Microsoft.PSharp.ServiceFabric;
@@ -14,9 +16,17 @@ namespace ResourceManager.SF
     using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
+    using System;
+    using Microsoft.ServiceFabric.Services.Client;
+    using Microsoft.ServiceFabric.Services.Remoting.Client;
+    using Microsoft.ServiceFabric.Data.Collections;
 
     public class ResourceManagerService : StatefulService, IResourceManager
     {
+        private const string ResourceToPartitionDictionary = "ResourceToPartitionDictionary";
+        private const string PartitionInformationDictionary = "PartitionInformationDictionary";
+        private const string ResourceManagerServiceEndpoint = "ResourceManagerServiceEndpoint";
+
         public ResourceManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext)
         {
             this.Logger = logger;
@@ -29,12 +39,7 @@ namespace ResourceManager.SF
 
         public ILogger Logger { get; }
 
-        public Task<CreateResourceResponse> CreateResourceAsync(CreateResourceRequest request)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<DeleteResourceResponse> DeleteResourceAsync(DeleteResourceRequest request)
+        public Task<GetServicePartitionResponse> GetServicePartitionAsync(GetServicePartitionRequest request)
         {
             throw new System.NotImplementedException();
         }
@@ -59,12 +64,175 @@ namespace ResourceManager.SF
                     this, 
                     new FabricTransportRemotingListenerSettings()
                     {
-                        EndpointResourceName = "ResourceManagerServiceEndpoint",
+                        EndpointResourceName = ResourceManagerServiceEndpoint,
                     });
-            });
+            }, ResourceManagerServiceEndpoint);
 
             listeners.Add(listener);
             return listeners;
+        }
+
+        protected override async Task RunAsync(CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                FabricClient fabricClient = new FabricClient();
+                Query.PagedList<Query.Application> applicationList = null;
+                try
+                {
+                    ServiceEventSource.Current.Message("GetApplicationListAsync");
+                    applicationList = await fabricClient.QueryManager.GetApplicationListAsync();
+                }
+                catch (Exception e)
+                {
+                    ServiceEventSource.Current.Message(string.Format("Exception occurred in GetApplicationListAsync {0}", e.Message));
+                }
+
+                if (applicationList != null)
+                {
+                    foreach (Query.Application application in applicationList)
+                    {
+                        Query.PagedList<Query.Service> serviceList = null;
+                        try
+                        {
+                            ServiceEventSource.Current.Message(string.Format("GetServiceListAsync for application {0}", application.ApplicationName));
+                            serviceList = await fabricClient.QueryManager.GetServiceListAsync(application.ApplicationName);
+                        }
+                        catch (Exception e)
+                        {
+                            ServiceEventSource.Current.Message(string.Format("Exception occurred in GetServiceListAsync for application {0}, Exception {1}", application.ApplicationName, e));
+                        }
+
+                        if(serviceList != null)
+                        {
+                            foreach (Query.Service service in serviceList)
+                            {
+                                if(service.ServiceName == this.Context.ServiceName)
+                                {
+                                    continue;
+                                }
+
+                                Query.PagedList<Query.Partition> partitionList = null;
+                                try
+                                {
+                                    ServiceEventSource.Current.Message(string.Format("GetPartitionListAsync for service {0}", service.ServiceName));
+                                    partitionList = await fabricClient.QueryManager.GetPartitionListAsync(service.ServiceName);
+                                }
+                                catch (Exception e)
+                                {
+                                    ServiceEventSource.Current.Message(string.Format("Exception occurred in GetPartitionListAsync for service {0}, Exception {1}", service.ServiceName, e));
+                                }
+
+                                if(partitionList != null)
+                                {
+                                    foreach (Query.Partition partition in partitionList)
+                                    {
+                                        try
+                                        {
+                                            await ProcessPartitionAsync(service, partition);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            ServiceEventSource.Current.Message(string.Format("Exception occurred in ProcessPartitionAsync for partition {0} service {1} Exception {2}",
+                                                partition.PartitionInformation.Id,
+                                                service.ServiceName,
+                                                e));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                await Task.Delay(10 * 1000, cancellationToken);
+            }
+        }
+
+        private async Task ProcessPartitionAsync(Query.Service service, Query.Partition partition)
+        {
+            ServiceEventSource.Current.Message(string.Format("ProcessPartitionAsync for partition {0}", partition.PartitionInformation.Id));
+            ServicePartitionResolver resolver =  ServicePartitionResolver.GetDefault();
+            ServicePartitionKey key;
+            switch (partition.PartitionInformation.Kind)
+            {
+                case ServicePartitionKind.Singleton:
+                    key = ServicePartitionKey.Singleton;
+                    break;
+                case ServicePartitionKind.Int64Range:
+                    var longKey = (Int64RangePartitionInformation)partition.PartitionInformation;
+                    key = new ServicePartitionKey(longKey.LowKey);
+                    break;
+                case ServicePartitionKind.Named:
+                    var namedKey = (NamedPartitionInformation)partition.PartitionInformation;
+                    key = new ServicePartitionKey(namedKey.Name);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("partition.PartitionInformation.Kind");
+            }
+
+            ResolvedServicePartition resolved = await resolver.ResolveAsync(service.ServiceName, key, CancellationToken.None);
+            if (resolved == null || resolved.Endpoints == null)
+            {
+                ServiceEventSource.Current.Message(
+                    string.Format("ResolvedServicePartition or Endpoints are null for partition {0} service {1}", partition.PartitionInformation.Id, service.ServiceName));
+                return;
+            }
+
+            foreach (ResolvedServiceEndpoint endpoint in resolved.Endpoints)
+            {
+                if(endpoint != null && !string.IsNullOrWhiteSpace(endpoint.Address) && endpoint.Address.Contains(ResourceManagerServiceEndpoint))
+                {
+                    IResourceManager resourceManagerClient = ServiceProxy.Create<IResourceManager>(service.ServiceName, key,
+                        listenerName: ResourceManagerServiceEndpoint);
+                    List<ResourceTypesResponse> responseList = await resourceManagerClient.ListResourceTypesAsync();
+                    foreach(ResourceTypesResponse response in responseList)
+                    {
+                        try
+                        {
+                            await SaveResourceTypeInformation(response, service, partition);
+                            ServiceEventSource.Current.Message(string.Format("Successful SaveResourceTypeInformation for partition {0} resource type {1}, service {2}",
+                                partition.PartitionInformation.Id,
+                                response.ResourceType,
+                                service.ServiceName));
+                        }
+                        catch (Exception e)
+                        {
+                            ServiceEventSource.Current.Message(string.Format("Exception occurred in SaveResourceTypeInformation for partition {0} resource type {1}, service {2} Exception {3}",
+                                partition.PartitionInformation.Id,
+                                response.ResourceType,
+                                service.ServiceName,
+                                e));
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task SaveResourceTypeInformation(ResourceTypesResponse response, Query.Service service, Query.Partition partition)
+        {
+            IReliableDictionary<string, HashSet<Guid>> resourceTypeToPartitionIds = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, HashSet<Guid>>>(ResourceToPartitionDictionary);
+            IReliableDictionary<Guid, Tuple<string, Uri, double>> partitionInformation = await this.StateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<string, Uri, double>>>(PartitionInformationDictionary);
+            using (ITransaction transaction = this.StateManager.CreateTransaction())
+            {
+
+                await resourceTypeToPartitionIds.AddOrUpdateAsync(
+                    transaction,
+                    response.ResourceType,
+                    new HashSet<Guid> { partition.PartitionInformation.Id },
+                    (key, oldvalue) =>
+                        {
+                            oldvalue.Add(partition.PartitionInformation.Id);
+                            return oldvalue;
+                        });
+
+                await partitionInformation.AddOrUpdateAsync(
+                    transaction,
+                    partition.PartitionInformation.Id,
+                    Tuple.Create(response.ResourceType, service.ServiceName, ((double)response.Count)/response.MaxCapacity),
+                    (key,oldvalue) => Tuple.Create(response.ResourceType, service.ServiceName, ((double)response.Count) / response.MaxCapacity));
+                await transaction.CommitAsync();
+            }
         }
     }
 }

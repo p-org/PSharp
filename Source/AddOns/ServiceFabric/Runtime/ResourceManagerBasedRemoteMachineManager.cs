@@ -42,13 +42,12 @@ namespace Microsoft.PSharp.ServiceFabric
         public async Task<string> CreateMachineIdEndpoint(Type machineType)
         {
             IResourceManager manager = this.serviceProxyMap.GetOrAdd(this.ResourceManagerServiceLocation, GetResourceManagerProxy);
-            CreateResourceRequest request = new CreateResourceRequest();
+            GetServicePartitionRequest request = new GetServicePartitionRequest();
             request.OwningService = this.ServiceContext.ServiceName;
             request.OwningPartition = this.ServiceContext.PartitionId;
-            request.OwningResource = "RUNTIME"; // not needed
             request.RequestId = Guid.Empty;  // not needed
             request.ResourceType = machineType.AssemblyQualifiedName;
-            CreateResourceResponse response = await manager.CreateResourceAsync(request);
+            GetServicePartitionResponse response = await manager.GetServicePartitionAsync(request);
             return response.Service + Delimiter + response.Partition;
         }
 
