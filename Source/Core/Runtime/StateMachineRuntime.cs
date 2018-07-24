@@ -384,7 +384,7 @@ namespace Microsoft.PSharp
                 mid.Bind(this);
             }
 
-            Machine machine = MachineFactory.Create(type);
+            Machine machine = this.CreateMachine(type);
 
             machine.Initialize(this, mid, new MachineInfo(mid));
             machine.InitializeStateInformation();
@@ -396,6 +396,16 @@ namespace Microsoft.PSharp
                 mid.Name);
 
             return machine;
+        }
+
+        /// <summary>
+        /// Creates a new P# machine of the specified type.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Machine</returns>
+        protected override Machine CreateMachine(Type type)
+        {
+            return MachineFactory.Create(type);
         }
 
         /// <summary>

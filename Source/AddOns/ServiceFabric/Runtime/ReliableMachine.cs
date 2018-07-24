@@ -53,29 +53,9 @@ namespace Microsoft.PSharp.ServiceFabric
         private List<MachineStateChangeOp> PendingStateChanges;
 
         /// <summary>
-        /// Machine is executing under test mode
+        /// If enabled, the machine is executing in testing mode.
         /// </summary>
-        private bool InTestMode;
-
-        /// <summary>
-        /// Out-buffer for send operations (test mode)
-        /// </summary>
-        private Queue<Tuple<MachineId, Event>> TestModeOutBuffer;
-
-        /// <summary>
-        /// Out-buffer for create-machine operations (test mode)
-        /// </summary>
-        private Queue<Tuple<MachineId, Type, Event>> TestModeCreateBuffer;
-
-        /// <summary>
-        /// Last dequeued event (test mode)
-        /// </summary>
-        private EventInfo LastDequeuedEvent;
-
-        /// <summary>
-        /// Create the machine in testing mode
-        /// </summary>
-        internal static bool testMode = false;
+        internal static bool IsTestingModeEnabled = false;
 
         #endregion
 
@@ -88,12 +68,6 @@ namespace Microsoft.PSharp.ServiceFabric
             this.StateManager = stateManager;
             this.PendingStateChangesInverted = new List<MachineStateChangeOp>();
             this.PendingStateChanges = new List<MachineStateChangeOp>();
-
-            this.InTestMode = testMode;
-            this.TestModeOutBuffer = new Queue<Tuple<MachineId, Event>>();
-            this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
-            this.LastDequeuedEvent = null;
-
             this.CreatedRegisters = new List<Utilities.RsmRegister>();
         }
 
@@ -218,26 +192,14 @@ namespace Microsoft.PSharp.ServiceFabric
 
             await CurrentTransaction.CommitAsync();
 
+            if (IsTestingModeEnabled)
+            {
+                // Disable R/G/P check.
+                this.Info.CurrentActionCalledTransitionStatement = false;
+            }
+
             // Notifies the runtime that the transaction has been committed.
             this.Runtime.NotifyProgress(this, this.CurrentTransaction);
-
-            if (InTestMode)
-            {
-                // disable R/G/P check
-                this.Info.CurrentActionCalledTransitionStatement = false;
-
-                while (TestModeCreateBuffer.Count > 0)
-                {
-                    var tup = TestModeCreateBuffer.Dequeue();
-                    this.Runtime.CreateMachine(tup.Item1, tup.Item2, tup.Item3);
-                }
-
-                while (TestModeOutBuffer.Count > 0)
-                {
-                    var tup = TestModeOutBuffer.Dequeue();
-                    this.Runtime.SendEvent(tup.Item1, tup.Item2);
-                }
-            }
 
             CurrentTransaction.Dispose();
             PendingStateChanges.Clear();
@@ -280,16 +242,15 @@ namespace Microsoft.PSharp.ServiceFabric
                     {
                         // Try to dequeue the next event, if there is one.
                         nextEventInfo = this.TryDequeueEvent();
-                        LastDequeuedEvent = nextEventInfo;
                     }
 
-                    if (nextEventInfo == null && !InTestMode)
+                    if (nextEventInfo == null && !IsTestingModeEnabled)
                     {
                         nextEventInfo = await ReliableDequeue();
                         reliableDequeue = (nextEventInfo != null);
                     }
 
-                    if (nextEventInfo == null && !InTestMode)
+                    if (nextEventInfo == null && !IsTestingModeEnabled)
                     {
                         CurrentTransaction.Dispose();
                         CurrentTransaction = null;
@@ -300,11 +261,10 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 if (nextEventInfo == null)
                 {
-                    if (InTestMode)
+                    if (IsTestingModeEnabled)
                     {
                         CurrentTransaction.Dispose();
                         CurrentTransaction = null;
-
                         this.IsRunning = false;
                         break;
                     }
@@ -330,8 +290,6 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
-
-                this.LastDequeuedEvent = nextEventInfo;
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);

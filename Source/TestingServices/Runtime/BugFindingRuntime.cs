@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Set of all machine Ids created by this runtime.
         /// </summary>
-        internal HashSet<MachineId> AllCreatedMachineIds;
+        internal HashSet<MachineId> CreatedMachineIds;
 
         /// <summary>
         /// The root task id.
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Monitors = new List<Monitor>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
-            this.AllCreatedMachineIds = new HashSet<MachineId>();
+            this.CreatedMachineIds = new HashSet<MachineId>();
         }
 
         #endregion
@@ -615,8 +615,8 @@ namespace Microsoft.PSharp.TestingServices
                 mid.Bind(this);
             }
 
-            var isMachineTypeCached = MachineFactory.IsCached(type);
-            Machine machine = MachineFactory.Create(type);
+            var isMachineTypeCached = this.IsMachineCached(type);
+            Machine machine = this.CreateMachine(type);
 
             machine.Initialize(this, mid, new SchedulableInfo(mid));
             machine.InitializeStateInformation();
@@ -627,12 +627,11 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.",
-                mid.Value);
+            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.", mid.Value);
 
-            this.Assert(!AllCreatedMachineIds.Contains(mid), "MachineId '{0}' of a previously halted machine cannot be reused " +
+            this.Assert(!this.CreatedMachineIds.Contains(mid), "MachineId '{0}' of a previously halted machine cannot be reused " +
                 "to create a new machine of type {1}", mid.Value, type.FullName);
-            AllCreatedMachineIds.Add(mid);
+            this.CreatedMachineIds.Add(mid);
 
             this.Logger.OnCreateMachine(mid, creator?.Id);
 
@@ -645,6 +644,26 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Creates a new P# machine of the specified type.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Machine</returns>
+        protected override Machine CreateMachine(Type type)
+        {
+            return MachineFactory.Create(type);
+        }
+
+        /// <summary>
+        /// Checks if the constructor of the specified machine type exists in the cache.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Boolean</returns>
+        protected override bool IsMachineCached(Type type)
+        {
+            return MachineFactory.IsCached(type);
+        }
+
+        /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
@@ -654,7 +673,7 @@ namespace Microsoft.PSharp.TestingServices
         protected internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
-            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
+            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
                 "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid);
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
@@ -688,7 +707,7 @@ namespace Microsoft.PSharp.TestingServices
         protected internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
-            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
+            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
                 "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid, mid);
             this.Assert(sender != null && (sender is Machine), "Only a machine can execute CreateMachineAndExecute. " +
                 "Avoid calling directly from the PSharp Test method. " +
@@ -748,7 +767,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="runNewHandler">Run a new handler</param>
         /// <returns>EventInfo</returns>
-        private EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
+        protected EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
         {
             if (sender != null && sender is Machine)
             {
@@ -803,7 +822,6 @@ namespace Microsoft.PSharp.TestingServices
         protected void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
             MachineId syncCaller, EventInfo enablingEvent)
         {
-            Console.WriteLine("===========TEST CreateMachine (RunMachineEventHandler)=============");
             Task task = new Task(async () =>
             {
                 try

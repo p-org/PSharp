@@ -449,6 +449,23 @@ namespace Microsoft.PSharp
             Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
+        /// Creates a new P# machine of the specified type.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Machine</returns>
+        protected abstract Machine CreateMachine(Type type);
+
+        /// <summary>
+        /// Checks if the constructor of the specified machine type exists in the cache.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Boolean</returns>
+        protected virtual bool IsMachineCached(Type type)
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">MachineId</param>

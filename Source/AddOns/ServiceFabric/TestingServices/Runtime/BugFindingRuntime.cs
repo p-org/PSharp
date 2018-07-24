@@ -1,6 +1,19 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="BugFindingRuntime.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+//
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.TestingServices;
@@ -8,25 +21,45 @@ using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
-
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
     internal class BugFindingRuntime : PSharp.TestingServices.BugFindingRuntime
     {
+        /// <summary>
+        /// The Service Fabric state manager used by the reliable machines.
+        /// </summary>
         IReliableStateManager StateManager;
 
+        /// <summary>
+        /// Map of the created machines.
+        /// </summary>
         Dictionary<string, Tuple<MachineId, Type, Event>> CreatedMachines;
+
+        /// <summary>
+        /// Map containing pending machine creations.
+        /// </summary>
         Dictionary<MachineId, List<Tuple<MachineId, Type, string, Event, Guid?>>> PendingMachineCreations;
 
+        /// <summary>
+        /// Map containing pending event sends.
+        /// </summary>
+        Dictionary<MachineId, List<Tuple<MachineId, Event, SendOptions>>> PendingEventSends;
+
+        /// <summary>
+        /// Constructor.
+        /// <param name="configuration">Configuration</param>
+        /// <param name="strategy">SchedulingStrategy</param>
+        /// <param name="reporter">Reporter to register runtime operations.</param>
+        /// </summary>
         internal BugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration, strategy, reporter)
         {
+            ReliableMachine.IsTestingModeEnabled = true;
             this.StateManager = new StateManagerMock(null).DisallowFailures();
             this.CreatedMachines = new Dictionary<string, Tuple<MachineId, Type, Event>>();
             this.PendingMachineCreations = new Dictionary<MachineId, List<Tuple<MachineId, Type, string, Event, Guid?>>>();
+            this.PendingEventSends = new Dictionary<MachineId, List<Tuple<MachineId, Event, SendOptions>>>();
         }
 
         /// <summary>
@@ -41,79 +74,17 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// <returns>MachineId</returns>
         protected internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
         {
-            Console.WriteLine("===========TEST CreateMachine=============");
-            this.AssertCorrectCallerMachine(creator, "CreateMachine");
-            if (creator != null)
-            {
-                this.Assert(creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator.GetType().Name);
-                this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
-            }
-
             if (creator == null)
             {
-                // Using ulong.MaxValue because a 'Create' operation cannot specify
-                // the id of its target, because the id does not exist yet.
-                this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
-
-                Machine machine = this.CreateMachine(mid, type, friendlyName, e, (ReliableMachine)creator);
-                this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-
-                this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
-                this.RunMachineEventHandler(machine, e, true, null, null);
-
-                mid = machine.Id;
+                mid = base.CreateMachine(mid, type, friendlyName, e, creator, operationGroupId);
+                this.CreatedMachines.Add(mid.ToString(), Tuple.Create(mid, type, e));
             }
             else
             {
-                mid = this.ScheduleMachineCreation(mid, type, friendlyName, e, (ReliableMachine)creator, operationGroupId);
+                mid = this.ScheduleCreateMachine(mid, type, friendlyName, e, (ReliableMachine)creator, operationGroupId);
             }
 
-            Console.WriteLine("===========TEST CreateMachine (DONE)=============");
             return mid;
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
-        /// </summary>
-        /// <param name="mid">Unbound machine id</param>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="e">Event passed during machine construction</param>
-        /// <param name="creator">The id of the machine that created the returned machine.</param>
-        /// <returns>Machine</returns>
-        private Machine CreateMachine(MachineId mid, Type type, string friendlyName, Event e, ReliableMachine creator)
-        {
-            Console.WriteLine("===========TEST CreateMachine (non-buffering)=============");
-            this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
-
-            if (mid == null)
-            {
-                mid = new MachineId(type, friendlyName, this);
-            }
-            else
-            {
-                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
-                this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
-                    mid.Value, mid.Type, type.FullName);
-                mid.Bind(this);
-            }
-
-            Machine machine = ReliableMachineFactory.Create(type, StateManager);
-
-            machine.Initialize(this, mid, new SchedulableInfo(mid));
-            machine.InitializeStateInformation();
-
-            this.CreatedMachines.Add(mid.ToString(), Tuple.Create(mid, type, e));
-
-            bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "MachineId {0} = This typically occurs " +
-                "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
-                "runtime generation was deserialized, but the current runtime has not increased its generation value.",
-                mid.Name);
-
-            this.Logger.OnCreateMachine(machine.Id, creator?.Id);
-            
-            return machine;
         }
 
         /// <summary>
@@ -128,25 +99,18 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// <param name="creator">The id of the machine that created the returned machine.</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <returns>MachineId</returns>
-        private MachineId ScheduleMachineCreation(MachineId mid, Type type, string friendlyName, Event e, ReliableMachine creator, Guid? operationGroupId)
+        private MachineId ScheduleCreateMachine(MachineId mid, Type type, string friendlyName, Event e, ReliableMachine creator, Guid? operationGroupId)
         {
-            Console.WriteLine("===========TEST CreateMachine (buffering)=============");
+            this.AssertCorrectCallerMachine(creator, "CreateMachine");
+            this.Assert(creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator.GetType().Name);
+            this.Assert(creator.CurrentTransaction != null, "Machine '{0}' tried to create another machine using a null transaction.", creator.Id);
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
+            this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
 
             if (mid == null)
             {
                 mid = this.CreateMachineId(Type.GetType(type.AssemblyQualifiedName), friendlyName);
             }
-
-            // TODO: needed in bugfinding?
-            // Idempotence check.
-            if (MachineMap.ContainsKey(mid))
-            {
-                // Machine already created.
-                return mid;
-            }
-
-            this.Assert(creator.CurrentTransaction != null, "Creator's transaction cannot be null");
 
             if (!PendingMachineCreations.ContainsKey(creator.Id))
             {
@@ -159,6 +123,69 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         }
 
         /// <summary>
+        /// Creates a new P# machine of the specified type.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Machine</returns>
+        protected override Machine CreateMachine(Type type)
+        {
+            return ReliableMachineFactory.Create(type, this.StateManager);
+        }
+
+        /// <summary>
+        /// Checks if the constructor of the specified machine type exists in the cache.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Boolean</returns>
+        protected override bool IsMachineCached(Type type)
+        {
+            return ReliableMachineFactory.IsCached(type);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        protected internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        {
+            var reliableSender = sender as ReliableMachine;
+            if (reliableSender == null || reliableSender.CurrentTransaction == null)
+            {
+                base.SendEvent(mid, e, sender, options);
+            }
+            else
+            {
+                this.ScheduleSendEvent(mid, e, reliableSender, options);
+            }
+        }
+
+        /// <summary>
+        /// Schedules the sending of an asynchronous <see cref="Event"/> to a machine. Sending
+        /// of the event is postponed until the sender has commited its current transaction.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        private void ScheduleSendEvent(MachineId mid, Event e, ReliableMachine sender, SendOptions options)
+        {
+            this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
+            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
+                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid);
+            this.Assert(sender.CurrentTransaction != null, "Machine '{0}' tried to send an event using a null transaction.", sender.Id);
+
+            if (!PendingEventSends.ContainsKey(sender.Id))
+            {
+                PendingEventSends[sender.Id] = new List<Tuple<MachineId, Event, SendOptions>>();
+            }
+
+            this.PendingEventSends[sender.Id].Add(Tuple.Create(mid, e, options));
+        }
+
+        /// <summary>
         /// Restarts created machines on failover.
         /// </summary>
         private void RestartFailedMachines()
@@ -166,52 +193,6 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
             foreach (var kvp in this.CreatedMachines)
             {
                 this.CreateMachine(kvp.Value.Item1, kvp.Value.Item2, null, kvp.Value.Item3, null);
-            }
-        }
-
-        protected internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
-        {
-            // TODO: Make async
-            SendEventAsync(mid, e, sender, options).Wait();
-        }
-
-        protected internal async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
-        {
-            var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            this.Logger.OnSend(mid, sender?.Id, senderState, 
-                e.GetType().FullName, options?.OperationGroupId, isTargetHalted: false);
-
-            var reliableSender = sender as ReliableMachine;
-
-            var targetQueue = await StateManager.GetMachineInputQueue(mid);
-            if (reliableSender == null || reliableSender.CurrentTransaction == null)
-            {
-                // Environment sending to a local machine
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    if (e is TaggedRemoteEvent)
-                    {
-                        var ReceiveCounters = await StateManager.GetMachineReceiveCounters(mid);
-                        var tg = (e as TaggedRemoteEvent);
-                        var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0);
-                        if (currentCounter == tg.tag - 1)
-                        {
-                            await targetQueue.EnqueueAsync(tx, new EventInfo(tg.ev));
-                            await ReceiveCounters.AddOrUpdateAsync(tx, tg.mid.Name, 0, (k, v) => tg.tag);
-                            await tx.CommitAsync();
-                        }
-                    }
-                    else
-                    {
-                        await targetQueue.EnqueueAsync(tx, new EventInfo(e));
-                        await tx.CommitAsync();
-                    }
-                }
-            }
-            else
-            {
-                // Machine to machine
-                await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, new EventInfo(e));
             }
         }
 
@@ -227,33 +208,45 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
             {
                 // Notifies that a reliable machine has committed its current transaction.
                 ITransaction tx = args[0] as ITransaction;
-                if (tx != null && this.PendingMachineCreations.ContainsKey(machine.Id))
+                if (tx != null)
                 {
-                    foreach (var tup in this.PendingMachineCreations[machine.Id])
+                    if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
                     {
-                        if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
+                        this.Logger.WriteLine("<CommitLog> Machine '{0}' committed transaction '{1}'.", machine.Id, tx.TransactionId);
+                    }
+                    
+                    if (this.PendingMachineCreations.ContainsKey(machine.Id))
+                    {
+                        // Create any pending machines.
+                        foreach (var tup in this.PendingMachineCreations[machine.Id])
                         {
-                            this.Logger.WriteLine("<CommitLog> Machine '{0}' committed transaction '{1}'.", machine.Id, tx.TransactionId);
+                            MachineId mid = tup.Item1;
+                            Type type = tup.Item2;
+                            string friendlyName = tup.Item3;
+                            Event e = tup.Item4;
+                            Guid? operationGroupId = tup.Item5;
+
+                            mid = base.CreateMachine(mid, type, friendlyName, e, machine, operationGroupId);
+                            this.CreatedMachines.Add(mid.ToString(), Tuple.Create(mid, type, e));
                         }
 
-                        // Using ulong.MaxValue because a 'Create' operation cannot specify
-                        // the id of its target, because the id does not exist yet.
-                        this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
-
-                        MachineId mid = tup.Item1;
-                        Type type = tup.Item2;
-                        string friendlyName = tup.Item3;
-                        Event e = tup.Item4;
-                        Guid? operationGroupId = tup.Item5;
-
-                        Machine m = this.CreateMachine(mid, type, friendlyName, e, (ReliableMachine)machine);
-                        this.SetOperationGroupIdForMachine(m, machine, operationGroupId);
-
-                        this.BugTrace.AddCreateMachineStep(machine, m.Id, e == null ? null : new EventInfo(e));
-                        this.RunMachineEventHandler(m, e, true, null, null);
+                        this.PendingMachineCreations.Remove(machine.Id);
                     }
 
-                    this.PendingMachineCreations.Remove(machine.Id);
+                    if (this.PendingEventSends.ContainsKey(machine.Id))
+                    {
+                        // Send any pending events.
+                        foreach (var tup in this.PendingEventSends[machine.Id])
+                        {
+                            MachineId mid = tup.Item1;
+                            Event e = tup.Item2;
+                            SendOptions options = tup.Item3;
+
+                            base.SendEvent(mid, e, machine, options);
+                        }
+
+                        this.PendingEventSends.Remove(machine.Id);
+                    }
                 }
             }
         }
@@ -269,6 +262,8 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         }
 
         #region Unsupported
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
         public override void InvokeMonitor<T>(Event e)
         {
@@ -350,9 +345,9 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         {
             throw new NotImplementedException();
         }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         #endregion
     }
 }
 
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
