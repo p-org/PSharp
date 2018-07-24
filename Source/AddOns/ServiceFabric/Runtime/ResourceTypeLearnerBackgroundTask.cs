@@ -49,6 +49,63 @@ namespace Microsoft.PSharp.ServiceFabric
             return true;
         }
 
+        public async Task<GetServicePartitionResponse> GetServicePartitionDetailsAsync(string resourceType)
+        {
+            GetServicePartitionResponse response = null;
+            this.logger.Message(string.Format("Received GetServicePartitionAsync request for resource type {0}", resourceType));
+            IReliableDictionary<string, HashSet<Guid>> resourceTypeToPartitionIds = await this.stateManager.GetOrAddAsync<IReliableDictionary<string, HashSet<Guid>>>(ResourceToPartitionDictionary);
+            IReliableDictionary<Guid, Tuple<string, Uri, double>> partitionInformation = await this.stateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<string, Uri, double>>>(PartitionInformationDictionary);
+            using (ITransaction transaction = this.stateManager.CreateTransaction())
+            {
+                ConditionalValue<HashSet<Guid>> partitionList = await resourceTypeToPartitionIds.TryGetValueAsync(transaction, resourceType);
+                if (partitionList.HasValue)
+                {
+                    double currentUtilization = 1.1;
+                    foreach (Guid partitionId in partitionList.Value)
+                    {
+                        ConditionalValue<Tuple<string, Uri, double>> partitionsDetails = await partitionInformation.TryGetValueAsync(transaction, partitionId);
+                        if (partitionsDetails.HasValue)
+                        {
+                            Tuple<string, Uri, double> detail = partitionsDetails.Value;
+                            if (response == null)
+                            {
+                                response = new GetServicePartitionResponse();
+                                response.Result = "Success";
+                            }
+
+                            if (currentUtilization > detail.Item3)
+                            {
+                                response.PartitionId = partitionId;
+                                response.PartitionName = detail.Item1;
+                                response.Service = detail.Item2;
+                                currentUtilization = detail.Item3;
+                            }
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Details for Partition {0} not found", partitionId.ToString());
+                        }
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("Resource type of {0} not found", resourceType);
+                }
+
+                if (response == null)
+                {
+                    response = new GetServicePartitionResponse { Result = "Failure" };
+                    this.logger.Message(string.Format("Failed to get result GetServicePartitionAsync request for resource type {0}", resourceType));
+                }
+                else
+                {
+                    this.logger.Message(string.Format("Sending response for resource type {0}, with service {1}, partition {2}", resourceType, response.Service, response.PartitionId));
+                }
+
+                return response;
+            }
+        }
+
         protected override async Task Run(CancellationToken token)
         {
             while (IsEnabled())
@@ -162,7 +219,7 @@ namespace Microsoft.PSharp.ServiceFabric
                     {
                         try
                         {
-                            await SaveResourceTypeInformation(response, service, partition);
+                            await SaveResourceTypeInformation(response, service, partition, key);
                             this.logger.Message(string.Format("Successful SaveResourceTypeInformation for partition {0} resource type {1}, service {2}",
                                 partition.PartitionInformation.Id,
                                 response.ResourceType,
@@ -181,10 +238,10 @@ namespace Microsoft.PSharp.ServiceFabric
             }
         }
 
-        private async Task SaveResourceTypeInformation(ResourceTypesResponse response, Query.Service service, Query.Partition partition)
+        private async Task SaveResourceTypeInformation(ResourceTypesResponse response, Query.Service service, Query.Partition partition, ServicePartitionKey servicePartitionKey)
         {
             IReliableDictionary<string, HashSet<Guid>> resourceTypeToPartitionIds = await this.stateManager.GetOrAddAsync<IReliableDictionary<string, HashSet<Guid>>>(ResourceToPartitionDictionary);
-            IReliableDictionary<Guid, Tuple<Uri, double>> partitionInformation = await this.stateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<Uri, double>>>(PartitionInformationDictionary);
+            IReliableDictionary<Guid, Tuple<string, Uri, double>> partitionInformation = await this.stateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<string, Uri, double>>>(PartitionInformationDictionary);
             using (ITransaction transaction = this.stateManager.CreateTransaction())
             {
 
@@ -201,8 +258,8 @@ namespace Microsoft.PSharp.ServiceFabric
                 await partitionInformation.AddOrUpdateAsync(
                     transaction,
                     partition.PartitionInformation.Id,
-                    Tuple.Create(service.ServiceName, ((double)response.Count) / response.MaxCapacity),
-                    (key, oldvalue) => Tuple.Create(service.ServiceName, ((double)response.Count) / response.MaxCapacity));
+                    Tuple.Create(servicePartitionKey.Value.ToString(), service.ServiceName, ((double)response.Count) / response.MaxCapacity),
+                    (key, oldvalue) => Tuple.Create(servicePartitionKey.Value.ToString(), service.ServiceName, ((double)response.Count) / response.MaxCapacity));
                 await transaction.CommitAsync();
             }
         }
