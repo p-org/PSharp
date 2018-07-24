@@ -163,10 +163,20 @@
             return Configuration.Create().WithVerbosityEnabled(4);
         }
 
-        public virtual Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
+        public virtual async Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
         {
-            //TODO: Implement - contact runtime and report
-            return Task.FromResult(new List<ResourceTypesResponse>());
+            var details = new List<ResourceTypesResponse>();
+            var types = this.GetMachineTypes();
+            var runtime = await this.RuntimeTcs.Task;
+            foreach (var type in types)
+            {
+                ResourceTypesResponse response = new ResourceTypesResponse();
+                response.ResourceType = type.Key.FullName;
+                response.MaxCapacity = type.Value;
+                // TODO: Get the current count from runtime for a give type
+            }
+
+            return details;
         }
 
         public virtual Task<List<ResourceDetailsResponse>> ListResourcesAsync()
@@ -191,6 +201,11 @@
         {
             var runtime = await RuntimeTcs.Task;
             runtime.SendEvent(machineId, e);
+        }
+
+        protected virtual Dictionary<Type, ulong> GetMachineTypes()
+        {
+            return new Dictionary<Type, ulong>();
         }
     }
 }
