@@ -212,7 +212,6 @@
 
         public virtual Task<List<ResourceDetailsResponse>> ListResourcesAsync()
         {
-            this.PSharpLogger.Message($"Received call for ListResourcesAsync for {this.Context.ServiceName}");
             //TODO: Implement - contact runtime and report
             return Task.FromResult(new List<ResourceDetailsResponse>());
         }

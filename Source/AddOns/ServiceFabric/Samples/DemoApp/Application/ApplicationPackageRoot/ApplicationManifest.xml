@@ -32,7 +32,7 @@
           <Partition Name="0" />
         </NamedPartition>
         <LoadMetrics>
-          <LoadMetric Name="PSharpStateMachineCount" />
+          <LoadMetric Name="PSharpStateMachineCount" Weight="High" />
         </LoadMetrics>
       </StatefulService>
     </Service>
@@ -42,11 +42,11 @@
           <Partition Name="0" />
         </NamedPartition>
         <LoadMetrics>
-          <LoadMetric Name="PSharpStateMachineCount" />
+          <LoadMetric Name="PSharpStateMachineCount" Weight="High" />
         </LoadMetrics>
         <ServiceScalingPolicies>
           <ScalingPolicy>
-            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="1" UpperLoadThreshold="5" ScaleIntervalInSeconds="5" />
+            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="0" UpperLoadThreshold="5" ScaleIntervalInSeconds="1" />
             <AddRemoveIncrementalNamedPartitionScalingMechanism MinPartitionCount="1" MaxPartitionCount="10" ScaleIncrement="1" />
           </ScalingPolicy>
         </ServiceScalingPolicies>
@@ -58,11 +58,11 @@
           <Partition Name="0" />
         </NamedPartition>
         <LoadMetrics>
-          <LoadMetric Name="PSharpStateMachineCount" />
+          <LoadMetric Name="PSharpStateMachineCount" Weight="High" />
         </LoadMetrics>
         <ServiceScalingPolicies>
           <ScalingPolicy>
-            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="1" UpperLoadThreshold="25" ScaleIntervalInSeconds="5" />
+            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="0" UpperLoadThreshold="25" ScaleIntervalInSeconds="1" />
             <AddRemoveIncrementalNamedPartitionScalingMechanism MinPartitionCount="1" MaxPartitionCount="100" ScaleIncrement="1" />
           </ScalingPolicy>
         </ServiceScalingPolicies>
