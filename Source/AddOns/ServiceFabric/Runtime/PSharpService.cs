@@ -15,21 +15,34 @@
 
     public abstract class PSharpService : StatefulService, IPSharpService
     {
+        private static List<Type> KnownTypes = new List<Type>
+        {
+            typeof(Event),
+            typeof(TaggedRemoteEvent),
+            typeof(ResourceTypesResponse),
+            typeof(ResourceDetailsResponse),
+            typeof(CurrentResourceDetailsResponse),
+            typeof(CurrentResourceTypesResponse),
+            // The below 2 types needs additional work
+            typeof(List<ResourceTypesResponse>),
+            typeof(List<ResourceDetailsResponse>)
+        };
+
         private List<Type> knownTypes;
-        private EventSerializationProvider eventSerializationProvider;
+        internal EventSerializationProvider EventSerializationProvider;
 
         public TaskCompletionSource<PSharpRuntime> RuntimeTcs { get; private set; }
         protected IPSharpEventSourceLogger PSharpLogger { get; private set; }
 
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes) : base(serviceContext)
         {
-            var localKnownTypes = new List<Type> { typeof(Event), typeof(TaggedRemoteEvent) };
+            var localKnownTypes = new List<Type>(KnownTypes);
             localKnownTypes.AddRange(knownTypes);
             
             this.knownTypes = localKnownTypes;
             this.RuntimeTcs = new TaskCompletionSource<PSharpRuntime>();
 
-            this.eventSerializationProvider = new EventSerializationProvider(this.knownTypes);
+            this.EventSerializationProvider = new EventSerializationProvider(this.knownTypes);
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<MachineId>(this.knownTypes)))
@@ -68,7 +81,7 @@
 
             this.knownTypes = localKnownTypes;
             this.RuntimeTcs = new TaskCompletionSource<PSharpRuntime>();
-            this.eventSerializationProvider = new EventSerializationProvider(this.knownTypes);
+            this.EventSerializationProvider = new EventSerializationProvider(this.knownTypes);
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<MachineId>(this.knownTypes)))
@@ -115,7 +128,7 @@
             var runtime =
             ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration(),
                 machineManager,
-                new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, eventSerializationProvider)));
+                new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, EventSerializationProvider)));
 
             if (this.PSharpLogger != null)
             {
@@ -150,7 +163,7 @@
                     {
                         EndpointResourceName = "PSharpServiceEndpoint",
                     },
-                    this.eventSerializationProvider);
+                    this.EventSerializationProvider);
             }, "PSharpServiceEndpoint");
 
             listeners.Add(listener);
@@ -163,10 +176,11 @@
             return Configuration.Create().WithVerbosityEnabled(4);
         }
 
-        public virtual async Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
+        public virtual async Task<CurrentResourceTypesResponse> ListResourceTypesAsync()
         {
+            this.PSharpLogger.Message($"Received call for ListResourceTypes for {this.Context.ServiceName}");
             var details = new List<ResourceTypesResponse>();
-            var types = this.GetMachineTypes();
+            var types = this.GetMachineTypesWithMaxLoad();
             var runtime = await this.RuntimeTcs.Task;
             foreach (var type in types)
             {
@@ -176,13 +190,14 @@
                 // TODO: Get the current count from runtime for a give type
             }
 
-            return details;
+            return new CurrentResourceTypesResponse() { Result = details};
         }
 
-        public virtual Task<List<ResourceDetailsResponse>> ListResourcesAsync()
+        public virtual Task<CurrentResourceDetailsResponse> ListResourcesAsync()
         {
+            this.PSharpLogger.Message($"Received call for ListResourcesAsync for {this.Context.ServiceName}");
             //TODO: Implement - contact runtime and report
-            return Task.FromResult(new List<ResourceDetailsResponse>());
+            return Task.FromResult(new CurrentResourceDetailsResponse());
         }
 
         public virtual async Task<MachineId> CreateMachineId(string machineType, string friendlyName)
@@ -203,7 +218,7 @@
             runtime.SendEvent(machineId, e);
         }
 
-        protected virtual Dictionary<Type, ulong> GetMachineTypes()
+        protected virtual Dictionary<Type, ulong> GetMachineTypesWithMaxLoad()
         {
             return new Dictionary<Type, ulong>();
         }

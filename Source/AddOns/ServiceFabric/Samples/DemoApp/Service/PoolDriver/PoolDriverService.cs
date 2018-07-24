@@ -77,24 +77,14 @@
             return listeners;
         }
 
-        public override async Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
+        protected override Dictionary<Type, ulong> GetMachineTypesWithMaxLoad()
         {
-            // Ideally this should also be on PSharp service - the runtime should go over known types
-            // and figure out the reliable machines that it can host
-            var data = await base.ListResourceTypesAsync();
-            data.Add(new ResourceTypesResponse()
-            {
-                ResourceType = "PoolDriverMachine",
-                Count = 1,
-                MaxCapacity = 1
-            });
-
-            return data;
+            return new Dictionary<Type, ulong>() { { typeof(PoolDriverMachine), 1 } };
         }
 
         protected override IRemoteMachineManager GetMachineManager()
         {
-            return new ResourceBasedRemoteMachineManager(this.Partition, this.StateManager, this.Context, this.PSharpLogger);
+            return new ResourceBasedRemoteMachineManager(this, this.Partition, this.PSharpLogger);
         }
 
         protected override async Task RunAsync(CancellationToken cancellationToken)

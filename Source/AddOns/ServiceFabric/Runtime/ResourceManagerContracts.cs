@@ -60,6 +60,14 @@
     }
 
     [DataContract]
+    public class CurrentResourceTypesResponse
+    {
+        // The resource type
+        [DataMember]
+        public List<ResourceTypesResponse> Result;
+    }
+
+    [DataContract]
     public class ResourceDetailsResponse
     {
         // The resource type
@@ -68,5 +76,13 @@
 
         [DataMember]
         public string ResourceId;
+    }
+
+    [DataContract]
+    public class CurrentResourceDetailsResponse
+    {
+        // The resource type
+        [DataMember]
+        public List<ResourceDetailsResponse> Result;
     }
 }

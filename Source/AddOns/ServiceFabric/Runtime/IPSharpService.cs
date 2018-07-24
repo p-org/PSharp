@@ -17,8 +17,8 @@
 
         // For other runtimes to learn
         [OperationContract]
-        Task<List<ResourceTypesResponse>> ListResourceTypesAsync();
+        Task<CurrentResourceTypesResponse> ListResourceTypesAsync();
         [OperationContract]
-        Task<List<ResourceDetailsResponse>> ListResourcesAsync();
+        Task<CurrentResourceDetailsResponse> ListResourcesAsync();
     }
 }

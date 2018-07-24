@@ -2,11 +2,10 @@
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
 using System;
 using System.Collections.Generic;
 using System.Fabric;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Query = System.Fabric.Query;
@@ -18,29 +17,36 @@ namespace Microsoft.PSharp.ServiceFabric
         private const string ResourceToPartitionDictionary = "ResourceToPartitionDictionary";
         private const string PartitionInformationDictionary = "PartitionInformationDictionary";
         private const string PSharpServiceEndpoint = "PSharpServiceEndpoint";
+        private PSharpService service;
 
         //
         // Summary:
         // Gets this replica's Microsoft.ServiceFabric.Data.IReliableStateManager.
         public IReliableStateManager stateManager { get; }
 
-        private bool enabled { get; set; }
+        private ServiceProxyFactory proxyFactory;
 
         public TimeSpan waitTime { get;  }
 
         private IPSharpEventSourceLogger logger { get; set; }
 
-        public ResourceTypeLearnerBackgroundTask(IReliableStateManager stateManager, TimeSpan waitTime, IPSharpEventSourceLogger logger)
+        public ResourceTypeLearnerBackgroundTask(PSharpService service, TimeSpan waitTime, IPSharpEventSourceLogger logger)
         {
-            this.stateManager = stateManager;
+            this.service = service;
+            this.stateManager = service.StateManager;
             this.waitTime = waitTime;
             this.logger = logger;
-            this.enabled = true;
+            this.proxyFactory = new ServiceProxyFactory((c) =>
+            {
+                return new FabricTransportServiceRemotingClientFactory(
+                    serializationProvider: service.EventSerializationProvider
+                    );
+            });
         }
 
         protected override bool IsEnabled()
         {
-            return this.enabled;
+            return true;
         }
 
         protected override async Task Run(CancellationToken token)
@@ -149,9 +155,9 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 if (endpoint != null && !string.IsNullOrWhiteSpace(endpoint.Address) && endpoint.Address.Contains(PSharpServiceEndpoint))
                 {
-                    IPSharpService resourceManagerClient = ServiceProxy.Create<IPSharpService>(service.ServiceName, key,
+                    IPSharpService resourceManagerClient = this.proxyFactory.CreateServiceProxy<IPSharpService>(service.ServiceName, key,
                         listenerName: PSharpServiceEndpoint);
-                    List<ResourceTypesResponse> responseList = await resourceManagerClient.ListResourceTypesAsync();
+                    List<ResourceTypesResponse> responseList = (await resourceManagerClient.ListResourceTypesAsync()).Result;
                     foreach (ResourceTypesResponse response in responseList)
                     {
                         try

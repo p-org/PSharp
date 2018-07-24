@@ -16,17 +16,19 @@ namespace Microsoft.PSharp.ServiceFabric
         private const string Delimiter = "|||";
 
         private string partitionName;
+        private PSharpService service;
         private IStatefulServicePartition partition;
         private IReliableStateManager stateManager;
         private StatefulServiceContext context;
         private IPSharpEventSourceLogger logger;
         private ResourceTypeLearnerBackgroundTask resourceTypeLearnerTask;
 
-        public ResourceBasedRemoteMachineManager(IStatefulServicePartition partition, IReliableStateManager stateManager, StatefulServiceContext context, IPSharpEventSourceLogger logger)
+        public ResourceBasedRemoteMachineManager(PSharpService service, IStatefulServicePartition partition, IPSharpEventSourceLogger logger)
         {
+            this.service = service;
             this.partition = partition;
-            this.stateManager = stateManager;
-            this.context = context;
+            this.stateManager = service.StateManager;
+            this.context = service.Context;
             this.logger = logger;
         }
 
@@ -45,10 +47,11 @@ namespace Microsoft.PSharp.ServiceFabric
         public async Task Initialize(CancellationToken token)
         {
             this.partitionName = this.GetPartitionName();
+
             // Spawn off background tasks
-            resourceTypeLearnerTask = new ResourceTypeLearnerBackgroundTask(this.stateManager, TimeSpan.FromSeconds(10), this.logger);
+            resourceTypeLearnerTask = new ResourceTypeLearnerBackgroundTask(this.service, TimeSpan.FromSeconds(30), this.logger);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            resourceTypeLearnerTask.Start(new CancellationToken());
+            resourceTypeLearnerTask.Start(token);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             await Task.Yield();
         }
