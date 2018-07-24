@@ -14,10 +14,6 @@
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="ResourceManager.SF" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
-  </ServiceManifestImport>
-  <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="PoolDriver" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
   </ServiceManifestImport>
@@ -30,13 +26,6 @@
     <ConfigOverrides />
   </ServiceManifestImport>
   <DefaultServices>
-    <Service Name="ResourceManager.SF" ServicePackageActivationMode="ExclusiveProcess">
-      <StatefulService ServiceTypeName="ResourceManager.SFType" TargetReplicaSetSize="[ResourceManager_TargetReplicaSetSize]" MinReplicaSetSize="[ResourceManager_MinReplicaSetSize]">
-        <NamedPartition>
-          <Partition Name="0" />
-        </NamedPartition>
-      </StatefulService>
-    </Service>
     <Service Name="PoolDriver" ServicePackageActivationMode="ExclusiveProcess">
       <StatefulService ServiceTypeName="PoolDriverType" TargetReplicaSetSize="[PoolDriver_TargetReplicaSetSize]" MinReplicaSetSize="[PoolDriver_MinReplicaSetSize]">
         <NamedPartition>

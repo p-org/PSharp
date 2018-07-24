@@ -19,6 +19,7 @@
         private EventSerializationProvider eventSerializationProvider;
 
         public TaskCompletionSource<PSharpRuntime> RuntimeTcs { get; private set; }
+        protected IPSharpEventSourceLogger PSharpLogger { get; private set; }
 
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes) : base(serviceContext)
         {
@@ -106,6 +107,8 @@
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
+            this.PSharpLogger = this.GetPSharpRuntimeLogger();
+
             IRemoteMachineManager machineManager = this.GetMachineManager();
             await machineManager.Initialize(cancellationToken);
 
@@ -114,13 +117,14 @@
                 machineManager,
                 new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, eventSerializationProvider)));
 
+            if (this.PSharpLogger != null)
+            {
+                runtime.SetLogger(new EventSourcePSharpLogger(this.PSharpLogger));
+            }
+
             this.RuntimeTcs.SetResult(runtime);
 
-            var logger = this.GetPSharpRuntimeLogger();
-            if (logger != null)
-            {
-                runtime.SetLogger(new EventSourcePSharpLogger(logger));
-            }
+            
 
             // Lets have a runtime.Initialize(cancellationToken);
             // that should ideally be used for rehydration and restarting the machines

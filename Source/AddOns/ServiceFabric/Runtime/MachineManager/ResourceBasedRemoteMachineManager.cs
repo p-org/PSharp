@@ -19,19 +19,21 @@ namespace Microsoft.PSharp.ServiceFabric
         private IStatefulServicePartition partition;
         private IReliableStateManager stateManager;
         private StatefulServiceContext context;
+        private IPSharpEventSourceLogger logger;
 
-        public ResourceBasedRemoteMachineManager(IStatefulServicePartition partition, IReliableStateManager stateManager, StatefulServiceContext context)
+        public ResourceBasedRemoteMachineManager(IStatefulServicePartition partition, IReliableStateManager stateManager, StatefulServiceContext context, IPSharpEventSourceLogger logger)
         {
             this.partition = partition;
             this.stateManager = stateManager;
             this.context = context;
+            this.logger = logger;
         }
 
         public Task<string> CreateMachineIdEndpoint(Type machineType)
         {
             // TODO: ASK the background task
-            // !!!!!!!!! - FOR THE TIME BEING RETURN THE SAME PARTITION
-            return Task.FromResult(this.context.ServiceName + Delimiter + this.partitionName);
+            // !!!!!!!!! - FOR THE TIME BEING RETURN A HARD CODED PARTITION
+            return Task.FromResult("fabric:/DemoApp/PoolManager" + Delimiter + "0");
         }
 
         public string GetLocalEndpoint()
