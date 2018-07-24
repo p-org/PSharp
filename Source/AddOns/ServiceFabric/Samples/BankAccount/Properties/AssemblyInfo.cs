@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TailSpin")]
+[assembly: AssemblyTitle("BankAccount")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TailSpin")]
+[assembly: AssemblyProduct("BankAccount")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("bed63c8b-11fd-45e8-9d3f-0153780b532d")]
+[assembly: Guid("f60a9c36-2a11-4b3a-a27a-58366df6aa29")]
 
 // Version information for an assembly consists of the following four values:
 //

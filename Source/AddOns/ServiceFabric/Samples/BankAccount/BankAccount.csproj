@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BED63C8B-11FD-45E8-9D3F-0153780B532D}</ProjectGuid>
+    <ProjectGuid>{F60A9C36-2A11-4B3A-A27A-58366DF6AA29}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TailSpin</RootNamespace>
-    <AssemblyName>TailSpin</AssemblyName>
+    <RootNamespace>BankAccount</RootNamespace>
+    <AssemblyName>BankAccount</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -78,13 +78,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountEvents.cs" />
+    <Compile Include="AccountMachine.cs" />
+    <Compile Include="BrokerMachine.cs" />
+    <Compile Include="ClientMachine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SafetyMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
-   <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\Core\Core.csproj">
       <Project>{d1fb59f5-d032-4159-bdbc-5220750f4468}</Project>
       <Name>Core</Name>
