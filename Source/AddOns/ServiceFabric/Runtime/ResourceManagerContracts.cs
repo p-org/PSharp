@@ -41,7 +41,11 @@
 
         // The partition ID of the service of the resource type requested
         [DataMember]
-        public Guid Partition;
+        public Guid PartitionId;
+
+        // The partition name of the service of the resource type requested
+        [DataMember]
+        public string PartitionName;
     }
 
     [DataContract]
