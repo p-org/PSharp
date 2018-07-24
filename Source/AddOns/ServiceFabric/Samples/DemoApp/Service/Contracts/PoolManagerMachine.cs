@@ -18,8 +18,8 @@
 
         [Start]
         [OnEntry(nameof(ResizePool))]
-        [OnEventDoAction(typeof(ePoolResizeRequest), nameof(ResizePool))]
-        [OnEventGotoState(typeof(ePoolDeletionRequest), typeof(Deleting))]
+        [OnEventDoAction(typeof(ePoolResizeRequestEvent), nameof(ResizePool))]
+        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
         class Resizing : MachineState
         {
         }
@@ -31,7 +31,7 @@
 
         private async Task ResizePool()
         {
-            ePoolResizeRequest resizeRequest = this.ReceivedEvent as ePoolResizeRequest;
+            ePoolResizeRequestEvent resizeRequest = this.ReceivedEvent as ePoolResizeRequestEvent;
             this.Logger.WriteLine($"Resize request for pool {this.Id} and size {resizeRequest.Size}");
         }
 

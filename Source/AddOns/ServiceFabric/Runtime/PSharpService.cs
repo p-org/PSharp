@@ -18,10 +18,14 @@
         private List<Type> knownTypes;
         private EventSerializationProvider eventSerializationProvider;
 
+        public PSharpRuntime Runtime { get; private set; }
+
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes) : base(serviceContext)
         {
-            this.knownTypes = new List<Type>(knownTypes);
-            //TODO: add framework known types here.
+            var localKnownTypes = new List<Type> { typeof(Event), typeof(TaggedRemoteEvent) };
+            localKnownTypes.AddRange(knownTypes);
+            
+            this.knownTypes = localKnownTypes;
 
             this.eventSerializationProvider = new EventSerializationProvider(this.knownTypes);
 
@@ -33,6 +37,12 @@
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<Tuple<MachineId, Event>>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
+            if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<Tuple<MachineId, string, Event>>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
@@ -46,8 +56,10 @@
 
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes, IReliableStateManagerReplica reliableStateManagerReplica) : base(serviceContext, reliableStateManagerReplica)
         {
-            this.knownTypes = new List<Type>(knownTypes);
-            //TODO: add framework known types here.
+            var localKnownTypes = new List<Type> { typeof(Event), typeof(TaggedRemoteEvent) };
+            localKnownTypes.AddRange(knownTypes);
+
+            this.knownTypes = localKnownTypes;
 
             this.eventSerializationProvider = new EventSerializationProvider(this.knownTypes);
 
@@ -64,6 +76,12 @@
             }
 
             if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<Tuple<MachineId, string, Event>>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
+            if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<Event>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
@@ -72,7 +90,7 @@
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration());
+            this.Runtime = ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration());
             var logger = this.GetPSharpRuntimeLogger();
             if (logger != null)
             {

@@ -30,7 +30,7 @@ namespace PoolServicesContract
 
         [Start]
         [OnEntry(nameof(Evaluate))]
-        [OnEventDoAction(typeof(ePoolDriverConfigChange), nameof(Evaluate))]
+        [OnEventDoAction(typeof(ePoolDriverConfigChangeEvent), nameof(Evaluate))]
         class Running : MachineState
         {
         }
@@ -39,17 +39,24 @@ namespace PoolServicesContract
         private async Task Evaluate()
         {
             CancellationToken token = CancellationToken.None;
-            ePoolDriverConfigChange configChange = this.ReceivedEvent as ePoolDriverConfigChange;
-            if(configChange == null)
+            try
             {
-                return;
-            }
+                ePoolDriverConfigChangeEvent configChange = this.ReceivedEvent as ePoolDriverConfigChangeEvent;
+                if (configChange == null)
+                {
+                    return;
+                }
 
-            await this.CreatePoolsInStorage(configChange.Configuration);
-            await IssueCreates(configChange.Configuration, token);
-            var poolsToRemove = await GetPoolsToRemove(configChange.Configuration, token);
-            var deletedPools = await SubmitDeletionRequests(poolsToRemove);
-            await ClearDeletedItems(deletedPools);
+                await this.CreatePoolsInStorage(configChange.Configuration);
+                await IssueCreates(configChange.Configuration, token);
+                var poolsToRemove = await GetPoolsToRemove(configChange.Configuration, token);
+                var deletedPools = await SubmitDeletionRequests(poolsToRemove);
+                await ClearDeletedItems(deletedPools);
+            }
+            catch (Exception ex)
+            {
+                this.Logger.WriteLine($"Exception in Evaluate {ex}");
+            }
         }
 
 
@@ -98,7 +105,7 @@ namespace PoolServicesContract
                             MachineId macId = this.CreateRemoteMachine(typeof(PoolManagerMachine),
                                 // NOTE: This is my key for the CreateRemoteMachine!!!
                                 dictEnumerator.Current.Value.ToString(),
-                                new ePoolResizeRequest() { Size = config.PoolData[dictEnumerator.Current.Key] });
+                                new ePoolResizeRequestEvent() { Size = config.PoolData[dictEnumerator.Current.Key] });
 
                             await this.currentMachineIdTable.AddOrUpdateAsync(tx, dictEnumerator.Current.Value, macId, (guid, machineId) => machineId);
                         }
@@ -146,7 +153,7 @@ namespace PoolServicesContract
                     {
                         try
                         {
-                            this.Send(val.Value, new ePoolDeletionRequest());
+                            this.Send(val.Value, new ePoolDeletionRequestEvent());
                             successfulDeletion.Add(item.Key, item.Value);
                         }
                         catch (Exception)

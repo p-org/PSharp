@@ -4,19 +4,19 @@
     using System.Runtime.Serialization;
 
     [DataContract]
-    public class ePoolDriverConfigChange : Event
+    public class ePoolDriverConfigChangeEvent : Event
     {
         [DataMember]
         public PoolDriverConfig Configuration;
     }
 
     [DataContract]
-    public class ePoolDeletionRequest : Event
+    public class ePoolDeletionRequestEvent : Event
     {
     }
 
     [DataContract]
-    public class ePoolResizeRequest : Event
+    public class ePoolResizeRequestEvent : Event
     {
         [DataMember]
         public int Size;
