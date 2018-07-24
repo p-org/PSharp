@@ -33,12 +33,14 @@
         {
             ePoolResizeRequestEvent resizeRequest = this.ReceivedEvent as ePoolResizeRequestEvent;
             this.Logger.WriteLine($"Resize request for pool {this.Id} and size {resizeRequest.Size}");
+            await Task.Yield();
         }
 
         private async Task DeletePool()
         {
             this.Logger.WriteLine($"Deletion request of pool {this.Id}");
             this.Send(this.Id, new Halt());
+            await Task.Yield();
         }
     }
 }
