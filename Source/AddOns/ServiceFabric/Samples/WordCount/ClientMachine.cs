@@ -24,7 +24,7 @@ namespace WordCount
         [OnEntry(nameof(InitOnEntry))]
         class Init : MachineState { }
 
-        async Task InitOnEntry()
+        private void InitOnEntry()
         {
             var targetMachine = this.CreateMachine(typeof(SimpleGatherResultsMachine));
             var wordCountMachines = new MachineId[Config.NumMachines];

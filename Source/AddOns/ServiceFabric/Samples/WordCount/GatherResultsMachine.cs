@@ -37,7 +37,7 @@ namespace WordCount
             if (ev.freq > await HighestFrequency.Get())
             {
                 this.Logger.WriteLine("Highest Freq word = {0}, with freq {1}", ev.word, ev.freq);
-                // this.Monitor<SafetyMonitor>(ev); // assert safety
+                this.Monitor<SafetyMonitor>(ev); // assert safety
                 await HighestFrequency.Set(ev.freq);
             }
         }

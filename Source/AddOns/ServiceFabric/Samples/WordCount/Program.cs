@@ -20,7 +20,7 @@ namespace WordCount
             var stateManager = new StateManagerMock(null);
             stateManager.DisallowFailures();
 
-            var config = Configuration.Create().WithVerbosityEnabled(2);
+            var config = Configuration.Create();
             var runtime = ServiceFabricRuntimeFactory.Create(stateManager, config);
             runtime.OnFailure += Runtime_OnFailure;
 
@@ -29,17 +29,14 @@ namespace WordCount
             Console.ReadLine();
         }
 
-        /*
+        
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
-
-            var origHost = RsmHost.CreateForTesting(new StateManagerMock(runtime), "SinglePartition", runtime);
-            origHost.ReliableCreateMachine<ClientMachine>(new RsmInitEvent());
+            runtime.CreateMachine(typeof(ClientMachine));
         }
-        */
-
+        
         private static void Runtime_OnFailure(Exception ex)
         {
             Console.WriteLine("Exception in the runtime: {0}", ex.Message);
