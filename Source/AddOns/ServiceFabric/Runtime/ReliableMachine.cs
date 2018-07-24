@@ -218,12 +218,8 @@ namespace Microsoft.PSharp.ServiceFabric
 
             await CurrentTransaction.CommitAsync();
 
-            if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
-            {
-                this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.TransactionId);
-            }
-
-            (this.Runtime as ServiceFabricPSharpRuntime).NotifyTransactionCommit(CurrentTransaction);
+            // Notifies the runtime that the transaction has been committed.
+            this.Runtime.NotifyProgress(this, this.CurrentTransaction);
 
             if (InTestMode)
             {

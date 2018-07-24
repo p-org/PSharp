@@ -2,18 +2,14 @@
   <Import Project="..\..\..\..\Build\common.props" />
   <Import Project="..\..\..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.PSharp.ServiceFabric</AssemblyName>
-    <Description>The P# runtime and base services for Azure Service Fabric.</Description>
-    <AssemblyTitle>Microsoft.PSharp.ServiceFabric</AssemblyTitle>
+    <AssemblyName>Microsoft.PSharp.ServiceFabric.TestingServices</AssemblyName>
+    <Description>The P# testing services for Azure Service Fabric.</Description>
+    <RootNamespace>Microsoft.PSharp.ServiceFabric.TestingServices</RootNamespace>
     <TargetFrameworks>net46</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <PackageTags>state-machines;dotnet;csharp;azure;service-fabric</PackageTags>
+    <PackageTags>state-machines;systematic-testing;dotnet;csharp;azure;service-fabric</PackageTags>
     <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\bin\</OutputPath>
-    <RootNamespace>Microsoft.PSharp.ServiceFabric</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ServiceFabric" Version="6.2.306" />
@@ -23,7 +19,9 @@
     <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="3.1.306" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Runtime\ServiceFabric.csproj" />
     <ProjectReference Include="..\..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\..\TestingServices\TestingServices.csproj" />
     <!-- Ideally we want this to be pluggable via some abstraction but for Hackathon sake adding a project reference -->
   </ItemGroup>
   <ItemGroup>

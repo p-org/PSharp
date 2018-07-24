@@ -488,7 +488,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
+        protected void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
         {
             Task.Run(async () =>
             {
@@ -505,6 +505,7 @@ namespace Microsoft.PSharp
                 {
                     base.IsRunning = false;
                     base.RaiseOnFailureEvent(ex);
+                    this.Dispose();
                 }
             });
         }
@@ -515,7 +516,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
+        protected async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
         {
             try
             {
@@ -530,6 +531,7 @@ namespace Microsoft.PSharp
             {
                 base.IsRunning = false;
                 base.RaiseOnFailureEvent(ex);
+                this.Dispose();
                 return;
             }
         }

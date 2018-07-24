@@ -25,8 +25,6 @@ namespace Microsoft.PSharp
     [EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class AbstractMachine
     {
-        #region fields
-
         /// <summary>
         /// The runtime that executes this machine.
         /// </summary>
@@ -43,10 +41,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal MachineInfo Info { get; private set; }
 
-        #endregion
-
-        #region initialize
-
         /// <summary>
         /// Initializes this machine.
         /// </summary>
@@ -59,10 +53,6 @@ namespace Microsoft.PSharp
             this.Id = mid;
             this.Info = info;
         }
-
-        #endregion
-
-        #region generic public and override methods
 
         /// <summary>
         /// Determines whether the specified System.Object is equal
@@ -115,10 +105,6 @@ namespace Microsoft.PSharp
             return this.Id.Name;
         }
 
-        #endregion
-
-        #region Code Coverage Methods
-
         /// <summary>
         /// Returns the set of all states in the machine
         /// (for code coverage).
@@ -138,7 +124,5 @@ namespace Microsoft.PSharp
         {
             return new HashSet<Tuple<string, string>>();
         }
-
-        #endregion
     }
 }

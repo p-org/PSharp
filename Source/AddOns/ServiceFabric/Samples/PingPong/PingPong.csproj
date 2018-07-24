@@ -13,8 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Core\Core.csproj" />
-    <ProjectReference Include="..\..\..\..\TestingServices\TestingServices.csproj" />
     <ProjectReference Include="..\..\Runtime\ServiceFabric.csproj" />
-    <ProjectReference Include="..\..\StateManagerMock\StateManagerMock.csproj" />
+    <ProjectReference Include="..\..\TestingServices\ServiceFabric.TestingServices.csproj" />
   </ItemGroup>
 </Project>

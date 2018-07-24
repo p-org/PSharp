@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
+using Microsoft.PSharp.ServiceFabric.TestingServices;
 
 namespace PingPong
 {

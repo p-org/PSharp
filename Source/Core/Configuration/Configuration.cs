@@ -129,6 +129,14 @@ namespace Microsoft.PSharp
         public string AssemblyToBeAnalyzed;
 
         /// <summary>
+        /// The assembly that contains the testing runtime.
+        /// By default it is empty, which uses the default
+        /// testing runtime of P#.
+        /// </summary>
+        [DataMember]
+        public string TestingRuntimeAssembly;
+
+        /// <summary>
         /// Test method to be used.
         /// </summary>
         [DataMember]
@@ -487,6 +495,7 @@ namespace Microsoft.PSharp
             this.RuntimeGeneration = 0;
 
             this.AssemblyToBeAnalyzed = "";
+            this.TestingRuntimeAssembly = "";
             this.TestMethodName = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;

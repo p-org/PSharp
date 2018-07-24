@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// Class implementing the P# bug-finding runtime.
     /// </summary>
-    internal sealed class BugFindingRuntime : PSharpRuntime
+    internal class BugFindingRuntime : PSharpRuntime
     {
         #region fields
 
@@ -798,11 +798,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        /// <param name="syncCaller">Caller machine that is blocked for quiscence.</param>
+        /// <param name="syncCaller">Caller machine that is blocked for quiescence.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
+        protected void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
             MachineId syncCaller, EventInfo enablingEvent)
         {
+            Console.WriteLine("===========TEST CreateMachine (RunMachineEventHandler)=============");
             Task task = new Task(async () =>
             {
                 try
@@ -1026,7 +1027,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="callerMachine">Caller machine</param>
         /// <param name="calledAPI">Called API name</param>
-        private void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
+        protected void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
         {
             if (callerMachine == null)
             {

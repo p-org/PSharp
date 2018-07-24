@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.ServiceFabric.Net
 {
-    class NullNetworkProvider : Microsoft.PSharp.Net.INetworkProvider
+    internal class NullNetworkProvider : Microsoft.PSharp.Net.INetworkProvider
     {
         string Endpoint;
 

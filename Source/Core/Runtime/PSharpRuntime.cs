@@ -589,7 +589,7 @@ namespace Microsoft.PSharp
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
         protected internal abstract int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue);
-        
+
         #endregion
 
         #region notifications
@@ -782,6 +782,18 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyDefaultHandlerFired(Machine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine has progressed. This method can be used to
+        /// implement custom notifications based on the specified arguments.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="args">Arguments</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected internal virtual void NotifyProgress(Machine machine, params object[] args)
         {
             // Override to implement the notification.
         }

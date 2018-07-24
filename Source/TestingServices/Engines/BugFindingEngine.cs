@@ -337,7 +337,15 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 // Creates a new instance of the bug-finding runtime.
-                runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                if (base.TestRuntimeFactoryMethod != null)
+                {
+                    runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                        new object[] { base.Configuration, base.Strategy, base.Reporter });
+                }
+                else
+                {
+                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                }
 
                 if (base.Configuration.EnableDataRaceDetection)
                 {
