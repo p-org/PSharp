@@ -135,6 +135,12 @@
 
             this.RuntimeTcs.SetResult(runtime);
 
+            RuntimeLoadReporter reporter = new RuntimeLoadReporter(this, this.Partition);
+
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            reporter.Start(cancellationToken);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
             // Lets have a runtime.Initialize(cancellationToken);
             // that should ideally be used for rehydration and restarting the machines
 

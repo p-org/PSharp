@@ -31,6 +31,9 @@
         <NamedPartition>
           <Partition Name="0" />
         </NamedPartition>
+        <LoadMetrics>
+          <LoadMetric Name="PSharpStateMachineCount" />
+        </LoadMetrics>
       </StatefulService>
     </Service>
     <Service Name="PoolManager" ServicePackageActivationMode="ExclusiveProcess">
@@ -38,6 +41,15 @@
         <NamedPartition>
           <Partition Name="0" />
         </NamedPartition>
+        <LoadMetrics>
+          <LoadMetric Name="PSharpStateMachineCount" />
+        </LoadMetrics>
+        <ServiceScalingPolicies>
+          <ScalingPolicy>
+            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="1" UpperLoadThreshold="5" ScaleIntervalInSeconds="5" />
+            <AddRemoveIncrementalNamedPartitionScalingMechanism MinPartitionCount="1" MaxPartitionCount="10" ScaleIncrement="1" />
+          </ScalingPolicy>
+        </ServiceScalingPolicies>
       </StatefulService>
     </Service>
     <Service Name="VMManager" ServicePackageActivationMode="ExclusiveProcess">
@@ -45,6 +57,15 @@
         <NamedPartition>
           <Partition Name="0" />
         </NamedPartition>
+        <LoadMetrics>
+          <LoadMetric Name="PSharpStateMachineCount" />
+        </LoadMetrics>
+        <ServiceScalingPolicies>
+          <ScalingPolicy>
+            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="1" UpperLoadThreshold="25" ScaleIntervalInSeconds="5" />
+            <AddRemoveIncrementalNamedPartitionScalingMechanism MinPartitionCount="1" MaxPartitionCount="100" ScaleIncrement="1" />
+          </ScalingPolicy>
+        </ServiceScalingPolicies>
       </StatefulService>
     </Service>
   </DefaultServices>
