@@ -7,16 +7,6 @@
     using System.ServiceModel;
     using System.Threading.Tasks;
 
-    [ServiceContract]
-    public interface IResourceManager : IService
-    {
-        [OperationContract]
-        Task<GetServicePartitionResponse> GetServicePartitionAsync(GetServicePartitionRequest request);
-        [OperationContract]
-        Task<List<ResourceTypesResponse>> ListResourceTypesAsync();
-        [OperationContract]
-        Task<List<ResourceDetailsResponse>> ListResourcesAsync();
-    }
 
     [DataContract]
     public class GetServicePartitionRequest

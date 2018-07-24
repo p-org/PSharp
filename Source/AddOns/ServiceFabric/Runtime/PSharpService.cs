@@ -13,7 +13,7 @@
     using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
 
-    public abstract class PSharpService : StatefulService, IResourceManager, IPSharpService
+    public abstract class PSharpService : StatefulService, IPSharpService
     {
         private List<Type> knownTypes;
         private EventSerializationProvider eventSerializationProvider;
@@ -135,17 +135,8 @@
         {
             List<ServiceReplicaListener> listeners = new List<ServiceReplicaListener>();
             KeyedCollection<string, EndpointResourceDescription> endpoints = this.Context.CodePackageActivationContext.GetEndpoints();
-            ServiceReplicaListener listener1 = new ServiceReplicaListener((context) =>
-            {
-                return new FabricTransportServiceRemotingListener(context,
-                    (IResourceManager)this,
-                    new FabricTransportRemotingListenerSettings()
-                    {
-                        EndpointResourceName = "ResourceManagerServiceEndpoint",
-                    });
-            }, "ResourceManagerServiceEndpoint");
-
-            ServiceReplicaListener listener2 = new ServiceReplicaListener((context) =>
+            
+            ServiceReplicaListener listener = new ServiceReplicaListener((context) =>
             {
                 return new FabricTransportServiceRemotingListener(context,
                     (IPSharpService)this,
@@ -156,14 +147,8 @@
                     this.eventSerializationProvider);
             }, "PSharpServiceEndpoint");
 
-            listeners.Add(listener1);
-            listeners.Add(listener2);
+            listeners.Add(listener);
             return listeners;
-        }
-
-        public Task<GetServicePartitionResponse> GetServicePartitionAsync(GetServicePartitionRequest request)
-        {
-            throw new InvalidOperationException("Cannot create using resource manager API");
         }
 
         protected virtual Configuration GetRuntimeConfiguration()
@@ -174,13 +159,13 @@
 
         public virtual Task<List<ResourceTypesResponse>> ListResourceTypesAsync()
         {
-            //TODO: Implement
+            //TODO: Implement - contact runtime and report
             return Task.FromResult(new List<ResourceTypesResponse>());
         }
 
         public virtual Task<List<ResourceDetailsResponse>> ListResourcesAsync()
         {
-            //TODO: Implement
+            //TODO: Implement - contact runtime and report
             return Task.FromResult(new List<ResourceDetailsResponse>());
         }
 
