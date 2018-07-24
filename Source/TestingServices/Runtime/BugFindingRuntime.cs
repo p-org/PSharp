@@ -1740,6 +1740,11 @@ namespace Microsoft.PSharp.TestingServices
             return true;
         }
 
+        internal override HashSet<MachineId> GetCreatedMachines()
+        {
+            return new HashSet<MachineId>(this.MachineMap.Keys);
+        }
+
         #endregion
     }
 }
