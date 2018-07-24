@@ -30,17 +30,16 @@ namespace Microsoft.PSharp.ServiceFabric
             this.logger = logger;
         }
 
-        public Task<string> CreateMachineIdEndpoint(Type machineType)
+        public async Task<string> CreateMachineIdEndpoint(Type machineType)
         {
-            // TODO: ASK the background task
-            // !!!!!!!!! - FOR THE TIME BEING RETURN A HARD CODED PARTITION
-
-            if (machineType.FullName.Contains("PoolDriver"))
+            if(resourceTypeLearnerTask == null)
             {
-                return Task.FromResult("fabric:/DemoApp/PoolDriver" + Delimiter + "0");
+                throw new InvalidOperationException("ResourceTypeLearnerBackgroundTask is not created");
             }
 
-            return Task.FromResult("fabric:/DemoApp/PoolManager" + Delimiter + "0");
+            GetServicePartitionResponse partitionResponse =  await resourceTypeLearnerTask.GetServicePartitionDetailsAsync(machineType.FullName);
+
+            return Task.FromResult(partitionResponse.Service + Delimiter + partitionResponse.PartitionName).Result;
         }
 
         public string GetLocalEndpoint()
