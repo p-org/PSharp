@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="BugFindingEngine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -366,11 +366,6 @@ namespace Microsoft.PSharp.TestingServices
                 // Wait for the test to terminate.
                 runtime.Wait();
 
-                if (runtime.Scheduler.BugFound)
-                {
-                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
-                }
-
                 // Invokes user-provided cleanup for this iteration.
                 if (base.TestIterationDisposeMethod != null)
                 {
@@ -399,6 +394,11 @@ namespace Microsoft.PSharp.TestingServices
                 if (!runtime.Scheduler.BugFound)
                 {
                     runtime.AssertNoMonitorInHotStateAtTermination();
+                }
+
+                if (runtime.Scheduler.BugFound)
+                {
+                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
                 this.GatherIterationStatistics(runtime);
@@ -485,7 +485,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (!base.Configuration.TestMethodName.Equals(""))
             {
-                stringBuilder.Append("--test-method:" + 
+                stringBuilder.Append("--test-method:" +
                     base.Configuration.TestMethodName).
                     Append(Environment.NewLine);
             }
@@ -511,7 +511,7 @@ namespace Microsoft.PSharp.TestingServices
                     stringBuilder.Append(Environment.NewLine);
                 }
             }
-            
+
             this.ReproducableTrace = stringBuilder.ToString();
         }
 
