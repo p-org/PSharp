@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.ServiceFabric;
@@ -20,5 +21,14 @@ namespace Microsoft.PSharp.ServiceFabric.Utilities
         /// </summary>
         /// <param name="tx"></param>
         internal abstract void SetTransaction(ITransaction tx);
+
+        /// <summary>
+        /// Set current transaction of the state object
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <param name="timeSpan"></param>
+        /// <param name="cancellationToken"></param>
+        internal abstract void SetTransaction(ITransaction tx, TimeSpan timeSpan, CancellationToken cancellationToken);
+
     }
 }

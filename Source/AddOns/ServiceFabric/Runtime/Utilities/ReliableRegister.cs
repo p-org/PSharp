@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.ServiceFabric.Data;
@@ -20,6 +21,16 @@ namespace Microsoft.PSharp.ServiceFabric.Utilities
         /// The state manager
         /// </summary>
         IReliableStateManager StateManager;
+
+        /// <summary>
+        /// Service cancellation token
+        /// </summary>
+        CancellationToken ServiceCancellationToken;
+
+        /// <summary>
+        /// Default time limit
+        /// </summary>
+        TimeSpan DefaultTimeLimit;
 
         /// <summary>
         /// Name of the counter
@@ -50,6 +61,8 @@ namespace Microsoft.PSharp.ServiceFabric.Utilities
         public ReliableRegister(string name, IReliableStateManager stateManager, T initialValue = default(T))
         {
             this.StateManager = stateManager;
+            this.ServiceCancellationToken = CancellationToken.None;
+            this.DefaultTimeLimit = TimeSpan.FromSeconds(4);
             this.Name = name;
             this.Register = null;
             this.InitialRegisterValue = initialValue;
@@ -66,7 +79,7 @@ namespace Microsoft.PSharp.ServiceFabric.Utilities
                 await InitializeRegister();
             }
 
-            var cv = await Register.TryGetValueAsync(CurrentTransaction, 0);
+            var cv = await Register.TryGetValueAsync(CurrentTransaction, 0, DefaultTimeLimit, ServiceCancellationToken);
             return cv.Value;
         }
 
@@ -81,20 +94,28 @@ namespace Microsoft.PSharp.ServiceFabric.Utilities
             {
                 await InitializeRegister();
             }
-            await Register.AddOrUpdateAsync(CurrentTransaction, 0, value, (k, v) => value);
+            await Register.AddOrUpdateAsync(CurrentTransaction, 0, value, (k, v) => value, DefaultTimeLimit, ServiceCancellationToken);
         }
 
 
         private async Task InitializeRegister()
         {
             Register = await StateManager.GetOrAddAsync<IReliableDictionary<int, T>>(Name);
-            await Register.TryAddAsync(CurrentTransaction, 0, InitialRegisterValue);
+            await Register.TryAddAsync(CurrentTransaction, 0, InitialRegisterValue, DefaultTimeLimit, ServiceCancellationToken);
         }
 
         internal override void SetTransaction(ITransaction tx)
         {
             this.CurrentTransaction = tx;
         }
+
+        internal override void SetTransaction(ITransaction tx, TimeSpan timeSpan, CancellationToken cancellationToken)
+        {
+            this.CurrentTransaction = tx; 
+            this.DefaultTimeLimit = timeSpan;
+            this.ServiceCancellationToken = cancellationToken;
+        }
+
     }
 
 }
