@@ -20,8 +20,12 @@
             typeof(ePoolResizeRequestEvent),
             typeof(eVMCreateRequestEvent),
             typeof(eVMDeleteRequestEvent),
-            typeof(eVMRenewRequestEvent),
-            typeof(eVMFailureEvent),
+            typeof(eVMRetryDeleteRequestEvent),
+            typeof(eVMRetryCreateRequestEvent),
+            typeof(eVMCreateFailureRequestEvent),
+            typeof(eVMCreateSuccessRequestEvent),
+            typeof(eVMDeleteFailureRequestEvent),
+            typeof(eVMDeleteSuccessRequestEvent),
 
             // Contracts
             typeof(PoolDriverConfig)
