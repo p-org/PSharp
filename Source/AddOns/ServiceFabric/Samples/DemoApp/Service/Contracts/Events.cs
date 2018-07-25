@@ -23,9 +23,9 @@
     }
 
     [DataContract]
-    public class eVMCreateRequestEvent : Event
+    public class BaseEvent : Event
     {
-        public eVMCreateRequestEvent(MachineId sId)
+        public BaseEvent(MachineId sId)
         {
             this.senderId = sId;
         }
@@ -35,38 +35,51 @@
     }
 
     [DataContract]
-    public class eVMRenewRequestEvent : Event
+    public class eVMCreateRequestEvent : BaseEvent
     {
-        public eVMRenewRequestEvent(MachineId sId)
-        {
-            this.senderId = sId;
-        }
-
-        [DataMember]
-        public MachineId senderId;
+        public eVMCreateRequestEvent(MachineId sId) : base(sId) { }
     }
 
     [DataContract]
-    public class eVMDeleteRequestEvent : Event
+    public class eVMRetryCreateRequestEvent : BaseEvent
     {
-        public eVMDeleteRequestEvent(MachineId sId)
-        {
-            this.senderId = sId;
-        }
-
-        [DataMember]
-        public MachineId senderId;
+        public eVMRetryCreateRequestEvent(MachineId sId) : base(sId) { }
     }
 
     [DataContract]
-    public class eVMFailureEvent : Event
+    public class eVMRetryDeleteRequestEvent : BaseEvent
     {
-        public eVMFailureEvent(MachineId machineId)
-        {
-            this.machineId = machineId;
-        }
+        public eVMRetryDeleteRequestEvent(MachineId sId) : base(sId) { }
+    }
 
-        [DataMember]
-        public MachineId machineId;
+
+    [DataContract]
+    public class eVMDeleteRequestEvent : BaseEvent
+    {
+        public eVMDeleteRequestEvent(MachineId sId) : base(sId) { }
+    }
+
+    [DataContract]
+    public class eVMCreateSuccessRequestEvent : BaseEvent
+    {
+        public eVMCreateSuccessRequestEvent(MachineId sId) : base(sId) { }
+    }
+
+    [DataContract]
+    public class eVMCreateFailureRequestEvent : BaseEvent
+    {
+        public eVMCreateFailureRequestEvent(MachineId sId) : base(sId) { }
+    }
+
+    [DataContract]
+    public class eVMDeleteSuccessRequestEvent : BaseEvent
+    {
+        public eVMDeleteSuccessRequestEvent(MachineId sId) : base(sId) { }
+    }
+
+    [DataContract]
+    public class eVMDeleteFailureRequestEvent : BaseEvent
+    {
+        public eVMDeleteFailureRequestEvent(MachineId sId) : base(sId) { }
     }
 }
