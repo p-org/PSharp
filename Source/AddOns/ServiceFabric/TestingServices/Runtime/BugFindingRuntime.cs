@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.TestingServices;
-using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 using Microsoft.ServiceFabric.Data;
@@ -260,26 +259,9 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
             this.PendingMachineCreations.Clear();
             base.Dispose();
         }
-
+        
         #region Unsupported
-
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
-        public override void InvokeMonitor<T>(Event e)
-        {
-            // no-op
-        }
-
-        public override void InvokeMonitor(Type type, Event e)
-        {
-            // no-op
-        }
-
-        public override void RegisterMonitor(Type type)
-        {
-            // no-op
-        }
-
+        #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
         {
             throw new NotImplementedException();
@@ -295,42 +277,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
             throw new NotImplementedException();
         }
 
-        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override MachineId RemoteCreateMachine(Type type, string friendlyName, string endpoint, Event e = null, Guid? operationGroupId = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void RemoteSendEvent(MachineId target, Event e, SendOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
-
         public override Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Stop()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint, Event e, Machine creator, Guid? operationGroupId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void TryCreateMonitor(Type type)
         {
             throw new NotImplementedException();
         }
@@ -339,14 +286,12 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         {
             throw new NotImplementedException();
         }
-
-
+        
         protected internal override Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
         {
             throw new NotImplementedException();
         }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
-
+        #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         #endregion
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
@@ -13,7 +8,7 @@ using Microsoft.ServiceFabric.Data.Collections;
 namespace WordCount
 {
     /// <summary>
-    /// WordCount state machine
+    /// WordCount state machine.
     /// </summary>
     class WordCountMachine : ReliableMachine
     {
@@ -22,22 +17,22 @@ namespace WordCount
         { }
 
         /// <summary>
-        /// Word dictionary
+        /// Word dictionary.
         /// </summary>
         IReliableDictionary<string, int> WordFrequency;
 
         /// <summary>
-        /// Latest timestamp seen so far 
+        /// Latest timestamp seen so far.
         /// </summary>
         ReliableRegister<int> LatestTimeStamp;
 
         /// <summary>
-        /// Highest frequency 
+        /// Highest frequency.
         /// </summary>
         ReliableRegister<int> HighestFrequency;
 
         /// <summary>
-        /// Target machine
+        /// Target machine.
         /// </summary>
         ReliableRegister<MachineId> TargetMachine;
 
@@ -47,9 +42,8 @@ namespace WordCount
         class Init : MachineState { }
 
         /// <summary>
-        /// Includes a new word
+        /// Includes a new word.
         /// </summary>
-        /// <returns></returns>
         async Task IncludeWord()
         {
             // grab the word
@@ -74,9 +68,8 @@ namespace WordCount
         }
 
         /// <summary>
-        /// Machine construction 
+        /// Machine construction.
         /// </summary>
-        /// <returns></returns>
         public async Task InitOnEntry()
         {
             // called after OnActivate
@@ -85,9 +78,8 @@ namespace WordCount
         }
 
         /// <summary>
-        /// (Re-)Initialize
+        /// (Re-)Initialize.
         /// </summary>
-        /// <returns></returns>
         protected override async Task OnActivate()
         {
             this.Logger.WriteLine("Machine {0}: starting", this.Id.Name);
@@ -97,7 +89,5 @@ namespace WordCount
             HighestFrequency = this.GetOrAddRegister<int>("HighestFrequency", 0);
             TargetMachine = this.GetOrAddRegister<MachineId>("TargetMachine", null);
         }
-
     }
-
 }

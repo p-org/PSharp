@@ -1,10 +1,23 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 
 namespace PingPong
 {
+    [DataContract]
+    public class PongEvent : Event
+    {
+        [DataMember]
+        public MachineId PingMachineId;
+
+        public PongEvent(MachineId pingMachine)
+        {
+            this.PingMachineId = pingMachine;
+        }
+    }
+
     public class PongMachine : ReliableMachine
     {
         /// <summary>
