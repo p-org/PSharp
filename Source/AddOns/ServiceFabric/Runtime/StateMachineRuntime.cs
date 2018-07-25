@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
             this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
-            // Idempotence check
+            // Idempotence check (TODO: make concurrency safe)
             if (MachineMap.ContainsKey(mid))
             {
                 // machine already created
@@ -145,7 +145,7 @@ namespace Microsoft.PSharp.ServiceFabric
                     await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
                     await tx.CommitAsync();
                 }
-                StartMachine(mid, type, friendlyName, e, creator?.Id);
+                StartMachine(mid, type, e, creator?.Id);
             }
             else
             {
@@ -164,8 +164,15 @@ namespace Microsoft.PSharp.ServiceFabric
 
         }
 
-        private void StartMachine(MachineId mid, Type type, string friendlyName, Event e, MachineId creator)
+        private void StartMachine(MachineId mid, Type type, Event e, MachineId creator)
         {
+            // Idempotence check (TODO: make concurrency safe)
+            if (MachineMap.ContainsKey(mid))
+            {
+                // machine already created
+                return;
+            }
+
             this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Name);
             this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                 mid.Name, mid.Type, type.FullName);
@@ -201,7 +208,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 while (await enumerator.MoveNextAsync(ct))
                 {
                     this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
-                    await CreateMachineLocalAsync(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), null, enumerator.Current.Value.Item3, null, null);
+                    StartMachine(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), enumerator.Current.Value.Item3, null);
                 }
             }
         }
@@ -310,6 +317,7 @@ namespace Microsoft.PSharp.ServiceFabric
             return list;
         }
 
+
         /// <summary>
         /// Notifies that a machine has progressed. This method can be used to
         /// implement custom notifications based on the specified arguments.
@@ -331,7 +339,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
                     foreach (var tup in this.PendingMachineCreations[tx])
                     {
-                        this.StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
+                        this.StartMachine(tup.Item1, tup.Item2, tup.Item4, tup.Item5);
                     }
 
                     this.PendingMachineCreations.Remove(tx);
@@ -352,17 +360,24 @@ namespace Microsoft.PSharp.ServiceFabric
             while(true)
             {
                 var found = false;
-                using (var tx = this.StateManager.CreateTransaction())
+                try
                 {
-                    var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
-                    if(cv.HasValue)
+                    using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
-                        await tx.CommitAsync();
+                        var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
+                        if (cv.HasValue)
+                        {
+                            await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
+                            await tx.CommitAsync();
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    this.Logger.WriteLine("Exception raised in ClearCreationsOutbox: {0}", ex.ToString());
+                }
 
-                if(!found)
+                if (!found)
                 {
                     await Task.Delay(100);
                 }
@@ -375,14 +390,22 @@ namespace Microsoft.PSharp.ServiceFabric
             while (true)
             {
                 var found = false;
-                using (var tx = this.StateManager.CreateTransaction())
+
+                try
                 {
-                    var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
-                    if (cv.HasValue)
+                    using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
-                        await tx.CommitAsync();
+                        var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
+                        if (cv.HasValue)
+                        {
+                            await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
+                            await tx.CommitAsync();
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    this.Logger.WriteLine("Exception raised in ClearMessagesOutbox: {0}", ex.ToString());
                 }
 
                 if (!found)

@@ -149,8 +149,6 @@ namespace Microsoft.PSharp.ServiceFabric
                     base.DoStatePush(nextState);
                 }
 
-                this.Assert(e == null, "Unexpected event passed on failover");
-
                 await OnActivate();
             }
             else
