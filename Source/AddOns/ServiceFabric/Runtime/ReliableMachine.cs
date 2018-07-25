@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.ServiceFabric;
@@ -21,6 +22,16 @@ namespace Microsoft.PSharp.ServiceFabric
         /// StatefulService State Manager
         /// </summary>
         protected IReliableStateManager StateManager;
+
+        /// <summary>
+        /// Service cancellation token
+        /// </summary>
+        CancellationToken ServiceCancellationToken;
+
+        /// <summary>
+        /// Default time limit for SF operations
+        /// </summary>
+        TimeSpan DefaultTimeLimit;
 
         /// <summary>
         /// Persistent current state (stack)
@@ -111,7 +122,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public Utilities.ReliableRegister<T> GetOrAddRegister<T>(string name, T initialValue = default(T))
         {
             var reg = new Utilities.ReliableRegister<T>(name + this.Id.ToString(), this.StateManager, initialValue);
-            reg.SetTransaction(this.CurrentTransaction);
+            reg.SetTransaction(this.CurrentTransaction, DefaultTimeLimit, ServiceCancellationToken);
             CreatedRegisters.Add(reg);
             return reg;
         }
@@ -123,6 +134,13 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <param name="e">Initial event</param>
         internal override async Task GotoStartState(Event e)
         {
+            // TODO: Package this information alonside the StateManager
+            if(this.Runtime is ServiceFabricPSharpRuntime)
+            {
+                this.ServiceCancellationToken = (this.Runtime as ServiceFabricPSharpRuntime).ServiceCancellationToken;
+                this.DefaultTimeLimit = (this.Runtime as ServiceFabricPSharpRuntime).DefaultTimeLimit;
+            }
+
             StateStackStore = await StateManager.GetMachineStackStore(Id);
             InputQueue = await StateManager.GetMachineInputQueue(Id);
 
@@ -140,7 +158,7 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 for (int i = 0; i < cnt; i++)
                 {
-                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
+                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i, DefaultTimeLimit, ServiceCancellationToken);
                     this.Assert(s.HasValue, "Error reading store for the state stack");
 
                     var nextState = StateMap[this.GetType()].First(val
@@ -155,7 +173,7 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 // fresh start
                 base.DoStatePush(startState);
-                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName);
+                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName, DefaultTimeLimit, ServiceCancellationToken);
 
                 await OnActivate();
 
@@ -176,13 +194,13 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     if (PendingStateChanges[i] is PopStateChangeOp)
                     {
-                        await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1));
+                        await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1), DefaultTimeLimit, ServiceCancellationToken);
                         size--;
                     }
                     else
                     {
                         var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().AssemblyQualifiedName;
-                        await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush);
+                        await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush, DefaultTimeLimit, ServiceCancellationToken);
                         size++;
                     }
                 }
@@ -218,6 +236,8 @@ namespace Microsoft.PSharp.ServiceFabric
 
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
+                ServiceCancellationToken.ThrowIfCancellationRequested();
+
                 var dequeued = false;
                 EventInfo nextEventInfo = null;
 
@@ -300,7 +320,7 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             while (true)
             {
-                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction, ServiceCancellationToken, DefaultTimeLimit);
                 if (cv.HasValue)
                 {
                     return cv.Value;
@@ -341,7 +361,7 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             foreach (var reg in CreatedRegisters)
             {
-                reg.SetTransaction(this.CurrentTransaction);
+                reg.SetTransaction(this.CurrentTransaction, DefaultTimeLimit, ServiceCancellationToken);
             }
         }
 

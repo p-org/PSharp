@@ -26,6 +26,16 @@ namespace Microsoft.PSharp.ServiceFabric
         IReliableStateManager StateManager;
 
         /// <summary>
+        /// Service cancellation token
+        /// </summary>
+        internal CancellationToken ServiceCancellationToken;
+
+        /// <summary>
+        /// Default time limit for SF operations
+        /// </summary>
+        internal TimeSpan DefaultTimeLimit;
+
+        /// <summary>
         /// Pending machine creations
         /// </summary>
         Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>> PendingMachineCreations;
@@ -41,18 +51,19 @@ namespace Microsoft.PSharp.ServiceFabric
         public IRemoteMachineManager RemoteMachineManager { get; }
 
         internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager)
-            : base()
-        {
-            this.StateManager = stateManager;
-            this.RemoteMachineManager = manager;
-            this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
-            StartClearOutboxTasks();
-        }
+            : this(stateManager, manager, Configuration.Create())
+        { }
 
-        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager, Configuration configuration) 
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager, Configuration configuration)
+            : this(stateManager, CancellationToken.None, manager, configuration)
+        { }
+
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, CancellationToken cancellationToken, IRemoteMachineManager manager, Configuration configuration) 
             : base(configuration)
         {
             this.StateManager = stateManager;
+            this.ServiceCancellationToken = cancellationToken;
+            this.DefaultTimeLimit = TimeSpan.FromSeconds(4);
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
             StartClearOutboxTasks();
@@ -116,7 +127,7 @@ namespace Microsoft.PSharp.ServiceFabric
             else
             {
                 var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
-                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e));
+                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e), DefaultTimeLimit, ServiceCancellationToken);
             }
 
             return mid;
@@ -142,7 +153,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 using (var tx = this.StateManager.CreateTransaction())
                 {
-                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
+                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e), DefaultTimeLimit, ServiceCancellationToken);
                     await tx.CommitAsync();
                 }
                 StartMachine(mid, type, e, creator?.Id);
@@ -150,7 +161,7 @@ namespace Microsoft.PSharp.ServiceFabric
             else
             {
                 this.Assert(reliableCreator.CurrentTransaction != null, "Creator's transaction cannot be null");
-                await createdMachineMap.AddAsync(reliableCreator.CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
+                await createdMachineMap.AddAsync(reliableCreator.CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e), DefaultTimeLimit, ServiceCancellationToken);
                 
                 if(!PendingMachineCreations.ContainsKey(reliableCreator.CurrentTransaction))
                 {
@@ -207,6 +218,8 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 while (await enumerator.MoveNextAsync(ct))
                 {
+                    ServiceCancellationToken.ThrowIfCancellationRequested();
+
                     this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
                     StartMachine(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), enumerator.Current.Value.Item3, null);
                 }
@@ -362,6 +375,8 @@ namespace Microsoft.PSharp.ServiceFabric
             var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
             while(true)
             {
+                ServiceCancellationToken.ThrowIfCancellationRequested();
+
                 var found = false;
                 try
                 {
@@ -392,6 +407,8 @@ namespace Microsoft.PSharp.ServiceFabric
             var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
             while (true)
             {
+                ServiceCancellationToken.ThrowIfCancellationRequested();
+
                 var found = false;
 
                 try

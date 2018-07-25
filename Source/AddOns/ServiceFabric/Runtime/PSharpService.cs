@@ -136,7 +136,7 @@
             await machineManager.Initialize(cancellationToken);
 
             var runtime =
-            ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration(),
+            ServiceFabricRuntimeFactory.Create(this.StateManager, cancellationToken, this.GetRuntimeConfiguration(),
                 machineManager,
                 new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, EventSerializationProvider)));
 

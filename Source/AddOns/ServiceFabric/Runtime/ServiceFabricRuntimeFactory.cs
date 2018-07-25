@@ -1,5 +1,6 @@
 ﻿using Microsoft.ServiceFabric.Data;
 using System;
+using System.Threading;
 
 namespace Microsoft.PSharp.ServiceFabric
 {
@@ -40,14 +41,15 @@ namespace Microsoft.PSharp.ServiceFabric
         /// Creates the ServiceFabric runtime for P#
         /// </summary>
         /// <param name="stateManager">State manager</param>
+        /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="config">P# Configuration</param>
         /// <param name="remoteMachineManager">Remote machine manager</param>
         /// <param name="networkProviderFunc">Network provider</param>
         /// <returns></returns>
-        public static PSharpRuntime Create(IReliableStateManager stateManager, Configuration config,
+        public static PSharpRuntime Create(IReliableStateManager stateManager, CancellationToken cancellationToken, Configuration config,
             IRemoteMachineManager remoteMachineManager, Func<PSharpRuntime, Net.IRsmNetworkProvider> networkProviderFunc)
         {
-            Current = new ServiceFabricPSharpRuntime(stateManager, remoteMachineManager, config);
+            Current = new ServiceFabricPSharpRuntime(stateManager, cancellationToken, remoteMachineManager, config);
             Current.SetRsmNetworkProvider(networkProviderFunc(Current));
             return Current;
         }
