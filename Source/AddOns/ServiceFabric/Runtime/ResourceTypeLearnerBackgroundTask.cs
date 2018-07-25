@@ -55,12 +55,13 @@ namespace Microsoft.PSharp.ServiceFabric
             this.logger.Message(string.Format("Received GetServicePartitionAsync request for resource type {0}", resourceType));
             IReliableDictionary<string, HashSet<Guid>> resourceTypeToPartitionIds = await this.stateManager.GetOrAddAsync<IReliableDictionary<string, HashSet<Guid>>>(ResourceToPartitionDictionary);
             IReliableDictionary<Guid, Tuple<string, Uri, double>> partitionInformation = await this.stateManager.GetOrAddAsync<IReliableDictionary<Guid, Tuple<string, Uri, double>>>(PartitionInformationDictionary);
+
             using (ITransaction transaction = this.stateManager.CreateTransaction())
             {
                 ConditionalValue<HashSet<Guid>> partitionList = await resourceTypeToPartitionIds.TryGetValueAsync(transaction, resourceType);
                 if (partitionList.HasValue)
                 {
-                    double currentUtilization = 1.1;
+                    double currentUtilization = double.MaxValue;
                     foreach (Guid partitionId in partitionList.Value)
                     {
                         ConditionalValue<Tuple<string, Uri, double>> partitionsDetails = await partitionInformation.TryGetValueAsync(transaction, partitionId);
@@ -81,15 +82,7 @@ namespace Microsoft.PSharp.ServiceFabric
                                 currentUtilization = detail.Item3;
                             }
                         }
-                        else
-                        {
-                            throw new ArgumentException("Details for Partition {0} not found", partitionId.ToString());
-                        }
                     }
-                }
-                else
-                {
-                    throw new ArgumentException("Resource type of {0} not found", resourceType);
                 }
 
                 if (response == null)
@@ -108,73 +101,68 @@ namespace Microsoft.PSharp.ServiceFabric
 
         protected override async Task Run(CancellationToken token)
         {
-            while (IsEnabled())
+            FabricClient fabricClient = new FabricClient();
+            Query.PagedList<Query.Application> applicationList = null;
+            try
             {
-                FabricClient fabricClient = new FabricClient();
-                Query.PagedList<Query.Application> applicationList = null;
-                try
-                {
-                    this.logger.Message("GetApplicationListAsync");
-                    applicationList = await fabricClient.QueryManager.GetApplicationListAsync();
-                }
-                catch (Exception e)
-                {
-                    this.logger.Message(string.Format("Exception occurred in GetApplicationListAsync {0}", e.Message));
-                }
+                this.logger.Message("GetApplicationListAsync");
+                applicationList = await fabricClient.QueryManager.GetApplicationListAsync();
+            }
+            catch (Exception e)
+            {
+                this.logger.Message(string.Format("Exception occurred in GetApplicationListAsync {0}", e.Message));
+            }
 
-                if (applicationList != null)
+            if (applicationList != null)
+            {
+                foreach (Query.Application application in applicationList)
                 {
-                    foreach (Query.Application application in applicationList)
+                    Query.PagedList<Query.Service> serviceList = null;
+                    try
                     {
-                        Query.PagedList<Query.Service> serviceList = null;
-                        try
-                        {
-                            this.logger.Message(string.Format("GetServiceListAsync for application {0}", application.ApplicationName));
-                            serviceList = await fabricClient.QueryManager.GetServiceListAsync(application.ApplicationName);
-                        }
-                        catch (Exception e)
-                        {
-                            this.logger.Message(string.Format("Exception occurred in GetServiceListAsync for application {0}, Exception {1}", application.ApplicationName, e));
-                        }
+                        this.logger.Message(string.Format("GetServiceListAsync for application {0}", application.ApplicationName));
+                        serviceList = await fabricClient.QueryManager.GetServiceListAsync(application.ApplicationName);
+                    }
+                    catch (Exception e)
+                    {
+                        this.logger.Message(string.Format("Exception occurred in GetServiceListAsync for application {0}, Exception {1}", application.ApplicationName, e));
+                    }
 
-                        if (serviceList != null)
+                    if (serviceList != null)
+                    {
+                        foreach (Query.Service service in serviceList)
                         {
-                            foreach (Query.Service service in serviceList)
+                            Query.PagedList<Query.Partition> partitionList = null;
+                            try
                             {
-                                Query.PagedList<Query.Partition> partitionList = null;
-                                try
-                                {
-                                    this.logger.Message(string.Format("GetPartitionListAsync for service {0}", service.ServiceName));
-                                    partitionList = await fabricClient.QueryManager.GetPartitionListAsync(service.ServiceName);
-                                }
-                                catch (Exception e)
-                                {
-                                    this.logger.Message(string.Format("Exception occurred in GetPartitionListAsync for service {0}, Exception {1}", service.ServiceName, e));
-                                }
+                                this.logger.Message(string.Format("GetPartitionListAsync for service {0}", service.ServiceName));
+                                partitionList = await fabricClient.QueryManager.GetPartitionListAsync(service.ServiceName);
+                            }
+                            catch (Exception e)
+                            {
+                                this.logger.Message(string.Format("Exception occurred in GetPartitionListAsync for service {0}, Exception {1}", service.ServiceName, e));
+                            }
 
-                                if (partitionList != null)
+                            if (partitionList != null)
+                            {
+                                foreach (Query.Partition partition in partitionList)
                                 {
-                                    foreach (Query.Partition partition in partitionList)
+                                    try
                                     {
-                                        try
-                                        {
-                                            await ProcessPartitionAsync(service, partition);
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            this.logger.Message(string.Format("Exception occurred in ProcessPartitionAsync for partition {0} service {1} Exception {2}",
-                                                partition.PartitionInformation.Id,
-                                                service.ServiceName,
-                                                e));
-                                        }
+                                        await ProcessPartitionAsync(service, partition);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        this.logger.Message(string.Format("Exception occurred in ProcessPartitionAsync for partition {0} service {1} Exception {2}",
+                                            partition.PartitionInformation.Id,
+                                            service.ServiceName,
+                                            e));
                                     }
                                 }
                             }
                         }
                     }
                 }
-
-                await Task.Delay(WaitTime(), token);
             }
         }
 
