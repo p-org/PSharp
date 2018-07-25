@@ -100,11 +100,9 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// <returns>MachineId</returns>
         private MachineId ScheduleCreateMachine(MachineId mid, Type type, string friendlyName, Event e, ReliableMachine creator, Guid? operationGroupId)
         {
-            this.AssertCorrectCallerMachine(creator, "CreateMachine");
+            this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
             this.Assert(creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator.GetType().Name);
             this.Assert(creator.CurrentTransaction != null, "Machine '{0}' tried to create another machine using a null transaction.", creator.Id);
-            this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
-            this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
 
             if (mid == null)
             {
@@ -171,9 +169,6 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// <param name="options">Optional parameters of a send operation.</param>
         private void ScheduleSendEvent(MachineId mid, Event e, ReliableMachine sender, SendOptions options)
         {
-            this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
-            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
-                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid);
             this.Assert(sender.CurrentTransaction != null, "Machine '{0}' tried to send an event using a null transaction.", sender.Id);
 
             if (!PendingEventSends.ContainsKey(sender.Id))

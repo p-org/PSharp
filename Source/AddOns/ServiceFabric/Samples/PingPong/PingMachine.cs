@@ -48,7 +48,8 @@ namespace PingPong
         private async Task Reply()
         {
             int count = await Count.Get();
-            this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count)); // assert safety
+            this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count));
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPingEvent());
             if (count < 5)
             {
                 Send(await PongMachine.Get(), new PongEvent(this.Id));
