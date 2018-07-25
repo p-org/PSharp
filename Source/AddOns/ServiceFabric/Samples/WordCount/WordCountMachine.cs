@@ -92,7 +92,7 @@ namespace WordCount
         {
             this.Logger.WriteLine("Machine {0}: starting", this.Id.Name);
 
-            WordFrequency = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("WordFrequency");
+            WordFrequency = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("WordFrequency" + this.Id);
             LatestTimeStamp = this.GetOrAddRegister<int>("LatestTimeStamp", 0);
             HighestFrequency = this.GetOrAddRegister<int>("HighestFrequency", 0);
             TargetMachine = this.GetOrAddRegister<MachineId>("TargetMachine", null);
