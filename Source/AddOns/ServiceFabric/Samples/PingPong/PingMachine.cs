@@ -58,12 +58,6 @@ namespace PingPong
                 this.Logger.WriteLine("#Pings: {0} / 2", count);
             }
 
-            //this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count));
-            //this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPingEvent());
-            //Send(await PongMachine.Get(), new PongEvent(this.Id));
-            //await Count.Set(count + 1);
-            //this.Logger.WriteLine("#Pings: {0} / 5", count + 1);
-
             //Send(await PongMachine.Get(), new Halt());
             //var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
             //await PongMachine.Set(pongMachineId);
