@@ -12,12 +12,26 @@
 
     public class VMManagerService : PSharpService
     {
-        public VMManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext, new List<Type>())
+        public static List<Type> KnownTypes = new List<Type>()
+        {
+            // Events
+            typeof(ePoolDeletionRequestEvent),
+            typeof(ePoolDriverConfigChangeEvent),
+            typeof(ePoolResizeRequestEvent),
+            typeof(eVMCreateRequestEvent),
+            typeof(eVMDeleteRequestEvent),
+            typeof(eVMRenewRequestEvent),
+
+            // Contracts
+            typeof(PoolDriverConfig)
+        };
+
+        public VMManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext, KnownTypes)
         {
             this.Logger = logger;
         }
 
-        public VMManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, new List<Type>(), reliableStateManagerReplica)
+        public VMManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, KnownTypes, reliableStateManagerReplica)
         {
             this.Logger = logger;
         }

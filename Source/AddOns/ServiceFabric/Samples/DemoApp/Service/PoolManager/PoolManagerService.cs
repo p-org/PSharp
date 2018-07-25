@@ -18,6 +18,9 @@
             typeof(ePoolDeletionRequestEvent),
             typeof(ePoolDriverConfigChangeEvent),
             typeof(ePoolResizeRequestEvent),
+            typeof(eVMCreateRequestEvent),
+            typeof(eVMDeleteRequestEvent),
+            typeof(eVMRenewRequestEvent),
 
             // Contracts
             typeof(PoolDriverConfig)

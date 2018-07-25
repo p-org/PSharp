@@ -17,8 +17,8 @@
         }
 
         [Start]
-        [OnEntry(nameof(ResizePool))]
-        [OnEventDoAction(typeof(ePoolResizeRequestEvent), nameof(ResizePool))]
+        [OnEntry(nameof(CreatePool))]
+        [OnEventDoAction(typeof(eVMCreateRequestEvent), nameof(CreatePool))]
         [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
         class Resizing : MachineState
         {
@@ -29,10 +29,11 @@
         {
         }
 
-        private async Task ResizePool()
+        private async Task CreatePool()
         {
-            ePoolResizeRequestEvent resizeRequest = this.ReceivedEvent as ePoolResizeRequestEvent;
-            this.Logger.WriteLine($"Resize request for pool {this.Id} and size {resizeRequest.Size}");
+            eVMCreateRequestEvent resizeRequest = this.ReceivedEvent as eVMCreateRequestEvent;
+            
+            this.Logger.WriteLine($"VMManagerMachine Resize request for pool {resizeRequest.senderId}");
             await Task.Yield();
         }
 

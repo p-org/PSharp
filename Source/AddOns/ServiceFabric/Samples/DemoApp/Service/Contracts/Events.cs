@@ -21,4 +21,40 @@
         [DataMember]
         public int Size;
     }
+
+    [DataContract]
+    public class eVMCreateRequestEvent : Event
+    {
+        public eVMCreateRequestEvent(MachineId sId)
+        {
+            this.senderId = sId;
+        }
+
+        [DataMember]
+        public MachineId senderId;
+    }
+
+    [DataContract]
+    public class eVMRenewRequestEvent : Event
+    {
+        public eVMRenewRequestEvent(MachineId sId)
+        {
+            this.senderId = sId;
+        }
+
+        [DataMember]
+        public MachineId senderId;
+    }
+
+    [DataContract]
+    public class eVMDeleteRequestEvent : Event
+    {
+        public eVMDeleteRequestEvent(MachineId sId)
+        {
+            this.senderId = sId;
+        }
+
+        [DataMember]
+        public MachineId senderId;
+    }
 }
