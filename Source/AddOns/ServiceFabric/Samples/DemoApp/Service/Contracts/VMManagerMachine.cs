@@ -55,6 +55,7 @@
         {
             eVMRetryDeleteRequestEvent request = this.ReceivedEvent as eVMRetryDeleteRequestEvent;
             this.Logger.WriteLine($"VM- {this.Id} Retry delete request success for pool {request.senderId}");
+            this.Send(request.senderId, new eVMDeleteSuccessRequestEvent(this.Id));
             this.Send(this.Id, new Halt());
             await Task.Yield();
         }
@@ -95,6 +96,7 @@
             else
             {
                 this.Logger.WriteLine($"VM- {this.Id} Deleting request success for pool {request.senderId}");
+                this.Send(request.senderId, new eVMDeleteSuccessRequestEvent(this.Id));
                 this.Send(this.Id, new Halt());
             }
             await Task.Yield();
