@@ -36,6 +36,8 @@ namespace DemoAppConsole
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(LivenessMonitor));
+
             // Create a pool driver machine to process the client requests
             MachineId driver = runtime.CreateMachine(typeof(PoolServicesContract.PoolDriverMachine));
 
