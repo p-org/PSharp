@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\..\..\Build\common.props" />
+  <Import Project="..\..\..\..\..\..\Build\common.props" />
   <PropertyGroup>
     <AssemblyName>DemoAppConsole</AssemblyName>
     <RootNamespace>DemoAppConsole</RootNamespace>
