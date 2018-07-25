@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
             : base(configuration, strategy, reporter)
         {
             ReliableMachine.IsTestingModeEnabled = true;
-            this.StateManager = new StateManagerMock(null).DisallowFailures();
+            this.StateManager = new StateManagerMock(this).DisallowFailures();
             this.CreatedMachines = new Dictionary<string, Tuple<MachineId, Type, Event>>();
             this.PendingMachineCreations = new Dictionary<MachineId, List<Tuple<MachineId, Type, string, Event, Guid?>>>();
             this.PendingEventSends = new Dictionary<MachineId, List<Tuple<MachineId, Event, SendOptions>>>();

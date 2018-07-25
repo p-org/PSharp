@@ -5,45 +5,51 @@ using Microsoft.ServiceFabric.Data;
 
 namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
-    public class TransactionMock : ITransaction
+    internal class MockTransaction : ITransaction
     {
         /// <summary>
-        /// The PSharp runtime
+        /// The PSharp runtime.
         /// </summary>
         public PSharpRuntime Runtime { get; private set; }
 
         /// <summary>
-        /// True, if the transaction has been committed
+        /// The transaction id.
+        /// </summary>
+        public long TransactionId { get; }
+
+        /// <summary>
+        /// True, if the transaction has been committed.
         /// </summary>
         public bool Committed { get; private set; }
 
         /// <summary>
-        /// Objects manipulated on this transaction
+        /// Objects manipulated on this transaction.
         /// </summary>
         List<ITxState> StateObjects;
 
         /// <summary>
-        /// To disable simulated failures
+        /// To disable simulated failures.
         /// </summary>
         public static bool AllowFailures = true;
 
         /// <summary>
-        /// Inverse failure probability (i.e., 1 in N)
+        /// Inverse failure probability (i.e., 1 in N).
         /// </summary>
         public static int FailureInvProbability = 100;
 
-        public TransactionMock(PSharpRuntime runtime, long transactionId)
+        /// <summary>
+        /// The commit sequence number.
+        /// </summary>
+        public long CommitSequenceNumber => 0;
+
+        public MockTransaction(PSharpRuntime runtime, long transactionId)
         {
+            // TODO: fix this.
             this.Runtime = runtime == null ? PSharpRuntime.Create() : runtime;
             this.StateObjects = new List<ITxState>();
             this.Committed = false;
-            this._TransactionId = transactionId;
+            this.TransactionId = transactionId;
         }
-
-        public long CommitSequenceNumber => 0;
-
-        public long TransactionId => _TransactionId;
-        long _TransactionId;
 
         public void Abort()
         {
@@ -57,16 +63,12 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task CommitAsync()
         {
-            if (Committed)
-            {
-                throw new InvalidOperationException("Transaction Mock: multiple commits");
-            }
-            
+            this.Runtime.Assert(!Committed, "Transaction '{0}' has already been committed.", this.TransactionId);
             if (AllowFailures && this.Runtime.RandomInteger(FailureInvProbability) == 0)
             {
-                throw new System.Fabric.TransactionFaultedException("TransactionMock: simulated fault");
+                throw new System.Fabric.TransactionFaultedException(
+                    $"TransactionMock: simulated fault in transaction '{this.TransactionId}'");
             }
-            
 
             foreach (var obj in StateObjects)
             {
@@ -82,14 +84,15 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         public void CheckTimeout(TimeSpan? timeout = null)
         {
             bool doThrow = false;
-            if(doThrow)
+            if (doThrow)
             {
-                throw new TimeoutException("ReliableTx: simulated timeout in Tx " + TransactionId);
+                throw new TimeoutException($"ReliableTx: simulated timeout in transaction '{this.TransactionId}'");
             }
 
-            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) && AllowFailures && Runtime.RandomInteger(FailureInvProbability) == 0)
+            if ((timeout == null || timeout.Value != TimeSpan.MaxValue) &&
+                AllowFailures && Runtime.RandomInteger(FailureInvProbability) == 0)
             {
-                throw new TimeoutException("ReliableTx: simulated timeout in Tx " + TransactionId);
+                throw new TimeoutException($"ReliableTx: simulated timeout in transaction '{this.TransactionId}'");
             }
         }
 
@@ -100,7 +103,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public void Dispose()
         {
-            if(!Committed)
+            if (!Committed)
             {
                 Abort();
             }
@@ -113,7 +116,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public override string ToString()
         {
-            return string.Format("TransactionMock[{0}]", TransactionId);
+            return string.Format($"TransactionMock[{TransactionId}]");
         }
     }
 }

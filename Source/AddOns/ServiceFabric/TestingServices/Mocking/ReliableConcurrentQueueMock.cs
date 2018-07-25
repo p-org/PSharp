@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task<IAsyncEnumerable<T>> CreateEnumerableAsync(ITransaction tx)
         {
-            var mt = tx as TransactionMock;
+            var mt = tx as MockTransaction;
 
             List<T> ls;
             lock (lck)
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task EnqueueAsync(ITransaction tx, T value, CancellationToken cancellationToken = default(CancellationToken), TimeSpan? timeout = null)
         {
-            var mt = tx as TransactionMock;
+            var mt = tx as MockTransaction;
 
             lock (lck)
             {
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task<long> GetCountAsync(ITransaction tx)
         {
-            var mt = tx as TransactionMock;
+            var mt = tx as MockTransaction;
             var cnt = 0;
 
             lock (lck)
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken = default(CancellationToken), TimeSpan? timeout = null)
         {
-            var mt = tx as TransactionMock;
+            var mt = tx as MockTransaction;
 
             lock (lck)
             {

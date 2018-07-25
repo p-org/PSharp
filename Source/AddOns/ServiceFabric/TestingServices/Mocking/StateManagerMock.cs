@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// </summary>
         public StateManagerMock DisallowFailures()
         {
-            TransactionMock.AllowFailures = false;
+            MockTransaction.AllowFailures = false;
             return this;
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// <param name="N">Sets probability to 1/N</param>
         public void SetInvFailureProbability(int N)
         {
-            TransactionMock.FailureInvProbability = N;
+            MockTransaction.FailureInvProbability = N;
         }
 
         // IReliableStateManager interface
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public ITransaction CreateTransaction()
         {
-            return new TransactionMock(Runtime, Interlocked.Increment(ref TransactionCounter));
+            return new MockTransaction(Runtime, Interlocked.Increment(ref TransactionCounter));
         }
 
         public IAsyncEnumerator<IReliableState> GetAsyncEnumerator()

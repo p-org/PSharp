@@ -14,7 +14,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
     {
         private ConcurrentDictionary<TKey, TValue> persisted_dictionary = new ConcurrentDictionary<TKey, TValue>();
         private ConcurrentDictionary<TKey, TValue> curr_dictionary = new ConcurrentDictionary<TKey, TValue>();
-        private TransactionMock curr_tx = null;
+        private MockTransaction curr_tx = null;
 
         public Func<IReliableDictionary<TKey, TValue>, NotifyDictionaryRebuildEventArgs<TKey, TValue>, Task> RebuildNotificationAsyncCallback { set => throw new NotImplementedException(); }
 
@@ -257,9 +257,9 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
             return Task.FromResult(this.curr_dictionary.TryUpdate(key, newValue, comparisonValue));
         }
 
-        private TransactionMock CheckTx(ITransaction tx, TimeSpan? timeout = null)
+        private MockTransaction CheckTx(ITransaction tx, TimeSpan? timeout = null)
         {
-            var mt = tx as TransactionMock;
+            var mt = tx as MockTransaction;
 
             if (curr_tx == null)
             {

@@ -1833,7 +1833,7 @@ namespace Microsoft.PSharp
         {
             if (ex is ExecutionCanceledException)
             {
-                // Internal exception, used by PsharpTester.
+                // Internal exception, used by PSharpTester.
                 return false;
             }
 
