@@ -57,10 +57,10 @@ namespace PingPong
                 await Count.Set(count);
                 this.Logger.WriteLine("#Pings: {0} / 2", count);
             }
-
-            //Send(await PongMachine.Get(), new Halt());
-            //var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
-            //await PongMachine.Set(pongMachineId);
+            else
+            {
+                Send(await PongMachine.Get(), new Halt());
+            }
         }
 
         protected override Task OnActivate()
