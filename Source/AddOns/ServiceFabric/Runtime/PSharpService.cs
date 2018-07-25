@@ -18,6 +18,7 @@
         private static List<Type> KnownTypes = new List<Type>
         {
             typeof(Event),
+            typeof(Halt),
             typeof(TaggedRemoteEvent),
             typeof(ResourceTypesResponse),
             typeof(ResourceDetailsResponse),
@@ -80,7 +81,7 @@
 
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes, IReliableStateManagerReplica reliableStateManagerReplica) : base(serviceContext, reliableStateManagerReplica)
         {
-            var localKnownTypes = new List<Type> { typeof(Event), typeof(TaggedRemoteEvent) };
+            var localKnownTypes = new List<Type>(KnownTypes);
             localKnownTypes.AddRange(knownTypes);
 
             this.knownTypes = localKnownTypes;
