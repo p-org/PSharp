@@ -18,9 +18,14 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         public bool Committed { get; private set; }
 
         /// <summary>
+        /// True, if the transaction has been aborted
+        /// </summary>
+        public bool Aborted { get; private set; }
+
+        /// <summary>
         /// Objects manipulated on this transaction
         /// </summary>
-        List<ITxState> StateObjects;
+        HashSet<ITxState> StateObjects;
 
         /// <summary>
         /// To disable simulated failures
@@ -35,8 +40,9 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         public TransactionMock(PSharpRuntime runtime, long transactionId)
         {
             this.Runtime = runtime == null ? PSharpRuntime.Create() : runtime;
-            this.StateObjects = new List<ITxState>();
+            this.StateObjects = new HashSet<ITxState>();
             this.Committed = false;
+            this.Aborted = false;
             this._TransactionId = transactionId;
         }
 
@@ -47,6 +53,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public void Abort()
         {
+            this.Aborted = false;
             foreach(var obj in StateObjects)
             {
                 obj.Abort(this);
@@ -57,11 +64,11 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task CommitAsync()
         {
-            if (Committed)
+            if (Committed || Aborted)
             {
                 throw new InvalidOperationException("Transaction Mock: multiple commits");
             }
-            
+
             if (AllowFailures && this.Runtime.RandomInteger(FailureInvProbability) == 0)
             {
                 throw new System.Fabric.TransactionFaultedException("TransactionMock: simulated fault");

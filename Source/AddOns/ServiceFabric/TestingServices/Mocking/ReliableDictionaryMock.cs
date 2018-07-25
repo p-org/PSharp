@@ -12,9 +12,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
     public class ReliableDictionaryMock<TKey, TValue> : ITxState, IReliableDictionary<TKey, TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
     {
-        private ConcurrentDictionary<TKey, TValue> persisted_dictionary = new ConcurrentDictionary<TKey, TValue>();
-        private ConcurrentDictionary<TKey, TValue> curr_dictionary = new ConcurrentDictionary<TKey, TValue>();
-        private TransactionMock curr_tx = null;
+        private Dictionary<TKey, ReliableDictionaryMockValue<TValue>> persisted_dictionary = new Dictionary<TKey, ReliableDictionaryMockValue<TValue>>();
 
         public Func<IReliableDictionary<TKey, TValue>, NotifyDictionaryRebuildEventArgs<TKey, TValue>, Task> RebuildNotificationAsyncCallback { set => throw new NotImplementedException(); }
 
@@ -28,11 +26,16 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task AddAsync(ITransaction tx, TKey key, TValue value)
         {
-            CheckTx(tx);
-
-            if(!curr_dictionary.TryAdd(key, value))
+            lock(this)
             {
-                throw new InvalidOperationException("key already exists: " + key.ToString());
+                var rv = CheckTx(key, tx);
+                if(rv.GetSnapshot(tx).HasValue)
+                {
+                    throw new InvalidOperationException("key already exists: " + key.ToString());
+                }
+
+                rv.CurrValue = value;
+                rv.CurrOp = OperationType.Update;
             }
 
             return Task.FromResult(true);
@@ -40,11 +43,16 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task AddAsync(ITransaction tx, TKey key, TValue value, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx);
-
-            if (!curr_dictionary.TryAdd(key, value))
+            lock (this)
             {
-                throw new InvalidOperationException("key already exists: " + key.ToString());
+                var rv = CheckTx(key, tx);
+                if (rv.GetSnapshot(tx).HasValue)
+                {
+                    throw new InvalidOperationException("key already exists: " + key.ToString());
+                }
+
+                rv.CurrValue = value;
+                rv.CurrOp = OperationType.Update;
             }
 
             return Task.FromResult(true);
@@ -52,240 +60,401 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
 
         public Task<TValue> AddOrUpdateAsync(ITransaction tx, TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.AddOrUpdate(key, addValueFactory, updateValueFactory));
+            lock (this)
+            {
+                var rv = CheckTx(key, tx);
+                if (rv.GetSnapshot(tx).HasValue)
+                {
+                    rv.CurrValue = updateValueFactory(key, rv.GetSnapshot(tx).Value);
+                    rv.CurrOp = OperationType.Update;
+                }
+                else
+                {
+                    rv.CurrValue = addValueFactory(key);
+                    rv.CurrOp = OperationType.Update;
+                }
+                return Task.FromResult(rv.CurrValue);
+            }
         }
 
         public Task<TValue> AddOrUpdateAsync(ITransaction tx, TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.AddOrUpdate(key, addValue, updateValueFactory));
+            return AddOrUpdateAsync(tx, key, k => addValue, updateValueFactory);
         }
 
         public Task<TValue> AddOrUpdateAsync(ITransaction tx, TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.AddOrUpdate(key, addValueFactory, updateValueFactory));
+            return AddOrUpdateAsync(tx, key, addValueFactory, updateValueFactory);
         }
 
         public Task<TValue> AddOrUpdateAsync(ITransaction tx, TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.AddOrUpdate(key, addValue, updateValueFactory));
+            return AddOrUpdateAsync(tx, key, k => addValue, updateValueFactory);
         }
 
         public Task ClearAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            curr_tx = null;
-            curr_dictionary.Clear();
             persisted_dictionary.Clear();
             return Task.FromResult(true);
         }
 
         public Task ClearAsync()
         {
-            curr_tx = null;
-            curr_dictionary.Clear();
             persisted_dictionary.Clear();
             return Task.FromResult(true);
         }
 
         public Task<bool> ContainsKeyAsync(ITransaction tx, TKey key)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.ContainsKey(key));
+            var rv = CheckTx(key, tx);
+            return Task.FromResult(rv.GetSnapshot(tx).HasValue);
         }
 
         public Task<bool> ContainsKeyAsync(ITransaction tx, TKey key, LockMode lockMode)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.ContainsKey(key));
+            return ContainsKeyAsync(tx, key);
         }
 
         public Task<bool> ContainsKeyAsync(ITransaction tx, TKey key, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.ContainsKey(key));
+            return ContainsKeyAsync(tx, key);
         }
 
         public Task<bool> ContainsKeyAsync(ITransaction tx, TKey key, LockMode lockMode, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.ContainsKey(key));
+            return ContainsKeyAsync(tx, key);
         }
 
         public Task<IAsyncEnumerable<KeyValuePair<TKey, TValue>>> CreateEnumerableAsync(ITransaction txn)
         {
-            CheckTx(txn);
-            return Task.FromResult<IAsyncEnumerable<KeyValuePair<TKey, TValue>>>(new MockAsyncEnumerable<KeyValuePair<TKey, TValue>>(this.curr_dictionary));
+            var ret = GetSnapshot(txn);
+            return Task.FromResult<IAsyncEnumerable<KeyValuePair<TKey, TValue>>>(new MockAsyncEnumerable<KeyValuePair<TKey, TValue>>(ret));
         }
 
         public Task<IAsyncEnumerable<KeyValuePair<TKey, TValue>>> CreateEnumerableAsync(ITransaction txn, EnumerationMode enumerationMode)
         {
-            CheckTx(txn);
+            var ret = GetSnapshot(txn);
             return Task.FromResult<IAsyncEnumerable<KeyValuePair<TKey, TValue>>>(new MockAsyncEnumerable<KeyValuePair<TKey, TValue>>(
                 enumerationMode == EnumerationMode.Unordered
-                    ? (IEnumerable<KeyValuePair<TKey, TValue>>)this.curr_dictionary
-                    : this.curr_dictionary.OrderBy(x => x.Key)));
+                    ? (IEnumerable<KeyValuePair<TKey, TValue>>)ret
+                    : ret.OrderBy(x => x.Key)));
         }
 
         public Task<IAsyncEnumerable<KeyValuePair<TKey, TValue>>> CreateEnumerableAsync(ITransaction txn, Func<TKey, bool> filter, EnumerationMode enumerationMode)
         {
-            CheckTx(txn);
+            var ret = GetSnapshot(txn);
             return Task.FromResult<IAsyncEnumerable<KeyValuePair<TKey, TValue>>>(new MockAsyncEnumerable<KeyValuePair<TKey, TValue>>(
                 enumerationMode == EnumerationMode.Unordered
-                    ? this.curr_dictionary.Where(x => filter(x.Key))
-                    : this.curr_dictionary.Where(x => filter(x.Key)).OrderBy(x => x.Key)));
+                    ? ret.Where(x => filter(x.Key))
+                    : ret.Where(x => filter(x.Key)).OrderBy(x => x.Key)));
         }
 
         public Task<long> GetCountAsync(ITransaction tx)
         {
-            CheckTx(tx);
-            return Task.FromResult((long)this.curr_dictionary.Count);
+            var ret = GetSnapshot(tx);
+            return Task.FromResult((long)ret.Count);
         }
 
         public Task<TValue> GetOrAddAsync(ITransaction tx, TKey key, Func<TKey, TValue> valueFactory)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.GetOrAdd(key, valueFactory));
+            lock(this)
+            {
+                var rv = CheckTx(key, tx); 
+                if(rv.HasValue(tx))
+                {
+                    return Task.FromResult(rv.GetValue(tx));
+                }
+                else
+                {
+                    rv.CurrValue = valueFactory(key);
+                    rv.CurrOp = OperationType.Update;
+                    return Task.FromResult(rv.CurrValue);
+                }
+
+            }
         }
 
         public Task<TValue> GetOrAddAsync(ITransaction tx, TKey key, TValue value)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.GetOrAdd(key, value));
+            return GetOrAddAsync(tx, key, k => value);
         }
 
         public Task<TValue> GetOrAddAsync(ITransaction tx, TKey key, Func<TKey, TValue> valueFactory, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.GetOrAdd(key, valueFactory));
+            return GetOrAddAsync(tx, key, valueFactory);
         }
 
         public Task<TValue> GetOrAddAsync(ITransaction tx, TKey key, TValue value, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.GetOrAdd(key, value));
+            return GetOrAddAsync(tx, key, k => value);
         }
 
         public Task SetAsync(ITransaction tx, TKey key, TValue value)
         {
-            CheckTx(tx);
-            this.curr_dictionary[key] = value;
-            return Task.FromResult(true);
+            lock(this)
+            {
+                var rv = CheckTx(key, tx);
+                rv.CurrValue = value;
+                rv.CurrOp = OperationType.Update;
+                return Task.FromResult(true);
+            }
         }
 
         public Task SetAsync(ITransaction tx, TKey key, TValue value, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            this.curr_dictionary[key] = value;
-            return Task.FromResult(true);
+            return SetAsync(tx, key, value);
         }
 
         public Task<bool> TryAddAsync(ITransaction tx, TKey key, TValue value)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.TryAdd(key, value));
+            lock(this)
+            {
+                var rv = CheckTx(key, tx);
+                if(rv.HasValue(tx))
+                {
+                    return Task.FromResult(false);
+                }
+                else
+                {
+                    rv.CurrValue = value;
+                    rv.CurrOp = OperationType.Update;
+                    return Task.FromResult(true);
+                }
+            }
         }
 
         public Task<bool> TryAddAsync(ITransaction tx, TKey key, TValue value, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.TryAdd(key, value));
+            return TryAddAsync(tx, key, value);
         }
 
         public Task<ConditionalValue<TValue>> TryGetValueAsync(ITransaction tx, TKey key)
         {
-            CheckTx(tx);
-
-            TValue value;
-            bool result = this.curr_dictionary.TryGetValue(key, out value);
-            return Task.FromResult(new ConditionalValue<TValue>(result, value));
+            lock (this)
+            {
+                var rv = CheckTx(key, tx);
+                return Task.FromResult(rv.GetSnapshot(tx));
+            }
         }
 
         public Task<ConditionalValue<TValue>> TryGetValueAsync(ITransaction tx, TKey key, LockMode lockMode)
         {
-            CheckTx(tx);
-
-            TValue value;
-            bool result = this.curr_dictionary.TryGetValue(key, out value);
-            return Task.FromResult(new ConditionalValue<TValue>(result, value));
+            return TryGetValueAsync(tx, key);
         }
 
         public Task<ConditionalValue<TValue>> TryGetValueAsync(ITransaction tx, TKey key, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            TValue value;
-            bool result = this.curr_dictionary.TryGetValue(key, out value);
-            return Task.FromResult(new ConditionalValue<TValue>(result, value));
+            return TryGetValueAsync(tx, key);
         }
 
         public Task<ConditionalValue<TValue>> TryGetValueAsync(ITransaction tx, TKey key, LockMode lockMode, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            TValue value;
-            bool result = this.curr_dictionary.TryGetValue(key, out value);
-            return Task.FromResult(new ConditionalValue<TValue>(result, value));
+            return TryGetValueAsync(tx, key);
         }
 
         public Task<ConditionalValue<TValue>> TryRemoveAsync(ITransaction tx, TKey key)
         {
-            CheckTx(tx);
+            CheckTx(key, tx);
 
-            TValue outValue;
-            return Task.FromResult(new ConditionalValue<TValue>(this.curr_dictionary.TryRemove(key, out outValue), outValue));
-
+            lock (this)
+            {
+                var rv = CheckTx(key, tx);
+                var ret = rv.GetSnapshot(tx);
+                if(rv.HasValue(tx))
+                {
+                    rv.CurrValue = default(TValue);
+                    rv.CurrOp = OperationType.Delete;
+                }
+                return Task.FromResult(ret);
+            }
         }
 
         public Task<ConditionalValue<TValue>> TryRemoveAsync(ITransaction tx, TKey key, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-
-            TValue outValue;
-            return Task.FromResult(new ConditionalValue<TValue>(this.curr_dictionary.TryRemove(key, out outValue), outValue));
+            return TryRemoveAsync(tx, key);
         }
 
         public Task<bool> TryUpdateAsync(ITransaction tx, TKey key, TValue newValue, TValue comparisonValue)
         {
-            CheckTx(tx);
-            return Task.FromResult(this.curr_dictionary.TryUpdate(key, newValue, comparisonValue));
+            lock (this)
+            {
+                var rv = CheckTx(key, tx);
+                if(rv.HasValue(tx))
+                {
+                    if(comparisonValue.Equals(rv.GetValue(tx)))
+                    {
+                        rv.CurrValue = newValue;
+                        rv.CurrOp = OperationType.Update;
+                        return Task.FromResult(true);
+                    }
+                }
+                return Task.FromResult(false);
+            }
+
         }
 
         public Task<bool> TryUpdateAsync(ITransaction tx, TKey key, TValue newValue, TValue comparisonValue, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            CheckTx(tx, timeout);
-            return Task.FromResult(this.curr_dictionary.TryUpdate(key, newValue, comparisonValue));
+            return TryUpdateAsync(tx, key, newValue, comparisonValue);
         }
 
-        private TransactionMock CheckTx(ITransaction tx, TimeSpan? timeout = null)
+        private Dictionary<TKey, TValue> GetSnapshot(ITransaction txn)
+        {
+            var ret = new Dictionary<TKey, TValue>();
+            foreach (var tup in persisted_dictionary)
+            {
+                var cv = tup.Value.GetSnapshot(txn);
+                if (cv.HasValue)
+                {
+                    ret.Add(tup.Key, cv.Value);
+                }
+            }
+            return ret;
+        }
+
+        private ReliableDictionaryMockValue<TValue> CheckTx(TKey key, ITransaction tx, TimeSpan? timeout = null)
         {
             var mt = tx as TransactionMock;
+            mt.RegisterStateObject(this);
 
-            if (curr_tx == null)
+            if (persisted_dictionary.ContainsKey(key))
             {
-                curr_tx = mt;
-                mt.RegisterStateObject(this);
+                var cv = persisted_dictionary[key];
+                if (cv.CurrTx == null)
+                {
+                    cv.CurrTx = mt;
+                    cv.CurrOp = OperationType.Read;
+                }
+                else
+                {
+                    mt.Runtime.Assert(cv.CurrTx == mt,
+                        $"ReliableCollection: multiple concurrent transactions detected on the same key {key}");
+                }
             }
             else
             {
-                curr_tx.Runtime.Assert(curr_tx == mt, "ReliableCollection: multiple concurrent transactions detected");
+                persisted_dictionary.Add(key, new ReliableDictionaryMockValue<TValue>(false, default(TValue), tx));
             }
 
+
             mt.CheckTimeout(timeout);
-            
-            return mt;
+
+            return persisted_dictionary[key];
         }
 
         void ITxState.Abort(ITransaction tx)
         {
-            curr_dictionary = new ConcurrentDictionary<TKey, TValue>(persisted_dictionary);
-            curr_tx = null;
+            lock (this)
+            {
+                foreach (var tup in persisted_dictionary)
+                {
+                    if (tup.Value.CurrTx == tx)
+                    {
+                        tup.Value.CurrTx = null;
+                    }
+                }
+            }
         }
 
         void ITxState.Commit(ITransaction tx)
         {
-            persisted_dictionary = new ConcurrentDictionary<TKey, TValue>(curr_dictionary);
-            curr_tx = null;
+            lock(this)
+            {
+                foreach(var tup in persisted_dictionary)
+                {
+                    if(tup.Value.CurrTx == tx)
+                    {
+                        var cv = tup.Value.GetSnapshot(tx);
+                        tup.Value.PersistedValuePresent = cv.HasValue;
+                        tup.Value.PersistedValue = cv.Value;
+                        tup.Value.CurrTx = null; 
+                    }
+                }
+            }
+        }
+    }
+
+    enum OperationType { Read, Delete, Update };
+    class ReliableDictionaryMockValue<TValue>
+    {
+        public bool PersistedValuePresent;
+        public TValue PersistedValue;
+
+        public TransactionMock CurrTx;
+        public TValue CurrValue;
+        public OperationType CurrOp;
+
+        public ReliableDictionaryMockValue(bool keyPresent, TValue persistedValue, ITransaction currTx)
+        {
+            this.PersistedValuePresent = keyPresent;
+            this.PersistedValue = persistedValue;
+            this.CurrTx = currTx as TransactionMock;
+            CurrValue = default(TValue);
+            CurrOp = OperationType.Read;
+        }
+
+        public ReliableDictionaryMockValue(bool keyPresent, TValue persistedValue, ITransaction currTx, TValue value)
+        {
+            this.PersistedValuePresent = keyPresent;
+            this.PersistedValue = persistedValue;
+            this.CurrTx = currTx as TransactionMock;
+            CurrValue = value;
+            CurrOp = OperationType.Update;
+        }
+
+        public ConditionalValue<TValue> GetPersistedValue()
+        {
+            var notPresent = new ConditionalValue<TValue>(false, default(TValue));
+
+            if (PersistedValuePresent)
+            {
+                return new ConditionalValue<TValue>(true, PersistedValue);
+            }
+            else
+            {
+                return notPresent;
+            }
+
+        }
+
+        public ConditionalValue<TValue> GetSnapshot(ITransaction tx)
+        {
+            var notPresent = new ConditionalValue<TValue>(false, default(TValue));
+
+            if (CurrTx == tx)
+            {
+                if(CurrOp == OperationType.Read)
+                {
+                    return GetPersistedValue();
+                }
+                else if(CurrOp == OperationType.Delete)
+                {
+                    return notPresent;
+                }
+                else
+                {
+                    return new ConditionalValue<TValue>(true, CurrValue);
+                }
+            }
+            else
+            {
+                return GetPersistedValue();
+            }
+        }
+
+        public bool HasValue(ITransaction tx)
+        {
+            return GetSnapshot(tx).HasValue;
+        }
+
+        public TValue GetValue(ITransaction tx)
+        {
+            return GetSnapshot(tx).Value;
+        }
+
+        public static ReliableDictionaryMockValue<TValue> FromValue(ITransaction tx, TValue value)
+        {
+            return new ReliableDictionaryMockValue<TValue>(false, default(TValue), tx as TransactionMock, value);
         }
     }
 }
