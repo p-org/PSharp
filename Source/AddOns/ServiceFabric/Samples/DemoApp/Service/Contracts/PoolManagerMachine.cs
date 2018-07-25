@@ -33,51 +33,19 @@
         [OnEntry(nameof(ResizePool))]
         [OnEventDoAction(typeof(ePoolResizeRequestEvent), nameof(ResizePool))]
         [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
-        [OnEventGotoState(typeof(eVMCreateFailureRequestEvent), typeof(VMCreateFailing))]
-        [OnEventGotoState(typeof(eVMCreateSuccessRequestEvent), typeof(VMCreated))]
-        [OnEventGotoState(typeof(eVMDeleteFailureRequestEvent), typeof(VMDeleteFailing))]
-        [OnEventGotoState(typeof(eVMDeleteSuccessRequestEvent), typeof(VMDeleted))]
+        [OnEventDoAction(typeof(eVMCreateFailureRequestEvent), nameof(RetryCreateVM))]
+        [OnEventDoAction(typeof(eVMCreateSuccessRequestEvent), nameof(OnVMCreated))]
+        [OnEventDoAction(typeof(eVMDeleteFailureRequestEvent), nameof(RetryDeleteVM))]
+        [OnEventDoAction(typeof(eVMDeleteSuccessRequestEvent), nameof(OnVMDeleted))]
         class Resizing : MachineState
         {
         }
 
-        [OnEntry(nameof(RetryCreateVM))]
-        [OnEventDoAction(typeof(eVMCreateFailureRequestEvent), nameof(RetryCreateVM))]
-        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
-        [OnEventGotoState(typeof(eVMCreateSuccessRequestEvent), typeof(VMCreated))]
-        [OnEventGotoState(typeof(eVMDeleteFailureRequestEvent), typeof(VMDeleteFailing))]
-        [OnEventGotoState(typeof(ePoolResizeRequestEvent), typeof(Resizing))]
-        class VMCreateFailing : MachineState
-        {
-        }
-
-        [OnEntry(nameof(RetryDeleteVM))]
-        [OnEventDoAction(typeof(eVMDeleteFailureRequestEvent), nameof(RetryDeleteVM))]
-        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
-        [OnEventGotoState(typeof(eVMDeleteSuccessRequestEvent), typeof(VMDeleted))]
-        [OnEventGotoState(typeof(ePoolResizeRequestEvent), typeof(Resizing))]
-        class VMDeleteFailing : MachineState
-        {
-        }
-
         [OnEntry(nameof(DeletePool))]
-        [OnEventGotoState(typeof(eVMDeleteSuccessRequestEvent), typeof(VMDeleted))]
-        [OnEventGotoState(typeof(eVMDeleteFailureRequestEvent), typeof(VMDeleteFailing))]
+        [OnEventDoAction(typeof(ePoolDeletionRequestEvent), nameof(DeletePool))]
+        [OnEventDoAction(typeof(eVMDeleteSuccessRequestEvent), nameof(OnVMDeleted))]
+        [OnEventDoAction(typeof(eVMDeleteFailureRequestEvent), nameof(RetryDeleteVM))]
         class Deleting : MachineState
-        {
-        }
-
-        [OnEntry(nameof(OnVMCreated))]
-        [OnEventGotoState(typeof(ePoolResizeRequestEvent), typeof(Resizing))]
-        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
-        class VMCreated : MachineState
-        {
-        }
-
-        [OnEntry(nameof(OnVMDeleted))]
-        [OnEventGotoState(typeof(ePoolResizeRequestEvent), typeof(Resizing))]
-        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
-        class VMDeleted : MachineState
         {
         }
 
@@ -100,7 +68,10 @@
                 new List<MachineId>(),
                 (key, oldvalue) =>
                 {
-                    oldvalue.Remove(request.senderId);
+                    if (oldvalue.Contains(request.senderId))
+                    {
+                        oldvalue.Remove(request.senderId);
+                    }
                     return oldvalue;
                 });
         }
@@ -117,7 +88,10 @@
                 new List<MachineId>(),
                 (key, oldvalue) =>
                 {
-                    oldvalue.Remove(request.senderId);
+                    if(oldvalue.Contains(request.senderId))
+                    {
+                        oldvalue.Remove(request.senderId);
+                    }
                     createEmpty = oldvalue.Count == 0;
                     return oldvalue;
                 });
@@ -127,7 +101,10 @@
                 new List<MachineId>(),
                 (key, oldvalue) =>
                 {
-                    oldvalue.Remove(request.senderId);
+                    if (oldvalue.Contains(request.senderId))
+                    {
+                        oldvalue.Remove(request.senderId);
+                    }
                     createEmpty = createEmpty && oldvalue.Count == 0;
                     return oldvalue;
                 });
@@ -137,7 +114,10 @@
                 new List<MachineId>(),
                 (key, oldvalue) =>
                 {
-                    oldvalue.Remove(request.senderId);
+                    if (oldvalue.Contains(request.senderId))
+                    {
+                        oldvalue.Remove(request.senderId);
+                    }
                     deleteEmpty = oldvalue.Count == 0;
                     return oldvalue;
                 });
@@ -168,6 +148,7 @@
         private async Task ResizePool()
         {
             ePoolResizeRequestEvent resizeRequest = this.ReceivedEvent as ePoolResizeRequestEvent;
+            if (resizeRequest == null) return;
             this.Logger.WriteLine($"PM- {this.Id} Resize requested- size {resizeRequest.Size}");
             ConditionalValue<List<MachineId>> createdVMList = await VMCreatedTable.TryGetValueAsync(this.CurrentTransaction, this.Id);
             int difference;
@@ -224,6 +205,8 @@
         {
             this.Logger.WriteLine($"PM- {this.Id} Deletion request of pool");
             ePoolDeletionRequestEvent deleteEvent = this.ReceivedEvent as ePoolDeletionRequestEvent;
+            if (deleteEvent == null) return;
+
             ConditionalValue<List<MachineId>> createdVMList = await VMCreatedTable.TryGetValueAsync(this.CurrentTransaction, this.Id);
             ConditionalValue<List<MachineId>> creatingVMList = await VMCreatingTable.TryGetValueAsync(this.CurrentTransaction, this.Id);
             if (createdVMList.HasValue)
