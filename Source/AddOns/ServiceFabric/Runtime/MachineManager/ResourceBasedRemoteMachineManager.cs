@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.partitionName = this.GetPartitionName();
 
             // Spawn off background tasks
-            resourceTypeLearnerTask = new ResourceTypeLearnerBackgroundTask(this.service, TimeSpan.FromMinutes(1), this.logger);
+            resourceTypeLearnerTask = new ResourceTypeLearnerBackgroundTask(this.service, TimeSpan.FromMinutes(1), new NullPSharpServiceLogger());
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             resourceTypeLearnerTask.Start(token);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed

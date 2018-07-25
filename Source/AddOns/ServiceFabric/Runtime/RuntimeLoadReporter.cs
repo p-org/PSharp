@@ -31,11 +31,9 @@
             ulong count = 0;
             foreach (var item in resources)
             {
-                this.logger.Message($"{item.ResourceType} = {item.Count}");
                 count += item.Count;
             }
 
-            this.logger.Message($"{this.partition.PartitionInfo.Id} = {count}");
             this.partition.ReportLoad(new List<LoadMetric> { new LoadMetric(MetricName, (int)count) });
         }
 

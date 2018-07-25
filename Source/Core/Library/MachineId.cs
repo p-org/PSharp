@@ -155,7 +155,7 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return (string.IsNullOrWhiteSpace(Endpoint) ? Name : $"{Name} at {Endpoint} with Type {Type}");
+            return (string.IsNullOrWhiteSpace(Endpoint) ? Name : $"{Endpoint}|||{Type}|||{Name}");
         }
 
         public bool Equals(MachineId other)
@@ -165,13 +165,13 @@ namespace Microsoft.PSharp
 
         public int CompareTo(MachineId other)
         {
-            if (Runtime.IsTest())
+            if (Runtime != null && Runtime.IsTest())
             {
                 return Value.CompareTo(other.Value);
             }
             else
             {
-                return Name.CompareTo(other.Name);
+                return string.Compare(this.Name, other == null ? null : other.Name);
             }
         }
 
