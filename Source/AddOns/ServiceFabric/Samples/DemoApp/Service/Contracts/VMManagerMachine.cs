@@ -19,8 +19,9 @@
         [Start]
         [OnEntry(nameof(CreatePool))]
         [OnEventDoAction(typeof(eVMCreateRequestEvent), nameof(CreatePool))]
-        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
-        class Resizing : MachineState
+        [OnEventGotoState(typeof(eVMDeleteRequestEvent), typeof(Deleting))]
+        [OnEventGotoState(typeof(eVMRenewRequestEvent), typeof(Recreating))]
+        class Creating : MachineState
         {
         }
 
@@ -29,17 +30,40 @@
         {
         }
 
+        [OnEntry(nameof(RecreateVM))]
+        [OnEventGotoState(typeof(eVMDeleteRequestEvent), typeof(Deleting))]
+        class Recreating : MachineState
+        {
+        }
+
+        private async Task RecreateVM()
+        {
+            eVMRenewRequestEvent createRequest = this.ReceivedEvent as eVMRenewRequestEvent;
+            this.Logger.WriteLine($"VMManagerMachine Re create vm request success for pool {createRequest.senderId}");
+            await Task.Yield();
+        }
+
         private async Task CreatePool()
         {
-            eVMCreateRequestEvent resizeRequest = this.ReceivedEvent as eVMCreateRequestEvent;
+            eVMCreateRequestEvent createRequest = this.ReceivedEvent as eVMCreateRequestEvent;
             
-            this.Logger.WriteLine($"VMManagerMachine Resize request for pool {resizeRequest.senderId}");
+            System.Random randomInteger = new System.Random();
+            if (randomInteger.Next() % 2 == 0)
+            {
+                this.Logger.WriteLine($"VMManagerMachine Create request failed request for pool {createRequest.senderId}");
+                this.Send(createRequest.senderId, new eVMFailureEvent(this.Id));
+            }
+            else
+            {
+                this.Logger.WriteLine($"VMManagerMachine Create request success for pool {createRequest.senderId}");
+            }
             await Task.Yield();
         }
 
         private async Task DeletePool()
         {
-            this.Logger.WriteLine($"Deletion request of pool {this.Id}");
+            eVMDeleteRequestEvent deleteRequest = this.ReceivedEvent as eVMDeleteRequestEvent;
+            this.Logger.WriteLine($"VMManagerMachine Deletion request of vm {this.Id} for pool {deleteRequest.senderId}");
             this.Send(this.Id, new Halt());
             await Task.Yield();
         }

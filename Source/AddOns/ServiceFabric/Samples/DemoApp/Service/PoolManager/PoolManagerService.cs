@@ -21,6 +21,7 @@
             typeof(eVMCreateRequestEvent),
             typeof(eVMDeleteRequestEvent),
             typeof(eVMRenewRequestEvent),
+            typeof(eVMFailureEvent),
 
             // Contracts
             typeof(PoolDriverConfig)

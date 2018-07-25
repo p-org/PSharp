@@ -27,13 +27,37 @@
         [OnEntry(nameof(ResizePool))]
         [OnEventDoAction(typeof(ePoolResizeRequestEvent), nameof(ResizePool))]
         [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
+        [OnEventGotoState(typeof(eVMFailureEvent), typeof(VMFailing))]
         class Resizing : MachineState
+        {
+        }
+
+        [OnEntry(nameof(RenewVM))]
+        [OnEventDoAction(typeof(eVMFailureEvent), nameof(RenewVM))]
+        [OnEventGotoState(typeof(ePoolDeletionRequestEvent), typeof(Deleting))]
+        [OnEventGotoState(typeof(ePoolResizeRequestEvent), typeof(Resizing))]
+        class VMFailing : MachineState
         {
         }
 
         [OnEntry(nameof(DeletePool))]
         class Deleting : MachineState
         {
+        }
+
+        private async Task RenewVM()
+        {
+            eVMFailureEvent failureEvent = this.ReceivedEvent as eVMFailureEvent;
+            this.Logger.WriteLine($"PoolManagerMachine for {this.Id} received VM Failure for {failureEvent.machineId}");
+            using (ITransaction tx = this.StateManager.CreateTransaction())
+            {
+                ConditionalValue<List<MachineId>> createdVMList = await vMMachineIdTable.TryGetValueAsync(tx, this.Id);
+                this.Send(failureEvent.machineId, new eVMDeleteRequestEvent(this.Id));
+                createdVMList.Value.Remove(failureEvent.machineId);
+                createdVMList.Value.Add(this.CreateMachine(typeof(VMManagerMachine), new eVMRenewRequestEvent(this.Id)));
+                await vMMachineIdTable.AddOrUpdateAsync(tx, this.Id, createdVMList.Value, (key, oldvalue) => createdVMList.Value);
+                await tx.CommitAsync();
+            }
         }
 
         private async Task ResizePool()
@@ -70,7 +94,7 @@
                 }
                 else
                 {
-                    while (difference-- < 0)
+                    while (difference-- > 0)
                     {
                         commit = true;
                         newVMList.Add(this.CreateMachine(typeof(VMManagerMachine), new eVMCreateRequestEvent(this.Id)));

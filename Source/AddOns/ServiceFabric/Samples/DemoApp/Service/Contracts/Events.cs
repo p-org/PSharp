@@ -57,4 +57,16 @@
         [DataMember]
         public MachineId senderId;
     }
+
+    [DataContract]
+    public class eVMFailureEvent : Event
+    {
+        public eVMFailureEvent(MachineId machineId)
+        {
+            this.machineId = machineId;
+        }
+
+        [DataMember]
+        public MachineId machineId;
+    }
 }
