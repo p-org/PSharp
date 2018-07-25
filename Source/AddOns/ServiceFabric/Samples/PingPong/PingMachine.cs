@@ -35,6 +35,7 @@ namespace PingPong
             try
             {
                 var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPongEvent());
                 await PongMachine.Set(pongMachineId);
                 this.Goto<Waiting>();
             }
@@ -47,16 +48,19 @@ namespace PingPong
 
         private async Task Reply()
         {
-            int count = await Count.Get();
-            this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count));
-            this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPingEvent());
-            Send(await PongMachine.Get(), new PongEvent(this.Id));
-            await Count.Set(count + 1);
-            this.Logger.WriteLine("#Pings: {0} / 5", count + 1);
+            int count = (await Count.Get()) + 1;
+            if (count <= 2)
+            {
+                Send(await PongMachine.Get(), new PongEvent(this.Id));
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPongEvent());
+                this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count));
+                await Count.Set(count);
+                this.Logger.WriteLine("#Pings: {0} / 2", count);
+            }
 
-            Send(await PongMachine.Get(), new Halt());
-            var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
-            await PongMachine.Set(pongMachineId);
+            //Send(await PongMachine.Get(), new Halt());
+            //var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
+            //await PongMachine.Set(pongMachineId);
         }
 
         protected override Task OnActivate()

@@ -767,7 +767,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="runNewHandler">Run a new handler</param>
         /// <returns>EventInfo</returns>
-        protected EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
+        private EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
         {
             if (sender != null && sender is Machine)
             {
