@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
             this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
-            // Idempotence check
+            // Idempotence check (TODO: make concurrency safe)
             if (MachineMap.ContainsKey(mid))
             {
                 // machine already created
@@ -145,7 +145,7 @@ namespace Microsoft.PSharp.ServiceFabric
                     await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
                     await tx.CommitAsync();
                 }
-                StartMachine(mid, type, friendlyName, e, creator?.Id);
+                StartMachine(mid, type, e, creator?.Id);
             }
             else
             {
@@ -164,8 +164,15 @@ namespace Microsoft.PSharp.ServiceFabric
 
         }
 
-        private void StartMachine(MachineId mid, Type type, string friendlyName, Event e, MachineId creator)
+        private void StartMachine(MachineId mid, Type type, Event e, MachineId creator)
         {
+            // Idempotence check (TODO: make concurrency safe)
+            if (MachineMap.ContainsKey(mid))
+            {
+                // machine already created
+                return;
+            }
+
             this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Name);
             this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                 mid.Name, mid.Type, type.FullName);
@@ -202,7 +209,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 while (await enumerator.MoveNextAsync(ct))
                 {
                     this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
-                    await CreateMachineLocalAsync(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), null, enumerator.Current.Value.Item3, null, null);
+                    StartMachine(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), enumerator.Current.Value.Item3, null);
                 }
             }
         }
@@ -319,7 +326,7 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 foreach (var tup in PendingMachineCreations[tx])
                 {
-                    StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
+                    StartMachine(tup.Item1, tup.Item2, tup.Item4, tup.Item5);
                 }
                 PendingMachineCreations.Remove(tx);
             }
