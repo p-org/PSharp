@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace PingPong
 {
@@ -47,16 +44,18 @@ namespace PingPong
 
         private async Task Reply()
         {
-            var cnt = await Count.Get();
+            int cnt = await Count.Get();
             if (cnt < 5)
             {
                 Send(await PongMachine.Get(), new PongEvent(this.Id));
                 await Count.Set(cnt + 1);
+                this.Logger.WriteLine("#Pings: {0} / 5", cnt + 1);
             }
         }
 
         protected override Task OnActivate()
         {
+            this.Logger.WriteLine($"{this.Id} - activating...");
             Count = this.GetOrAddRegister<int>("Count", 0);
             PongMachine = this.GetOrAddRegister<MachineId>("PongMachine", null);
             return Task.CompletedTask;

@@ -1,10 +1,10 @@
-﻿namespace Microsoft.PSharp.ServiceFabric
-{
-    using Microsoft.ServiceFabric.Data;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
+﻿using Microsoft.ServiceFabric.Data;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
+namespace Microsoft.PSharp.ServiceFabric.TestingServices
+{
     /// <summary>
     /// Simple wrapper for a synchronous IEnumerable of T.
     /// </summary>
@@ -37,7 +37,6 @@
             this.enumerator = enumerator;
         }
 
-
         public T Current
         {
             get
@@ -61,5 +60,4 @@
             this.enumerator.Reset();
         }
     }
-
 }

@@ -190,7 +190,6 @@ namespace Microsoft.PSharp.ServiceFabric
         private async Task ReHydrateMachines()
         {
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
-
             using (var tx = this.StateManager.CreateTransaction())
             {
                 var enumerable = await createdMachineMap.CreateEnumerableAsync(tx);
@@ -282,8 +281,6 @@ namespace Microsoft.PSharp.ServiceFabric
 
         #endregion
 
-        #region Internal
-
         internal override HashSet<MachineId> GetCreatedMachines()
         {
             //TODO: Plumb in cancellation token
@@ -313,53 +310,34 @@ namespace Microsoft.PSharp.ServiceFabric
             return list;
         }
 
-        internal void NotifyTransactionCommit(ITransaction tx)
-        {
-            if (PendingMachineCreations.ContainsKey(tx))
-            {
-                foreach (var tup in PendingMachineCreations[tx])
-                {
-                    StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
-                }
-                PendingMachineCreations.Remove(tx);
-            }
-
-        }
-
         /// <summary>
-        /// Runs a new asynchronous machine event handler.
-        /// This is a fire and forget invocation.
+        /// Notifies that a machine has progressed. This method can be used to
+        /// implement custom notifications based on the specified arguments.
         /// </summary>
-        /// <param name="machine">Machine that executes this event handler.</param>
-        /// <param name="initialEvent">Event for initializing the machine.</param>
-        /// <param name="isFresh">If true, then this is a new machine.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
+        /// <param name="machine">Machine</param>
+        /// <param name="args">Arguments</param>
+        protected internal override void NotifyProgress(Machine machine, params object[] args)
         {
-            Task.Run(async () =>
+            if (args.Length > 0)
             {
-                try
+                // Notifies that a reliable machine has committed its current transaction.
+                ITransaction tx = args[0] as ITransaction;
+                if (tx != null && this.PendingMachineCreations.ContainsKey(tx))
                 {
-                    if (isFresh)
+                    if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
                     {
-                        await machine.GotoStartState(initialEvent);
+                        this.Logger.WriteLine("<CommitLog> Machine '{0}' committed transaction '{1}'.", machine.Id, tx.TransactionId);
                     }
 
-                    await machine.RunEventHandler();
-                }
-                catch (Exception ex)
-                {
-                    if(machine is ReliableMachine && (machine as ReliableMachine).CurrentTransaction != null)
+                    foreach (var tup in this.PendingMachineCreations[tx])
                     {
-                        (machine as ReliableMachine).CurrentTransaction.Dispose();
+                        this.StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
                     }
 
-                    base.IsRunning = false;
-                    base.RaiseOnFailureEvent(ex);
+                    this.PendingMachineCreations.Remove(tx);
                 }
-            });
+            }
         }
-
-        #endregion
 
         private void StartClearOutboxTasks()
         {
@@ -412,6 +390,15 @@ namespace Microsoft.PSharp.ServiceFabric
                     await Task.Delay(100);
                 }
             }
+        }
+
+        /// <summary>
+        /// Disposes runtime resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            this.PendingMachineCreations.Clear();
+            base.Dispose();
         }
 
         #region Unsupported
@@ -483,7 +470,6 @@ namespace Microsoft.PSharp.ServiceFabric
         }
 
         #endregion
-
     }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

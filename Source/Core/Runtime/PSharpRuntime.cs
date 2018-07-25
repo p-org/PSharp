@@ -449,6 +449,23 @@ namespace Microsoft.PSharp
             Event e, Machine creator, Guid? operationGroupId);
 
         /// <summary>
+        /// Creates a new P# machine of the specified type.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Machine</returns>
+        protected abstract Machine CreateMachine(Type type);
+
+        /// <summary>
+        /// Checks if the constructor of the specified machine type exists in the cache.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Boolean</returns>
+        protected virtual bool IsMachineCached(Type type)
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
@@ -589,7 +606,7 @@ namespace Microsoft.PSharp
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
         protected internal abstract int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue);
-        
+
         #endregion
 
         #region notifications
@@ -782,6 +799,18 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyDefaultHandlerFired(Machine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine has progressed. This method can be used to
+        /// implement custom notifications based on the specified arguments.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="args">Arguments</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected internal virtual void NotifyProgress(Machine machine, params object[] args)
         {
             // Override to implement the notification.
         }

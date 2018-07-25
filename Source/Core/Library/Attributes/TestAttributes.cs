@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Test.cs">
+// <copyright file="TestAttributes.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -43,4 +43,13 @@ namespace Microsoft.PSharp
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class TestIterationDispose : Attribute { }
+
+    /// <summary>
+    /// Attribute for declaring the factory method that creates
+    /// the P# testing runtime. This is an advanced feature,
+    /// only to be used for replacing the original P# testing
+    /// runtime with an alternative implementation.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    internal sealed class TestRuntimeCreate : Attribute { }
 }
