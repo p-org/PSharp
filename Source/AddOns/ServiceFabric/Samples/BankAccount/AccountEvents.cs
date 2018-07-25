@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.PSharp;
-using Microsoft.PSharp.ServiceFabric;
-using Microsoft.PSharp.ServiceFabric.Utilities;
+﻿using Microsoft.PSharp;
 
 namespace BankAccount
 {
-
-    class InitClientEvent : Event
-    {
-     
-    }
-
+    class InitClientEvent : Event { }
 
     class InitializeAccountEvent : Event
     {
@@ -57,7 +45,7 @@ namespace BankAccount
     }
 
     /// <summary>
-    /// Deposit operation
+    /// Deposit operation.
     /// </summary>
     class DepositEvent : Event
     {
@@ -72,7 +60,7 @@ namespace BankAccount
     }
 
     /// <summary>
-    /// Withdraw operation
+    /// Withdraw operation.
     /// </summary>
     class WithdrawEvent : Event
     {

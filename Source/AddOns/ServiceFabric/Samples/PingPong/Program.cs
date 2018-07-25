@@ -32,6 +32,8 @@ namespace PingPong
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(SafetyMonitor));
+            runtime.RegisterMonitor(typeof(LivenessMonitor));
             runtime.CreateMachine(typeof(PingMachine));
         }
 

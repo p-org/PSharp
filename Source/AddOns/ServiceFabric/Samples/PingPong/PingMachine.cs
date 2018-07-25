@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
-
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
@@ -8,6 +8,9 @@ using Microsoft.ServiceFabric.Data;
 
 namespace PingPong
 {
+    [DataContract]
+    public class PingEvent : Event { }
+
     public class PingMachine : ReliableMachine
     {
         /// <summary>
@@ -44,10 +47,12 @@ namespace PingPong
 
         private async Task Reply()
         {
-            var cnt = await Count.Get();
+            int count = await Count.Get();
+            this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count));
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPingEvent());
             Send(await PongMachine.Get(), new PongEvent(this.Id));
-            await Count.Set(cnt + 1);
-            this.Logger.WriteLine("#Pings: {0} / 5", cnt + 1);
+            await Count.Set(count + 1);
+            this.Logger.WriteLine("#Pings: {0} / 5", count + 1);
         }
 
         protected override Task OnActivate()

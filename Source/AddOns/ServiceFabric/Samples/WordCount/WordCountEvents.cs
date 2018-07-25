@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 using Microsoft.PSharp;
-using Microsoft.PSharp.ServiceFabric;
-using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace WordCount
 {
@@ -45,37 +37,36 @@ namespace WordCount
     }
 
     /// <summary>
-    /// Event storing a word and its frequency
+    /// Event storing a word and its frequency.
     /// </summary>
-    class WordFreqEvent : Event
+    public class WordFreqEvent : Event
     {
         /// <summary>
         ///  The word
         /// </summary>
-        public string word;
+        public string Word;
 
         /// <summary>
-        /// Timestamp at which the word occurred
+        /// Timestamp at which the word occurred.
         /// </summary>
-        public int timestamp;
+        public int Timestamp;
 
         /// <summary>
-        /// Word frequency
+        /// Word frequency.
         /// </summary>
-        public int freq;
+        public int Freq;
 
         /// <summary>
-        /// Sender
+        /// Sender.
         /// </summary>
-        public MachineId mid;
-
-
+        public MachineId Mid;
+        
         public WordFreqEvent(string word, int ts, int freq, MachineId mid)
         {
-            this.word = word;
-            this.timestamp = ts;
-            this.freq = freq;
-            this.mid = mid;
+            this.Word = word;
+            this.Timestamp = ts;
+            this.Freq = freq;
+            this.Mid = mid;
         }
     }
 }

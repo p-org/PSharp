@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace WordCount
 {
     /// <summary>
-    /// GatherResultsMachine
+    /// GatherResultsMachine.
     /// </summary>
     class SimpleGatherResultsMachine : ReliableMachine
     {
@@ -22,7 +16,7 @@ namespace WordCount
         { }
 
         /// <summary>
-        /// Highest frequency 
+        /// Highest frequency.
         /// </summary>
         ReliableRegister<int> HighestFrequency;
 
@@ -34,11 +28,11 @@ namespace WordCount
         {
             var ev = (this.ReceivedEvent as WordFreqEvent);
 
-            if (ev.freq > await HighestFrequency.Get())
+            if (ev.Freq > await HighestFrequency.Get())
             {
-                this.Logger.WriteLine("Highest Freq word = {0}, with freq {1}", ev.word, ev.freq);
+                this.Logger.WriteLine("Highest Freq word = {0}, with freq {1}", ev.Word, ev.Freq);
                 this.Monitor<SafetyMonitor>(ev); // assert safety
-                await HighestFrequency.Set(ev.freq);
+                await HighestFrequency.Set(ev.Freq);
             }
         }
 
@@ -47,6 +41,5 @@ namespace WordCount
             HighestFrequency = this.GetOrAddRegister<int>("HighestFrequency", 0);
             return Task.CompletedTask;
         }
-
     }
 }

@@ -1,39 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace BankAccount
 {
     /// <summary>
-    /// A single users' bank account
+    /// A single users' bank account.
     /// </summary>
     class AccountMachine : ReliableMachine
     {
-        public AccountMachine(IReliableStateManager stateManager)
-           : base(stateManager)
-        { }
-
         /// <summary>
-        /// Name of the owner
+        /// Name of the owner.
         /// </summary>
         ReliableRegister<string> OwnerName;
 
         /// <summary>
-        /// Account balance
+        /// Account balance.
         /// </summary>
         ReliableRegister<int> Balance;
 
         /// <summary>
-        /// Account enabled
+        /// Account enabled.
         /// </summary>
         ReliableRegister<bool> Enabled;
+
+        public AccountMachine(IReliableStateManager stateManager)
+           : base(stateManager)
+        { }
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -43,7 +38,6 @@ namespace BankAccount
         [OnEventDoAction(typeof(WithdrawEvent), nameof(DoWithdraw))]
         [OnEventDoAction(typeof(DepositEvent), nameof(DoDeposit))]
         class WaitForOp : MachineState { }
-
 
         private async Task InitOnEntry()
         {
@@ -81,7 +75,6 @@ namespace BankAccount
             Send(ev.sender, new SuccessEvent());
         }
 
-
         private async Task DoWithdraw()
         {
             var ev = (this.ReceivedEvent as WithdrawEvent);
@@ -109,10 +102,6 @@ namespace BankAccount
             Send(ev.sender, new SuccessEvent());
         }
 
-        /// <summary>
-        /// (Re-)Initialize
-        /// </summary>
-        /// <returns></returns>
         protected override Task OnActivate()
         {
             OwnerName = this.GetOrAddRegister<string>("Owner", "Null");

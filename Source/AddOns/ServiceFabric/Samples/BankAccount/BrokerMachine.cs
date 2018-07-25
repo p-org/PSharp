@@ -1,41 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace BankAccount
 {
     class BrokerMachine : ReliableMachine
     {
-        public BrokerMachine(IReliableStateManager stateManager)
-           : base(stateManager)
-        { }
-
         /// <summary>
-        /// Client
+        /// Client.
         /// </summary>
         ReliableRegister<MachineId> Client;
 
         /// <summary>
-        /// Source account
+        /// Source account.
         /// </summary>
         ReliableRegister<MachineId> Source;
 
         /// <summary>
-        /// Target account
+        /// Target account.
         /// </summary>
         ReliableRegister<MachineId> Target;
 
         /// <summary>
-        /// Transfer amount
+        /// Transfer amount.
         /// </summary>
         ReliableRegister<int> TransferAmount;
+
+        public BrokerMachine(IReliableStateManager stateManager)
+           : base(stateManager)
+        { }
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -124,10 +119,6 @@ namespace BankAccount
             this.Raise(new Halt());
         }
 
-        /// <summary>
-        /// (Re-)Initialize
-        /// </summary>
-        /// <returns></returns>
         protected override Task OnActivate()
         {
             Client = this.GetOrAddRegister<MachineId>("Client");
@@ -136,6 +127,5 @@ namespace BankAccount
             TransferAmount = this.GetOrAddRegister<int>("Amount");
             return Task.CompletedTask;
         }
-
     }
 }

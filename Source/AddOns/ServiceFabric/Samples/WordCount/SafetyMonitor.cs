@@ -1,24 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.PSharp;
-using Microsoft.PSharp.ServiceFabric;
-using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
+﻿using Microsoft.PSharp;
 
 namespace WordCount
 {
     /// <summary>
-    /// Asserts safety of an execution
+    /// Asserts safety of an execution.
     /// </summary>
     class SafetyMonitor : Monitor
     {
-        string word = null;
-        int freq = 0;
-        int timestamp = 0;
+        string Word = null;
+        int Freq = 0;
+        int Timestamp = 0;
 
         [Start]
         [OnEventDoAction(typeof(WordFreqEvent), nameof(CheckSafety))]
@@ -29,16 +20,15 @@ namespace WordCount
             var ev = (this.ReceivedEvent as WordFreqEvent);
 
             // either same (duplication) or monotonically increasing
-            if (word != null && !(ev.freq == freq && ev.word == word && ev.timestamp == timestamp))
+            if (Word != null && !(ev.Freq == Freq && ev.Word == Word && ev.Timestamp == Timestamp))
             {
-                this.Assert(ev.freq > freq, "Frequencies must be monotonically increasing");
+                this.Assert(ev.Freq > Freq, "Frequencies must be monotonically increasing");
                 //this.Assert(ev.timestamp > timestamp, "Timestamps must be monotonically increasing");
             }
 
-            word = ev.word;
-            freq = ev.freq;
-            timestamp = ev.timestamp;
+            Word = ev.Word;
+            Freq = ev.Freq;
+            Timestamp = ev.Timestamp;
         }
-
     }
 }

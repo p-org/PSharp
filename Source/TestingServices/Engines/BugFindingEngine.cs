@@ -374,11 +374,6 @@ namespace Microsoft.PSharp.TestingServices
                 // Wait for the test to terminate.
                 runtime.Wait();
 
-                if (runtime.Scheduler.BugFound)
-                {
-                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
-                }
-
                 // Invokes user-provided cleanup for this iteration.
                 if (base.TestIterationDisposeMethod != null)
                 {
@@ -407,6 +402,11 @@ namespace Microsoft.PSharp.TestingServices
                 if (!runtime.Scheduler.BugFound)
                 {
                     runtime.AssertNoMonitorInHotStateAtTermination();
+                }
+
+                if (runtime.Scheduler.BugFound)
+                {
+                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
                 this.GatherIterationStatistics(runtime);
