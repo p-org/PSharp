@@ -36,7 +36,11 @@ namespace DemoAppConsole
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
-           
+            // Create a pool driver machine to process the client requests
+            MachineId driver = runtime.CreateMachine(typeof(PoolServicesContract.PoolDriverMachine));
+
+            // Create a client who fires off requests to the driver
+            MachineId client = runtime.CreateMachine(typeof(ClientMachine), new eInitClient(driver));
         }
 
         private static void Runtime_OnFailure(Exception ex)

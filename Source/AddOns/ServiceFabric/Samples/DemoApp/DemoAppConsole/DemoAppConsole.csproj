@@ -15,5 +15,6 @@
     <ProjectReference Include="..\..\..\..\..\Core\Core.csproj" />
     <ProjectReference Include="..\..\..\Runtime\ServiceFabric.csproj" />
     <ProjectReference Include="..\..\..\TestingServices\ServiceFabric.TestingServices.csproj" />
+    <ProjectReference Include="..\Service\Contracts\PoolServicesContract.csproj" />
   </ItemGroup>
 </Project>
