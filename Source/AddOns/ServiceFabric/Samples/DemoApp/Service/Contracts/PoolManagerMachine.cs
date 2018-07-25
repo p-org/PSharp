@@ -103,7 +103,6 @@
                     oldvalue.Remove(request.senderId);
                     return oldvalue;
                 });
-            await this.CurrentTransaction.CommitAsync();
         }
 
         private async Task OnVMDeleted()
@@ -148,8 +147,6 @@
                 this.Logger.WriteLine($"PM- {this.Id} Deleting pool");
                 this.Send(this.Id, new Halt());
             }
-
-            await this.CurrentTransaction.CommitAsync();
         }
 
         private void RetryCreateVM()
@@ -221,8 +218,6 @@
                         });
                 }
             }
-
-            await this.CurrentTransaction.CommitAsync();
         }
 
         private async Task DeletePool()
@@ -264,8 +259,6 @@
                         });
                 }
             }
-
-            await this.CurrentTransaction.CommitAsync();
         }
     }
 }
