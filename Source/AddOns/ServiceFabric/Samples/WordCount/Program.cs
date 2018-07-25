@@ -9,21 +9,26 @@ namespace WordCount
     {
         static void Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
-
             var stateManager = new StateManagerMock(null);
             stateManager.DisallowFailures();
 
-            var config = Configuration.Create();
-            var runtime = ServiceFabricRuntimeFactory.Create(stateManager, config);
+            // Optional: increases verbosity level to see the P# runtime log.
+            var configuration = Configuration.Create().WithVerbosityEnabled(2);
+
+            // Creates a new Service Fabric P# runtime instance, and passes
+            // the state manager and the configuration.
+            var runtime = ServiceFabricRuntimeFactory.Create(stateManager, configuration);
             runtime.OnFailure += Runtime_OnFailure;
 
-            runtime.CreateMachine(typeof(ClientMachine));
+            // Executes the P# program.
+            Program.Execute(runtime);
 
+            // The P# runtime executes asynchronously, so we wait
+            // to not terminate the process.
+            Console.WriteLine("Press Enter to terminate...");
             Console.ReadLine();
         }
 
-        
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
@@ -44,5 +49,4 @@ namespace WordCount
         public static readonly int StringLen = 2;
         public static readonly int NumWords = 3;
     }
-
 }

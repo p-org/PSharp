@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace WordCount
 {
     /// <summary>
-    /// ClientMachine
+    /// ClientMachine.
     /// </summary>
     class ClientMachine : ReliableMachine
     {
@@ -39,10 +34,8 @@ namespace WordCount
                 var word = RandomString();
                 Send(wordCountMachines[Math.Abs(word.GetHashCode() % Config.NumMachines)], new WordEvent(word, i));
             }
-
         }
-
-
+        
         protected override Task OnActivate()
         {
             return Task.CompletedTask;
@@ -59,7 +52,5 @@ namespace WordCount
             }
             return ret;
         }
-
     }
-
 }

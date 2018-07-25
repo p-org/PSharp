@@ -322,19 +322,22 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 // Notifies that a reliable machine has committed its current transaction.
                 ITransaction tx = args[0] as ITransaction;
-                if (tx != null && this.PendingMachineCreations.ContainsKey(tx))
+                if (tx != null)
                 {
                     if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
                     {
                         this.Logger.WriteLine("<CommitLog> Machine '{0}' committed transaction '{1}'.", machine.Id, tx.TransactionId);
                     }
 
-                    foreach (var tup in this.PendingMachineCreations[tx])
+                    if (this.PendingMachineCreations.ContainsKey(tx))
                     {
-                        this.StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
-                    }
+                        foreach (var tup in this.PendingMachineCreations[tx])
+                        {
+                            this.StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
+                        }
 
-                    this.PendingMachineCreations.Remove(tx);
+                        this.PendingMachineCreations.Remove(tx);
+                    }
                 }
             }
         }

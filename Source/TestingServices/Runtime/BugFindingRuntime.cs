@@ -1033,7 +1033,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="calledAPI">Called API</param>
-        internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
+        private void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
         {
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
                 "after calling raise, goto, push or pop in the same action.", machine.Id.Name, calledAPI);
@@ -1045,7 +1045,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="callerMachine">Caller machine</param>
         /// <param name="calledAPI">Called API name</param>
-        protected void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
+        private void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
         {
             if (callerMachine == null)
             {

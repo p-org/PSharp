@@ -1,10 +1,23 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 
 namespace PingPong
 {
+    [DataContract]
+    public class PongEvent : Event
+    {
+        [DataMember]
+        public MachineId PingMachineId;
+
+        public PongEvent(MachineId pingMachine)
+        {
+            this.PingMachineId = pingMachine;
+        }
+    }
+
     public class PongMachine : ReliableMachine
     {
         /// <summary>
@@ -21,6 +34,7 @@ namespace PingPong
 
         private void Reply()
         {
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPongEvent());
             var sender = (this.ReceivedEvent as PongEvent).PingMachineId;
             Send(sender, new PingEvent());
         }
