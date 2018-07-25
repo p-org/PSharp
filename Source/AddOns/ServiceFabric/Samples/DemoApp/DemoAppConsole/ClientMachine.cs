@@ -66,7 +66,7 @@ namespace DemoAppConsole
 
         protected override Task OnActivate()
         {
-            PoolDriver = this.GetOrAddRegister<MachineId>("PoolDriver", null);
+            PoolDriver = this.GetOrAddRegister<MachineId>("ClientPoolDriver" + this.Id.ToString(), null);
             return Task.CompletedTask;
         }
 
