@@ -41,6 +41,11 @@ namespace Microsoft.PSharp.ServiceFabric
         Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>> PendingMachineCreations;
 
         /// <summary>
+        /// Pending machine deletions (for halted machines)
+        /// </summary>
+        Dictionary<ITransaction, List<MachineId>> PendingMachineDeletions;
+
+        /// <summary>
         /// RSM network provider
         /// </summary>
         Net.IRsmNetworkProvider RsmNetworkProvider;
@@ -67,6 +72,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.DefaultTimeLimit = TimeSpan.FromSeconds(4);
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>>();
+            this.PendingMachineDeletions = new Dictionary<ITransaction, List<MachineId>>();
             StartClearOutboxTasks();
         }
 
@@ -346,12 +352,18 @@ namespace Microsoft.PSharp.ServiceFabric
                 // Halt notification
                 if(args[0] is string && (args[0] as string) == "Halt")
                 {
+                    var ctx = (machine as ReliableMachine).CurrentTransaction;
                     var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
-                    await createdMachineMap.TryRemoveAsync((machine as ReliableMachine).CurrentTransaction, machine.Id.ToString());
+                    await createdMachineMap.TryRemoveAsync(ctx, machine.Id.ToString());
+                    if(!PendingMachineDeletions.ContainsKey(ctx))
+                    {
+                        PendingMachineDeletions.Add(ctx, new List<MachineId>());
+                    }
+                    PendingMachineDeletions[ctx].Add(machine.Id);
                 }
 
                 // Notifies that a reliable machine has committed its current transaction.
-                ITransaction tx = args[0] as ITransaction;
+                ITransaction tx = args[0] as ITransaction; // TODO: This can just be the machine's current-tx
                 if (tx != null)
                 {
                     if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
@@ -368,6 +380,21 @@ namespace Microsoft.PSharp.ServiceFabric
 
                         this.PendingMachineCreations.Remove(tx);
                     }
+
+                    // TODO: This also needs to be done as a "garbage collection" step
+                    // in case of failover
+                    if(PendingMachineDeletions.ContainsKey(tx))
+                    {
+                        foreach(var id in PendingMachineDeletions[tx])
+                        {
+                            await this.StateManager.DeleteMachineInputQueue(id);
+                            await this.StateManager.DeleteMachineReceiveCounters(id);
+                            await this.StateManager.DeleteMachineSendCounters(id);
+                            await this.StateManager.DeleteMachineStackStore(id);
+                        }
+                    }
+
+                    PendingMachineDeletions.Remove(tx);
                 }
             }
         }
