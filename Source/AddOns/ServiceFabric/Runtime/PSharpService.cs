@@ -67,12 +67,6 @@
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
 
-            if (!this.StateManager.TryAddStateSerializer(
-                new EventDataSeralizer<EventInfo>(this.knownTypes)))
-            {
-                throw new InvalidOperationException("Failed to set custom Event serializer");
-            }
-
             if (!this.StateManager.TryAddStateSerializer(new EventDataSeralizer<Tuple<string, MachineId, Event>>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
@@ -108,12 +102,6 @@
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<Event>(this.knownTypes)))
-            {
-                throw new InvalidOperationException("Failed to set custom Event serializer");
-            }
-
-            if (!this.StateManager.TryAddStateSerializer(
-                new EventDataSeralizer<EventInfo>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }

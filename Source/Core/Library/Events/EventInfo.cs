@@ -27,7 +27,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Contained event.
         /// </summary>
-        [DataMember]
         internal Event Event { get; private set; }
 
         /// <summary>
