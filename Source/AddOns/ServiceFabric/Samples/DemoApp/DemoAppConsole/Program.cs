@@ -36,9 +36,7 @@ namespace DemoAppConsole
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.RegisterMonitor(typeof(LivenessMonitor));
-            runtime.CreateMachine(typeof(PingMachine));
+           
         }
 
         private static void Runtime_OnFailure(Exception ex)
