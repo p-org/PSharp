@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="args">Arguments</param>
-        protected internal override void NotifyProgress(Machine machine, params object[] args)
+        protected internal override Task NotifyProgress(Machine machine, params object[] args)
         {
             if (args.Length > 0)
             {
@@ -243,6 +243,8 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
                     }
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

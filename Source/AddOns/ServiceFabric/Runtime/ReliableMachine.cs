@@ -215,7 +215,7 @@ namespace Microsoft.PSharp.ServiceFabric
             }
 
             // Notifies the runtime that the transaction has been committed.
-            this.Runtime.NotifyProgress(this, this.CurrentTransaction);
+            await this.Runtime.NotifyProgress(this, this.CurrentTransaction);
 
             CurrentTransaction.Dispose();
             PendingStateChanges.Clear();
@@ -355,6 +355,17 @@ namespace Microsoft.PSharp.ServiceFabric
             PendingStateChangesInverted.Add(new PushStateChangeOp(StateStack.Peek()));
             base.DoStatePop();
         }
+
+        /// <summary>
+        /// Halts the machine.
+        /// </summary>
+        internal override void HaltMachine()
+        {
+            // TODO: make async
+            Runtime.NotifyProgress(this, "Halt").Wait();
+            base.HaltMachine();
+        }
+
         #endregion
 
         internal void SetReliableRegisterTx()

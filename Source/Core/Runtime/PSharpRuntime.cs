@@ -810,9 +810,10 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="args">Arguments</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyProgress(Machine machine, params object[] args)
+        protected internal virtual Task NotifyProgress(Machine machine, params object[] args)
         {
             // Override to implement the notification.
+            return Task.CompletedTask;
         }
 
         #endregion
