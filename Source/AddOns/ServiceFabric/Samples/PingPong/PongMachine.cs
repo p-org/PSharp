@@ -34,9 +34,9 @@ namespace PingPong
 
         private void Reply()
         {
-            this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPongEvent());
             var sender = (this.ReceivedEvent as PongEvent).PingMachineId;
             Send(sender, new PingEvent());
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPingEvent());
         }
 
         protected override Task OnActivate()
