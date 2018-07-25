@@ -47,16 +47,19 @@ namespace DemoAppConsole
 
             // Fire off some pool creation/resize requests to the driver
             evConfigChange.Configuration.PoolData.Add("Pool1", 10);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(10));
             Send(await PoolDriver.Get(), evConfigChange);
 
             // Scale up
             evConfigChange.Configuration.PoolData.Remove("Pool1");
             evConfigChange.Configuration.PoolData.Add("Pool1", 20);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(20));
             Send(await PoolDriver.Get(), evConfigChange);
 
             // Scale down
             evConfigChange.Configuration.PoolData.Remove("Pool1");
             evConfigChange.Configuration.PoolData.Add("Pool1", 15);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(15));
             Send(await PoolDriver.Get(), evConfigChange);
         }
         #endregion

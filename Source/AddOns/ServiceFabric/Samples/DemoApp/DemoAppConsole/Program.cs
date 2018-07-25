@@ -17,7 +17,7 @@ namespace DemoAppConsole
             stateManager.DisallowFailures();
 
             // Optional: increases verbosity level to see the P# runtime log.
-            var configuration = Configuration.Create().WithVerbosityEnabled(2);
+            var configuration = Configuration.Create();//.WithVerbosityEnabled(2);
 
             // Creates a new Service Fabric P# runtime instance, and passes
             // the state manager and the configuration.
