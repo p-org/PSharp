@@ -1,21 +1,38 @@
 ﻿namespace VMManager
 {
+    using System;
+    using System.Collections.Generic;
     using System.Fabric;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Microsoft.PSharp.ServiceFabric;
     using Microsoft.ServiceFabric.Data;
-    using Microsoft.ServiceFabric.Services.Runtime;
+    using PoolServicesContract;
 
-    public class VMManagerService : StatefulService
+    public class VMManagerService : PSharpService
     {
-        public VMManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext)
+        public static List<Type> KnownTypes = new List<Type>()
+        {
+            // Events
+            typeof(ePoolDeletionRequestEvent),
+            typeof(ePoolDriverConfigChangeEvent),
+            typeof(ePoolResizeRequestEvent),
+            typeof(eVMCreateRequestEvent),
+            typeof(eVMDeleteRequestEvent),
+            typeof(eVMRenewRequestEvent),
+            typeof(eVMFailureEvent),
+
+            // Contracts
+            typeof(PoolDriverConfig)
+        };
+
+        public VMManagerService(StatefulServiceContext serviceContext, ILogger logger) : base(serviceContext, KnownTypes)
         {
             this.Logger = logger;
         }
 
-        public VMManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, reliableStateManagerReplica)
+        public VMManagerService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica, ILogger logger) : base(serviceContext, KnownTypes, reliableStateManagerReplica)
         {
             this.Logger = logger;
         }
@@ -24,22 +41,36 @@
 
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            //IReactiveReliableQueue<int> queue = await this.StateManager.GetOrAddReactiveReliableQueue<int>("QUEUE1");
-            //using (ITransaction tx = this.StateManager.CreateTransaction())
-            //{
-            //    await queue.EnqueueAsync(tx, 1);
-            //    await queue.EnqueueAsync(tx, 2);
-            //    await tx.CommitAsync();
-            //}
+            await base.RunAsync(cancellationToken);
+            await Task.Delay(-1, cancellationToken);
+        }
 
-            QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1");
-            // QueueTask q1 = new QueueTask(this.StateManager, "QUEUE1", true);
-            DequeueTask dq1 = new DequeueTask(this.StateManager, "QUEUE1");
+        protected override Dictionary<Type, ulong> GetMachineTypesWithMaxLoad()
+        {
+            return new Dictionary<Type, ulong>() { { typeof(VMManagerMachine), 100 } };
+        }
 
-            Task t1 = dq1.Start(cancellationToken);
-            await Task.Delay(10000);
-            Task t2 = q1.Start(cancellationToken);
-            await Task.WhenAll(t1, t2);
+        protected override IRemoteMachineManager GetMachineManager()
+        {
+            return new ResourceBasedRemoteMachineManager(this, this.Partition, this.PSharpLogger);
+        }
+
+        protected override IPSharpEventSourceLogger GetPSharpRuntimeLogger()
+        {
+            return new MyLogger();
+        }
+
+        private class MyLogger : IPSharpEventSourceLogger
+        {
+            public void Message(string message)
+            {
+                ServiceEventSource.Current.Message(message);
+            }
+
+            public void Message(string message, params object[] args)
+            {
+                ServiceEventSource.Current.Message(message, args);
+            }
         }
     }
 }

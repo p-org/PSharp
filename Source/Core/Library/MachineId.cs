@@ -23,7 +23,7 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId
+    public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
     {
         #region fields
         /// <summary>
@@ -70,11 +70,12 @@ namespace Microsoft.PSharp
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="runtime">PSharpRuntime</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime) : this(type.FullName, friendlyName, runtime)
+        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime) 
+            : this(type.FullName, friendlyName, runtime)
         {
         }
 
-        /// <summary>
+         /// <summary>
         /// Creates a new machine id.
         /// </summary>
         /// <param name="type">Machine type string</param>
@@ -84,22 +85,22 @@ namespace Microsoft.PSharp
         {
             Type = type;
             Runtime = runtime;
-
-            if (this.Runtime.IsTest())
-            {
-                this.Value = runtime.GenerateTestId();
-                // Checks for overflow.
-                Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-            }
-
-            if (string.IsNullOrWhiteSpace(friendlyName))
-            {
-                friendlyName = Runtime.GetFriendlyName(Type);
-            }
-
-            FriendlyName = friendlyName;
             Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
-            Name = $"({Type})-{FriendlyName}";
+
+            // Atomically increments and safely wraps into an unsigned long.
+            Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
+
+            // Checks for overflow.
+            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
+
+            if (friendlyName != null && friendlyName.Length > 0)
+            {
+                Name = string.Format("{0}({1})", friendlyName, Value);
+            }
+            else
+            {
+                Name = string.Format("{0}({1})", Type, Value);
+            }
         }
 
         /// <summary>
@@ -134,14 +135,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            if (Runtime.IsTest())
-            {
-                return Value == mid.Value;
-            }
-            else
-            {
-                return Name == mid.Name;
-            }
+            return Value == mid.Value;
         }
 
         /// <summary>
@@ -151,15 +145,7 @@ namespace Microsoft.PSharp
         public override int GetHashCode()
         {
             int hash = 17;
-            if (Runtime.IsTest())
-            {
-                hash = hash * 23 + Value.GetHashCode();
-            }
-            else
-            {
-                hash = hash * 23 + Name.GetHashCode();
-            }
-
+            hash = hash * 23 + Value.GetHashCode();
             return hash;
         }
 
@@ -169,7 +155,24 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return Name;
+            return (string.IsNullOrWhiteSpace(Endpoint) ? Name : $"{Name} at {Endpoint} with Type {Type}");
+        }
+
+        public bool Equals(MachineId other)
+        {
+            return this.Equals((object)other);
+        }
+
+        public int CompareTo(MachineId other)
+        {
+            if (Runtime.IsTest())
+            {
+                return Value.CompareTo(other.Value);
+            }
+            else
+            {
+                return Name.CompareTo(other.Name);
+            }
         }
 
         #endregion

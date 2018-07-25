@@ -7,103 +7,47 @@
     using System.ServiceModel;
     using System.Threading.Tasks;
 
-    [ServiceContract]
-    public interface IResourceManager : IService
-    {
-        [OperationContract]
-        Task<CreateResourceResponse> CreateResourceAsync(CreateResourceRequest request);
-        [OperationContract]
-        Task<DeleteResourceResponse> DeleteResourceAsync(DeleteResourceRequest request);
-        [OperationContract]
-        Task<List<ResourceTypesResponse>> ListResourceTypesAsync();
-        [OperationContract]
-        Task<List<ResourceDetailsResponse>> ListResourcesAsync();
-    }
 
     [DataContract]
-    public class CreateResourceRequest
+    public class GetServicePartitionRequest
     {
         // The request ID to help with idempotency
         [DataMember]
         public Guid RequestId;
 
-        // The type of resource to create in resource manager
+        // The type of resource of which service and partition details are required
         [DataMember]
         public string ResourceType;
 
-        // The service requesting the resource creation
+        // The service requesting the information
         [DataMember]
         public Uri OwningService;
 
-        // The service partition requesting the resource creation
+        // The service partition requesting the information
         [DataMember]
         public Guid OwningPartition;
-
-        // The resource in the service requesting the resource creation
-        [DataMember]
-        public string OwningResource;
     }
 
     [DataContract]
-    public class CreateResourceResponse
+    public class GetServicePartitionResponse
     {
         // Result of the creation request
         [DataMember]
         public string Result;
 
-        // The URI of the service which owns the resource
+        // The URI of the service of the resource type requested
         [DataMember]
         public Uri Service;
 
-        // The partition ID of the service which owns the resource
+        // The partition ID of the service of the resource type requested
         [DataMember]
-        public Guid Partition;
+        public Guid PartitionId;
 
-        // The resource ID of the resource created
+        // The partition name of the service of the resource type requested
         [DataMember]
-        public string ResourceId;
+        public string PartitionName;
     }
 
-    [DataContract]
-    public class DeleteResourceRequest
-    {
-        // The request ID to help with idempotency
-        [DataMember]
-        public Guid RequestId;
-
-        // The URI of the service which owns the resource
-        [DataMember]
-        public Uri Service;
-
-        // The URI of the service which owns the resource
-        [DataMember]
-        public Guid Partition;
-
-        // The resource ID of the resource created
-        [DataMember]
-        public string ResourceId;
-    }
-
-    [DataContract]
-    public class DeleteResourceResponse
-    {
-        // Result of the deletion request
-        [DataMember]
-        public string Result;
-
-        // The URI of the service which owns the resource
-        [DataMember]
-        public Uri Service;
-
-        // The URI of the service which owns the resource
-        [DataMember]
-        public Guid Partition;
-
-        // The resource ID of the resource created
-        [DataMember]
-        public string ResourceId;
-    }
-    
     [DataContract]
     public class ResourceTypesResponse
     {
@@ -113,10 +57,10 @@
 
         // The total number of resource managed in this service
         [DataMember]
-        ulong Count;
+        public ulong Count;
 
         [DataMember]
-        ulong MaxCapacity;
+        public ulong MaxCapacity;
     }
 
     [DataContract]

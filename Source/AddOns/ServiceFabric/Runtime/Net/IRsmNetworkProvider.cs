@@ -14,10 +14,11 @@ namespace Microsoft.PSharp.ServiceFabric.Net
         /// <summary>
         /// Creates a new ID for a specified machine type and partition
         /// </summary>
-        /// <param name="machineType">Machine Type</param>
         /// <param name="endpoint">Partition where to create the ID</param>
+        /// <param name="friendlyName">Friendly name associated with the machine</param>
+        /// <param name="machineType">Type of the machine to bind to the ID</param>
         /// <returns></returns>
-        Task<MachineId> RemoteCreateMachineId(Type machineType, string endpoint);
+        Task<MachineId> RemoteCreateMachineId(string machineType, string friendlyName, string endpoint);
 
         /// <summary>
         /// Creates a machine with the given ID

@@ -29,6 +29,12 @@ namespace Microsoft.PSharp
     public abstract class PSharpRuntime : IDisposable
     {
         #region fields
+
+        /// <summary>
+        /// Monotonically increasing machine id counter.
+        /// </summary>
+        internal long MachineIdCounter;
+
         /// <summary>
         /// Counter for each type of object in that runtime
         /// </summary>
@@ -145,6 +151,11 @@ namespace Microsoft.PSharp
 
         #region runtime interface
 
+        /// <summary>
+        /// Gets the set of created machines
+        /// </summary>
+        /// <returns>The list of machine IDs</returns>
+        internal abstract HashSet<MachineId> GetCreatedMachines();
 
         /// <summary>
         /// Creates a fresh machine id that has not yet been bound to any machine.
@@ -579,12 +590,6 @@ namespace Microsoft.PSharp
         /// <returns>Integer</returns>
         protected internal abstract int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue);
         
-        /// <summary>
-        /// Generates the state machine test Id
-        /// </summary>
-        /// <returns>A test ID for the state machine</returns>
-        internal abstract ulong GenerateTestId();
-
         #endregion
 
         #region notifications

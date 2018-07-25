@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets=";ValidateMSBuildFiles">
   <Import Project="..\..\..\..\..\..\packages\Microsoft.VisualStudio.Azure.Fabric.MSBuild.1.6.6\build\Microsoft.VisualStudio.Azure.Fabric.Application.props" Condition="Exists('..\..\..\..\..\..\packages\Microsoft.VisualStudio.Azure.Fabric.MSBuild.1.6.6\build\Microsoft.VisualStudio.Azure.Fabric.Application.props')" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>94eac785-a3c4-4162-9036-d13ad4366d2a</ProjectGuid>
+    <ProjectGuid>540905e1-b7a7-44c8-92b0-710c6f7690dc</ProjectGuid>
     <ProjectVersion>2.2</ProjectVersion>
     <MinToolsVersion>1.5</MinToolsVersion>
     <SupportedMSBuildNuGetPackageVersion>1.6.6</SupportedMSBuildNuGetPackageVersion>
@@ -32,7 +32,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ResourceManager\Service\ResourceManager.SF.csproj" />
     <ProjectReference Include="..\Service\PoolDriver\PoolDriver.csproj" />
     <ProjectReference Include="..\Service\PoolManager\PoolManager.csproj" />
     <ProjectReference Include="..\Service\VMManager\VMManager.csproj" />

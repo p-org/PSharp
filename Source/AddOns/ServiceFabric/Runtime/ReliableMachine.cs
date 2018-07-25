@@ -33,16 +33,6 @@ namespace Microsoft.PSharp.ServiceFabric
         private IReliableConcurrentQueue<EventInfo> InputQueue;
 
         /// <summary>
-        /// Counters for reliable remote send
-        /// </summary>
-        protected IReliableDictionary<string, int> SendCounters;
-
-        /// <summary>
-        /// Counters for reliable remote receive
-        /// </summary>
-        protected IReliableDictionary<string, int> ReceiveCounters;
-
-        /// <summary>
         /// Current transaction
         /// </summary>
         public ITransaction CurrentTransaction { get; internal set; }
@@ -159,12 +149,8 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <param name="e">Initial event</param>
         internal override async Task GotoStartState(Event e)
         {
-            StateStackStore = await StateManager.GetOrAddAsync<IReliableDictionary<int, string>>("StateStackStore_" + Id.ToString());
-            InputQueue = await StateManager.GetOrAddAsync<IReliableConcurrentQueue<EventInfo>>("InputQueue_" + Id.ToString());
-            SendCounters =
-                await StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("SendCounters_" + Id.ToString());
-            ReceiveCounters =
-                await this.StateManager.GetOrAddAsync<IReliableDictionary<string, int>>("ReceiveCounters_" + Id.ToString());
+            StateStackStore = await StateManager.GetMachineStackStore(Id);
+            InputQueue = await StateManager.GetMachineInputQueue(Id);
 
             var startState = this.StateStack.Peek();
 
@@ -360,33 +346,12 @@ namespace Microsoft.PSharp.ServiceFabric
 
         private async Task<EventInfo> ReliableDequeue()
         {
-            EventInfo ret;
-
             while (true)
             {
                 var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
                 if (cv.HasValue)
                 {
-                    if (cv.Value.Event is TaggedRemoteEvent)
-                    {
-                        var tg = (cv.Value.Event as TaggedRemoteEvent);
-                        var currentCounter = await ReceiveCounters.GetOrAddAsync(CurrentTransaction, tg.mid.Name, 0);
-                        if (currentCounter == tg.tag - 1)
-                        {
-                            ret = new EventInfo(tg.ev, cv.Value.OriginInfo);
-                            await ReceiveCounters.AddOrUpdateAsync(CurrentTransaction, tg.mid.Name, 0, (k, v) => tg.tag);
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        ret = cv.Value;
-                    }
-
-                    return ret;
+                    return cv.Value;
                 }
                 else
                 {
