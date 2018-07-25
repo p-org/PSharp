@@ -126,7 +126,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// User OnException asked for the machine to be gracefully halted
-        /// (suppressing the exception)
+        /// (suppressing the exception).
         /// </summary>
         private bool OnExceptionRequestedGracefulHalt;
 
@@ -860,14 +860,14 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the machine.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        HaltMachine();
+                        this.HaltMachine();
                         return;
                     }
 
                     var unhandledEx = new UnhandledEventException(this.Id, currentState, e, "Unhandled Event");
                     if (OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
                     {
-                        HaltMachine();
+                        this.HaltMachine();
                         return;
                     }
                     else
@@ -1063,7 +1063,6 @@ namespace Microsoft.PSharp
                     {
                         // user handled the exception, return normally
                     }
-
                 }
                 else
                 {
@@ -1110,8 +1109,8 @@ namespace Microsoft.PSharp
                 }
                 else if (OnExceptionRequestedGracefulHalt)
                 {
-                    // gracefully halt
-                    HaltMachine();
+                    // Gracefully halt.
+                    this.HaltMachine();
                 }
                 else
                 {
@@ -1832,9 +1831,9 @@ namespace Microsoft.PSharp
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
         private bool OnExceptionHandler(string methodName, Exception ex)
         {
-            if(ex is ExecutionCanceledException)
+            if (ex is ExecutionCanceledException)
             {
-                // internal exception, used by PsharpTester
+                // Internal exception, used by PsharpTester.
                 return false;
             }
 
@@ -1884,28 +1883,20 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Cleans up resources at machine termination.
+        /// Halts the machine.
         /// </summary>
-        private void CleanUpResources()
-        {
-            this.Inbox.Clear();
-            this.EventWaitHandlers.Clear();
-            this.ReceivedEvent = null;
-        }
-
-        /// <summary>
-        /// Halts the machine
-        /// </summary>
-        private void HaltMachine()
+        internal virtual void HaltMachine()
         {
             lock (this.Inbox)
             {
                 this.Info.IsHalted = true;
                 base.Runtime.NotifyHalted(this, this.Inbox);
-                this.CleanUpResources();
+                this.Inbox.Clear();
+                this.EventWaitHandlers.Clear();
+                this.ReceivedEvent = null;
             }
 
-            // Invoke user callback outside the lock.
+            // Invokes user callback outside the lock.
             this.OnHalt();
         }
 

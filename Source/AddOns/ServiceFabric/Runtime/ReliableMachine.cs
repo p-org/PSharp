@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.ServiceFabric;
@@ -23,6 +24,16 @@ namespace Microsoft.PSharp.ServiceFabric
         protected IReliableStateManager StateManager;
 
         /// <summary>
+        /// Service cancellation token
+        /// </summary>
+        CancellationToken ServiceCancellationToken;
+
+        /// <summary>
+        /// Default time limit for SF operations
+        /// </summary>
+        TimeSpan DefaultTimeLimit;
+
+        /// <summary>
         /// Persistent current state (stack)
         /// </summary>
         private IReliableDictionary<int, string> StateStackStore;
@@ -30,7 +41,7 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <summary>
         /// Inbox
         /// </summary>
-        private IReliableConcurrentQueue<EventInfo> InputQueue;
+        private IReliableConcurrentQueue<Event> InputQueue;
 
         /// <summary>
         /// Current transaction
@@ -53,29 +64,9 @@ namespace Microsoft.PSharp.ServiceFabric
         private List<MachineStateChangeOp> PendingStateChanges;
 
         /// <summary>
-        /// Machine is executing under test mode
+        /// If enabled, the machine is executing in testing mode.
         /// </summary>
-        private bool InTestMode;
-
-        /// <summary>
-        /// Out-buffer for send operations (test mode)
-        /// </summary>
-        private Queue<Tuple<MachineId, Event>> TestModeOutBuffer;
-
-        /// <summary>
-        /// Out-buffer for create-machine operations (test mode)
-        /// </summary>
-        private Queue<Tuple<MachineId, Type, Event>> TestModeCreateBuffer;
-
-        /// <summary>
-        /// Last dequeued event (test mode)
-        /// </summary>
-        private EventInfo LastDequeuedEvent;
-
-        /// <summary>
-        /// Create the machine in testing mode
-        /// </summary>
-        internal static bool testMode = false;
+        internal static bool IsTestingModeEnabled = false;
 
         #endregion
 
@@ -88,12 +79,6 @@ namespace Microsoft.PSharp.ServiceFabric
             this.StateManager = stateManager;
             this.PendingStateChangesInverted = new List<MachineStateChangeOp>();
             this.PendingStateChanges = new List<MachineStateChangeOp>();
-
-            this.InTestMode = testMode;
-            this.TestModeOutBuffer = new Queue<Tuple<MachineId, Event>>();
-            this.TestModeCreateBuffer = new Queue<Tuple<MachineId, Type, Event>>();
-            this.LastDequeuedEvent = null;
-
             this.CreatedRegisters = new List<Utilities.RsmRegister>();
         }
 
@@ -137,7 +122,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public Utilities.ReliableRegister<T> GetOrAddRegister<T>(string name, T initialValue = default(T))
         {
             var reg = new Utilities.ReliableRegister<T>(name + this.Id.ToString(), this.StateManager, initialValue);
-            reg.SetTransaction(this.CurrentTransaction);
+            reg.SetTransaction(this.CurrentTransaction, DefaultTimeLimit, ServiceCancellationToken);
             CreatedRegisters.Add(reg);
             return reg;
         }
@@ -149,6 +134,13 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <param name="e">Initial event</param>
         internal override async Task GotoStartState(Event e)
         {
+            // TODO: Package this information alonside the StateManager
+            if(this.Runtime is ServiceFabricPSharpRuntime)
+            {
+                this.ServiceCancellationToken = (this.Runtime as ServiceFabricPSharpRuntime).ServiceCancellationToken;
+                this.DefaultTimeLimit = (this.Runtime as ServiceFabricPSharpRuntime).DefaultTimeLimit;
+            }
+
             StateStackStore = await StateManager.GetMachineStackStore(Id);
             InputQueue = await StateManager.GetMachineInputQueue(Id);
 
@@ -166,7 +158,7 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 for (int i = 0; i < cnt; i++)
                 {
-                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i);
+                    var s = await StateStackStore.TryGetValueAsync(CurrentTransaction, i, DefaultTimeLimit, ServiceCancellationToken);
                     this.Assert(s.HasValue, "Error reading store for the state stack");
 
                     var nextState = StateMap[this.GetType()].First(val
@@ -175,15 +167,13 @@ namespace Microsoft.PSharp.ServiceFabric
                     base.DoStatePush(nextState);
                 }
 
-                this.Assert(e == null, "Unexpected event passed on failover");
-
                 await OnActivate();
             }
             else
             {
                 // fresh start
                 base.DoStatePush(startState);
-                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName);
+                await StateStackStore.AddAsync(CurrentTransaction, 0, CurrentState.AssemblyQualifiedName, DefaultTimeLimit, ServiceCancellationToken);
 
                 await OnActivate();
 
@@ -204,13 +194,13 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     if (PendingStateChanges[i] is PopStateChangeOp)
                     {
-                        await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1));
+                        await StateStackStore.TryRemoveAsync(CurrentTransaction, (int)(size - 1), DefaultTimeLimit, ServiceCancellationToken);
                         size--;
                     }
                     else
                     {
                         var toPush = (PendingStateChanges[i] as PushStateChangeOp).state.GetType().AssemblyQualifiedName;
-                        await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush);
+                        await StateStackStore.AddAsync(CurrentTransaction, (int)size, toPush, DefaultTimeLimit, ServiceCancellationToken);
                         size++;
                     }
                 }
@@ -218,30 +208,14 @@ namespace Microsoft.PSharp.ServiceFabric
 
             await CurrentTransaction.CommitAsync();
 
-            if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
+            if (IsTestingModeEnabled)
             {
-                this.Logger.WriteLine("<CommitLog> Successfully committed transaction {0}", CurrentTransaction.TransactionId);
-            }
-
-            (this.Runtime as ServiceFabricPSharpRuntime).NotifyTransactionCommit(CurrentTransaction);
-
-            if (InTestMode)
-            {
-                // disable R/G/P check
+                // Disable R/G/P check.
                 this.Info.CurrentActionCalledTransitionStatement = false;
-
-                while (TestModeCreateBuffer.Count > 0)
-                {
-                    var tup = TestModeCreateBuffer.Dequeue();
-                    this.Runtime.CreateMachine(tup.Item1, tup.Item2, tup.Item3);
-                }
-
-                while (TestModeOutBuffer.Count > 0)
-                {
-                    var tup = TestModeOutBuffer.Dequeue();
-                    this.Runtime.SendEvent(tup.Item1, tup.Item2);
-                }
             }
+
+            // Notifies the runtime that the transaction has been committed.
+            await this.Runtime.NotifyProgress(this, this.CurrentTransaction);
 
             CurrentTransaction.Dispose();
             PendingStateChanges.Clear();
@@ -262,6 +236,8 @@ namespace Microsoft.PSharp.ServiceFabric
 
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
+                ServiceCancellationToken.ThrowIfCancellationRequested();
+
                 var dequeued = false;
                 EventInfo nextEventInfo = null;
 
@@ -284,16 +260,15 @@ namespace Microsoft.PSharp.ServiceFabric
                     {
                         // Try to dequeue the next event, if there is one.
                         nextEventInfo = this.TryDequeueEvent();
-                        LastDequeuedEvent = nextEventInfo;
                     }
 
-                    if (nextEventInfo == null && !InTestMode)
+                    if (nextEventInfo == null && !IsTestingModeEnabled)
                     {
                         nextEventInfo = await ReliableDequeue();
                         reliableDequeue = (nextEventInfo != null);
                     }
 
-                    if (nextEventInfo == null && !InTestMode)
+                    if (nextEventInfo == null && !IsTestingModeEnabled)
                     {
                         CurrentTransaction.Dispose();
                         CurrentTransaction = null;
@@ -304,11 +279,10 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 if (nextEventInfo == null)
                 {
-                    if (InTestMode)
+                    if (IsTestingModeEnabled)
                     {
                         CurrentTransaction.Dispose();
                         CurrentTransaction = null;
-
                         this.IsRunning = false;
                         break;
                     }
@@ -335,8 +309,6 @@ namespace Microsoft.PSharp.ServiceFabric
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
 
-                this.LastDequeuedEvent = nextEventInfo;
-
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
             }
@@ -348,10 +320,10 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             while (true)
             {
-                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction);
+                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction, ServiceCancellationToken, DefaultTimeLimit);
                 if (cv.HasValue)
                 {
-                    return cv.Value;
+                    return new EventInfo(cv.Value);
                 }
                 else
                 {
@@ -383,13 +355,24 @@ namespace Microsoft.PSharp.ServiceFabric
             PendingStateChangesInverted.Add(new PushStateChangeOp(StateStack.Peek()));
             base.DoStatePop();
         }
+
+        /// <summary>
+        /// Halts the machine.
+        /// </summary>
+        internal override void HaltMachine()
+        {
+            // TODO: make async
+            Runtime.NotifyProgress(this, "Halt").Wait();
+            base.HaltMachine();
+        }
+
         #endregion
 
         internal void SetReliableRegisterTx()
         {
             foreach (var reg in CreatedRegisters)
             {
-                reg.SetTransaction(this.CurrentTransaction);
+                reg.SetTransaction(this.CurrentTransaction, DefaultTimeLimit, ServiceCancellationToken);
             }
         }
 

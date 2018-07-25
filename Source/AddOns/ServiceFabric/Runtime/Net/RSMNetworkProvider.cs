@@ -82,7 +82,11 @@ namespace Microsoft.PSharp.ServiceFabric.Net
                 return new FabricTransportServiceRemotingClientFactory(
                     serializationProvider: serializationProvider
                     );
-            });
+            }, 
+            // retry several times (TODO: allow users to override policy)
+            new Microsoft.ServiceFabric.Services.Communication.Client.OperationRetrySettings(
+                        TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), 100)
+            );
 
             string serviceName, partitionName;
             RemoteMachineManager.ParseMachineIdEndpoint(endpoint, out serviceName, out partitionName);

@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.Utilities;
 using Microsoft.ServiceFabric.Data;
-using Microsoft.ServiceFabric.Data.Collections;
 
 namespace PingPong
 {
+    [DataContract]
+    public class PingEvent : Event { }
+
     public class PingMachine : ReliableMachine
     {
         /// <summary>
@@ -35,6 +35,7 @@ namespace PingPong
             try
             {
                 var pongMachineId = this.CreateMachine(typeof(PongMachine), new PongEvent(this.Id));
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPongEvent());
                 await PongMachine.Set(pongMachineId);
                 this.Goto<Waiting>();
             }
@@ -47,16 +48,24 @@ namespace PingPong
 
         private async Task Reply()
         {
-            var cnt = await Count.Get();
-            if (cnt < 5)
+            int count = (await Count.Get()) + 1;
+            if (count <= 2)
             {
                 Send(await PongMachine.Get(), new PongEvent(this.Id));
-                await Count.Set(cnt + 1);
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.CheckPongEvent());
+                this.Monitor<SafetyMonitor>(new SafetyMonitor.CheckReplyCount(count));
+                await Count.Set(count);
+                this.Logger.WriteLine("#Pings: {0} / 2", count);
+            }
+            else
+            {
+                Send(await PongMachine.Get(), new Halt());
             }
         }
 
         protected override Task OnActivate()
         {
+            this.Logger.WriteLine($"{this.Id} - activating...");
             Count = this.GetOrAddRegister<int>("Count", 0);
             PongMachine = this.GetOrAddRegister<MachineId>("PongMachine", null);
             return Task.CompletedTask;

@@ -205,12 +205,6 @@ namespace Microsoft.PSharp.TestingServices
                     // Wait for the test to terminate.
                     runtime.Wait();
 
-                    this.InternalError = (base.Strategy as ReplayStrategy).ErrorText;
-                    if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
-                    {
-                        base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
-                    }
-
                     // Invokes user-provided cleanup for this iteration.
                     if (base.TestIterationDisposeMethod != null)
                     {
@@ -225,11 +219,18 @@ namespace Microsoft.PSharp.TestingServices
                         base.TestDisposeMethod.Invoke(null, new object[] { });
                     }
 
+                    this.InternalError = (base.Strategy as ReplayStrategy).ErrorText;
+
                     // Checks that no monitor is in a hot state at termination. Only
                     // checked if no safety property violations have been found.
                     if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                     {
                         runtime.AssertNoMonitorInHotStateAtTermination();
+                    }
+                    
+                    if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
+                    {
+                        base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                     }
 
                     TestReport report = runtime.Scheduler.GetReport();

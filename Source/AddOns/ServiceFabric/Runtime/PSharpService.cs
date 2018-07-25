@@ -18,6 +18,7 @@
         private static List<Type> KnownTypes = new List<Type>
         {
             typeof(Event),
+            typeof(Halt),
             typeof(TaggedRemoteEvent),
             typeof(ResourceTypesResponse),
             typeof(ResourceDetailsResponse),
@@ -66,7 +67,7 @@
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
 
-            if(!this.StateManager.TryAddStateSerializer(new EventDataSeralizer<Tuple<string, MachineId, Event>>(this.knownTypes)))
+            if (!this.StateManager.TryAddStateSerializer(new EventDataSeralizer<Tuple<string, MachineId, Event>>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
@@ -74,7 +75,7 @@
 
         protected PSharpService(StatefulServiceContext serviceContext, IEnumerable<Type> knownTypes, IReliableStateManagerReplica reliableStateManagerReplica) : base(serviceContext, reliableStateManagerReplica)
         {
-            var localKnownTypes = new List<Type> { typeof(Event), typeof(TaggedRemoteEvent) };
+            var localKnownTypes = new List<Type>(KnownTypes);
             localKnownTypes.AddRange(knownTypes);
 
             this.knownTypes = localKnownTypes;
@@ -123,9 +124,7 @@
             IRemoteMachineManager machineManager = this.GetMachineManager();
             await machineManager.Initialize(cancellationToken);
 
-            var runtime =
-            ServiceFabricRuntimeFactory.Create(this.StateManager, this.GetRuntimeConfiguration(),
-                machineManager,
+            var runtime = ServiceFabricRuntimeFactory.Create(this.StateManager, machineManager, this.GetRuntimeConfiguration(), cancellationToken,
                 new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, EventSerializationProvider)));
 
             if (this.PSharpLogger != null)

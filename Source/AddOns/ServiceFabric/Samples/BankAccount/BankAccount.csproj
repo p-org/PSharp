@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\..\..\Build\common.props" />
   <PropertyGroup>
-    <AssemblyName>PingPong</AssemblyName>
-    <RootNamespace>PingPong</RootNamespace>
+    <AssemblyName>BankAccount</AssemblyName>
+    <RootNamespace>BankAccount</RootNamespace>
     <TargetFrameworks>net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <Platforms>AnyCPU;x64</Platforms>

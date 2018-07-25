@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
-using Microsoft.ServiceFabric.Data.Notifications;
 
-namespace Microsoft.PSharp.ServiceFabric
+namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
     public class ReliableConcurrentQueueMock<T> : IReliableConcurrentQueue<T>, IReliableQueue<T>, ITxState
     {
@@ -32,7 +27,6 @@ namespace Microsoft.PSharp.ServiceFabric
                 }
             }
         }
-
 
         public Uri Name { get; set; }
 
@@ -224,7 +218,6 @@ namespace Microsoft.PSharp.ServiceFabric
                     pending_deq = null;
                     pending_deq_values.Clear();
                 }
-
             }
         }
     }

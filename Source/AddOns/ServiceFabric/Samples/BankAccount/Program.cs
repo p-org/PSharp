@@ -3,7 +3,7 @@ using Microsoft.PSharp;
 using Microsoft.PSharp.ServiceFabric;
 using Microsoft.PSharp.ServiceFabric.TestingServices;
 
-namespace PingPong
+namespace BankAccount
 {
     class Program
     {
@@ -28,13 +28,12 @@ namespace PingPong
             Console.WriteLine("Press Enter to terminate...");
             Console.ReadLine();
         }
-        
+
         [Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.RegisterMonitor(typeof(LivenessMonitor));
-            runtime.CreateMachine(typeof(PingMachine));
+            runtime.RegisterMonitor(typeof(SafetyMonitor));           
+            runtime.CreateMachine(typeof(ClientMachine));
         }
 
         private static void Runtime_OnFailure(Exception ex)

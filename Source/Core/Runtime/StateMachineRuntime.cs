@@ -384,7 +384,7 @@ namespace Microsoft.PSharp
                 mid.Bind(this);
             }
 
-            Machine machine = MachineFactory.Create(type);
+            Machine machine = this.CreateMachine(type);
 
             machine.Initialize(this, mid, new MachineInfo(mid));
             machine.InitializeStateInformation();
@@ -396,6 +396,16 @@ namespace Microsoft.PSharp
                 mid.Name);
 
             return machine;
+        }
+
+        /// <summary>
+        /// Creates a new P# machine of the specified type.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>Machine</returns>
+        protected override Machine CreateMachine(Type type)
+        {
+            return MachineFactory.Create(type);
         }
 
         /// <summary>
@@ -488,7 +498,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
+        protected void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
         {
             Task.Run(async () =>
             {
@@ -505,6 +515,7 @@ namespace Microsoft.PSharp
                 {
                     base.IsRunning = false;
                     base.RaiseOnFailureEvent(ex);
+                    this.Dispose();
                 }
             });
         }
@@ -515,7 +526,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
+        protected async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
         {
             try
             {
@@ -530,6 +541,7 @@ namespace Microsoft.PSharp
             {
                 base.IsRunning = false;
                 base.RaiseOnFailureEvent(ex);
+                this.Dispose();
                 return;
             }
         }

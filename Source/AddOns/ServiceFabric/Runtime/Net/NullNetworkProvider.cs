@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.ServiceFabric.Net
 {
-    class NullNetworkProvider : Microsoft.PSharp.Net.INetworkProvider
+    internal class NullNetworkProvider : PSharp.Net.INetworkProvider
     {
         string Endpoint;
 
@@ -15,10 +11,7 @@ namespace Microsoft.PSharp.ServiceFabric.Net
             this.Endpoint = endpoint;
         }
 
-        public void Dispose()
-        {
-            
-        }
+        public void Dispose() { }
 
         public string GetLocalEndpoint()
         {

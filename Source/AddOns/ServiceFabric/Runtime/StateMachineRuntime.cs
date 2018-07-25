@@ -26,9 +26,24 @@ namespace Microsoft.PSharp.ServiceFabric
         IReliableStateManager StateManager;
 
         /// <summary>
+        /// Service cancellation token
+        /// </summary>
+        internal CancellationToken ServiceCancellationToken;
+
+        /// <summary>
+        /// Default time limit for SF operations
+        /// </summary>
+        internal TimeSpan DefaultTimeLimit;
+
+        /// <summary>
         /// Pending machine creations
         /// </summary>
-        Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>> PendingMachineCreations;
+        Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>> PendingMachineCreations;
+
+        /// <summary>
+        /// Pending machine deletions (for halted machines)
+        /// </summary>
+        Dictionary<ITransaction, List<MachineId>> PendingMachineDeletions;
 
         /// <summary>
         /// RSM network provider
@@ -41,20 +56,23 @@ namespace Microsoft.PSharp.ServiceFabric
         public IRemoteMachineManager RemoteMachineManager { get; }
 
         internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager)
-            : base()
-        {
-            this.StateManager = stateManager;
-            this.RemoteMachineManager = manager;
-            this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
-            StartClearOutboxTasks();
-        }
+            : this(stateManager, manager, Configuration.Create())
+        { }
 
-        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager, Configuration configuration) 
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager, Configuration configuration)
+            : this(stateManager, manager, configuration, CancellationToken.None)
+        { }
+
+        internal ServiceFabricPSharpRuntime(IReliableStateManager stateManager, IRemoteMachineManager manager,
+            Configuration configuration, CancellationToken cancellationToken) 
             : base(configuration)
         {
             this.StateManager = stateManager;
+            this.ServiceCancellationToken = cancellationToken;
+            this.DefaultTimeLimit = TimeSpan.FromSeconds(4);
             this.RemoteMachineManager = manager;
-            this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, string, Event, MachineId>>>();
+            this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>>();
+            this.PendingMachineDeletions = new Dictionary<ITransaction, List<MachineId>>();
             StartClearOutboxTasks();
         }
 
@@ -116,7 +134,7 @@ namespace Microsoft.PSharp.ServiceFabric
             else
             {
                 var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
-                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e));
+                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e), DefaultTimeLimit, ServiceCancellationToken);
             }
 
             return mid;
@@ -128,6 +146,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.Assert(creator == null || creator is ReliableMachine, "Type '{0}' is not a reliable machine.", creator != null ? creator.GetType().Name : "");
 
             // Idempotence check
+            // TODO: make concurrency safe
             if (MachineMap.ContainsKey(mid))
             {
                 // machine already created
@@ -142,30 +161,38 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 using (var tx = this.StateManager.CreateTransaction())
                 {
-                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
+                    await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e), DefaultTimeLimit, ServiceCancellationToken);
                     await tx.CommitAsync();
                 }
-                StartMachine(mid, type, friendlyName, e, creator?.Id);
+                StartMachine(mid, type, e, creator?.Id);
             }
             else
             {
                 this.Assert(reliableCreator.CurrentTransaction != null, "Creator's transaction cannot be null");
-                await createdMachineMap.AddAsync(reliableCreator.CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e));
+                await createdMachineMap.AddAsync(reliableCreator.CurrentTransaction, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e), DefaultTimeLimit, ServiceCancellationToken);
                 
                 if(!PendingMachineCreations.ContainsKey(reliableCreator.CurrentTransaction))
                 {
-                    PendingMachineCreations[reliableCreator.CurrentTransaction] = new List<Tuple<MachineId, Type, string, Event, MachineId>>();
+                    PendingMachineCreations[reliableCreator.CurrentTransaction] = new List<Tuple<MachineId, Type, Event, MachineId>>();
                 }
                 PendingMachineCreations[reliableCreator.CurrentTransaction].Add(
-                    Tuple.Create(mid, type, friendlyName, e, reliableCreator.Id));
+                    Tuple.Create(mid, type, e, reliableCreator.Id));
             }
 
             return mid;
 
         }
 
-        private void StartMachine(MachineId mid, Type type, string friendlyName, Event e, MachineId creator)
+        private void StartMachine(MachineId mid, Type type, Event e, MachineId creator)
         {
+            // Idempotence check
+            // TODO: make concurrency safe
+            if (MachineMap.ContainsKey(mid))
+            {
+                // machine already created
+                return;
+            }
+
             this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Name);
             this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                 mid.Name, mid.Type, type.FullName);
@@ -190,7 +217,6 @@ namespace Microsoft.PSharp.ServiceFabric
         private async Task ReHydrateMachines()
         {
             var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
-
             using (var tx = this.StateManager.CreateTransaction())
             {
                 var enumerable = await createdMachineMap.CreateEnumerableAsync(tx);
@@ -201,8 +227,10 @@ namespace Microsoft.PSharp.ServiceFabric
 
                 while (await enumerator.MoveNextAsync(ct))
                 {
+                    ServiceCancellationToken.ThrowIfCancellationRequested();
+
                     this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
-                    await CreateMachineLocalAsync(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), null, enumerator.Current.Value.Item3, null, null);
+                    StartMachine(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), enumerator.Current.Value.Item3, null);
                 }
             }
         }
@@ -240,14 +268,14 @@ namespace Microsoft.PSharp.ServiceFabric
                             var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0);
                             if (currentCounter == tg.tag - 1)
                             {
-                                await targetQueue.EnqueueAsync(tx, new EventInfo(tg.ev));
+                                await targetQueue.EnqueueAsync(tx, tg.ev);
                                 await ReceiveCounters.AddOrUpdateAsync(tx, tg.mid.Name, 0, (k, v) => tg.tag);
                                 await tx.CommitAsync();
                             }
                         }
                         else
                         {
-                            await targetQueue.EnqueueAsync(tx, new EventInfo(e));
+                            await targetQueue.EnqueueAsync(tx, e);
                             await tx.CommitAsync();
                         }
                     }
@@ -255,7 +283,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 else
                 {
                     // Machine to machine
-                    await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, new EventInfo(e));
+                    await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, e);
                 }
             }
             else
@@ -281,8 +309,6 @@ namespace Microsoft.PSharp.ServiceFabric
         }
 
         #endregion
-
-        #region Internal
 
         internal override HashSet<MachineId> GetCreatedMachines()
         {
@@ -313,53 +339,65 @@ namespace Microsoft.PSharp.ServiceFabric
             return list;
         }
 
-        internal void NotifyTransactionCommit(ITransaction tx)
-        {
-            if (PendingMachineCreations.ContainsKey(tx))
-            {
-                foreach (var tup in PendingMachineCreations[tx])
-                {
-                    StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4, tup.Item5);
-                }
-                PendingMachineCreations.Remove(tx);
-            }
-
-        }
-
         /// <summary>
-        /// Runs a new asynchronous machine event handler.
-        /// This is a fire and forget invocation.
+        /// Notifies that a machine has progressed. This method can be used to
+        /// implement custom notifications based on the specified arguments.
         /// </summary>
-        /// <param name="machine">Machine that executes this event handler.</param>
-        /// <param name="initialEvent">Event for initializing the machine.</param>
-        /// <param name="isFresh">If true, then this is a new machine.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
+        /// <param name="machine">Machine</param>
+        /// <param name="args">Arguments</param>
+        protected internal override async Task NotifyProgress(Machine machine, params object[] args)
         {
-            Task.Run(async () =>
+            if (args.Length > 0)
             {
-                try
+                // Halt notification
+                if(args[0] is string && (args[0] as string) == "Halt")
                 {
-                    if (isFresh)
+                    var ctx = (machine as ReliableMachine).CurrentTransaction;
+                    var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
+                    await createdMachineMap.TryRemoveAsync(ctx, machine.Id.ToString());
+                    if(!PendingMachineDeletions.ContainsKey(ctx))
                     {
-                        await machine.GotoStartState(initialEvent);
+                        PendingMachineDeletions.Add(ctx, new List<MachineId>());
+                    }
+                    PendingMachineDeletions[ctx].Add(machine.Id);
+                }
+
+                // Notifies that a reliable machine has committed its current transaction.
+                ITransaction tx = args[0] as ITransaction; // TODO: This can just be the machine's current-tx
+                if (tx != null)
+                {
+                    if (this.Logger.Configuration.Verbose >= this.Logger.LoggingVerbosity)
+                    {
+                        this.Logger.WriteLine("<CommitLog> Machine '{0}' committed transaction '{1}'.", machine.Id, tx.TransactionId);
                     }
 
-                    await machine.RunEventHandler();
-                }
-                catch (Exception ex)
-                {
-                    if(machine is ReliableMachine && (machine as ReliableMachine).CurrentTransaction != null)
+                    if (this.PendingMachineCreations.ContainsKey(tx))
                     {
-                        (machine as ReliableMachine).CurrentTransaction.Dispose();
+                        foreach (var tup in this.PendingMachineCreations[tx])
+                        {
+                            this.StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4);
+                        }
+
+                        this.PendingMachineCreations.Remove(tx);
                     }
 
-                    base.IsRunning = false;
-                    base.RaiseOnFailureEvent(ex);
+                    // TODO: This also needs to be done as a "garbage collection" step
+                    // in case of failover
+                    if(PendingMachineDeletions.ContainsKey(tx))
+                    {
+                        foreach(var id in PendingMachineDeletions[tx])
+                        {
+                            await this.StateManager.DeleteMachineInputQueue(id);
+                            await this.StateManager.DeleteMachineReceiveCounters(id);
+                            await this.StateManager.DeleteMachineSendCounters(id);
+                            await this.StateManager.DeleteMachineStackStore(id);
+                        }
+                    }
+
+                    PendingMachineDeletions.Remove(tx);
                 }
-            });
+            }
         }
-
-        #endregion
 
         private void StartClearOutboxTasks()
         {
@@ -373,18 +411,27 @@ namespace Microsoft.PSharp.ServiceFabric
             var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
             while(true)
             {
+                ServiceCancellationToken.ThrowIfCancellationRequested();
+
                 var found = false;
-                using (var tx = this.StateManager.CreateTransaction())
+                try
                 {
-                    var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
-                    if(cv.HasValue)
+                    using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
-                        await tx.CommitAsync();
+                        var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
+                        if (cv.HasValue)
+                        {
+                            await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
+                            await tx.CommitAsync();
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    this.Logger.WriteLine("Exception raised in ClearCreationsOutbox: {0}", ex.ToString());
+                }
 
-                if(!found)
+                if (!found)
                 {
                     await Task.Delay(100);
                 }
@@ -396,15 +443,25 @@ namespace Microsoft.PSharp.ServiceFabric
             var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
             while (true)
             {
+                ServiceCancellationToken.ThrowIfCancellationRequested();
+
                 var found = false;
-                using (var tx = this.StateManager.CreateTransaction())
+
+                try
                 {
-                    var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
-                    if (cv.HasValue)
+                    using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
-                        await tx.CommitAsync();
+                        var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
+                        if (cv.HasValue)
+                        {
+                            await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
+                            await tx.CommitAsync();
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    this.Logger.WriteLine("Exception raised in ClearMessagesOutbox: {0}", ex.ToString());
                 }
 
                 if (!found)
@@ -412,6 +469,15 @@ namespace Microsoft.PSharp.ServiceFabric
                     await Task.Delay(100);
                 }
             }
+        }
+
+        /// <summary>
+        /// Disposes runtime resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            this.PendingMachineCreations.Clear();
+            base.Dispose();
         }
 
         #region Unsupported
@@ -483,7 +549,6 @@ namespace Microsoft.PSharp.ServiceFabric
         }
 
         #endregion
-
     }
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data.Notifications;
 
-namespace Microsoft.PSharp.ServiceFabric
+namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
     public class ReliableDictionaryMock<TKey, TValue> : ITxState, IReliableDictionary<TKey, TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
     {
@@ -283,7 +281,6 @@ namespace Microsoft.PSharp.ServiceFabric
             curr_dictionary = new ConcurrentDictionary<TKey, TValue>(persisted_dictionary);
             curr_tx = null;
         }
-
 
         void ITxState.Commit(ITransaction tx)
         {

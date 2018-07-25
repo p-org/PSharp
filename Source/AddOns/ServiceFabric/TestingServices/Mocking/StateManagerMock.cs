@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.ServiceFabric;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Data.Notifications;
 using System.Threading;
 
-namespace Microsoft.PSharp.ServiceFabric
+namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
     /// <summary>
     /// Mock of IReliableStateManager
@@ -42,9 +39,10 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <summary>
         /// Disallows failures inside the mocked StateManager
         /// </summary>
-        public void DisallowFailures()
+        public StateManagerMock DisallowFailures()
         {
             TransactionMock.AllowFailures = false;
+            return this;
         }
 
         /// <summary>
