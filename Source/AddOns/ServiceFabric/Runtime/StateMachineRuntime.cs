@@ -381,17 +381,24 @@ namespace Microsoft.PSharp.ServiceFabric
             while(true)
             {
                 var found = false;
-                using (var tx = this.StateManager.CreateTransaction())
+                try
                 {
-                    var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
-                    if(cv.HasValue)
+                    using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
-                        await tx.CommitAsync();
+                        var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
+                        if (cv.HasValue)
+                        {
+                            await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
+                            await tx.CommitAsync();
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    this.Logger.WriteLine("Exception raised in ClearCreationsOutbox: {0}", ex.ToString());
+                }
 
-                if(!found)
+                if (!found)
                 {
                     await Task.Delay(100);
                 }
@@ -404,14 +411,22 @@ namespace Microsoft.PSharp.ServiceFabric
             while (true)
             {
                 var found = false;
-                using (var tx = this.StateManager.CreateTransaction())
+
+                try
                 {
-                    var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
-                    if (cv.HasValue)
+                    using (var tx = this.StateManager.CreateTransaction())
                     {
-                        await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
-                        await tx.CommitAsync();
+                        var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
+                        if (cv.HasValue)
+                        {
+                            await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
+                            await tx.CommitAsync();
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    this.Logger.WriteLine("Exception raised in ClearMessagesOutbox: {0}", ex.ToString());
                 }
 
                 if (!found)
