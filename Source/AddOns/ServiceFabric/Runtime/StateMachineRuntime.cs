@@ -286,7 +286,8 @@ namespace Microsoft.PSharp.ServiceFabric
 
         internal override HashSet<MachineId> GetCreatedMachines()
         {
-            //TODO: plumb in cancellation token
+            //TODO: Plumb in cancellation token
+            //TODO: Do not report halted machines - we need some way to delete the halted machines and clean up the IDs/queues
             return this.GetCreatedMachinesAsync(CancellationToken.None).Result;
         }
 
