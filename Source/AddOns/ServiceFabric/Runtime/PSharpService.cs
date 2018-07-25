@@ -136,9 +136,7 @@
             IRemoteMachineManager machineManager = this.GetMachineManager();
             await machineManager.Initialize(cancellationToken);
 
-            var runtime =
-            ServiceFabricRuntimeFactory.Create(this.StateManager, cancellationToken, this.GetRuntimeConfiguration(),
-                machineManager,
+            var runtime = ServiceFabricRuntimeFactory.Create(this.StateManager, machineManager, this.GetRuntimeConfiguration(), cancellationToken,
                 new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, EventSerializationProvider)));
 
             if (this.PSharpLogger != null)
