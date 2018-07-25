@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-<<<<<<< HEAD
   <Import Project="..\..\..\..\..\..\Build\common.props" />
   <PropertyGroup>
     <AssemblyName>DemoAppConsole</AssemblyName>
@@ -16,7 +15,6 @@
     <ProjectReference Include="..\..\..\..\..\Core\Core.csproj" />
     <ProjectReference Include="..\..\..\Runtime\ServiceFabric.csproj" />
     <ProjectReference Include="..\..\..\TestingServices\ServiceFabric.TestingServices.csproj" />
-<<<<<<< HEAD
     <ProjectReference Include="..\Service\Contracts\PoolServicesContract.csproj" />
   </ItemGroup>
 </Project>

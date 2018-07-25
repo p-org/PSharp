@@ -51,13 +51,17 @@ namespace DemoAppConsole
             Send(await PoolDriver.Get(), evConfigChange);
 
             // Scale up
-            evConfigChange.Configuration.PoolData.Remove("Pool1");
+            evConfigChange = new ePoolDriverConfigChangeEvent();
+            evConfigChange.Configuration = new PoolDriverConfig();
+            evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
             evConfigChange.Configuration.PoolData.Add("Pool1", 20);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(20));
             Send(await PoolDriver.Get(), evConfigChange);
 
             // Scale down
-            evConfigChange.Configuration.PoolData.Remove("Pool1");
+            evConfigChange = new ePoolDriverConfigChangeEvent();
+            evConfigChange.Configuration = new PoolDriverConfig();
+            evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
             evConfigChange.Configuration.PoolData.Add("Pool1", 15);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(15));
             Send(await PoolDriver.Get(), evConfigChange);
