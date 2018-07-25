@@ -1885,7 +1885,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Halts the machine.
         /// </summary>
-        private void HaltMachine()
+        internal virtual void HaltMachine()
         {
             lock (this.Inbox)
             {
