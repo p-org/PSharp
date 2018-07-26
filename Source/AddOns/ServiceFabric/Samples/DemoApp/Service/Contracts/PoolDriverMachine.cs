@@ -48,8 +48,9 @@ namespace PoolServicesContract
                 {
                     for (long i = count; i < configChange.Configuration.PoolData.Count; i++)
                     {
-                        MachineId machineId = this.CreateMachine(typeof(PoolManagerMachine),
-                            new ePoolResizeRequestEvent() { Size = configChange.Configuration.PoolData[$"Pool{i + 1}"] });
+                        MachineId machineId = this.CreateMachine(typeof(PoolManagerMachine), Guid.NewGuid().ToString(),
+                            //new ePoolResizeRequestEvent() { Size = configChange.Configuration.PoolData[$"Pool{i + 1}"] });
+                        new ePoolResizeRequestEvent() { Size = 10 });
                         await this.currentPoolTable.AddAsync(this.CurrentTransaction, i, machineId);
                     }
                 }

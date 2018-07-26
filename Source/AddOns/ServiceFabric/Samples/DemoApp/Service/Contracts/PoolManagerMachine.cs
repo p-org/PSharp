@@ -1,5 +1,6 @@
 ﻿namespace PoolServicesContract
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -78,6 +79,10 @@
                 this.Logger.WriteLine($"PM- {this.Id} Deleting pool");
                 this.Send(this.Id, new Halt());
             }
+            else
+            {
+                this.Logger.WriteLine($"PM- {this.Id} remaining count = {count}");
+            }
         }
 
         private void RetryCreateVM()
@@ -86,7 +91,7 @@
             this.Logger.WriteLine($"PM- {this.Id} received VM Create Failure for {request.senderId}");
             this.Logger.WriteLine($"PM- {this.Id} Deleting VM for {request.senderId} and Retrying create");
             this.Send(request.senderId, new eVMDeleteRequestEvent(this.Id));
-            this.CreateMachine(typeof(VMManagerMachine), new eVMRetryCreateRequestEvent(this.Id));
+            this.CreateMachine(typeof(VMManagerMachine), Guid.NewGuid().ToString(), new eVMRetryCreateRequestEvent(this.Id));
         }
 
         private void RetryDeleteVM()
@@ -132,7 +137,7 @@
                 this.Logger.WriteLine($"PM- {this.Id} - Scale up Creating VMs for pool {this.Id}");
                 while (difference-- > 0L)
                 {
-                    MachineId machineId = this.CreateMachine(typeof(VMManagerMachine), new eVMCreateRequestEvent(this.Id));
+                    MachineId machineId = this.CreateMachine(typeof(VMManagerMachine), Guid.NewGuid().ToString(), new eVMCreateRequestEvent(this.Id));
                     await VMCreatingTable.AddOrUpdateAsync(
                         this.CurrentTransaction,
                         machineId,
@@ -151,34 +156,31 @@
             IAsyncEnumerable<MachineId> enumerable = await VMCreatedTable.CreateKeyEnumerableAsync(this.CurrentTransaction);
             IAsyncEnumerator<MachineId> enumerator = enumerable.GetAsyncEnumerator();
             CancellationToken token = new CancellationToken();
+            List<MachineId> ids = new List<MachineId>();
             while (await enumerator.MoveNextAsync(token))
             {
-                MachineId machineId = enumerator.Current;
-                await VMCreatedTable.TryRemoveAsync(
-                       this.CurrentTransaction,
-                       machineId);
-                this.Send(machineId, new eVMDeleteRequestEvent(this.Id));
-                await VMDeletingTable.AddOrUpdateAsync(
-                    this.CurrentTransaction,
-                    machineId,
-                    true,
-                    (key, oldvalue) => true);
+                ids.Add(enumerator.Current);
             }
 
             enumerable = await VMCreatingTable.CreateKeyEnumerableAsync(this.CurrentTransaction);
             enumerator = enumerable.GetAsyncEnumerator();
             while (await enumerator.MoveNextAsync(token))
             {
-                MachineId machineId = enumerator.Current;
-                await VMCreatingTable.TryRemoveAsync(
-                       this.CurrentTransaction,
-                       machineId);
-                this.Send(machineId, new eVMDeleteRequestEvent(this.Id));
+                ids.Add(enumerator.Current);
+            }
+
+            foreach (var id in ids)
+            {
+                await VMCreatedTable.TryRemoveAsync(this.CurrentTransaction, id);
+                await VMCreatingTable.TryRemoveAsync(this.CurrentTransaction, id);
+
                 await VMDeletingTable.AddOrUpdateAsync(
                     this.CurrentTransaction,
-                    machineId,
+                    id,
                     true,
                     (key, oldvalue) => true);
+
+                this.Send(id, new eVMDeleteRequestEvent(this.Id));
             }
         }
     }

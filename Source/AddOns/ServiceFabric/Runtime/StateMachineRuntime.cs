@@ -222,10 +222,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 var enumerable = await createdMachineMap.CreateEnumerableAsync(tx);
                 var enumerator = enumerable.GetAsyncEnumerator();
 
-                // TODO: Add cancellation token
-                var ct = new CancellationToken();
-
-                while (await enumerator.MoveNextAsync(ct))
+                while (await enumerator.MoveNextAsync(this.ServiceCancellationToken))
                 {
                     ServiceCancellationToken.ThrowIfCancellationRequested();
 
@@ -349,8 +346,9 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             if (args.Length > 0)
             {
+                bool isHalt = false;
                 // Halt notification
-                if(args[0] is string && (args[0] as string) == "Halt")
+                if (args[0] is string && (args[0] as string) == "Halt")
                 {
                     var ctx = (machine as ReliableMachine).CurrentTransaction;
                     var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
@@ -360,6 +358,7 @@ namespace Microsoft.PSharp.ServiceFabric
                         PendingMachineDeletions.Add(ctx, new List<MachineId>());
                     }
                     PendingMachineDeletions[ctx].Add(machine.Id);
+                    isHalt = true;
                 }
 
                 // Notifies that a reliable machine has committed its current transaction.
@@ -395,6 +394,13 @@ namespace Microsoft.PSharp.ServiceFabric
                     }
 
                     PendingMachineDeletions.Remove(tx);
+                }
+
+                if(isHalt)
+                {
+                    tx = (machine as ReliableMachine).CurrentTransaction;
+                    this.Logger.WriteLine("<HaltCommit> Machine '{0}' committed transaction '{1}'.", machine.Id, tx?.TransactionId);
+                    await tx?.CommitAsync();
                 }
             }
         }
