@@ -10,7 +10,9 @@ using Microsoft.ServiceFabric.Data.Notifications;
 
 namespace Microsoft.PSharp.ServiceFabric.TestingServices
 {
-    public class ReliableDictionaryMock<TKey, TValue> : ITxState, IReliableDictionary<TKey, TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
+    public class ReliableDictionaryMock<TKey, TValue> : ITxState,
+        IReliableDictionary2<TKey, TValue>,
+        IReliableDictionary<TKey, TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
     {
         private ConcurrentDictionary<TKey, TValue> persisted_dictionary = new ConcurrentDictionary<TKey, TValue>();
         private ConcurrentDictionary<TKey, TValue> curr_dictionary = new ConcurrentDictionary<TKey, TValue>();
@@ -21,6 +23,14 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         public Uri Name { get; set; }
 
         Uri IReliableState.Name => throw new NotImplementedException();
+
+        public long Count
+        {
+            get
+            {
+                return (long)persisted_dictionary.Count();
+            }
+        }
 
 #pragma warning disable 67
         public event EventHandler<NotifyDictionaryChangedEventArgs<TKey, TValue>> DictionaryChanged;
@@ -286,6 +296,25 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         {
             persisted_dictionary = new ConcurrentDictionary<TKey, TValue>(curr_dictionary);
             curr_tx = null;
+        }
+
+        public Task<IAsyncEnumerable<TKey>> CreateKeyEnumerableAsync(ITransaction txn)
+        {
+            return CreateKeyEnumerableAsync(txn, EnumerationMode.Unordered);
+        }
+
+        public Task<IAsyncEnumerable<TKey>> CreateKeyEnumerableAsync(ITransaction txn, EnumerationMode enumerationMode)
+        {
+            CheckTx(txn);
+            return Task.FromResult<IAsyncEnumerable<TKey>>(new MockAsyncEnumerable<TKey>(
+                enumerationMode == EnumerationMode.Unordered
+                    ? (IEnumerable<TKey>)this.curr_dictionary.Keys
+                    : this.curr_dictionary.Keys.OrderBy(x => x)));
+        }
+
+        public Task<IAsyncEnumerable<TKey>> CreateKeyEnumerableAsync(ITransaction txn, EnumerationMode enumerationMode, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            return CreateKeyEnumerableAsync(txn, enumerationMode);
         }
     }
 }

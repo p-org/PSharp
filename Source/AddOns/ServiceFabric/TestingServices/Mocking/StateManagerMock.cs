@@ -26,6 +26,7 @@ namespace Microsoft.PSharp.ServiceFabric.TestingServices
         private Dictionary<Type, Type> dependencyMap = new Dictionary<Type, Type>()
         {
             {typeof(IReliableDictionary<,>), typeof(ReliableDictionaryMock<,>)},
+            {typeof(IReliableDictionary2<,>), typeof(ReliableDictionaryMock<,>)},
             { typeof(IReliableConcurrentQueue<>), typeof(ReliableConcurrentQueueMock<>)},
             { typeof(IReliableQueue<>), typeof(ReliableConcurrentQueueMock<>)}
         };
