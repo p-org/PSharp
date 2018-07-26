@@ -46,24 +46,25 @@ namespace DemoAppConsole
             evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
 
             // Fire off some pool creation/resize requests to the driver
-            evConfigChange.Configuration.PoolData.Add("Pool1", 2);
+            evConfigChange.Configuration.PoolData.Add("Pool1", PoolDriverMachine.numVMsPerPool);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(1));
+            Send(await PoolDriver.Get(), evConfigChange);
+
+            // Scale Up
+            evConfigChange = new ePoolDriverConfigChangeEvent();
+            evConfigChange.Configuration = new PoolDriverConfig();
+            evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
+            evConfigChange.Configuration.PoolData.Add("Pool1", PoolDriverMachine.numVMsPerPool);
+            evConfigChange.Configuration.PoolData.Add("Pool2", PoolDriverMachine.numVMsPerPool);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(2));
             Send(await PoolDriver.Get(), evConfigChange);
-            
-            //// Scale up
-            //evConfigChange = new ePoolDriverConfigChangeEvent();
-            //evConfigChange.Configuration = new PoolDriverConfig();
-            //evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
-            //evConfigChange.Configuration.PoolData.Add("Pool1", 4);
-            //this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(4));
-            //Send(await PoolDriver.Get(), evConfigChange);
 
-            //// Scale down
+            // Scale down
             //evConfigChange = new ePoolDriverConfigChangeEvent();
             //evConfigChange.Configuration = new PoolDriverConfig();
             //evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
-            //evConfigChange.Configuration.PoolData.Add("Pool1", 3);
-            //this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(3));
+            //evConfigChange.Configuration.PoolData.Add("Pool1", PoolDriverMachine.numVMsPerPool);
+            //this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(1));
             //Send(await PoolDriver.Get(), evConfigChange);
         }
         #endregion
