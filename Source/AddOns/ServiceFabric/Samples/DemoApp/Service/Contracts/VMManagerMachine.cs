@@ -54,8 +54,6 @@
                 this.Send(this.Id, new eVMCreateSuccessRequestEvent(this.Id));
                 this.Send(request.senderId, new eVMCreateSuccessRequestEvent(this.Id));
             }
-            // TODO: investigate rare bug in P# tester when using yield.
-            //await Task.Yield();
             await Task.CompletedTask;
         }
 
@@ -75,8 +73,6 @@
                 this.Send(this.Id, new Halt());
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.eVmManagerMachineDown());
             }
-            // TODO: investigate rare bug in P# tester when using yield.
-            //await Task.Yield();
             await Task.CompletedTask;
         }
 
