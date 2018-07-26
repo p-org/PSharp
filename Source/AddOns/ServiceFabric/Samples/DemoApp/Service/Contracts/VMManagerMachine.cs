@@ -54,7 +54,9 @@
                 this.Send(this.Id, new eVMCreateSuccessRequestEvent(this.Id));
                 this.Send(request.senderId, new eVMCreateSuccessRequestEvent(this.Id));
             }
-            await Task.Yield();
+            // TODO: investigate rare bug in P# tester when using yield.
+            //await Task.Yield();
+            await Task.CompletedTask;
         }
 
         private async Task DeleteVM()
@@ -73,7 +75,9 @@
                 this.Send(this.Id, new Halt());
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.eVmManagerMachineDown());
             }
-            await Task.Yield();
+            // TODO: investigate rare bug in P# tester when using yield.
+            //await Task.Yield();
+            await Task.CompletedTask;
         }
 
         private void OnCreateCompleted()
