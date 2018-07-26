@@ -78,6 +78,9 @@
             if (count == 0)
             {
                 this.Logger.WriteLine($"PM- {this.Id} Deleting pool");
+
+                // All VMs removed, ready to stop this pool machine
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.ePoolManagerMachineDown());
                 this.Send(this.Id, new Halt());
             }
             else
@@ -192,8 +195,6 @@
             {
                 await SendDeleteRequest(id);
             }
-
-            this.Monitor<LivenessMonitor>(new LivenessMonitor.ePoolManagerMachineDown());
         }
     }
 }
