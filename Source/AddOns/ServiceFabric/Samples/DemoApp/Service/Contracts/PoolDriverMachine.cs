@@ -50,7 +50,7 @@ namespace PoolServicesContract
                     {
                         MachineId machineId = this.CreateMachine(typeof(PoolManagerMachine), Guid.NewGuid().ToString(),
                             //new ePoolResizeRequestEvent() { Size = configChange.Configuration.PoolData[$"Pool{i + 1}"] });
-                        new ePoolResizeRequestEvent() { Size = 10 });
+                        new ePoolResizeRequestEvent() { Size = 20 }); // hard coding 20 VMS per pool for demo
                         await this.currentPoolTable.AddAsync(this.CurrentTransaction, i, machineId);
                     }
                 }
