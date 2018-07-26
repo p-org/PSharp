@@ -74,14 +74,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 // Else, the task was spawned by user-code (e.g. due to async/await). In
                 // this case, get the currently scheduled machine (this was the machine
                 // that spawned this task).
-                Machine machine = this.TaskMap[Runtime.Scheduler.ScheduledMachine.TaskId];
+                int prevTaskId = Runtime.Scheduler.ScheduledMachine.TaskId;
+                Machine machine = this.TaskMap[prevTaskId];
 
-                this.TaskMap.TryRemove(Runtime.Scheduler.ScheduledMachine.TaskId, out machine);
+                this.TaskMap.TryRemove(prevTaskId, out machine);
                 this.TaskMap.TryAdd(task.Id, machine);
 
                 // Change the task previously associated with the machine to the new task.
                 (machine.Info as SchedulableInfo).TaskId = task.Id;
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{(machine.Info as SchedulableInfo).TaskId}' to {task.Id}.");
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId}' to '{task.Id}'.");
 
                 // Execute the new task.
                 this.Execute(task);
