@@ -41,6 +41,8 @@
         {
             eVMCreateRequestEvent request = this.ReceivedEvent as eVMCreateRequestEvent;
             if (request == null) return;
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eVmManagerMachineUp());
+
             if (this.FairRandom())
             {
                 this.Logger.WriteLine($"VM- {this.Id} Creating request failed request for pool {request.senderId}");
@@ -58,7 +60,7 @@
         private async Task DeleteVM()
         {
             eVMDeleteRequestEvent request = this.ReceivedEvent as eVMDeleteRequestEvent;
-
+            
             if (this.FairRandom())
             {
                 this.Logger.WriteLine($"VM- {this.Id} Deleting request failed request for pool {request.senderId}");
@@ -69,6 +71,7 @@
                 this.Logger.WriteLine($"VM- {this.Id} Deleting request success for pool {request.senderId}");
                 this.Send(request.senderId, new eVMDeleteSuccessRequestEvent(this.Id));
                 this.Send(this.Id, new Halt());
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.eVmManagerMachineDown());
             }
             await Task.Yield();
         }

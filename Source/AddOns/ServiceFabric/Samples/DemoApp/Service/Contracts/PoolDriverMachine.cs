@@ -11,6 +11,8 @@ namespace PoolServicesContract
 {
     public class PoolDriverMachine : ReliableMachine
     {
+        public static int numVMsPerPool = 20;
+
         private const string TablePrefix = "POOLDRIVER-";
         // Pool name to machine id
         private IReliableDictionary<long, MachineId> currentPoolTable;
@@ -50,7 +52,7 @@ namespace PoolServicesContract
                     {
                         MachineId machineId = this.CreateMachine(typeof(PoolManagerMachine), Guid.NewGuid().ToString(),
                             //new ePoolResizeRequestEvent() { Size = configChange.Configuration.PoolData[$"Pool{i + 1}"] });
-                        new ePoolResizeRequestEvent() { Size = 20 }); // hard coding 20 VMS per pool for demo
+                        new ePoolResizeRequestEvent() { Size = numVMsPerPool }); // hard coding VMS per pool for demo
                         await this.currentPoolTable.AddAsync(this.CurrentTransaction, i, machineId);
                     }
                 }

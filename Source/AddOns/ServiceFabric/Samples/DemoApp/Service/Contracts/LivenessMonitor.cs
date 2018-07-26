@@ -5,14 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
 
-namespace DemoAppConsole
+namespace PoolServicesContract
 {
-    class LivenessMonitor : Monitor
+    public class LivenessMonitor : Monitor
     {
         #region monitor events
         public class ePoolManagerMachineUp : Event { }
 
         public class ePoolManagerMachineDown : Event { }
+
+        public class eVmManagerMachineUp : Event { }
+
+        public class eVmManagerMachineDown : Event { }
 
         public class eUpdateGoalCount : Event
         {
@@ -31,6 +35,9 @@ namespace DemoAppConsole
 
         // Number of PoolManagerMachines in existence
         private int poolManagerMachineCount;
+
+        // Number of VmManagerMachines in existence
+        private int vmManagerMachineCount;
         #endregion
 
         #region monitor states
@@ -42,12 +49,16 @@ namespace DemoAppConsole
         [OnEventDoAction(typeof(eUpdateGoalCount), nameof(UpdateGoalCount))]
         [OnEventDoAction(typeof(ePoolManagerMachineUp), nameof(IncPoolManagerMachine))]
         [OnEventDoAction(typeof(ePoolManagerMachineDown), nameof(DecPoolManagerMachine))]
+        [OnEventDoAction(typeof(eVmManagerMachineUp), nameof(IncVmManagerMachine))]
+        [OnEventDoAction(typeof(eVmManagerMachineDown), nameof(DecVmManagerMachine))]
         class Balance : MonitorState { }
 
         [Hot]
         [OnEventDoAction(typeof(eUpdateGoalCount), nameof(UpdateGoalCount))]
         [OnEventDoAction(typeof(ePoolManagerMachineUp), nameof(IncPoolManagerMachine))]
         [OnEventDoAction(typeof(ePoolManagerMachineDown), nameof(DecPoolManagerMachine))]
+        [OnEventDoAction(typeof(eVmManagerMachineUp), nameof(IncVmManagerMachine))]
+        [OnEventDoAction(typeof(eVmManagerMachineDown), nameof(DecVmManagerMachine))]
         class Imbalance : MonitorState { }
 
         #endregion
@@ -57,8 +68,26 @@ namespace DemoAppConsole
         {
             goalCount = 0;
             poolManagerMachineCount = 0;
+            vmManagerMachineCount = 0;
 
             this.Goto<Balance>();
+        }
+
+        private bool IsBalanced()
+        {
+            return (goalCount == poolManagerMachineCount && vmManagerMachineCount == goalCount * PoolDriverMachine.numVMsPerPool);
+        }
+
+        private void Transition()
+        {
+            if (IsBalanced())
+            {
+                this.Goto<Balance>();
+            }
+            else
+            {
+                this.Goto<Imbalance>();
+            }
         }
 
         private void UpdateGoalCount()
@@ -66,42 +95,35 @@ namespace DemoAppConsole
             eUpdateGoalCount ev = this.ReceivedEvent as eUpdateGoalCount;
             this.goalCount = ev.count;
 
-            if(goalCount != poolManagerMachineCount)
-            {
-                this.Goto<Imbalance>();
-            }
-            else
-            {
-                this.Goto<Balance>();
-            }
+            Transition();
         }
 
         private void IncPoolManagerMachine()
         {
             poolManagerMachineCount++;
 
-            if (goalCount != poolManagerMachineCount)
-            {
-                this.Goto<Imbalance>();
-            }
-            else
-            {
-                this.Goto<Balance>();
-            }
+            Transition();
         }
 
         private void DecPoolManagerMachine()
         {
             poolManagerMachineCount--;
 
-            if (goalCount != poolManagerMachineCount)
-            {
-                this.Goto<Imbalance>();
-            }
-            else
-            {
-                this.Goto<Balance>();
-            }
+            Transition();
+        }
+
+        private void IncVmManagerMachine()
+        {
+            vmManagerMachineCount++;
+
+            Transition();
+        }
+
+        private void DecVmManagerMachine()
+        {
+            vmManagerMachineCount--;
+
+            Transition();
         }
 
         #endregion

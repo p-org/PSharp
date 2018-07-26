@@ -136,7 +136,8 @@
             long difference = resizeRequest.Size - count;
 
             this.Logger.WriteLine($"PM- {this.Id} Required VMs for pool is {difference}");
-          
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.ePoolManagerMachineUp());
+
             if (difference < 0)
             {
                 IAsyncEnumerable<MachineId> enumerable = await VMCreatedTable.CreateKeyEnumerableAsync(this.CurrentTransaction);
@@ -190,6 +191,8 @@
             {
                 await SendDeleteRequest(id);
             }
+
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.ePoolManagerMachineDown());
         }
     }
 }

@@ -46,25 +46,25 @@ namespace DemoAppConsole
             evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
 
             // Fire off some pool creation/resize requests to the driver
-            evConfigChange.Configuration.PoolData.Add("Pool1", 10);
-            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(10));
+            evConfigChange.Configuration.PoolData.Add("Pool1", 2);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(2));
             Send(await PoolDriver.Get(), evConfigChange);
+            
+            //// Scale up
+            //evConfigChange = new ePoolDriverConfigChangeEvent();
+            //evConfigChange.Configuration = new PoolDriverConfig();
+            //evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
+            //evConfigChange.Configuration.PoolData.Add("Pool1", 4);
+            //this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(4));
+            //Send(await PoolDriver.Get(), evConfigChange);
 
-            // Scale up
-            evConfigChange = new ePoolDriverConfigChangeEvent();
-            evConfigChange.Configuration = new PoolDriverConfig();
-            evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
-            evConfigChange.Configuration.PoolData.Add("Pool1", 20);
-            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(20));
-            Send(await PoolDriver.Get(), evConfigChange);
-
-            // Scale down
-            evConfigChange = new ePoolDriverConfigChangeEvent();
-            evConfigChange.Configuration = new PoolDriverConfig();
-            evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
-            evConfigChange.Configuration.PoolData.Add("Pool1", 15);
-            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(15));
-            Send(await PoolDriver.Get(), evConfigChange);
+            //// Scale down
+            //evConfigChange = new ePoolDriverConfigChangeEvent();
+            //evConfigChange.Configuration = new PoolDriverConfig();
+            //evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
+            //evConfigChange.Configuration.PoolData.Add("Pool1", 3);
+            //this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(3));
+            //Send(await PoolDriver.Get(), evConfigChange);
         }
         #endregion
 
