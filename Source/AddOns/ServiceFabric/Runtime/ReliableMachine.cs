@@ -310,6 +310,11 @@ namespace Microsoft.PSharp.ServiceFabric
                 await this.HandleEvent(nextEventInfo.Event);
             }
 
+            if (CurrentTransaction != null && base.Runtime.IsRunning)
+            {
+                await CommitCurrentTransaction();
+            }
+
             return false;
         }
 

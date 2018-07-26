@@ -346,7 +346,6 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             if (args.Length > 0)
             {
-                bool isHalt = false;
                 // Halt notification
                 if (args[0] is string && (args[0] as string) == "Halt")
                 {
@@ -358,7 +357,6 @@ namespace Microsoft.PSharp.ServiceFabric
                         PendingMachineDeletions.Add(ctx, new List<MachineId>());
                     }
                     PendingMachineDeletions[ctx].Add(machine.Id);
-                    isHalt = true;
                 }
 
                 // Notifies that a reliable machine has committed its current transaction.
@@ -394,13 +392,6 @@ namespace Microsoft.PSharp.ServiceFabric
                     }
 
                     PendingMachineDeletions.Remove(tx);
-                }
-
-                if(isHalt)
-                {
-                    tx = (machine as ReliableMachine).CurrentTransaction;
-                    this.Logger.WriteLine("<HaltCommit> Machine '{0}' committed transaction '{1}'.", machine.Id, tx?.TransactionId);
-                    await tx?.CommitAsync();
                 }
             }
         }
