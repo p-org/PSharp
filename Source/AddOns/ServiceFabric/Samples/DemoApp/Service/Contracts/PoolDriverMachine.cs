@@ -58,9 +58,8 @@ namespace PoolServicesContract
                 {
                     for (long i = configChange.Configuration.PoolData.Count; i < count; i++)
                     {
-                        var cv = await this.currentPoolTable.TryGetValueAsync(this.CurrentTransaction, i);
+                        var cv = await this.currentPoolTable.TryRemoveAsync(this.CurrentTransaction, i);
                         this.Send(cv.Value, new ePoolDeletionRequestEvent());
-                        await this.currentPoolTable.TryRemoveAsync(this.CurrentTransaction, i);
                     }
                 }
             }

@@ -186,7 +186,6 @@
             HashSet<MachineId> list = runtime.GetCreatedMachines();
             foreach (MachineId id in list)
             {
-                this.PSharpLogger.Message($"RUNNING MACHINE = {id}");
                 if (!typeMapping.ContainsKey(id.Type))
                 {
                     typeMapping[id.Type] = 1;
