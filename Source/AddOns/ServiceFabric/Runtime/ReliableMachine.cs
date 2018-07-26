@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
             var startState = this.StateStack.Peek();
 
-            this.StateStack.Clear();
+            this.DoStatePop();
             this.PendingStateChanges.Clear();
             this.PendingStateChangesInverted.Clear();
 
