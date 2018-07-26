@@ -85,20 +85,30 @@
             }
         }
 
-        private void RetryCreateVM()
+        private async Task RetryCreateVM()
         {
             eVMCreateFailureRequestEvent request = this.ReceivedEvent as eVMCreateFailureRequestEvent;
             this.Logger.WriteLine($"PM- {this.Id} received VM Create Failure for {request.senderId}");
             this.Logger.WriteLine($"PM- {this.Id} Deleting VM for {request.senderId} and Retrying create");
             this.Send(request.senderId, new eVMDeleteRequestEvent(this.Id));
-            this.CreateMachine(typeof(VMManagerMachine), Guid.NewGuid().ToString(), new eVMRetryCreateRequestEvent(this.Id));
+            await SendCreateVMRequest();
+        }
+
+        private async Task SendCreateVMRequest()
+        {
+            MachineId machineId = this.CreateMachine(typeof(VMManagerMachine), Guid.NewGuid().ToString(), new eVMCreateRequestEvent(this.Id));
+            await VMCreatingTable.AddOrUpdateAsync(
+                this.CurrentTransaction,
+                machineId,
+                true,
+                (key, oldvalue) => true);
         }
 
         private void RetryDeleteVM()
         {
             eVMDeleteFailureRequestEvent request = this.ReceivedEvent as eVMDeleteFailureRequestEvent;
             this.Logger.WriteLine($"PM- {this.Id} received VM Create Failure for {request.senderId}");
-            this.Send(request.senderId, new eVMRetryDeleteRequestEvent(this.Id));
+            this.Send(request.senderId, new eVMDeleteRequestEvent(this.Id));
         }
 
         private async Task ResizePool()
@@ -137,12 +147,7 @@
                 this.Logger.WriteLine($"PM- {this.Id} - Scale up Creating VMs for pool {this.Id}");
                 while (difference-- > 0L)
                 {
-                    MachineId machineId = this.CreateMachine(typeof(VMManagerMachine), Guid.NewGuid().ToString(), new eVMCreateRequestEvent(this.Id));
-                    await VMCreatingTable.AddOrUpdateAsync(
-                        this.CurrentTransaction,
-                        machineId,
-                        true,
-                        (key, oldvalue) => true);
+                    await SendCreateVMRequest();
                 }
             }
         }

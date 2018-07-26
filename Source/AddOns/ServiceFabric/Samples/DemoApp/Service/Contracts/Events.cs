@@ -39,19 +39,7 @@
     {
         public eVMCreateRequestEvent(MachineId sId) : base(sId) { }
     }
-
-    [DataContract]
-    public class eVMRetryCreateRequestEvent : BaseEvent
-    {
-        public eVMRetryCreateRequestEvent(MachineId sId) : base(sId) { }
-    }
-
-    [DataContract]
-    public class eVMRetryDeleteRequestEvent : BaseEvent
-    {
-        public eVMRetryDeleteRequestEvent(MachineId sId) : base(sId) { }
-    }
-
+    
 
     [DataContract]
     public class eVMDeleteRequestEvent : BaseEvent

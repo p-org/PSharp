@@ -19,7 +19,6 @@
         [Start]
         [OnEntry(nameof(CreateVM))]
         [OnEventDoAction(typeof(eVMCreateRequestEvent), nameof(CreateVM))]
-        [OnEventDoAction(typeof(eVMRetryCreateRequestEvent), nameof(RetryCreateVM))]
         [OnEventGotoState(typeof(eVMCreateSuccessRequestEvent), typeof(Created))]
         [OnEventGotoState(typeof(eVMDeleteRequestEvent), typeof(Deleting))]
         class Creating : MachineState
@@ -27,7 +26,7 @@
         }
 
         [OnEntry(nameof(DeleteVM))]
-        [OnEventGotoState(typeof(eVMRetryDeleteRequestEvent), typeof(RetryDeleting))]
+        [OnEventDoAction(typeof(eVMDeleteRequestEvent), nameof(DeleteVM))]
         class Deleting : MachineState
         {
         }
@@ -36,29 +35,6 @@
         [OnEventGotoState(typeof(eVMDeleteRequestEvent), typeof(Deleting))]
         class Created : MachineState
         {
-        }
-
-        [OnEntry(nameof(RetryDeleteVM))]
-        class RetryDeleting : MachineState
-        {
-        }
-
-        private async Task RetryCreateVM()
-        {
-            eVMRetryCreateRequestEvent request = this.ReceivedEvent as eVMRetryCreateRequestEvent;
-            this.Logger.WriteLine($"VM- {this.Id} Retry create request success for pool {request.senderId}");
-            this.Send(this.Id, new eVMCreateSuccessRequestEvent(this.Id));
-            this.Send(request.senderId, new eVMCreateSuccessRequestEvent(this.Id));
-            await Task.Yield();
-        }
-
-        private async Task RetryDeleteVM()
-        {
-            eVMRetryDeleteRequestEvent request = this.ReceivedEvent as eVMRetryDeleteRequestEvent;
-            this.Logger.WriteLine($"VM- {this.Id} Retry delete request success for pool {request.senderId}");
-            this.Send(request.senderId, new eVMDeleteSuccessRequestEvent(this.Id));
-            this.Send(this.Id, new Halt());
-            await Task.Yield();
         }
 
         private async Task CreateVM()

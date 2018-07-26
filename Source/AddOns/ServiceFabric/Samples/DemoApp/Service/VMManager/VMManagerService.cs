@@ -20,8 +20,6 @@
             typeof(ePoolResizeRequestEvent),
             typeof(eVMCreateRequestEvent),
             typeof(eVMDeleteRequestEvent),
-            typeof(eVMRetryDeleteRequestEvent),
-            typeof(eVMRetryCreateRequestEvent),
             typeof(eVMCreateFailureRequestEvent),
             typeof(eVMCreateSuccessRequestEvent),
             typeof(eVMDeleteFailureRequestEvent),
