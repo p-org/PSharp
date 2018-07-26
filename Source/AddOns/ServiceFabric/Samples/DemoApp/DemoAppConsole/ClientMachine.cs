@@ -60,12 +60,12 @@ namespace DemoAppConsole
             Send(await PoolDriver.Get(), evConfigChange);
 
             // Scale down
-            //evConfigChange = new ePoolDriverConfigChangeEvent();
-            //evConfigChange.Configuration = new PoolDriverConfig();
-            //evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
-            //evConfigChange.Configuration.PoolData.Add("Pool1", PoolDriverMachine.numVMsPerPool);
-            //this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(1));
-            //Send(await PoolDriver.Get(), evConfigChange);
+            evConfigChange = new ePoolDriverConfigChangeEvent();
+            evConfigChange.Configuration = new PoolDriverConfig();
+            evConfigChange.Configuration.PoolData = new Dictionary<string, int>();
+            evConfigChange.Configuration.PoolData.Add("Pool1", PoolDriverMachine.numVMsPerPool);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.eUpdateGoalCount(1));
+            Send(await PoolDriver.Get(), evConfigChange);
         }
         #endregion
 

@@ -46,6 +46,7 @@
         [OnEventDoAction(typeof(ePoolDeletionRequestEvent), nameof(DeletePool))]
         [OnEventDoAction(typeof(eVMDeleteSuccessRequestEvent), nameof(OnVMDeleted))]
         [OnEventDoAction(typeof(eVMDeleteFailureRequestEvent), nameof(RetryDeleteVM))]
+        [IgnoreEvents(typeof(eVMCreateSuccessRequestEvent), typeof(eVMCreateFailureRequestEvent))]
         class DeletingPool : MachineState
         {
         }
