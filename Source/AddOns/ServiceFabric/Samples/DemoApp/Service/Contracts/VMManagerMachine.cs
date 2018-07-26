@@ -51,7 +51,7 @@
             else
             {
                 this.Logger.WriteLine($"VM- {this.Id} Creating request success for pool {request.senderId}");
-                this.Send(this.Id, new eVMCreateSuccessRequestEvent(this.Id));
+                this.Raise(new eVMCreateSuccessRequestEvent(this.Id));
                 this.Send(request.senderId, new eVMCreateSuccessRequestEvent(this.Id));
             }
             // TODO: investigate rare bug in P# tester when using yield.
@@ -72,8 +72,10 @@
             {
                 this.Logger.WriteLine($"VM- {this.Id} Deleting request success for pool {request.senderId}");
                 this.Send(request.senderId, new eVMDeleteSuccessRequestEvent(this.Id));
-                this.Send(this.Id, new Halt());
+                //this.Send(this.Id, new Halt());
+                
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.eVmManagerMachineDown());
+                this.Raise(new Halt());
             }
             // TODO: investigate rare bug in P# tester when using yield.
             //await Task.Yield();
