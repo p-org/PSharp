@@ -44,6 +44,10 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
+            else if (option.ToLower().StartsWith("/runtime:") && option.Length > 9)
+            {
+                base.Configuration.TestingRuntimeAssembly = option.Substring(9);
+            }
             else if (option.ToLower().StartsWith("/method:") && option.Length > 8)
             {
                 base.Configuration.TestMethodName = option.Substring(8);

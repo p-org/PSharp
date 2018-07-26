@@ -185,7 +185,15 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     // Creates a new instance of the bug-finding runtime.
-                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    if (base.TestRuntimeFactoryMethod != null)
+                    {
+                        runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                            new object[] { base.Configuration, base.Strategy, base.Reporter });
+                    }
+                    else
+                    {
+                        runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    }
 
                     // If verbosity is turned off, then intercept the program log, and also redirect
                     // the standard output and error streams into the runtime logger.
