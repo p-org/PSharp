@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 // Change the task previously associated with the machine to the new task.
                 (machine.Info as SchedulableInfo).TaskId = task.Id;
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId }' to '{task.Id}'.");
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId}' to '{task.Id}'.");
 
                 // Execute the new task.
                 this.Execute(task);
