@@ -9,15 +9,17 @@
 **/launchSettings.json
 
 # Build results
+[Bb]in/
+[Bb]inaries/
+[Bb]uild/
+[Cc]odegen/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
-x64/
-[Bb]inaries/
-[Bb]uild/
-bld/
-[Bb]in/
 [Oo]bj/
+bld/
+x86/
+x64/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
