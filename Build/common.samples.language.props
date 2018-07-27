@@ -1,6 +1,6 @@
 <Project>
   <Import Project="common.props" />
-  <Import Project="..\net46\PSharp.vs2017.targets" />
+  <Import Project="..\bin\net46\PSharp.vs2017.targets" />
   <PropertyGroup>
     <TargetFrameworks>net46</TargetFrameworks>
   </PropertyGroup>
