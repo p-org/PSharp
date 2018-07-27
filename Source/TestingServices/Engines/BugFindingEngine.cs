@@ -35,8 +35,6 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal sealed class BugFindingEngine : AbstractTestingEngine
     {
-        #region fields
-
         /// <summary>
         /// The readable trace, if any.
         /// </summary>
@@ -51,10 +49,6 @@ namespace Microsoft.PSharp.TestingServices
         /// The reproducable trace, if any.
         /// </summary>
         internal string ReproducableTrace { get; private set; }
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Creates a new P# bug-finding engine.
@@ -153,10 +147,6 @@ namespace Microsoft.PSharp.TestingServices
             return this.TestReport.GetText(base.Configuration, "...");
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -217,10 +207,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.RegisterPerIterationCallBack((arg) => { this.Reporter.ClearAll(); });
             }
         }
-
-        #endregion
-
-        #region core methods
 
         /// <summary>
         /// Creates a new bug-finding task.
@@ -337,7 +323,15 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 // Creates a new instance of the bug-finding runtime.
-                runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                if (base.TestRuntimeFactoryMethod != null)
+                {
+                    runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                        new object[] { base.Configuration, base.Strategy, base.Reporter });
+                }
+                else
+                {
+                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                }
 
                 if (base.Configuration.EnableDataRaceDetection)
                 {
@@ -452,10 +446,6 @@ namespace Microsoft.PSharp.TestingServices
             this.TestReport.Merge(report);
         }
 
-        #endregion
-
-        #region utility methods
-
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
@@ -531,7 +521,5 @@ namespace Microsoft.PSharp.TestingServices
 
             return iteration % this.PrintGuard == 0;
         }
-
-        #endregion
     }
 }

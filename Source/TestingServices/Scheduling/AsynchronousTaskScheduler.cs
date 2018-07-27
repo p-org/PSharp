@@ -25,8 +25,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     internal sealed class AsynchronousTaskScheduler : TaskScheduler
     {
-        #region fields
-
         /// <summary>
         /// The P# bug-finding runtime.
         /// </summary>
@@ -36,10 +34,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Map from task ids to machines.
         /// </summary>
         private ConcurrentDictionary<int, Machine> TaskMap;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -51,10 +45,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Runtime = runtime;
             this.TaskMap = taskMap;
         }
-
-        #endregion
-
-        #region override methods
 
         /// <summary>
         /// Enqueues the given task. If the task does not correspond to a P# machine,
@@ -74,14 +64,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 // Else, the task was spawned by user-code (e.g. due to async/await). In
                 // this case, get the currently scheduled machine (this was the machine
                 // that spawned this task).
-                Machine machine = this.TaskMap[Runtime.Scheduler.ScheduledMachine.TaskId];
+                int prevTaskId = Runtime.Scheduler.ScheduledMachine.TaskId;
+                Machine machine = this.TaskMap[prevTaskId];
 
-                this.TaskMap.TryRemove(Runtime.Scheduler.ScheduledMachine.TaskId, out machine);
+                this.TaskMap.TryRemove(prevTaskId, out machine);
                 this.TaskMap.TryAdd(task.Id, machine);
 
                 // Change the task previously associated with the machine to the new task.
                 (machine.Info as SchedulableInfo).TaskId = task.Id;
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{(machine.Info as SchedulableInfo).TaskId}' to {task.Id}.");
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId }' to '{task.Id}'.");
 
                 // Execute the new task.
                 this.Execute(task);
@@ -108,10 +99,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             throw new InvalidOperationException("The BugFindingTaskScheduler does not provide access to the scheduled tasks.");
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Executes the given scheduled task on the
         /// thread pool.
@@ -124,7 +111,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 base.TryExecuteTask(task);
             }, null);
         }
-
-        #endregion
     }
 }

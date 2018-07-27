@@ -20,8 +20,6 @@ namespace Microsoft.PSharp.Utilities
 {
     public sealed class TesterCommandLineOptions : BaseCommandLineOptions
     {
-        #region public API
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -32,10 +30,6 @@ namespace Microsoft.PSharp.Utilities
 
         }
 
-        #endregion
-
-        #region protected methods
-
         /// <summary>
         /// Parses the given option.
         /// </summary>
@@ -45,6 +39,10 @@ namespace Microsoft.PSharp.Utilities
             if (option.ToLower().StartsWith("/test:") && option.Length > 6)
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
+            }
+            else if (option.ToLower().StartsWith("/runtime:") && option.Length > 9)
+            {
+                base.Configuration.TestingRuntimeAssembly = option.Substring(9);
             }
             else if (option.ToLower().StartsWith("/method:") && option.Length > 8)
             {
@@ -482,7 +480,5 @@ namespace Microsoft.PSharp.Utilities
 
             Output.WriteLine(help);
         }
-
-        #endregion
     }
 }

@@ -25,8 +25,6 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal static class TestingProcessFactory
     {
-        #region public methods
-
         /// <summary>
         /// Creates a new P# testing process.
         /// </summary>
@@ -46,10 +44,6 @@ namespace Microsoft.PSharp.TestingServices
             return process;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Creates arguments from the specified configuration.
         /// </summary>
@@ -66,6 +60,12 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             arguments.Append($"/test:{configuration.AssemblyToBeAnalyzed} ");
+
+            if (configuration.TestingRuntimeAssembly != "")
+            {
+                arguments.Append($"/runtime:{configuration.TestingRuntimeAssembly} ");
+            }
+
             if (configuration.TestMethodName != "")
             {
                 arguments.Append($"/method:{configuration.TestMethodName} ");
@@ -140,7 +140,5 @@ namespace Microsoft.PSharp.TestingServices
 
             return arguments.ToString();
         }
-
-        #endregion
     }
 }
