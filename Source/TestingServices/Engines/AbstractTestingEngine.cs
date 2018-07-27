@@ -33,8 +33,6 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal abstract class AbstractTestingEngine : ITestingEngine
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
@@ -44,6 +42,18 @@ namespace Microsoft.PSharp.TestingServices
         /// The P# assembly to analyze.
         /// </summary>
         internal Assembly Assembly;
+
+        /// <summary>
+        /// The assembly that provides the P# runtime to use
+        /// during testing. If its null, the engine uses the
+        /// default P# testing runtime.
+        /// </summary>
+        internal Assembly RuntimeAssembly;
+
+        /// <summary>
+        /// The P# test runtime factory method.
+        /// </summary>
+        internal MethodInfo TestRuntimeFactoryMethod;
 
         /// <summary>
         /// A P# test method.
@@ -116,10 +126,6 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         protected int PrintGuard;
 
-        #endregion
-
-        #region properties
-
         /// <summary>
         /// Data structure containing information
         /// gathered during testing.
@@ -130,10 +136,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Interface for registering runtime operations.
         /// </summary>
         public IRegisterRuntimeOperation Reporter { get; protected set; }
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Runs the P# testing engine.
@@ -177,10 +179,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Report</returns>
         public abstract string Report();
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -199,12 +197,26 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(ex.Message);
             }
 
-            this.Initialize();
+            if (configuration.TestingRuntimeAssembly != "")
+            {
+                try
+                {
+                    this.RuntimeAssembly = Assembly.LoadFrom(configuration.TestingRuntimeAssembly);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    Error.ReportAndExit(ex.Message);
+                }
+
+                this.FindRuntimeFactoryMethod();
+            }
 
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
+
+            this.Initialize();
         }
 
         /// <summary>
@@ -342,10 +354,6 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        #endregion
-
-        #region core methods
-
         /// <summary>
         /// Executes the specified testing task.
         /// </summary>
@@ -411,16 +419,55 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Finds the testing runtime factory method, if one is provided.
+        /// </summary>
+        private void FindRuntimeFactoryMethod()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeFactoryMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeCreate), flags, this.RuntimeAssembly);
+            foreach (var x in runtimeFactoryMethods)
+                Console.WriteLine(x.Name);
 
-        #region utility methods
+            if (runtimeFactoryMethods.Count == 0)
+            {
+                Error.ReportAndExit($"Failed to find a testing runtime factory method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeFactoryMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime factory method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeCreate).FullName}'. " +
+                    $"'{runtimeFactoryMethods.Count}' factory methods were found instead.");
+            }
+
+            if (runtimeFactoryMethods[0].ReturnType != typeof(BugFindingRuntime) ||
+                runtimeFactoryMethods[0].ContainsGenericParameters ||
+                runtimeFactoryMethods[0].IsAbstract || runtimeFactoryMethods[0].IsVirtual ||
+                runtimeFactoryMethods[0].IsConstructor ||
+                runtimeFactoryMethods[0].IsPublic || !runtimeFactoryMethods[0].IsStatic ||
+                runtimeFactoryMethods[0].GetParameters().Length != 3 ||
+                runtimeFactoryMethods[0].GetParameters()[0].ParameterType != typeof(Configuration) ||
+                runtimeFactoryMethods[0].GetParameters()[1].ParameterType != typeof(ISchedulingStrategy) ||
+                runtimeFactoryMethods[0].GetParameters()[2].ParameterType != typeof(IRegisterRuntimeOperation))
+            {
+                Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static BugFindingRuntime " +
+                    $"{runtimeFactoryMethods[0].Name}(Configuration configuration, ISchedulingStrategy strategy, " +
+                    "IRegisterRuntimeOperation reporter) {{ ... }}");
+            }
+
+            this.TestRuntimeFactoryMethod = runtimeFactoryMethods[0];
+        }
 
         /// <summary>
         /// Finds the entry point to the P# program.
         /// </summary>
         private void FindEntryPoint()
         {
-            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test));
+            BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test), flags, this.Assembly);
+
 
             // Filter by test method name
             var filteredTestMethods = testMethods
@@ -475,7 +522,7 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(Test).FullName}] public static void " +
-                    $"void {testMethod.Name}(PSharpRuntime runtime) {{ ... }}");
+                    $"{testMethod.Name}(PSharpRuntime runtime) {{ ... }}");
             }
 
             this.TestMethod = testMethod;
@@ -487,7 +534,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private MethodInfo FindTestMethod(Type attribute)
         {
-            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(attribute);
+            BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(attribute, flags, this.Assembly);
 
             if (testMethods.Count == 0)
             {
@@ -509,27 +557,28 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
-                    $"  [{attribute.FullName}] public static " +
-                    $"void {testMethods[0].Name}() {{ ... }}");
+                    $"  [{attribute.FullName}] public static void " +
+                    $"{testMethods[0].Name}() {{ ... }}");
             }
 
             return testMethods[0];
         }
 
         /// <summary>
-        /// Finds the test methods with the specified attribute.
+        /// Finds the test methods with the specified attribute in the given assembly.
         /// Returns an empty list if no such methods are found.
         /// </summary>
         /// <param name="attribute">Type</param>
+        /// <param name="bindingFlags">BindingFlags</param>
+        /// <param name="assembly">Assembly</param>
         /// <returns>MethodInfos</returns>
-        private List<MethodInfo> FindTestMethodsWithAttribute(Type attribute)
+        private List<MethodInfo> FindTestMethodsWithAttribute(Type attribute, BindingFlags bindingFlags, Assembly assembly)
         {
             List<MethodInfo> testMethods = null;
 
             try
             {
-                testMethods = this.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
-                    BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)).
+                testMethods = assembly.GetTypes().SelectMany(t => t.GetMethods(bindingFlags)).
                     Where(m => m.GetCustomAttributes(attribute, false).Length > 0).ToList();
             }
             catch (ReflectionTypeLoadException ex)
@@ -539,12 +588,12 @@ namespace Microsoft.PSharp.TestingServices
                     this.ErrorReporter.WriteErrorLine(le.Message);
                 }
 
-                Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
             }
             catch (Exception ex)
             {
                 this.ErrorReporter.WriteErrorLine(ex.Message);
-                Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
             }
 
             return testMethods;
@@ -640,10 +689,6 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        #endregion
-
-        #region logging
-
         /// <summary>
         /// Installs the specified <see cref="IO.ILogger"/>.
         /// </summary>
@@ -668,7 +713,5 @@ namespace Microsoft.PSharp.TestingServices
             int seed = Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.RandomNumberGenerator = new DefaultRandomNumberGenerator(seed);
         }
-
-        #endregion
     }
 }

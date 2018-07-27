@@ -129,6 +129,14 @@ namespace Microsoft.PSharp
         public string AssemblyToBeAnalyzed;
 
         /// <summary>
+        /// The assembly that contains the testing runtime.
+        /// By default it is empty, which uses the default
+        /// testing runtime of P#.
+        /// </summary>
+        [DataMember]
+        public string TestingRuntimeAssembly;
+
+        /// <summary>
         /// Test method to be used.
         /// </summary>
         [DataMember]
@@ -439,7 +447,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region tooling options
+        #region tool options
 
         /// <summary>
         /// Enables colored console output.
@@ -457,8 +465,6 @@ namespace Microsoft.PSharp
         internal bool DisableEnvironmentExit;
 
         #endregion
-
-        #region constructor
 
         /// <summary>
         /// Constructor.
@@ -487,6 +493,7 @@ namespace Microsoft.PSharp
             this.RuntimeGeneration = 0;
 
             this.AssemblyToBeAnalyzed = "";
+            this.TestingRuntimeAssembly = "";
             this.TestMethodName = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
@@ -541,10 +548,6 @@ namespace Microsoft.PSharp
             this.ThrowInternalExceptions = false;
             this.DisableEnvironmentExit = true;
         }
-
-        #endregion
-
-        #region methods
 
         /// <summary>
         /// Creates a new configuration.
@@ -615,7 +618,5 @@ namespace Microsoft.PSharp
             return this.RewriteCSharpVersion.Major == 0
                 || this.RewriteCSharpVersion >= new Version(major, minor);
         }
-
-        #endregion
     }
 }

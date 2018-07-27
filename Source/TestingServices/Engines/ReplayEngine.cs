@@ -29,16 +29,10 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal sealed class ReplayEngine : AbstractTestingEngine
     {
-        #region properties
-
         /// <summary>
         /// Text describing an internal replay error.
         /// </summary>
         internal string InternalError { get; private set; }
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Creates a new P# replaying engine.
@@ -117,10 +111,6 @@ namespace Microsoft.PSharp.TestingServices
             return report.ToString();
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -153,10 +143,6 @@ namespace Microsoft.PSharp.TestingServices
 
         }
 
-        #endregion
-
-        #region core methods
-
         /// <summary>
         /// Creates a bug-reproducing task.
         /// </summary>
@@ -185,7 +171,16 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     // Creates a new instance of the bug-finding runtime.
-                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    if (base.TestRuntimeFactoryMethod != null)
+                    {
+                        runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                            new object[] { base.Configuration, base.Strategy, base.Reporter });
+                    }
+                    else
+                    {
+                        runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    }
+
 
                     // If verbosity is turned off, then intercept the program log, and also redirect
                     // the standard output and error streams into the runtime logger.
@@ -261,7 +256,5 @@ namespace Microsoft.PSharp.TestingServices
 
             return task;
         }
-
-        #endregion
     }
 }
