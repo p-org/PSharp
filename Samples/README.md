@@ -12,7 +12,7 @@ If you are new to P#, please check out the **PingPong** and **FailureDetector** 
 ## How to build
 To build all samples, run the following powershell script from the Visual Studio 2017 developer command prompt:
 ```
-powershell -c Samples\build.ps1
+powershell -c Scripts\build-samples.ps1
 ```
 
 ## How to run

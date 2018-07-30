@@ -1,16 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\common.samples.props" />
   <PropertyGroup>
-    <AssemblyName>PingPong.PSharpLibrary.AsyncAwait</AssemblyName>
     <Description>The PingPong P# sample.</Description>
-    <AssemblyTitle>PingPong.PSharpLibrary.AsyncAwait</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>PingPong.PSharpLibrary.AsyncAwait</AssemblyName>
+    <RootNamespace>PingPong.PSharpLibrary.AsyncAwait</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
 </Project>

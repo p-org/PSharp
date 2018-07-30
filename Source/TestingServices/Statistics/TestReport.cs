@@ -290,7 +290,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>TestReport</returns>
         public TestReport Clone()
         {
-            var serializer = new DataContractSerializer(typeof(TestReport), null, int.MaxValue, false, true, null);
+            var serializerSettings = new DataContractSerializerSettings();
+            serializerSettings.PreserveObjectReferences = true;
+            var serializer = new DataContractSerializer(typeof(TestReport), serializerSettings);
             using (var ms = new System.IO.MemoryStream())
             {
                 lock (this.Lock)

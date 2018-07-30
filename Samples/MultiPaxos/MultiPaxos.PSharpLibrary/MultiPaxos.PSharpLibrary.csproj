@@ -1,16 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\common.samples.props" />
   <PropertyGroup>
-    <AssemblyName>MultiPaxos.PSharpLibrary</AssemblyName>
     <Description>The MultiPaxos P# sample.</Description>
-    <AssemblyTitle>MultiPaxos.PSharpLibrary</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>MultiPaxos.PSharpLibrary</AssemblyName>
+    <RootNamespace>MultiPaxos.PSharpLibrary</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
 </Project>

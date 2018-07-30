@@ -7,15 +7,27 @@
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>The P# language, runtime and testing infrastructure</description>
+    <description>The P# language, runtime and testing infrastructure.</description>
     <releaseNotes>This release contains the 1.3.6 version of the P# language, runtime and testing infrastructure.</releaseNotes>
-    <copyright>Copyright © 2017 Microsoft Corporation</copyright>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>asynchrony testing .NET programming actors state-machines</tags>
   </metadata>
   <files>
+    <file src="..\..\bin\netstandard2.0\*.dll" target="lib\netstandard2.0" />
+    <file src="..\..\bin\netstandard1.1\*.dll" target="lib\netstandard1.1" />
     <file src="..\..\bin\net46\*.dll" target="lib\net46" />
+    <file src="..\..\bin\net45\*.dll" target="lib\net45" />
+    <file src="..\..\bin\netstandard2.0\*.mdb" target="lib\netstandard2.0" />
+    <file src="..\..\bin\netstandard1.1\*.mdb" target="lib\netstandard1.1" />
     <file src="..\..\bin\net46\*.mdb" target="lib\net46" />
+    <file src="..\..\bin\net45\*.mdb" target="lib\net45" />
+    <file src="..\..\bin\netstandard2.0\*.xml" target="lib\netstandard2.0" />
+    <file src="..\..\bin\netstandard1.1\*.xml" target="lib\netstandard1.1" />
     <file src="..\..\bin\net46\*.xml" target="lib\net46" />
-    <file src="..\..\bin\net46\*" target="tools" />
+    <file src="..\..\bin\net45\*.xml" target="lib\net45" />
+    <file src="..\..\bin\netstandard2.0\*" target="tools\netstandard2.0" />
+    <file src="..\..\bin\netstandard1.1\*" target="tools\netstandard1.1" />
+    <file src="..\..\bin\net46\*" target="tools\net46" />
+    <file src="..\..\bin\net45\*" target="tools\net45" />
   </files>
 </package>

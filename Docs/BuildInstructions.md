@@ -2,7 +2,7 @@ Building P# from source
 =======================
 
 # Prerequisites
-Install [Visual Studio 2017](https://www.visualstudio.com/downloads/) and [.NET Core](https://www.microsoft.com/net/core) (available as an optional component during the VS 2017 installation, or can independently install the SDK from [here](https://www.microsoft.com/net/core)).
+Install [Visual Studio 2017](https://www.visualstudio.com/downloads/) and [.NET Core](https://www.microsoft.com/net/core) (available as an optional component during the VS 2017 installation, or can independently install the SDK from [here](https://www.microsoft.com/net/core)). Also install all the SDK versions of the .NET Framework that P# currently supports (4.5 and 4.6) from [here](https://www.microsoft.com/net/download/archives).
 
 Optional: Get the [Visual Studio 2017 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting). Only for the high-level P# language.
 

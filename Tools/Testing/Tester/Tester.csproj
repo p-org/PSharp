@@ -1,20 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\Build\common.props" />
   <PropertyGroup>
-    <AssemblyName>PSharpTester</AssemblyName>
     <Description>The P# systematic tester.</Description>
-    <AssemblyTitle>PSharpTester</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>PSharpTester</AssemblyName>
+    <RootNamespace>PSharpTester</RootNamespace>
     <PackageTags>systematic;tester;psharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <OutputPath>..\..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netcoreapp2.1;net46;net45</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\TestingServices\TestingServices.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.1'">
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.5.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>

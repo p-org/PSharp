@@ -1,16 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\common.samples.props" />
   <PropertyGroup>
-    <AssemblyName>Raft.PSharpLibrary</AssemblyName>
     <Description>The Raft P# sample.</Description>
-    <AssemblyTitle>Raft.PSharpLibrary</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>Raft.PSharpLibrary</AssemblyName>
+    <RootNamespace>Raft.PSharpLibrary</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
 </Project>

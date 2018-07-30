@@ -1,19 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\bin\net46\PSharp.vs2017.targets" />
+  <Import Project="..\..\..\Build\common.samples.language.props" />
   <PropertyGroup>
-    <AssemblyName>PingPong.MixedMode</AssemblyName>
     <Description>The PingPong P# sample.</Description>
-    <AssemblyTitle>PingPong.MixedMode</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>PingPong.MixedMode</AssemblyName>
+    <RootNamespace>PingPong.MixedMode</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PSharp Include="NetworkEnvironment.psharp" />
     <PSharp Include="Client.psharp" />

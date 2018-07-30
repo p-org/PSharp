@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Product>Microsoft PSharp</Product>
     <Company>Microsoft Corporation</Company>
-    <Copyright>Copyright © 2017 Microsoft Corporation</Copyright>
+    <Copyright>Copyright © 2018 Microsoft Corporation</Copyright>
     <RepositoryUrl>https://github.com/p-org/PSharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

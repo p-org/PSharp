@@ -36,6 +36,7 @@ namespace Microsoft.PSharp
             configuration = new TesterCommandLineOptions(args).Parse();
             Console.CancelKeyPress += (sender, eventArgs) => CancelProcess();
 
+#if NET46 || NET45
             if (configuration.RunAsParallelBugFindingTask)
             {
                 // Creates and runs a testing process.
@@ -57,6 +58,7 @@ namespace Microsoft.PSharp
                 // Starts monitoring for code coverage.
                 CodeCoverageMonitor.Start(configuration);
             }
+#endif
 
             Output.WriteLine(". Testing " + configuration.AssemblyToBeAnalyzed);
             if (configuration.TestMethodName != "")
@@ -73,12 +75,14 @@ namespace Microsoft.PSharp
 
         static void Shutdown()
         {
+#if NET46 || NET45
             if (configuration != null && configuration.ReportCodeCoverage && CodeCoverageMonitor.IsRunning)
             {
                 // Stops monitoring for code coverage.
                 CodeCoverageMonitor.Stop();
                 CodeCoverageInstrumentation.Restore();
             }
+#endif
         }
 
         static void CancelProcess()
@@ -88,7 +92,11 @@ namespace Microsoft.PSharp
                 return;
             }
             TestingProcessScheduler.ProcessCanceled = true;
+#if NET46 || NET45
             var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
+#else
+            var monitorMessage = string.Empty;
+#endif
             Output.WriteLine($". Process canceled by user.{monitorMessage}");
             Shutdown();
         }

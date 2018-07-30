@@ -1,16 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\common.samples.props" />
   <PropertyGroup>
-    <AssemblyName>FailureDetector.PSharpLibrary</AssemblyName>
     <Description>The FailureDetector P# sample.</Description>
-    <AssemblyTitle>FailureDetector.PSharpLibrary</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>FailureDetector.PSharpLibrary</AssemblyName>
+    <RootNamespace>FailureDetector.PSharpLibrary</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
 </Project>

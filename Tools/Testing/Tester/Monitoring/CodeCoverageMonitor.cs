@@ -1,4 +1,5 @@
-﻿//-----------------------------------------------------------------------
+﻿#if NET46 || NET45
+//-----------------------------------------------------------------------
 // <copyright file="CodeCoverageMonitor.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
@@ -139,3 +140,4 @@ namespace Microsoft.PSharp.TestingServices
         }
     }
 }
+#endif

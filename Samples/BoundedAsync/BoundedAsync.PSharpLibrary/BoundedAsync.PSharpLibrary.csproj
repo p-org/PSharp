@@ -1,16 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\common.samples.props" />
   <PropertyGroup>
-    <AssemblyName>BoundedAsync.PSharpLibrary</AssemblyName>
     <Description>The BoundedAsync P# sample.</Description>
-    <AssemblyTitle>BoundedAsync.PSharpLibrary</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
+    <AssemblyName>BoundedAsync.PSharpLibrary</AssemblyName>
+    <RootNamespace>BoundedAsync.PSharpLibrary</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-  </ItemGroup>
 </Project>

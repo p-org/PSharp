@@ -2,18 +2,24 @@
   <Import Project="..\..\..\Build\common.props" />
   <Import Project="..\..\..\Build\key.props" />
   <PropertyGroup>
-    <AssemblyName>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyName>
     <Description>Data-flow analysis APIs for C#.</Description>
-    <AssemblyTitle>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyTitle>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <PackageTags>data-flow;analysis;dotnet;csharp</PackageTags>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="1.2.2" />
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.2.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.2.2" />
   </ItemGroup>
 </Project>
