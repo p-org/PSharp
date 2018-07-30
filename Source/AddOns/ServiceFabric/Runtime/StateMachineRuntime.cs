@@ -19,6 +19,7 @@ namespace Microsoft.PSharp.ServiceFabric
         private const string CreatedMachinesDictionaryName = "CreatedMachines";
         private const string RemoteMessagesOutboxName = "RemoteMessagesOutbox";
         private const string RemoteCreationsOutboxName = "RemoteCreationsOutbox";
+        TimeSpan timeout = TimeSpan.FromMinutes(2);
 
         /// <summary>
         /// State Manager
@@ -69,7 +70,7 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             this.StateManager = stateManager;
             this.ServiceCancellationToken = cancellationToken;
-            this.DefaultTimeLimit = TimeSpan.FromSeconds(4);
+            this.DefaultTimeLimit = TimeSpan.FromSeconds(30);
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>>();
             this.PendingMachineDeletions = new Dictionary<ITransaction, List<MachineId>>();
@@ -262,7 +263,7 @@ namespace Microsoft.PSharp.ServiceFabric
                         {
                             var ReceiveCounters = await StateManager.GetMachineReceiveCounters(mid);
                             var tg = (e as TaggedRemoteEvent);
-                            var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0);
+                            var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0, timeout, this.ServiceCancellationToken);
                             if (currentCounter == tg.tag - 1)
                             {
                                 await targetQueue.EnqueueAsync(tx, tg.ev);
@@ -272,7 +273,7 @@ namespace Microsoft.PSharp.ServiceFabric
                         }
                         else
                         {
-                            await targetQueue.EnqueueAsync(tx, e);
+                            await targetQueue.EnqueueAsync(tx, e, timeout, this.ServiceCancellationToken);
                             await tx.CommitAsync();
                         }
                     }
@@ -296,10 +297,11 @@ namespace Microsoft.PSharp.ServiceFabric
                     var SendCounters = await StateManager.GetMachineSendCounters(reliableSender.Id);
                     var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
 
-                    var tag = await SendCounters.AddOrUpdateAsync(reliableSender.CurrentTransaction, mid.ToString(), 1, (key, oldValue) => oldValue + 1);
+                    var tag = await SendCounters.AddOrUpdateAsync(reliableSender.CurrentTransaction, mid.ToString(), 1, (key, oldValue) => oldValue + 1
+                                , timeout, this.ServiceCancellationToken);
                     var tev = new TaggedRemoteEvent(reliableSender.Id, e, tag);
 
-                    await RemoteMessagesOutbox.EnqueueAsync(reliableSender.CurrentTransaction, Tuple.Create(mid, tev as Event));
+                    await RemoteMessagesOutbox.EnqueueAsync(reliableSender.CurrentTransaction, Tuple.Create(mid, tev as Event), timeout, this.ServiceCancellationToken);
                 }
                 
             }
@@ -415,7 +417,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     using (var tx = this.StateManager.CreateTransaction())
                     {
-                        var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx);
+                        var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx, timeout, this.ServiceCancellationToken);
                         if (cv.HasValue)
                         {
                             await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
@@ -448,7 +450,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     using (var tx = this.StateManager.CreateTransaction())
                     {
-                        var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx);
+                        var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx, timeout, this.ServiceCancellationToken);
                         if (cv.HasValue)
                         {
                             await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);

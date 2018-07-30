@@ -75,7 +75,7 @@
             long count = await VMCreatedTable.GetCountAsync(this.CurrentTransaction)
                 + await VMCreatingTable.GetCountAsync(this.CurrentTransaction)
                 + await VMDeletingTable.GetCountAsync(this.CurrentTransaction);
-            if (count == 0)
+            if (count == 0 && this.CurrentState == typeof(DeletingPool))
             {
                 this.Logger.WriteLine($"PM- {this.Id} Deleting pool");
 

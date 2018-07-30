@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public bool IsLocalMachine(MachineId mid)
         {
             var parts = mid.Endpoint.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
-            if(parts.Length != 2)
+            if(parts.Length < 2)
             {
                 throw new InvalidOperationException($"Did not expect an endpoint without 2 parts - {mid}");
             }

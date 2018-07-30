@@ -559,7 +559,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="ex">The exception.</param>
         public virtual string FormatOnMachineExceptionThrownString(MachineId machineId, string currentStateName, string actionName, Exception ex)
         {
-            return $"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' threw an exception '{ex.GetType().Name}'.";
+            return $"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' threw an exception '{ex}'.";
         }
 
         /// <summary>
@@ -586,7 +586,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="ex">The exception.</param>
         public virtual string FormatOnMachineExceptionHandledString(MachineId machineId, string currentStateName, string actionName, Exception ex)
         {
-            return $"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' chose to handle the exception '{ex.GetType().Name}'.";
+            return $"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' chose to handle the exception '{ex}'.";
         }
 
         /// <summary>

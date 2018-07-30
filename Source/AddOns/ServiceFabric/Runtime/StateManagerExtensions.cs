@@ -11,9 +11,9 @@ namespace Microsoft.PSharp.ServiceFabric
         private const string ReceiveCountersPrefix = "ReceiveCounters_";
         private const string StateStackStorePrefix = "StateStackStore_";
 
-        public static Task<IReliableConcurrentQueue<Event>> GetMachineInputQueue(this IReliableStateManager manager, MachineId id)
+        public static Task<IReliableQueue<Event>> GetMachineInputQueue(this IReliableStateManager manager, MachineId id)
         {
-            return manager.GetOrAddAsync<IReliableConcurrentQueue<Event>>(InputQueuePrefix + id.ToString());
+            return manager.GetOrAddAsync<IReliableQueue<Event>>(InputQueuePrefix + id.ToString());
         }
 
         public static Task DeleteMachineInputQueue(this IReliableStateManager manager, MachineId id)

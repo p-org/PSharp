@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.ServiceFabric
         /// <summary>
         /// Inbox
         /// </summary>
-        private IReliableConcurrentQueue<Event> InputQueue;
+        private IReliableQueue<Event> InputQueue;
 
         /// <summary>
         /// Current transaction
@@ -322,7 +322,7 @@ namespace Microsoft.PSharp.ServiceFabric
         {
             while (true)
             {
-                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction, ServiceCancellationToken, DefaultTimeLimit);
+                var cv = await InputQueue.TryDequeueAsync(CurrentTransaction, DefaultTimeLimit, ServiceCancellationToken);
                 if (cv.HasValue)
                 {
                     return new EventInfo(cv.Value);
