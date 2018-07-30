@@ -266,7 +266,7 @@ namespace Microsoft.PSharp.ServiceFabric
                             var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0, timeout, this.ServiceCancellationToken);
                             if (currentCounter == tg.tag - 1)
                             {
-                                await targetQueue.EnqueueAsync(tx, tg.ev);
+                                await targetQueue.EnqueueAsync(tx, tg.ev, timeout, this.ServiceCancellationToken);
                                 await ReceiveCounters.AddOrUpdateAsync(tx, tg.mid.Name, 0, (k, v) => tg.tag);
                                 await tx.CommitAsync();
                             }
@@ -281,7 +281,7 @@ namespace Microsoft.PSharp.ServiceFabric
                 else
                 {
                     // Machine to machine
-                    await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, e);
+                    await targetQueue.EnqueueAsync(reliableSender.CurrentTransaction, e, timeout, this.ServiceCancellationToken);
                 }
             }
             else
