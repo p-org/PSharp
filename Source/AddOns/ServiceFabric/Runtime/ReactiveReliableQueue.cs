@@ -19,9 +19,14 @@ namespace Microsoft.PSharp.ServiceFabric
             _signal = new SemaphoreSlim(1);
         }
 
-        public async Task EnqueueAsync(ITransaction tx, T item, CancellationToken cancellationToken)
+        public Task EnqueueAsync(ITransaction tx, T item, CancellationToken cancellationToken)
         {
-            await _queue.EnqueueAsync(tx, item, TimeSpan.FromMinutes(1), cancellationToken);
+            return this.EnqueueAsync(tx, item, TimeSpan.FromMinutes(1), cancellationToken);
+        }
+
+        public async Task EnqueueAsync(ITransaction tx, T item, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            await _queue.EnqueueAsync(tx, item, timeout, cancellationToken);
             _signal.Release();
         }
 
@@ -30,11 +35,16 @@ namespace Microsoft.PSharp.ServiceFabric
             return _queue.GetCountAsync(tx);
         }
 
-        public async Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken)
+        public Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken)
+        {
+            return this.TryDequeueAsync(tx, TimeSpan.FromMinutes(10), cancellationToken);
+        }
+
+        public async Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, TimeSpan timeout, CancellationToken cancellationToken)
         {
             await _signal.WaitAsync(cancellationToken).ConfigureAwait(false);
             // Setting up 1 minute timeout - when enqueue lock takes more time, we might run into TimeoutException
-            var result = await _queue.TryDequeueAsync(tx, TimeSpan.FromMinutes(1), cancellationToken).ConfigureAwait(false);
+            var result = await _queue.TryDequeueAsync(tx, timeout, cancellationToken).ConfigureAwait(false);
             var countDiff = await GetCountDiff(tx);
 
             if (countDiff > 0)

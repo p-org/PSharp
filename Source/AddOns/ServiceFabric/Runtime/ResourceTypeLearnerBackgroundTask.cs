@@ -25,6 +25,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public IReliableStateManager stateManager { get; }
 
         private ServiceProxyFactory proxyFactory;
+        private FabricClient fabricClient;
 
         public TimeSpan waitTime { get;  }
 
@@ -42,6 +43,8 @@ namespace Microsoft.PSharp.ServiceFabric
                     serializationProvider: service.EventSerializationProvider
                     );
             });
+
+            this.fabricClient = new FabricClient();
         }
 
         protected override bool IsEnabled()
@@ -101,7 +104,6 @@ namespace Microsoft.PSharp.ServiceFabric
 
         protected override async Task Run(CancellationToken token)
         {
-            FabricClient fabricClient = new FabricClient();
             Query.PagedList<Query.Application> applicationList = null;
             try
             {

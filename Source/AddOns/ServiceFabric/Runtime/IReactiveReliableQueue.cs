@@ -3,6 +3,7 @@
 namespace Microsoft.PSharp.ServiceFabric
 {
     using Microsoft.ServiceFabric.Data;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -10,7 +11,11 @@ namespace Microsoft.PSharp.ServiceFabric
     {
         Task EnqueueAsync(ITransaction tx, T item, CancellationToken cancellationToken);
 
+        Task EnqueueAsync(ITransaction tx, T item, TimeSpan timeout, CancellationToken cancellationToken);
+
         Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, CancellationToken cancellationToken);
+
+        Task<ConditionalValue<T>> TryDequeueAsync(ITransaction tx, TimeSpan timeout, CancellationToken cancellationToken);
 
         Task<long> GetCountAsync(ITransaction tx);
     }
