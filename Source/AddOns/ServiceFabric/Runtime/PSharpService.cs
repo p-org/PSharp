@@ -20,6 +20,8 @@
             typeof(Event),
             typeof(Halt),
             typeof(TaggedRemoteEvent),
+            typeof(CreationRequest),
+            typeof(MessageRequest),
             typeof(ResourceTypesResponse),
             typeof(ResourceDetailsResponse),
             // The below 2 types needs additional work
@@ -48,6 +50,13 @@
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }
+
+            if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<OutboxElement>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<Tuple<MachineId, Event>>(this.knownTypes)))
@@ -84,6 +93,12 @@
 
             if (!this.StateManager.TryAddStateSerializer(
                 new EventDataSeralizer<MachineId>(this.knownTypes)))
+            {
+                throw new InvalidOperationException("Failed to set custom Event serializer");
+            }
+
+            if (!this.StateManager.TryAddStateSerializer(
+                new EventDataSeralizer<OutboxElement>(this.knownTypes)))
             {
                 throw new InvalidOperationException("Failed to set custom Event serializer");
             }

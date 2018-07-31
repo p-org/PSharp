@@ -17,8 +17,7 @@ namespace Microsoft.PSharp.ServiceFabric
     internal class ServiceFabricPSharpRuntime : StateMachineRuntime
     {
         private const string CreatedMachinesDictionaryName = "CreatedMachines";
-        private const string RemoteMessagesOutboxName = "RemoteMessagesOutbox";
-        private const string RemoteCreationsOutboxName = "RemoteCreationsOutbox";
+        private const string PendingOutboxDeletionsName = "PendingOutboxDeletions";
         TimeSpan timeout = TimeSpan.FromMinutes(2);
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>>();
             this.PendingMachineDeletions = new Dictionary<ITransaction, List<MachineId>>();
-            StartClearOutboxTasks();
+            StartClearOutboxTasks().Wait();
         }
 
         internal void SetRsmNetworkProvider(Net.IRsmNetworkProvider rsmNetworkProvider)
@@ -134,8 +133,8 @@ namespace Microsoft.PSharp.ServiceFabric
             }
             else
             {
-                var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
-                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, Tuple.Create(type.AssemblyQualifiedName, mid, e), DefaultTimeLimit, ServiceCancellationToken);
+                var RemoteCreatedMachinesOutbox = await StateManager.GetMachineOutputQueue(reliableCreator.Id);
+                await RemoteCreatedMachinesOutbox.EnqueueAsync(reliableCreator.CurrentTransaction, new CreationRequest(type.AssemblyQualifiedName, mid, e), DefaultTimeLimit, ServiceCancellationToken);
             }
 
             return mid;
@@ -166,6 +165,7 @@ namespace Microsoft.PSharp.ServiceFabric
                     await tx.CommitAsync();
                 }
                 StartMachine(mid, type, e, creator?.Id);
+                ClearMachineOutbox(mid);
             }
             else
             {
@@ -229,6 +229,7 @@ namespace Microsoft.PSharp.ServiceFabric
 
                     this.Assert(RemoteMachineManager.IsLocalMachine(enumerator.Current.Value.Item1));
                     StartMachine(enumerator.Current.Value.Item1, Type.GetType(enumerator.Current.Value.Item2), enumerator.Current.Value.Item3, null);
+                    ClearMachineOutbox(enumerator.Current.Value.Item1);
                 }
             }
         }
@@ -295,13 +296,13 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     // Machine to remote machine
                     var SendCounters = await StateManager.GetMachineSendCounters(reliableSender.Id);
-                    var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
+                    var RemoteMessagesOutbox = await StateManager.GetMachineOutputQueue(reliableSender.Id);
 
                     var tag = await SendCounters.AddOrUpdateAsync(reliableSender.CurrentTransaction, mid.ToString(), 1, (key, oldValue) => oldValue + 1
                                 , timeout, this.ServiceCancellationToken);
                     var tev = new TaggedRemoteEvent(reliableSender.Id, e, tag);
 
-                    await RemoteMessagesOutbox.EnqueueAsync(reliableSender.CurrentTransaction, Tuple.Create(mid, tev as Event), timeout, this.ServiceCancellationToken);
+                    await RemoteMessagesOutbox.EnqueueAsync(reliableSender.CurrentTransaction, new MessageRequest(mid, tev as Event), timeout, this.ServiceCancellationToken);
                 }
                 
             }
@@ -353,7 +354,11 @@ namespace Microsoft.PSharp.ServiceFabric
                 {
                     var ctx = (machine as ReliableMachine).CurrentTransaction;
                     var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
+                    var PendingOutboxDeletions = await this.StateManager.GetOrAddAsync<IReliableDictionary<MachineId, bool>>(PendingOutboxDeletionsName);
+
                     await createdMachineMap.TryRemoveAsync(ctx, machine.Id.ToString());
+                    await PendingOutboxDeletions.TryAddAsync(ctx, machine.Id, true);
+
                     if(!PendingMachineDeletions.ContainsKey(ctx))
                     {
                         PendingMachineDeletions.Add(ctx, new List<MachineId>());
@@ -375,6 +380,7 @@ namespace Microsoft.PSharp.ServiceFabric
                         foreach (var tup in this.PendingMachineCreations[tx])
                         {
                             this.StartMachine(tup.Item1, tup.Item2, tup.Item3, tup.Item4);
+                            ClearMachineOutbox(tup.Item1);
                         }
 
                         this.PendingMachineCreations.Remove(tx);
@@ -398,48 +404,44 @@ namespace Microsoft.PSharp.ServiceFabric
             }
         }
 
-        private void StartClearOutboxTasks()
+        private async Task StartClearOutboxTasks()
         {
-            ReHydrateMachines().Wait();
-            Task.Run(async () => await ClearCreationsOutbox());
-            Task.Run(async () => await ClearMessagesOutbox());
-        }
-
-        private async Task ClearCreationsOutbox()
-        {
-            var RemoteCreatedMachinesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<string, MachineId, Event>>>(RemoteCreationsOutboxName);
-            while(true)
+            var pendingSet = new HashSet<MachineId>();
+            var PendingDeletionsMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<MachineId, bool>>(PendingOutboxDeletionsName);
+            using (var tx = this.StateManager.CreateTransaction())
             {
-                ServiceCancellationToken.ThrowIfCancellationRequested();
+                var enumerable = await PendingDeletionsMap.CreateEnumerableAsync(tx);
+                var enumerator = enumerable.GetAsyncEnumerator();
 
-                var found = false;
-                try
+                while (await enumerator.MoveNextAsync(this.ServiceCancellationToken))
                 {
-                    using (var tx = this.StateManager.CreateTransaction())
-                    {
-                        var cv = await RemoteCreatedMachinesOutbox.TryDequeueAsync(tx, timeout, this.ServiceCancellationToken);
-                        if (cv.HasValue)
-                        {
-                            await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cv.Value.Item1), cv.Value.Item2, cv.Value.Item3);
-                            await tx.CommitAsync();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    this.Logger.WriteLine("Exception raised in ClearCreationsOutbox: {0}", ex.ToString());
-                }
-
-                if (!found)
-                {
-                    await Task.Delay(100);
+                    pendingSet.Add(enumerator.Current.Key);
                 }
             }
+
+            foreach(var mid in pendingSet)
+            {
+                ClearMachineOutbox(mid);
+            }
+
+            await ReHydrateMachines();
         }
 
-        private async Task ClearMessagesOutbox()
+        private void ClearMachineOutbox(MachineId mid)
         {
-            var RemoteMessagesOutbox = await StateManager.GetOrAddAsync<IReliableQueue<Tuple<MachineId, Event>>>(RemoteMessagesOutboxName);
+            Task.Run(async () => await ClearMachineOutboxAsync(mid));
+        }
+
+        /// <summary>
+        /// Clears outbox of a machine
+        /// </summary>
+        /// <param name="mid"></param>
+        /// <returns></returns>
+        private async Task ClearMachineOutboxAsync(MachineId mid)
+        {
+            var RemoteMessagesOutbox = await StateManager.GetMachineOutputQueue(mid);
+            var lastTry = false;
+
             while (true)
             {
                 ServiceCancellationToken.ThrowIfCancellationRequested();
@@ -453,20 +455,53 @@ namespace Microsoft.PSharp.ServiceFabric
                         var cv = await RemoteMessagesOutbox.TryDequeueAsync(tx, timeout, this.ServiceCancellationToken);
                         if (cv.HasValue)
                         {
-                            await RsmNetworkProvider.RemoteSend(cv.Value.Item1, cv.Value.Item2);
+                            found = true;
+                            if(cv.Value is CreationRequest)
+                            {
+                                var cr = cv.Value as CreationRequest;
+                                await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cr.MachineType), cr.TargetMachine, cr.Payload);
+                            }
+                            else
+                            {
+                                var mr = cv.Value as MessageRequest;
+                                await RsmNetworkProvider.RemoteSend(mr.TargetMachine, mr.Payload);
+                            }
                             await tx.CommitAsync();
                         }
                     }
+
+                    if (!found)
+                    {
+                        if (lastTry)
+                        {
+                            // done
+                            var PendingDeletionsMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<MachineId, bool>>(PendingOutboxDeletionsName);
+                            using (var tx = this.StateManager.CreateTransaction())
+                            {
+                                await PendingDeletionsMap.TryRemoveAsync(tx, mid);
+                                await tx.CommitAsync();
+                            }
+
+                            await this.StateManager.DeleteMachineOutputQueue(mid);
+                            break;
+                        }
+
+                        await Task.Delay(100);
+
+                        // Check if machine exists
+                        if (!MachineMap.ContainsKey(mid))
+                        {
+                            lastTry = true;
+                        }
+
+                    }
+
                 }
                 catch (Exception ex)
                 {
-                    this.Logger.WriteLine("Exception raised in ClearMessagesOutbox: {0}", ex.ToString());
+                    this.Logger.WriteLine("Exception raised in ClearMachineMessagesOutbox: {0}", ex.ToString());
                 }
 
-                if (!found)
-                {
-                    await Task.Delay(100);
-                }
             }
         }
 
