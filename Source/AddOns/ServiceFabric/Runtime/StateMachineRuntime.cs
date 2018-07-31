@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.ServiceFabric
             this.RemoteMachineManager = manager;
             this.PendingMachineCreations = new Dictionary<ITransaction, List<Tuple<MachineId, Type, Event, MachineId>>>();
             this.PendingMachineDeletions = new Dictionary<ITransaction, List<MachineId>>();
-            StartClearOutboxTasks();
+            StartClearOutboxTasks().Wait();
         }
 
         internal void SetRsmNetworkProvider(Net.IRsmNetworkProvider rsmNetworkProvider)
