@@ -62,7 +62,7 @@
         </LoadMetrics>
         <ServiceScalingPolicies>
           <ScalingPolicy>
-            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="0" UpperLoadThreshold="99" ScaleIntervalInSeconds="1" />
+            <AverageServiceLoadScalingTrigger MetricName="PSharpStateMachineCount" LowerLoadThreshold="0" UpperLoadThreshold="6000" ScaleIntervalInSeconds="1" />
             <AddRemoveIncrementalNamedPartitionScalingMechanism MinPartitionCount="1" MaxPartitionCount="100" ScaleIncrement="1" />
           </ScalingPolicy>
         </ServiceScalingPolicies>

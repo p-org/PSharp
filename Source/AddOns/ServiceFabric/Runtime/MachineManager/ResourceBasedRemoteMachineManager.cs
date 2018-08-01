@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.ServiceFabric
         public void ParseMachineIdEndpoint(string endpoint, out string serviceName, out string partitionName)
         {
             var parts = endpoint.Split(new[] { Delimiter }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 2)
+            if (parts.Length < 2)
             {
                 throw new InvalidOperationException($"Did not expect an endpoint without 2 parts - {endpoint}");
             }

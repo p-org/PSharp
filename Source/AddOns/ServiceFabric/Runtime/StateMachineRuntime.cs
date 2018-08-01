@@ -129,7 +129,11 @@ namespace Microsoft.PSharp.ServiceFabric
 
             if (reliableCreator == null)
             {
-                RsmNetworkProvider.RemoteCreateMachine(type, mid, e).Wait();
+                using (ITransaction tx = this.StateManager.CreateTransaction())
+                {
+                    await RsmNetworkProvider.RemoteCreateMachine(tx, type, mid, e);
+                    await tx.CommitAsync();
+                }
             }
             else
             {
@@ -181,7 +185,28 @@ namespace Microsoft.PSharp.ServiceFabric
             }
 
             return mid;
+        }
 
+        internal async Task CreateMachineLocalUntransactedAsync(ITransaction tx, MachineId mid, Type type, Event e, Guid? operationGroupId)
+        {
+            this.Assert(type.IsSubclassOf(typeof(ReliableMachine)), "Type '{0}' is not a reliable machine.", type.Name);
+
+            // Idempotence check
+            // TODO: make concurrency safe
+            if (MachineMap.ContainsKey(mid))
+            {
+                // machine already created
+                return;
+            }
+
+            var createdMachineMap = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, Tuple<MachineId, string, Event>>>(CreatedMachinesDictionaryName);
+            await createdMachineMap.AddAsync(tx, mid.ToString(), Tuple.Create(mid, type.AssemblyQualifiedName, e), DefaultTimeLimit, ServiceCancellationToken);
+        }
+
+        internal void StartMachines(MachineId mid, Type type, Event e)
+        {
+            StartMachine(mid, type, e, null);
+            ClearMachineOutbox(mid);
         }
 
         private void StartMachine(MachineId mid, Type type, Event e, MachineId creator)
@@ -244,7 +269,12 @@ namespace Microsoft.PSharp.ServiceFabric
             SendEventAsync(mid, e, sender, options).Wait();
         }
 
-        protected internal async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal Task SendEventUntransacted(ITransaction tx, MachineId mid, Event e)
+        {
+            return SendEventAsync(mid, e, null, null, tx);
+        }
+
+        protected internal async Task SendEventAsync(MachineId mid, Event e, AbstractMachine sender, SendOptions options, ITransaction transaction = null)
         {
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
             base.Logger.OnSend(mid, sender?.Id, senderState, 
@@ -257,9 +287,33 @@ namespace Microsoft.PSharp.ServiceFabric
                 
                 if (reliableSender == null || reliableSender.CurrentTransaction == null)
                 {
-                    // Environment sending to a local machine
-                    using (var tx = this.StateManager.CreateTransaction())
+                    if (transaction == null)
                     {
+                        // Environment sending to a local machine
+                        using (var tx = this.StateManager.CreateTransaction())
+                        {
+                            if (e is TaggedRemoteEvent)
+                            {
+                                var ReceiveCounters = await StateManager.GetMachineReceiveCounters(mid);
+                                var tg = (e as TaggedRemoteEvent);
+                                var currentCounter = await ReceiveCounters.GetOrAddAsync(tx, tg.mid.Name, 0, timeout, this.ServiceCancellationToken);
+                                if (currentCounter == tg.tag - 1)
+                                {
+                                    await targetQueue.EnqueueAsync(tx, tg.ev, timeout, this.ServiceCancellationToken);
+                                    await ReceiveCounters.AddOrUpdateAsync(tx, tg.mid.Name, 0, (k, v) => tg.tag);
+                                    await tx.CommitAsync();
+                                }
+                            }
+                            else
+                            {
+                                await targetQueue.EnqueueAsync(tx, e, timeout, this.ServiceCancellationToken);
+                                await tx.CommitAsync();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var tx = transaction;
                         if (e is TaggedRemoteEvent)
                         {
                             var ReceiveCounters = await StateManager.GetMachineReceiveCounters(mid);
@@ -269,13 +323,11 @@ namespace Microsoft.PSharp.ServiceFabric
                             {
                                 await targetQueue.EnqueueAsync(tx, tg.ev, timeout, this.ServiceCancellationToken);
                                 await ReceiveCounters.AddOrUpdateAsync(tx, tg.mid.Name, 0, (k, v) => tg.tag);
-                                await tx.CommitAsync();
                             }
                         }
                         else
                         {
                             await targetQueue.EnqueueAsync(tx, e, timeout, this.ServiceCancellationToken);
-                            await tx.CommitAsync();
                         }
                     }
                 }
@@ -289,8 +341,12 @@ namespace Microsoft.PSharp.ServiceFabric
             {
                 if (reliableSender == null || reliableSender.CurrentTransaction == null)
                 {
-                    // Environment to remote machine
-                    await RsmNetworkProvider.RemoteSend(mid, e);
+                    using (ITransaction tx = this.StateManager.CreateTransaction())
+                    {
+                        // Environment to remote machine
+                        await RsmNetworkProvider.RemoteSend(tx, mid, e);
+                        await tx.CommitAsync();
+                    }
                 }
                 else
                 {
@@ -304,7 +360,6 @@ namespace Microsoft.PSharp.ServiceFabric
 
                     await RemoteMessagesOutbox.EnqueueAsync(reliableSender.CurrentTransaction, new MessageRequest(mid, tev as Event), timeout, this.ServiceCancellationToken);
                 }
-                
             }
         }
 
@@ -459,12 +514,12 @@ namespace Microsoft.PSharp.ServiceFabric
                             if(cv.Value is CreationRequest)
                             {
                                 var cr = cv.Value as CreationRequest;
-                                await RsmNetworkProvider.RemoteCreateMachine(Type.GetType(cr.MachineType), cr.TargetMachine, cr.Payload);
+                                await RsmNetworkProvider.RemoteCreateMachine(tx, Type.GetType(cr.MachineType), cr.TargetMachine, cr.Payload);
                             }
                             else
                             {
                                 var mr = cv.Value as MessageRequest;
-                                await RsmNetworkProvider.RemoteSend(mr.TargetMachine, mr.Payload);
+                                await RsmNetworkProvider.RemoteSend(tx, mr.TargetMachine, mr.Payload);
                             }
                             await tx.CommitAsync();
                         }

@@ -24,6 +24,8 @@
             typeof(MessageRequest),
             typeof(ResourceTypesResponse),
             typeof(ResourceDetailsResponse),
+            typeof(List<Tuple<MachineId, Event>>),
+            typeof(List<Tuple<MachineId, string, Event>>),
             // The below 2 types needs additional work
             typeof(List<ResourceTypesResponse>),
             typeof(List<ResourceDetailsResponse>)
@@ -139,8 +141,11 @@
             IRemoteMachineManager machineManager = this.GetMachineManager();
             await machineManager.Initialize(cancellationToken);
 
+            var networkProvider = new Net.RsmNetworkProvider(this.StateManager, machineManager, EventSerializationProvider, this.PSharpLogger);
+            await networkProvider.Initialize(cancellationToken);
+
             var runtime = ServiceFabricRuntimeFactory.Create(this.StateManager, machineManager, this.GetRuntimeConfiguration(), cancellationToken,
-                new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => new Net.RsmNetworkProvider(machineManager, EventSerializationProvider)));
+                new Func<PSharpRuntime, Net.IRsmNetworkProvider>(r => networkProvider));
 
             if (this.PSharpLogger != null)
             {
@@ -251,6 +256,47 @@
         protected virtual Dictionary<Type, ulong> GetMachineTypesWithMaxLoad()
         {
             return new Dictionary<Type, ulong>();
+        }
+
+        public async Task BulkCreateMachine(List<Tuple<MachineId, string, Event>> createEvents)
+        {
+            var runtime = (ServiceFabricPSharpRuntime)await RuntimeTcs.Task;
+            using (ITransaction tx = this.StateManager.CreateTransaction())
+            {
+                foreach (var item in createEvents)
+                {
+                    this.PSharpLogger.Message($"Received {item.Item1}");
+                    await runtime.CreateMachineLocalUntransactedAsync(tx, item.Item1, Type.GetType(item.Item2), item.Item3, null);
+                }
+
+                if (createEvents.Count > 0)
+                {
+                    await tx.CommitAsync();
+                }
+            }
+
+            foreach (var item in createEvents)
+            {
+                runtime.StartMachines(item.Item1, Type.GetType(item.Item2), item.Item3);
+            }
+        }
+
+        public async Task BulkSendEvent(List<Tuple<MachineId, Event>> sendEvents)
+        {
+            var runtime = (ServiceFabricPSharpRuntime)await RuntimeTcs.Task;
+            using (ITransaction tx = this.StateManager.CreateTransaction())
+            {
+                foreach (var item in sendEvents)
+                {
+                    this.PSharpLogger.Message($"Received {item.Item1}");
+                    await runtime.SendEventUntransacted(tx, item.Item1, item.Item2);
+                }
+
+                if(sendEvents.Count > 0)
+                {
+                    await tx.CommitAsync();
+                }
+            }
         }
     }
 }

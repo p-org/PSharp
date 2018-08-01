@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.ServiceFabric.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,13 +28,13 @@ namespace Microsoft.PSharp.ServiceFabric.Net
             return Task.FromResult(Runtime.CreateMachineId(Type.GetType(machineType), friendlyName));
         }
 
-        public Task RemoteCreateMachine(Type machineType, MachineId mid, Event e)
+        public Task RemoteCreateMachine(ITransaction tx, Type machineType, MachineId mid, Event e)
         {
             Runtime.CreateMachine(mid, machineType, e);
             return Task.CompletedTask;
         }
 
-        public Task RemoteSend(MachineId target, Event e)
+        public Task RemoteSend(ITransaction tx, MachineId target, Event e)
         {
             Runtime.SendEvent(target, e);
             return Task.CompletedTask;
