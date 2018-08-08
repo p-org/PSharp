@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="type">Type of the machine.</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
         public Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
         {
             return this.CreateMachineAndExecute(null, type, null, e, operationGroupId);
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
+        /// Creates a new machine of the specified <see cref="Type"/>. The
         /// method returns only when the machine is initialized and the <see cref="Event"/>
         /// (if any) is handled.
         /// </summary>
@@ -176,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
         private async Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName,
             Event e, Machine creator, Guid? operationGroupId)
         {

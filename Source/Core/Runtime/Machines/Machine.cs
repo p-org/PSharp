@@ -248,10 +248,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use Machine.CreateMachineAsync(...) instead.")]
         protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return this.Runtime.CreateMachine(null, type, null, e, this, null);
+            return this.CreateMachineAsync(type, e).Result;
         }
 
         /// <summary>
@@ -262,10 +263,11 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use Machine.CreateMachineAsync(...) instead.")]
         protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return this.Runtime.CreateMachine(null, type, friendlyName, e, this, null);
+            return this.CreateMachineAsync(type, friendlyName, e).Result;
         }
 
         /// <summary>
@@ -276,10 +278,52 @@ namespace Microsoft.PSharp
         /// <param name="mid">Unbound machine id.</param>
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use Machine.CreateMachineAsync(...) instead.")]
         protected MachineId CreateMachine(MachineId mid, Type type, Event e = null)
         {
-            return this.Runtime.CreateMachine(mid, type, mid.FriendlyName, e, this, null);
+            return this.CreateMachineAsync(mid, type, e).Result;
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified type and with the specified
+        /// optional <see cref="Event"/>. This <see cref="Event"/> can only be
+        /// used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        protected Task<MachineId> CreateMachineAsync(Type type, Event e = null)
+        {
+            return this.Runtime.CreateMachineAsync(null, type, null, e, this, null);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified type and name, and with the
+        /// specified optional <see cref="Event"/>. This <see cref="Event"/> can
+        /// only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        protected Task<MachineId> CreateMachineAsync(Type type, string friendlyName, Event e = null)
+        {
+            return this.Runtime.CreateMachineAsync(null, type, friendlyName, e, this, null);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
+        /// can only be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        protected Task<MachineId> CreateMachineAsync(MachineId mid, Type type, Event e = null)
+        {
+            return this.Runtime.CreateMachineAsync(mid, type, mid.FriendlyName, e, this, null);
         }
 
         /// <summary>
@@ -288,13 +332,26 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters</param>
+        [Obsolete("Please use Machine.SendAsync(...) instead.")]
         protected void Send(MachineId mid, Event e, SendOptions options = null)
+        {
+            this.SendAsync(mid, e, options).Wait();
+        }
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        protected Task SendAsync(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
-            this.Runtime.SendEvent(mid, e, this, options);
+            return this.Runtime.SendEventAsync(mid, e, this, options);
         }
 
         /// <summary>
@@ -611,7 +668,7 @@ namespace Microsoft.PSharp
             EventInfo nextAvailableEventInfo = null;
 
             // Iterates through the events in the inbox.
-            var node = Inbox.First;
+            var node = this.Inbox.First;
             while (node != null)
             {
                 var nextNode = node.Next;
@@ -636,7 +693,7 @@ namespace Microsoft.PSharp
                         if (!checkOnly)
                         {
                             // Removes an ignored event.
-                            Inbox.Remove(node);
+                            this.Inbox.Remove(node);
                         }
 
                         node = nextNode;
@@ -649,7 +706,7 @@ namespace Microsoft.PSharp
                     if (!checkOnly)
                     {
                         // Removes an ignored event.
-                        Inbox.Remove(node);
+                        this.Inbox.Remove(node);
                     }
 
                     node = nextNode;
@@ -662,7 +719,7 @@ namespace Microsoft.PSharp
                     nextAvailableEventInfo = currentEventInfo;
                     if (!checkOnly)
                     {
-                        Inbox.Remove(node);
+                        this.Inbox.Remove(node);
                     }
 
                     break;

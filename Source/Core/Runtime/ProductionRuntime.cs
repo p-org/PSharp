@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the machine.</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
         {
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
+        /// Creates a new machine of the specified <see cref="Type"/>. The
         /// method returns only when the created machine reaches quiescence
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
@@ -165,10 +165,11 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
         private async Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName,
             Event e, Machine creator, Guid? operationGroupId)
         {
+            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
             Machine machine = this.CreateMachine(mid, type, friendlyName);
             this.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);

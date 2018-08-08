@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
@@ -47,7 +48,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
 
         MachineId CreateMachineId(Type type, string friendlyName = null);
 
@@ -59,7 +60,8 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use IPSharpRuntime.CreateMachineAsync(...) instead.")]
         MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -71,7 +73,8 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use IPSharpRuntime.CreateMachineAsync(...) instead.")]
         MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -83,8 +86,44 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
-        /// <returns>MachineId</returns>
+        /// <returns>The result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use IPSharpRuntime.CreateMachineAsync(...) instead.")]
         MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and with
+        /// the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        Task<MachineId> CreateMachineAsync(Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        Task<MachineId> CreateMachineAsync(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
+        /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
+        /// be used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        Task<MachineId> CreateMachineAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -92,7 +131,17 @@ namespace Microsoft.PSharp
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
+        [Obsolete("Please use IPSharpRuntime.SendEventAsync(...) instead.")]
         void SendEvent(MachineId target, Event e, SendOptions options = null);
+
+        /// <summary>
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        Task SendEventAsync(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -175,5 +224,17 @@ namespace Microsoft.PSharp
         /// it with the default <see cref="ILogger"/>.
         /// </summary>
         void RemoveLogger();
+
+        /// <summary>
+        /// Installs the specified <see cref="INetworkProvider"/>.
+        /// </summary>
+        /// <param name="networkProvider">INetworkProvider</param>
+        void SetNetworkProvider(INetworkProvider networkProvider);
+
+        /// <summary>
+        /// Replaces the currently installed <see cref="INetworkProvider"/>
+        /// with the default <see cref="INetworkProvider"/>.
+        /// </summary>
+        void RemoveNetworkProvider();
     }
 }
