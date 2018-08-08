@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Configuration;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -194,8 +195,35 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (FileNotFoundException ex)
             {
-                Error.ReportAndExit(ex.Message);
+                Error.ReportAndExit(ex.Message); 
             }
+
+#if NET45 || NET46
+
+            // load config file and absorb its settings
+            try
+            {
+                var configFile = ConfigurationManager.OpenExeConfiguration(configuration.AssemblyToBeAnalyzed);
+
+                var settings = configFile.AppSettings.Settings;
+                foreach (var key in settings.AllKeys)
+                {
+                    if (ConfigurationManager.AppSettings.Get(key) == null)
+                    {
+                        ConfigurationManager.AppSettings.Set(key, settings[key].Value);
+                    }
+                    else
+                    {
+                        ConfigurationManager.AppSettings.Add(key, settings[key].Value);
+                    }
+                }
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                Error.Report(ex.Message);
+            }
+
+#endif
 
             if (configuration.TestingRuntimeAssembly != "")
             {
