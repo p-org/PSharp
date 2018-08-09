@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.SharedObjects
 {
@@ -24,15 +25,15 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The value of the shared counter.
         /// </summary>
-        volatile int Counter;
+        private volatile int Counter;
 
         /// <summary>
         /// Initializes the shared counter.
         /// </summary>
-        /// <param name="value">Initial value</param>
+        /// <param name="value">The initial value of the counter.</param>
         public ProductionSharedCounter(int value)
         {
-            Counter = value;
+            this.Counter = value;
         }
 
         /// <summary>
@@ -40,7 +41,21 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Increment()
         {
-            Interlocked.Increment(ref Counter);
+            this.IncrementAsync().Wait();
+        }
+
+        /// <summary>
+        /// Increments the shared counter.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        public Task IncrementAsync()
+        {
+            Interlocked.Increment(ref this.Counter);
+#if NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
         }
 
         /// <summary>
@@ -48,47 +63,101 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Decrement()
         {
-            Interlocked.Decrement(ref Counter);
+            this.DecrementAsync().Wait();
+        }
+
+        /// <summary>
+        /// Decrements the shared counter.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        public Task DecrementAsync()
+        {
+            Interlocked.Decrement(ref this.Counter);
+#if NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
         }
 
         /// <summary>
         /// Gets the current value of the shared counter.
         /// </summary>
-        /// <returns>Current value</returns>
+        /// <returns>The result is the current value.</returns>
         public int GetValue()
         {
-            return Counter;
+            return this.GetValueAsync().Result;
+        }
+
+        /// <summary>
+        /// Gets the current value of the shared counter.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation. The task result is the current value.</returns>
+        public Task<int> GetValueAsync()
+        {
+            return Task.FromResult(this.Counter);
         }
 
         /// <summary>
         /// Adds a value to the counter atomically.
         /// </summary>
-        /// <param name="value">Value to add</param>
-        /// <returns>The new value of the counter</returns>
+        /// <param name="value">Value to add.</param>
+        /// <returns>The result is the new value.</returns>
         public int Add(int value)
         {
-            return Interlocked.Add(ref Counter, value);
+            return this.AddAsync(value).Result;
+        }
+
+        /// <summary>
+        /// Adds a value to the counter atomically.
+        /// </summary>
+        /// <param name="value">Value to add.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the new value.</returns>
+        public Task<int> AddAsync(int value)
+        {
+            return Task.FromResult(Interlocked.Add(ref this.Counter, value));
         }
 
         /// <summary>
         /// Sets the counter to a value atomically.
         /// </summary>
-        /// <param name="value">Value to set</param>
-        /// <returns>The original value of the counter</returns>
+        /// <param name="value">Value to set.</param>
+        /// <returns>The result is the original value.</returns>
         public int Exchange(int value)
         {
-            return Interlocked.Exchange(ref Counter, value);
+            return this.ExchangeAsync(value).Result;
+        }
+
+        /// <summary>
+        /// Sets the counter to a value atomically.
+        /// </summary>
+        /// <param name="value">Value to set.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the original value.</returns>
+        public Task<int> ExchangeAsync(int value)
+        {
+            return Task.FromResult(Interlocked.Exchange(ref this.Counter, value));
         }
 
         /// <summary>
         /// Sets the counter to a value atomically if it is equal to a given value.
         /// </summary>
-        /// <param name="value">Value to set</param>
-        /// <param name="comparand">Value to compare against</param>
-        /// <returns>The original value of the counter</returns>
+        /// <param name="value">Value to set.</param>
+        /// <param name="comparand">Value to compare against.</param>
+        /// <returns>The result is the original value.</returns>
         public int CompareExchange(int value, int comparand)
         {
-            return Interlocked.CompareExchange(ref Counter, value, comparand);
+            return this.CompareExchangeAsync(value, comparand).Result;
+        }
+
+        /// <summary>
+        /// Sets the counter to a value atomically if it is equal to a given value.
+        /// </summary>
+        /// <param name="value">Value to set.</param>
+        /// <param name="comparand">Value to compare against.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the original value.</returns>
+        public Task<int> CompareExchangeAsync(int value, int comparand)
+        {
+            return Task.FromResult(Interlocked.CompareExchange(ref this.Counter, value, comparand));
         }
     }
 }

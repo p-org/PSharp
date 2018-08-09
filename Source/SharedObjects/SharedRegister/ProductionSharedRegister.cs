@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.SharedObjects
 {
@@ -22,25 +23,86 @@ namespace Microsoft.PSharp.SharedObjects
     internal sealed class ProductionSharedRegister<T> : ISharedRegister<T> where T : struct
     {
         /// <summary>
-        /// Current value of the register.
+        /// The current value of the register.
         /// </summary>
-        T Value;
+        private T Value;
 
         /// <summary>
-        /// Initializes the shared register.
+        /// Constructor.
         /// </summary>
-        /// <param name="value">Initial value</param>
+        /// <param name="value">The initial value.</param>
         public ProductionSharedRegister(T value)
         {
             Value = value;
         }
 
         /// <summary>
+        /// Gets current value of the register.
+        /// </summary>
+        /// <returns>The result is the current value.</returns>
+        public T GetValue()
+        {
+            return this.GetValueAsync().Result;
+        }
+
+        /// <summary>
+        /// Gets current value of the register.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation. The task result is the current value.</returns>
+        public Task<T> GetValueAsync()
+        {
+            T currentValue;
+            lock (this)
+            {
+                currentValue = Value;
+            }
+
+            return Task.FromResult(currentValue);
+        }
+
+        /// <summary>
+        /// Sets current value of the register.
+        /// </summary>
+        /// <param name="value">The value to set.</param>
+        public void SetValue(T value)
+        {
+            this.SetValueAsync(value).Wait();
+        }
+
+        /// <summary>
+        /// Sets current value of the register.
+        /// </summary>
+        /// <param name="value">The value to set.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        public Task SetValueAsync(T value)
+        {
+            lock (this)
+            {
+                this.Value = value;
+            }
+#if NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
+        }
+
+        /// <summary>
         /// Reads and updates the register.
         /// </summary>
-        /// <param name="func">Update function</param>
-        /// <returns>Resulting value of the register</returns>
+        /// <param name="func">The function to use for updating the value.</param>
+        /// <returns>The result is the new value of the register.</returns>
         public T Update(Func<T, T> func)
+        {
+            return this.UpdateAsync(func).Result;
+        }
+
+        /// <summary>
+        /// Reads and updates the register.
+        /// </summary>
+        /// <param name="func">The function to use for updating the value.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the new value of the register.</returns>
+        public Task<T> UpdateAsync(Func<T, T> func)
         {
             T oldValue, newValue;
             bool done = false;
@@ -60,34 +122,7 @@ namespace Microsoft.PSharp.SharedObjects
                 }
             } while (!done);
 
-            return newValue;
-        }
-
-        /// <summary>
-        /// Gets current value of the register.
-        /// </summary>
-        /// <returns>Current value</returns>
-        public T GetValue()
-        {
-            T currentValue;
-            lock (this)
-            {
-                currentValue = Value;
-            }
-
-            return currentValue;
-        }
-
-        /// <summary>
-        /// Sets current value of the register.
-        /// </summary>
-        /// <param name="value">Value</param>
-        public void SetValue(T value)
-        {
-            lock(this)
-            {
-                this.Value = value;
-            }
+            return Task.FromResult(newValue);
         }
     }
 }

@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
@@ -23,59 +24,96 @@ namespace Microsoft.PSharp.SharedObjects
     internal sealed class MockSharedRegister<T> : ISharedRegister<T> where T: struct
     {
         /// <summary>
-        /// Machine modeling the shared register.
-        /// </summary>
-        MachineId RegisterMachine;
-
-        /// <summary>
         /// The testing runtime hosting this shared register.
         /// </summary>
-        ITestingRuntime Runtime;
+        private readonly ITestingRuntime Runtime;
+
+        /// <summary>
+        /// Machine modeling the shared register.
+        /// </summary>
+        private MachineId RegisterMachine;
 
         /// <summary>
         /// Initializes the shared register.
         /// </summary>
-        /// <param name="value">Initial value</param>
-        /// <param name="runtime">ITestingRuntime</param>
-        public MockSharedRegister(T value, ITestingRuntime runtime)
+        /// <param name="runtime">The P# runtime instance.</param>
+        public MockSharedRegister(ITestingRuntime runtime)
         {
             this.Runtime = runtime;
-            this.RegisterMachine = this.Runtime.CreateMachine(typeof(SharedRegisterMachine<T>));
-            this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.SetEvent(value));
         }
-        
+
         /// <summary>
-        /// Reads and updates the register.
+        /// Initializes the shared register.
         /// </summary>
-        /// <param name="func">Update function</param>
-        /// <returns>Resulting value of the register</returns>
-        public T Update(Func<T, T> func)
+        /// <param name="value">The initial value.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        internal async Task InitializeAsync(T value)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
-            this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.UpdateEvent(func, currentMachine.Id));
-            var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
-            return e.Value;
+            this.RegisterMachine = await this.Runtime.CreateMachineAsync(typeof(SharedRegisterMachine<T>));
+            await this.Runtime.SendEventAsync(this.RegisterMachine, SharedRegisterEvent.SetEvent(value));
         }
 
         /// <summary>
         /// Gets current value of the register.
         /// </summary>
-        /// <returns>Current value</returns>
+        /// <returns>The result is the current value.</returns>
         public T GetValue()
         {
+            return this.GetValueAsync().Result;
+        }
+
+        /// <summary>
+        /// Gets current value of the register.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation. The task result is the current value.</returns>
+        public async Task<T> GetValueAsync()
+        {
             var currentMachine = this.Runtime.GetCurrentMachine();
-            this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.GetEvent(currentMachine.Id));
-            var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
+            await this.Runtime.SendEventAsync(this.RegisterMachine, SharedRegisterEvent.GetEvent(currentMachine.Id));
+            var e = await currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)) as SharedRegisterResponseEvent<T>;
             return e.Value;
         }
 
         /// <summary>
         /// Sets current value of the register.
         /// </summary>
-        /// <param name="value">Value</param>
+        /// <param name="value">The value to set.</param>
         public void SetValue(T value)
         {
-            this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.SetEvent(value));
+            this.SetValueAsync(value).Wait();
+        }
+
+        /// <summary>
+        /// Sets current value of the register.
+        /// </summary>
+        /// <param name="value">The value to set.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        public Task SetValueAsync(T value)
+        {
+            return this.Runtime.SendEventAsync(this.RegisterMachine, SharedRegisterEvent.SetEvent(value));
+        }
+
+        /// <summary>
+        /// Reads and updates the register.
+        /// </summary>
+        /// <param name="func">The function to use for updating the value.</param>
+        /// <returns>The result is the new value of the register.</returns>
+        public T Update(Func<T, T> func)
+        {
+            return this.UpdateAsync(func).Result;
+        }
+
+        /// <summary>
+        /// Reads and updates the register.
+        /// </summary>
+        /// <param name="func">The function to use for updating the value.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the new value of the register.</returns>
+        public async Task<T> UpdateAsync(Func<T, T> func)
+        {
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            await this.Runtime.SendEventAsync(this.RegisterMachine, SharedRegisterEvent.UpdateEvent(func, currentMachine.Id));
+            var e = await currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)) as SharedRegisterResponseEvent<T>;
+            return e.Value;
         }
     }
 }

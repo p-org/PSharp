@@ -12,6 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
+
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
@@ -27,7 +30,22 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         /// <param name="runtime">IPSharpRuntime</param>
         /// <param name="value">Initial value</param>
+        /// <returns>The result is the <see cref="ISharedRegister{T}"/>.</returns>
+        [Obsolete("Please use SharedRegister.CreateAsync(...) instead.")]
         public static ISharedRegister<T> Create<T>(IPSharpRuntime runtime, T value = default(T)) where T : struct
+        {
+            return CreateAsync<T>(runtime, value).Result;
+        }
+
+        /// <summary>
+        /// Creates a new shared register.
+        /// </summary>
+        /// <param name="runtime">IPSharpRuntime</param>
+        /// <param name="value">Initial value</param>
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result is the <see cref="ISharedRegister{T}"/>.
+        /// </returns>
+        public static async Task<ISharedRegister<T>> CreateAsync<T>(IPSharpRuntime runtime, T value = default(T)) where T : struct
         {
             if (runtime is ProductionRuntime)
             {
@@ -35,7 +53,9 @@ namespace Microsoft.PSharp.SharedObjects
             }
             else if (runtime is ITestingRuntime testingRuntime)
             {
-                return new MockSharedRegister<T>(value, testingRuntime);
+                var register = new MockSharedRegister<T>(testingRuntime);
+                await register.InitializeAsync(value);
+                return register;
             }
             else
             {

@@ -12,6 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
+
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
@@ -25,9 +28,22 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Creates a new shared counter.
         /// </summary>
-        /// <param name="runtime">IPSharpRuntime</param>
-        /// <param name="value">Initial value</param>
+        /// <param name="runtime">The P# runtime instance.</param>
+        /// <param name="value">The initial value of the counter.</param>
+        /// <returns>The result is the <see cref="ISharedCounter"/>.</returns>
+        [Obsolete("Please use SharedCounter.CreateAsync(...) instead.")]
         public static ISharedCounter Create(IPSharpRuntime runtime, int value = 0)
+        {
+            return CreateAsync(runtime, value).Result;
+        }
+
+        /// <summary>
+        /// Creates a new shared counter.
+        /// </summary>
+        /// <param name="runtime">The P# runtime instance.</param>
+        /// <param name="value">The initial value of the counter.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="ISharedCounter"/>.</returns>
+        public static async Task<ISharedCounter> CreateAsync(IPSharpRuntime runtime, int value = 0)
         {
             if (runtime is ProductionRuntime)
             {
@@ -35,7 +51,9 @@ namespace Microsoft.PSharp.SharedObjects
             }
             else if (runtime is ITestingRuntime testingRuntime)
             {
-                return new MockSharedCounter(value, testingRuntime);
+                var counter = new MockSharedCounter(testingRuntime);
+                await counter.InitializeAsync(value);
+                return counter;
             }
             else
             {
