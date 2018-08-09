@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.Net
         /// <param name="machineType">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        Task<MachineId> CreateMachineId(Type machineType, string friendlyName);
+        Task<MachineId> CreateMachineIdAsync(Type machineType, string friendlyName);
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>,
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Net
         /// <param name="machineType">Type of the machine.</param>
         /// <param name="e">Event to send to the machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        Task CreateMachine(MachineId mid, Type machineType, Event e);
+        Task CreateMachineAsync(MachineId mid, Type machineType, Event e);
 
         /// <summary>
         /// Sends an event to a machine at the endpoint specified by
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.Net
         /// <param name="target">Target machine.</param>
         /// <param name="e">Event to send to the machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        Task Send(MachineId target, Event e);
+        Task SendEventAsync(MachineId target, Event e);
 
         /// <summary>
         /// Checks if the specified <see cref="MachineId"/> belongs to a local machine.

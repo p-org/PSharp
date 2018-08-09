@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.Net
         /// <summary>
         /// Instance of the machine runtime.
         /// </summary>
-        private IPSharpRuntime Runtime;
+        private readonly IPSharpRuntime Runtime;
 
         /// <summary>
         /// The local endpoint.
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.Net
         /// <param name="machineType">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        public Task<MachineId> CreateMachineId(Type machineType, string friendlyName)
+        public Task<MachineId> CreateMachineIdAsync(Type machineType, string friendlyName)
         {
             return Task.FromResult(this.Runtime.CreateMachineId(machineType, friendlyName));
         }
@@ -62,14 +62,9 @@ namespace Microsoft.PSharp.Net
         /// <param name="machineType">Type of the machine.</param>
         /// <param name="e">Event to send to the machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public Task CreateMachine(MachineId mid, Type machineType, Event e)
+        public Task CreateMachineAsync(MachineId mid, Type machineType, Event e)
         {
-            this.Runtime.CreateMachine(mid, machineType, e);
-#if NET45
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
+            return this.Runtime.CreateMachineAsync(mid, machineType, e);
         }
 
         /// <summary>
@@ -79,14 +74,9 @@ namespace Microsoft.PSharp.Net
         /// <param name="target">Target machine.</param>
         /// <param name="e">Event to send to the machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public Task Send(MachineId target, Event e)
+        public Task SendEventAsync(MachineId target, Event e)
         {
-            this.Runtime.SendEvent(target, e);
-#if NET45
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
+            return this.Runtime.SendEventAsync(target, e);
         }
 
         /// <summary>

@@ -74,7 +74,7 @@ namespace Microsoft.PSharp
         /// each event type. These maps do not keep transition handlers.
         /// This stack has always the same height as StateStack.
         /// </summary>
-        private Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
+        private readonly Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
 
         /// <summary>
         /// Dictionary containing all the current goto state transitions.
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private Dictionary<string, CachedAction> ActionMap;
+        private readonly Dictionary<string, CachedAction> ActionMap;
 
         /// <summary>
         /// Inbox of the machine. Incoming events are queued here.
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp
         /// to false, then the received event is deferred. The optional action
         /// executes when the event is received.
         /// </summary>
-        private List<EventWaitHandler> EventWaitHandlers;
+        private readonly List<EventWaitHandler> EventWaitHandlers;
 
         /// <summary>
         /// Completion source that contains the event obtained
