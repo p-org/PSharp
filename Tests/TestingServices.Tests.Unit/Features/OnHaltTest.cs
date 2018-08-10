@@ -14,12 +14,18 @@
 
 using System;
 using System.Threading.Tasks;
+
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class OnHaltTest : BaseTest
     {
+        public OnHaltTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
             public MachineId Id;

@@ -13,15 +13,18 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class ReceiveWaitTest : BaseTest
     {
+        public ReceiveWaitTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event { }
 
         class M : Machine

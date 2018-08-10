@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class CompletenessTest : BaseTest
     {
+        public CompletenessTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E1 : Event { }
         class E2 : Event { }
 

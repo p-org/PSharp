@@ -16,14 +16,17 @@ using System;
 using System.Threading.Tasks;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class SendAndExecuteTest7 : BaseTest
     {
-        class E : Event
-        {
-        }
+        public SendAndExecuteTest7(ITestOutputHelper output)
+            : base(output)
+        { }
+
+        class E : Event { }
 
         class Harness : Machine
         {

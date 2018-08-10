@@ -15,6 +15,7 @@
 using System;
 using System.Reflection;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
@@ -62,16 +63,16 @@ namespace Microsoft.PSharp.TestingServices
         void RunTestHarness(Action<IPSharpRuntime> testAction);
 
         /// <summary>
-        /// Gets the id of the currently executing <see cref="Machine"/>.
-        /// <returns>MachineId or null, if not present</returns>
+        /// Gets the id of the currently executing machine.
         /// </summary>
+        /// <returns>MachineId or null, if not present</returns>
         MachineId GetCurrentMachineId();
 
         /// <summary>
-        /// Gets the currently executing <see cref="Machine"/>.
+        /// Gets the currently executing machine.
         /// </summary>
-        /// <returns>Machine or null, if not present</returns>
-        Machine GetCurrentMachine();
+        /// <returns>The machine, or null if not present.</returns>
+        BaseMachine GetCurrentMachine();
 
         /// <summary>
         /// Checks that no monitor is in a hot state upon program termination.

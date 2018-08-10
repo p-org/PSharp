@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class NameofTest : BaseTest
     {
+        public NameofTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         static int WithNameofValue;
         static int WithoutNameofValue;
 

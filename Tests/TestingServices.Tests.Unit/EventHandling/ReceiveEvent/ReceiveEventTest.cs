@@ -18,11 +18,16 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.Utilities;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class ReceiveEventTest : BaseTest
     {
+        public ReceiveEventTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Config : Event
         {
             public MachineId Id;

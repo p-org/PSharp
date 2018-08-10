@@ -18,11 +18,16 @@ using System.Collections.Generic;
 using Microsoft.PSharp.Utilities;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class HotStateTest : BaseTest
     {
+        public HotStateTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Config : Event
         {
             public MachineId Id;

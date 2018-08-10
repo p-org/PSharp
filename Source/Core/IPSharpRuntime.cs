@@ -175,7 +175,7 @@ namespace Microsoft.PSharp
         /// during analysis or testing. The value is used to generate a number
         /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         bool Random(int maxValue);
 
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing. The value is used
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         int RandomInteger(int maxValue);
 

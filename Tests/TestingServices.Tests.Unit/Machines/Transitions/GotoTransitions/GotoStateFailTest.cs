@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class GotoStateFailTest : BaseTest
     {
+        public GotoStateFailTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Program : Machine
         {
             [Start]

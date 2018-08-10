@@ -15,7 +15,7 @@
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Outcome of <see cref="Machine.OnException(string, System.Exception)"/>.
+    /// The outcome when a machine throws an exception.
     /// </summary>
     public enum OnExceptionOutcome
     {

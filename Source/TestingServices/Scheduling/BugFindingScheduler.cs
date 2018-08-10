@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic boolean choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         internal bool GetNextNondeterministicBooleanChoice(int maxValue, string uniqueId = null)
@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic integer choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {

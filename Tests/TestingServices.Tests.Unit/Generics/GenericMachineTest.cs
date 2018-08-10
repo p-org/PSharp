@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class GenericMachineTest : BaseTest
     {
+        public GenericMachineTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class M<T> : Machine
         {
             T Item;

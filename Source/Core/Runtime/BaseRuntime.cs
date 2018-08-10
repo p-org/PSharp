@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Map of unique machine ids to machines.
         /// </summary>
-        protected readonly ConcurrentDictionary<MachineId, Machine> MachineMap;
+        private protected readonly ConcurrentDictionary<MachineId, BaseMachine> MachineMap;
 
         /// <summary>
         /// The type of the timer machine.
@@ -73,11 +73,11 @@ namespace Microsoft.PSharp.Runtime
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        protected BaseRuntime(Configuration configuration)
+        private protected BaseRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
             this.MachineIdCounter = 0;
-            this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
+            this.MachineMap = new ConcurrentDictionary<MachineId, BaseMachine>();
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
             this.IsRunning = true;
@@ -225,7 +225,7 @@ namespace Microsoft.PSharp.Runtime
         /// during analysis or testing. The value is used to generate a number
         /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         public bool Random(int maxValue) => this.GetNondeterministicBooleanChoice(null, maxValue);
 
@@ -234,7 +234,7 @@ namespace Microsoft.PSharp.Runtime
         /// controlled during analysis or testing. The value is used
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         public int RandomInteger(int maxValue) => this.GetNondeterministicIntegerChoice(null, maxValue);
 
@@ -265,8 +265,8 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
         /// <param name="type">Type of the machine.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="Machine"/>.</returns>
-        protected abstract Task<Machine> CreateMachineAsync(MachineId mid, Type type);
+        /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
+        protected abstract Task<BaseMachine> CreateMachineAsync(MachineId mid, Type type);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>.
@@ -274,19 +274,19 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="mid">Unbound machine id.</param>
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
-        /// <param name="e">Event passed during machine construction</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        /// <param name="creator">Creator machine</param>
+        /// <param name="e">Event passed during machine construction.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
+        /// <param name="creator">The creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        protected internal abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e,
-            Machine creator, Guid? operationGroupId);
+        protected internal abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
+            Event e, BaseMachine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="sender">Sender machine</param>
+        /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
         protected internal abstract Task SendEventAsync(MachineId mid, Event e, BaseMachine sender, SendOptions options);
@@ -295,10 +295,10 @@ namespace Microsoft.PSharp.Runtime
         /// Checks that a machine can start its event handler. Returns false if the event
         /// handler should not be started.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         /// <returns>Boolean</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual bool CheckStartEventHandler(Machine machine) => true;
+        protected internal virtual bool CheckStartEventHandler(BaseMachine machine) => true;
 
         /// <summary>
         /// Gets the target machine for an event; if not found, logs a halted-machine entry.
@@ -309,11 +309,11 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
         protected bool GetTargetMachine(MachineId targetMachineId, Event e, BaseMachine sender,
-            Guid operationGroupId, out Machine targetMachine)
+            Guid operationGroupId, out BaseMachine targetMachine)
         {
             if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
             {
-                var senderState = (sender as Machine)?.CurrentStateName ?? String.Empty;
+                var senderState = sender?.CurrentStateName ?? String.Empty;
                 this.Logger.OnSend(targetMachineId, sender?.Id, senderState,
                     e.GetType().FullName, operationGroupId, isTargetHalted: true);
                 return false;
@@ -321,6 +321,12 @@ namespace Microsoft.PSharp.Runtime
 
             return true;
         }
+
+        /// <summary>
+        /// Checks if the specified type is a machine that can execute on this runtime.
+        /// </summary>
+        /// <returns>True if the type is supported, else false.</returns>
+        protected abstract bool IsSupportedMachineType(Type type);
 
         /// <summary>
         /// Checks if the constructor of the machine constructor for the
@@ -332,29 +338,6 @@ namespace Microsoft.PSharp.Runtime
 
         #endregion
 
-        #region timers
-
-        /// <summary>
-        /// Overrides the default machine type for instantiating timers.
-        /// </summary>
-        /// <param name="type">Type of the timer.</param>
-        public void SetTimerMachineType(Type type)
-        {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), "Timer must be a subclass of Machine.");
-            this.TimerMachineType = type;
-        }
-
-        /// <summary>
-        /// Returns the timer machine type.
-        /// </summary>
-        /// <returns>The timer machine type.</returns>
-        protected internal virtual Type GetTimerMachineType()
-        {
-            return this.TimerMachineType;
-        }
-
-        #endregion
-
         #region specifications and error checking
 
         /// <summary>
@@ -363,7 +346,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the monitor.</param>
         /// <param name="invoker">The machine invoking the monitor.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        protected internal abstract void Monitor(Type type, Machine invoker, Event e);
+        protected internal abstract void Monitor(Type type, BaseMachine invoker, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -401,8 +384,8 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="machine">The machine.</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         protected internal abstract bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
 
@@ -410,7 +393,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         protected internal abstract bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId);
@@ -419,10 +402,33 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="machine">The machine.</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         protected internal abstract int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
+
+        #endregion
+
+        #region timers
+
+        /// <summary>
+        /// Overrides the default machine type for instantiating timers.
+        /// </summary>
+        /// <param name="type">Type of the timer.</param>
+        public void SetTimerMachineType(Type type)
+        {
+            this.Assert(type.IsSubclassOf(typeof(Machine)), "Timer must be a subclass of Machine.");
+            this.TimerMachineType = type;
+        }
+
+        /// <summary>
+        /// Returns the timer machine type.
+        /// </summary>
+        /// <returns>The timer machine type.</returns>
+        protected internal virtual Type GetTimerMachineType()
+        {
+            return this.TimerMachineType;
+        }
 
         #endregion
 
@@ -431,9 +437,9 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine entered a state.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyEnteredState(Machine machine)
+        protected internal virtual void NotifyEnteredState(BaseMachine machine)
         {
             // Override to implement the notification.
         }
@@ -441,7 +447,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a monitor entered a state.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyEnteredState(Monitor monitor)
         {
@@ -451,9 +457,9 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine exited a state.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyExitedState(Machine machine)
+        protected internal virtual void NotifyExitedState(BaseMachine machine)
         {
             // Override to implement the notification.
         }
@@ -461,7 +467,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a monitor exited a state.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyExitedState(Monitor monitor)
         {
@@ -471,11 +477,11 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        protected internal virtual void NotifyInvokedAction(BaseMachine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
@@ -483,11 +489,11 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine completed invoking an action.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
+        protected internal virtual void NotifyCompletedAction(BaseMachine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
@@ -495,7 +501,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a monitor invoked an action.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -507,10 +513,10 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine raised an <see cref="Event"/>.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        protected internal virtual void NotifyRaisedEvent(BaseMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -518,8 +524,8 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a monitor raised an <see cref="Event"/>.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
-        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="monitor">The monitor.</param>
+        /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyRaisedEvent(Monitor monitor, EventInfo eventInfo)
         {
@@ -527,12 +533,23 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Notifies that a machine is handling a raised <see cref="Event"/>.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfo">The event metadata.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected internal virtual void NotifyHandleRaisedEvent(BaseMachine machine, EventInfo eventInfo)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
         /// Notifies that a machine dequeued an <see cref="Event"/>.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
+        protected internal virtual void NotifyDequeuedEvent(BaseMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -540,9 +557,9 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine invoked pop.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyPop(Machine machine)
+        protected internal virtual void NotifyPop(BaseMachine machine)
         {
             // Override to implement the notification.
         }
@@ -550,7 +567,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyReceiveCalled(Machine machine)
         {
@@ -558,20 +575,9 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine is handling a raised <see cref="Event"/>.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
-        {
-            // Override to implement the notification.
-        }
-
-        /// <summary>
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
         protected internal virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
@@ -581,8 +587,8 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
@@ -592,10 +598,10 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine has halted.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="inbox">Machine inbox.</param>
+        /// <param name="machine">The machine.</param>
+        /// <param name="inbox">The machine inbox.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
+        protected internal virtual void NotifyHalted(BaseMachine machine, LinkedList<EventInfo> inbox)
         {
             // Override to implement the notification.
         }
@@ -605,7 +611,7 @@ namespace Microsoft.PSharp.Runtime
         /// checked to see if the default event handler should fire.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyDefaultEventHandlerCheck(Machine machine)
+        protected internal virtual void NotifyDefaultEventHandlerCheck(BaseMachine machine)
         {
             // Override to implement the notification.
         }
@@ -613,9 +619,9 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that the default handler of the specified machine has been fired.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected internal virtual void NotifyDefaultHandlerFired(Machine machine)
+        protected internal virtual void NotifyDefaultHandlerFired(BaseMachine machine)
         {
             // Override to implement the notification.
         }
@@ -663,8 +669,8 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Gets the new operation group id to propagate.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Operation group id</param>
+        /// <param name="sender">The sender machine.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>Operation group Id</returns>
         internal Guid GetNewOperationGroupId(BaseMachine sender, Guid? operationGroupId)
         {
@@ -685,10 +691,10 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Sets the operation group id for the specified machine.
         /// </summary>
-        /// <param name="created">Machine created</param>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="operationGroupId">Operation group id</param>
-        internal void SetOperationGroupIdForMachine(Machine created, BaseMachine sender, Guid? operationGroupId)
+        /// <param name="created">The created machine.</param>
+        /// <param name="sender">The sender machine.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
+        internal void SetOperationGroupIdForMachine(BaseMachine created, BaseMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {

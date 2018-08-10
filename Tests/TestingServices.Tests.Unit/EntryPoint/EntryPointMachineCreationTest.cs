@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class EntryPointMachineCreationTest : BaseTest
     {
+        public EntryPointMachineCreationTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class M : Machine
         {
             [Start]

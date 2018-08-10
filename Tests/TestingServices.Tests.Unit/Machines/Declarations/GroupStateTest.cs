@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class GroupStateTest : BaseTest
     {
+        public GroupStateTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event { }
 
         class Program : Machine

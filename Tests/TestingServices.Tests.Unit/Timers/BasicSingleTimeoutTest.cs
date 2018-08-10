@@ -13,13 +13,20 @@
 //-----------------------------------------------------------------------
 
 using System;
-using Xunit;
+
 using Microsoft.PSharp.Timers;
+
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class BasicSingleTimeoutTest : BaseTest
     {
+        public BasicSingleTimeoutTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         private class T1 : TimedMachine
         {
             TimerId tid;

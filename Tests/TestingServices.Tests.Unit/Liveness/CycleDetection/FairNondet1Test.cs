@@ -17,11 +17,16 @@ using System;
 using Microsoft.PSharp.Utilities;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class FairNondet1Test : BaseTest
     {
+        public FairNondet1Test(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Unit : Event { }
         class UserEvent : Event { }
         class Done : Event { }

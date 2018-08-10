@@ -17,11 +17,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class CreateMachineWithId : BaseTest
     {
+        public CreateMachineWithId(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event { }
 
         class LivenessMonitor : Monitor

@@ -13,83 +13,68 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Microsoft.PSharp.Timers;
-using Microsoft.PSharp;
+
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-	public class TimerLivenessTest : BaseTest
-	{
-		#region events
-		class TimeoutReceivedEvent : Event { }
-		#endregion
+    public class TimerLivenessTest : BaseTest
+    {
+        public TimerLivenessTest(ITestOutputHelper output)
+            : base(output)
+        { }
 
-		#region machines/monitors
+        class TimeoutReceivedEvent : Event { }
 
-		class Client : TimedMachine
-		{
-			#region fields
-			TimerId tid;
-			object payload = new object();
-			#endregion
+        class Client : TimedMachine
+        {
+            TimerId tid;
+            object payload = new object();
 
-			#region states
-			[Start]
-			[OnEntry(nameof(Initialize))]
-			[OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-			private class Init : MachineState { }
+            [Start]
+            [OnEntry(nameof(Initialize))]
+            [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
+            private class Init : MachineState { }
 
-			#endregion
+            private void Initialize()
+            {
+                tid = StartTimer(payload, 10, false);
+            }
 
-			#region handlers
-			private void Initialize()
-			{
-				tid = StartTimer(payload, 10, false);
-			}
+            private void HandleTimeout()
+            {
+                this.Monitor<LivenessMonitor>(new TimeoutReceivedEvent());
+            }
+        }
 
-			private void HandleTimeout()
-			{
-				this.Monitor<LivenessMonitor>(new TimeoutReceivedEvent());
-			}
-			#endregion
-		}
+        class LivenessMonitor : Monitor
+        {
+            [Start]
+            [Hot]
+            [OnEventGotoState(typeof(TimeoutReceivedEvent), typeof(TimeoutReceived))]
+            class NoTimeoutReceived : MonitorState { }
 
-		class LivenessMonitor : Monitor
-		{
-			[Start]
-			[Hot]
-			[OnEventGotoState(typeof(TimeoutReceivedEvent), typeof(TimeoutReceived))]
-			class NoTimeoutReceived : MonitorState { }
+            [Cold]
+            class TimeoutReceived : MonitorState { }
+        }
 
-			[Cold]
-			class TimeoutReceived : MonitorState { }
-		}
+        [Fact]
+        public void PeriodicLivenessTest()
+        {
+            var config = base.GetConfiguration();
+            config.LivenessTemperatureThreshold = 150;
+            config.MaxSchedulingSteps = 300;
+            config.SchedulingIterations = 1000;
 
-		#endregion
+            var test = new Action<IPSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                r.CreateMachine(typeof(Client));
+            });
 
-		#region test
-
-		[Fact]
-		public void PeriodicLivenessTest()
-		{
-			var config = base.GetConfiguration();
-			config.LivenessTemperatureThreshold = 150;
-			config.MaxSchedulingSteps = 300;
-			config.SchedulingIterations = 1000;
-
-			var test = new Action<IPSharpRuntime>((r) => {
-				r.RegisterMonitor(typeof(LivenessMonitor));
-				r.CreateMachine(typeof(Client));
-			});
-
-			base.AssertSucceeded(config, test);
-		}
-
-		#endregion
-	}
+            base.AssertSucceeded(config, test);
+        }
+    }
 }

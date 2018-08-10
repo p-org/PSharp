@@ -13,8 +13,11 @@
 //-----------------------------------------------------------------------
 
 using System.Threading.Tasks;
+
 using Microsoft.PSharp.Runtime;
+
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
@@ -202,6 +205,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
     public class EventInheritanceTest : BaseTest
     {
+        public EventInheritanceTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         [Fact]
         public void Test_MultiPayloadMultiLevel()
         {

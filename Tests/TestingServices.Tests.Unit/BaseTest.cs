@@ -20,17 +20,25 @@ using System.Text.RegularExpressions;
 using Microsoft.PSharp.IO;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public abstract class BaseTest
     {
+        protected readonly ITestOutputHelper TestOutput;
+
+        public BaseTest(ITestOutputHelper output)
+        {
+            this.TestOutput = output;
+        }
+
         #region successful tests
 
         protected void AssertSucceeded(Action<IPSharpRuntime> test)
         {
             var configuration = GetConfiguration();
-            AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         protected void AssertSucceeded(Configuration configuration, Action<IPSharpRuntime> test)
@@ -62,40 +70,40 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected void AssertFailed(Action<IPSharpRuntime> test, int numExpectedErrors, bool replay)
         {
-            var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, replay);
+            var configuration = this.GetConfiguration();
+            this.AssertFailed(configuration, test, numExpectedErrors, replay);
         }
 
         protected void AssertFailed(Action<IPSharpRuntime> test, string expectedOutput, bool replay)
         {
-            var configuration = GetConfiguration();
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
+            var configuration = this.GetConfiguration();
+            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
         protected void AssertFailed(Action<IPSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
         {
-            var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
+            var configuration = this.GetConfiguration();
+            this.AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
         }
 
         protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, int numExpectedErrors, bool replay)
         {
-            AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
+            this.AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
         }
 
         protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, string expectedOutput, bool replay)
         {
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
+            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
         protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, int numExpectedErrors,
             ISet<string> expectedOutputs, bool replay)
         {
-            AssertFailed(configuration, test, numExpectedErrors, bugReports =>
+            this.AssertFailed(configuration, test, numExpectedErrors, bugReports =>
             {
-                foreach(var expected in expectedOutputs)
+                foreach (var expected in expectedOutputs)
                 {
-                    if(!bugReports.Contains(expected))
+                    if (!bugReports.Contains(expected))
                     {
                         return false;
                     }
@@ -115,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 bfEngine.SetLogger(logger);
                 bfEngine.Run();
 
-                CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
+                this.CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
 
                 if (replay && !configuration.EnableCycleDetection)
                 {
@@ -124,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                     rEngine.Run();
 
                     Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
+                    this.CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
                 }
             }
             catch (Exception ex)
@@ -146,6 +154,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             foreach (var bugReport in engine.TestReport.BugReports)
             {
                 var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
+                //this.TestOutput.WriteLine("actual: " + actual);
                 bugReports.Add(actual);
             }
 
@@ -158,8 +167,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected void AssertFailedWithException(Action<IPSharpRuntime> test, Type exceptionType, bool replay)
         {
-            var configuration = GetConfiguration();
-            AssertFailedWithException(configuration, test, exceptionType, replay);
+            var configuration = this.GetConfiguration();
+            this.AssertFailedWithException(configuration, test, exceptionType, replay);
         }
 
         protected void AssertFailedWithException(Configuration configuration, Action<IPSharpRuntime> test, Type exceptionType, bool replay)
@@ -175,7 +184,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 bfEngine.SetLogger(logger);
                 bfEngine.Run();
 
-                CheckErrors(bfEngine, exceptionType);
+                this.CheckErrors(bfEngine, exceptionType);
 
                 if (replay && !configuration.EnableCycleDetection)
                 {
@@ -184,7 +193,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                     rEngine.Run();
 
                     Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, exceptionType);
+                    this.CheckErrors(rEngine, exceptionType);
                 }
             }
             catch (Exception ex)

@@ -17,11 +17,16 @@ using System;
 using Microsoft.PSharp.Utilities;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class CurrentStateTest : BaseTest
     {
+        public CurrentStateTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Unit : Event { }
 
         class Server : Machine

@@ -14,14 +14,19 @@
 
 using System;
 
-using Xunit;
-
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class OperationGroupingTest : BaseTest
     {
+        public OperationGroupingTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         static Guid OperationGroup1 = Guid.NewGuid();
         static Guid OperationGroup2 = Guid.NewGuid();
 

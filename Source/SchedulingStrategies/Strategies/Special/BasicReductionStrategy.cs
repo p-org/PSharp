@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)

@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class CycleDetectionRandomChoiceTest : BaseTest
     {
+        public CycleDetectionRandomChoiceTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Configure: Event
         {
             public bool ApplyFix;

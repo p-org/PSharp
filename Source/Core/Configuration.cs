@@ -302,9 +302,8 @@ namespace Microsoft.PSharp
         public bool EnableCycleDetection;
 
         /// <summary>
-        /// If this option is enabled, then all <see cref="Machine.HashedState"/>
-        /// and <see cref="Event.HashedState"/> state-hashing methods are used
-        /// to improve the accurracy of state-caching for liveness checking.
+        /// If this option is enabled, then the user-defined state-hashing methods
+        /// are used to improve the accurracy of state-caching for liveness checking.
         /// </summary>
         [DataMember]
         public bool EnableUserDefinedStateHashing;

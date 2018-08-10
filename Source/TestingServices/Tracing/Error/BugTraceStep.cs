@@ -98,9 +98,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="type">BugTraceStepType</param>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine.</param>
         /// <param name="machineState">MachineState</param>
-        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="eventInfo">The event metadata.</param>
         /// <param name="action">MethodInfo</param>
         /// <param name="targetMachine">Target machine</param>
         /// <param name="boolChoice">Boolean choice</param>

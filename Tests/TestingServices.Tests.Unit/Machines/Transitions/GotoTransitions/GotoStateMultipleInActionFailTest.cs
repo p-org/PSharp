@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class GotoStateTopLevelActionFailTest : BaseTest
     {
+        public GotoStateTopLevelActionFailTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         public enum ErrorType
         {
             CALL_GOTO,
@@ -116,7 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
-                "cannot call 'Send' after calling raise, goto, push or pop in the same action.";
+                "cannot call 'SendEvent' after calling raise, goto, push or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
 

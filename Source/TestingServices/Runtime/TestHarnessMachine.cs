@@ -23,12 +23,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     /// The P# test harness machine. This is the root machine
     /// that executes a test method during testing.
     /// </summary>
-    internal sealed class TestHarnessMachine : BaseMachine
+    internal sealed class TestHarnessMachine
     {
         /// <summary>
         /// The runtime that executes this machine.
         /// </summary>
-        internal BaseRuntime Runtime { get; private set; }
+        private BaseRuntime Runtime;
+
+        /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        private MachineId Id;
 
         /// <summary>
         /// The test method.
@@ -39,6 +44,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// The test action.
         /// </summary>
         private readonly Action<IPSharpRuntime> TestAction;
+
+        /// <summary>
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
+        /// </summary>
+        internal MachineInfo Info { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -67,7 +78,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal void Initialize(BaseRuntime runtime, MachineId mid, MachineInfo info)
         {
             this.Runtime = runtime;
-            base.Initialize(mid, info);
+            this.Id = mid;
+            this.Info = info;
         }
 
         /// <summary>
@@ -87,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 {
                     this.Runtime.Log("<TestHarnessLog> Running test method " +
                         $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
-                    this.TestMethod.Invoke(null, new object[] { base.Id.Runtime });
+                    this.TestMethod.Invoke(null, new object[] { this.Id.Runtime });
                 }
             }
             catch (TargetInvocationException ex)

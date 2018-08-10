@@ -15,11 +15,16 @@
 using System;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class DuplicateEventHandlersTest : BaseTest
     {
+        public DuplicateEventHandlersTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event { }
 
         class M1: Machine

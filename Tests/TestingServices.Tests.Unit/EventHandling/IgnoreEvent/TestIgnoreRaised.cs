@@ -16,11 +16,16 @@ using System;
 using System.Threading.Tasks;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class TestIgnoreRaised : BaseTest
     {
+        public TestIgnoreRaised(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E1 : Event { }
         class E2 : Event
         {

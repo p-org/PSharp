@@ -14,13 +14,20 @@
 
 using System;
 using System.Threading.Tasks;
+
 using Microsoft.PSharp.Runtime;
+
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class OnExceptionTest : BaseTest
     {
+        public OnExceptionTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
             public MachineId Id;
