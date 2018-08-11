@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="AbstractTestingEngine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -195,12 +195,11 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (FileNotFoundException ex)
             {
-                Error.ReportAndExit(ex.Message); 
+                Error.ReportAndExit(ex.Message);
             }
 
-#if NET45 || NET46
-
-            // load config file and absorb its settings
+#if NET46 || NET45
+            // Load config file and absorb its settings.
             try
             {
                 var configFile = ConfigurationManager.OpenExeConfiguration(configuration.AssemblyToBeAnalyzed);
@@ -222,7 +221,6 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.Report(ex.Message);
             }
-
 #endif
 
             if (configuration.TestingRuntimeAssembly != "")
@@ -352,7 +350,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RDPOR)
             {
                 this.Strategy = new DPORStrategy(
-                    new ContractAsserter(), 
+                    new ContractAsserter(),
                     this.RandomNumberGenerator,
                     -1,
                     this.Configuration.MaxFairSchedulingSteps);
