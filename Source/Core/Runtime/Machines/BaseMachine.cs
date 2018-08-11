@@ -41,20 +41,17 @@ namespace Microsoft.PSharp.Runtime
         private static ConcurrentDictionary<Type, bool> MachineStateCached;
 
         /// <summary>
-        /// Map from machine types to a set of all
-        /// possible states types.
+        /// Map from machine types to a set of all possible states types.
         /// </summary>
         private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap;
 
         /// <summary>
-        /// Map from machine types to a set of all
-        /// available states.
+        /// Map from machine types to a set of all possible states.
         /// </summary>
         private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
 
         /// <summary>
-        /// Map from machine types to a set of all
-        /// available actions.
+        /// Map from machine types to a set of all possible actions.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
 
@@ -130,6 +127,11 @@ namespace Microsoft.PSharp.Runtime
         /// Dictionary containing all the current push state transitions.
         /// </summary>
         internal Dictionary<Type, PushStateTransition> PushTransitions { get; private set; }
+
+        /// <summary>
+        /// All possible machine states of this machine.
+        /// </summary>
+        private protected IEnumerable<MachineState> MachineStates { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="Type"/> of the current state.
@@ -387,7 +389,9 @@ namespace Microsoft.PSharp.Runtime
                 this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
             }
 
-            var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
+            this.MachineStates = StateMap[machineType];
+
+            var initialStates = this.MachineStates.Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Machine '{this.Id}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Machine '{this.Id}' " +
                 "can not declare more than one start states.");
@@ -959,8 +963,7 @@ namespace Microsoft.PSharp.Runtime
 
             await this.DoStatePopAsync();
 
-            var nextState = StateMap[this.GetType()].First(val
-                => val.GetType().Equals(s));
+            var nextState = this.MachineStates.First(val => val.GetType().Equals(s));
 
             // The machine transitions to the new state.
             await this.DoStatePushAsync(nextState);
@@ -978,7 +981,7 @@ namespace Microsoft.PSharp.Runtime
         {
             this.Runtime.Logger.OnPush(this.Id, this.CurrentStateName, s.FullName);
 
-            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            var nextState = this.MachineStates.First(val => val.GetType().Equals(s));
             await this.DoStatePushAsync(nextState);
 
             // The machine performs the on entry statements of the new state.
@@ -1355,11 +1358,10 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Set of all states in the machine</returns>
         internal HashSet<string> GetAllStates()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()),
-                $"Machine '{this.Id}' hasn't populated its states yet.");
+            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
 
             var allStates = new HashSet<string>();
-            foreach (var state in StateMap[this.GetType()])
+            foreach (var state in this.MachineStates)
             {
                 allStates.Add(StateGroup.GetQualifiedStateName(state.GetType()));
             }
@@ -1374,11 +1376,10 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Set of all (states, registered event) pairs in the machine</returns>
         internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()),
-                $"Machine '{this.Id}' hasn't populated its states yet.");
+            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
 
             var pairs = new HashSet<Tuple<string, string>>();
-            foreach (var state in StateMap[this.GetType()])
+            foreach (var state in this.MachineStates)
             {
                 foreach (var binding in state.ActionBindings)
                 {
