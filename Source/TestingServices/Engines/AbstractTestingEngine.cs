@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="AbstractTestingEngine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Configuration;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -197,6 +198,31 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(ex.Message);
             }
 
+#if NET46 || NET45
+            // Load config file and absorb its settings.
+            try
+            {
+                var configFile = ConfigurationManager.OpenExeConfiguration(configuration.AssemblyToBeAnalyzed);
+
+                var settings = configFile.AppSettings.Settings;
+                foreach (var key in settings.AllKeys)
+                {
+                    if (ConfigurationManager.AppSettings.Get(key) == null)
+                    {
+                        ConfigurationManager.AppSettings.Set(key, settings[key].Value);
+                    }
+                    else
+                    {
+                        ConfigurationManager.AppSettings.Add(key, settings[key].Value);
+                    }
+                }
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                Error.Report(ex.Message);
+            }
+#endif
+
             if (configuration.TestingRuntimeAssembly != "")
             {
                 try
@@ -324,7 +350,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RDPOR)
             {
                 this.Strategy = new DPORStrategy(
-                    new ContractAsserter(), 
+                    new ContractAsserter(),
                     this.RandomNumberGenerator,
                     -1,
                     this.Configuration.MaxFairSchedulingSteps);
