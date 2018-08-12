@@ -87,9 +87,11 @@ namespace Microsoft.PSharp.Runtime
         private EventInfo RaisedEvent;
 
         /// <summary>
-        /// Is the machine running.
+        /// True if the machine is active, else false. The machine is active if it
+        /// is able to perform a next action (e.g. an event was enqueued). If the
+        /// event handler cannot dequeue an event, then it assigns this to false.
         /// </summary>
-        internal bool IsRunning;
+        private protected bool IsActive;
 
         /// <summary>
         /// Is pop invoked in the current action.
@@ -228,7 +230,7 @@ namespace Microsoft.PSharp.Runtime
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
 
-            this.IsRunning = true;
+            this.IsActive = true;
             this.IsPopInvoked = false;
             this.OnExceptionRequestedGracefulHalt = false;
         }
@@ -593,14 +595,8 @@ namespace Microsoft.PSharp.Runtime
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <param name="runNewHandler">Run a new handler</param>
-        internal abstract void Enqueue(EventInfo eventInfo, ref bool runNewHandler);
-
-        /// <summary>
-        /// Checks if there is a next available event to dequeue in the inbox.
-        /// </summary>
-        /// <returns>The result is true if there is a next available event, else false.</returns>
-        internal abstract bool IsNextEventAvailable();
+        /// <returns>The machine status after the enqueue.</returns>
+        internal abstract MachineStatus Enqueue(EventInfo eventInfo);
 
         /// <summary>
         /// Returns the raised <see cref="EventInfo"/> if
@@ -1196,7 +1192,7 @@ namespace Microsoft.PSharp.Runtime
 
                 hash = hash * 31 + this.GetType().GetHashCode();
                 hash = hash * 31 + this.Id.Value.GetHashCode();
-                hash = hash * 31 + this.IsRunning.GetHashCode();
+                hash = hash * 31 + this.IsActive.GetHashCode();
 
                 hash = hash * 31 + this.Info.IsHalted.GetHashCode();
                 hash = hash * 31 + this.Info.ProgramCounter;

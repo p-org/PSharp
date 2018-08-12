@@ -41,14 +41,9 @@ namespace Microsoft.PSharp.Runtime
         internal long MachineIdCounter;
 
         /// <summary>
-        /// Records if the runtime is running.
+        /// True if the runtime is currently running, else false.
         /// </summary>
         protected volatile bool IsRunning;
-
-        /// <summary>
-        /// Records if the runtime is running.
-        /// </summary>
-        bool IRuntimeManager.IsRunning => this.IsRunning;
 
         /// <summary>
         /// The type of the timer machine.
@@ -74,6 +69,16 @@ namespace Microsoft.PSharp.Runtime
         /// The installed logger.
         /// </summary>
         public ILogger Logger { get; private set; }
+
+        /// <summary>
+        /// True if the runtime is currently running, else false.
+        /// </summary>
+        bool IRuntimeManager.IsRunning => this.IsRunning;
+
+        /// <summary>
+        /// True if testing mode is enabled, else false.
+        /// </summary>
+        public abstract bool IsTestingModeEnabled { get; }
 
         /// <summary>
         /// Event that is fired when the P# program throws an exception.

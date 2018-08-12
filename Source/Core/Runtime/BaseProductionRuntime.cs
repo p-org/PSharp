@@ -25,6 +25,11 @@ namespace Microsoft.PSharp.Runtime
     internal abstract class BaseProductionRuntime : BaseRuntime
     {
         /// <summary>
+        /// True if testing mode is enabled, else false.
+        /// </summary>
+        public override bool IsTestingModeEnabled => false;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
@@ -140,9 +145,8 @@ namespace Microsoft.PSharp.Runtime
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (this.GetTargetMachine(mid, e, sender, operationGroupId, out BaseMachine machine))
             {
-                bool runNewHandler = false;
-                this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
-                if (runNewHandler)
+                MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId);
+                if (machineStatus == MachineStatus.EventHandlerNotRunning)
                 {
                     this.RunMachineEventHandler(machine, null, false);
                 }
@@ -162,14 +166,14 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="e">Event</param>
         /// <param name="sender">The sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="runNewHandler">Run a new handler</param>
-        protected void EnqueueEvent(BaseMachine machine, Event e, BaseMachine sender, Guid operationGroupId, ref bool runNewHandler)
+        /// <returns>The machine status after the enqueue.</returns>
+        protected MachineStatus EnqueueEvent(BaseMachine machine, Event e, BaseMachine sender, Guid operationGroupId)
         {
             EventInfo eventInfo = new EventInfo(e, null);
             eventInfo.SetOperationGroupId(operationGroupId);
             this.Logger.OnSend(machine.Id, sender?.Id, sender?.CurrentStateName ?? String.Empty,
                 e.GetType().FullName, operationGroupId, isTargetHalted: false);
-            machine.Enqueue(eventInfo, ref runNewHandler);
+            return machine.Enqueue(eventInfo);
         }
 
         /// <summary>

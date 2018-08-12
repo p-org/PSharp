@@ -20,18 +20,6 @@ namespace Microsoft.PSharp.Runtime
     /// </summary>
     internal interface IMachineRuntimeManager : IRuntimeManager
     {
-        #region machine creation and execution
-
-        /// <summary>
-        /// Checks that a machine can start its event handler. Returns false if the event
-        /// handler should not be started.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <returns>Boolean</returns>
-        bool CheckStartEventHandler(BaseMachine machine);
-
-        #endregion
-
         #region notifications
 
         /// <summary>

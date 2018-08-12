@@ -189,24 +189,14 @@ namespace Microsoft.PSharp.Runtime
                 return true;
             }
 
-            bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
-            if (runNewHandler)
+            MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId);
+            if (machineStatus == MachineStatus.EventHandlerNotRunning)
             {
                 await this.RunMachineEventHandlerAsync(machine, null, false);
                 return true;
             }
             return false;
         }
-
-        /// <summary>
-        /// Checks that a machine can start its event handler. Returns false if the event
-        /// handler should not be started.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <returns>Boolean</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool IMachineRuntimeManager.CheckStartEventHandler(BaseMachine machine) => true;
 
         /// <summary>
         /// Checks if the specified type is a machine that can execute on this runtime.

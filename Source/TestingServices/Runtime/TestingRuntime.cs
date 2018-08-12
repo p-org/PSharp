@@ -34,11 +34,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private readonly HashSet<Type> SupportedBaseMachineTypes;
 
         /// <summary>
-        /// Records if a machine was triggered by an enqueue.
-        /// </summary>
-        private bool StartEventHandlerCalled;
-
-        /// <summary>
         /// Creates a P# runtime that executes in bug-finding mode.
         /// </summary>
         /// <param name="configuration">Configuration</param>
@@ -218,7 +213,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="e">Event</param>
         /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        /// <returns>True if event was handled, false if the event was only enqueued</returns>
+        /// <returns>True if the event was handled, false if the event was only enqueued</returns>
         private async Task<bool> SendEventAndExecute(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             this.CheckMachineMethodInvocation(sender, MachineApiNames.SendEventAndExecuteApiName);
@@ -235,16 +230,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 return true;
             }
 
-            bool runNewHandler = false;
-
-            // This is set true by CheckStartEventHandler, called by EnqueueEvent. runNewHandler is not
-            // set to true by EnqueueEvent (even when the machine was previously Idle) when the event
-            // e requires no action by the machine (i.e., it implicitly handles the event). In such a case, 
-            // CheckStartEventHandler must have been called.
-            this.StartEventHandlerCalled = false; 
-
-            EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
-            if (runNewHandler)
+            MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
+                out EventInfo eventInfo);
+            if (machineStatus == MachineStatus.EventHandlerNotRunning)
             {
                 this.RunMachineEventHandler(machine, null, false, sender.Id, eventInfo);
 
@@ -253,20 +241,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     rev => (rev as QuiescentEvent).mid == mid);
                 return true;
             }
-            return this.StartEventHandlerCalled;
-        }
 
-        /// <summary>
-        /// Checks that a machine can start its event handler. Returns false if the event
-        /// handler should not be started. The bug finding runtime may return false because
-        /// it knows that there are currently no events in the inbox that can be handled.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <returns>Boolean</returns>
-        bool IMachineRuntimeManager.CheckStartEventHandler(BaseMachine machine)
-        {
-            this.StartEventHandlerCalled = true;
-            return machine.IsNextEventAvailable();
+            // The 'MachineStatus.EventHandlerNotRunning' is not set to true by 'EnqueueEvent'
+            // (even when the machine was previously inactive) when the event 'e' requires no
+            // action by the machine (i.e., it implicitly handles the event).
+            return machineStatus == MachineStatus.NextEventUnavailable;
         }
 
         /// <summary>

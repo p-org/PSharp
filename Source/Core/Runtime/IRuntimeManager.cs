@@ -49,9 +49,14 @@ namespace Microsoft.PSharp.Runtime
         ILogger Logger { get; }
 
         /// <summary>
-        /// Records if the runtime is running.
+        /// True if the runtime is currently running, else false.
         /// </summary>
         bool IsRunning { get; }
+
+        /// <summary>
+        /// True if testing mode is enabled, else false.
+        /// </summary>
+        bool IsTestingModeEnabled { get; }
 
         /// <summary>
         /// Event that is fired when the P# program throws an exception.

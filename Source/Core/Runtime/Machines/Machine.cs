@@ -267,14 +267,14 @@ namespace Microsoft.PSharp
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <param name="runNewHandler">Run a new handler</param>
-        internal override void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        /// <returns>The machine status after the enqueue.</returns>
+        internal override MachineStatus Enqueue(EventInfo eventInfo)
         {
             lock (this.Inbox)
             {
                 if (this.Info.IsHalted)
                 {
-                    return;
+                    return MachineStatus.IsHalted;
                 }
 
                 EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
@@ -285,7 +285,7 @@ namespace Microsoft.PSharp
                     this.EventWaitHandlers.Clear();
                     this.RuntimeManager.NotifyReceivedEvent(this, eventInfo);
                     this.ReceiveCompletionSource.SetResult(eventInfo.Event);
-                    return;
+                    return MachineStatus.EventHandlerRunning;
                 }
 
                 this.RuntimeManager.Logger.OnEnqueue(this.Id, eventInfo.EventName);
@@ -308,12 +308,21 @@ namespace Microsoft.PSharp
                         $"in the input queue of machine '{this}'");
                 }
 
-                if (!this.IsRunning && this.RuntimeManager.CheckStartEventHandler(this))
+                if (!this.IsActive)
                 {
-                    this.IsRunning = true;
-                    runNewHandler = true;
+                    if (this.RuntimeManager.IsTestingModeEnabled && this.TryDequeueEvent(true) == null)
+                    {
+                        return MachineStatus.NextEventUnavailable;
+                    }
+                    else
+                    {
+                        this.IsActive = true;
+                        return MachineStatus.EventHandlerNotRunning;
+                    }
                 }
             }
+
+            return MachineStatus.EventHandlerRunning;
         }
 
         /// <summary>
@@ -390,15 +399,6 @@ namespace Microsoft.PSharp
             return nextAvailableEventInfo;
         }
 
-        /// <summary>
-        /// Checks if there is a next available event to dequeue in the inbox.
-        /// </summary>
-        /// <returns>The result is true if there is a next available event, else false.</returns>
-        internal override bool IsNextEventAvailable()
-        {
-            return this.TryDequeueEvent(true) != null;
-        }
-
         #endregion
 
         #region event and action handling
@@ -449,7 +449,7 @@ namespace Microsoft.PSharp
                         if (nextEventInfo == null)
                         {
                             completed = true;
-                            this.IsRunning = false;
+                            this.IsActive = false;
                             break;
                         }
                     }

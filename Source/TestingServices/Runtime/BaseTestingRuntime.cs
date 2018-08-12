@@ -93,6 +93,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         public CoverageInfo CoverageInfo { get; }
 
         /// <summary>
+        /// True if testing mode is enabled, else false.
+        /// </summary>
+        public override bool IsTestingModeEnabled => true;
+
+        /// <summary>
         /// Constructor.
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
@@ -430,9 +435,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             if (this.GetTargetMachine(mid, e, sender, operationGroupId, out BaseMachine machine))
             {
-                bool runNewHandler = false;
-                EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
-                if (runNewHandler)
+                MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
+                    out EventInfo eventInfo);
+                if (machineStatus == MachineStatus.EventHandlerNotRunning)
                 {
                     this.RunMachineEventHandler(machine, null, false, null, eventInfo);
                 }
@@ -458,10 +463,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="mustHandle">MustHandle event</param>
-        /// <param name="runNewHandler">Run a new handler</param>
-        /// <returns>EventInfo</returns>
-        protected EventInfo EnqueueEvent(BaseMachine machine, Event e, BaseMachine sender, Guid operationGroupId,
-            bool mustHandle, ref bool runNewHandler)
+        /// <param name="eventInfo">The enqueued event metadata.</param>
+        /// <returns>The machine status after the enqueue.</returns>
+        protected MachineStatus EnqueueEvent(BaseMachine machine, Event e, BaseMachine sender, Guid operationGroupId,
+            bool mustHandle, out EventInfo eventInfo)
         {
             EventOriginInfo originInfo = null;
             if (sender != null)
@@ -476,7 +481,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 originInfo = new EventOriginInfo(null, "Env", "Env");
             }
 
-            EventInfo eventInfo = new EventInfo(e, originInfo, Scheduler.ScheduledSteps);
+            eventInfo = new EventInfo(e, originInfo, Scheduler.ScheduledSteps);
             eventInfo.SetOperationGroupId(operationGroupId);
             eventInfo.SetMustHandle(mustHandle);
 
@@ -492,9 +497,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
             }
 
-            machine.Enqueue(eventInfo, ref runNewHandler);
-
-            return eventInfo;
+            return machine.Enqueue(eventInfo);
         }
 
         /// <summary>
