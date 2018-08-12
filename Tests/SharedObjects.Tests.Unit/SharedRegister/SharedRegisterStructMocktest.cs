@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
             {
                 var flag = (this.ReceivedEvent as Eflag).flag;
 
-                var counter = SharedRegister.Create<S>(this.Id.Runtime);
+                var counter = SharedRegister.Create<S>(this.Id.RuntimeManager.Runtime);
                 counter.SetValue(new S(1, 1));
 
                 this.CreateMachine(typeof(N), new E(counter));

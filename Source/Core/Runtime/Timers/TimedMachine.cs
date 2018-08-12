@@ -40,10 +40,10 @@ namespace Microsoft.PSharp.Timers
             // The specified period must be valid
             this.Assert(period >= 0, "Timer period must be non-negative");
 
-            var mid = this.Runtime.CreateMachineId(this.Runtime.GetTimerMachineType());
+            var mid = this.RuntimeManager.CreateMachineId(this.RuntimeManager.GetTimerMachineType());
             var tid = new TimerId(mid, payload);
 
-            this.Runtime.CreateMachineAsync(mid, this.Runtime.GetTimerMachineType(), null,
+            this.RuntimeManager.CreateMachineAsync(mid, this.RuntimeManager.GetTimerMachineType(), null,
                 new InitTimer(this.Id, tid, IsPeriodic, period), this, null).Wait();
 
             timers.Add(tid);

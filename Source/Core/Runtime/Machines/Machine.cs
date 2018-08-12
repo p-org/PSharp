@@ -27,6 +27,11 @@ namespace Microsoft.PSharp
     public abstract class Machine : BaseMachine
     {
         /// <summary>
+        /// The manager of the runtime that executes this machine.
+        /// </summary>
+        private protected IMachineRuntimeManager RuntimeManager { get; private set; }
+
+        /// <summary>
         /// Inbox of the machine. Incoming events are queued here.
         /// Events are dequeued to be processed.
         /// </summary>
@@ -47,6 +52,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private TaskCompletionSource<Event> ReceiveCompletionSource;
 
+        #region initialization
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -55,6 +62,21 @@ namespace Microsoft.PSharp
             this.Inbox = new LinkedList<EventInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
         }
+
+        /// <summary>
+        /// Initializes this machine.
+        /// </summary>
+        /// <param name="runtimeManager">The runtime manager.</param>
+        /// <param name="mid">The id of this machine.</param>
+        /// <param name="info">The metadata of this machine.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        internal Task InitializeAsync(IMachineRuntimeManager runtimeManager, MachineId mid, MachineInfo info)
+        {
+            this.RuntimeManager = runtimeManager;
+            return base.InitializeAsync(runtimeManager, mid, info);
+        }
+
+        #endregion
 
         #region user interface
 
@@ -112,7 +134,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         protected Task<MachineId> CreateMachineAsync(Type type, Event e = null)
         {
-            return this.Runtime.CreateMachineAsync(null, type, null, e, this, null);
+            return this.RuntimeManager.CreateMachineAsync(null, type, null, e, this, null);
         }
 
         /// <summary>
@@ -126,7 +148,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         protected Task<MachineId> CreateMachineAsync(Type type, string friendlyName, Event e = null)
         {
-            return this.Runtime.CreateMachineAsync(null, type, friendlyName, e, this, null);
+            return this.RuntimeManager.CreateMachineAsync(null, type, friendlyName, e, this, null);
         }
 
         /// <summary>
@@ -140,7 +162,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         protected Task<MachineId> CreateMachineAsync(MachineId mid, Type type, Event e = null)
         {
-            return this.Runtime.CreateMachineAsync(mid, type, mid.FriendlyName, e, this, null);
+            return this.RuntimeManager.CreateMachineAsync(mid, type, mid.FriendlyName, e, this, null);
         }
 
         /// <summary>
@@ -168,7 +190,7 @@ namespace Microsoft.PSharp
             this.Assert(mid != null, $"Machine '{this.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
-            return this.Runtime.SendEventAsync(mid, e, this, options);
+            return this.RuntimeManager.SendEventAsync(mid, e, this, options);
         }
 
         /// <summary>
@@ -179,7 +201,7 @@ namespace Microsoft.PSharp
         protected internal virtual Task<Event> Receive(params Type[] eventTypes)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
-            this.Runtime.NotifyReceiveCalled(this);
+            this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
             {
@@ -203,7 +225,7 @@ namespace Microsoft.PSharp
         protected internal virtual Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
-            this.Runtime.NotifyReceiveCalled(this);
+            this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
             {
@@ -223,7 +245,7 @@ namespace Microsoft.PSharp
         protected internal virtual Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
-            this.Runtime.NotifyReceiveCalled(this);
+            this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
             {
@@ -261,12 +283,12 @@ namespace Microsoft.PSharp
                 if (eventWaitHandler != null)
                 {
                     this.EventWaitHandlers.Clear();
-                    this.Runtime.NotifyReceivedEvent(this, eventInfo);
+                    this.RuntimeManager.NotifyReceivedEvent(this, eventInfo);
                     this.ReceiveCompletionSource.SetResult(eventInfo.Event);
                     return;
                 }
 
-                this.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
+                this.RuntimeManager.Logger.OnEnqueue(this.Id, eventInfo.EventName);
 
                 this.Inbox.AddLast(eventInfo);
 
@@ -286,7 +308,7 @@ namespace Microsoft.PSharp
                         $"in the input queue of machine '{this}'");
                 }
 
-                if (!this.IsRunning && this.Runtime.CheckStartEventHandler(this))
+                if (!this.IsRunning && this.RuntimeManager.CheckStartEventHandler(this))
                 {
                     this.IsRunning = true;
                     runNewHandler = true;
@@ -295,12 +317,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Dequeues the next available <see cref="EventInfo"/> from the
-        /// inbox if there is one available, else returns null.
+        /// Dequeues the next available event from the inbox if there
+        /// is one available, else returns null.
         /// </summary>
         /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox</param>
-        /// <returns>EventInfo</returns>
-        internal override EventInfo TryDequeueEvent(bool checkOnly = false)
+        /// <returns>The result is the dequeued event.</returns>
+        private EventInfo TryDequeueEvent(bool checkOnly = false)
         {
             EventInfo nextAvailableEventInfo = null;
 
@@ -368,6 +390,15 @@ namespace Microsoft.PSharp
             return nextAvailableEventInfo;
         }
 
+        /// <summary>
+        /// Checks if there is a next available event to dequeue in the inbox.
+        /// </summary>
+        /// <returns>The result is true if there is a next available event, else false.</returns>
+        internal override bool IsNextEventAvailable()
+        {
+            return this.TryDequeueEvent(true) != null;
+        }
+
         #endregion
 
         #region event and action handling
@@ -385,7 +416,7 @@ namespace Microsoft.PSharp
             }
 
             bool completed = false;
-            while (!this.Info.IsHalted && this.Runtime.IsRunning)
+            while (!this.Info.IsHalted && this.RuntimeManager.IsRunning)
             {
                 var defaultHandling = false;
                 var dequeued = false;
@@ -399,7 +430,7 @@ namespace Microsoft.PSharp
                     var hasDefaultHandler = HasDefaultHandler();
                     if (hasDefaultHandler)
                     {
-                        this.Runtime.NotifyDefaultEventHandlerCheck(this);
+                        this.RuntimeManager.NotifyDefaultEventHandlerCheck(this);
                     }
 
                     lock (this.Inbox)
@@ -429,18 +460,18 @@ namespace Microsoft.PSharp
                     // Notifies the runtime for a new event to handle. This is only used
                     // during testing and operation bounding, because the runtime has to
                     // schedule a machine when a new operation is dequeued.
-                    this.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                    this.RuntimeManager.NotifyDequeuedEvent(this, nextEventInfo);
                 }
                 else if (defaultHandling)
                 {
                     // If the default event was handled, then notify the runtime.
                     // This is only used during testing, because the runtime has
                     // to schedule a machine between default handlers.
-                    this.Runtime.NotifyDefaultHandlerFired(this);
+                    this.RuntimeManager.NotifyDefaultHandlerFired(this);
                 }
                 else
                 {
-                    this.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
+                    this.RuntimeManager.NotifyHandleRaisedEvent(this, nextEventInfo);
                 }
 
                 // Assigns the received event.
@@ -476,7 +507,7 @@ namespace Microsoft.PSharp
 
                     if (eventWaitHandler != null)
                     {
-                        this.Runtime.Logger.OnReceive(this.Id, this.CurrentStateName, currentEventInfo.EventName, wasBlocked: false);
+                        this.RuntimeManager.Logger.OnReceive(this.Id, this.CurrentStateName, currentEventInfo.EventName, wasBlocked: false);
                         this.EventWaitHandlers.Clear();
                         this.ReceiveCompletionSource.SetResult(currentEventInfo.Event);
                         eventInfoInInbox = currentEventInfo;
@@ -488,7 +519,7 @@ namespace Microsoft.PSharp
                 }
             }
 
-            this.Runtime.NotifyWaitEvents(this, eventInfoInInbox);
+            this.RuntimeManager.NotifyWaitEvents(this, eventInfoInInbox);
 
             return this.ReceiveCompletionSource.Task;
         }
@@ -515,7 +546,7 @@ namespace Microsoft.PSharp
                 foreach (var e in this.Inbox)
                 {
                     hash = hash * 31 + e.EventType.GetHashCode();
-                    if (this.Runtime.Configuration.EnableUserDefinedStateHashing)
+                    if (this.RuntimeManager.Configuration.EnableUserDefinedStateHashing)
                     {
                         // Adds the user-defined hashed event state.
                         hash = hash * 31 + e.Event.HashedState;
@@ -565,7 +596,7 @@ namespace Microsoft.PSharp
             lock (this.Inbox)
             {
                 this.Info.IsHalted = true;
-                this.Runtime.NotifyHalted(this, this.Inbox);
+                this.RuntimeManager.NotifyHalted(this, this.Inbox);
                 this.Inbox.Clear();
                 this.EventWaitHandlers.Clear();
                 this.ReceivedEvent = null;

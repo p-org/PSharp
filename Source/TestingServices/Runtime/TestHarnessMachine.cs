@@ -26,9 +26,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     internal sealed class TestHarnessMachine
     {
         /// <summary>
-        /// The runtime that executes this machine.
+        /// The manager of the runtime that executes this machine.
         /// </summary>
-        private BaseRuntime Runtime;
+        private IRuntimeManager RuntimeManager;
+
+        /// <summary>
+        /// The runtime that executes the test.
+        /// </summary>
+        private IPSharpRuntime Runtime;
 
         /// <summary>
         /// The unique machine id.
@@ -72,11 +77,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        /// <param name="runtime">BaseRuntime</param>
+        /// <param name="runtimeManager">The runtime manager.</param>
+        /// <param name="runtime">The runtime that executes the test.</param>
         /// <param name="mid">MachineId</param>
         /// <param name="info">MachineInfo</param>
-        internal void Initialize(BaseRuntime runtime, MachineId mid, MachineInfo info)
+        internal void Initialize(IRuntimeManager runtimeManager, IPSharpRuntime runtime, MachineId mid, MachineInfo info)
         {
+            this.RuntimeManager = runtimeManager;
             this.Runtime = runtime;
             this.Id = mid;
             this.Info = info;
@@ -92,14 +99,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 // Starts the test.
                 if (this.TestAction != null)
                 {
-                    this.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
-                    this.TestAction(this.Id.Runtime);
+                    this.RuntimeManager.Log("<TestHarnessLog> Running anonymous test method.");
+                    this.TestAction(this.Runtime);
                 }
                 else
                 {
-                    this.Runtime.Log("<TestHarnessLog> Running test method " +
+                    this.RuntimeManager.Log("<TestHarnessLog> Running test method " +
                         $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
-                    this.TestMethod.Invoke(null, new object[] { this.Id.Runtime });
+                    this.TestMethod.Invoke(null, new object[] { this.Runtime });
                 }
             }
             catch (TargetInvocationException ex)
@@ -117,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             if (this.TestAction != null)
             {
-                this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                     $"in anonymous test method, " +
                     $"'{ex.Source}':\n" +
                     $"   {ex.Message}\n" +
@@ -125,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
             else
             {
-                this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                     $"in test method '{this.TestMethod.DeclaringType}.{this.TestMethod.Name}', " +
                     $"'{ex.Source}':\n" +
                     $"   {ex.Message}\n" +

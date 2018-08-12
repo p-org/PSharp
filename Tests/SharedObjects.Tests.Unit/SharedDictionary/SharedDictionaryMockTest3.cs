@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedDictionary.Create<int, string>(this.Id.Runtime);
+                var counter = SharedDictionary.Create<int, string>(this.Id.RuntimeManager.Runtime);
                 this.CreateMachine(typeof(N), new E(counter));
 
                 counter.TryAdd(1, "M");

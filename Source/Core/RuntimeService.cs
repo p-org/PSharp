@@ -48,10 +48,10 @@ namespace Microsoft.PSharp
         /// <returns>IStateMachineRuntime</returns>
         public static IStateMachineRuntime GetRuntime(MachineId mid)
         {
-            mid.Runtime.Assert(mid.Runtime is IStateMachineRuntime,
+            mid.RuntimeManager.Assert(mid.RuntimeManager.Runtime is IStateMachineRuntime,
                 "Machine id '{0}' does not execute on a 'IStateMachineRuntime' runtime.",
                 mid.Name);
-            return mid.Runtime as IStateMachineRuntime;
+            return mid.RuntimeManager.Runtime as IStateMachineRuntime;
         }
     }
 }

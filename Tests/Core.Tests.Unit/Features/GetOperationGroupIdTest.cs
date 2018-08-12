@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void CheckEvent()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = RuntimeService.GetRuntime(this.Id).GetCurrentOperationGroupId(Id);
                 Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
             }
         }

@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     /// <summary>
     /// Runtime for executing machines in bug-finding mode.
     /// </summary>
-    internal class TestingRuntime : BaseTestingRuntime, IStateMachineRuntime
+    internal class TestingRuntime : BaseTestingRuntime, IStateMachineRuntime, IMachineRuntimeManager
     {
         /// <summary>
         /// The base machine types that can execute on this runtime.
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.SupportedBaseMachineTypes = new HashSet<Type> { typeof(Machine), typeof(TestHarnessMachine) };
         }
 
-        #region runtime interface
+        #region machine creation and execution
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -146,28 +146,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
-        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
-        /// </summary>
-        /// <param name="target">Target machine id</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is true if
-        /// the event was handled, false if the event was only enqueued.</returns>
-        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
-        {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
-        }
-
-        #endregion
-
-        #region machine creation and execution
-
-        /// <summary>
         /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
@@ -211,6 +189,24 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             await (creator as Machine).Receive(typeof(QuiescentEvent), rev => (rev as QuiescentEvent).mid == machine.Id);
 
             return await Task.FromResult(machine.Id);
+        }
+
+        /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
+        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
+        {
+            // If the target machine is null then report an error and exit.
+            this.Assert(target != null, "Cannot send to a null machine.");
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Cannot send a null event.");
+            return this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
         }
 
         /// <summary>
@@ -267,10 +263,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <returns>Boolean</returns>
-        protected internal override bool CheckStartEventHandler(BaseMachine machine)
+        bool IMachineRuntimeManager.CheckStartEventHandler(BaseMachine machine)
         {
             this.StartEventHandlerCalled = true;
-            return machine.TryDequeueEvent(true) != null;
+            return machine.IsNextEventAvailable();
         }
 
         /// <summary>
@@ -395,7 +391,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Return the timer machine type
         /// </summary>
         /// <returns></returns>
-        protected internal override Type GetTimerMachineType()
+        public override Type GetTimerMachineType()
         {
             var timerType = base.GetTimerMachineType();
             if (timerType == null)
@@ -414,7 +410,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        protected internal override void NotifyReceiveCalled(Machine machine)
+        public void NotifyReceiveCalled(Machine machine)
         {
             this.CheckMachineMethodInvocation(machine, MachineApiNames.ReceiveEventApiName);
         }
@@ -424,7 +420,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        protected internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        public void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
             if (eventInfoInInbox == null)
             {
@@ -455,7 +451,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        protected internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        public void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);

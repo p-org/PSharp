@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Runtime
@@ -22,7 +23,7 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// Runtime for executing machines in production.
     /// </summary>
-    internal class ProductionRuntime : BaseProductionRuntime, IStateMachineRuntime
+    internal class ProductionRuntime : BaseProductionRuntime, IStateMachineRuntime, IMachineRuntimeManager
     {
         /// <summary>
         /// List of monitors in the program.
@@ -45,7 +46,7 @@ namespace Microsoft.PSharp.Runtime
             this.SupportedBaseMachineTypes = new HashSet<Type> { typeof(Machine) };
         }
 
-        #region runtime interface
+        #region machine creation and execution
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -97,59 +98,6 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
-        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
-        /// </summary>
-        /// <param name="target">Target machine id</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is true if
-        /// the event was handled, false if the event was only enqueued.</returns>
-        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
-        {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, null, options);
-        }
-
-        /// <summary>
-        /// Registers a new specification monitor of the specified <see cref="Type"/>.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        public override void RegisterMonitor(Type type)
-        {
-            this.TryCreateMonitor(type);
-        }
-
-        /// <summary>
-        /// Invokes the specified monitor with the specified <see cref="Event"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="e">Event</param>
-        public override void InvokeMonitor<T>(Event e)
-        {
-            this.InvokeMonitor(typeof(T), e);
-        }
-
-        /// <summary>
-        /// Invokes the specified monitor with the specified <see cref="Event"/>.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        /// <param name="e">Event</param>
-        public override void InvokeMonitor(Type type, Event e)
-        {
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot monitor a null event.");
-            this.Monitor(type, null, e);
-        }
-
-        #endregion
-
-        #region machine creation and execution
-
-        /// <summary>
         /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
@@ -172,7 +120,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="creator">The creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        protected internal override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
+        public override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
             Event e, BaseMachine creator, Guid? operationGroupId)
         {
             this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
@@ -206,6 +154,24 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
+        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
+        {
+            // If the target machine is null then report an error and exit.
+            this.Assert(target != null, "Cannot send to a null machine.");
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Cannot send a null event.");
+            return this.SendEventAndExecute(target, e, null, options);
+        }
+
+        /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
         /// if the target machine was already running. Otherwise blocks until the machine handles
         /// the event and reaches quiescense again.
@@ -234,6 +200,15 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Checks that a machine can start its event handler. Returns false if the event
+        /// handler should not be started.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <returns>Boolean</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool IMachineRuntimeManager.CheckStartEventHandler(BaseMachine machine) => true;
+
+        /// <summary>
         /// Checks if the specified type is a machine that can execute on this runtime.
         /// </summary>
         /// <returns>True if the type is supported, else false.</returns>
@@ -253,6 +228,37 @@ namespace Microsoft.PSharp.Runtime
         #region specifications and error checking
 
         /// <summary>
+        /// Registers a new specification monitor of the specified <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        public override void RegisterMonitor(Type type)
+        {
+            this.TryCreateMonitor(type);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="e">Event</param>
+        public override void InvokeMonitor<T>(Event e)
+        {
+            this.InvokeMonitor(typeof(T), e);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="e">Event</param>
+        public override void InvokeMonitor(Type type, Event e)
+        {
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Cannot monitor a null event.");
+            this.Monitor(type, null, e);
+        }
+
+        /// <summary>
         /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
@@ -267,7 +273,7 @@ namespace Microsoft.PSharp.Runtime
             this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
                 "is not a subclass of Monitor.\n");
 
-            MachineId mid = new MachineId(this, type, null);
+            MachineId mid = this.CreateMachineId(type);
             Monitor monitor = (Monitor)Activator.CreateInstance(type);
 
             monitor.Initialize(mid);
@@ -289,7 +295,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the monitor.</param>
         /// <param name="invoker">The machine invoking the monitor.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        protected internal override void Monitor(Type type, BaseMachine invoker, Event e)
+        public override void Monitor(Type type, BaseMachine invoker, Event e)
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {
@@ -325,11 +331,21 @@ namespace Microsoft.PSharp.Runtime
         #region notifications
 
         /// <summary>
+        /// Notifies that a machine called Receive.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void NotifyReceiveCalled(Machine machine)
+        {
+            // No-op in production.
+        }
+
+        /// <summary>
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        protected internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        public void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
             if (eventInfoInInbox == null)
             {
@@ -343,7 +359,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        protected internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        public void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
 

@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = RuntimeService.GetRuntime(this.Id).GetCurrentOperationGroupId(Id);
                 Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void CheckEvent()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = RuntimeService.GetRuntime(this.Id).GetCurrentOperationGroupId(Id);
                 Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
             }
         }
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M4));
-                Runtime.GetCurrentOperationGroupId(target);
+                RuntimeService.GetRuntime(this.Id).GetCurrentOperationGroupId(target);
             }
         }
 

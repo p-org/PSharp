@@ -14,7 +14,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using System.Threading;
 
 using Microsoft.PSharp.Runtime;
 
@@ -27,9 +26,9 @@ namespace Microsoft.PSharp
     public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
-        /// The P# runtime that executes the machine with this id.
+        /// The manager of the runtime that executes the machine with this id.
         /// </summary>
-        internal BaseRuntime Runtime { get; private set; }
+        internal IRuntimeManager RuntimeManager { get; private set; }
 
         /// <summary>
         /// Name of the machine.
@@ -70,11 +69,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a new machine id.
         /// </summary>
-        /// <param name="runtime">BaseRuntime</param>
+        /// <param name="runtimeManager">The runtime manager.</param>
         /// <param name="type">Machine type</param>
+        /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
-        internal MachineId(BaseRuntime runtime, Type type, string friendlyName)
-            : this(runtime, type.FullName, friendlyName, runtime.Configuration.RuntimeGeneration, runtime.NetworkProvider.LocalEndpoint)
+        internal MachineId(IRuntimeManager runtimeManager, Type type, ulong value, string friendlyName)
+            : this(runtimeManager, type.FullName, friendlyName, value, runtimeManager.Configuration.RuntimeGeneration,
+                  runtimeManager.NetworkProvider.LocalEndpoint)
         { }
 
         /// <summary>
@@ -82,30 +83,29 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)
-            : this(mid.Runtime, mid.Type, mid.FriendlyName, mid.Generation, mid.Endpoint)
+            : this(mid.RuntimeManager, mid.Type, mid.FriendlyName, mid.Value, mid.Generation, mid.Endpoint)
         { }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">BaseRuntime</param>
+        /// <param name="runtimeManager">The runtime manager.</param>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
+        /// <param name="value">Unique id value.</param>
         /// <param name="generation">Runtime generation</param>
         /// <param name="endpoint">Endpoint</param>
-        private MachineId(BaseRuntime runtime, string type, string friendlyName, ulong generation, string endpoint)
+        private MachineId(IRuntimeManager runtimeManager, string type, string friendlyName, ulong value, ulong generation, string endpoint)
         {
-            this.Runtime = runtime;
+            this.RuntimeManager = runtimeManager;
             this.Type = type;
             this.FriendlyName = friendlyName;
+            this.Value = value;
             this.Generation = generation;
             this.Endpoint = endpoint;
 
-            // Atomically increments and safely wraps into an unsigned long.
-            this.Value = (ulong)Interlocked.Increment(ref this.Runtime.MachineIdCounter) - 1;
-
             // Checks for overflow.
-            this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
+            this.RuntimeManager.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
 
             if (this.Endpoint != null && this.Endpoint.Length > 0 && this.FriendlyName != null && this.FriendlyName.Length > 0)
             {
@@ -128,10 +128,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        /// <param name="runtime">BaseRuntime</param>
-        internal void Bind(BaseRuntime runtime)
+        /// <param name="runtimeManager">The runtime manager.</param>
+        internal void Bind(IRuntimeManager runtimeManager)
         {
-            this.Runtime = runtime;
+            this.RuntimeManager = runtimeManager;
         }
 
         /// <summary>
