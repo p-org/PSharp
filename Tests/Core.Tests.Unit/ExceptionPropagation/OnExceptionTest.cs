@@ -40,12 +40,18 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(F), nameof(OnF))]
             class Init : MachineState { }
 
             void InitOnEntry()
             {
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
+            }
+
+            void OnF()
+            {
+                e.tcs.SetResult(true);
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
@@ -83,13 +89,19 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(F), nameof(OnF))]
             class Init : MachineState { }
 
             async Task InitOnEntry()
             {
-                await Task.Yield();
+                await Task.FromResult(true);
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();                
+            }
+
+            void OnF()
+            {
+                e.tcs.SetResult(true);
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
@@ -109,7 +121,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             async Task InitOnEntry()
             {
-                await Task.Yield();
+                await Task.FromResult(true);
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
             }
@@ -184,14 +196,16 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
             {
+                Assert.True(false);
                 failed = true;
                 tcs.SetResult(true);
             };
 
             var e = new E(tcs);
-            runtime.CreateMachine(typeof(M1a), e);
+            var m = runtime.CreateMachine(typeof(M1a), e);
+            runtime.SendEvent(m, new F());
 
-            tcs.Task.Wait(100);
+            tcs.Task.Wait();
             Assert.False(failed);
             Assert.True(e.x == 1);
         }
@@ -211,7 +225,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var e = new E(tcs);
             runtime.CreateMachine(typeof(M1b), e);
 
-            tcs.Task.Wait(100);
+            tcs.Task.Wait(5000); // timeout so the test doesn't deadlock on failure
             Assert.True(failed);
             Assert.True(e.x == 1);
         }
@@ -224,14 +238,16 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
             {
+                Assert.True(false);
                 failed = true;
                 tcs.SetResult(true);
             };
 
             var e = new E(tcs);
-            runtime.CreateMachine(typeof(M2a), e);
+            var m = runtime.CreateMachine(typeof(M2a), e);
+            runtime.SendEvent(m, new F());
 
-            tcs.Task.Wait(100);
+            tcs.Task.Wait();
             Assert.False(failed);
             Assert.True(e.x == 1);
         }
@@ -251,7 +267,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var e = new E(tcs);
             runtime.CreateMachine(typeof(M2b), e);
 
-            tcs.Task.Wait(1000);
+            tcs.Task.Wait(5000); // timeout so the test doesn't deadlock on failure
             Assert.True(failed);
             Assert.True(e.x == 1);
         }
@@ -271,7 +287,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var e = new E(tcs);
             runtime.CreateMachine(typeof(M3), e);
 
-            tcs.Task.Wait(1000);
+            tcs.Task.Wait();
             Assert.False(failed);
             Assert.True(tcs.Task.Result);
         }
@@ -292,7 +308,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var m = runtime.CreateMachine(typeof(M4), e);
             runtime.SendEvent(m, new F());
 
-            tcs.Task.Wait(1000);
+            tcs.Task.Wait();
             Assert.False(failed);
             Assert.True(tcs.Task.Result);
         }

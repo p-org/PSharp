@@ -82,12 +82,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 			config.MaxSchedulingSteps = 300;
             config.SchedulingIterations = 1000;
 
-			var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) => {
 				r.RegisterMonitor(typeof(LivenessMonitor));
 				r.CreateMachine(typeof(Client));
 			});
-			
-			base.AssertFailed(test,
+            
+			base.AssertFailed(config, test,
                 "Monitor 'LivenessMonitor' detected liveness bug in hot state 'Microsoft.PSharp.TestingServices.Tests.Unit.StartStopTimerTest+LivenessMonitor.NoTimeoutReceived' at the end of program execution.",
                 true);
 		}
