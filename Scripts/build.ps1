@@ -1,6 +1,5 @@
 param(
     [string]$dotnet="dotnet",
-    [string]$msbuild="msbuild",
     [ValidateSet("Debug","Release")]
     [string]$configuration="Release"
 )

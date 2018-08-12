@@ -25,14 +25,19 @@ function Invoke-DotnetRestore([String]$dotnet, [String]$project)
 }
 
 # Runs the specified .NET test using the specified framework.
-function Invoke-DotnetTest([String]$dotnet, [String]$project, [String]$target, [string]$framework) {
+function Invoke-DotnetTest([String]$dotnet, [String]$project, [String]$target, [string]$filter, [string]$framework, [string]$verbosity) {
     Write-Comment -prefix "..." -text "Testing '$project' ($framework)" -color "white"
     if (-not (Test-Path $target)) {
         Write-Error "tests for '$project' ($framework) not found."
         exit
     }
 
-    $command = "test $target -f $framework --no-build -v n"
+    if (!($filter -eq "")) {
+        $command = "test $target --filter $filter -f $framework --no-build -v $verbosity"
+    } else {
+        $command = "test $target -f $framework --no-build -v $verbosity"
+    }
+
     $error_msg = "Failed to test '$project'"
     Invoke-ToolCommand -tool $dotnet -command $command -error_msg $error_msg
 }
