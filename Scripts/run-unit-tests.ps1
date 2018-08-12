@@ -1,9 +1,12 @@
 param(
     [string]$dotnet="dotnet",
-    [ValidateSet("all,netcoreapp2.1,net46")]
+    [ValidateSet("all","netcoreapp2.1","net46")]
     [string]$framework="all",
     [ValidateSet("all","core","testing-services","shared-objects","language-services","static-analysis")]
-    [string]$test="all"
+    [string]$test="all",
+    [string]$filter="",
+    [ValidateSet("quiet","minimal","normal","detailed","diagnostic")]
+    [string]$v="normal"
 )
 
 Import-Module $PSScriptRoot\powershell\common.psm1
@@ -38,7 +41,7 @@ foreach ($kvp in $targets.GetEnumerator()) {
         }
 
         $target = "$PSScriptRoot\..\Tests\$($kvp.Value)\$($kvp.Value).csproj"
-        Invoke-DotnetTest -dotnet $dotnet -project $($kvp.Name) -target $target -framework $f
+        Invoke-DotnetTest -dotnet $dotnet -project $($kvp.Name) -target $target -filter $filter -framework $f -verbosity $v
     }
 }
 
