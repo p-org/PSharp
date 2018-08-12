@@ -27,11 +27,6 @@ namespace Microsoft.PSharp
     public abstract class Machine : BaseMachine
     {
         /// <summary>
-        /// The manager of the runtime that executes this machine.
-        /// </summary>
-        private protected IMachineRuntimeManager RuntimeManager { get; private set; }
-
-        /// <summary>
         /// Inbox of the machine. Incoming events are queued here.
         /// Events are dequeued to be processed.
         /// </summary>
@@ -61,19 +56,6 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new LinkedList<EventInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
-        }
-
-        /// <summary>
-        /// Initializes this machine.
-        /// </summary>
-        /// <param name="runtimeManager">The runtime manager.</param>
-        /// <param name="mid">The id of this machine.</param>
-        /// <param name="info">The metadata of this machine.</param>
-        /// <returns>Task that represents the asynchronous operation.</returns>
-        internal Task InitializeAsync(IMachineRuntimeManager runtimeManager, MachineId mid, MachineInfo info)
-        {
-            this.RuntimeManager = runtimeManager;
-            return base.InitializeAsync(runtimeManager, mid, info);
         }
 
         #endregion

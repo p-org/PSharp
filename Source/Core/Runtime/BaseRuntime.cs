@@ -160,6 +160,54 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled. The method returns only
+        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        public Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
+        {
+            return this.CreateMachineAndExecuteAsync(type, e, operationGroupId);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled. The method returns only
+        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        public Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
+        {
+            return this.CreateMachineAndExecuteAsync(type, friendlyName, e, operationGroupId);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
+        /// event can only be used to access its payload, and cannot be handled. The method
+        /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
+        /// is handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        public Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
+        {
+            return this.CreateMachineAndExecuteAsync(mid, type, e, operationGroupId);
+        }
+
+        /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
@@ -195,6 +243,45 @@ namespace Microsoft.PSharp.Runtime
         public abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled. The method returns only
+        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and
+        /// with the specified optional <see cref="Event"/>. This event can only be
+        /// used to access its payload, and cannot be handled. The method returns only
+        /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
+        /// event can only be used to access its payload, and cannot be handled. The method
+        /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
+        /// is handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
         /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
@@ -227,6 +314,20 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
+        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
+        {
+            return this.SendEventAndExecuteAsync(target, e, options);
+        }
+
+        /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
@@ -234,6 +335,17 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
         public abstract Task SendEventAsync(MachineId target, Event e, SendOptions options = null);
+
+        /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
+        public abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -560,6 +672,38 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void NotifyPop(BaseMachine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine called Receive.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyReceiveCalled(Machine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine is waiting to receive one or more events.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfo">The event metadata.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }

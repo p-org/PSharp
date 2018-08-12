@@ -23,7 +23,7 @@ using Microsoft.PSharp.Net;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// The base interface of the P# runtime manager. It provides APIs for
+    /// The interface of the runtime manager. It provides APIs for
     /// accessing internal functionality of the runtime.
     /// </summary>
     internal interface IRuntimeManager
@@ -256,6 +256,26 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         void NotifyPop(BaseMachine machine);
+
+        /// <summary>
+        /// Notifies that a machine called Receive.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        void NotifyReceiveCalled(Machine machine);
+
+        /// <summary>
+        /// Notifies that a machine is waiting to receive one or more events.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
+        void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox);
+
+        /// <summary>
+        /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="eventInfo">The event metadata.</param>
+        void NotifyReceivedEvent(Machine machine, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies that a machine has halted.

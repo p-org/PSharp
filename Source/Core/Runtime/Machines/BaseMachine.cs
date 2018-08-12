@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The manager of the runtime that executes this machine.
         /// </summary>
-        private IRuntimeManager RuntimeManager;
+        private protected IRuntimeManager RuntimeManager;
 
         /// <summary>
         /// A stack of machine states. The state on the top of

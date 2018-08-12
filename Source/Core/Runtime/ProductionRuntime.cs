@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// Runtime for executing machines in production.
     /// </summary>
-    internal class ProductionRuntime : BaseProductionRuntime, IStateMachineRuntime, IMachineRuntimeManager
+    internal class ProductionRuntime : BaseProductionRuntime, IStateMachineRuntime
     {
         /// <summary>
         /// List of monitors in the program.
@@ -49,55 +49,6 @@ namespace Microsoft.PSharp.Runtime
         #region machine creation and execution
 
         /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/> and with the
-        /// specified optional <see cref="Event"/>. This event can only be used to
-        /// access its payload, and cannot be handled. The method returns only when
-        /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
-        /// </summary>
-        /// <param name="type">Type of the machine.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="e">Event</param>
-        /// <returns>The result is the <see cref="MachineId"/>.</returns>
-        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        public Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null)
-        {
-            return this.CreateMachineAndExecute(null, type, null, e, null, operationGroupId);
-        }
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/> and name, and with
-        /// the specified optional <see cref="Event"/>. This event can only be used to
-        /// access its payload, and cannot be handled. The method returns only when the
-        /// machine is initialized and the <see cref="Event"/> (if any) is handled.
-        /// </summary>
-        /// <param name="type">Type of the machine.</param>
-        /// <param name="friendlyName">Friendly machine name used for logging.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="e">Event</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        public Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null)
-        {
-            return this.CreateMachineAndExecute(null, type, friendlyName, e, null, operationGroupId);
-        }
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
-        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
-        /// event can only be used to access its payload, and cannot be handled. The method
-        /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
-        /// is handled.
-        /// </summary>
-        /// <param name="mid">Unbound machine id.</param>
-        /// <param name="type">Type of the machine.</param>
-        /// <param name="e">Event</param>
-        /// <param name="operationGroupId">Optional operation group id.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        public Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
-        {
-            return this.CreateMachineAndExecute(mid, type, null, e, null, operationGroupId);
-        }
-
-        /// <summary>
         /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
@@ -108,94 +59,6 @@ namespace Microsoft.PSharp.Runtime
             Machine machine = MachineFactory.Create(type);
             await machine.InitializeAsync(this, mid, new MachineInfo(mid));
             return machine;
-        }
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/>.
-        /// </summary>
-        /// <param name="mid">Unbound machine id.</param>
-        /// <param name="type">Type of the machine.</param>
-        /// <param name="friendlyName">Friendly machine name used for logging.</param>
-        /// <param name="e">Event passed during machine construction.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="creator">The creator machine.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        public override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
-            Event e, BaseMachine creator, Guid? operationGroupId)
-        {
-            this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
-            BaseMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
-            this.Logger.OnCreateMachine(machine.Id, creator?.Id);
-            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            this.RunMachineEventHandler(machine, e, true);
-            return machine.Id;
-        }
-
-        /// <summary>
-        /// Creates a new machine of the specified <see cref="Type"/>. The
-        /// method returns only when the created machine reaches quiescence
-        /// </summary>
-        /// <param name="mid">Unbound machine id.</param>
-        /// <param name="type">Type of the machine.</param>
-        /// <param name="friendlyName">Friendly machine name used for logging.</param>
-        /// <param name="e">Event passed during machine construction.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="creator">The creator machine.</param>
-        /// <returns>The result is the <see cref="MachineId"/>.</returns>
-        private async Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName,
-            Event e, BaseMachine creator, Guid? operationGroupId)
-        {
-            this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
-            BaseMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
-            this.Logger.OnCreateMachine(machine.Id, creator?.Id);
-            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            await this.RunMachineEventHandlerAsync(machine, e, true);
-            return machine.Id;
-        }
-
-        /// <summary>
-        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
-        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
-        /// </summary>
-        /// <param name="target">Target machine id</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is true if
-        /// the event was handled, false if the event was only enqueued.</returns>
-        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
-        {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, null, options);
-        }
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
-        /// if the target machine was already running. Otherwise blocks until the machine handles
-        /// the event and reaches quiescense again.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="sender">The sender machine.</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        /// <returns>True if event was handled, false if the event was only enqueued</returns>
-        private async Task<bool> SendEventAndExecute(MachineId mid, Event e, BaseMachine sender, SendOptions options)
-        {
-            var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
-            if (!this.GetTargetMachine(mid, e, sender, operationGroupId, out BaseMachine machine))
-            {
-                return true;
-            }
-
-            MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId);
-            if (machineStatus == MachineStatus.EventHandlerNotRunning)
-            {
-                await this.RunMachineEventHandlerAsync(machine, null, false);
-                return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -313,50 +176,6 @@ namespace Microsoft.PSharp.Runtime
                 {
                     monitor.MonitorEvent(e);
                 }
-            }
-        }
-
-        #endregion
-
-        #region notifications
-
-        /// <summary>
-        /// Notifies that a machine called Receive.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NotifyReceiveCalled(Machine machine)
-        {
-            // No-op in production.
-        }
-
-        /// <summary>
-        /// Notifies that a machine is waiting to receive one or more events.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        public void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
-        {
-            if (eventInfoInInbox == null)
-            {
-                this.Logger.OnWait(machine.Id, machine.CurrentStateName, String.Empty);
-                machine.Info.IsWaitingToReceive = true;
-            }
-        }
-
-        /// <summary>
-        /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="eventInfo">The event metadata.</param>
-        public void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
-        {
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
-
-            lock (machine)
-            {
-                System.Threading.Monitor.Pulse(machine);
-                machine.Info.IsWaitingToReceive = false;
             }
         }
 
