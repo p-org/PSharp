@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Gets the name of the current state.
         /// </summary>
-        private protected string CurrentStateName => this.CurrentState == null ? String.Empty
+        internal string CurrentStateName => this.CurrentState == null ? String.Empty
             : $"{this.CurrentState.DeclaringType}.{StateGroup.GetQualifiedStateName(this.CurrentState)}";
 
         /// <summary>
