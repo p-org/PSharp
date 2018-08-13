@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Map of unique machine ids to machines.
         /// </summary>
-        private protected readonly ConcurrentDictionary<MachineId, BaseMachine> MachineMap;
+        private protected readonly ConcurrentDictionary<MachineId, IMachine> MachineMap;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Runtime
         {
             this.Configuration = configuration;
             this.MachineIdCounter = 0;
-            this.MachineMap = new ConcurrentDictionary<MachineId, BaseMachine>();
+            this.MachineMap = new ConcurrentDictionary<MachineId, IMachine>();
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
             this.IsRunning = true;
@@ -287,7 +287,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="mid">Unbound machine id.</param>
         /// <param name="type">Type of the machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
-        protected abstract Task<BaseMachine> CreateMachineAsync(MachineId mid, Type type);
+        protected abstract Task<IMachine> CreateMachineAsync(MachineId mid, Type type);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>.
@@ -300,7 +300,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="creator">The creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
-            Event e, BaseMachine creator, Guid? operationGroupId);
+            Event e, IMachine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -355,7 +355,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public abstract Task SendEventAsync(MachineId mid, Event e, BaseMachine sender, SendOptions options);
+        public abstract Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options);
 
         /// <summary>
         /// Gets the target machine for an event; if not found, logs a halted-machine entry.
@@ -365,8 +365,8 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The machine that is sending the event.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
-        protected bool GetTargetMachine(MachineId targetMachineId, Event e, BaseMachine sender,
-            Guid operationGroupId, out BaseMachine targetMachine)
+        protected bool GetTargetMachine(MachineId targetMachineId, Event e, IMachine sender,
+            Guid operationGroupId, out IMachine targetMachine)
         {
             if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
             {
@@ -433,7 +433,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the monitor.</param>
         /// <param name="invoker">The machine invoking the monitor.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public abstract void Monitor(Type type, BaseMachine invoker, Event e);
+        public abstract void Monitor(Type type, IMachine invoker, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -490,7 +490,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
-        public abstract bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
+        public abstract bool GetNondeterministicBooleanChoice(IMachine machine, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
@@ -499,7 +499,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        public abstract bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId);
+        public abstract bool GetFairNondeterministicBooleanChoice(IMachine machine, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
@@ -517,7 +517,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
-        public abstract int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
+        public abstract int GetNondeterministicIntegerChoice(IMachine machine, int maxValue);
 
         #endregion
 
@@ -551,7 +551,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyEnteredState(BaseMachine machine)
+        public virtual void NotifyEnteredState(IMachine machine)
         {
             // Override to implement the notification.
         }
@@ -571,7 +571,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyExitedState(BaseMachine machine)
+        public virtual void NotifyExitedState(IMachine machine)
         {
             // Override to implement the notification.
         }
@@ -593,7 +593,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyInvokedAction(BaseMachine machine, MethodInfo action, Event receivedEvent)
+        public virtual void NotifyInvokedAction(IMachine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
@@ -605,7 +605,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyCompletedAction(BaseMachine machine, MethodInfo action, Event receivedEvent)
+        public virtual void NotifyCompletedAction(IMachine machine, MethodInfo action, Event receivedEvent)
         {
             // Override to implement the notification.
         }
@@ -628,7 +628,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyRaisedEvent(BaseMachine machine, EventInfo eventInfo)
+        public virtual void NotifyRaisedEvent(IMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -650,7 +650,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyHandleRaisedEvent(BaseMachine machine, EventInfo eventInfo)
+        public virtual void NotifyHandleRaisedEvent(IMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -661,7 +661,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyDequeuedEvent(BaseMachine machine, EventInfo eventInfo)
+        public virtual void NotifyDequeuedEvent(IMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -671,7 +671,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyPop(BaseMachine machine)
+        public virtual void NotifyPop(IMachine machine)
         {
             // Override to implement the notification.
         }
@@ -681,7 +681,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyReceiveCalled(Machine machine)
+        public virtual void NotifyReceiveCalled(IMachine machine)
         {
             // Override to implement the notification.
         }
@@ -691,8 +691,9 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
+        /// <param name="eventNames">The names of the events that the machine is waiting for.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        public virtual void NotifyWaitEvents(IMachine machine, EventInfo eventInfoInInbox, string eventNames)
         {
             // Override to implement the notification.
         }
@@ -703,7 +704,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        public virtual void NotifyReceivedEvent(IMachine machine, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -714,7 +715,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="inbox">The machine inbox.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyHalted(BaseMachine machine, LinkedList<EventInfo> inbox)
+        public virtual void NotifyHalted(IMachine machine, LinkedList<EventInfo> inbox)
         {
             // Override to implement the notification.
         }
@@ -724,7 +725,7 @@ namespace Microsoft.PSharp.Runtime
         /// checked to see if the default event handler should fire.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyDefaultEventHandlerCheck(BaseMachine machine)
+        public virtual void NotifyDefaultEventHandlerCheck(IMachine machine)
         {
             // Override to implement the notification.
         }
@@ -734,7 +735,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyDefaultHandlerFired(BaseMachine machine)
+        public virtual void NotifyDefaultHandlerFired(IMachine machine)
         {
             // Override to implement the notification.
         }
@@ -793,7 +794,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>Operation group Id</returns>
-        internal Guid GetNewOperationGroupId(BaseMachine sender, Guid? operationGroupId)
+        internal Guid GetNewOperationGroupId(IMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {
@@ -815,7 +816,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="created">The created machine.</param>
         /// <param name="sender">The sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
-        internal void SetOperationGroupIdForMachine(BaseMachine created, BaseMachine sender, Guid? operationGroupId)
+        internal void SetOperationGroupIdForMachine(IMachine created, IMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {

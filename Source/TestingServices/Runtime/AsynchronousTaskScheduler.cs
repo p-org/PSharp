@@ -36,14 +36,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Map from task ids to machines.
         /// </summary>
-        private ConcurrentDictionary<int, BaseMachine> TaskMap;
+        private ConcurrentDictionary<int, IMachine> TaskMap;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="runtime">BaseTestingRuntime</param>
         /// <param name="taskMap">Task map</param>
-        internal AsynchronousTaskScheduler(BaseTestingRuntime runtime, ConcurrentDictionary<int, BaseMachine> taskMap)
+        internal AsynchronousTaskScheduler(BaseTestingRuntime runtime, ConcurrentDictionary<int, IMachine> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 // this case, get the currently scheduled machine (this was the machine
                 // that spawned this task).
                 int prevTaskId = Runtime.Scheduler.ScheduledMachine.TaskId;
-                BaseMachine machine = this.TaskMap[prevTaskId];
+                IMachine machine = this.TaskMap[prevTaskId];
 
                 this.TaskMap.TryRemove(prevTaskId, out machine);
                 this.TaskMap.TryAdd(task.Id, machine);

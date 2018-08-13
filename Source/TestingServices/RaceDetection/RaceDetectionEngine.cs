@@ -19,7 +19,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState;
 using Microsoft.PSharp.TestingServices.RaceDetection.Util;
-using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.TestingServices.RaceDetection
 {

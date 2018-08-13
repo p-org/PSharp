@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="mid">Unbound machine id.</param>
         /// <param name="type">Type of the machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
-        protected override async Task<BaseMachine> CreateMachineAsync(MachineId mid, Type type)
+        protected override async Task<IMachine> CreateMachineAsync(MachineId mid, Type type)
         {
             Machine machine = MachineFactory.Create(type);
             await machine.InitializeAsync(this, mid, new SchedulableInfo(mid));
@@ -104,7 +104,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="caller">The caller machine.</param>
         /// <param name="method">The invoked machine method.</param>
-        protected override void CheckMachineMethodInvocation(BaseMachine caller, string method)
+        protected override void CheckMachineMethodInvocation(IMachine caller, string method)
         {
             if (caller == null)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// already been called. Records that RGP has been called.
         /// </summary>
         /// <param name="caller">The caller machine.</param>
-        private void AssertTransitionStatement(BaseMachine caller)
+        private void AssertTransitionStatement(IMachine caller)
         {
             this.Assert(!caller.Info.IsInsideOnExit, "Machine '{0}' has called raise, goto, push or pop " +
                 "inside an OnExit method.", caller.Id.Name);
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="caller">The caller machine.</param>
         /// <param name="method">The invoked machine method.</param>
-        private void AssertNoPendingTransitionStatement(BaseMachine caller, string method)
+        private void AssertNoPendingTransitionStatement(IMachine caller, string method)
         {
             this.Assert(!caller.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
                 "after calling raise, goto, push or pop in the same action.", caller.Id.Name, method);
@@ -211,76 +211,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             return timerType;
-        }
-
-        #endregion
-
-        #region notifications
-
-        /// <summary>
-        /// Notifies that a machine called Receive.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        public override void NotifyReceiveCalled(Machine machine)
-        {
-            this.CheckMachineMethodInvocation(machine, MachineApiNames.ReceiveEventApiName);
-        }
-
-        /// <summary>
-        /// Notifies that a machine is waiting to receive one or more events.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        public override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
-        {
-            if (eventInfoInInbox == null)
-            {
-                string events = machine.GetEventWaitHandlerNames();
-                this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
-                this.Logger.OnWait(machine.Id, machine.CurrentStateName, events);
-                machine.Info.IsWaitingToReceive = true;
-                (machine.Info as SchedulableInfo).IsEnabled = false;
-            }
-            else
-            {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfoInInbox.SendStep;
-
-                // The event was already in the inbox when we executed a receive action.
-                // We've dequeued it by this point.
-                if (this.Configuration.EnableDataRaceDetection)
-                {
-                    Reporter.RegisterDequeue(eventInfoInInbox.OriginInfo?.SenderMachineId, machine.Id,
-                        eventInfoInInbox.Event, (ulong)eventInfoInInbox.SendStep);
-                }
-            }
-
-            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
-        }
-
-        /// <summary>
-        /// Notifies that a machine received an event that it was waiting for.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="eventInfo">The event metadata.</param>
-        public override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
-        {
-            this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
-
-            // A subsequent enqueue from m' unblocked the receive action of machine.
-            if (this.Configuration.EnableDataRaceDetection)
-            {
-                Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, eventInfo.Event, (ulong)eventInfo.SendStep);
-            }
-
-            machine.Info.IsWaitingToReceive = false;
-            (machine.Info as SchedulableInfo).IsEnabled = true;
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
-
-            if (this.Configuration.ReportActivityCoverage)
-            {
-                this.ReportActivityCoverageOfReceivedEvent(machine, eventInfo);
-            }
         }
 
         #endregion

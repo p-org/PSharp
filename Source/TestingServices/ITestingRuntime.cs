@@ -15,7 +15,6 @@
 using System;
 using System.Reflection;
 
-using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
@@ -72,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Gets the currently executing machine.
         /// </summary>
         /// <returns>The machine, or null if not present.</returns>
-        BaseMachine GetCurrentMachine();
+        Machine GetCurrentMachine();
 
         /// <summary>
         /// Checks that no monitor is in a hot state upon program termination.

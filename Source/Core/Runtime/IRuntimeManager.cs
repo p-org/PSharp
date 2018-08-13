@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="creator">The creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, BaseMachine creator, Guid? operationGroupId);
+        Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, IMachine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        Task SendEventAsync(MachineId mid, Event e, BaseMachine sender, SendOptions options);
+        Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options);
 
         #endregion
 
@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the monitor.</param>
         /// <param name="invoker">The machine invoking the monitor.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        void Monitor(Type type, BaseMachine invoker, Event e);
+        void Monitor(Type type, IMachine invoker, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
-        bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
+        bool GetNondeterministicBooleanChoice(IMachine machine, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId);
+        bool GetFairNondeterministicBooleanChoice(IMachine machine, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
-        int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
+        int GetNondeterministicIntegerChoice(IMachine machine, int maxValue);
 
         #endregion
 
@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine entered a state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        void NotifyEnteredState(BaseMachine machine);
+        void NotifyEnteredState(IMachine machine);
 
         /// <summary>
         /// Notifies that a monitor entered a state.
@@ -191,7 +191,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine exited a state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        void NotifyExitedState(BaseMachine machine);
+        void NotifyExitedState(IMachine machine);
 
         /// <summary>
         /// Notifies that a monitor exited a state.
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        void NotifyInvokedAction(BaseMachine machine, MethodInfo action, Event receivedEvent);
+        void NotifyInvokedAction(IMachine machine, MethodInfo action, Event receivedEvent);
 
         /// <summary>
         /// Notifies that a machine completed invoking an action.
@@ -213,7 +213,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        void NotifyCompletedAction(BaseMachine machine, MethodInfo action, Event receivedEvent);
+        void NotifyCompletedAction(IMachine machine, MethodInfo action, Event receivedEvent);
 
         /// <summary>
         /// Notifies that a monitor invoked an action.
@@ -228,7 +228,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        void NotifyRaisedEvent(BaseMachine machine, EventInfo eventInfo);
+        void NotifyRaisedEvent(IMachine machine, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies that a monitor raised an <see cref="Event"/>.
@@ -242,59 +242,60 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        void NotifyHandleRaisedEvent(BaseMachine machine, EventInfo eventInfo);
+        void NotifyHandleRaisedEvent(IMachine machine, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies that a machine dequeued an <see cref="Event"/>.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        void NotifyDequeuedEvent(BaseMachine machine, EventInfo eventInfo);
+        void NotifyDequeuedEvent(IMachine machine, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies that a machine invoked pop.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        void NotifyPop(BaseMachine machine);
+        void NotifyPop(IMachine machine);
 
         /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        void NotifyReceiveCalled(Machine machine);
+        void NotifyReceiveCalled(IMachine machine);
 
         /// <summary>
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox);
+        /// <param name="eventNames">The names of the events that the machine is waiting for.</param>
+        void NotifyWaitEvents(IMachine machine, EventInfo eventInfoInInbox, string eventNames);
 
         /// <summary>
         /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        void NotifyReceivedEvent(Machine machine, EventInfo eventInfo);
+        void NotifyReceivedEvent(IMachine machine, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="inbox">The machine inbox.</param>
-        void NotifyHalted(BaseMachine machine, LinkedList<EventInfo> inbox);
+        void NotifyHalted(IMachine machine, LinkedList<EventInfo> inbox);
 
         /// <summary>
         /// Notifies that the inbox of the specified machine is about to be
         /// checked to see if the default event handler should fire.
         /// </summary>
-        void NotifyDefaultEventHandlerCheck(BaseMachine machine);
+        void NotifyDefaultEventHandlerCheck(IMachine machine);
 
         /// <summary>
         /// Notifies that the default handler of the specified machine has been fired.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        void NotifyDefaultHandlerFired(BaseMachine machine);
+        void NotifyDefaultHandlerFired(IMachine machine);
 
         #endregion
 

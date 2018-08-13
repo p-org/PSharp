@@ -501,7 +501,20 @@ namespace Microsoft.PSharp
                 }
             }
 
-            this.RuntimeManager.NotifyWaitEvents(this, eventInfoInInbox);
+            if (this.RuntimeManager.IsTestingModeEnabled)
+            {
+                string eventNames = String.Empty;
+                foreach (var ewh in this.EventWaitHandlers)
+                {
+                    eventNames += " '" + ewh.EventType.FullName + "'";
+                }
+
+                this.RuntimeManager.NotifyWaitEvents(this, eventInfoInInbox, eventNames);
+            }
+            else
+            {
+                this.RuntimeManager.NotifyWaitEvents(this, eventInfoInInbox, String.Empty);
+            }
 
             return this.ReceiveCompletionSource.Task;
         }
@@ -544,22 +557,6 @@ namespace Microsoft.PSharp
         #region utilities
 
         /// <summary>
-        /// Returns the names of the events that the machine
-        /// is waiting to receive. This is not thread safe.
-        /// </summary>
-        /// <returns>string</returns>
-        internal string GetEventWaitHandlerNames()
-        {
-            string events = String.Empty;
-            foreach (var ewh in this.EventWaitHandlers)
-            {
-                events += " '" + ewh.EventType.FullName + "'";
-            }
-
-            return events;
-        }
-
-        /// <summary>
         /// Returns the base machine type of the user machine.
         /// </summary>
         /// <returns>The machine type.</returns>
@@ -567,12 +564,12 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region cleanup methods
+        #region cleanup
 
         /// <summary>
         /// Halts the machine.
         /// </summary>
-        /// <returns>Task that represents the asynchronous operation.</returns> 
+        /// <returns>Task that represents the asynchronous operation.</returns>
         private protected override Task HaltMachineAsync()
         {
             lock (this.Inbox)

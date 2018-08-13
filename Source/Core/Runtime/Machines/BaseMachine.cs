@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Runtime
     /// </summary>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract class BaseMachine
+    public abstract class BaseMachine : IMachine
     {
         #region static fields
 
@@ -110,10 +110,21 @@ namespace Microsoft.PSharp.Runtime
         protected internal MachineId Id { get; private set; }
 
         /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        MachineId IMachine.Id => this.Id;
+
+        /// <summary>
         /// Stores machine-related information, which can used
         /// for scheduling and testing.
         /// </summary>
         internal MachineInfo Info { get; private set; }
+
+        /// <summary>
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
+        /// </summary>
+        MachineInfo IMachine.Info => this.Info;
 
         /// <summary>
         /// The logger installed to the P# runtime.
@@ -123,12 +134,22 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Dictionary containing all the current goto state transitions.
         /// </summary>
-        internal Dictionary<Type, GotoStateTransition> GotoTransitions { get; private set; }
+        private Dictionary<Type, GotoStateTransition> GotoTransitions;
+
+        /// <summary>
+        /// Dictionary containing all the current goto state transitions.
+        /// </summary>
+        Dictionary<Type, GotoStateTransition> IMachine.GotoTransitions => this.GotoTransitions;
 
         /// <summary>
         /// Dictionary containing all the current push state transitions.
         /// </summary>
-        internal Dictionary<Type, PushStateTransition> PushTransitions { get; private set; }
+        private Dictionary<Type, PushStateTransition> PushTransitions;
+
+        /// <summary>
+        /// Dictionary containing all the current push state transitions.
+        /// </summary>
+        Dictionary<Type, PushStateTransition> IMachine.PushTransitions => this.PushTransitions;
 
         /// <summary>
         /// All possible machine states of this machine.
@@ -152,6 +173,11 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Gets the <see cref="Type"/> of the current state.
+        /// </summary>
+        Type IMachine.CurrentState => this.CurrentState;
+
+        /// <summary>
         /// Gets the current action handler map.
         /// </summary>
         private protected Dictionary<Type, EventActionHandler> CurrentActionHandlerMap
@@ -170,15 +196,13 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Gets the name of the current state.
         /// </summary>
-        internal string CurrentStateName
-        {
-            get
-            {
-                return this.CurrentState == null
-                    ? String.Empty
-                    : $"{this.CurrentState.DeclaringType}.{StateGroup.GetQualifiedStateName(this.CurrentState)}";
-            }
-        }
+        private protected string CurrentStateName => this.CurrentState == null ? String.Empty
+            : $"{this.CurrentState.DeclaringType}.{StateGroup.GetQualifiedStateName(this.CurrentState)}";
+
+        /// <summary>
+        /// Gets the name of the current state.
+        /// </summary>
+        string IMachine.CurrentStateName => this.CurrentStateName;
 
         /// <summary>
         /// Gets the latest received <see cref="Event"/>, or null if
@@ -596,6 +620,14 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
         /// <returns>The machine status after the enqueue.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        MachineStatus IMachine.Enqueue(EventInfo eventInfo) => this.Enqueue(eventInfo);
+
+        /// <summary>
+        /// Enqueues the specified <see cref="EventInfo"/>.
+        /// </summary>
+        /// <param name="eventInfo">The event metadata.</param>
+        /// <returns>The machine status after the enqueue.</returns>
         internal abstract MachineStatus Enqueue(EventInfo eventInfo);
 
         /// <summary>
@@ -642,11 +674,28 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="e">Event</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Task IMachine.GotoStartStateAsync(Event e) => this.GotoStartStateAsync(e);
+
+        /// <summary>
+        /// Transitions to the start state, and executes the
+        /// entry action, if there is any.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
         internal virtual Task GotoStartStateAsync(Event e)
         {
             this.ReceivedEvent = e;
             return this.ExecuteCurrentStateOnEntry();
         }
+
+        /// <summary>
+        /// Runs the event handler. The handler terminates if there
+        /// is no next event to process or if the machine is halted.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Task<bool> IMachine.RunEventHandlerAsync() => this.RunEventHandlerAsync();
 
         /// <summary>
         /// Runs the event handler. The handler terminates if there
@@ -1184,6 +1233,13 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the cached state of this machine.
         /// </summary>
         /// <returns>Hash value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        int IMachine.GetCachedState() => this.GetCachedState();
+
+        /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        /// <returns>Hash value</returns>
         internal virtual int GetCachedState()
         {
             unchecked
@@ -1209,7 +1265,56 @@ namespace Microsoft.PSharp.Runtime
 
         #endregion
 
-        #region utilities
+        #region code coverage methods
+
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        HashSet<string> IMachine.GetAllStates()
+        {
+            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
+
+            var allStates = new HashSet<string>();
+            foreach (var state in this.MachineStates)
+            {
+                allStates.Add(StateGroup.GetQualifiedStateName(state.GetType()));
+            }
+
+            return allStates;
+        }
+
+        /// <summary>
+        /// Returns the set of all (states, registered event) pairs in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        HashSet<Tuple<string, string>> IMachine.GetAllStateEventPairs()
+        {
+            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
+
+            var pairs = new HashSet<Tuple<string, string>>();
+            foreach (var state in this.MachineStates)
+            {
+                foreach (var binding in state.ActionBindings)
+                {
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                }
+
+                foreach (var transition in state.GotoTransitions)
+                {
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                }
+
+                foreach (var pushtransition in state.PushTransitions)
+                {
+                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
+                }
+            }
+
+            return pairs;
+        }
 
         /// <summary>
         /// Returns the type of the state at the specified state
@@ -1217,10 +1322,117 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="index">State stack index</param>
         /// <returns>Type</returns>
-        internal Type GetStateTypeAtStackIndex(int index)
+        Type IMachine.GetStateTypeAtStackIndex(int index) => this.StateStack.ElementAtOrDefault(index)?.GetType();
+
+        #endregion
+
+        #region error checking
+
+        /// <summary>
+        /// Check machine for state related errors.
+        /// </summary>
+        private void AssertStateValidity()
         {
-            return this.StateStack.ElementAtOrDefault(index)?.GetType();
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{this.Id}' " +
+                "must have one or more states.");
+            this.Assert(this.StateStack.Peek() != null, $"Machine '{this.Id}' " +
+                "must not have a null current state.");
         }
+
+        /// <summary>
+        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
+        /// exception, and throws it to the user.
+        /// </summary>
+        /// <param name="ex">Exception</param>
+        /// <param name="actionName">Action name</param>
+        private void ReportUnhandledException(Exception ex, string actionName)
+        {
+            string state = "<unknown>";
+            if (this.CurrentState != null)
+            {
+                state = this.CurrentStateName;
+            }
+
+            this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                $"in machine '{this.Id}', state '{state}', action '{actionName}', " +
+                $"'{ex.Source}':\n" +
+                $"   {ex.Message}\n" +
+                $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        /// <summary>
+        /// Invokes user callback when a machine receives an event it cannot handle
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
+        private bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
+        {
+            this.Logger.OnMachineExceptionThrown(this.Id, ex.CurrentStateName, methodName, ex);
+
+            var ret = OnException(methodName, ex);
+            OnExceptionRequestedGracefulHalt = false;
+            switch (ret)
+            {
+                case OnExceptionOutcome.HaltMachine:
+                case OnExceptionOutcome.HandledException:
+                    this.Logger.OnMachineExceptionHandled(this.Id, ex.CurrentStateName, methodName, ex);
+                    OnExceptionRequestedGracefulHalt = true;
+                    return true;
+                case OnExceptionOutcome.ThrowException:
+                    return false;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Invokes user callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
+        private bool OnExceptionHandler(string methodName, Exception ex)
+        {
+            if (ex is ExecutionCanceledException)
+            {
+                // Internal exception, used by the testing infrastructure.
+                return false;
+            }
+
+            this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
+
+            var ret = OnException(methodName, ex);
+            OnExceptionRequestedGracefulHalt = false;
+
+            switch (ret)
+            {
+                case OnExceptionOutcome.ThrowException:
+                    return false;
+                case OnExceptionOutcome.HandledException:
+                    this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
+                    return true;
+                case OnExceptionOutcome.HaltMachine:
+                    OnExceptionRequestedGracefulHalt = true;
+                    return false;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// User callback when a machine throws an exception.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the machine</param>
+        /// <param name="methodName">The handler (outermost) that threw the exception</param>
+        /// <returns>The action that the runtime should take</returns>
+        protected virtual OnExceptionOutcome OnException(string methodName, Exception ex)
+        {
+            return OnExceptionOutcome.ThrowException;
+        }
+
+        #endregion
+
+        #region utilities
 
         /// <summary>
         /// Processes a type, looking for machine states.
@@ -1343,166 +1555,7 @@ namespace Microsoft.PSharp.Runtime
 
         #endregion
 
-        #region code coverage methods
-
-        /// <summary>
-        /// Returns the set of all states in the machine
-        /// (for code coverage).
-        /// </summary>
-        /// <returns>Set of all states in the machine</returns>
-        internal HashSet<string> GetAllStates()
-        {
-            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
-
-            var allStates = new HashSet<string>();
-            foreach (var state in this.MachineStates)
-            {
-                allStates.Add(StateGroup.GetQualifiedStateName(state.GetType()));
-            }
-
-            return allStates;
-        }
-
-        /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the machine
-        /// (for code coverage).
-        /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
-        internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
-        {
-            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
-
-            var pairs = new HashSet<Tuple<string, string>>();
-            foreach (var state in this.MachineStates)
-            {
-                foreach (var binding in state.ActionBindings)
-                {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), binding.Key.Name));
-                }
-
-                foreach (var transition in state.GotoTransitions)
-                {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), transition.Key.Name));
-                }
-
-                foreach (var pushtransition in state.PushTransitions)
-                {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
-                }
-            }
-
-            return pairs;
-        }
-
-        #endregion
-
-        #region error checking
-
-        /// <summary>
-        /// Check machine for state related errors.
-        /// </summary>
-        private void AssertStateValidity()
-        {
-            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{this.Id}' " +
-                "must have one or more states.");
-            this.Assert(this.StateStack.Peek() != null, $"Machine '{this.Id}' " +
-                "must not have a null current state.");
-        }
-
-        /// <summary>
-        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
-        /// exception, and throws it to the user.
-        /// </summary>
-        /// <param name="ex">Exception</param>
-        /// <param name="actionName">Action name</param>
-        private void ReportUnhandledException(Exception ex, string actionName)
-        {
-            string state = "<unknown>";
-            if (this.CurrentState != null)
-            {
-                state = this.CurrentStateName;
-            }
-
-            this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                $"in machine '{this.Id}', state '{state}', action '{actionName}', " +
-                $"'{ex.Source}':\n" +
-                $"   {ex.Message}\n" +
-                $"The stack trace is:\n{ex.StackTrace}");
-        }
-
-        /// <summary>
-        /// Invokes user callback when a machine receives an event it cannot handle
-        /// </summary>
-        /// <param name="ex">The exception thrown by the machine</param>
-        /// <param name="methodName">The handler (outermost) that threw the exception</param>
-        /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
-        private bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
-        {
-            this.Logger.OnMachineExceptionThrown(this.Id, ex.CurrentStateName, methodName, ex);
-
-            var ret = OnException(methodName, ex);
-            OnExceptionRequestedGracefulHalt = false;
-            switch (ret)
-            {
-                case OnExceptionOutcome.HaltMachine:
-                case OnExceptionOutcome.HandledException:
-                    this.Logger.OnMachineExceptionHandled(this.Id, ex.CurrentStateName, methodName, ex);
-                    OnExceptionRequestedGracefulHalt = true;
-                    return true;
-                case OnExceptionOutcome.ThrowException:
-                    return false;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Invokes user callback when a machine throws an exception.
-        /// </summary>
-        /// <param name="ex">The exception thrown by the machine</param>
-        /// <param name="methodName">The handler (outermost) that threw the exception</param>
-        /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
-        private bool OnExceptionHandler(string methodName, Exception ex)
-        {
-            if (ex is ExecutionCanceledException)
-            {
-                // Internal exception, used by the testing infrastructure.
-                return false;
-            }
-
-            this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
-
-            var ret = OnException(methodName, ex);
-            OnExceptionRequestedGracefulHalt = false;
-
-            switch (ret)
-            {
-                case OnExceptionOutcome.ThrowException:
-                    return false;
-                case OnExceptionOutcome.HandledException:
-                    this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
-                    return true;
-                case OnExceptionOutcome.HaltMachine:
-                    OnExceptionRequestedGracefulHalt = true;
-                    return false;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// User callback when a machine throws an exception.
-        /// </summary>
-        /// <param name="ex">The exception thrown by the machine</param>
-        /// <param name="methodName">The handler (outermost) that threw the exception</param>
-        /// <returns>The action that the runtime should take</returns>
-        protected virtual OnExceptionOutcome OnException(string methodName, Exception ex)
-        {
-            return OnExceptionOutcome.ThrowException;
-        }
-
-        #endregion
-
-        #region cleanup methods
+        #region cleanup
 
         /// <summary>
         /// Resets the static caches.
@@ -1517,7 +1570,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Halts the machine.
         /// </summary>
-        /// <returns>Task that represents the asynchronous operation.</returns> 
+        /// <returns>Task that represents the asynchronous operation.</returns>
         private protected virtual Task HaltMachineAsync()
         {
             // Invokes user callback outside the lock.

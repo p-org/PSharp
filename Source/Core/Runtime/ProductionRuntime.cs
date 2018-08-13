@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Runtime
@@ -54,7 +53,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="mid">Unbound machine id.</param>
         /// <param name="type">Type of the machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
-        protected override async Task<BaseMachine> CreateMachineAsync(MachineId mid, Type type)
+        protected override async Task<IMachine> CreateMachineAsync(MachineId mid, Type type)
         {
             Machine machine = MachineFactory.Create(type);
             await machine.InitializeAsync(this, mid, new MachineInfo(mid));
@@ -148,7 +147,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the monitor.</param>
         /// <param name="invoker">The machine invoking the monitor.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public override void Monitor(Type type, BaseMachine invoker, Event e)
+        public override void Monitor(Type type, IMachine invoker, Event e)
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {

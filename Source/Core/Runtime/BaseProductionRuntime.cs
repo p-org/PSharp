@@ -143,10 +143,10 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="creator">The creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
-            Event e, BaseMachine creator, Guid? operationGroupId)
+            Event e, IMachine creator, Guid? operationGroupId)
         {
             this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
-            BaseMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
+            IMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
             this.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
             this.RunMachineEventHandler(machine, e, true);
@@ -165,10 +165,10 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="creator">The creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         private async Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string friendlyName,
-            Event e, BaseMachine creator, Guid? operationGroupId)
+            Event e, IMachine creator, Guid? operationGroupId)
         {
             this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
-            BaseMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
+            IMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
             this.Logger.OnCreateMachine(machine.Id, creator?.Id);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
             await this.RunMachineEventHandlerAsync(machine, e, true);
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
-        protected async Task<BaseMachine> CreateMachineAsync(MachineId mid, Type type, string friendlyName)
+        protected async Task<IMachine> CreateMachineAsync(MachineId mid, Type type, string friendlyName)
         {
             if (mid == null)
             {
@@ -197,7 +197,7 @@ namespace Microsoft.PSharp.Runtime
                 mid.Bind(this);
             }
 
-            BaseMachine machine = await this.CreateMachineAsync(mid, type);
+            IMachine machine = await this.CreateMachineAsync(mid, type);
 
             bool result = this.MachineMap.TryAdd(mid, machine);
             this.Assert(result, "MachineId {0} = This typically occurs " +
@@ -250,10 +250,10 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public override Task SendEventAsync(MachineId mid, Event e, BaseMachine sender, SendOptions options)
+        public override Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options)
         {
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
-            if (this.GetTargetMachine(mid, e, sender, operationGroupId, out BaseMachine machine))
+            if (this.GetTargetMachine(mid, e, sender, operationGroupId, out IMachine machine))
             {
                 MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId);
                 if (machineStatus == MachineStatus.EventHandlerNotRunning)
@@ -280,10 +280,10 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is true if
         /// the event was handled, false if the event was only enqueued.</returns>
-        private async Task<bool> SendEventAndExecuteAsync(MachineId mid, Event e, BaseMachine sender, SendOptions options)
+        private async Task<bool> SendEventAndExecuteAsync(MachineId mid, Event e, IMachine sender, SendOptions options)
         {
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
-            if (!this.GetTargetMachine(mid, e, sender, operationGroupId, out BaseMachine machine))
+            if (!this.GetTargetMachine(mid, e, sender, operationGroupId, out IMachine machine))
             {
                 return true;
             }
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>The machine status after the enqueue.</returns>
-        protected MachineStatus EnqueueEvent(BaseMachine machine, Event e, BaseMachine sender, Guid operationGroupId)
+        protected MachineStatus EnqueueEvent(IMachine machine, Event e, IMachine sender, Guid operationGroupId)
         {
             EventInfo eventInfo = new EventInfo(e, null);
             eventInfo.SetOperationGroupId(operationGroupId);
@@ -321,7 +321,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        protected void RunMachineEventHandler(BaseMachine machine, Event initialEvent, bool isFresh)
+        protected void RunMachineEventHandler(IMachine machine, Event initialEvent, bool isFresh)
         {
             Task.Run(async () =>
             {
@@ -349,7 +349,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine that executes this event handler.</param>
         /// <param name="initialEvent">Event for initializing the machine.</param>
         /// <param name="isFresh">If true, then this is a new machine.</param>
-        protected async Task RunMachineEventHandlerAsync(BaseMachine machine, Event initialEvent, bool isFresh)
+        protected async Task RunMachineEventHandlerAsync(IMachine machine, Event initialEvent, bool isFresh)
         {
             try
             {
@@ -399,7 +399,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
-        public override bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue)
+        public override bool GetNondeterministicBooleanChoice(IMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -421,7 +421,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        public override bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId)
+        public override bool GetFairNondeterministicBooleanChoice(IMachine machine, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(machine, 2);
         }
@@ -433,7 +433,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
-        public override int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue)
+        public override int GetNondeterministicIntegerChoice(IMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);
@@ -451,7 +451,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine entered a state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        public override void NotifyEnteredState(BaseMachine machine)
+        public override void NotifyEnteredState(IMachine machine)
         {
             if (this.Configuration.Verbose <= 1)
             {
@@ -480,7 +480,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine exited a state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        public override void NotifyExitedState(BaseMachine machine)
+        public override void NotifyExitedState(IMachine machine)
         {
             if (this.Configuration.Verbose <= 1)
             {
@@ -511,7 +511,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
-        public override void NotifyInvokedAction(BaseMachine machine, MethodInfo action, Event receivedEvent)
+        public override void NotifyInvokedAction(IMachine machine, MethodInfo action, Event receivedEvent)
         {
             if (this.Configuration.Verbose <= 1)
             {
@@ -542,7 +542,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        public override void NotifyRaisedEvent(BaseMachine machine, EventInfo eventInfo)
+        public override void NotifyRaisedEvent(IMachine machine, EventInfo eventInfo)
         {
             eventInfo.SetOperationGroupId(this.GetNewOperationGroupId(machine, null));
 
@@ -575,7 +575,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        public override void NotifyDequeuedEvent(BaseMachine machine, EventInfo eventInfo)
+        public override void NotifyDequeuedEvent(IMachine machine, EventInfo eventInfo)
         {
             // The machine inherits the operation group id of the dequeued event.
             machine.Info.OperationGroupId = eventInfo.OperationGroupId;
@@ -587,7 +587,8 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
-        public override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        /// <param name="eventNames">The names of the events that the machine is waiting for.</param>
+        public override void NotifyWaitEvents(IMachine machine, EventInfo eventInfoInInbox, string eventNames)
         {
             if (eventInfoInInbox == null)
             {
@@ -601,7 +602,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        public override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        public override void NotifyReceivedEvent(IMachine machine, EventInfo eventInfo)
         {
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
 
@@ -617,7 +618,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="inbox">The machine inbox.</param>
-        public override void NotifyHalted(BaseMachine machine, LinkedList<EventInfo> inbox)
+        public override void NotifyHalted(IMachine machine, LinkedList<EventInfo> inbox)
         {
             this.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);
@@ -636,7 +637,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Guid</returns>
         public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
         {
-            if (!this.MachineMap.TryGetValue(currentMachine, out BaseMachine machine))
+            if (!this.MachineMap.TryGetValue(currentMachine, out IMachine machine))
             {
                 return Guid.Empty;
             }
