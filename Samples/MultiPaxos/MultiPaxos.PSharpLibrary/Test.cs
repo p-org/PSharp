@@ -33,7 +33,7 @@ namespace MultiPaxos.PSharpLibrary
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(IStateMachineRuntime runtime)
+        public static void Execute(IPSharpRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(ValidityCheck));
             runtime.CreateMachine(typeof(GodMachine));

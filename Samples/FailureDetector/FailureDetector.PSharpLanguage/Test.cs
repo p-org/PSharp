@@ -35,7 +35,7 @@ namespace FailureDetector.PSharpLanguage
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(IStateMachineRuntime runtime)
+        public static void Execute(IPSharpRuntime runtime)
         {
             // Monitors must be registered before the first P# machine
             // gets created (which will kickstart the runtime).

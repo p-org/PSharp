@@ -47,7 +47,7 @@ namespace PingPong.PSharpLanguage.AsyncAwait
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
         [Microsoft.PSharp.Test]
-        public static void Execute(IStateMachineRuntime runtime)
+        public static void Execute(IPSharpRuntime runtime)
         {
             // This is the root machine to the P# PingPong program. CreateMachine
             // executes asynchronously (i.e. non-blocking).

@@ -14,7 +14,7 @@ namespace TimerSample
 		}
 
 		[Microsoft.PSharp.Test]
-		public static void Execute(IStateMachineRuntime runtime)
+		public static void Execute(IPSharpRuntime runtime)
 		{
 			/*
 			 * By default, StartTimer would create a machine of type TimerProduction, when running in production mode,

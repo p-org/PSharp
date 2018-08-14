@@ -50,7 +50,7 @@ namespace PingPong.CustomLogging
         /// </summary>
         /// <param name="runtime"></param>
         [Microsoft.PSharp.Test]
-        public static void Execute(IStateMachineRuntime runtime)
+        public static void Execute(IPSharpRuntime runtime)
         {
             // Assigns a user-defined name to this network environment machine.
             runtime.CreateMachine(typeof(NetworkEnvironment), "TheUltimateNetworkEnvironmentMachine");

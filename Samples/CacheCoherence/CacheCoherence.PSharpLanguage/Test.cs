@@ -33,7 +33,7 @@ namespace CacheCoherence.PSharpLanguage
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(IStateMachineRuntime runtime)
+        public static void Execute(IPSharpRuntime runtime)
         {
             runtime.CreateMachine(typeof(Host));
         }
