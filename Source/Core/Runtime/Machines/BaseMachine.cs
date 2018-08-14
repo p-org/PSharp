@@ -619,16 +619,24 @@ namespace Microsoft.PSharp.Runtime
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <returns>The machine status after the enqueue.</returns>
+        /// <param name="sender">The sender machine.</param>
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result
+        /// is the machine status after the enqueue.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        MachineStatus IMachine.Enqueue(EventInfo eventInfo) => this.Enqueue(eventInfo);
+        Task<MachineStatus> IMachine.EnqueueAsync(EventInfo eventInfo, IMachine sender) => this.EnqueueAsync(eventInfo, sender);
 
         /// <summary>
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <returns>The machine status after the enqueue.</returns>
-        internal abstract MachineStatus Enqueue(EventInfo eventInfo);
+        /// <param name="sender">The sender machine.</param>
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result
+        /// is the machine status after the enqueue.
+        /// </returns>
+        internal abstract Task<MachineStatus> EnqueueAsync(EventInfo eventInfo, IMachine sender);
 
         /// <summary>
         /// Returns the raised <see cref="EventInfo"/> if
@@ -964,14 +972,12 @@ namespace Microsoft.PSharp.Runtime
                 if (innerException is ExecutionCanceledException)
                 {
                     this.Info.IsHalted = true;
-                    IO.Debug.WriteLine("<Exception> ExecutionCanceledException was " +
-                        $"thrown from Machine '{this.Id}'.");
+                    Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from Machine '{this.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     this.Info.IsHalted = true;
-                    IO.Debug.WriteLine("<Exception> TaskSchedulerException was " +
-                        $"thrown from Machine '{this.Id}'.");
+                    Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from Machine '{this.Id}'.");
                 }
                 else if (OnExceptionRequestedGracefulHalt)
                 {
@@ -1393,7 +1399,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
         private bool OnExceptionHandler(string methodName, Exception ex)
         {
-            if (ex is ExecutionCanceledException)
+            if (ex is ExecutionCanceledException || (ex.InnerException != null && ex.InnerException is ExecutionCanceledException))
             {
                 // Internal exception, used by the testing infrastructure.
                 return false;

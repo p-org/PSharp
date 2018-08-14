@@ -425,18 +425,28 @@ namespace Microsoft.PSharp
             {
                 action.Invoke(this, null);
             }
-            catch (ExecutionCanceledException ex)
-            {
-                throw ex;
-            }
-            catch (TaskSchedulerException ex)
-            {
-                throw ex;
-            }
             catch (Exception ex)
             {
-                // Reports the unhandled exception.
-                this.ReportUnhandledException(ex, action.Name);
+                Exception innerException = ex;
+                while (innerException is TargetInvocationException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is ExecutionCanceledException || innerException is TaskSchedulerException)
+                {
+                    throw ex;
+                }
+                else
+                {
+                    // Reports the unhandled exception.
+                    this.ReportUnhandledException(innerException, action.Name);
+                }
             }
         }
 

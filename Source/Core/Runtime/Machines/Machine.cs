@@ -251,14 +251,18 @@ namespace Microsoft.PSharp
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <returns>The machine status after the enqueue.</returns>
-        internal override MachineStatus Enqueue(EventInfo eventInfo)
+        /// <param name="sender">The sender machine.</param>
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result
+        /// is the machine status after the enqueue.
+        /// </returns>
+        internal override Task<MachineStatus> EnqueueAsync(EventInfo eventInfo, IMachine sender)
         {
             lock (this.Inbox)
             {
                 if (this.Info.IsHalted)
                 {
-                    return MachineStatus.IsHalted;
+                    return Task.FromResult(MachineStatus.IsHalted);
                 }
 
                 EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
@@ -269,7 +273,7 @@ namespace Microsoft.PSharp
                     this.EventWaitHandlers.Clear();
                     this.RuntimeManager.NotifyReceivedEvent(this, eventInfo);
                     this.ReceiveCompletionSource.SetResult(eventInfo.Event);
-                    return MachineStatus.EventHandlerRunning;
+                    return Task.FromResult(MachineStatus.EventHandlerRunning);
                 }
 
                 this.RuntimeManager.Logger.OnEnqueue(this.Id, eventInfo.EventName);
@@ -296,17 +300,17 @@ namespace Microsoft.PSharp
                 {
                     if (this.RuntimeManager.IsTestingModeEnabled && this.TryDequeueEvent(true) == null)
                     {
-                        return MachineStatus.NextEventUnavailable;
+                        return Task.FromResult(MachineStatus.NextEventUnavailable);
                     }
                     else
                     {
                         this.IsActive = true;
-                        return MachineStatus.EventHandlerNotRunning;
+                        return Task.FromResult(MachineStatus.EventHandlerNotRunning);
                     }
                 }
             }
 
-            return MachineStatus.EventHandlerRunning;
+            return Task.FromResult(MachineStatus.EventHandlerRunning);
         }
 
         /// <summary>

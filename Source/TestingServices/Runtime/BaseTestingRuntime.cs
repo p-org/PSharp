@@ -236,13 +236,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, harness.Info.Id);
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of the test harness machine.");
                 }
-                catch (ExecutionCanceledException)
-                {
-                    IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown in the test harness.");
-                }
                 catch (Exception ex)
                 {
-                    harness.ReportUnhandledException(ex);
+                    if (ex is ExecutionCanceledException || ex.InnerException is ExecutionCanceledException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown in the test harness.");
+                    }
+                    else
+                    {
+                        harness.ReportUnhandledException(ex);
+                    }
                 }
             });
 
@@ -507,7 +510,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public override Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options)
+        public override async Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options)
         {
             this.CheckMachineMethodInvocation(sender, MachineApiNames.SendEventApiName);
             this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
@@ -518,7 +521,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             if (this.GetTargetMachine(mid, e, sender, operationGroupId, out IMachine machine))
             {
-                MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
+                MachineStatus machineStatus = await this.EnqueueEventAsync(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
                     out EventInfo eventInfo);
                 if (machineStatus == MachineStatus.EventHandlerNotRunning)
                 {
@@ -530,12 +533,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{mid}'.\n");
             }
-
-#if NET45
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
         }
 
         /// <summary>
@@ -564,7 +561,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 return true;
             }
 
-            MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
+            MachineStatus machineStatus = await this.EnqueueEventAsync(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
                 out EventInfo eventInfo);
             if (machineStatus == MachineStatus.EventHandlerNotRunning)
             {
@@ -591,8 +588,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="eventInfo">The enqueued event metadata.</param>
-        /// <returns>The machine status after the enqueue.</returns>
-        protected MachineStatus EnqueueEvent(IMachine machine, Event e, IMachine sender, Guid operationGroupId,
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result is the machine status after the enqueue.
+        /// </returns>
+        protected Task<MachineStatus> EnqueueEventAsync(IMachine machine, Event e, IMachine sender, Guid operationGroupId,
             bool mustHandle, out EventInfo eventInfo)
         {
             EventOriginInfo originInfo = null;
@@ -624,7 +623,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
             }
 
-            return machine.Enqueue(eventInfo);
+            return machine.EnqueueAsync(eventInfo, sender);
         }
 
         /// <summary>
@@ -653,7 +652,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     if (syncCaller != null)
                     {
-                        this.SendEvent(syncCaller, new QuiescentEvent(machine.Id));
+                        await this.SendEventAsync(syncCaller, new QuiescentEvent(machine.Id));
                     }
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
@@ -670,9 +669,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{machine.Id}'.");
                 }
-                catch (ExecutionCanceledException)
+                catch (Exception ex)
                 {
-                    IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                    if (ex is ExecutionCanceledException || ex.InnerException is ExecutionCanceledException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                    }
                 }
                 finally
                 {

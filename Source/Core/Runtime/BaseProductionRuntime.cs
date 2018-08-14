@@ -250,23 +250,17 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public override Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options)
+        public override async Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options)
         {
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (this.GetTargetMachine(mid, e, sender, operationGroupId, out IMachine machine))
             {
-                MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId);
+                MachineStatus machineStatus = await this.EnqueueEventAsync(machine, e, sender, operationGroupId);
                 if (machineStatus == MachineStatus.EventHandlerNotRunning)
                 {
                     this.RunMachineEventHandler(machine, null, false);
                 }
             }
-
-#if NET45
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
         }
 
         /// <summary>
@@ -288,7 +282,7 @@ namespace Microsoft.PSharp.Runtime
                 return true;
             }
 
-            MachineStatus machineStatus = this.EnqueueEvent(machine, e, sender, operationGroupId);
+            MachineStatus machineStatus = await this.EnqueueEventAsync(machine, e, sender, operationGroupId);
             if (machineStatus == MachineStatus.EventHandlerNotRunning)
             {
                 await this.RunMachineEventHandlerAsync(machine, null, false);
@@ -304,14 +298,16 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="e">Event</param>
         /// <param name="sender">The sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
-        /// <returns>The machine status after the enqueue.</returns>
-        protected MachineStatus EnqueueEvent(IMachine machine, Event e, IMachine sender, Guid operationGroupId)
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result is the machine status after the enqueue.
+        /// </returns>
+        protected Task<MachineStatus> EnqueueEventAsync(IMachine machine, Event e, IMachine sender, Guid operationGroupId)
         {
             EventInfo eventInfo = new EventInfo(e, null);
             eventInfo.SetOperationGroupId(operationGroupId);
             this.Logger.OnSend(machine.Id, sender?.Id, sender?.CurrentStateName ?? String.Empty,
                 e.GetType().FullName, operationGroupId, isTargetHalted: false);
-            return machine.Enqueue(eventInfo);
+            return machine.EnqueueAsync(eventInfo, sender);
         }
 
         /// <summary>

@@ -59,8 +59,12 @@ namespace Microsoft.PSharp.Runtime
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <returns>The machine status after the enqueue.</returns>
-        MachineStatus Enqueue(EventInfo eventInfo);
+        /// <param name="sender">The sender machine.</param>
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result
+        /// is the machine status after the enqueue.
+        /// </returns>
+        Task<MachineStatus> EnqueueAsync(EventInfo eventInfo, IMachine sender);
 
         /// <summary>
         /// Transitions to the start state, and executes the

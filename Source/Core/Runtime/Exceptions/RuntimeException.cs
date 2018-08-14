@@ -24,10 +24,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes a new instance of the exception.
         /// </summary>
-        internal RuntimeException()
-        {
-
-        }
+        internal RuntimeException() { }
 
         /// <summary>
         /// Initializes a new instance of the exception.
@@ -35,9 +32,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="message">Message</param>
         internal RuntimeException(string message)
             : base(message)
-        {
-
-        }
+        { }
 
         /// <summary>
         /// Initializes a new instance of the exception.
@@ -46,8 +41,6 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="innerException">Inner exception</param>
         internal RuntimeException(string message, Exception innerException)
             : base(message, innerException)
-        {
-
-        }
+        { }
     }
 }
