@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// Runtime for executing machines in production.
     /// </summary>
-    internal class ProductionRuntime : BaseProductionRuntime, IStateMachineRuntime
+    internal sealed class ProductionRuntime : BaseProductionRuntime
     {
         /// <summary>
         /// List of monitors in the program.

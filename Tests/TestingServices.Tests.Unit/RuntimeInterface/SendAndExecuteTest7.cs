@@ -37,8 +37,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var m = await runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await runtime.SendEventAndExecute(m, new E());
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);
             }
 
@@ -60,6 +60,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             base.AssertFailed(test, "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+M()' received event 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.", true);
         }
-
     }
 }

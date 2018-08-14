@@ -58,9 +58,9 @@ namespace Microsoft.PSharp.Runtime
         #endregion
 
         /// <summary>
-        /// The manager of the runtime that executes this machine.
+        /// The runtime manager that executes this machine.
         /// </summary>
-        private protected IRuntimeManager RuntimeManager;
+        private protected IRuntimeMachineManager RuntimeManager;
 
         /// <summary>
         /// A stack of machine states. The state on the top of
@@ -262,11 +262,11 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        /// <param name="runtimeManager">The runtime manager.</param>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
         /// <param name="mid">The id of this machine.</param>
         /// <param name="info">The metadata of this machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        internal Task InitializeAsync(IRuntimeManager runtimeManager, MachineId mid, MachineInfo info)
+        internal Task InitializeAsync(IRuntimeMachineManager runtimeManager, MachineId mid, MachineInfo info)
         {
             this.RuntimeManager = runtimeManager;
             this.Id = mid;
@@ -1571,21 +1571,25 @@ namespace Microsoft.PSharp.Runtime
         /// Halts the machine.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        private protected virtual Task HaltMachineAsync()
+        private protected virtual async Task HaltMachineAsync()
         {
+            await this.RuntimeManager.NotifyHaltedAsync(this);
             // Invokes user callback outside the lock.
-            this.OnHalt();
+            await this.OnHaltAsync();
+        }
+
+        /// <summary>
+        /// User callback when a machine halts.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        protected virtual Task OnHaltAsync()
+        {
 #if NET45
             return Task.FromResult(0);
 #else
             return Task.CompletedTask;
 #endif
         }
-
-        /// <summary>
-        /// User callback when a machine halts.
-        /// </summary>
-        protected virtual void OnHalt() { }
 
         #endregion
     }

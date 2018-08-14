@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var b = this.CreateMachine(typeof(B));
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var handled = await runtime.SendEventAndExecute(b, new E1());
+                var handled = await runtime.SendEventAndExecuteAsync(b, new E1());
                 this.Assert(!handled);
             }
         }
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var d = this.CreateMachine(typeof(D));
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var handled = await runtime.SendEventAndExecute(d, new E1());
+                var handled = await runtime.SendEventAndExecuteAsync(d, new E1());
                 this.Assert(handled);
             }
         }

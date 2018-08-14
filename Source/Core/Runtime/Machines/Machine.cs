@@ -180,7 +180,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
-        protected internal virtual Task<Event> Receive(params Type[] eventTypes)
+        protected internal Task<Event> Receive(params Type[] eventTypes)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
-        protected internal virtual Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
+        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="events">Event types and predicates</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
-        protected internal virtual Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
@@ -240,6 +240,8 @@ namespace Microsoft.PSharp
 
             return this.WaitOnEvent();
         }
+
+        // TODO: add async version of receive
 
         #endregion
 
@@ -533,6 +535,7 @@ namespace Microsoft.PSharp
             {
                 var hash = base.GetCachedState();
 
+                // TODO: move to base
                 foreach (var state in this.StateStack)
                 {
                     hash = hash * 31 + state.GetType().GetHashCode();
@@ -575,7 +578,16 @@ namespace Microsoft.PSharp
             lock (this.Inbox)
             {
                 this.Info.IsHalted = true;
-                this.RuntimeManager.NotifyHalted(this, this.Inbox);
+                this.Logger.OnHalt(this.Id, this.Inbox.Count);
+
+                if (this.RuntimeManager.IsTestingModeEnabled)
+                {
+                    var mustHandleEvent = this.Inbox.FirstOrDefault(ev => ev.MustHandle);
+                    this.Assert(mustHandleEvent == null,
+                        "Machine '{0}' halted before dequeueing must-handle event '{1}'.\n",
+                        this.Id, mustHandleEvent?.EventName ?? String.Empty);
+                }
+
                 this.Inbox.Clear();
                 this.EventWaitHandlers.Clear();
                 this.ReceivedEvent = null;

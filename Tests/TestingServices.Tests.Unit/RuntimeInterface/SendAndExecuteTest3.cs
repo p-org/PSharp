@@ -48,8 +48,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var e = new E();
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var m = await runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await runtime.SendEventAndExecute(m, e);
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, e);
                 this.Assert(handled);
                 this.Assert(e.x == 1);
             }
@@ -94,6 +94,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             base.AssertSucceeded(config, test);
         }
-
     }
 }

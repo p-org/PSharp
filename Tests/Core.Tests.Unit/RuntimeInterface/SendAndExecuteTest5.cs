@@ -44,8 +44,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var m = await runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await runtime.SendEventAndExecute(m, new E());
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
@@ -63,9 +63,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Monitor<SafetyMonitor>(new M_Halts());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 

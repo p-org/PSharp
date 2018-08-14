@@ -1184,14 +1184,25 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">The machine.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        public override Task NotifyHaltedAsync(IMachine machine)
+        {
+            this.BugTrace.AddHaltStep(machine.Id, null);
+            this.MachineMap.TryRemove(machine.Id, out machine);
+#if NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
+        }
+
+        /// <summary>
+        /// Notifies that a machine has halted.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
         /// <param name="inbox">The machine inbox.</param>
         public override void NotifyHalted(IMachine machine, LinkedList<EventInfo> inbox)
         {
-            var mustHandleEvent = inbox.FirstOrDefault(ev => ev.MustHandle);
-            this.Assert(mustHandleEvent == null,
-                "Machine '{0}' halted before dequeueing must-handle event '{1}'.\n",
-                machine.Id, mustHandleEvent?.EventName ?? String.Empty);
-
             this.BugTrace.AddHaltStep(machine.Id, null);
             this.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);

@@ -26,9 +26,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     internal sealed class TestHarnessMachine
     {
         /// <summary>
-        /// The manager of the runtime that executes this machine.
+        /// The runtime manager that executes this machine.
         /// </summary>
-        private IRuntimeManager RuntimeManager;
+        private IRuntimeMachineManager RuntimeManager;
 
         /// <summary>
         /// The runtime that executes the test.
@@ -77,11 +77,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        /// <param name="runtimeManager">The runtime manager.</param>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
         /// <param name="runtime">The runtime that executes the test.</param>
         /// <param name="mid">MachineId</param>
         /// <param name="info">MachineInfo</param>
-        internal void Initialize(IRuntimeManager runtimeManager, IPSharpRuntime runtime, MachineId mid, MachineInfo info)
+        internal void Initialize(IRuntimeMachineManager runtimeManager, IPSharpRuntime runtime, MachineId mid, MachineInfo info)
         {
             this.RuntimeManager = runtimeManager;
             this.Runtime = runtime;

@@ -154,9 +154,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 return OnExceptionOutcome.HaltMachine;
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 e.tcs.TrySetResult(true);
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -182,9 +187,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 return OnExceptionOutcome.ThrowException;
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 e.tcs.TrySetResult(true);
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 

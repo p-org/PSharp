@@ -49,8 +49,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var m = await runtime.CreateMachineAndExecute(typeof(M), this.ReceivedEvent);
-                var handled = await runtime.SendEventAndExecute(m, new E());
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M), this.ReceivedEvent);
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
             }
@@ -134,6 +134,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return true;
             }, true);
         }
-
     }
 }

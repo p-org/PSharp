@@ -24,19 +24,18 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a new state-machine runtime.
         /// </summary>
-        /// <returns>IStateMachineRuntime</returns>
-        public static IStateMachineRuntime Create()
+        /// <returns>The P# runtime.</returns>
+        public static IPSharpRuntime Create()
         {
             return new ProductionRuntime(Configuration.Create());
         }
 
         /// <summary>
-        /// Creates a new state-machine runtime with the specified
-        /// <see cref="Configuration"/>.
+        /// Creates a new state-machine runtime with the specified <see cref="Configuration"/>.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>IStateMachineRuntime</returns>
-        public static IStateMachineRuntime Create(Configuration configuration)
+        /// <param name="configuration">The runtime configuration to use.</param>
+        /// <returns>The P# runtime.</returns>
+        public static IPSharpRuntime Create(Configuration configuration)
         {
             return new ProductionRuntime(configuration);
         }
@@ -44,14 +43,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the runtime associated with the specified <see cref="MachineId"/>.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <returns>IStateMachineRuntime</returns>
-        public static IStateMachineRuntime GetRuntime(MachineId mid)
+        /// <param name="mid">The id of the machine.</param>
+        /// <returns>The P# runtime.</returns>
+        public static IPSharpRuntime GetRuntime(MachineId mid)
         {
-            mid.RuntimeManager.Assert(mid.RuntimeManager.Runtime is IStateMachineRuntime,
-                "Machine id '{0}' does not execute on a 'IStateMachineRuntime' runtime.",
-                mid.Name);
-            return mid.RuntimeManager.Runtime as IStateMachineRuntime;
+            return mid.RuntimeManager.Runtime;
         }
     }
 }

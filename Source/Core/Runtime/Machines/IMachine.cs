@@ -19,8 +19,8 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Interface of a P# machine. It provides APIs for
-    /// accessing internal machine functionality.
+    /// Interface of a state machine. It provides APIs for accessing internal machine
+    /// functionality. This interface is only for internal consumption.
     /// </summary>
     internal interface IMachine
     {

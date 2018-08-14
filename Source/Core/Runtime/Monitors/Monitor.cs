@@ -50,9 +50,9 @@ namespace Microsoft.PSharp
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap;
 
         /// <summary>
-        /// The manager of the runtime that executes this monitor.
+        /// The runtime manager that executes this monitor.
         /// </summary>
-        private IRuntimeManager RuntimeManager;
+        private IRuntimeMachineManager RuntimeManager;
 
         /// <summary>
         /// The monitor state.

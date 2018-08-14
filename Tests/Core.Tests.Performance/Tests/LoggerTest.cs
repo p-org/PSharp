@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
     {
         public partial class SimpleMachine
         {
-            private IStateMachineRuntime instance;
+            private IPSharpRuntime Runtime;
 
             public SimpleMachine()
             {
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
                 Task.Factory.StartNew(async () =>
                 {
                     await Task.Delay(0);
-                    this.instance.SendEvent(this.Id, new Timeout());
+                    this.Runtime.SendEvent(this.Id, new Timeout());
                 });
             }
 
@@ -46,12 +46,12 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
         public class SetContextMessage : Event
         {
-            public IStateMachineRuntime runtime;
+            public IPSharpRuntime Runtime;
 
-            public SetContextMessage(IStateMachineRuntime runtime)
+            public SetContextMessage(IPSharpRuntime runtime)
                 : base()
             {
-                this.runtime = runtime;
+                this.Runtime = runtime;
             }
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             void InitOnEntry()
             {
                 this.Counter = 0;
-                this.instance = (this.ReceivedEvent as SetContextMessage).runtime;
+                this.Runtime = (this.ReceivedEvent as SetContextMessage).Runtime;
                 this.SendMessageToPSharp();
                 this.Goto<SimpleThinking>();
             }

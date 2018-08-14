@@ -240,9 +240,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return OnExceptionOutcome.HaltMachine;
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Monitor<GetsDone>(new Done());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -265,9 +270,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return OnExceptionOutcome.ThrowException;
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Monitor<GetsDone>(new Done());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -363,6 +373,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             AssertSucceeded(test);
         }
-
     }
 }

@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         class Engine
         {
-            public static void Send(IStateMachineRuntime runtime, MachineId target)
+            public static void Send(IPSharpRuntime runtime, MachineId target)
             {
                 runtime.SendEvent(target, new E(2));
             }

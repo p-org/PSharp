@@ -581,7 +581,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                runtimeType = typeof(IStateMachineRuntime);
+                runtimeType = typeof(IPSharpRuntime);
             }
 
             var testMethod = filteredTestMethods[0];

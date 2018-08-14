@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     /// <summary>
     /// Runtime for executing machines in bug-finding mode.
     /// </summary>
-    internal class TestingRuntime : BaseTestingRuntime, IStateMachineRuntime
+    internal sealed class TestingRuntime : BaseTestingRuntime
     {
         /// <summary>
         /// The base machine types that can execute on this runtime.
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <returns></returns>
         [TestRuntimeGetType]
-        internal static Type GetRuntimeType() => typeof(IStateMachineRuntime);
+        internal static Type GetRuntimeType() => typeof(IPSharpRuntime);
 
         /// <summary>
         /// Constructor.
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="strategy">SchedulingStrategy</param>
         /// <param name="reporter">Reporter to register runtime operations.</param>
         /// </summary>
-        protected TestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
+        private TestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration, strategy, reporter)
         {
             this.SupportedBaseMachineTypes = new HashSet<Type> { typeof(Machine), typeof(TestHarnessMachine) };

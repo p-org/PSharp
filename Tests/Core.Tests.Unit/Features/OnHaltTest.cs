@@ -49,9 +49,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Assert(false);
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -66,9 +71,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
-                this.Receive(typeof(Event)).Wait();
+                await this.Receive(typeof(Event));
             }
         }
 
@@ -83,9 +88,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Raise(new E());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -100,9 +110,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Goto<Init>();
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -132,13 +147,13 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
                 // no-ops but no failure
-                this.Send(this.Id, new E());
+                await this.SendAsync(this.Id, new E());
                 this.Random();
                 this.Assert(true);
-                this.CreateMachine(typeof(Dummy));
+                await this.CreateMachineAsync(typeof(Dummy));
 
                 tcs.TrySetResult(true);
             }

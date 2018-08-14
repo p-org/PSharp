@@ -53,8 +53,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var m = await runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
-                var handled = await runtime.SendEventAndExecute(m, new LE());
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M), new E(this.Id));
+                var handled = await runtime.SendEventAndExecuteAsync(m, new LE());
                 this.Assert(handled);
                 tcs.SetResult(true);
             }
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var creator = (this.ReceivedEvent as E).mid;
                 var runtime = RuntimeService.GetRuntime(this.Id);
-                var handled = await runtime.SendEventAndExecute(creator, new LE());
+                var handled = await runtime.SendEventAndExecuteAsync(creator, new LE());
                 this.Assert(!handled);
             }
 

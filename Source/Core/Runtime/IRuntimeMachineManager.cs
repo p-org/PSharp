@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IRuntimeManager.cs">
+// <copyright file="IRuntimeMachineManager.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 //
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,10 +23,11 @@ using Microsoft.PSharp.Net;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// The interface of the runtime manager. It provides APIs for
-    /// accessing internal functionality of the runtime.
+    /// The interface of the state machine manager. It provides runtime APIs
+    /// for managing the execution of state machines. This interface is only
+    /// for internal consumption.
     /// </summary>
-    internal interface IRuntimeManager
+    internal interface IRuntimeMachineManager
     {
         /// <summary>
         /// The P# runtime.
@@ -282,8 +283,8 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine has halted.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="inbox">The machine inbox.</param>
-        void NotifyHalted(IMachine machine, LinkedList<EventInfo> inbox);
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        Task NotifyHaltedAsync(IMachine machine);
 
         /// <summary>
         /// Notifies that the inbox of the specified machine is about to be

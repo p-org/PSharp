@@ -26,9 +26,9 @@ namespace Microsoft.PSharp
     public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
-        /// The manager of the runtime that executes the machine with this id.
+        /// The runtime manager that executes the machine with this id.
         /// </summary>
-        internal IRuntimeManager RuntimeManager { get; private set; }
+        internal IRuntimeMachineManager RuntimeManager { get; private set; }
 
         /// <summary>
         /// Name of the machine.
@@ -69,11 +69,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a new machine id.
         /// </summary>
-        /// <param name="runtimeManager">The runtime manager.</param>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
         /// <param name="type">Machine type</param>
         /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
-        internal MachineId(IRuntimeManager runtimeManager, Type type, ulong value, string friendlyName)
+        internal MachineId(IRuntimeMachineManager runtimeManager, Type type, ulong value, string friendlyName)
             : this(runtimeManager, type.FullName, friendlyName, value, runtimeManager.Configuration.RuntimeGeneration,
                   runtimeManager.NetworkProvider.LocalEndpoint)
         { }
@@ -89,13 +89,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtimeManager">The runtime manager.</param>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
         /// <param name="generation">Runtime generation</param>
         /// <param name="endpoint">Endpoint</param>
-        private MachineId(IRuntimeManager runtimeManager, string type, string friendlyName, ulong value, ulong generation, string endpoint)
+        private MachineId(IRuntimeMachineManager runtimeManager, string type, string friendlyName, ulong value, ulong generation, string endpoint)
         {
             this.RuntimeManager = runtimeManager;
             this.Type = type;
@@ -128,8 +128,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        /// <param name="runtimeManager">The runtime manager.</param>
-        internal void Bind(IRuntimeManager runtimeManager)
+        /// <param name="runtimeManager">The runtime machine manager.</param>
+        internal void Bind(IRuntimeMachineManager runtimeManager)
         {
             this.RuntimeManager = runtimeManager;
         }
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp
         /// <returns></returns>
         public int CompareTo(MachineId other)
         {
-            return string.Compare(this.Name, other == null ? null : other.Name);
+            return string.Compare(this.Name, other?.Name);
         }
     }
 }

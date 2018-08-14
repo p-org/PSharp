@@ -61,10 +61,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return Task.CompletedTask;
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
                 count++;
-                this.Send(sender, new E(count, this.Id));
+                await this.SendAsync(sender, new E(count, this.Id));
             }
         }
 
@@ -95,6 +95,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             AssertSucceeded(configuration, test);
         }
-
     }
 }

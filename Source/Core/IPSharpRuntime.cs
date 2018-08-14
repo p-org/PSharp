@@ -22,9 +22,9 @@ using Microsoft.PSharp.Runtime;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The base interface of the P# runtime for executing state-machines.
-    /// It provides APIs for creating machines, sending events, writing and
-    /// checking specifications, as well as various runtime utilities.
+    /// The interface of the P# runtime. It provides APIs for creating machines,
+    /// sending events, writing and checking specifications, as well as various
+    /// runtime utilities.
     /// </summary>
     public interface IPSharpRuntime : IDisposable
     {
@@ -61,7 +61,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <returns>The result is the <see cref="MachineId"/>.</returns>
-        //[Obsolete("Please use IPSharpRuntime.CreateMachineAsync(...) instead.")]
         MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -74,7 +73,6 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <param name="e">Event</param>
         /// <returns>The result is the <see cref="MachineId"/>.</returns>
-        //[Obsolete("Please use IPSharpRuntime.CreateMachineAsync(...) instead.")]
         MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -87,7 +85,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <returns>The result is the <see cref="MachineId"/>.</returns>
-        //[Obsolete("Please use IPSharpRuntime.CreateMachineAsync(...) instead.")]
         MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -126,12 +123,92 @@ namespace Microsoft.PSharp
         Task<MachineId> CreateMachineAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and with the
+        /// specified optional <see cref="Event"/>. This event can only be used to
+        /// access its payload, and cannot be handled. The method returns only when
+        /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use IPSharpRuntime.CreateMachineAndExecuteAsync(...) instead.")]
+        Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and with
+        /// the specified optional <see cref="Event"/>. This event can only be used to
+        /// access its payload, and cannot be handled. The method returns only when the
+        /// machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use IPSharpRuntime.CreateMachineAndExecuteAsync(...) instead.")]
+        Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
+        /// event can only be used to access its payload, and cannot be handled. The method
+        /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
+        /// is handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        [Obsolete("Please use IPSharpRuntime.CreateMachineAndExecuteAsync(...) instead.")]
+        Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and with the
+        /// specified optional <see cref="Event"/>. This event can only be used to
+        /// access its payload, and cannot be handled. The method returns only when
+        /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/> and name, and with
+        /// the specified optional <see cref="Event"/>. This event can only be used to
+        /// access its payload, and cannot be handled. The method returns only when the
+        /// machine is initialized and the <see cref="Event"/> (if any) is handled.
+        /// </summary>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="friendlyName">Friendly machine name used for logging.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        Task<MachineId> CreateMachineAndExecuteAsync(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
+        /// Creates a new machine of the specified <see cref="Type"/>, using the specified
+        /// unbound machine id, and passes the specified optional <see cref="Event"/>. This
+        /// event can only be used to access its payload, and cannot be handled. The method
+        /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
+        /// is handled.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
+        Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
+
+        /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        //[Obsolete("Please use IPSharpRuntime.SendEventAsync(...) instead.")]
         void SendEvent(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
@@ -142,6 +219,29 @@ namespace Microsoft.PSharp
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
         Task SendEventAsync(MachineId target, Event e, SendOptions options = null);
+
+        /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
+        [Obsolete("Please use IPSharpRuntime.SendEventAndExecuteAsync(...) instead.")]
+        Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null);
+
+        /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
+        Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -203,6 +303,12 @@ namespace Microsoft.PSharp
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
         void Assert(bool predicate, string s, params object[] args);
+
+        /// <summary>
+        /// Overrides the default machine type for instantiating timers.
+        /// </summary>
+        /// <param name="type">Type</param>
+        void SetTimerMachineType(Type type);
 
         /// <summary>
         /// Returns the operation group id of the specified machine id. Returns <see cref="Guid.Empty"/>
