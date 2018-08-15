@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RuntimeService.cs">
+// <copyright file="PSharpRuntime.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,9 +17,9 @@ using Microsoft.PSharp.Runtime;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The P# runtime service.
+    /// The runtime for creating and executing P# machines.
     /// </summary>
-    public static class RuntimeService
+    public static class PSharpRuntime
     {
         /// <summary>
         /// Creates a new state-machine runtime.
@@ -38,16 +38,6 @@ namespace Microsoft.PSharp
         public static IPSharpRuntime Create(Configuration configuration)
         {
             return new ProductionRuntime(configuration);
-        }
-
-        /// <summary>
-        /// Returns the runtime associated with the specified <see cref="MachineId"/>.
-        /// </summary>
-        /// <param name="mid">The id of the machine.</param>
-        /// <returns>The P# runtime.</returns>
-        public static IPSharpRuntime GetRuntime(MachineId mid)
-        {
-            return mid.RuntimeManager.Runtime;
         }
     }
 }

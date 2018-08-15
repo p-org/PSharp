@@ -193,11 +193,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this monitor.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal void Initialize(MachineId mid)
+        /// <param name="runtimeManager">The runtime machine manager.</param>
+        /// <param name="mid">The monitor id.</param>
+        internal void Initialize(IRuntimeMachineManager runtimeManager, MachineId mid)
         {
+            this.RuntimeManager = runtimeManager;
             this.Id = mid;
-            this.RuntimeManager = mid.RuntimeManager;
             this.IsInsideOnExit = false;
             this.CurrentActionCalledTransitionStatement = false;
         }

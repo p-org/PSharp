@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var runtime = RuntimeService.GetRuntime(this.Id);
+                var runtime = this.Id.Runtime;
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
                 var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);

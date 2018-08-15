@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
-                var runtime = RuntimeService.GetRuntime(this.Id);
+                var runtime = this.Id.Runtime;
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M), new E(this.Id));
                 var handled = await runtime.SendEventAndExecuteAsync(m, new LE());
                 this.Assert(handled);
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var creator = (this.ReceivedEvent as E).mid;
-                var runtime = RuntimeService.GetRuntime(this.Id);
+                var runtime = this.Id.Runtime;
                 var handled = await runtime.SendEventAndExecuteAsync(creator, new LE());
                 this.Assert(!handled);
             }

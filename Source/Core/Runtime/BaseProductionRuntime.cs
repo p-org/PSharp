@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.Runtime
             }
             else
             {
-                this.Assert(mid.RuntimeManager == null || mid.RuntimeManager == this,
+                this.Assert(mid.Runtime == null || mid.Runtime == this,
                     "Unbound machine id '{0}' was created by another runtime.", mid.Name);
                 this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Name, mid.Type, type.FullName);

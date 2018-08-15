@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.Runtime
             MachineId mid = this.CreateMachineId(type);
             Monitor monitor = (Monitor)Activator.CreateInstance(type);
 
-            monitor.Initialize(mid);
+            monitor.Initialize(this, mid);
             monitor.InitializeStateInformation();
 
             lock (this.Monitors)

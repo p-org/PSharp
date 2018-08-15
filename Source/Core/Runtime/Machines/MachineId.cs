@@ -23,52 +23,52 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
+    public sealed class MachineId : IMachineId, IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
-        /// The runtime manager that executes the machine with this id.
+        /// The runtime that executes the machine with this id.
         /// </summary>
-        internal IRuntimeMachineManager RuntimeManager { get; private set; }
+        public IPSharpRuntime Runtime { get; private set; }
 
         /// <summary>
         /// Name of the machine.
         /// </summary>
         [DataMember]
-        public readonly string Name;
+        public string Name { get; }
 
         /// <summary>
         /// Optional friendly name of the machine.
         /// </summary>
         [DataMember]
-        public readonly string FriendlyName;
+        public string FriendlyName { get; }
 
         /// <summary>
-        /// Type of the machine with this id.
+        /// Type of the machine.
         /// </summary>
         [DataMember]
-        public readonly string Type;
+        public string Type { get; }
 
         /// <summary>
         /// Unique id value.
         /// </summary>
         [DataMember]
-        public readonly ulong Value;
+        public ulong Value { get; }
 
         /// <summary>
         /// Endpoint.
         /// </summary>
         [DataMember]
-        public readonly string Endpoint;
+        public string Endpoint { get; }
 
         /// <summary>
         /// Creates a new machine id.
         /// </summary>
-        /// <param name="runtimeManager">The runtime machine manager.</param>
+        /// <param name="runtime">The P# runtime.</param>
         /// <param name="type">Machine type</param>
         /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
-        internal MachineId(IRuntimeMachineManager runtimeManager, Type type, ulong value, string friendlyName)
-            : this(runtimeManager, type.FullName, friendlyName, value, runtimeManager.NetworkProvider.LocalEndpoint)
+        internal MachineId(IPSharpRuntime runtime, Type type, ulong value, string friendlyName)
+            : this(runtime, type.FullName, friendlyName, value, runtime.NetworkProvider.LocalEndpoint)
         { }
 
         /// <summary>
@@ -76,27 +76,27 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)
-            : this(mid.RuntimeManager, mid.Type, mid.FriendlyName, mid.Value, mid.Endpoint)
+            : this(mid.Runtime, mid.Type, mid.FriendlyName, mid.Value, mid.Endpoint)
         { }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtimeManager">The runtime machine manager.</param>
+        /// <param name="runtime">The P# runtime.</param>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
         /// <param name="endpoint">Endpoint</param>
-        private MachineId(IRuntimeMachineManager runtimeManager, string type, string friendlyName, ulong value, string endpoint)
+        private MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value, string endpoint)
         {
-            this.RuntimeManager = runtimeManager;
+            this.Runtime = runtime;
             this.Type = type;
             this.FriendlyName = friendlyName;
             this.Value = value;
             this.Endpoint = endpoint;
 
             // Checks for overflow.
-            this.RuntimeManager.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
+            this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
 
             if (this.Endpoint != null && this.Endpoint.Length > 0 && this.FriendlyName != null && this.FriendlyName.Length > 0)
             {
@@ -119,10 +119,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        /// <param name="runtimeManager">The runtime machine manager.</param>
-        internal void Bind(IRuntimeMachineManager runtimeManager)
+        /// <param name="runtime">The P# runtime.</param>
+        internal void Bind(IPSharpRuntime runtime)
         {
-            this.RuntimeManager = runtimeManager;
+            this.Runtime = runtime;
         }
 
         /// <summary>
@@ -131,18 +131,12 @@ namespace Microsoft.PSharp
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is IMachineId mid)
             {
-                return false;
+                return this.Value == mid.Value;
             }
 
-            MachineId mid = obj as MachineId;
-            if (mid == null)
-            {
-                return false;
-            }
-
-            return this.Value == mid.Value;
+            return false;
         }
 
         /// <summary>
@@ -174,6 +168,11 @@ namespace Microsoft.PSharp
             return this.Equals((object)other);
         }
 
+        bool IEquatable<IMachineId>.Equals(IMachineId other)
+        {
+            return this.Equals(other);
+        }
+
         /// <summary>
         /// Compares the specified <see cref="MachineId"/> with the current
         /// <see cref="MachineId"/> for ordering or sorting purposes.
@@ -181,6 +180,11 @@ namespace Microsoft.PSharp
         /// <param name="other"></param>
         /// <returns></returns>
         public int CompareTo(MachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
+        }
+
+        int IComparable<IMachineId>.CompareTo(IMachineId other)
         {
             return string.Compare(this.Name, other?.Name);
         }

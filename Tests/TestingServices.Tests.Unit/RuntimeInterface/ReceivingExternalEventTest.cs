@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var runtime = RuntimeService.GetRuntime(this.Id);
+                var runtime = this.Id.Runtime;
                 Engine.Send(runtime, this.Id);
             }
 

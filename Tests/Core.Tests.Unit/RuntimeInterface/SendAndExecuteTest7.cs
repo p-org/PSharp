@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config).tcs;
-                var runtime = RuntimeService.GetRuntime(this.Id);
+                var runtime = this.Id.Runtime;
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
                 var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);

@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var data = new Data();
-                var runtime = RuntimeService.GetRuntime(this.Id);
+                var runtime = this.Id.Runtime;
                 var m1 = this.CreateMachine(typeof(M1), new E1(data));
                 var m2 = runtime.CreateMachineId(typeof(M1));
                 this.Send(m1, new TerminateReq(this.Id));
