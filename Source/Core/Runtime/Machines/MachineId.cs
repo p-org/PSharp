@@ -55,12 +55,6 @@ namespace Microsoft.PSharp
         public readonly ulong Value;
 
         /// <summary>
-        /// Generation of the runtime that created this machine id.
-        /// </summary>
-        [DataMember]
-        public readonly ulong Generation;
-
-        /// <summary>
         /// Endpoint.
         /// </summary>
         [DataMember]
@@ -74,8 +68,7 @@ namespace Microsoft.PSharp
         /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
         internal MachineId(IRuntimeMachineManager runtimeManager, Type type, ulong value, string friendlyName)
-            : this(runtimeManager, type.FullName, friendlyName, value, runtimeManager.Configuration.RuntimeGeneration,
-                  runtimeManager.NetworkProvider.LocalEndpoint)
+            : this(runtimeManager, type.FullName, friendlyName, value, runtimeManager.NetworkProvider.LocalEndpoint)
         { }
 
         /// <summary>
@@ -83,7 +76,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)
-            : this(mid.RuntimeManager, mid.Type, mid.FriendlyName, mid.Value, mid.Generation, mid.Endpoint)
+            : this(mid.RuntimeManager, mid.Type, mid.FriendlyName, mid.Value, mid.Endpoint)
         { }
 
         /// <summary>
@@ -93,15 +86,13 @@ namespace Microsoft.PSharp
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
-        /// <param name="generation">Runtime generation</param>
         /// <param name="endpoint">Endpoint</param>
-        private MachineId(IRuntimeMachineManager runtimeManager, string type, string friendlyName, ulong value, ulong generation, string endpoint)
+        private MachineId(IRuntimeMachineManager runtimeManager, string type, string friendlyName, ulong value, string endpoint)
         {
             this.RuntimeManager = runtimeManager;
             this.Type = type;
             this.FriendlyName = friendlyName;
             this.Value = value;
-            this.Generation = generation;
             this.Endpoint = endpoint;
 
             // Checks for overflow.
@@ -151,7 +142,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return this.Value == mid.Value && this.Generation == mid.Generation;
+            return this.Value == mid.Value;
         }
 
         /// <summary>
@@ -161,7 +152,6 @@ namespace Microsoft.PSharp
         {
             int hash = 17;
             hash = hash * 23 + this.Value.GetHashCode();
-            hash = hash * 23 + this.Generation.GetHashCode();
             return hash;
         }
 
