@@ -16,8 +16,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if NET46 || NET45
 using System.ServiceModel;
 using System.ServiceModel.Description;
+#endif
 using System.Timers;
 
 using Microsoft.PSharp.IO;

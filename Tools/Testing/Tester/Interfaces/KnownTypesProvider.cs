@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+#if NET46 || NET45
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -40,3 +41,4 @@ namespace Microsoft.PSharp.TestingServices
         }
     }
 }
+#endif
