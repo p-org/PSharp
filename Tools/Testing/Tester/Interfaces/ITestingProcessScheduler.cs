@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+#if NET46 || NET45
 using System.ServiceModel;
 
 namespace Microsoft.PSharp.TestingServices
@@ -41,3 +42,4 @@ namespace Microsoft.PSharp.TestingServices
         void SetTestReport(TestReport testReport, uint processId);
     }
 }
+#endif
