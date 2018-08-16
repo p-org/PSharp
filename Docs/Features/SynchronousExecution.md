@@ -16,8 +16,8 @@ The user should be careful with the use of `Receive` when using these methods. I
 
 Suppose there is a P# machine `M1` that holds some information that we are interested in grabbing. The usual way of getting this information would be to `Send` a "grab" message to `M1` and then wait for its response via `Receive`. However, a `Receive` can only be executed by a machine. How does one get the result outside the context of a machine (or, say, from a static method)? One option is to use these `AndExecute` methods. We can create a trampoline machine that sends the grab message to `M1` and waits for its response. But we create this machine by awaiting `CreateMachineAndExecute`. This will ensure that by the time this calls returns, the trampoline machine would have already grabbed the result, which it can then stash in an object that can be safely shared with the caller without any race conditions. A sample demonstrating this pattern is available in `Samples\SendAndReceive`.  
 
-One can use a [SharedRegister](https://github.com/p-org/PSharp/blob/master/Docs/Features/ObjectSharing.md#sharing-objects-across-machines), which will rule out races but tis still requires a separate protocol to know when the result has been made available.
+One can use a [SharedRegister](https://github.com/p-org/PSharp/blob/master/Docs/Features/ObjectSharing.md#sharing-objects-across-machines), which will rule out races but this still requires a separate protocol to know when the result has been made available.
 
-## Running State Machine synchronously
+## Running a Machine synchronously
 
 Another programming pattern is to drive a state machine synchronously. The program can do `CreateMachineAndExecute` to create the state machine, then repeatedly do `SendEventAndExecute` to make the machine process events one after another. 
