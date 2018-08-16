@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,47 +9,39 @@ namespace SendAndReceive
 {
     class Program
     {
-        /// <summary>
-        /// Main
-        /// </summary>
-        /// <param name="args"></param>
         static void Main(string[] args)
         {
             var runtime = PSharpRuntime.Create();
 
-            // Create a machine
+            // Create a machine.
             var mid = runtime.CreateMachine(typeof(M1));
 
-            // do some work
+            // Do some work.
             runtime.SendEvent(mid, new M1.Inc());
             runtime.SendEvent(mid, new M1.Inc());
             runtime.SendEvent(mid, new M1.Inc());
 
-            // Grab the result from the machine
+            // Grab the result from the machine.
             GetDataAndPrint(runtime, mid).Wait();
         }
 
         /// <summary>
-        /// Gets result from the given machine
+        /// Gets result from the given machine.
         /// </summary>
-        /// <param name="runtime">Runtime</param>
-        /// <param name="mid">machine to get response from</param>
-        /// <returns></returns>
+        /// <param name="runtime">The P# runtime.</param>
+        /// <param name="mid">Machine to get response from.</param>
         static async Task GetDataAndPrint(PSharpRuntime runtime, MachineId mid)
         {
             var resp = await GetReponseMachine<M1.Response>.GetResponse(runtime, mid, m => new M1.Get(m));
             Console.WriteLine("Got response: {0}", resp.v);
         }
-
-
     }
 
     /// <summary>
-    /// Simple machine
+    /// A simple machine.
     /// </summary>
     class M1 : Machine
     {
-        #region events
         public class Get : Event
         {
             public MachineId Mid;
@@ -67,10 +59,9 @@ namespace SendAndReceive
                 this.v = v;
             }
         }
-        #endregion
 
         /// <summary>
-        /// Counter
+        /// The counter.
         /// </summary>
         int x;
 
@@ -91,15 +82,12 @@ namespace SendAndReceive
         }
 
         /// <summary>
-        /// Sends the current value of the counter
+        /// Sends the current value of the counter.
         /// </summary>
         void DoGet()
         {
             var sender = (this.ReceivedEvent as Get).Mid;
             this.Send(sender, new Response(x));
         }
-
     }
-
-
 }
