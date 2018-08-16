@@ -17,9 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\TestingServices\TestingServices.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.1'">
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.5.1" />
-  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
