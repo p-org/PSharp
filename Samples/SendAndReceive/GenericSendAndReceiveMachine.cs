@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +8,16 @@ using Microsoft.PSharp;
 namespace SendAndReceive
 {
     /// <summary>
-    /// Generic machine that helps fetch response
+    /// Generic machine that helps fetch response.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     class GetReponseMachine<T> : Machine where T : Event
     {
         /// <summary>
-        /// Static method for safely getting a response from a machine
+        /// Static method for safely getting a response from a machine.
         /// </summary>
-        /// <param name="runtime">The runtime</param>
-        /// <param name="mid">Target machine Id</param>
-        /// <param name="ev">Event to send whose respose we're interested in getting</param>
-        /// <returns></returns>
+        /// <param name="runtime">The runtime.</param>
+        /// <param name="mid">Target machine id.</param>
+        /// <param name="ev">Event to send whose respose we're interested in getting.</param>
         public static async Task<T> GetResponse(PSharpRuntime runtime, MachineId mid, Func<MachineId, Event> ev)
         {
             var conf = new Config(mid, ev);
@@ -30,7 +28,7 @@ namespace SendAndReceive
         }
 
         /// <summary>
-        /// Internal config event
+        /// Internal config event.
         /// </summary>
         class Config : Event
         {
@@ -46,22 +44,21 @@ namespace SendAndReceive
             }
         }
 
-
         [Start]
         [OnEntry(nameof(Execute))]
         class Init : MachineState { }
 
         async Task Execute()
         {
-            // grab the config event
+            // Grab the config event.
             var config = this.ReceivedEvent as Config;
             // send event to target machine, adding self Id
             this.Send(config.TargetMachineId, config.Ev(this.Id));
-            // wait for the response
+            // Wait for the response.
             var rv = await this.Receive(typeof(T));
-            // stash in the shared config event
+            // Stash in the shared config event.
             config.ReceivedEvent = rv as T;
-            // halt
+            // Finally, halt.
             this.Raise(new Halt());
         }
     }
