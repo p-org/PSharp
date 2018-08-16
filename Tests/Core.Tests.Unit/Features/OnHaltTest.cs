@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Assert(true);
                 this.CreateMachine(typeof(Dummy));
 
-                tcs.SetResult(true);
+                tcs.TrySetResult(true);
             }
         }
 
@@ -151,12 +151,12 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             runtime.OnFailure += delegate
             {
                 failed = true;
-                tcs.SetResult(true);
+                tcs.TrySetResult(true);
             };
 
             runtime.CreateMachine(machine, new E(tcs));
 
-            tcs.Task.Wait(100);
+            tcs.Task.Wait(5000);
             Assert.False(failed);
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             runtime.CreateMachine(machine);
 
-            tcs.Task.Wait(100);
+            tcs.Task.Wait(5000);
             Assert.True(failed);
         }
 
