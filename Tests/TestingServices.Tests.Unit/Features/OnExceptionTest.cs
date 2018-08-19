@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task Act()
             {
-                await Task.Yield();
+                await Task.CompletedTask;
                 throw new Ex1();
             }
 
