@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.Runtime
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public abstract class BaseMachineId : IMachineId
+    public abstract class BaseMachineId
     {
         /// <summary>
         /// Name of the machine.
