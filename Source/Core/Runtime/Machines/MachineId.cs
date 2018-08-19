@@ -23,12 +23,36 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId : BaseMachineId, IEquatable<MachineId>, IComparable<MachineId>
+    public sealed class MachineId : IMachineId, IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
         /// The runtime that executes the machine with this id.
         /// </summary>
         public IPSharpRuntime Runtime { get; private set; }
+
+        /// <summary>
+        /// Unique id value.
+        /// </summary>
+        [DataMember]
+        public ulong Value { get; }
+
+        /// <summary>
+        /// Type of the machine.
+        /// </summary>
+        [DataMember]
+        public string Type { get; }
+
+        /// <summary>
+        /// Name of the machine.
+        /// </summary>
+        [DataMember]
+        public string Name { get; }
+
+        /// <summary>
+        /// Optional friendly name of the machine.
+        /// </summary>
+        [DataMember]
+        public string FriendlyName { get; }
 
         /// <summary>
         /// Creates a new machine id.
@@ -57,9 +81,11 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
         private MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value)
-            : base(type, friendlyName, value)
         {
             this.Runtime = runtime;
+            this.Value = value;
+            this.Type = type;
+            this.FriendlyName = friendlyName;
 
             if (friendlyName != null && friendlyName.Length > 0)
             {
@@ -81,6 +107,38 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Determines whether the specified <see cref="object"/> is equal
+        /// to the current <see cref="object"/>.
+        /// </summary>
+        public override bool Equals(object obj)
+        {
+            if (obj is IMachineId mid)
+            {
+                return this.Value == mid.Value;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + this.Value.GetHashCode();
+            return hash;
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current machine id.
+        /// </summary>
+        public override string ToString()
+        {
+            return this.Name;
+        }
+
+        /// <summary>
         /// Indicates whether the specified <see cref="MachineId"/> is equal
         /// to the current <see cref="MachineId"/>.
         /// </summary>
@@ -98,6 +156,16 @@ namespace Microsoft.PSharp
         /// <param name="other"></param>
         /// <returns></returns>
         public int CompareTo(MachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
+        }
+
+        bool IEquatable<IMachineId>.Equals(IMachineId other)
+        {
+            return this.Equals(other);
+        }
+
+        int IComparable<IMachineId>.CompareTo(IMachineId other)
         {
             return string.Compare(this.Name, other?.Name);
         }
