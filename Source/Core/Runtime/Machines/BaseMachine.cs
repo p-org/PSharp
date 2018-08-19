@@ -398,6 +398,29 @@ namespace Microsoft.PSharp.Runtime
         /// </returns>
         internal abstract Task<MachineStatus> EnqueueAsync(EventInfo eventInfo, IMachine sender);
 
+        /// <summary>
+        /// Returns the raised <see cref="EventInfo"/> if
+        /// there is one available, else returns null.
+        /// </summary>
+        /// <returns>EventInfo</returns>
+        private protected EventInfo TryGetRaisedEvent()
+        {
+            EventInfo raisedEventInfo = null;
+            if (this.RaisedEvent != null)
+            {
+                raisedEventInfo = this.RaisedEvent;
+                this.RaisedEvent = null;
+
+                // Checks if the raised event is ignored.
+                if (this.IsIgnored(raisedEventInfo.EventType))
+                {
+                    raisedEventInfo = null;
+                }
+            }
+
+            return raisedEventInfo;
+        }
+
         #endregion
 
         #region event and action handling

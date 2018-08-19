@@ -237,9 +237,9 @@ namespace Microsoft.PSharp
         protected Task SendAsync(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"{this.Name} is sending to a null machine.");
+            this.CheckProperty(mid != null, $"{this.Name} is sending to a null machine.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"{this.Name} is sending a null event.");
+            this.CheckProperty(e != null, $"{this.Name} is sending a null event.");
             return this.RuntimeManager.SendEventAsync(mid, e, this, options);
         }
 
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
         protected internal Task<Event> Receive(params Type[] eventTypes)
         {
-            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
+            this.CheckProperty(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -274,7 +274,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
         protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
+            this.CheckProperty(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -294,7 +294,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
         protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
+            this.CheckProperty(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -317,9 +317,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected void Raise(Event e)
         {
-            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Raise while halted.");
+            this.CheckProperty(!this.Info.IsHalted, $"{this.Name} invoked Raise while halted.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"{this.Name} is raising a null event.");
+            this.CheckProperty(e != null, $"{this.Name} is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(this.Id, this.GetType().Name,
                 StateGroup.GetQualifiedStateName(this.CurrentState)));
             this.RuntimeManager.NotifyRaisedEvent(this, this.RaisedEvent);
@@ -345,9 +345,9 @@ namespace Microsoft.PSharp
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
-            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Goto while halted.");
+            this.CheckProperty(!this.Info.IsHalted, $"{this.Name} invoked Goto while halted.");
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Any(val
+            this.CheckProperty(StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
                 val.Name.Equals(s.Name)), $"{this.Name} is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
@@ -374,9 +374,9 @@ namespace Microsoft.PSharp
         [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
         protected void Push(Type s)
         {
-            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Push while halted.");
+            this.CheckProperty(!this.Info.IsHalted, $"{this.Name} invoked Push while halted.");
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Any(val
+            this.CheckProperty(StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
                 val.Name.Equals(s.Name)), $"{this.Name} is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new PushStateEvent(s));
@@ -410,7 +410,7 @@ namespace Microsoft.PSharp
         protected void Monitor(Type type, Event e)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"{this.Name} is sending a null event.");
+            this.CheckProperty(e != null, $"{this.Name} is sending a null event.");
             this.RuntimeManager.Monitor(type, this, e);
         }
 
@@ -529,7 +529,7 @@ namespace Microsoft.PSharp
                 if (eventInfo.Event.Assert >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(eventCount <= eventInfo.Event.Assert, "There are more than " +
+                    this.CheckProperty(eventCount <= eventInfo.Event.Assert, "There are more than " +
                         $"{eventInfo.Event.Assert} instances of '{eventInfo.EventName}' " +
                         $"in the input queue of machine '{this}'");
                 }
@@ -537,7 +537,7 @@ namespace Microsoft.PSharp
                 if (eventInfo.Event.Assume >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(eventCount <= eventInfo.Event.Assume, "There are more than " +
+                    this.CheckProperty(eventCount <= eventInfo.Event.Assume, "There are more than " +
                         $"{eventInfo.Event.Assume} instances of '{eventInfo.EventName}' " +
                         $"in the input queue of machine '{this}'");
                 }
@@ -643,29 +643,6 @@ namespace Microsoft.PSharp
             }
 
             return nextAvailableEventInfo;
-        }
-
-        /// <summary>
-        /// Returns the raised <see cref="EventInfo"/> if
-        /// there is one available, else returns null.
-        /// </summary>
-        /// <returns>EventInfo</returns>
-        private protected EventInfo TryGetRaisedEvent()
-        {
-            EventInfo raisedEventInfo = null;
-            if (this.RaisedEvent != null)
-            {
-                raisedEventInfo = this.RaisedEvent;
-                this.RaisedEvent = null;
-
-                // Checks if the raised event is ignored.
-                if (this.IsIgnored(raisedEventInfo.EventType))
-                {
-                    raisedEventInfo = null;
-                }
-            }
-
-            return raisedEventInfo;
         }
 
         #endregion
@@ -1136,7 +1113,7 @@ namespace Microsoft.PSharp
                 if (this.RuntimeManager.IsTestingModeEnabled)
                 {
                     var mustHandleEvent = this.Inbox.FirstOrDefault(ev => ev.MustHandle);
-                    this.Assert(mustHandleEvent == null,
+                    this.CheckProperty(mustHandleEvent == null,
                         "Machine '{0}' halted before dequeueing must-handle event '{1}'.\n",
                         this.Id, mustHandleEvent?.EventName ?? String.Empty);
                 }

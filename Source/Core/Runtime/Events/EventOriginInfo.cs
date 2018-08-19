@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.Runtime
         /// The sender machine id.
         /// </summary>
         [DataMember]
-        internal MachineId SenderMachineId { get; private set; }
+        internal IMachineId SenderMachineId { get; private set; }
 
         /// <summary>
         /// The sender machine name.
@@ -46,8 +46,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="senderMachineId">Sender machine id</param>
         /// <param name="senderMachineName">Sender machine name</param>
         /// <param name="senderStateName">Sender state name</param>
-        internal EventOriginInfo(MachineId senderMachineId, string senderMachineName,
-            string senderStateName)
+        internal EventOriginInfo(IMachineId senderMachineId, string senderMachineName, string senderStateName)
         {
             this.SenderMachineId = senderMachineId;
             this.SenderMachineName = senderMachineName;

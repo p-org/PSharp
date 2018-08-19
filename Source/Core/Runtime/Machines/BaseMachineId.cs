@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.Runtime
@@ -20,8 +21,20 @@ namespace Microsoft.PSharp.Runtime
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public abstract class BaseMachineId
+    public abstract class BaseMachineId : IMachineId
     {
+        /// <summary>
+        /// Unique id value.
+        /// </summary>
+        [DataMember]
+        public ulong Value { get; }
+
+        /// <summary>
+        /// Type of the machine.
+        /// </summary>
+        [DataMember]
+        public string Type { get; }
+
         /// <summary>
         /// Name of the machine.
         /// </summary>
@@ -33,18 +46,6 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         [DataMember]
         public string FriendlyName { get; }
-
-        /// <summary>
-        /// Type of the machine.
-        /// </summary>
-        [DataMember]
-        public string Type { get; }
-
-        /// <summary>
-        /// Unique id value.
-        /// </summary>
-        [DataMember]
-        public ulong Value { get; }
 
         /// <summary>
         /// Constructor.
@@ -89,6 +90,16 @@ namespace Microsoft.PSharp.Runtime
         public override string ToString()
         {
             return this.Name;
+        }
+
+        bool IEquatable<IMachineId>.Equals(IMachineId other)
+        {
+            return this.Equals(other);
+        }
+
+        int IComparable<IMachineId>.CompareTo(IMachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
         }
     }
 }
