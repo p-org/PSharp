@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.Runtime
         MachineInfo Info { get; }
 
         /// <summary>
+        /// The unique name of this machine.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Dictionary containing all the current goto state transitions.
         /// </summary>
         Dictionary<Type, GotoStateTransition> GotoTransitions { get; }

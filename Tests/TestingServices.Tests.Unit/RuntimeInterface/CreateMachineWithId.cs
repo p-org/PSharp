@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(m2, typeof(M2));
             });
 
-            base.AssertFailed(test, "Machine with id '' is already bound to an existing machine.", true);
+            base.AssertFailed(test, "Machine id '' is already bound to an existing machine.", true);
         }
 
         [Fact]
@@ -229,7 +229,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(m, typeof(M2));
             });
 
-            base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be reused to create a new machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2", false);
+            base.AssertFailed(test, "Machine id '' of a previously halted machine cannot be reused to create a new " +
+                "machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2'.", false);
         }
 
         class E2: Event

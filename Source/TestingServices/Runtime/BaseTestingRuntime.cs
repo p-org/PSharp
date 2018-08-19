@@ -465,10 +465,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
-            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.", mid.Value);
+            this.Assert(result, "Machine id '{0}' is already bound to an existing machine.", mid.Value);
 
-            this.Assert(!this.CreatedMachineIds.Contains(mid), "MachineId '{0}' of a previously halted machine cannot be reused " +
-                "to create a new machine of type {1}", mid.Value, type.FullName);
+            this.Assert(!this.CreatedMachineIds.Contains(mid), "Machine id '{0}' of a previously halted machine cannot be reused " +
+                "to create a new machine of type '{1}'.", mid.Value, type.FullName);
             this.CreatedMachineIds.Add(mid);
 
             this.Logger.OnCreateMachine(mid, creator?.Id);

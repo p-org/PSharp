@@ -90,6 +90,11 @@ namespace Microsoft.PSharp.Runtime
         private protected string Name { get; private set; }
 
         /// <summary>
+        /// The unique name of this machine.
+        /// </summary>
+        string IMachine.Name => this.Name;
+
+        /// <summary>
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>

@@ -105,6 +105,8 @@ namespace Microsoft.PSharp.Runtime
         {
             // Atomically increments and safely wraps into an unsigned long.
             ulong value = (ulong)Interlocked.Increment(ref this.MachineIdCounter) - 1;
+            // Checks for overflow.
+            this.Assert(value != ulong.MaxValue, "Detected machine id overflow.");
             return new MachineId(this, type, value, friendlyName);
         }
 

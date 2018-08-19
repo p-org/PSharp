@@ -23,36 +23,12 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public class MachineId : /*IMachineId,*/ IEquatable<MachineId>, IComparable<MachineId>
+    public sealed class MachineId : BaseMachineId, IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
         /// The runtime that executes the machine with this id.
         /// </summary>
         public IPSharpRuntime Runtime { get; private set; }
-
-        /// <summary>
-        /// Name of the machine.
-        /// </summary>
-        [DataMember]
-        public string Name { get; }
-
-        /// <summary>
-        /// Optional friendly name of the machine.
-        /// </summary>
-        [DataMember]
-        public string FriendlyName { get; }
-
-        /// <summary>
-        /// Type of the machine.
-        /// </summary>
-        [DataMember]
-        public string Type { get; }
-
-        /// <summary>
-        /// Unique id value.
-        /// </summary>
-        [DataMember]
-        public ulong Value { get; }
 
         /// <summary>
         /// Creates a new machine id.
@@ -80,23 +56,18 @@ namespace Microsoft.PSharp
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
-        protected MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value)
+        private MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value)
+            : base(type, friendlyName, value)
         {
             this.Runtime = runtime;
-            this.Type = type;
-            this.FriendlyName = friendlyName;
-            this.Value = value;
 
-            // Checks for overflow.
-            this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
-
-            if (this.FriendlyName != null && this.FriendlyName.Length > 0)
+            if (friendlyName != null && friendlyName.Length > 0)
             {
-                this.Name = string.Format("{0}({1})", this.FriendlyName, this.Value);
+                this.Name = string.Format("{0}({1})", friendlyName, value);
             }
             else
             {
-                this.Name = string.Format("{0}({1})", this.Type, this.Value);
+                this.Name = string.Format("{0}({1})", type, value);
             }
         }
 
@@ -107,38 +78,6 @@ namespace Microsoft.PSharp
         internal void Bind(IPSharpRuntime runtime)
         {
             this.Runtime = runtime;
-        }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal
-        /// to the current <see cref="object"/>.
-        /// </summary>
-        public override bool Equals(object obj)
-        {
-            if (obj is MachineId mid)
-            {
-                return this.Value == mid.Value;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            int hash = 17;
-            hash = hash * 23 + this.Value.GetHashCode();
-            return hash;
-        }
-
-        /// <summary>
-        /// Returns a string that represents the current machine id.
-        /// </summary>
-        public override string ToString()
-        {
-            return this.Name;
         }
 
         /// <summary>
@@ -162,15 +101,5 @@ namespace Microsoft.PSharp
         {
             return string.Compare(this.Name, other?.Name);
         }
-
-        //bool IEquatable<IMachineId>.Equals(IMachineId other)
-        //{
-        //    return this.Equals(other);
-        //}
-
-        //int IComparable<IMachineId>.CompareTo(IMachineId other)
-        //{
-        //    return string.Compare(this.Name, other?.Name);
-        //}
     }
 }

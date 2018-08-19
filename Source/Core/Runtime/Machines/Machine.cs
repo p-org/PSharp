@@ -186,9 +186,9 @@ namespace Microsoft.PSharp
         protected Task SendAsync(MachineId mid, Event e, SendOptions options = null)
         {
             // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{this.Id}' is sending to a null machine.");
+            this.Assert(mid != null, $"{this.Name} is sending to a null machine.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
+            this.Assert(e != null, $"{this.Name} is sending a null event.");
             return this.RuntimeManager.SendEventAsync(mid, e, this, options);
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
         protected internal Task<Event> Receive(params Type[] eventTypes)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -223,7 +223,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
         protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the received <see cref="Event"/>.</returns>
         protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Receive while halted.");
             this.RuntimeManager.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
