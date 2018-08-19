@@ -31,9 +31,9 @@ namespace Microsoft.PSharp.Runtime
     internal abstract class BaseRuntime : IPSharpRuntime, IRuntimeMachineManager
     {
         /// <summary>
-        /// Map of unique machine ids to machines.
+        /// Map of unique machine id values to machines.
         /// </summary>
-        private protected readonly ConcurrentDictionary<MachineId, IMachine> MachineMap;
+        private protected readonly ConcurrentDictionary<ulong, IMachine> MachineMap;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Runtime
         {
             this.Configuration = configuration;
             this.MachineIdCounter = 0;
-            this.MachineMap = new ConcurrentDictionary<MachineId, IMachine>();
+            this.MachineMap = new ConcurrentDictionary<ulong, IMachine>();
             this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
             this.IsRunning = true;
@@ -365,10 +365,10 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="sender">The machine that is sending the event.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
-        protected bool GetTargetMachine(MachineId targetMachineId, Event e, IMachine sender,
-            Guid operationGroupId, out IMachine targetMachine)
+        protected bool GetTargetMachine(MachineId targetMachineId, Event e, IMachine sender, Guid? operationGroupId,
+            out IMachine targetMachine)
         {
-            if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
+            if (!this.MachineMap.TryGetValue(targetMachineId.Value, out targetMachine))
             {
                 var senderState = sender?.CurrentStateName ?? String.Empty;
                 this.Logger.OnSend(targetMachineId, sender?.Id, senderState,
@@ -587,6 +587,64 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Notifies that a machine is performing a 'goto' transition to the specified state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyGotoState(IMachine machine, string currentStateName, string newStateName)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine is performing a 'push' transition to the specified state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyPushState(IMachine machine, string currentStateName, string newStateName)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine is performing a 'pop' transition from the current state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="restoredStateName">The name of the state being restored, if any.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyPopState(IMachine machine, string currentStateName, string restoredStateName)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine popped its state because it cannot handle the current event.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="eventName">The name of the event that cannot be handled.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyPopUnhandledEvent(IMachine machine, string currentStateName, string eventName)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked the 'pop' state action.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyPopAction(IMachine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
         /// <param name="machine">The machine.</param>
@@ -599,7 +657,7 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine completed invoking an action.
+        /// Notifies that a machine completed an action.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
@@ -667,16 +725,6 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine invoked pop.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyPop(IMachine machine)
-        {
-            // Override to implement the notification.
-        }
-
-        /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">The machine.</param>
@@ -710,32 +758,6 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine has halted.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <returns>Task that represents the asynchronous operation.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual Task NotifyHaltedAsync(IMachine machine)
-        {
-#if NET45
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
-        }
-
-        /// <summary>
-        /// Notifies that a machine has halted.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="inbox">The machine inbox.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyHalted(IMachine machine, LinkedList<EventInfo> inbox)
-        {
-            // Override to implement the notification.
-        }
-
-        /// <summary>
         /// Notifies that the inbox of the specified machine is about to be
         /// checked to see if the default event handler should fire.
         /// </summary>
@@ -751,6 +773,48 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="machine">The machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void NotifyDefaultHandlerFired(IMachine machine)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine has halted.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual Task NotifyHaltedAsync(IMachine machine)
+        {
+            // Override to implement the notification.
+#if NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
+        }
+
+        /// <summary>
+        /// Notifies that a machine is throwing an exception.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine is using 'OnException' to handle a thrown exception.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="ex">The exception.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void NotifyMachineExceptionHandled(IMachine machine, string currentStateName, string actionName, Exception ex)
         {
             // Override to implement the notification.
         }
@@ -799,9 +863,9 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the operation group id of the specified machine. During testing,
         /// the runtime asserts that the specified machine is currently executing.
         /// </summary>
-        /// <param name="currentMachine">MachineId of the currently executing machine.</param>
+        /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        public abstract Guid GetCurrentOperationGroupId(MachineId currentMachine);
+        public abstract Guid GetCurrentOperationGroupId(MachineId currentMachineId);
 
         /// <summary>
         /// Gets the new operation group id to propagate.

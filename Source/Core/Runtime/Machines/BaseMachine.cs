@@ -510,7 +510,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         protected void Pop()
         {
-            this.RuntimeManager.NotifyPop(this);
+            this.RuntimeManager.NotifyPopAction(this);
             this.IsPopInvoked = true;
         }
 

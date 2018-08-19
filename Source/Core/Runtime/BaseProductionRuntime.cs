@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.Runtime
 
             IMachine machine = await this.CreateMachineAsync(mid, type);
 
-            bool result = this.MachineMap.TryAdd(mid, machine);
+            bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, "MachineId {0} = This typically occurs " +
                 "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
                 "runtime generation was deserialized, but the current runtime has not increased its generation value.",
@@ -502,6 +502,50 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Notifies that a machine is performing a 'goto' transition to the specified state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state of goto.</param>
+        public override void NotifyGotoState(IMachine machine, string currentStateName, string newStateName)
+        {
+            this.Logger.OnGoto(machine.Id, currentStateName, newStateName);
+        }
+
+        /// <summary>
+        /// Notifies that a machine is performing a 'goto' transition to the specified state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        public override void NotifyPushState(IMachine machine, string currentStateName, string newStateName)
+        {
+            this.Logger.OnPush(machine.Id, currentStateName, newStateName);
+        }
+
+        /// <summary>
+        /// Notifies that a machine is performing a 'pop' transition from the current state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="restoredStateName">The name of the state being restored, if any.</param>
+        public override void NotifyPopState(IMachine machine, string currentStateName, string restoredStateName)
+        {
+            this.Logger.OnPop(machine.Id, currentStateName, restoredStateName);
+        }
+
+        /// <summary>
+        /// Notifies that a machine popped its state because it cannot handle the current event.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="eventName">The name of the event that cannot be handled.</param>
+        public override void NotifyPopUnhandledEvent(IMachine machine, string currentStateName, string eventName)
+        {
+            this.Logger.OnPopUnhandledEvent(machine.Id, currentStateName, eventName);
+        }
+
+        /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
         /// <param name="machine">The machine.</param>
@@ -616,12 +660,36 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Task that represents the asynchronous operation.</returns>
         public override Task NotifyHaltedAsync(IMachine machine)
         {
-            this.MachineMap.TryRemove(machine.Id, out machine);
+            this.MachineMap.TryRemove(machine.Id.Value, out machine);
 #if NET45
             return Task.FromResult(0);
 #else
             return Task.CompletedTask;
 #endif
+        }
+
+        /// <summary>
+        /// Notifies that a machine is throwing an exception.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        public override void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex)
+        {
+            this.Logger.OnMachineExceptionThrown(machine.Id, currentStateName, actionName, ex);
+        }
+
+        /// <summary>
+        /// Notifies that a machine is using 'OnException' to handle a thrown exception.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="ex">The exception.</param>
+        public override void NotifyMachineExceptionHandled(IMachine machine, string currentStateName, string actionName, Exception ex)
+        {
+            this.Logger.OnMachineExceptionHandled(machine.Id, currentStateName, actionName, ex);
         }
 
         #endregion
@@ -633,11 +701,11 @@ namespace Microsoft.PSharp.Runtime
         /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
-        /// <param name="currentMachine">MachineId of the currently executing machine.</param>
+        /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
+        public override Guid GetCurrentOperationGroupId(MachineId currentMachineId)
         {
-            if (!this.MachineMap.TryGetValue(currentMachine, out IMachine machine))
+            if (!this.MachineMap.TryGetValue(currentMachineId.Value, out IMachine machine))
             {
                 return Guid.Empty;
             }

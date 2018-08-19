@@ -201,6 +201,44 @@ namespace Microsoft.PSharp.Runtime
         void NotifyExitedState(Monitor monitor);
 
         /// <summary>
+        /// Notifies that a machine is performing a 'goto' transition to the specified state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        void NotifyGotoState(IMachine machine, string currentStateName, string newStateName);
+
+        /// <summary>
+        /// Notifies that a machine is performing a 'push' transition to the specified state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        void NotifyPushState(IMachine machine, string currentStateName, string newStateName);
+
+        /// <summary>
+        /// Notifies that a machine is performing a 'pop' transition from the current state.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="restoredStateName">The name of the state being restored, if any.</param>
+        void NotifyPopState(IMachine machine, string currentStateName, string restoredStateName);
+
+        /// <summary>
+        /// Notifies that a machine popped its state because it cannot handle the current event.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="eventName">The name of the event that cannot be handled.</param>
+        void NotifyPopUnhandledEvent(IMachine machine, string currentStateName, string eventName);
+
+        /// <summary>
+        /// Notifies that a machine invoked the 'pop' state action.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        void NotifyPopAction(IMachine machine);
+
+        /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
         /// <param name="machine">The machine.</param>
@@ -209,7 +247,7 @@ namespace Microsoft.PSharp.Runtime
         void NotifyInvokedAction(IMachine machine, MethodInfo action, Event receivedEvent);
 
         /// <summary>
-        /// Notifies that a machine completed invoking an action.
+        /// Notifies that a machine completed an action.
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="action">Action</param>
@@ -253,12 +291,6 @@ namespace Microsoft.PSharp.Runtime
         void NotifyDequeuedEvent(IMachine machine, EventInfo eventInfo);
 
         /// <summary>
-        /// Notifies that a machine invoked pop.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        void NotifyPop(IMachine machine);
-
-        /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
         /// <param name="machine">The machine.</param>
@@ -280,13 +312,6 @@ namespace Microsoft.PSharp.Runtime
         void NotifyReceivedEvent(IMachine machine, EventInfo eventInfo);
 
         /// <summary>
-        /// Notifies that a machine has halted.
-        /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <returns>Task that represents the asynchronous operation.</returns>
-        Task NotifyHaltedAsync(IMachine machine);
-
-        /// <summary>
         /// Notifies that the inbox of the specified machine is about to be
         /// checked to see if the default event handler should fire.
         /// </summary>
@@ -297,6 +322,31 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         void NotifyDefaultHandlerFired(IMachine machine);
+
+        /// <summary>
+        /// Notifies that a machine has halted.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        Task NotifyHaltedAsync(IMachine machine);
+
+        /// <summary>
+        /// Notifies that a machine is throwing an exception.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="ex">The exception.</param>
+        void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex);
+
+        /// <summary>
+        /// Notifies that a machine is using 'OnException' to handle a thrown exception.
+        /// </summary>
+        /// <param name="machine">The machine.</param>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="ex">The exception.</param>
+        void NotifyMachineExceptionHandled(IMachine machine, string currentStateName, string actionName, Exception ex);
 
         #endregion
 

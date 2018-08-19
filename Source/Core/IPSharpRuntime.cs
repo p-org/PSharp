@@ -315,9 +315,9 @@ namespace Microsoft.PSharp
         /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
-        /// <param name="currentMachine">MachineId of the currently executing machine.</param>
+        /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        Guid GetCurrentOperationGroupId(MachineId currentMachine);
+        Guid GetCurrentOperationGroupId(MachineId currentMachineId);
 
         /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
