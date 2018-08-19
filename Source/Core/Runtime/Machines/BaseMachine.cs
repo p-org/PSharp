@@ -63,6 +63,33 @@ namespace Microsoft.PSharp.Runtime
         private protected IRuntimeMachineManager RuntimeManager;
 
         /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        private protected MachineId MachineId { get; private set; }
+
+        /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        MachineId IMachine.Id => this.MachineId;
+
+        /// <summary>
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
+        /// </summary>
+        internal MachineInfo Info { get; private set; }
+
+        /// <summary>
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
+        /// </summary>
+        MachineInfo IMachine.Info => this.Info;
+
+        /// <summary>
+        /// The unique name of this machine.
+        /// </summary>
+        private protected string Name { get; private set; }
+
+        /// <summary>
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
@@ -96,35 +123,13 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Is pop invoked in the current action.
         /// </summary>
-        private bool IsPopInvoked;
+        private protected bool IsPopInvoked;
 
         /// <summary>
         /// User OnException asked for the machine to be gracefully halted
         /// (suppressing the exception).
         /// </summary>
         private bool OnExceptionRequestedGracefulHalt;
-
-        /// <summary>
-        /// The unique machine id.
-        /// </summary>
-        protected internal MachineId Id { get; private set; }
-
-        /// <summary>
-        /// The unique machine id.
-        /// </summary>
-        MachineId IMachine.Id => this.Id;
-
-        /// <summary>
-        /// Stores machine-related information, which can used
-        /// for scheduling and testing.
-        /// </summary>
-        internal MachineInfo Info { get; private set; }
-
-        /// <summary>
-        /// Stores machine-related information, which can used
-        /// for scheduling and testing.
-        /// </summary>
-        MachineInfo IMachine.Info => this.Info;
 
         /// <summary>
         /// The logger installed to the P# runtime.
@@ -224,11 +229,11 @@ namespace Microsoft.PSharp.Runtime
         {
             get
             {
-                return Info.OperationGroupId;
+                return this.Info.OperationGroupId;
             }
             set
             {
-                Info.OperationGroupId = value;
+                this.Info.OperationGroupId = value;
             }
         }
 
@@ -265,12 +270,14 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="runtimeManager">The runtime machine manager.</param>
         /// <param name="mid">The id of this machine.</param>
         /// <param name="info">The metadata of this machine.</param>
+        /// <param name="name">The unique name of this machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        internal Task InitializeAsync(IRuntimeMachineManager runtimeManager, MachineId mid, MachineInfo info)
+        internal Task InitializeAsync(IRuntimeMachineManager runtimeManager, MachineId mid, MachineInfo info, string name)
         {
             this.RuntimeManager = runtimeManager;
-            this.Id = mid;
+            this.MachineId = mid;
             this.Info = info;
+            this.Name = name;
             return this.InitializeStateInformationAsync();
         }
 
@@ -344,7 +351,7 @@ namespace Microsoft.PSharp.Runtime
                         }
                         catch (InvalidOperationException ex)
                         {
-                            this.Assert(false, $"Machine '{this.Id}' {ex.Message} in state '{state}'.");
+                            this.Assert(false, $"{this.Name} {ex.Message} in state '{state}'.");
                         }
 
                         StateMap[machineType].Add(state);
@@ -418,9 +425,8 @@ namespace Microsoft.PSharp.Runtime
             this.MachineStates = StateMap[machineType];
 
             var initialStates = this.MachineStates.Where(state => state.IsStart).ToList();
-            this.Assert(initialStates.Count != 0, $"Machine '{this.Id}' must declare a start state.");
-            this.Assert(initialStates.Count == 1, $"Machine '{this.Id}' " +
-                "can not declare more than one start states.");
+            this.Assert(initialStates.Count != 0, $"{this.Name} must declare a start state.");
+            this.Assert(initialStates.Count == 1, $"{this.Name} can not declare more than one start states.");
 
             await this.DoStatePushAsync(initialStates.Single());
 
@@ -437,11 +443,11 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="e">Event</param>
         protected void Raise(Event e)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Raise while halted.");
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Raise while halted.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is raising a null event.");
-            this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
-                this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+            this.Assert(e != null, $"{this.Name} is raising a null event.");
+            this.RaisedEvent = new EventInfo(e, new EventOriginInfo(this.MachineId, this.GetType().Name,
+                StateGroup.GetQualifiedStateName(this.CurrentState)));
             this.RuntimeManager.NotifyRaisedEvent(this, this.RaisedEvent);
         }
 
@@ -465,12 +471,11 @@ namespace Microsoft.PSharp.Runtime
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Goto while halted.");
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Goto while halted.");
             // If the state is not a state of the machine, then report an error and exit.
             this.Assert(StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
-                val.Name.Equals(s.Name)), $"Machine '{this.Id}' " +
-                $"is trying to transition to non-existing state '{s.Name}'.");
+                val.Name.Equals(s.Name)), $"{this.Name} is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
 
@@ -495,12 +500,11 @@ namespace Microsoft.PSharp.Runtime
         [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
         protected void Push(Type s)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Push while halted.");
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Push while halted.");
             // If the state is not a state of the machine, then report an error and exit.
             this.Assert(StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
-                val.Name.Equals(s.Name)), $"Machine '{this.Id}' " +
-                $"is trying to transition to non-existing state '{s.Name}'.");
+                val.Name.Equals(s.Name)), $"{this.Name} is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new PushStateEvent(s));
         }
 
@@ -532,7 +536,7 @@ namespace Microsoft.PSharp.Runtime
         protected void Monitor(Type type, Event e)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
+            this.Assert(e != null, $"{this.Name} is sending a null event.");
             this.RuntimeManager.Monitor(type, this, e);
         }
 
@@ -572,7 +576,7 @@ namespace Microsoft.PSharp.Runtime
             [CallerFilePath] string callerFilePath = "",
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            var havocId = string.Format("{0}_{1}_{2}_{3}_{4}", this.Id.Name, this.CurrentStateName,
+            var havocId = string.Format("{0}_{1}_{2}_{3}_{4}", this.MachineId.Name, this.CurrentStateName,
                 callerMemberName, callerFilePath, callerLineNumber);
             return this.RuntimeManager.GetFairNondeterministicBooleanChoice(this, havocId);
         }
@@ -661,17 +665,6 @@ namespace Microsoft.PSharp.Runtime
             return raisedEventInfo;
         }
 
-        /// <summary>
-        /// Returns the default <see cref="EventInfo"/>.
-        /// </summary>
-        /// <returns>EventInfo</returns>
-        private protected EventInfo GetDefaultEvent()
-        {
-            this.RuntimeManager.Logger.OnDefault(this.Id, this.CurrentStateName);
-            return new EventInfo(new Default(), new EventOriginInfo(
-                this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-        }
-
         #endregion
 
         #region event and action handling
@@ -735,7 +728,7 @@ namespace Microsoft.PSharp.Runtime
                     }
 
                     var unhandledEx = new UnhandledEventException(currentState, e, "Unhandled Event");
-                    if (OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
+                    if (this.OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
                     {
                         await this.HaltMachineAsync();
                         return;
@@ -743,8 +736,7 @@ namespace Microsoft.PSharp.Runtime
                     else
                     {
                         // If the event cannot be handled then report an error and exit.
-                        this.Assert(false, $"Machine '{this.Id}' received event " +
-                            $"'{e.GetType().FullName}' that cannot be handled.");
+                        this.Assert(false, $"{this.Name} received event '{e.GetType().FullName}' that cannot be handled.");
                     }
                 }
 
@@ -806,7 +798,7 @@ namespace Microsoft.PSharp.Runtime
                     }
 
                     await this.DoStatePopAsync();
-                    this.RuntimeManager.Logger.OnPopUnhandledEvent(this.Id, this.CurrentStateName, e.GetType().FullName);
+                    this.RuntimeManager.NotifyPopUnhandledEvent(this, this.CurrentStateName, e.GetType().FullName);
                     continue;
                 }
 
@@ -933,7 +925,7 @@ namespace Microsoft.PSharp.Runtime
                         // We have no reliable stack for awaited operations.
                         await cachedAction.ExecuteAsync();
                     }
-                    catch (Exception ex) when (OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
                     {
                         // user handled the exception, return normally
                     }
@@ -945,11 +937,11 @@ namespace Microsoft.PSharp.Runtime
                     {
                         cachedAction.Execute();
                     }
-                    catch (Exception ex) when (OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
                     {
                         // user handled the exception, return normally
                     }
-                    catch (Exception ex) when (!OnExceptionRequestedGracefulHalt && InvokeOnFailureExceptionFilter(cachedAction, ex))
+                    catch (Exception ex) when (!this.OnExceptionRequestedGracefulHalt && this.InvokeOnFailureExceptionFilter(cachedAction, ex))
                     {
                         // If InvokeOnFailureExceptionFilter does not fail-fast, it returns
                         // false to process the exception normally.
@@ -972,12 +964,12 @@ namespace Microsoft.PSharp.Runtime
                 if (innerException is ExecutionCanceledException)
                 {
                     this.Info.IsHalted = true;
-                    Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from Machine '{this.Id}'.");
+                    Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from {this.Name}.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     this.Info.IsHalted = true;
-                    Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from Machine '{this.Id}'.");
+                    Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from {this.Name}.");
                 }
                 else if (OnExceptionRequestedGracefulHalt)
                 {
@@ -1000,8 +992,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Task that represents the asynchronous operation.</returns>
         private async Task GotoState(Type s, string onExitActionName)
         {
-            this.Logger.OnGoto(this.Id, this.CurrentStateName,
-                $"{s.DeclaringType}.{StateGroup.GetQualifiedStateName(s)}");
+            this.RuntimeManager.NotifyGotoState(this, this.CurrentStateName, $"{s.DeclaringType}.{StateGroup.GetQualifiedStateName(s)}");
 
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(onExitActionName);
@@ -1028,7 +1019,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Task that represents the asynchronous operation.</returns>
         private async Task PushState(Type s)
         {
-            this.RuntimeManager.Logger.OnPush(this.Id, this.CurrentStateName, s.FullName);
+            this.RuntimeManager.NotifyPushState(this, this.CurrentStateName, s.FullName);
 
             var nextState = this.MachineStates.First(val => val.GetType().Equals(s));
             await this.DoStatePushAsync(nextState);
@@ -1054,10 +1045,10 @@ namespace Microsoft.PSharp.Runtime
             }
 
             await this.DoStatePopAsync();
-            this.RuntimeManager.Logger.OnPop(this.Id, prevStateName, this.CurrentStateName);
+            this.RuntimeManager.NotifyPopState(this, prevStateName, this.CurrentStateName);
 
             // Watch out for an extra pop.
-            this.Assert(this.CurrentState != null, $"Machine '{this.Id}' popped with no matching push.");
+            this.Assert(this.CurrentState != null, $"{this.Name} popped with no matching push.");
         }
 
         /// <summary>
@@ -1246,28 +1237,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the cached state of this machine.
         /// </summary>
         /// <returns>Hash value</returns>
-        internal virtual int GetCachedState()
-        {
-            unchecked
-            {
-                var hash = 19;
-
-                hash = hash * 31 + this.GetType().GetHashCode();
-                hash = hash * 31 + this.Id.Value.GetHashCode();
-                hash = hash * 31 + this.IsActive.GetHashCode();
-
-                hash = hash * 31 + this.Info.IsHalted.GetHashCode();
-                hash = hash * 31 + this.Info.ProgramCounter;
-
-                if (this.RuntimeManager.Configuration.EnableUserDefinedStateHashing)
-                {
-                    // Adds the user-defined hashed machine state.
-                    hash = hash * 31 + HashedState;
-                }
-
-                return hash;
-            }
-        }
+        internal abstract int GetCachedState();
 
         #endregion
 
@@ -1280,7 +1250,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Set of all states in the machine</returns>
         HashSet<string> IMachine.GetAllStates()
         {
-            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
+            this.Assert(this.MachineStates != null, "{0} hasn't populated its states yet.", this.Name);
 
             var allStates = new HashSet<string>();
             foreach (var state in this.MachineStates)
@@ -1298,7 +1268,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Set of all (states, registered event) pairs in the machine</returns>
         HashSet<Tuple<string, string>> IMachine.GetAllStateEventPairs()
         {
-            this.Assert(this.MachineStates != null, "Machine '{0}' hasn't populated its states yet.", this.Id);
+            this.Assert(this.MachineStates != null, "{0} hasn't populated its states yet.", this.Name);
 
             var pairs = new HashSet<Tuple<string, string>>();
             foreach (var state in this.MachineStates)
@@ -1339,10 +1309,8 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{this.Id}' " +
-                "must have one or more states.");
-            this.Assert(this.StateStack.Peek() != null, $"Machine '{this.Id}' " +
-                "must not have a null current state.");
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"{this.Name} must have one or more states.");
+            this.Assert(this.StateStack.Peek() != null, $"{this.Name} must not have a null current state.");
         }
 
         /// <summary>
@@ -1359,35 +1327,36 @@ namespace Microsoft.PSharp.Runtime
                 state = this.CurrentStateName;
             }
 
-            this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                $"in machine '{this.Id}', state '{state}', action '{actionName}', " +
+            this.RuntimeManager.WrapAndThrowException(ex, $"{this.Name} threw exception '{ex.GetType()}' " +
+                $"in state '{state}', action '{actionName}', " +
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
         }
 
         /// <summary>
-        /// Invokes user callback when a machine receives an event it cannot handle
+        /// Invokes user callback when a machine receives an event it cannot handle.
         /// </summary>
         /// <param name="ex">The exception thrown by the machine</param>
         /// <param name="methodName">The handler (outermost) that threw the exception</param>
         /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt</returns>
         private bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
         {
-            this.Logger.OnMachineExceptionThrown(this.Id, ex.CurrentStateName, methodName, ex);
+            this.RuntimeManager.NotifyMachineExceptionThrown(this, ex.CurrentStateName, methodName, ex);
 
             var ret = OnException(methodName, ex);
-            OnExceptionRequestedGracefulHalt = false;
+            this.OnExceptionRequestedGracefulHalt = false;
             switch (ret)
             {
                 case OnExceptionOutcome.HaltMachine:
                 case OnExceptionOutcome.HandledException:
-                    this.Logger.OnMachineExceptionHandled(this.Id, ex.CurrentStateName, methodName, ex);
-                    OnExceptionRequestedGracefulHalt = true;
+                    this.RuntimeManager.NotifyMachineExceptionHandled(this, ex.CurrentStateName, methodName, ex);
+                    this.OnExceptionRequestedGracefulHalt = true;
                     return true;
                 case OnExceptionOutcome.ThrowException:
                     return false;
             }
+
             return false;
         }
 
@@ -1399,26 +1368,25 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
         private bool OnExceptionHandler(string methodName, Exception ex)
         {
-            if (ex is ExecutionCanceledException || (ex.InnerException != null && ex.InnerException is ExecutionCanceledException))
+            if (ex is ExecutionCanceledException || ex.InnerException is ExecutionCanceledException)
             {
                 // Internal exception, used by the testing infrastructure.
                 return false;
             }
 
-            this.Logger.OnMachineExceptionThrown(this.Id, CurrentStateName, methodName, ex);
+            this.RuntimeManager.NotifyMachineExceptionThrown(this, this.CurrentStateName, methodName, ex);
 
             var ret = OnException(methodName, ex);
-            OnExceptionRequestedGracefulHalt = false;
-
+            this.OnExceptionRequestedGracefulHalt = false;
             switch (ret)
             {
                 case OnExceptionOutcome.ThrowException:
                     return false;
                 case OnExceptionOutcome.HandledException:
-                    this.Logger.OnMachineExceptionHandled(this.Id, CurrentStateName, methodName, ex);
+                    this.RuntimeManager.NotifyMachineExceptionHandled(this, this.CurrentStateName, methodName, ex);
                     return true;
                 case OnExceptionOutcome.HaltMachine:
-                    OnExceptionRequestedGracefulHalt = true;
+                    this.OnExceptionRequestedGracefulHalt = true;
                     return false;
             }
 
@@ -1517,47 +1485,6 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <returns>The machine type.</returns>
         private protected abstract Type GetMachineType();
-
-        /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
-        /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-            {
-                return false;
-            }
-
-            BaseMachine m = obj as BaseMachine;
-            if (m == null ||
-                this.GetType() != m.GetType())
-            {
-                return false;
-            }
-
-            return this.Id.Equals(m.Id);
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>int</returns>
-        public override int GetHashCode()
-        {
-            return this.Id.Value.GetHashCode();
-        }
-
-        /// <summary>
-        /// Returns a string that represents the current machine.
-        /// </summary>
-        /// <returns>string</returns>
-        public override string ToString()
-        {
-            return this.Id.Name;
-        }
 
         #endregion
 

@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             tcs.Task.Wait();
 
             Assert.True(failed);
-            Assert.StartsWith("Exception of type 'System.Exception' was thrown", message);
+            Assert.Contains("Exception of type 'System.Exception' was thrown.", message);
         }
     }
 }

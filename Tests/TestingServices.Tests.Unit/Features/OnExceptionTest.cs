@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if(ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
                 return OnExceptionOutcome.ThrowException;
             }
         }

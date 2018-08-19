@@ -47,6 +47,11 @@ namespace Microsoft.PSharp
         /// </summary>
         private TaskCompletionSource<Event> ReceiveCompletionSource;
 
+        /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        protected internal MachineId Id => this.MachineId as MachineId;
+
         #region initialization
 
         /// <summary>
@@ -56,6 +61,18 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new LinkedList<EventInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
+        }
+
+        /// <summary>
+        /// Initializes this machine.
+        /// </summary>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
+        /// <param name="mid">The id of this machine.</param>
+        /// <param name="info">The metadata of this machine.</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        internal Task InitializeAsync(IRuntimeMachineManager runtimeManager, MachineId mid, MachineInfo info)
+        {
+            return base.InitializeAsync(runtimeManager, mid, info, $"Machine '{mid}'");
         }
 
         #endregion
@@ -525,6 +542,17 @@ namespace Microsoft.PSharp
             return this.ReceiveCompletionSource.Task;
         }
 
+        /// <summary>
+        /// Returns the default <see cref="EventInfo"/>.
+        /// </summary>
+        /// <returns>EventInfo</returns>
+        private EventInfo GetDefaultEvent()
+        {
+            this.RuntimeManager.Logger.OnDefault(this.Id, this.CurrentStateName);
+            return new EventInfo(new Default(), new EventOriginInfo(
+                this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+        }
+
         #endregion
 
         #region state caching
@@ -537,9 +565,15 @@ namespace Microsoft.PSharp
         {
             unchecked
             {
-                var hash = base.GetCachedState();
+                var hash = 19;
 
-                // TODO: move to base
+                hash = hash * 31 + this.GetType().GetHashCode();
+                hash = hash * 31 + this.Id.Value.GetHashCode();
+                hash = hash * 31 + this.IsActive.GetHashCode();
+
+                hash = hash * 31 + this.Info.IsHalted.GetHashCode();
+                hash = hash * 31 + this.Info.ProgramCounter;
+
                 foreach (var state in this.StateStack)
                 {
                     hash = hash * 31 + state.GetType().GetHashCode();
@@ -555,6 +589,12 @@ namespace Microsoft.PSharp
                     }
                 }
 
+                if (this.RuntimeManager.Configuration.EnableUserDefinedStateHashing)
+                {
+                    // Adds the user-defined hashed machine state.
+                    hash = hash * 31 + HashedState;
+                }
+
                 return hash;
             }
         }
@@ -568,6 +608,36 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <returns>The machine type.</returns>
         private protected override Type GetMachineType() => typeof(Machine);
+
+        /// <summary>
+        /// Determines whether the specified <see cref="object"/> is equal
+        /// to the current <see cref="object"/>.
+        /// </summary>
+        public override bool Equals(object obj)
+        {
+            if (obj is Machine m && this.GetType() == m.GetType())
+            {
+                return this.Id.Equals(m.Id);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        public override int GetHashCode()
+        {
+            return this.Id.Value.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current machine.
+        /// </summary>
+        public override string ToString()
+        {
+            return this.Id.Name;
+        }
 
         #endregion
 

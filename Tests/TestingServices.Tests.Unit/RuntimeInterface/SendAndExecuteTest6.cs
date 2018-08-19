@@ -124,9 +124,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create();
             base.AssertFailed(config, test, 1, bugReports =>
             {
-                foreach(var report in bugReports)
+                foreach (var report in bugReports)
                 {
-                    if(!report.StartsWith("Exception 'System.Exception' was thrown in machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()'"))
+                    if (!report.StartsWith("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()' threw exception 'System.Exception' in "))
                     {
                         return false;
                     }

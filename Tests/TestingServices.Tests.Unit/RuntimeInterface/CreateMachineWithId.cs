@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Process()
             {
-                if(data.x != 10)
+                if (data.x != 10)
                 {
                     data.x++;
                     this.Send(this.Id, new E());
