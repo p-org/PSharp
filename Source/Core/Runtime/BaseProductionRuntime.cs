@@ -139,8 +139,8 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="e">Event passed during machine construction.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="creator">The creator machine.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
             Event e, IMachine creator, Guid? operationGroupId)

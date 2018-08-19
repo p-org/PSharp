@@ -13,12 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Net;
 
 namespace Microsoft.PSharp.Runtime
 {
@@ -38,11 +36,6 @@ namespace Microsoft.PSharp.Runtime
         /// The configuration used by the runtime.
         /// </summary>
         Configuration Configuration { get; }
-
-        /// <summary>
-        /// Network provider used for remote communication.
-        /// </summary>
-        INetworkProvider NetworkProvider { get; }
 
         /// <summary>
         /// The installed logger.

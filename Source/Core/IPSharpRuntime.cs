@@ -16,7 +16,6 @@ using System;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
@@ -28,11 +27,6 @@ namespace Microsoft.PSharp
     /// </summary>
     public interface IPSharpRuntime : IDisposable
     {
-        /// <summary>
-        /// Network provider used for remote communication.
-        /// </summary>
-        INetworkProvider NetworkProvider { get; }
-
         /// <summary>
         /// The installed logger.
         /// </summary>
@@ -330,17 +324,5 @@ namespace Microsoft.PSharp
         /// it with the default <see cref="ILogger"/>.
         /// </summary>
         void RemoveLogger();
-
-        /// <summary>
-        /// Installs the specified <see cref="INetworkProvider"/>.
-        /// </summary>
-        /// <param name="networkProvider">INetworkProvider</param>
-        void SetNetworkProvider(INetworkProvider networkProvider);
-
-        /// <summary>
-        /// Replaces the currently installed <see cref="INetworkProvider"/>
-        /// with the default <see cref="INetworkProvider"/>.
-        /// </summary>
-        void RemoveNetworkProvider();
     }
 }

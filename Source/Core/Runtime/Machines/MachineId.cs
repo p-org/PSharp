@@ -23,7 +23,7 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId : IMachineId, IEquatable<MachineId>, IComparable<MachineId>
+    public class MachineId : /*IMachineId,*/ IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
         /// The runtime that executes the machine with this id.
@@ -55,12 +55,6 @@ namespace Microsoft.PSharp
         public ulong Value { get; }
 
         /// <summary>
-        /// Endpoint.
-        /// </summary>
-        [DataMember]
-        public string Endpoint { get; }
-
-        /// <summary>
         /// Creates a new machine id.
         /// </summary>
         /// <param name="runtime">The P# runtime.</param>
@@ -68,7 +62,7 @@ namespace Microsoft.PSharp
         /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
         internal MachineId(IPSharpRuntime runtime, Type type, ulong value, string friendlyName)
-            : this(runtime, type.FullName, friendlyName, value, runtime.NetworkProvider.LocalEndpoint)
+            : this(runtime, type.FullName, friendlyName, value)
         { }
 
         /// <summary>
@@ -76,7 +70,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)
-            : this(mid.Runtime, mid.Type, mid.FriendlyName, mid.Value, mid.Endpoint)
+            : this(mid.Runtime, mid.Type, mid.FriendlyName, mid.Value)
         { }
 
         /// <summary>
@@ -86,27 +80,17 @@ namespace Microsoft.PSharp
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
-        /// <param name="endpoint">Endpoint</param>
-        private MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value, string endpoint)
+        protected MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value)
         {
             this.Runtime = runtime;
             this.Type = type;
             this.FriendlyName = friendlyName;
             this.Value = value;
-            this.Endpoint = endpoint;
 
             // Checks for overflow.
             this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
 
-            if (this.Endpoint != null && this.Endpoint.Length > 0 && this.FriendlyName != null && this.FriendlyName.Length > 0)
-            {
-                this.Name = string.Format("{0}.{1}({2})", this.Endpoint, this.FriendlyName, this.Value);
-            }
-            else if (this.Endpoint != null && this.Endpoint.Length > 0)
-            {
-                this.Name = string.Format("{0}({1})", this.Type, this.Value);
-            }
-            else if (this.FriendlyName != null && this.FriendlyName.Length > 0)
+            if (this.FriendlyName != null && this.FriendlyName.Length > 0)
             {
                 this.Name = string.Format("{0}({1})", this.FriendlyName, this.Value);
             }
@@ -131,7 +115,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (obj is IMachineId mid)
+            if (obj is MachineId mid)
             {
                 return this.Value == mid.Value;
             }
@@ -168,11 +152,6 @@ namespace Microsoft.PSharp
             return this.Equals((object)other);
         }
 
-        bool IEquatable<IMachineId>.Equals(IMachineId other)
-        {
-            return this.Equals(other);
-        }
-
         /// <summary>
         /// Compares the specified <see cref="MachineId"/> with the current
         /// <see cref="MachineId"/> for ordering or sorting purposes.
@@ -184,9 +163,14 @@ namespace Microsoft.PSharp
             return string.Compare(this.Name, other?.Name);
         }
 
-        int IComparable<IMachineId>.CompareTo(IMachineId other)
-        {
-            return string.Compare(this.Name, other?.Name);
-        }
+        //bool IEquatable<IMachineId>.Equals(IMachineId other)
+        //{
+        //    return this.Equals(other);
+        //}
+
+        //int IComparable<IMachineId>.CompareTo(IMachineId other)
+        //{
+        //    return string.Compare(this.Name, other?.Name);
+        //}
     }
 }

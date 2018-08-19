@@ -21,7 +21,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Net;
 
 namespace Microsoft.PSharp.Runtime
 {
@@ -61,11 +60,6 @@ namespace Microsoft.PSharp.Runtime
         public Configuration Configuration { get; private set; }
 
         /// <summary>
-        /// Network provider used for remote communication.
-        /// </summary>
-        public INetworkProvider NetworkProvider { get; private set; }
-
-        /// <summary>
         /// The installed logger.
         /// </summary>
         public ILogger Logger { get; private set; }
@@ -94,7 +88,6 @@ namespace Microsoft.PSharp.Runtime
             this.Configuration = configuration;
             this.MachineIdCounter = 0;
             this.MachineMap = new ConcurrentDictionary<ulong, IMachine>();
-            this.NetworkProvider = new LocalNetworkProvider(this);
             this.SetLogger(new ConsoleLogger());
             this.IsRunning = true;
         }
@@ -296,8 +289,8 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="e">Event passed during machine construction.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="creator">The creator machine.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
             Event e, IMachine creator, Guid? operationGroupId);
@@ -358,7 +351,7 @@ namespace Microsoft.PSharp.Runtime
         public abstract Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options);
 
         /// <summary>
-        /// Gets the target machine for an event; if not found, logs a halted-machine entry.
+        /// Gets the target machine for an event. If not found, logs a halted-machine entry.
         /// </summary>
         /// <param name="targetMachineId">The id of target machine.</param>
         /// <param name="e">The event that will be sent.</param>
@@ -913,30 +906,6 @@ namespace Microsoft.PSharp.Runtime
 
         #endregion
 
-        #region networking
-
-        /// <summary>
-        /// Installs the specified <see cref="INetworkProvider"/>.
-        /// </summary>
-        /// <param name="networkProvider">INetworkProvider</param>
-        public void SetNetworkProvider(INetworkProvider networkProvider)
-        {
-            this.NetworkProvider.Dispose();
-            this.NetworkProvider = networkProvider ?? throw new InvalidOperationException("Cannot install a null network provider.");
-        }
-
-        /// <summary>
-        /// Replaces the currently installed <see cref="INetworkProvider"/>
-        /// with the default <see cref="INetworkProvider"/>.
-        /// </summary>
-        public void RemoveNetworkProvider()
-        {
-            this.NetworkProvider.Dispose();
-            this.NetworkProvider = new LocalNetworkProvider(this);
-        }
-
-        #endregion
-
         #region exceptions
 
         /// <summary>
@@ -980,7 +949,6 @@ namespace Microsoft.PSharp.Runtime
         {
             this.MachineIdCounter = 0;
             this.MachineMap.Clear();
-            this.NetworkProvider.Dispose();
         }
 
         #endregion
