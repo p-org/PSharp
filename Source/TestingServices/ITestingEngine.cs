@@ -28,11 +28,6 @@ namespace Microsoft.PSharp.TestingServices
         TestReport TestReport { get; }
 
         /// <summary>
-        /// Interface for registering runtime operations.
-        /// </summary>
-        IRegisterRuntimeOperation Reporter { get; }
-
-        /// <summary>
         /// Runs the P# testing engine.
         /// </summary>
         /// <returns>ITestingEngine</returns>

@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices
     /// the runtime for the currently running machine, and whether
     /// the runtime is in an action.
     /// </summary>
-    public interface IRegisterRuntimeOperation
+    internal interface IRegisterRuntimeOperation
     {
         /// <summary>
         /// Registers the testing runtime.
