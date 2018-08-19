@@ -258,6 +258,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
+        /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
+        /// </summary>
+        /// <param name="mid">Unbound machine id.</param>
+        /// <param name="type">Type of the machine.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
+        protected async Task<IMachine> CreateMachineAsync(MachineId mid, Type type)
+        {
+            Machine machine = MachineFactory.Create(type);
+            await machine.InitializeAsync(this, mid, new SchedulableInfo(mid));
+            return machine;
+        }
+
+        /// <summary>
         /// Creates a new machine of the specified type and with
         /// the specified optional event. This event can only be
         /// used to access its payload, and cannot be handled.

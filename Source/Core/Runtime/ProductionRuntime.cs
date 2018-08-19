@@ -48,19 +48,6 @@ namespace Microsoft.PSharp.Runtime
         #region machine creation and execution
 
         /// <summary>
-        /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
-        /// </summary>
-        /// <param name="mid">Unbound machine id.</param>
-        /// <param name="type">Type of the machine.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
-        protected override async Task<IMachine> CreateMachineAsync(MachineId mid, Type type)
-        {
-            Machine machine = MachineFactory.Create(type);
-            await machine.InitializeAsync(this, mid, new MachineInfo(mid));
-            return machine;
-        }
-
-        /// <summary>
         /// Checks if the specified type is a machine that can execute on this runtime.
         /// </summary>
         /// <returns>True if the type is supported, else false.</returns>

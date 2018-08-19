@@ -275,14 +275,6 @@ namespace Microsoft.PSharp.Runtime
         public abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
-        /// Creates a new P# machine using the specified unbound <see cref="MachineId"/> and type.
-        /// </summary>
-        /// <param name="mid">Unbound machine id.</param>
-        /// <param name="type">Type of the machine.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is the machine.</returns>
-        protected abstract Task<IMachine> CreateMachineAsync(MachineId mid, Type type);
-
-        /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="mid">Unbound machine id.</param>
