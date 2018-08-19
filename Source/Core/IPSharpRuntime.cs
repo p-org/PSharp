@@ -314,15 +314,16 @@ namespace Microsoft.PSharp
         Guid GetCurrentOperationGroupId(MachineId currentMachineId);
 
         /// <summary>
+        /// Logs the specified text using .
+        /// </summary>
+        /// <param name="format">Text</param>
+        /// <param name="args">Arguments</param>
+        void Log(string format, params object[] args);
+
+        /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
         /// <param name="logger">ILogger</param>
         void SetLogger(ILogger logger);
-
-        /// <summary>
-        /// Removes the currently installed <see cref="ILogger"/>, and replaces
-        /// it with the default <see cref="ILogger"/>.
-        /// </summary>
-        void RemoveLogger();
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     /// <summary>
     /// Logger that writes text in-memory.
     /// </summary>
-    internal sealed class TestOutputLogger : StateMachineLogger
+    internal sealed class TestOutputLogger : MachineLogger
     {
         /// <summary>
         /// Underlying string writer.

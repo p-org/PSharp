@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StateMachineLogger.cs">
+// <copyright file="MachineLogger.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,8 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Utilities;
 using System;
+
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.IO
 {
@@ -22,7 +24,7 @@ namespace Microsoft.PSharp.IO
     /// of the <see cref="Write(string)"/> method if the <see cref="Configuration.Verbose"/> option is set to
     /// >= <see cref="LoggingVerbosity"/>. This class may be subclassed and its methods overridden.
     /// </summary>
-    public abstract class StateMachineLogger : ILogger
+    public abstract class MachineLogger : ILogger
     {
         /// <summary>
         /// The configuration that sets the logging verbosity.
@@ -47,7 +49,7 @@ namespace Microsoft.PSharp.IO
         /// <see cref="IPSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
-        public StateMachineLogger(int loggingVerbosity = 2)
+        public MachineLogger(int loggingVerbosity = 2)
         {
             this.LoggingVerbosity = loggingVerbosity;
         }
@@ -83,7 +85,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
         /// <param name="eventName">Name of the event.</param>
         public virtual void OnEnqueue(MachineId machineId, string eventName)
         {
@@ -96,7 +98,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Returns a string formatted for the <see cref="OnEnqueue"/> event and its parameters.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
         /// <param name="eventName">Name of the event.</param>
         public virtual string FormatOnEnqueueString(MachineId machineId, string eventName)
         {
@@ -321,7 +323,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is sent to a target machine.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>        
+        /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
@@ -339,7 +341,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Returns a string formatted for the <see cref="OnSend"/> event and its parameters.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>        
+        /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>

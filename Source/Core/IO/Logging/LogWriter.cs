@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// The installed logger.
         /// </summary>
-        private ILogger Logger;
+        private readonly ILogger Logger;
 
         /// <summary>
         /// Constructor.
@@ -348,4 +348,3 @@ namespace Microsoft.PSharp.IO
         }
     }
 }
-

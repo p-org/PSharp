@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
-        protected MachineId MachineId;
+        protected IMachineId MachineId;
 
         /// <summary>
         /// Is the machine halted.
@@ -72,8 +72,8 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal MachineInfo(MachineId mid)
+        /// <param name="mid">The machine id.</param>
+        internal MachineInfo(IMachineId mid)
         {
             MachineId = mid;
             IsHalted = false;

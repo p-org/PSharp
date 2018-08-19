@@ -826,15 +826,6 @@ namespace Microsoft.PSharp.Runtime
             this.Logger.Configuration = this.Configuration;
         }
 
-        /// <summary>
-        /// Removes the currently installed <see cref="ILogger"/>, and replaces
-        /// it with the default <see cref="ILogger"/>.
-        /// </summary>
-        public void RemoveLogger()
-        {
-            this.Logger = new ConsoleLogger();
-        }
-
         #endregion
 
         #region operation group id

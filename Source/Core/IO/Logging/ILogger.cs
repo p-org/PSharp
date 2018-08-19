@@ -12,13 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Utilities;
 using System;
+
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Interface for the P# logger.
+    /// Interface of the P# runtime logger.
     /// </summary>
     public interface ILogger : IDisposable
     {

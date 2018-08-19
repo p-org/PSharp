@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 {
     public class CustomLoggerTest
     {
-        class CustomLogger : StateMachineLogger
+        class CustomLogger : MachineLogger
         {
             private StringBuilder StringBuilder;
 
