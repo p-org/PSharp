@@ -532,7 +532,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
 
-            if (this.GetTargetMachine(mid, e, sender, operationGroupId, out IMachine machine))
+            if (this.GetMachineFromId(mid, out IMachine machine))
             {
                 MachineStatus machineStatus = await this.EnqueueEventAsync(machine, e, sender, operationGroupId, options?.MustHandle ?? false,
                     out EventInfo eventInfo);
@@ -543,6 +543,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
             else
             {
+                this.Logger.OnSend(mid, sender?.Id, sender?.CurrentStateName ?? String.Empty,
+                    e.GetType().FullName, operationGroupId, isTargetHalted: true);
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{mid}'.\n");
             }
@@ -567,8 +569,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
 
-            if (!this.GetTargetMachine(mid, e, sender, operationGroupId, out IMachine machine))
+            if (!this.GetMachineFromId(mid, out IMachine machine))
             {
+                this.Logger.OnSend(mid, sender?.Id, sender?.CurrentStateName ?? String.Empty,
+                    e.GetType().FullName, operationGroupId, isTargetHalted: true);
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{mid}'.\n");
                 return true;
@@ -1282,8 +1286,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Notifies that a machine is throwing an exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         public override void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex)
         {

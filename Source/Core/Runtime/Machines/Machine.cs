@@ -15,8 +15,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
@@ -24,8 +27,13 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Abstract class representing a P# machine.
     /// </summary>
-    public abstract class Machine : BaseMachine
+    public class Machine : BaseMachine, IMachine
     {
+        /// <summary>
+        /// The runtime manager that executes this machine.
+        /// </summary>
+        private protected IRuntimeMachineManager RuntimeManager;
+
         /// <summary>
         /// Inbox of the machine. Incoming events are queued here.
         /// Events are dequeued to be processed.
@@ -50,7 +58,48 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The unique machine id.
         /// </summary>
-        protected internal MachineId Id => this.MachineId as MachineId;
+        protected internal MachineId Id { get; private set; }
+
+        /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        MachineId IMachine.Id => this.Id;
+
+        /// <summary>
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
+        /// </summary>
+        MachineInfo IMachine.Info => base.Info;
+
+        /// <summary>
+        /// The unique name of this machine.
+        /// </summary>
+        string IMachine.Name => base.Name;
+
+        /// <summary>
+        /// Dictionary containing all the current goto state transitions.
+        /// </summary>
+        Dictionary<Type, GotoStateTransition> IMachine.GotoTransitions => base.GotoTransitions;
+
+        /// <summary>
+        /// Dictionary containing all the current push state transitions.
+        /// </summary>
+        Dictionary<Type, PushStateTransition> IMachine.PushTransitions => base.PushTransitions;
+
+        /// <summary>
+        /// Gets the <see cref="Type"/> of the current state.
+        /// </summary>
+        Type IMachine.CurrentState => base.CurrentState;
+
+        /// <summary>
+        /// Gets the name of the current state.
+        /// </summary>
+        string IMachine.CurrentStateName => base.CurrentStateName;
+
+        /// <summary>
+        /// The logger installed to the P# runtime.
+        /// </summary>
+        protected ILogger Logger => this.RuntimeManager.Logger;
 
         #region initialization
 
@@ -72,7 +121,9 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation.</returns>
         internal Task InitializeAsync(IRuntimeMachineManager runtimeManager, MachineId mid, MachineInfo info)
         {
-            return base.InitializeAsync(runtimeManager, mid, info, $"Machine '{mid}'");
+            this.RuntimeManager = runtimeManager;
+            this.Id = mid;
+            return base.InitializeAsync(info, $"Machine '{mid}'");
         }
 
         #endregion
@@ -260,6 +311,184 @@ namespace Microsoft.PSharp
 
         // TODO: add async version of receive
 
+        /// <summary>
+        /// Raises an <see cref="Event"/> internally at the end of the current action.
+        /// </summary>
+        /// <param name="e">Event</param>
+        protected void Raise(Event e)
+        {
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Raise while halted.");
+            // If the event is null, then report an error and exit.
+            this.Assert(e != null, $"{this.Name} is raising a null event.");
+            this.RaisedEvent = new EventInfo(e, new EventOriginInfo(this.Id, this.GetType().Name,
+                StateGroup.GetQualifiedStateName(this.CurrentState)));
+            this.RuntimeManager.NotifyRaisedEvent(this, this.RaisedEvent);
+        }
+
+        /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action.
+        /// </summary>
+        /// <typeparam name="S">Type of the state</typeparam>
+        protected void Goto<S>() where S : MachineState
+        {
+#pragma warning disable 618
+            Goto(typeof(S));
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action. Deprecated in favor of Goto&lt;T&gt;().
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
+        protected void Goto(Type s)
+        {
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Goto while halted.");
+            // If the state is not a state of the machine, then report an error and exit.
+            this.Assert(StateTypeMap[this.GetType()].Any(val
+                => val.DeclaringType.Equals(s.DeclaringType) &&
+                val.Name.Equals(s.Name)), $"{this.Name} is trying to transition to non-existing state '{s.Name}'.");
+            this.Raise(new GotoStateEvent(s));
+        }
+
+        /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action, pushing current state on the stack.
+        /// </summary>
+        /// <typeparam name="S">Type of the state</typeparam>
+        protected void Push<S>() where S : MachineState
+        {
+#pragma warning disable 618
+            Push(typeof(S));
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Transitions the machine to the specified <see cref="MachineState"/>
+        /// at the end of the current action, pushing current state on the stack.
+        /// Deprecated in favor of Push&lt;T&gt;().
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
+        protected void Push(Type s)
+        {
+            this.Assert(!this.Info.IsHalted, $"{this.Name} invoked Push while halted.");
+            // If the state is not a state of the machine, then report an error and exit.
+            this.Assert(StateTypeMap[this.GetType()].Any(val
+                => val.DeclaringType.Equals(s.DeclaringType) &&
+                val.Name.Equals(s.Name)), $"{this.Name} is trying to transition to non-existing state '{s.Name}'.");
+            this.Raise(new PushStateEvent(s));
+        }
+
+        /// <summary>
+        /// Pops the current <see cref="MachineState"/> from the state stack
+        /// at the end of the current action.
+        /// </summary>
+        protected void Pop()
+        {
+            this.RuntimeManager.NotifyPopAction(this);
+            this.IsPopInvoked = true;
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="e">Event</param>
+        protected void Monitor<T>(Event e)
+        {
+            this.Monitor(typeof(T), e);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified event.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="e">Event</param>
+        protected void Monitor(Type type, Event e)
+        {
+            // If the event is null, then report an error and exit.
+            this.Assert(e != null, $"{this.Name} is sending a null event.");
+            this.RuntimeManager.Monitor(type, this, e);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        protected bool Random()
+        {
+            return this.RuntimeManager.GetNondeterministicBooleanChoice(this, 2);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing. The value is used
+        /// to generate a number in the range [0..maxValue), where 0
+        /// triggers true.
+        /// </summary>
+        /// <param name="maxValue">The max value.</param>
+        /// <returns>Boolean</returns>
+        protected bool Random(int maxValue)
+        {
+            return this.RuntimeManager.GetNondeterministicBooleanChoice(this, maxValue);
+        }
+
+        /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <param name="callerMemberName">CallerMemberName</param>
+        /// <param name="callerFilePath">CallerFilePath</param>
+        /// <param name="callerLineNumber">CallerLineNumber</param>
+        /// <returns>Boolean</returns>
+        protected bool FairRandom(
+            [CallerMemberName] string callerMemberName = "",
+            [CallerFilePath] string callerFilePath = "",
+            [CallerLineNumber] int callerLineNumber = 0)
+        {
+            var havocId = string.Format("{0}_{1}_{2}_{3}_{4}", this.Id.Name, this.CurrentStateName,
+                callerMemberName, callerFilePath, callerLineNumber);
+            return this.RuntimeManager.GetFairNondeterministicBooleanChoice(this, havocId);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic integer choice, that can be
+        /// controlled during analysis or testing. The value is used
+        /// to generate an integer in the range [0..maxValue).
+        /// </summary>
+        /// <param name="maxValue">The max value.</param>
+        /// <returns>Integer</returns>
+        protected int RandomInteger(int maxValue)
+        {
+            return this.RuntimeManager.GetNondeterministicIntegerChoice(this, maxValue);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws
+        /// an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        protected void Assert(bool predicate)
+        {
+            this.CheckProperty(predicate);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws
+        /// an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        protected void Assert(bool predicate, string s, params object[] args)
+        {
+            this.CheckProperty(predicate, s, args);
+        }
+
         #endregion
 
         #region inbox accessing
@@ -329,6 +558,18 @@ namespace Microsoft.PSharp
 
             return Task.FromResult(MachineStatus.EventHandlerRunning);
         }
+
+        /// <summary>
+        /// Enqueues the specified <see cref="EventInfo"/>.
+        /// </summary>
+        /// <param name="eventInfo">The event metadata.</param>
+        /// <param name="sender">The sender machine.</param>
+        /// <returns>
+        /// Task that represents the asynchronous operation. The task result
+        /// is the machine status after the enqueue.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Task<MachineStatus> IMachine.EnqueueAsync(EventInfo eventInfo, IMachine sender) => this.EnqueueAsync(eventInfo, sender);
 
         /// <summary>
         /// Dequeues the next available event from the inbox if there
@@ -404,9 +645,41 @@ namespace Microsoft.PSharp
             return nextAvailableEventInfo;
         }
 
+        /// <summary>
+        /// Returns the raised <see cref="EventInfo"/> if
+        /// there is one available, else returns null.
+        /// </summary>
+        /// <returns>EventInfo</returns>
+        private protected EventInfo TryGetRaisedEvent()
+        {
+            EventInfo raisedEventInfo = null;
+            if (this.RaisedEvent != null)
+            {
+                raisedEventInfo = this.RaisedEvent;
+                this.RaisedEvent = null;
+
+                // Checks if the raised event is ignored.
+                if (this.IsIgnored(raisedEventInfo.EventType))
+                {
+                    raisedEventInfo = null;
+                }
+            }
+
+            return raisedEventInfo;
+        }
+
         #endregion
 
         #region event and action handling
+
+        /// <summary>
+        /// Transitions to the start state, and executes the
+        /// entry action, if there is any.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Task IMachine.GotoStartStateAsync(Event e) => this.GotoStartStateAsync(e);
 
         /// <summary>
         /// Runs the event handler. The handler terminates if there
@@ -488,6 +761,14 @@ namespace Microsoft.PSharp
 
             return completed;
         }
+
+        /// <summary>
+        /// Runs the event handler. The handler terminates if there
+        /// is no next event to process or if the machine is halted.
+        /// </summary>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Task<bool> IMachine.RunEventHandlerAsync() => this.RunEventHandlerAsync();
 
         /// <summary>
         /// Waits for an event to arrive.
@@ -599,6 +880,204 @@ namespace Microsoft.PSharp
             }
         }
 
+        /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        /// <returns>Hash value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        int IMachine.GetCachedState() => this.GetCachedState();
+
+        #endregion
+
+        #region code coverage methods
+
+        /// <summary>
+        /// Returns the set of all states in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all states in the machine</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        HashSet<string> IMachine.GetAllStates() => base.GetAllStates();
+
+        /// <summary>
+        /// Returns the set of all (states, registered event) pairs in the machine
+        /// (for code coverage).
+        /// </summary>
+        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        HashSet<Tuple<string, string>> IMachine.GetAllStateEventPairs() => base.GetAllStateEventPairs();
+
+        /// <summary>
+        /// Returns the type of the state at the specified state
+        /// stack index, if there is one.
+        /// </summary>
+        /// <param name="index">State stack index</param>
+        /// <returns>Type</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Type IMachine.GetStateTypeAtStackIndex(int index) => base.StateStack.ElementAtOrDefault(index)?.GetType();
+
+        #endregion
+
+        #region error checking
+
+        /// <summary>
+        /// Checks if the specified property holds.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        private protected override void CheckProperty(bool predicate)
+        {
+            this.RuntimeManager.Assert(predicate);
+        }
+
+        /// <summary>
+        /// Checks if the specified property holds.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        private protected override void CheckProperty(bool predicate, string s, params object[] args)
+        {
+            this.RuntimeManager.Assert(predicate, s, args);
+        }
+
+        /// <summary>
+        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
+        /// exception, and throws it to the user.
+        /// </summary>
+        /// <param name="ex">Exception</param>
+        /// <param name="actionName">Action name</param>
+        private protected override void ReportUnhandledException(Exception ex, string actionName)
+        {
+            string state = "<unknown>";
+            if (this.CurrentState != null)
+            {
+                state = this.CurrentStateName;
+            }
+
+            this.RuntimeManager.WrapAndThrowException(ex, $"{this.Name} threw exception '{ex.GetType()}' " +
+                $"in state '{state}', action '{actionName}', " +
+                $"'{ex.Source}':\n" +
+                $"   {ex.Message}\n" +
+                $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        /// <summary>
+        /// An exception filter that calls OnFailure, which can choose to fast-fail the app
+        /// to get a full dump.
+        /// </summary>
+        /// <param name="ex">The exception being tested</param>
+        /// <param name="action">The machine action being executed when the failure occurred</param>
+        /// <returns></returns>
+        private protected override bool InvokeOnFailureExceptionFilter(CachedAction action, Exception ex)
+        {
+            // This is called within the exception filter so the stack has not yet been unwound.
+            // If OnFailure does not fail-fast, return false to process the exception normally.
+            this.RuntimeManager.RaiseOnFailureEvent(new MachineActionExceptionFilterException(action.MethodInfo.Name, ex));
+            return false;
+        }
+
+        #endregion
+
+        #region notifications
+
+        /// <summary>
+        /// Notifies that the machine entered a state.
+        /// </summary>
+        private protected override void NotifyEnteredState()
+        {
+            this.RuntimeManager.NotifyEnteredState(this);
+        }
+
+        /// <summary>
+        /// Notifies that the machine exited a state.
+        /// </summary>
+        private protected override void NotifyExitedState()
+        {
+            this.RuntimeManager.NotifyExitedState(this);
+        }
+
+        /// <summary>
+        /// Notifies that the machine is performing a 'goto' transition to the specified state.
+        /// </summary>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        private protected override void NotifyGotoState(string currentStateName, string newStateName)
+        {
+            this.RuntimeManager.NotifyGotoState(this, currentStateName, newStateName);
+        }
+
+        /// <summary>
+        /// Notifies that the machine is performing a 'push' transition to the specified state.
+        /// </summary>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="newStateName">The target state.</param>
+        private protected override void NotifyPushState(string currentStateName, string newStateName)
+        {
+            this.RuntimeManager.NotifyPushState(this, currentStateName, newStateName);
+        }
+
+        /// <summary>
+        /// Notifies that the machine is performing a 'pop' transition from the current state.
+        /// </summary>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="restoredStateName">The name of the state being restored, if any.</param>
+        private protected override void NotifyPopState(string currentStateName, string restoredStateName)
+        {
+            this.RuntimeManager.NotifyPopState(this, currentStateName, this.CurrentStateName);
+        }
+
+        /// <summary>
+        /// Notifies that the machine popped its state because it cannot handle the current event.
+        /// </summary>
+        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="eventName">The name of the event that cannot be handled.</param>
+        private protected override void NotifyPopUnhandledEvent(string currentStateName, string eventName)
+        {
+            this.RuntimeManager.NotifyPopUnhandledEvent(this, currentStateName, eventName);
+        }
+
+        /// <summary>
+        /// Notifies that the machine invoked an action.
+        /// </summary>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        private protected override void NotifyInvokedAction(MethodInfo action, Event receivedEvent)
+        {
+            this.RuntimeManager.NotifyInvokedAction(this, action, receivedEvent);
+        }
+
+        /// <summary>
+        /// Notifies that the machine completed an action.
+        /// </summary>
+        /// <param name="action">Action</param>
+        /// <param name="receivedEvent">Event</param>
+        private protected override void NotifyCompletedAction(MethodInfo action, Event receivedEvent)
+        {
+            this.RuntimeManager.NotifyCompletedAction(this, action, receivedEvent);
+        }
+
+        /// <summary>
+        /// Notifies that the machine is throwing an exception.
+        /// </summary>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="ex">The exception.</param>
+        private protected override void NotifyMachineExceptionThrown(string currentStateName, string actionName, Exception ex)
+        {
+            this.RuntimeManager.NotifyMachineExceptionThrown(this, currentStateName, actionName, ex);
+        }
+
+        /// <summary>
+        /// Notifies that the machine is using 'OnException' to handle a thrown exception.
+        /// </summary>
+        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        /// <param name="ex">The exception.</param>
+        private protected override void NotifyMachineExceptionHandled(string currentStateName, string actionName, Exception ex)
+        {
+            this.RuntimeManager.NotifyMachineExceptionHandled(this, currentStateName, actionName, ex);
+        }
+
         #endregion
 
         #region utilities
@@ -647,7 +1126,7 @@ namespace Microsoft.PSharp
         /// Halts the machine.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        private protected override Task HaltMachineAsync()
+        private protected override async Task HaltMachineAsync()
         {
             lock (this.Inbox)
             {
@@ -667,7 +1146,9 @@ namespace Microsoft.PSharp
                 this.ReceivedEvent = null;
             }
 
-            return base.HaltMachineAsync();
+            await this.RuntimeManager.NotifyHaltedAsync(this);
+            // Invokes user callback outside the lock.
+            await this.OnHaltAsync();
         }
 
         #endregion

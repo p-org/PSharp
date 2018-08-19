@@ -16,9 +16,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Runtime;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     internal class CachedAction
     {
@@ -28,7 +26,7 @@ namespace Microsoft.PSharp
 
         internal bool IsAsync => this.TaskFunc != null;
 
-        internal CachedAction(MethodInfo methodInfo, IMachine machine)
+        internal CachedAction(MethodInfo methodInfo, BaseMachine machine)
         {
             this.MethodInfo = methodInfo;
 

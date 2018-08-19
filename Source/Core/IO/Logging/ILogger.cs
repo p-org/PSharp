@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
         /// <param name="eventName">Name of the event.</param>
         void OnEnqueue(MachineId machineId, string eventName);
 
@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is sent to a target machine.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>        
+        /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>

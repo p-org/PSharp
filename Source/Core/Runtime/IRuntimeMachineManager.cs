@@ -327,8 +327,8 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is throwing an exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex);
 

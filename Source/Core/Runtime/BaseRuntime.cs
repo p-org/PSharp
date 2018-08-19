@@ -345,21 +345,14 @@ namespace Microsoft.PSharp.Runtime
         public abstract Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options);
 
         /// <summary>
-        /// Gets the target machine for an event. If not found, logs a halted-machine entry.
+        /// Gets the machine with the specified id, or null if such machine does not exist.
         /// </summary>
-        /// <param name="targetMachineId">The id of target machine.</param>
-        /// <param name="e">The event that will be sent.</param>
-        /// <param name="sender">The machine that is sending the event.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
+        /// <param name="mid">The id of machine.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
-        protected bool GetTargetMachine(MachineId targetMachineId, Event e, IMachine sender, Guid? operationGroupId,
-            out IMachine targetMachine)
+        protected bool GetMachineFromId(MachineId mid, out IMachine targetMachine)
         {
-            if (!this.MachineMap.TryGetValue(targetMachineId.Value, out targetMachine))
+            if (!this.MachineMap.TryGetValue(mid.Value, out targetMachine))
             {
-                var senderState = sender?.CurrentStateName ?? String.Empty;
-                this.Logger.OnSend(targetMachineId, sender?.Id, senderState,
-                    e.GetType().FullName, operationGroupId, isTargetHalted: true);
                 return false;
             }
 
@@ -784,8 +777,8 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is throwing an exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex)
