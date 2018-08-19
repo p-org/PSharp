@@ -14,13 +14,18 @@
 
 using System;
 
-namespace Microsoft.PSharp.Runtime
+namespace Microsoft.PSharp
 {
     /// <summary>
     /// Interface of a unique machine id.
     /// </summary>
     internal interface IMachineId : IEquatable<IMachineId>, IComparable<IMachineId>
     {
+        /// <summary>
+        /// The runtime that executes the machine with this id.
+        /// </summary>
+        IPSharpRuntime Runtime { get; }
+
         /// <summary>
         /// Name of the machine.
         /// </summary>
