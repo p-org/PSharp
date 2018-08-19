@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected void AssertSucceeded(Configuration configuration, Action<IPSharpRuntime> test)
         {
-            InMemoryLogger logger = new InMemoryLogger();
+            TestOutputLogger logger = new TestOutputLogger(this.TestOutput);
 
             try
             {
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, int numExpectedErrors,
             Func<HashSet<string>, bool> expectedOutputFunc, bool replay)
         {
-            InMemoryLogger logger = new InMemoryLogger();
+            TestOutputLogger logger = new TestOutputLogger(this.TestOutput);
 
             try
             {
@@ -176,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
                 $"Type '{exceptionType}' is not an exception type.");
 
-            InMemoryLogger logger = new InMemoryLogger();
+            TestOutputLogger logger = new TestOutputLogger(this.TestOutput);
 
             try
             {
