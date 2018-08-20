@@ -16,11 +16,16 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class SendAndExecuteTest7 
+    public class SendAndExecuteTest7 : BaseTest
     {
+        public SendAndExecuteTest7(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
         }
@@ -67,6 +72,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             var message = String.Empty;

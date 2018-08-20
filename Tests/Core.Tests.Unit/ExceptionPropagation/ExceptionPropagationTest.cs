@@ -16,11 +16,16 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class ExceptionPropagationTest
+    public class ExceptionPropagationTest : BaseTest
     {
+        public ExceptionPropagationTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         internal class Configure : Event
         {
             public TaskCompletionSource<bool> TCS;
@@ -76,6 +81,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
@@ -89,6 +95,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             runtime.OnFailure += delegate (Exception exception)
             {
                 if (!(exception is MachineActionExceptionFilterException))
@@ -117,6 +124,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             runtime.OnFailure += delegate (Exception exception)
             {
                 // This test throws an exception that we should receive a filter call for

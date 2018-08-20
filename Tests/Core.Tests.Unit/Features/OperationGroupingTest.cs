@@ -16,12 +16,16 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
-
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class OperationGroupingTest
+    public class OperationGroupingTest : BaseTest
     {
+        public OperationGroupingTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         static Guid OperationGroup1 = Guid.NewGuid();
         static Guid OperationGroup2 = Guid.NewGuid();
 
@@ -292,6 +296,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

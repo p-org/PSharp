@@ -16,11 +16,16 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class GetOperationGroupIdTest 
+    public class GetOperationGroupIdTest : BaseTest
     {
+        public GetOperationGroupIdTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         static Guid OperationGroup = Guid.NewGuid();
 
         class E : Event
@@ -71,6 +76,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

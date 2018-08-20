@@ -22,11 +22,16 @@ using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class CustomLoggerTest
+    public class CustomLoggerTest : BaseTest
     {
+        public CustomLoggerTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class CustomLogger : MachineLogger
         {
             private StringBuilder StringBuilder;

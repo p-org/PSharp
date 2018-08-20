@@ -15,11 +15,16 @@
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class NoMemoryLeakInEventSendingTest
+    public class NoMemoryLeakInEventSendingTest : BaseTest
     {
+        public NoMemoryLeakInEventSendingTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         internal class Configure : Event
         {
             public TaskCompletionSource<bool> TCS;
@@ -95,6 +100,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var tcs = new TaskCompletionSource<bool>();
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
             runtime.Stop();
