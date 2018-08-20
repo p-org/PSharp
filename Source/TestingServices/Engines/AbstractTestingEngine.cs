@@ -62,6 +62,16 @@ namespace Microsoft.PSharp.TestingServices
         private MethodInfo TestRuntimeGetTypeMethod;
 
         /// <summary>
+        /// The P# test runtime get default in-memory logger method.
+        /// </summary>
+        internal MethodInfo TestRuntimeGetInMemoryLoggerMethod;
+
+        /// <summary>
+        /// The P# test runtime get default disposing logger method.
+        /// </summary>
+        internal MethodInfo TestRuntimeGetDisposingLoggerMethod;
+
+        /// <summary>
         /// A P# test method.
         /// </summary>
         internal MethodInfo TestMethod;
@@ -476,22 +486,22 @@ namespace Microsoft.PSharp.TestingServices
                 runtimeFactoryMethods[0].IsConstructor ||
                 runtimeFactoryMethods[0].IsPublic || !runtimeFactoryMethods[0].IsStatic ||
                 runtimeFactoryMethods[0].GetParameters().Length != 3 ||
-                runtimeFactoryMethods[0].GetParameters()[0].ParameterType != typeof(Configuration) ||
-                runtimeFactoryMethods[0].GetParameters()[1].ParameterType != typeof(ISchedulingStrategy) ||
-                runtimeFactoryMethods[0].GetParameters()[2].ParameterType != typeof(IRegisterRuntimeOperation))
+                runtimeFactoryMethods[0].GetParameters()[0].ParameterType != typeof(ISchedulingStrategy) ||
+                runtimeFactoryMethods[0].GetParameters()[1].ParameterType != typeof(IRegisterRuntimeOperation) ||
+                runtimeFactoryMethods[0].GetParameters()[2].ParameterType != typeof(Configuration))
             {
                 Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
                     $"  [{typeof(TestRuntimeCreate).FullName}] internal static ITestingRuntime " +
-                    $"{runtimeFactoryMethods[0].Name}(Configuration configuration, ISchedulingStrategy strategy, " +
-                    "IRegisterRuntimeOperation reporter) {{ ... }}");
+                    $"{runtimeFactoryMethods[0].Name}(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, " +
+                    "Configuration configuration) {{ ... }}");
             }
 
             this.TestRuntimeFactoryMethod = runtimeFactoryMethods[0];
         }
 
         /// <summary>
-        /// Finds the testing runtime factory method, if one is provided.
+        /// Finds the testing runtime type, if one is provided.
         /// </summary>
         private void FindRuntimeGetTypeMethod()
         {
@@ -523,6 +533,76 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.TestRuntimeGetTypeMethod = runtimeGetTypeMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the default testing runtime in-memory logger, if one is provided.
+        /// </summary>
+        private void FindRuntimeGetInMemoryLoggerMethod()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetLoggerMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetInMemoryLogger), flags, this.RuntimeAssembly);
+
+            if (runtimeGetLoggerMethods.Count == 0)
+            {
+                Error.ReportAndExit($"Failed to find a testing runtime get in-memory logger method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetLoggerMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get in-memory logger method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetInMemoryLogger).FullName}'. " +
+                    $"'{runtimeGetLoggerMethods.Count}' get in-memory logger methods were found instead.");
+            }
+
+            if (!typeof(IO.ILogger).IsAssignableFrom(runtimeGetLoggerMethods[0].ReturnType) ||
+                runtimeGetLoggerMethods[0].ContainsGenericParameters ||
+                runtimeGetLoggerMethods[0].IsAbstract || runtimeGetLoggerMethods[0].IsVirtual ||
+                runtimeGetLoggerMethods[0].IsConstructor ||
+                runtimeGetLoggerMethods[0].IsPublic || !runtimeGetLoggerMethods[0].IsStatic ||
+                runtimeGetLoggerMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect test runtime get in-memory logger method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetInMemoryLogger).FullName}] internal static ILogger " +
+                    $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetInMemoryLoggerMethod = runtimeGetLoggerMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the default testing runtime disposing logger, if one is provided.
+        /// </summary>
+        private void FindRuntimeGetDisposingLoggerMethod()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetLoggerMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetDisposingLogger), flags, this.RuntimeAssembly);
+
+            if (runtimeGetLoggerMethods.Count == 0)
+            {
+                Error.ReportAndExit($"Failed to find a testing runtime get disposing logger method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetLoggerMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get disposing logger method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetDisposingLogger).FullName}'. " +
+                    $"'{runtimeGetLoggerMethods.Count}' get disposing logger methods were found instead.");
+            }
+
+            if (!typeof(IO.ILogger).IsAssignableFrom(runtimeGetLoggerMethods[0].ReturnType) ||
+                runtimeGetLoggerMethods[0].ContainsGenericParameters ||
+                runtimeGetLoggerMethods[0].IsAbstract || runtimeGetLoggerMethods[0].IsVirtual ||
+                runtimeGetLoggerMethods[0].IsConstructor ||
+                runtimeGetLoggerMethods[0].IsPublic || !runtimeGetLoggerMethods[0].IsStatic ||
+                runtimeGetLoggerMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect test runtime get disposing logger method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetDisposingLogger).FullName}] internal static ILogger " +
+                    $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetDisposingLoggerMethod = runtimeGetLoggerMethods[0];
         }
 
         /// <summary>

@@ -967,33 +967,72 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the machine (for code coverage).
+        /// Returns the set of all (state, registered event) pairs in the machine (for code coverage).
         /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
-        private protected HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        /// <returns>Set of all (state, registered event) pairs in the machine</returns>
+        private protected HashSet<(string state, string e)> GetAllStateEventPairs()
         {
             this.CheckProperty(this.MachineStates != null, "{0} hasn't populated its states yet.", this.Name);
 
-            var pairs = new HashSet<Tuple<string, string>>();
+            var pairs = new HashSet<(string state, string e)>();
             foreach (var state in this.MachineStates)
             {
                 foreach (var binding in state.ActionBindings)
                 {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                    pairs.Add((state: StateGroup.GetQualifiedStateName(state.GetType()), e: binding.Key.Name));
                 }
 
                 foreach (var transition in state.GotoTransitions)
                 {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                    pairs.Add((state: StateGroup.GetQualifiedStateName(state.GetType()), e: transition.Key.Name));
                 }
 
                 foreach (var pushtransition in state.PushTransitions)
                 {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
+                    pairs.Add((state: StateGroup.GetQualifiedStateName(state.GetType()), e: pushtransition.Key.Name));
                 }
             }
 
             return pairs;
+        }
+
+        /// <summary>
+        /// Returns the current state transition. Used for code coverage.
+        /// </summary>
+        /// <param name="eventInfo">The metadata of the event that caused the current transition.</param>
+        private protected (string machine, string originState, string destState, string edgeLabel) GetCurrentStateTransition(EventInfo eventInfo)
+        {
+            string originState = StateGroup.GetQualifiedStateName(this.CurrentState);
+            string edgeLabel = String.Empty;
+            string destState = String.Empty;
+            if (eventInfo.Event is GotoStateEvent)
+            {
+                edgeLabel = "goto";
+                destState = StateGroup.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
+            }
+            else if (eventInfo.Event is PushStateEvent)
+            {
+                edgeLabel = "push";
+                destState = StateGroup.GetQualifiedStateName((eventInfo.Event as PushStateEvent).State);
+            }
+            else if (this.GotoTransitions.ContainsKey(eventInfo.EventType))
+            {
+                edgeLabel = eventInfo.EventType.Name;
+                destState = StateGroup.GetQualifiedStateName(
+                    this.GotoTransitions[eventInfo.EventType].TargetState);
+            }
+            else if (this.PushTransitions.ContainsKey(eventInfo.EventType))
+            {
+                edgeLabel = eventInfo.EventType.Name;
+                destState = StateGroup.GetQualifiedStateName(
+                    this.PushTransitions[eventInfo.EventType].TargetState);
+            }
+            else
+            {
+                return (String.Empty, String.Empty, String.Empty, String.Empty);
+            }
+
+            return (this.GetType().Name, originState, edgeLabel, destState);
         }
 
         #endregion

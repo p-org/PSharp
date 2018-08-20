@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.TestingServices
 
                 // Logger used to intercept the program output if no custom logger
                 // is installed and if verbosity is turned off.
-                InMemoryLogger runtimeLogger = null;
+                ILogger runtimeLogger = null;
 
                 // Gets a handle to the standard output and error streams.
                 var stdOut = Console.Out;
@@ -187,10 +187,28 @@ namespace Microsoft.PSharp.TestingServices
                     // the standard output and error streams into the runtime logger.
                     if (base.Configuration.Verbose < 2)
                     {
-                        runtimeLogger = new InMemoryLogger();
+                        if (base.TestRuntimeGetInMemoryLoggerMethod != null)
+                        {
+                            runtimeLogger = (ILogger)base.TestRuntimeGetInMemoryLoggerMethod.Invoke(null, new object[] { });
+                        }
+                        else
+                        {
+                            runtimeLogger = new InMemoryLogger();
+                        }
+
                         runtime.SetLogger(runtimeLogger);
 
-                        var writer = new LogWriter(new DisposingLogger());
+                        ILogger disposingLogger = null;
+                        if (base.TestRuntimeGetDisposingLoggerMethod != null)
+                        {
+                            disposingLogger = (ILogger)base.TestRuntimeGetDisposingLoggerMethod.Invoke(null, new object[] { });
+                        }
+                        else
+                        {
+                            disposingLogger = new DisposingLogger();
+                        }
+
+                        var writer = new LogWriter(disposingLogger);
                         Console.SetOut(writer);
                         Console.SetError(writer);
                     }

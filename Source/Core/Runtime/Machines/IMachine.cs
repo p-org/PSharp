@@ -92,25 +92,21 @@ namespace Microsoft.PSharp.Runtime
         int GetCachedState();
 
         /// <summary>
-        /// Returns the set of all states in the machine
-        /// (for code coverage).
+        /// Returns the set of all states in the machine (for code coverage).
         /// </summary>
-        /// <returns>Set of all states in the machine</returns>
+        /// <returns>Set of all states in the machine.</returns>
         HashSet<string> GetAllStates();
 
         /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the machine
-        /// (for code coverage).
+        /// Returns the set of all (state, registered event) pairs in the machine (for code coverage).
         /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
-        HashSet<Tuple<string, string>> GetAllStateEventPairs();
+        /// <returns>Set of all (state, registered event) pairs in the machine.</returns>
+        HashSet<(string state, string e)> GetAllStateEventPairs();
 
         /// <summary>
-        /// Returns the type of the state at the specified state
-        /// stack index, if there is one.
+        /// Returns the current state transition. Used for code coverage.
         /// </summary>
-        /// <param name="index">State stack index</param>
-        /// <returns>Type</returns>
-        Type GetStateTypeAtStackIndex(int index);
+        /// <param name="eventInfo">The metadata of the event that caused the current transition.</param>
+        (string machine, string originState, string destState, string edgeLabel) GetCurrentStateTransition(EventInfo eventInfo);
     }
 }

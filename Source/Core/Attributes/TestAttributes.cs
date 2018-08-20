@@ -58,4 +58,16 @@ namespace Microsoft.PSharp
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     internal sealed class TestRuntimeGetType : Attribute { }
+
+    /// <summary>
+    /// Attribute for declaring the default in-memory logger of the P# testing runtime.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    internal sealed class TestRuntimeGetInMemoryLogger : Attribute { }
+
+    /// <summary>
+    /// Attribute for declaring the default disposing logger of the P# testing runtime.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    internal sealed class TestRuntimeGetDisposingLogger : Attribute { }
 }

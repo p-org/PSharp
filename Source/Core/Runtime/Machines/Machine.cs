@@ -388,7 +388,15 @@ namespace Microsoft.PSharp
         /// </summary>
         protected void Pop()
         {
-            this.RuntimeManager.NotifyPopAction(this);
+            if (this.RuntimeManager.IsTestingModeEnabled)
+            {
+                this.RuntimeManager.NotifyPopAction(this, this.CurrentState, base.StateStack.ElementAtOrDefault(1)?.GetType());
+            }
+            else
+            {
+                this.RuntimeManager.NotifyPopAction(this, null, null);
+            }
+
             this.IsPopInvoked = true;
         }
 
@@ -864,29 +872,25 @@ namespace Microsoft.PSharp
         #region code coverage methods
 
         /// <summary>
-        /// Returns the set of all states in the machine
-        /// (for code coverage).
+        /// Returns the set of all states in the machine (for code coverage).
         /// </summary>
-        /// <returns>Set of all states in the machine</returns>
+        /// <returns>Set of all states in the machine.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         HashSet<string> IMachine.GetAllStates() => base.GetAllStates();
 
         /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the machine
-        /// (for code coverage).
+        /// Returns the set of all (state, registered event) pairs in the machine (for code coverage).
         /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
+        /// <returns>Set of all (state, registered event) pairs in the machine.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        HashSet<Tuple<string, string>> IMachine.GetAllStateEventPairs() => base.GetAllStateEventPairs();
+        HashSet<(string state, string e)> IMachine.GetAllStateEventPairs() => base.GetAllStateEventPairs();
 
         /// <summary>
-        /// Returns the type of the state at the specified state
-        /// stack index, if there is one.
+        /// Returns the current state transition. Used for code coverage.
         /// </summary>
-        /// <param name="index">State stack index</param>
-        /// <returns>Type</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        Type IMachine.GetStateTypeAtStackIndex(int index) => base.StateStack.ElementAtOrDefault(index)?.GetType();
+        /// <param name="eventInfo">The metadata of the event that caused the current transition.</param>
+        (string machine, string originState, string destState, string edgeLabel) IMachine.GetCurrentStateTransition(EventInfo eventInfo) =>
+            base.GetCurrentStateTransition(eventInfo);
 
         #endregion
 
@@ -1109,7 +1113,7 @@ namespace Microsoft.PSharp
                 {
                     var mustHandleEvent = this.Inbox.FirstOrDefault(ev => ev.MustHandle);
                     this.CheckProperty(mustHandleEvent == null,
-                        "Machine '{0}' halted before dequeueing must-handle event '{1}'.\n",
+                        "Machine '{0}' halted before dequeueing must-handle event '{1}'.",
                         this.Id, mustHandleEvent?.EventName ?? String.Empty);
                 }
 

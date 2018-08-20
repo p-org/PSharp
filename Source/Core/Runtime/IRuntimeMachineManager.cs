@@ -240,7 +240,9 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine invoked the 'pop' state action.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        void NotifyPopAction(IMachine machine);
+        /// <param name="fromState">Top of the stack state.</param>
+        /// <param name="toState">Next to top state of the stack.</param>
+        void NotifyPopAction(IMachine machine, Type fromState, Type toState);
 
         /// <summary>
         /// Notifies that a machine invoked an action.

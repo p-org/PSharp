@@ -630,8 +630,10 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine invoked the 'pop' state action.
         /// </summary>
         /// <param name="machine">The machine.</param>
+        /// <param name="fromState">Top of the stack state.</param>
+        /// <param name="toState">Next to top state of the stack.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyPopAction(IMachine machine)
+        public virtual void NotifyPopAction(IMachine machine, Type fromState, Type toState)
         {
             // Override to implement the notification.
         }

@@ -52,13 +52,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Runs a test harness that executes the specified test method.
         /// </summary>
-        /// <param name="testMethod">MethodInfo</param>
+        /// <param name="testMethod">The test method.</param>
         void RunTestHarness(MethodInfo testMethod);
 
         /// <summary>
         /// Runs a test harness that executes the specified test action.
         /// </summary>
-        /// <param name="testAction">Action</param>
+        /// <param name="testAction">The test action.</param>
         void RunTestHarness(Action<IPSharpRuntime> testAction);
 
         /// <summary>
