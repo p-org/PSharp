@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Map from task ids to machines.
         /// </summary>
-        private ConcurrentDictionary<int, IMachine> TaskMap;
+        private readonly ConcurrentDictionary<int, IMachine> TaskMap;
 
         /// <summary>
         /// Constructor.

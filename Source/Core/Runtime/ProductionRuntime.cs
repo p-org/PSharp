@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
@@ -36,9 +38,9 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
+        /// <param name="configuration">The configuration to use during runtime.</param>
         internal ProductionRuntime(Configuration configuration)
-            : base(configuration)
+            : base(new ConsoleLogger(), configuration)
         {
             this.Monitors = new List<Monitor>();
             this.SupportedBaseMachineTypes = new HashSet<Type> { typeof(Machine) };

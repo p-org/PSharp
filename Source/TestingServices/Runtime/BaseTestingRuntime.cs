@@ -98,12 +98,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         /// <summary>
         /// Constructor.
-        /// <param name="configuration">Configuration</param>
-        /// <param name="strategy">SchedulingStrategy</param>
+        /// <param name="strategy">The scheduling strategy to use during exploration.</param>
         /// <param name="reporter">Reporter to register runtime operations.</param>
+        /// <param name="logger">The logger to install.</param>
+        /// <param name="configuration">The configuration to use during runtime.</param>
         /// </summary>
-        protected BaseTestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
-            : base(configuration)
+        protected BaseTestingRuntime(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, IO.ILogger logger, Configuration configuration)
+            : base(logger, configuration)
         {
             this.Monitors = new List<Monitor>();
             this.TaskMap = new ConcurrentDictionary<int, IMachine>();
@@ -376,7 +377,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="e">Event passed during machine construction.</param>
         /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="creatorId">The id of the creator machine.</param>
+        /// <param name="creatorId">The id of the creator machine, if any.</param>
         /// <param name="creatorInfo">The metadata of the creator machine.</param>
         /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>

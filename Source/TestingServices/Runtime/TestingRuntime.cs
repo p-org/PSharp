@@ -15,10 +15,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
-using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Runtime
@@ -43,7 +42,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         [TestRuntimeCreate]
         internal static TestingRuntime Create(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
         {
-            return new TestingRuntime(configuration, strategy, reporter);
+            return new TestingRuntime(strategy, reporter, configuration);
         }
 
         /// <summary>
@@ -55,12 +54,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         /// <summary>
         /// Constructor.
-        /// <param name="configuration">Configuration</param>
-        /// <param name="strategy">SchedulingStrategy</param>
+        /// <param name="strategy">The scheduling strategy to use during exploration.</param>
         /// <param name="reporter">Reporter to register runtime operations.</param>
+        /// <param name="configuration">The configuration to use during runtime.</param>
         /// </summary>
-        private TestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
-            : base(configuration, strategy, reporter)
+        private TestingRuntime(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, Configuration configuration)
+            : base(strategy, reporter, new ConsoleLogger(), configuration)
         {
             this.SupportedBaseMachineTypes = new HashSet<Type> { typeof(Machine), typeof(TestHarnessMachine) };
         }
