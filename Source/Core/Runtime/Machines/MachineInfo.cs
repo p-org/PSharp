@@ -17,8 +17,8 @@ using System;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Stores machine-related information, which can used
-    /// for scheduling and testing.
+    /// Stores machine-related information, which is used for various
+    /// internal purposes, including scheduling and testing.
     /// </summary>
     internal class MachineInfo
     {
@@ -26,6 +26,11 @@ namespace Microsoft.PSharp.Runtime
         /// Unique id of the machine.
         /// </summary>
         protected IMachineId MachineId;
+
+        /// <summary>
+        /// The type of the machine.
+        /// </summary>
+        internal Type MachineType;
 
         /// <summary>
         /// Is the machine halted.
@@ -73,15 +78,17 @@ namespace Microsoft.PSharp.Runtime
         /// Constructor.
         /// </summary>
         /// <param name="mid">The machine id.</param>
-        internal MachineInfo(IMachineId mid)
+        /// <param name="type">The machine type.</param>
+        internal MachineInfo(IMachineId mid, Type type)
         {
-            MachineId = mid;
-            IsHalted = false;
-            IsWaitingToReceive = false;
-            IsInsideOnExit = false;
-            CurrentActionCalledTransitionStatement = false;
-            OperationGroupId = Guid.Empty;
-            ProgramCounter = 0;
+            this.MachineId = mid;
+            this.MachineType = type;
+            this.IsHalted = false;
+            this.IsWaitingToReceive = false;
+            this.IsInsideOnExit = false;
+            this.CurrentActionCalledTransitionStatement = false;
+            this.OperationGroupId = Guid.Empty;
+            this.ProgramCounter = 0;
         }
 
         /// <summary>

@@ -76,19 +76,22 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="e">Event passed during machine construction.</param>
         /// <param name="operationGroupId">The operation group id.</param>
-        /// <param name="creator">The creator machine.</param>
+        /// <param name="creatorId">The id of the creator machine.</param>
+        /// <param name="creatorInfo">The metadata of the creator machine.</param>
+        /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, IMachine creator, Guid? operationGroupId);
+        Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Guid? operationGroupId,
+            IMachineId creatorId, MachineInfo creatorInfo, string creatorStateName);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
+        /// <param name="sender">The sender machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options);
+        Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo, Type senderState, string senderStateName);
 
         #endregion
 
@@ -98,9 +101,11 @@ namespace Microsoft.PSharp.Runtime
         /// Invokes the specified monitor with the given event.
         /// </summary>
         /// <param name="type">Type of the monitor.</param>
-        /// <param name="invoker">The machine invoking the monitor.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        void Monitor(Type type, IMachine invoker, Event e);
+        void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -126,28 +131,34 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerStateName">The name of the current state, if any.</param>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
-        bool GetNondeterministicBooleanChoice(IMachine machine, int maxValue);
+        /// <returns>The nondeterministic boolean choice.</returns>
+        bool GetNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        bool GetFairNondeterministicBooleanChoice(IMachine machine, string uniqueId);
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerStateName">The name of the current state, if any.</param>
+        /// <param name="uniqueId">Unique id.</param>
+        /// <returns>The nondeterministic boolean choice.</returns>
+        bool GetFairNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerStateName">The name of the current state, if any.</param>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
-        int GetNondeterministicIntegerChoice(IMachine machine, int maxValue);
+        /// <returns>The nondeterministic integer choice.</returns>
+        int GetNondeterministicIntegerChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         #endregion
 
@@ -197,33 +208,33 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is performing a 'goto' transition to the specified state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
-        void NotifyGotoState(IMachine machine, string currentStateName, string newStateName);
+        void NotifyGotoState(IMachine machine, string currStateName, string newStateName);
 
         /// <summary>
         /// Notifies that a machine is performing a 'push' transition to the specified state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
-        void NotifyPushState(IMachine machine, string currentStateName, string newStateName);
+        void NotifyPushState(IMachine machine, string currStateName, string newStateName);
 
         /// <summary>
         /// Notifies that a machine is performing a 'pop' transition from the current state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="restoredStateName">The name of the state being restored, if any.</param>
-        void NotifyPopState(IMachine machine, string currentStateName, string restoredStateName);
+        void NotifyPopState(IMachine machine, string currStateName, string restoredStateName);
 
         /// <summary>
         /// Notifies that a machine popped its state because it cannot handle the current event.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
-        void NotifyPopUnhandledEvent(IMachine machine, string currentStateName, string eventName);
+        void NotifyPopUnhandledEvent(IMachine machine, string currStateName, string eventName);
 
         /// <summary>
         /// Notifies that a machine invoked the 'pop' state action.
@@ -327,19 +338,19 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is throwing an exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
-        void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex);
+        void NotifyMachineExceptionThrown(IMachine machine, string currStateName, string actionName, Exception ex);
 
         /// <summary>
         /// Notifies that a machine is using 'OnException' to handle a thrown exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
-        void NotifyMachineExceptionHandled(IMachine machine, string currentStateName, string actionName, Exception ex);
+        void NotifyMachineExceptionHandled(IMachine machine, string currStateName, string actionName, Exception ex);
 
         #endregion
 

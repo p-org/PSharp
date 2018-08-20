@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Timers
             var tid = new TimerId(mid, payload);
 
             this.RuntimeManager.CreateMachineAsync(mid, this.RuntimeManager.GetTimerMachineType(), null,
-                new InitTimer(this.Id, tid, IsPeriodic, period), this, null).Wait();
+                new InitTimer(this.Id, tid, IsPeriodic, period), null, this.Id, this.Info, this.CurrentStateName).Wait();
 
             timers.Add(tid);
             return tid;

@@ -283,11 +283,13 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Friendly machine name used for logging.</param>
         /// <param name="e">Event passed during machine construction.</param>
-        /// <param name="creator">The creator machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
+        /// <param name="creatorId">The id of the creator machine.</param>
+        /// <param name="creatorInfo">The metadata of the creator machine.</param>
+        /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        public abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName,
-            Event e, IMachine creator, Guid? operationGroupId);
+        public abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Guid? operationGroupId,
+            IMachineId creatorId, MachineInfo creatorInfo, string creatorStateName);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -298,20 +300,6 @@ namespace Microsoft.PSharp.Runtime
         public void SendEvent(MachineId target, Event e, SendOptions options = null)
         {
             this.SendEventAsync(target, e, options).Wait();
-        }
-
-        /// <summary>
-        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
-        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
-        /// </summary>
-        /// <param name="target">Target machine id</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters of a send operation.</param>
-        /// <returns>Task that represents the asynchronous operation. The task result is true if
-        /// the event was handled, false if the event was only enqueued.</returns>
-        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
-        {
-            return this.SendEventAndExecuteAsync(target, e, options);
         }
 
         /// <summary>
@@ -332,6 +320,20 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is true if
         /// the event was handled, false if the event was only enqueued.</returns>
+        public Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null)
+        {
+            return this.SendEventAndExecuteAsync(target, e, options);
+        }
+
+        /// <summary>
+        /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        /// <param name="options">Optional parameters of a send operation.</param>
+        /// <returns>Task that represents the asynchronous operation. The task result is true if
+        /// the event was handled, false if the event was only enqueued.</returns>
         public abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
@@ -339,10 +341,11 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="sender">The sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
+        /// <param name="sender">The sender machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public abstract Task SendEventAsync(MachineId mid, Event e, IMachine sender, SendOptions options);
+        public abstract Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo,
+            Type senderState, string senderStateName);
 
         /// <summary>
         /// Gets the machine with the specified id, or null if such machine does not exist.
@@ -411,9 +414,11 @@ namespace Microsoft.PSharp.Runtime
         /// Invokes the specified monitor with the given event.
         /// </summary>
         /// <param name="type">Type of the monitor.</param>
-        /// <param name="invoker">The machine invoking the monitor.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public abstract void Monitor(Type type, IMachine invoker, Event e);
+        public abstract void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -451,8 +456,8 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a nondeterministic boolean choice, that can be controlled
         /// during analysis or testing.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool Random() => this.GetNondeterministicBooleanChoice(null, 2);
+        /// <returns>The nondeterministic boolean choice.</returns>
+        public bool Random() => this.GetNondeterministicBooleanChoice(null, null, String.Empty, 2);
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled
@@ -460,26 +465,30 @@ namespace Microsoft.PSharp.Runtime
         /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
-        public bool Random(int maxValue) => this.GetNondeterministicBooleanChoice(null, maxValue);
+        /// <returns>The nondeterministic boolean choice.</returns>
+        public bool Random(int maxValue) => this.GetNondeterministicBooleanChoice(null, null, String.Empty, maxValue);
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
-        public abstract bool GetNondeterministicBooleanChoice(IMachine machine, int maxValue);
+        /// <returns>The nondeterministic boolean choice.</returns>
+        public abstract bool GetNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        public abstract bool GetFairNondeterministicBooleanChoice(IMachine machine, string uniqueId);
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerStateName">The state name of the caller machine.</param>
+        /// <param name="uniqueId">Unique id.</param>
+        /// <returns>The nondeterministic boolean choice.</returns>
+        public abstract bool GetFairNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
@@ -487,17 +496,19 @@ namespace Microsoft.PSharp.Runtime
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
-        public int RandomInteger(int maxValue) => this.GetNondeterministicIntegerChoice(null, maxValue);
+        /// <returns>The nondeterministic integer choice.</returns>
+        public int RandomInteger(int maxValue) => this.GetNondeterministicIntegerChoice(null, null, String.Empty, maxValue);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
-        public abstract int GetNondeterministicIntegerChoice(IMachine machine, int maxValue);
+        /// <returns>The nondeterministic integer choice.</returns>
+        public abstract int GetNondeterministicIntegerChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         #endregion
 
@@ -570,10 +581,10 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is performing a 'goto' transition to the specified state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyGotoState(IMachine machine, string currentStateName, string newStateName)
+        public virtual void NotifyGotoState(IMachine machine, string currStateName, string newStateName)
         {
             // Override to implement the notification.
         }
@@ -582,10 +593,10 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is performing a 'push' transition to the specified state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyPushState(IMachine machine, string currentStateName, string newStateName)
+        public virtual void NotifyPushState(IMachine machine, string currStateName, string newStateName)
         {
             // Override to implement the notification.
         }
@@ -594,10 +605,10 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is performing a 'pop' transition from the current state.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="restoredStateName">The name of the state being restored, if any.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyPopState(IMachine machine, string currentStateName, string restoredStateName)
+        public virtual void NotifyPopState(IMachine machine, string currStateName, string restoredStateName)
         {
             // Override to implement the notification.
         }
@@ -606,10 +617,10 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine popped its state because it cannot handle the current event.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyPopUnhandledEvent(IMachine machine, string currentStateName, string eventName)
+        public virtual void NotifyPopUnhandledEvent(IMachine machine, string currStateName, string eventName)
         {
             // Override to implement the notification.
         }
@@ -777,11 +788,11 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is throwing an exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyMachineExceptionThrown(IMachine machine, string currentStateName, string actionName, Exception ex)
+        public virtual void NotifyMachineExceptionThrown(IMachine machine, string currStateName, string actionName, Exception ex)
         {
             // Override to implement the notification.
         }
@@ -790,11 +801,11 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is using 'OnException' to handle a thrown exception.
         /// </summary>
         /// <param name="machine">The machine.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void NotifyMachineExceptionHandled(IMachine machine, string currentStateName, string actionName, Exception ex)
+        public virtual void NotifyMachineExceptionHandled(IMachine machine, string currStateName, string actionName, Exception ex)
         {
             // Override to implement the notification.
         }
@@ -836,23 +847,23 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        public abstract Guid GetCurrentOperationGroupId(MachineId currentMachineId);
+        public abstract Guid GetCurrentOperationGroupId(IMachineId currentMachineId);
 
         /// <summary>
         /// Gets the new operation group id to propagate.
         /// </summary>
-        /// <param name="sender">The sender machine.</param>
+        /// <param name="senderInfo">The metadata of the sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>Operation group Id</returns>
-        internal Guid GetNewOperationGroupId(IMachine sender, Guid? operationGroupId)
+        internal Guid GetNewOperationGroupId(MachineInfo senderInfo, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {
                 return operationGroupId.Value;
             }
-            else if (sender != null)
+            else if (senderInfo != null)
             {
-                return sender.Info.OperationGroupId;
+                return senderInfo.OperationGroupId;
             }
             else
             {
@@ -861,24 +872,24 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Sets the operation group id for the specified machine.
+        /// Sets the operation group id for the destination machine.
         /// </summary>
-        /// <param name="created">The created machine.</param>
-        /// <param name="sender">The sender machine.</param>
+        /// <param name="srcInfo">The metadata of the source machine.</param>
+        /// <param name="destInfo">The metadata of the destination machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
-        internal void SetOperationGroupIdForMachine(IMachine created, IMachine sender, Guid? operationGroupId)
+        internal void SetOperationGroupIdForMachine(MachineInfo srcInfo, MachineInfo destInfo, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {
-                created.Info.OperationGroupId = operationGroupId.Value;
+                destInfo.OperationGroupId = operationGroupId.Value;
             }
-            else if (sender != null)
+            else if (srcInfo != null)
             {
-                created.Info.OperationGroupId = sender.Info.OperationGroupId;
+                destInfo.OperationGroupId = srcInfo.OperationGroupId;
             }
             else
             {
-                created.Info.OperationGroupId = Guid.Empty;
+                destInfo.OperationGroupId = Guid.Empty;
             }
         }
 

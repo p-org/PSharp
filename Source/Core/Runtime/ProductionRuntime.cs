@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Runtime
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot monitor a null event.");
-            this.Monitor(type, null, e);
+            this.Monitor(type, null, null, null, e);
         }
 
         /// <summary>
@@ -131,9 +131,11 @@ namespace Microsoft.PSharp.Runtime
         /// Invokes the specified monitor with the given event.
         /// </summary>
         /// <param name="type">Type of the monitor.</param>
-        /// <param name="invoker">The machine invoking the monitor.</param>
+        /// <param name="callerId">The id of the caller machine.</param>
+        /// <param name="callerInfo">The metadata of the caller machine.</param>
+        /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public override void Monitor(Type type, IMachine invoker, Event e)
+        public override void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e)
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {

@@ -14,12 +14,12 @@
 
 using System;
 
-namespace Microsoft.PSharp.Runtime
+namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Interface of a unique machine id. This interface is only for internal consumption.
+    /// Interface of a unique machine id.
     /// </summary>
-    internal interface IMachineId : IEquatable<IMachineId>, IComparable<IMachineId>
+    public interface IMachineId : IEquatable<IMachineId>, IComparable<IMachineId>
     {
         /// <summary>
         /// Unique id value.

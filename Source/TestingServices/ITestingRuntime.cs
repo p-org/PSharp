@@ -64,8 +64,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Gets the id of the currently executing machine.
         /// </summary>
-        /// <returns>MachineId or null, if not present</returns>
-        MachineId GetCurrentMachineId();
+        /// <returns>The machine id, or null, if not present.</returns>
+        IMachineId GetCurrentMachineId();
 
         /// <summary>
         /// Gets the currently executing machine.

@@ -388,17 +388,6 @@ namespace Microsoft.PSharp.Runtime
         #region inbox accessing
 
         /// <summary>
-        /// Enqueues the specified <see cref="EventInfo"/>.
-        /// </summary>
-        /// <param name="eventInfo">The event metadata.</param>
-        /// <param name="sender">The sender machine.</param>
-        /// <returns>
-        /// Task that represents the asynchronous operation. The task result
-        /// is the machine status after the enqueue.
-        /// </returns>
-        internal abstract Task<MachineStatus> EnqueueAsync(EventInfo eventInfo, IMachine sender);
-
-        /// <summary>
         /// Returns the raised <see cref="EventInfo"/> if
         /// there is one available, else returns null.
         /// </summary>
@@ -1138,30 +1127,30 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that the machine is performing a 'goto' transition to the specified state.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
-        private protected abstract void NotifyGotoState(string currentStateName, string newStateName);
+        private protected abstract void NotifyGotoState(string currStateName, string newStateName);
 
         /// <summary>
         /// Notifies that the machine is performing a 'push' transition to the specified state.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
-        private protected abstract void NotifyPushState(string currentStateName, string newStateName);
+        private protected abstract void NotifyPushState(string currStateName, string newStateName);
 
         /// <summary>
         /// Notifies that the machine is performing a 'pop' transition from the current state.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="restoredStateName">The name of the state being restored, if any.</param>
-        private protected abstract void NotifyPopState(string currentStateName, string restoredStateName);
+        private protected abstract void NotifyPopState(string currStateName, string restoredStateName);
 
         /// <summary>
         /// Notifies that the machine popped its state because it cannot handle the current event.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
-        private protected abstract void NotifyPopUnhandledEvent(string currentStateName, string eventName);
+        private protected abstract void NotifyPopUnhandledEvent(string currStateName, string eventName);
 
         /// <summary>
         /// Notifies that the machine invoked an action.
@@ -1181,17 +1170,17 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that the machine is throwing an exception.
         /// </summary>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        private protected abstract void NotifyMachineExceptionThrown(string currentStateName, string actionName, Exception ex);
+        private protected abstract void NotifyMachineExceptionThrown(string currStateName, string actionName, Exception ex);
 
         /// <summary>
         /// Notifies that the machine is using 'OnException' to handle a thrown exception.
         /// </summary>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
-        private protected abstract void NotifyMachineExceptionHandled(string currentStateName, string actionName, Exception ex);
+        private protected abstract void NotifyMachineExceptionHandled(string currStateName, string actionName, Exception ex);
 
         #endregion
 

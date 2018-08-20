@@ -184,7 +184,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         protected Task<MachineId> CreateMachineAsync(Type type, Event e = null)
         {
-            return this.RuntimeManager.CreateMachineAsync(null, type, null, e, this, null);
+            return this.CreateMachineAsync(type, null, e);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         protected Task<MachineId> CreateMachineAsync(Type type, string friendlyName, Event e = null)
         {
-            return this.RuntimeManager.CreateMachineAsync(null, type, friendlyName, e, this, null);
+            return this.RuntimeManager.CreateMachineAsync(null, type, friendlyName, e, null, this.Id, this.Info, this.CurrentStateName);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace Microsoft.PSharp
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         protected Task<MachineId> CreateMachineAsync(MachineId mid, Type type, Event e = null)
         {
-            return this.RuntimeManager.CreateMachineAsync(mid, type, mid.FriendlyName, e, this, null);
+            return this.RuntimeManager.CreateMachineAsync(mid, type, mid.FriendlyName, e, null, this.Id, this.Info, this.CurrentStateName);
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace Microsoft.PSharp
             this.CheckProperty(mid != null, $"{this.Name} is sending to a null machine.");
             // If the event is null, then report an error and exit.
             this.CheckProperty(e != null, $"{this.Name} is sending a null event.");
-            return this.RuntimeManager.SendEventAsync(mid, e, this, options);
+            return this.RuntimeManager.SendEventAsync(mid, e, options, this.Id, this.Info, this.CurrentState, this.CurrentStateName);
         }
 
         /// <summary>
@@ -411,17 +411,19 @@ namespace Microsoft.PSharp
         {
             // If the event is null, then report an error and exit.
             this.CheckProperty(e != null, $"{this.Name} is sending a null event.");
-            this.RuntimeManager.Monitor(type, this, e);
+            this.RuntimeManager.Monitor(type, this.Id, this.Info, this.CurrentState, e);
         }
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <returns>Boolean</returns>
+        /// <returns>The nondeterministic boolean choice.</returns>
         protected bool Random()
         {
-            return this.RuntimeManager.GetNondeterministicBooleanChoice(this, 2);
+            var result = this.RuntimeManager.GetNondeterministicBooleanChoice(this.Id, this.Info, this.CurrentStateName, 2);
+            this.RuntimeManager.Logger.OnRandom(this.Id, result);
+            return result;
         }
 
         /// <summary>
@@ -431,10 +433,12 @@ namespace Microsoft.PSharp
         /// triggers true.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The nondeterministic boolean choice.</returns>
         protected bool Random(int maxValue)
         {
-            return this.RuntimeManager.GetNondeterministicBooleanChoice(this, maxValue);
+            var result = this.RuntimeManager.GetNondeterministicBooleanChoice(this.Id, this.Info, this.CurrentStateName, maxValue);
+            this.RuntimeManager.Logger.OnRandom(this.Id, result);
+            return result;
         }
 
         /// <summary>
@@ -444,7 +448,7 @@ namespace Microsoft.PSharp
         /// <param name="callerMemberName">CallerMemberName</param>
         /// <param name="callerFilePath">CallerFilePath</param>
         /// <param name="callerLineNumber">CallerLineNumber</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The nondeterministic boolean choice.</returns>
         protected bool FairRandom(
             [CallerMemberName] string callerMemberName = "",
             [CallerFilePath] string callerFilePath = "",
@@ -452,7 +456,9 @@ namespace Microsoft.PSharp
         {
             var havocId = string.Format("{0}_{1}_{2}_{3}_{4}", this.Id.Name, this.CurrentStateName,
                 callerMemberName, callerFilePath, callerLineNumber);
-            return this.RuntimeManager.GetFairNondeterministicBooleanChoice(this, havocId);
+            var result = this.RuntimeManager.GetFairNondeterministicBooleanChoice(this.Id, this.Info, this.CurrentStateName, havocId);
+            this.RuntimeManager.Logger.OnRandom(this.Id, result);
+            return result;
         }
 
         /// <summary>
@@ -461,10 +467,12 @@ namespace Microsoft.PSharp
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
+        /// <returns>The nondeterministic integer choice.</returns>
         protected int RandomInteger(int maxValue)
         {
-            return this.RuntimeManager.GetNondeterministicIntegerChoice(this, maxValue);
+            var result = this.RuntimeManager.GetNondeterministicIntegerChoice(this.Id, this.Info, this.CurrentStateName, maxValue);
+            this.RuntimeManager.Logger.OnRandom(this.Id, result);
+            return result;
         }
 
         /// <summary>
@@ -497,12 +505,11 @@ namespace Microsoft.PSharp
         /// Enqueues the specified <see cref="EventInfo"/>.
         /// </summary>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <param name="sender">The sender machine.</param>
         /// <returns>
         /// Task that represents the asynchronous operation. The task result
         /// is the machine status after the enqueue.
         /// </returns>
-        internal override Task<MachineStatus> EnqueueAsync(EventInfo eventInfo, IMachine sender)
+        Task<MachineStatus> IMachine.EnqueueAsync(EventInfo eventInfo)
         {
             lock (this.Inbox)
             {
@@ -558,18 +565,6 @@ namespace Microsoft.PSharp
 
             return Task.FromResult(MachineStatus.EventHandlerRunning);
         }
-
-        /// <summary>
-        /// Enqueues the specified <see cref="EventInfo"/>.
-        /// </summary>
-        /// <param name="eventInfo">The event metadata.</param>
-        /// <param name="sender">The sender machine.</param>
-        /// <returns>
-        /// Task that represents the asynchronous operation. The task result
-        /// is the machine status after the enqueue.
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        Task<MachineStatus> IMachine.EnqueueAsync(EventInfo eventInfo, IMachine sender) => this.EnqueueAsync(eventInfo, sender);
 
         /// <summary>
         /// Dequeues the next available event from the inbox if there
@@ -976,41 +971,41 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that the machine is performing a 'goto' transition to the specified state.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
-        private protected override void NotifyGotoState(string currentStateName, string newStateName)
+        private protected override void NotifyGotoState(string currStateName, string newStateName)
         {
-            this.RuntimeManager.NotifyGotoState(this, currentStateName, newStateName);
+            this.RuntimeManager.NotifyGotoState(this, currStateName, newStateName);
         }
 
         /// <summary>
         /// Notifies that the machine is performing a 'push' transition to the specified state.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="newStateName">The target state.</param>
-        private protected override void NotifyPushState(string currentStateName, string newStateName)
+        private protected override void NotifyPushState(string currStateName, string newStateName)
         {
-            this.RuntimeManager.NotifyPushState(this, currentStateName, newStateName);
+            this.RuntimeManager.NotifyPushState(this, currStateName, newStateName);
         }
 
         /// <summary>
         /// Notifies that the machine is performing a 'pop' transition from the current state.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="restoredStateName">The name of the state being restored, if any.</param>
-        private protected override void NotifyPopState(string currentStateName, string restoredStateName)
+        private protected override void NotifyPopState(string currStateName, string restoredStateName)
         {
-            this.RuntimeManager.NotifyPopState(this, currentStateName, this.CurrentStateName);
+            this.RuntimeManager.NotifyPopState(this, currStateName, this.CurrentStateName);
         }
 
         /// <summary>
         /// Notifies that the machine popped its state because it cannot handle the current event.
         /// </summary>
-        /// <param name="currentStateName">The name of the current state, if any.</param>
+        /// <param name="currStateName">The name of the current state, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
-        private protected override void NotifyPopUnhandledEvent(string currentStateName, string eventName)
+        private protected override void NotifyPopUnhandledEvent(string currStateName, string eventName)
         {
-            this.RuntimeManager.NotifyPopUnhandledEvent(this, currentStateName, eventName);
+            this.RuntimeManager.NotifyPopUnhandledEvent(this, currStateName, eventName);
         }
 
         /// <summary>
@@ -1036,23 +1031,23 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that the machine is throwing an exception.
         /// </summary>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
-        private protected override void NotifyMachineExceptionThrown(string currentStateName, string actionName, Exception ex)
+        private protected override void NotifyMachineExceptionThrown(string currStateName, string actionName, Exception ex)
         {
-            this.RuntimeManager.NotifyMachineExceptionThrown(this, currentStateName, actionName, ex);
+            this.RuntimeManager.NotifyMachineExceptionThrown(this, currStateName, actionName, ex);
         }
 
         /// <summary>
         /// Notifies that the machine is using 'OnException' to handle a thrown exception.
         /// </summary>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
-        private protected override void NotifyMachineExceptionHandled(string currentStateName, string actionName, Exception ex)
+        private protected override void NotifyMachineExceptionHandled(string currStateName, string actionName, Exception ex)
         {
-            this.RuntimeManager.NotifyMachineExceptionHandled(this, currentStateName, actionName, ex);
+            this.RuntimeManager.NotifyMachineExceptionHandled(this, currStateName, actionName, ex);
         }
 
         #endregion

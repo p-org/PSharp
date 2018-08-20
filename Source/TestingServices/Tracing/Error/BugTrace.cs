@@ -65,29 +65,22 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="targetMachine">Target machine</param>
+        /// <param name="mid">The id of the machine.</param>
+        /// <param name="machineStateName">The name of the machine state.</param>
+        /// <param name="targetMachine">The id of the target machine.</param>
         /// <param name="eventInfo">The event metadata.</param>
-        internal void AddCreateMachineStep(IMachine machine, MachineId targetMachine, EventInfo eventInfo)
+        internal void AddCreateMachineStep(IMachineId mid, string machineStateName, IMachineId targetMachine, EventInfo eventInfo)
         {
-            MachineId mid = null;
-            string machineState = null;
-            if (machine != null)
-            {
-                mid = machine.Id;
-                machineState = machine.CurrentStateName;
-            }
-
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.CreateMachine,
-                mid, machineState, eventInfo, null, targetMachine, null, null, null);
+                mid, machineStateName, eventInfo, null, targetMachine, null, null, null);
             this.Push(scheduleStep);
         }
 
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="monitor">MachineId</param>
-        internal void AddCreateMonitorStep(MachineId monitor)
+        /// <param name="monitor">IMachineId</param>
+        internal void AddCreateMonitorStep(IMachineId monitor)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.CreateMonitor,
                 null, null, null, null, monitor, null, null, null);
@@ -97,12 +90,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="eventInfo">The event metadata.</param>
-        /// <param name="targetMachine">Target machine</param>
-        internal void AddSendEventStep(MachineId machine, string machineState,
-            EventInfo eventInfo, MachineId targetMachine)
+        /// <param name="targetMachine">The id of the target machine.</param>
+        internal void AddSendEventStep(IMachineId machine, string machineState, EventInfo eventInfo, IMachineId targetMachine)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.SendEvent,
                 machine, machineState, eventInfo, null, targetMachine, null, null, null);
@@ -112,10 +104,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="eventInfo">The event metadata.</param>
-        internal void AddDequeueEventStep(MachineId machine, string machineState, EventInfo eventInfo)
+        internal void AddDequeueEventStep(IMachineId machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.DequeueEvent,
                 machine, machineState, eventInfo, null, null, null, null, null);
@@ -125,10 +117,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="eventInfo">The event metadata.</param>
-        internal void AddRaiseEventStep(MachineId machine, string machineState, EventInfo eventInfo)
+        internal void AddRaiseEventStep(IMachineId machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RaiseEvent,
                 machine, machineState, eventInfo, null, null, null, null, null);
@@ -138,9 +130,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
-        internal void AddGotoStateStep(MachineId machine, string machineState)
+        internal void AddGotoStateStep(IMachineId machine, string machineState)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.GotoState,
                 machine, machineState, null, null, null, null, null, null);
@@ -150,10 +142,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="action">MethodInfo</param>
-        internal void AddInvokeActionStep(MachineId machine, string machineState, MethodInfo action)
+        internal void AddInvokeActionStep(IMachineId machine, string machineState, MethodInfo action)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.InvokeAction,
                 machine, machineState, null, action, null, null, null, null);
@@ -163,10 +155,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="eventNames">Event names</param>
-        internal void AddWaitToReceiveStep(MachineId machine, string machineState, string eventNames)
+        internal void AddWaitToReceiveStep(IMachineId machine, string machineState, string eventNames)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.WaitToReceive,
                 machine, machineState, null, null, null, null, null, eventNames);
@@ -176,10 +168,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="eventInfo">The event metadata.</param>
-        internal void AddReceivedEventStep(MachineId machine, string machineState, EventInfo eventInfo)
+        internal void AddReceivedEventStep(IMachineId machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.ReceiveEvent,
                 machine, machineState, eventInfo, null, null, null, null, null);
@@ -189,10 +181,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="choice">Choice</param>
-        internal void AddRandomChoiceStep(MachineId machine, string machineState, bool choice)
+        internal void AddRandomChoiceStep(IMachineId machine, string machineState, bool choice)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RandomChoice,
                 machine, machineState, null, null, null, choice, null, null);
@@ -202,10 +194,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="choice">Choice</param>
-        internal void AddRandomChoiceStep(MachineId machine, string machineState, int choice)
+        internal void AddRandomChoiceStep(IMachineId machine, string machineState, int choice)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RandomChoice,
                 machine, machineState, null, null, null, null, choice, null);
@@ -215,9 +207,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Adds a bug trace step.
         /// </summary>
-        /// <param name="machine">The machine.</param>
+        /// <param name="machine">The id of the machine.</param>
         /// <param name="machineState">MachineState</param>
-        internal void AddHaltStep(MachineId machine, string machineState)
+        internal void AddHaltStep(IMachineId machine, string machineState)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.Halt,
                 machine, machineState, null, null, null, null, null, null);

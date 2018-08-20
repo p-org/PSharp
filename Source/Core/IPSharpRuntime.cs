@@ -261,7 +261,7 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic boolean choice, that can be controlled
         /// during analysis or testing.
         /// </summary>
-        /// <returns>Boolean</returns>
+        /// <returns>The nondeterministic boolean choice.</returns>
         bool Random();
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace Microsoft.PSharp
         /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The nondeterministic boolean choice.</returns>
         bool Random(int maxValue);
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Microsoft.PSharp
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
+        /// <returns>The nondeterministic integer choice.</returns>
         int RandomInteger(int maxValue);
 
         /// <summary>
@@ -306,12 +306,12 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Returns the operation group id of the specified machine id. Returns <see cref="Guid.Empty"/>
-        /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
+        /// if the id is not set, or if the <see cref="IMachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
         /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        Guid GetCurrentOperationGroupId(MachineId currentMachineId);
+        Guid GetCurrentOperationGroupId(IMachineId currentMachineId);
 
         /// <summary>
         /// Logs the specified text using .
