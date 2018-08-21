@@ -244,7 +244,10 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="sender">The sender machine.</param>
+        /// <param name="senderId">The id of the sender machine.</param>
+        /// <param name="senderInfo">The metadata of the sender machine.</param>
+        /// <param name="senderState">The state of the sender machine.</param>
+        /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
         public override async Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo,

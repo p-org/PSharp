@@ -218,9 +218,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
+        /// <param name="mid">The id of the target machine.</param>
+        /// <param name="e">The event to send.</param>
+        /// <param name="options">Optional parameters.</param>
         //[Obsolete("Please use Machine.SendAsync(...) instead.")]
         protected void Send(MachineId mid, Event e, SendOptions options = null)
         {
@@ -230,9 +230,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
+        /// <param name="mid">The id of the target machine.</param>
+        /// <param name="e">The event to send.</param>
+        /// <param name="options">Optional parameters.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
         protected Task SendAsync(MachineId mid, Event e, SendOptions options = null)
         {

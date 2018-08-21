@@ -515,6 +515,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="senderId">The id of the sender machine.</param>
         /// <param name="senderInfo">The metadata of the sender machine.</param>
         /// <param name="senderState">The state of the sender machine.</param>
+        /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
         public override async Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo,
             Type senderState, string senderStateName)
@@ -612,7 +613,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="machine">The machine.</param>
         /// <param name="e">Event</param>
-        /// <param name="sender">The sender machine.</param>
+        /// <param name="senderId">The id of the sender machine.</param>
+        /// <param name="senderInfo">The metadata of the sender machine.</param>
+        /// <param name="senderState">The state of the sender machine.</param>
+        /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="eventInfo">The enqueued event metadata.</param>

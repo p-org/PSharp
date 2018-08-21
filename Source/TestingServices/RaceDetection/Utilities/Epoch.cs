@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
         /// <summary>
         /// Obtains an epoch c@t from machineId t = mId.Value and clock c.
         /// </summary>
-        public static long MakeEpoch(MachineId mId, long clock)
+        public static long MakeEpoch(IMachineId mId, long clock)
         {
             return MakeEpoch((long)mId.Value, clock);
         }
