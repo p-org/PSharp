@@ -182,7 +182,6 @@ namespace Microsoft.PSharp.TestingServices
                         runtime = TestingRuntime.Create(base.Strategy, base.Reporter, base.Configuration);
                     }
 
-
                     // If verbosity is turned off, then intercept the program log, and also redirect
                     // the standard output and error streams into the runtime logger.
                     if (base.Configuration.Verbose < 2)
