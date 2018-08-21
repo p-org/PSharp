@@ -34,25 +34,25 @@ namespace Microsoft.PSharp
         /// Unique id value.
         /// </summary>
         [DataMember]
-        public ulong Value { get; }
+        public ulong Value { get; private set; }
 
         /// <summary>
         /// Type of the machine.
         /// </summary>
         [DataMember]
-        public string Type { get; }
+        public string Type { get; private set; }
 
         /// <summary>
         /// Name of the machine.
         /// </summary>
         [DataMember]
-        public string Name { get; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Optional friendly name of the machine.
         /// </summary>
         [DataMember]
-        public string FriendlyName { get; }
+        public string FriendlyName { get; private set; }
 
         /// <summary>
         /// Creates a new machine id.

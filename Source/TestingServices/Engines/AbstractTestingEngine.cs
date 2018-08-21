@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The P# test runtime factory method.
         /// </summary>
-        internal MethodInfo TestRuntimeFactoryMethod;
+        protected MethodInfo TestRuntimeFactoryMethod;
 
         /// <summary>
         /// The P# test runtime get type method.
@@ -62,14 +62,19 @@ namespace Microsoft.PSharp.TestingServices
         private MethodInfo TestRuntimeGetTypeMethod;
 
         /// <summary>
+        /// The P# test runtime get known serializable <see cref="IMachineId"/> types method.
+        /// </summary>
+        protected MethodInfo TestRuntimeGetKnownSerializableMachineIdTypesMethod;
+
+        /// <summary>
         /// The P# test runtime get default in-memory logger method.
         /// </summary>
-        internal MethodInfo TestRuntimeGetInMemoryLoggerMethod;
+        protected MethodInfo TestRuntimeGetInMemoryLoggerMethod;
 
         /// <summary>
         /// The P# test runtime get default disposing logger method.
         /// </summary>
-        internal MethodInfo TestRuntimeGetDisposingLoggerMethod;
+        protected MethodInfo TestRuntimeGetDisposingLoggerMethod;
 
         /// <summary>
         /// A P# test method.
@@ -251,6 +256,9 @@ namespace Microsoft.PSharp.TestingServices
 
                 this.FindRuntimeFactoryMethod();
                 this.FindRuntimeGetTypeMethod();
+                this.FindRuntimeGetKnownSerializableMachineIdTypes();
+                this.FindRuntimeGetInMemoryLoggerMethod();
+                this.FindRuntimeGetDisposingLoggerMethod();
             }
 
             this.FindEntryPoint();
@@ -490,7 +498,7 @@ namespace Microsoft.PSharp.TestingServices
                 runtimeFactoryMethods[0].GetParameters()[1].ParameterType != typeof(IRegisterRuntimeOperation) ||
                 runtimeFactoryMethods[0].GetParameters()[2].ParameterType != typeof(Configuration))
             {
-                Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
+                Error.ReportAndExit("Incorrect testing runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
                     $"  [{typeof(TestRuntimeCreate).FullName}] internal static ITestingRuntime " +
                     $"{runtimeFactoryMethods[0].Name}(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, " +
@@ -526,13 +534,50 @@ namespace Microsoft.PSharp.TestingServices
                 runtimeGetTypeMethods[0].IsPublic || !runtimeGetTypeMethods[0].IsStatic ||
                 runtimeGetTypeMethods[0].GetParameters().Length != 0)
             {
-                Error.ReportAndExit("Incorrect test runtime get type method declaration. Please " +
+                Error.ReportAndExit("Incorrect testing runtime get type method declaration. Please " +
                     "declare the method as follows:\n" +
                     $"  [{typeof(TestRuntimeGetType).FullName}] internal static Type " +
                     $"{runtimeGetTypeMethods[0].Name}() {{ ... }}");
             }
 
             this.TestRuntimeGetTypeMethod = runtimeGetTypeMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the known <see cref="IMachineId"/> serializable types, if they are provided.
+        /// </summary>
+        private void FindRuntimeGetKnownSerializableMachineIdTypes()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetIdTypesMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetKnownSerializableMachineIdTypes),
+                flags, this.RuntimeAssembly);
+
+            if (runtimeGetIdTypesMethods.Count == 0)
+            {
+                Error.ReportAndExit("Failed to find a testing runtime get known serializable machine id types " +
+                    $"method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetIdTypesMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get known serializable machine id types method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).FullName}'. " +
+                    $"'{runtimeGetIdTypesMethods.Count}' get in-memory logger methods were found instead.");
+            }
+
+            if (!typeof(IEnumerable<Type>).IsAssignableFrom(runtimeGetIdTypesMethods[0].ReturnType) ||
+                runtimeGetIdTypesMethods[0].ContainsGenericParameters ||
+                runtimeGetIdTypesMethods[0].IsAbstract || runtimeGetIdTypesMethods[0].IsVirtual ||
+                runtimeGetIdTypesMethods[0].IsConstructor ||
+                runtimeGetIdTypesMethods[0].IsPublic || !runtimeGetIdTypesMethods[0].IsStatic ||
+                runtimeGetIdTypesMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect testing runtime get known serializable machine id types method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).FullName}] internal static IEnumerable<Type> " +
+                    $"{runtimeGetIdTypesMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetKnownSerializableMachineIdTypesMethod = runtimeGetIdTypesMethods[0];
         }
 
         /// <summary>
@@ -561,7 +606,7 @@ namespace Microsoft.PSharp.TestingServices
                 runtimeGetLoggerMethods[0].IsPublic || !runtimeGetLoggerMethods[0].IsStatic ||
                 runtimeGetLoggerMethods[0].GetParameters().Length != 0)
             {
-                Error.ReportAndExit("Incorrect test runtime get in-memory logger method declaration. Please " +
+                Error.ReportAndExit("Incorrect testing runtime get in-memory logger method declaration. Please " +
                     "declare the method as follows:\n" +
                     $"  [{typeof(TestRuntimeGetInMemoryLogger).FullName}] internal static ILogger " +
                     $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
@@ -596,7 +641,7 @@ namespace Microsoft.PSharp.TestingServices
                 runtimeGetLoggerMethods[0].IsPublic || !runtimeGetLoggerMethods[0].IsStatic ||
                 runtimeGetLoggerMethods[0].GetParameters().Length != 0)
             {
-                Error.ReportAndExit("Incorrect test runtime get disposing logger method declaration. Please " +
+                Error.ReportAndExit("Incorrect testing runtime get disposing logger method declaration. Please " +
                     "declare the method as follows:\n" +
                     $"  [{typeof(TestRuntimeGetDisposingLogger).FullName}] internal static ILogger " +
                     $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");

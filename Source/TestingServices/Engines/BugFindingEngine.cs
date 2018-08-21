@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -120,7 +121,13 @@ namespace Microsoft.PSharp.TestingServices
 
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
-                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
+                    var knownTypes = new HashSet<Type> { typeof(MachineId) };
+                    if (base.TestRuntimeGetKnownSerializableMachineIdTypesMethod != null)
+                    {
+                        knownTypes.UnionWith((IEnumerable<Type>)base.TestRuntimeGetKnownSerializableMachineIdTypesMethod.Invoke(null, new object[] { }));
+                    }
+
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace), knownTypes);
                     base.Logger.WriteLine($"..... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
