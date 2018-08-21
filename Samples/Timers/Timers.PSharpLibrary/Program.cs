@@ -8,7 +8,7 @@ namespace TimerSample
 		static void Main(string[] args)
 		{
 			var configuration = Configuration.Create().WithVerbosityEnabled(1);
-			var runtime = RuntimeService.Create(configuration);
+			var runtime = PSharpRuntime.Create(configuration);
 			Execute(runtime);
 			Console.ReadLine();
 		}

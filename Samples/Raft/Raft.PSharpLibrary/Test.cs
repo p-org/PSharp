@@ -20,7 +20,7 @@ namespace Raft.PSharpLibrary
             var configuration = Configuration.Create().WithVerbosityEnabled(2);
 
             // Creates a new P# runtime instance, and passes an optional configuration.
-            var runtime = RuntimeService.Create(configuration);
+            var runtime = PSharpRuntime.Create(configuration);
 
             // Executes the P# program.
             Program.Execute(runtime);
