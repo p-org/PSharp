@@ -188,7 +188,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(m3, typeof(M2));
             });
 
-            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M3' to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2'.", true);
+            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M3' " +
+                "to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2'.", true);
         }
 
         [Fact]
@@ -210,7 +211,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.SendEvent(m, new E());
             });
 
-            base.AssertFailed(test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E to a MachineId '' that was never previously bound to a machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2()", true);
+            base.AssertFailed(test, "Cannot send event 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E' to " +
+                "unbound machine id 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2()'.", true);
         }
 
         [Fact]
@@ -281,7 +283,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(100);
             config.ReductionStrategy = Utilities.ReductionStrategy.None;
 
-            base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E to a MachineId '' that was never previously bound to a machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M4()", false);
+            base.AssertFailed(config, test, "Cannot send event 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E' to " +
+                "unbound machine id 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M4()'.", false);
         }
     }
 }

@@ -328,11 +328,11 @@ namespace Microsoft.PSharp.TestingServices
                 if (base.TestRuntimeFactoryMethod != null)
                 {
                     runtime = (ITestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
-                        new object[] { base.Configuration, base.Strategy, base.Reporter });
+                        new object[] { base.Strategy, base.Reporter, base.Configuration });
                 }
                 else
                 {
-                    runtime = TestingRuntime.Create(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = TestingRuntime.Create(base.Strategy, base.Reporter, base.Configuration);
                 }
 
                 if (base.Configuration.EnableDataRaceDetection)

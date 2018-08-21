@@ -35,12 +35,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a P# runtime that executes in bug-finding mode.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="strategy">SchedulingStrategy</param>
+        /// <param name="strategy">The scheduling strategy to use during exploration.</param>
         /// <param name="reporter">Reporter to register runtime operations.</param>
-        /// <returns>TestingRuntime</returns>
+        /// <param name="configuration">The configuration to use during runtime.</param>
+        /// <returns>The P# testing runtime.</returns>
         [TestRuntimeCreate]
-        internal static TestingRuntime Create(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
+        internal static TestingRuntime Create(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, Configuration configuration)
         {
             return new TestingRuntime(strategy, reporter, configuration);
         }
