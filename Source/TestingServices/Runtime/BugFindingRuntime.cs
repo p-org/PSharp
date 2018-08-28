@@ -25,6 +25,7 @@ using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -1684,7 +1685,6 @@ namespace Microsoft.PSharp.TestingServices
 
                 fingerprint = new Fingerprint(hash);
             }
-
             return fingerprint;
         }
 

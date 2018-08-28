@@ -133,10 +133,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="next">Next</param>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
+        /// <param name="CheckCycle">CacheState</param>
         /// <returns>Boolean</returns>
-        public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current, bool CheckCycle = false)
         {
-            CaptureAndCheckProgramState();
+            CaptureAndCheckProgramState(CheckCycle);
 
             if (IsReplayingCycle)
             {
@@ -333,7 +334,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Captures the program state and checks for liveness violations.
         /// </summary>
-        private void CaptureAndCheckProgramState()
+        private void CaptureAndCheckProgramState(bool CheckCycle = false)
         {
             if (this.ScheduleTrace.Count == 0)
             {
@@ -346,7 +347,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 Fingerprint fingerprint;
                 bool stateExists = StateCache.CaptureState(out capturedState, out fingerprint,
                     FingerprintIndexMap, ScheduleTrace.Peek(), Monitors);
-                if (stateExists)
+                if (stateExists && CheckCycle)
                 {
                     Debug.WriteLine("<LivenessDebug> Detected potential infinite execution.");
                     CheckLivenessAtTraceCycle(FingerprintIndexMap[fingerprint]);
@@ -449,20 +450,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 var scheduleStep = ScheduleTrace[i];
                 PotentialCycle.Add(scheduleStep);
                 PotentialCycleFingerprints.Add(scheduleStep.State.Fingerprint);
-                Debug.WriteLine("<LivenessDebug> Cycle contains {0} with {1}.",
-                    scheduleStep.Type, scheduleStep.State.Fingerprint.ToString());
             }
 
-            DebugPrintScheduleTrace();
+            //DebugPrintScheduleTrace();
             DebugPrintPotentialCycle();
 
-            if (!IsSchedulingFair(PotentialCycle))
+            bool CheckFairness = true;
+            if (GetHotMonitors(PotentialCycle).Count == 0)
+                CheckFairness = false;
+            if (CheckFairness && !IsSchedulingFair(PotentialCycle))
             {
                 Debug.WriteLine("<LivenessDebug> Scheduling in cycle is unfair.");
                 PotentialCycle.Clear();
                 PotentialCycleFingerprints.Clear();
             }
-            else if (!IsNondeterminismFair(PotentialCycle))
+            else if (CheckFairness && !IsNondeterminismFair(PotentialCycle))
             {
                 Debug.WriteLine("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 PotentialCycle.Clear();
@@ -488,7 +490,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                             scheduleStep.Type, scheduleStep.State.Fingerprint.ToString());
                     }
 
-                    if (IsSchedulingFair(PotentialCycle) && IsNondeterminismFair(PotentialCycle))
+                    if (GetHotMonitors(PotentialCycle).Count > 0 && 
+                        IsSchedulingFair(PotentialCycle) && IsNondeterminismFair(PotentialCycle))
                     {
                         isFairCycleFound = true;
                         break;

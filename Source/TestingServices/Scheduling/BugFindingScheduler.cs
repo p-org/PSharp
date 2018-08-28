@@ -140,7 +140,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var choices = this.SchedulableInfoMap.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
 
             ISchedulable next = null;
-            if (!this.Strategy.GetNext(out next, choices, current))
+            bool CheckCycle = false;
+            if (operationType.Equals(OperationType.Send)/* && !operationType.Equals(OperationType.Create)*/
+                /*&& !operationType.Equals(OperationType.Receive)*/)
+                CheckCycle = true;
+            if (!this.Strategy.GetNext(out next, choices, current, CheckCycle))
             {
                 // Checks if the program has livelocked.
                 this.CheckIfProgramHasLivelocked(choices.Select(choice => choice as SchedulableInfo));
