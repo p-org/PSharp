@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
+using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -70,6 +70,15 @@ namespace Microsoft.PSharp.LanguageServices
             {
                 base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
             }
+        }
+
+        /// <summary>
+        /// Emits dgml representation of the state machine structure
+        /// </summary>
+        /// <param name="writer">XmlTestWriter</param>
+        public override void EmitStateMachineStructure(XmlTextWriter writer)
+        {
+
         }
 
         #endregion

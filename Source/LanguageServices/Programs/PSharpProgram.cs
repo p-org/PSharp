@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
+using System.Xml;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -96,6 +97,104 @@ namespace Microsoft.PSharp.LanguageServices
             {
                 base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
             }
+        }
+
+        /// <summary>
+        /// Emits dgml representation of the state machine structure
+        /// </summary>
+        /// <param name="writer">XmlTestWriter</param>
+        public override void EmitStateMachineStructure(XmlTextWriter writer)
+        {
+            // Starts document.
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+
+            // Starts DirectedGraph element.
+            writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
+
+            // Starts Nodes element.
+            writer.WriteStartElement("Nodes");
+
+            // Iterates machines.
+            foreach (var ndecl in this.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    writer.WriteStartElement("Node");
+                    writer.WriteAttributeString("Id", mdecl.Identifier.Text);
+                    writer.WriteAttributeString("Group", "Expanded");
+                    writer.WriteEndElement();
+                }
+            }
+
+            // Iterates states.
+            foreach (var ndecl in this.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    var machine = mdecl.Identifier.Text;
+                    foreach (var sdecl in mdecl.GetAllStateDeclarations())
+                    {
+                        writer.WriteStartElement("Node");
+                        writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                        writer.WriteAttributeString("Label", sdecl.Identifier.Text);
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+
+            // Ends Nodes element.
+            writer.WriteEndElement();
+
+            // Starts Links element.
+            writer.WriteStartElement("Links");
+
+            // Iterates states.
+            foreach (var ndecl in this.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    var machine = mdecl.Identifier.Text;
+                    foreach (var sdecl in mdecl.GetAllStateDeclarations())
+                    {
+                        writer.WriteStartElement("Link");
+                        writer.WriteAttributeString("Source", machine);
+                        writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                        writer.WriteAttributeString("Category", "Contains");
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+
+            // Iterates state annotations.
+            foreach (var ndecl in this.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    var machine = mdecl.Identifier.Text;
+                    foreach (var sdecl in mdecl.GetAllStateDeclarations())
+                    {
+                        foreach (var kvp in sdecl.GotoStateTransitions)
+                        {
+                            writer.WriteStartElement("Link");
+                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, kvp.Value[0].Text));
+                            writer.WriteAttributeString("Label", kvp.Key.Text);
+                            writer.WriteEndElement();
+                        }
+                    }
+                }
+            }
+            // Ends Links element.
+            writer.WriteEndElement();
+
+            // Ends DirectedGraph element.
+            writer.WriteEndElement();
+
+            // Ends document.
+            writer.WriteEndDocument();
+
         }
 
         #endregion

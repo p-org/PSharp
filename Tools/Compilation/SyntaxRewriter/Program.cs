@@ -14,7 +14,8 @@
 
 using System;
 using System.IO;
-
+using System.Text;
+using System.Xml;
 using Microsoft.Build.Framework;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
@@ -140,6 +141,14 @@ namespace Microsoft.PSharp
 
                 var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
+                if(true)
+                {
+                    using (var writer = new XmlTextWriter("g.dgml", Encoding.UTF8))
+                    {
+                        context.GetProjects()[0].PSharpPrograms[0].EmitStateMachineStructure(writer);
+                    }
+                }
+
                 return syntaxTree.ToString();
             }
             catch (ParsingException ex)
@@ -153,6 +162,7 @@ namespace Microsoft.PSharp
                 return null;
             }
         }
+
     }
 
     /// <summary>
