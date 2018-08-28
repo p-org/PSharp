@@ -751,6 +751,7 @@ namespace Microsoft.PSharp
             }
 
             bool completed = false;
+            Event previouslyDequeuedEvent = null;
 
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
@@ -818,7 +819,8 @@ namespace Microsoft.PSharp
                 {
                     // inform the user of a successful dequeue
                     // once ReceivedEvent is set
-                    await this.OnProcessingBegin();
+                    previouslyDequeuedEvent = nextEventInfo.Event;
+                    await this.OnProcessingBegin(previouslyDequeuedEvent);
                 }
 
                 // Handles next event.
@@ -828,7 +830,7 @@ namespace Microsoft.PSharp
                 {
                     // inform the user that the machine is done processing.
                     // It will either go idle or dequeue its next message.
-                    await this.OnProcessingEnd();
+                    await this.OnProcessingEnd(previouslyDequeuedEvent);
                 }
             }
 
@@ -1864,8 +1866,9 @@ namespace Microsoft.PSharp
         /// This method is not called when the dequeue happens
         /// via Receive.
         /// </summary>
+        /// <param name="ev">The dequeued event</param>
         /// <returns></returns>
-        protected virtual Task OnProcessingBegin()
+        protected virtual Task OnProcessingBegin(Event ev)
         {
             return Task.FromResult(true);
         }
@@ -1874,14 +1877,15 @@ namespace Microsoft.PSharp
         /// User callback that is invoked when the machine
         /// is done processing an event. It is guaranteed that
         /// there is no raised event when this method is called.
-        /// Unless this method raises an event, the machine will either 
+        /// Unless this method raises an event itself, the machine will either 
         /// become idle or dequeue the next event from its inbox.
         /// This method is not called when the processing of an 
         /// event caused the machine to halt. It does not matter 
         /// if the halt was normal or exceptional.
         /// </summary>
+        /// <param name="ev">The dequeued event whose processing has just finished</param>
         /// <returns></returns>
-        protected virtual Task OnProcessingEnd()
+        protected virtual Task OnProcessingEnd(Event ev)
         {
             return Task.FromResult(true);
         }
