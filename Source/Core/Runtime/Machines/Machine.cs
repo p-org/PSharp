@@ -751,6 +751,7 @@ namespace Microsoft.PSharp
             }
 
             bool completed = false;
+
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
@@ -792,6 +793,7 @@ namespace Microsoft.PSharp
 
                 if (dequeued)
                 {
+
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
                     // to schedule a machine when a new operation is dequeued.
@@ -812,8 +814,22 @@ namespace Microsoft.PSharp
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
 
+                if(dequeued)
+                {
+                    // inform the user of a successful dequeue
+                    // once ReceivedEvent is set
+                    await this.OnProcessingBegin();
+                }
+
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
+
+                if (this.RaisedEvent == null && !this.Info.IsHalted)
+                {
+                    // inform the user that the machine is done processing.
+                    // It will either go idle or dequeue its next message.
+                    await this.OnProcessingEnd();
+                }
             }
 
             return completed;
@@ -1840,6 +1856,44 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region user callbacks
+
+        /// <summary>
+        /// User callback that is invoked when the machine
+        /// successfully dequeues an event from its inbox.
+        /// This method is not called when the dequeue happens
+        /// via Receive.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Task OnProcessingBegin()
+        {
+            return Task.FromResult(true);
+        }
+
+        /// <summary>
+        /// User callback that is invoked when the machine
+        /// is done processing an event. It is guaranteed that
+        /// there is no raised event when this method is called.
+        /// Unless this method raises an event, the machine will either 
+        /// become idle or dequeue the next event from its inbox.
+        /// This method is not called when the processing of an 
+        /// event caused the machine to halt. It does not matter 
+        /// if the halt was normal or exceptional.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Task OnProcessingEnd()
+        {
+            return Task.FromResult(true);
+        }
+
+
+        /// <summary>
+        /// User callback when a machine halts.
+        /// </summary>
+        protected virtual void OnHalt() { }
+
+        #endregion
+
         #region cleanup methods
 
         /// <summary>
@@ -1878,10 +1932,6 @@ namespace Microsoft.PSharp
             this.OnHalt();
         }
 
-        /// <summary>
-        /// User callback when a machine halts.
-        /// </summary>
-        protected virtual void OnHalt() { }
 
         #endregion
     }
