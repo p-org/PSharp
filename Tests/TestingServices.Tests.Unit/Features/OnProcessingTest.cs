@@ -252,5 +252,50 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             AssertSucceeded(test);
         }
+
+        class Spec4 : Monitor
+        {
+            [Start]
+            [Hot]
+            [OnEventGotoState(typeof(Done), typeof(S2))]
+            class S1 : MonitorState { }
+
+            [Cold]
+            class S2 : MonitorState { }
+        }
+
+        class M4 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            class S1 : MachineState { }
+
+            void Process() { }
+
+            protected override Task OnEventHandledAsync(Event ev)
+            {
+                this.Raise(new Halt());
+                return Task.FromResult(true);
+            }
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+
+
+        }
+
+        [Fact]
+        public void TestOnProcessingCanHalt()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M4));
+                r.SendEvent(m, new E1());
+                r.SendEvent(m, new E2()); // dropped silently
+            });
+
+            AssertSucceeded(test);
+        }
     }
 }
