@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.LanguageServices
                     foreach (var sdecl in mdecl.GetAllStateDeclarations())
                     {
                         writer.WriteStartElement("Node");
-                        writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                        writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
                         writer.WriteAttributeString("Label", sdecl.Identifier.Text);
 
                         if ( /*TODO*/ true)
@@ -168,7 +168,7 @@ namespace Microsoft.PSharp.LanguageServices
                     {
                         writer.WriteStartElement("Link");
                         writer.WriteAttributeString("Source", machine);
-                        writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                        writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
                         writer.WriteAttributeString("Category", "Contains");
                         writer.WriteEndElement();
                     }
@@ -185,9 +185,10 @@ namespace Microsoft.PSharp.LanguageServices
                     {
                         foreach (var kvp in sdecl.GotoStateTransitions)
                         {
+                            string targetState = string.Join(".", kvp.Value.Select(s => s.Text));
                             writer.WriteStartElement("Link");
-                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
-                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, kvp.Value[0].Text));
+                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
+                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, targetState));
                             writer.WriteAttributeString("Category", "GotoTransition");
                             writer.WriteAttributeString("Label", kvp.Key.Text);
                             writer.WriteEndElement();
@@ -195,9 +196,10 @@ namespace Microsoft.PSharp.LanguageServices
 
                         foreach (var kvp in sdecl.PushStateTransitions)
                         {
+                            string targetState = string.Join(".", kvp.Value.Select(s => s.Text));
                             writer.WriteStartElement("Link");
-                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
-                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, kvp.Value[0].Text));
+                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
+                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, targetState));
                             writer.WriteAttributeString("Category", "PushTransition");
                             writer.WriteAttributeString("Label", kvp.Key.Text);
                             writer.WriteEndElement();
