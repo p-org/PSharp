@@ -218,48 +218,8 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(ex.Message);
             }
 
-#if NET46 || NET45
-            // Load config file and absorb its settings.
-            try
-            {
-                var configFile = ConfigurationManager.OpenExeConfiguration(configuration.AssemblyToBeAnalyzed);
-
-                var settings = configFile.AppSettings.Settings;
-                foreach (var key in settings.AllKeys)
-                {
-                    if (ConfigurationManager.AppSettings.Get(key) == null)
-                    {
-                        ConfigurationManager.AppSettings.Set(key, settings[key].Value);
-                    }
-                    else
-                    {
-                        ConfigurationManager.AppSettings.Add(key, settings[key].Value);
-                    }
-                }
-            }
-            catch (ConfigurationErrorsException ex)
-            {
-                Error.Report(ex.Message);
-            }
-#endif
-
-            if (configuration.TestingRuntimeAssembly != "")
-            {
-                try
-                {
-                    this.RuntimeAssembly = Assembly.LoadFrom(configuration.TestingRuntimeAssembly);
-                }
-                catch (FileNotFoundException ex)
-                {
-                    Error.ReportAndExit(ex.Message);
-                }
-
-                this.FindRuntimeFactoryMethod();
-                this.FindRuntimeGetTypeMethod();
-                this.FindRuntimeGetKnownSerializableMachineIdTypes();
-                this.FindRuntimeGetInMemoryLoggerMethod();
-                this.FindRuntimeGetDisposingLoggerMethod();
-            }
+            this.LoadConfigurationFileFromAssembly(configuration.AssemblyToBeAnalyzed);
+            this.LoadTestingRuntimeInfoFromConfiguration(configuration);
 
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
@@ -279,6 +239,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Configuration = configuration;
             this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.Assembly = assembly;
+            this.LoadTestingRuntimeInfoFromConfiguration(configuration);
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
@@ -295,12 +256,67 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Configuration = configuration;
             this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.LoadTestingRuntimeInfoFromConfiguration(configuration);
             this.TestAction = action;
             this.Initialize();
         }
 
         /// <summary>
-        /// Initialized the testing engine.
+        /// Loads the testing runtime information (if any) from the specificied configuration.
+        /// </summary>
+        private void LoadTestingRuntimeInfoFromConfiguration(Configuration configuration)
+        {
+            if (configuration.TestingRuntimeAssembly != "")
+            {
+                try
+                {
+                    this.RuntimeAssembly = Assembly.LoadFrom(configuration.TestingRuntimeAssembly);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    Error.ReportAndExit(ex.Message);
+                }
+
+                this.FindRuntimeFactoryMethod();
+                this.FindRuntimeGetTypeMethod();
+                this.FindRuntimeGetKnownSerializableMachineIdTypes();
+                this.FindRuntimeGetInMemoryLoggerMethod();
+                this.FindRuntimeGetDisposingLoggerMethod();
+            }
+        }
+
+        /// <summary>
+        /// Loads the configuration file of the given assembly (if one exists) and absorb its settings.
+        /// </summary>
+        /// <param name="assemblyPath">Path to the assembly.</param>
+        private void LoadConfigurationFileFromAssembly(string assemblyPath)
+        {
+#if NET46 || NET45
+            try
+            {
+                var configFile = ConfigurationManager.OpenExeConfiguration(assemblyPath);
+                var settings = configFile.AppSettings.Settings;
+                foreach (var key in settings.AllKeys)
+                {
+                    if (ConfigurationManager.AppSettings.Get(key) == null)
+                    {
+                        ConfigurationManager.AppSettings.Set(key, settings[key].Value);
+                    }
+                    else
+                    {
+                        ConfigurationManager.AppSettings.Add(key, settings[key].Value);
+                    }
+                }
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                Error.Report(ex.Message);
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Initializes the testing engine.
         /// </summary>
         private void Initialize()
         {
