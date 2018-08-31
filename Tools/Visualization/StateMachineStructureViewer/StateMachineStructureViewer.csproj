@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\key.props" />
+  <PropertyGroup>
+    <Description>The P# syntax rewriter.</Description>
+	<!-- If you change this, Please update the Source\LanguageServices\Properties\InternalsVisibleTo.cs to use the new name -->
+    <AssemblyName>PSharpStateMachineStructureViewer</AssemblyName>
+    <RootNamespace>PSharpStateMachineStructureViewer</RootNamespace>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <PackageTags>syntax;rewriter;psharp</PackageTags>
+    <OutputPath>..\..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
+  </ItemGroup>
+</Project>
