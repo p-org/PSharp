@@ -137,8 +137,16 @@ namespace Microsoft.PSharp.LanguageServices
                     foreach (var sdecl in mdecl.GetAllStateDeclarations())
                     {
                         writer.WriteStartElement("Node");
-                        writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                        writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
                         writer.WriteAttributeString("Label", sdecl.Identifier.Text);
+
+                        if ( /*TODO*/ true)
+                        {
+                            writer.WriteAttributeString("Ignores", string.Join(", ", sdecl.IgnoredEvents.Select(s => s.Text)));
+                            writer.WriteAttributeString("Defers", string.Join(", ", sdecl.DeferredEvents.Select(s => s.Text)));
+                            writer.WriteAttributeString("Handles", string.Join(", ", sdecl.ActionBindings.Keys.Select(s => s.Text)));
+                        }
+
                         writer.WriteEndElement();
                     }
                 }
@@ -160,7 +168,7 @@ namespace Microsoft.PSharp.LanguageServices
                     {
                         writer.WriteStartElement("Link");
                         writer.WriteAttributeString("Source", machine);
-                        writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
+                        writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
                         writer.WriteAttributeString("Category", "Contains");
                         writer.WriteEndElement();
                     }
@@ -177,16 +185,59 @@ namespace Microsoft.PSharp.LanguageServices
                     {
                         foreach (var kvp in sdecl.GotoStateTransitions)
                         {
+                            string targetState = string.Join(".", kvp.Value.Select(s => s.Text));
                             writer.WriteStartElement("Link");
-                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.Identifier.Text));
-                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, kvp.Value[0].Text));
+                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
+                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, targetState));
+                            writer.WriteAttributeString("Category", "GotoTransition");
+                            writer.WriteAttributeString("Label", kvp.Key.Text);
+                            writer.WriteEndElement();
+                        }
+
+                        foreach (var kvp in sdecl.PushStateTransitions)
+                        {
+                            string targetState = string.Join(".", kvp.Value.Select(s => s.Text));
+                            writer.WriteStartElement("Link");
+                            writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
+                            writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, targetState));
+                            writer.WriteAttributeString("Category", "PushTransition");
                             writer.WriteAttributeString("Label", kvp.Key.Text);
                             writer.WriteEndElement();
                         }
                     }
+
                 }
             }
             // Ends Links element.
+            writer.WriteEndElement();
+
+            // Starts Properties element.
+            writer.WriteStartElement("Properties");
+            // Define custom properties to show Ignored, Deferred and Handled events
+            string[] customProperties = {
+                "Ignores", "Defers", "Handles",
+            };
+            foreach ( string propertyName in  customProperties ){
+                writer.WriteStartElement("Property");
+                writer.WriteAttributeString("Id", propertyName);
+                writer.WriteAttributeString("DataType", "System.String");
+                writer.WriteEndElement();
+            }
+            // Ends Properties element.
+            writer.WriteEndElement();
+
+            // Starts Categories element
+            writer.WriteStartElement("Categories");
+
+            writer.WriteStartElement("Category");
+            writer.WriteAttributeString("Id", "GotoTransition");
+            writer.WriteEndElement();
+            writer.WriteStartElement("Category");
+            writer.WriteAttributeString("Id", "PushTransition");
+            writer.WriteAttributeString("StrokeDashArray", "2");
+            writer.WriteEndElement();
+
+            // Ends Categories element.
             writer.WriteEndElement();
 
             // Ends DirectedGraph element.
