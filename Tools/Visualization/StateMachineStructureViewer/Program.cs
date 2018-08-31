@@ -13,7 +13,9 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml;
 using Microsoft.Build.Framework;
@@ -22,7 +24,7 @@ using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     /// <summary>
     /// A tool to produce Dgml files reflecting the State Diagram of machines in the PSharp program
@@ -33,17 +35,19 @@ namespace Microsoft.PSharp
         {
             var infile = string.Empty;
             var outfile = string.Empty;
+            var projectFile = String.Empty;
+            var solutionFile = String.Empty;
             var csVersion = new Version(0, 0);
 
             var usage = "Usage: PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor]";
-
+            
             if (args.Length >= 1 && args.Length <= 3)
             {
                 foreach (var arg in args)
                 {
                     if (arg.StartsWith("/") || arg.StartsWith("-"))
                     {
-                        var parts = arg.Substring(1).Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                        var parts = arg.Substring(1).Split(new[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
                         switch (parts[0].ToLower())
                         {
                             case "?":
@@ -64,6 +68,13 @@ namespace Microsoft.PSharp
                                     return;
                                 }
                                 break;
+
+                            case "p":
+                                projectFile = parts[1];
+                                break;
+                            case "s":
+                                solutionFile = parts[1];
+                                break;
                             default:
                                 Output.WriteLine($"Error: unknown option {parts[0]}");
                                 return;
@@ -80,27 +91,49 @@ namespace Microsoft.PSharp
                 }
             }
 
-            if (infile.Length == 0)
+
+            if( (projectFile.Length == 0 || solutionFile.Length==0) && infile.Length == 0)
             {
                 Output.WriteLine(usage);
                 return;
             }
 
-            // Gets input file as string.
-            var input_string = "";
-            try
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+            configuration.RewriteCSharpVersion = csVersion;
+
+            CompilationContext context = null;
+            if (projectFile.Length > 0 && solutionFile.Length > 0 )
             {
-                input_string = File.ReadAllText(infile);
+                configuration.ProjectName = projectFile;
+                configuration.SolutionFilePath = solutionFile;
+                context = CompilationContext.Create(configuration).LoadSolution();
             }
-            catch (IOException e)
+            else if (infile.Length > 0)
             {
-                Output.WriteLine("Error: {0}", e.Message);
-                return;
+
+                // Gets input file as string.
+                var input_string = "";
+                try
+                {
+                    input_string = File.ReadAllText(infile);
+                }
+                catch (IOException e)
+                {
+                    Output.WriteLine("Error: {0}", e.Message);
+                    return;
+                }
+                context = CompilationContext.Create(configuration).LoadSolution(input_string);
             }
+
+            
+
 
             // Translates and prints on console or to file.
             string errors = "";
-            var output = CreateDgml(input_string, out errors, csVersion);
+
+            var output = CreateDgml(context, out errors, csVersion);
             var result = string.Format("{0}", output == null ? "Parse Error: " + errors :
                 output);
 
@@ -120,30 +153,69 @@ namespace Microsoft.PSharp
             Output.WriteLine("{0}", result);
         }
 
+        private static void CreateCompilationContext(string infile)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Produces the Dgml file for the given program
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Text</returns>
-        public static string CreateDgml(string text, out string errors, Version csVersion)
+        public static string CreateDgml(CompilationContext context, out string errors, Version csVersion)
         {
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-            configuration.RewriteCSharpVersion = csVersion;
-            errors = null;
 
-            var context = CompilationContext.Create(configuration).LoadSolution(text);
 
             try
             {
                 ParsingEngine.Create(context).Run();
-                //RewritingEngine.Create(context).Run(); // I don't think we need this.
+                errors = null;
+                 int x = 5;
+                if (x > 4)
+                {
+                    Console.WriteLine("Found nPsharpPrograms=" + context.GetProjects()[0].PSharpPrograms.Count);
+                    foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
+                    {
+                        Console.WriteLine(" -- start program --");
+                        MachineResolver.Instance().PopulateLookup(prog);
+                        if ( x > 4 )
+                        {
+                            foreach (var ns in prog.NamespaceDeclarations)
+                            {
+                                Console.WriteLine(ns.QualifiedName);
+                            }
+                            List<string> activeNamespaces = MachineResolver.GetActiveNamespacesFromUsingDirectives(prog);
+                            foreach (var asn in activeNamespaces)
+                            {
+                                Console.WriteLine("- " + asn);
+                            }
+                        }
+                        Console.WriteLine(" -- end program --");
+                    }
 
-                var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+                    foreach(var minfoKv in MachineResolver.Instance().machineLookup)
+                    {
+                        List<string> activeNamespaces = MachineResolver.GetActiveNamespacesFromUsingDirectives(minfoKv.Value.program);
+                        minfoKv.Value.resolveBaseMachine(activeNamespaces);
+                        Console.WriteLine("{0} < {1} ", minfoKv.Value.uniqueName, (minfoKv.Value.baseMachine!=null)? minfoKv.Value.baseMachine.uniqueName : "null");
+                    }
+                        
+
+                    return "";
+                }
+
+                foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
+                {
+
+                }
+
                 MemoryStream memStream = new MemoryStream();
                 using (var writer = new XmlTextWriter(memStream, Encoding.UTF8))
                 {
-                    context.GetProjects()[0].PSharpPrograms[0].EmitStateMachineStructure(writer);
+                    EmitStateMachineStructure(context.GetProjects()[0].PSharpPrograms[0], writer);
+                    //context.GetProjects()[0].PSharpPrograms[0].EmitStateMachineStructure(writer);
                 }
                 return Encoding.UTF8.GetString(memStream.ToArray());
             }
@@ -152,12 +224,106 @@ namespace Microsoft.PSharp
                 errors = ex.Message;
                 return null;
             }
-            //catch (RewritingException ex)
-            //{
-            //    errors = ex.Message;
-            //    return null;
-            //}
         }
+
+        /// <summary>
+        /// Emits dgml representation of the state machine structure
+        /// </summary>
+        /// <param name="writer">XmlTestWriter</param>
+        public static void EmitStateMachineStructure(PSharpProgram prog, XmlTextWriter writer)
+        {
+
+
+            // Starts document.
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+
+            // Starts DirectedGraph element.
+            writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
+
+            // Starts Nodes element.
+            writer.WriteStartElement("Nodes");
+
+            // Iterates machines.
+            foreach (var ndecl in prog.NamespaceDeclarations)
+            {
+                DgmlWriter.WriteMachines(ndecl, writer);
+            }
+
+            // Iterates states.
+            foreach (var ndecl in prog.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    DgmlWriter.WriteMachineStates(mdecl, writer);
+                }
+            }
+
+            // Ends Nodes element.
+            writer.WriteEndElement();
+
+            // Starts Links element.
+            writer.WriteStartElement("Links");
+
+            // Iterates states.
+            foreach (var ndecl in prog.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    DgmlWriter.WriteMachineStateLinks(mdecl, writer);
+                }
+            }
+
+            // Iterates state annotations.
+            foreach (var ndecl in prog.NamespaceDeclarations)
+            {
+                foreach (var mdecl in ndecl.MachineDeclarations)
+                {
+                    DgmlWriter.WriteStateTransitions(mdecl, writer);
+                }
+            }
+            // Ends Links element.
+            writer.WriteEndElement();
+
+            // Starts Properties element.
+            writer.WriteStartElement("Properties");
+            // Define custom properties to show Ignored, Deferred and Handled events
+            string[] customProperties = {
+                "Ignores", "Defers", "Handles",
+            };
+            foreach (string propertyName in customProperties)
+            {
+                writer.WriteStartElement("Property");
+                writer.WriteAttributeString("Id", propertyName);
+                writer.WriteAttributeString("DataType", "System.String");
+                writer.WriteEndElement();
+            }
+            // Ends Properties element.
+            writer.WriteEndElement();
+
+            // Starts Categories element
+            writer.WriteStartElement("Categories");
+
+            writer.WriteStartElement("Category");
+            writer.WriteAttributeString("Id", "GotoTransition");
+            writer.WriteEndElement();
+            writer.WriteStartElement("Category");
+            writer.WriteAttributeString("Id", "PushTransition");
+            writer.WriteAttributeString("StrokeDashArray", "2");
+            writer.WriteEndElement();
+
+            // Ends Categories element.
+            writer.WriteEndElement();
+
+            // Ends DirectedGraph element.
+            writer.WriteEndElement();
+
+            // Ends document.
+            writer.WriteEndDocument();
+
+        }
+
 
     }
 
