@@ -1,4 +1,9 @@
-﻿using Microsoft.PSharp;
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using Microsoft.PSharp;
 
 namespace PingPong.PSharpLibrary
 {

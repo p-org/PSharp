@@ -1,4 +1,9 @@
-﻿namespace PingPong.PSharpLanguage
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace PingPong.PSharpLanguage
 {
     /// <summary>
     /// This machine acts as a test harness. It models a network environment,
