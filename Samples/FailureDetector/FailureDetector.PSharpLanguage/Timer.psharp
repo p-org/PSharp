@@ -1,4 +1,9 @@
-﻿namespace FailureDetector.PSharpLanguage
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace FailureDetector.PSharpLanguage
 {
 	/// <summary>
     /// This P# machine models the operating system timer.
