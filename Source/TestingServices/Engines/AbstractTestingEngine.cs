@@ -186,8 +186,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         protected AbstractTestingEngine(Configuration configuration)
         {
-            this.Configuration = configuration;
-            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.Initialize(configuration);
 
             try
             {
@@ -241,8 +240,6 @@ namespace Microsoft.PSharp.TestingServices
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
-
-            this.Initialize();
         }
 
         /// <summary>
@@ -252,14 +249,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="assembly">Assembly</param>
         protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
         {
-            this.Configuration = configuration;
-            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.Initialize(configuration);
             this.Assembly = assembly;
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
-            this.Initialize();
         }
 
         /// <summary>
@@ -269,20 +264,22 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="action">Action</param>
         protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
-            this.Configuration = configuration;
-            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.Initialize(configuration);
             this.TestAction = action;
-            this.Initialize();
         }
 
         /// <summary>
         /// Initialized the testing engine.
         /// </summary>
-        private void Initialize()
+        /// <param name="configuration">Configuration</param>
+        private void Initialize(Configuration configuration)
         {
+            this.Configuration = configuration;
             this.Logger = new ConsoleLogger();
             this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
             this.Profiler = new Profiler();
+
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
 
             // Initializes scheduling strategy specific components.
             this.SchedulingStrategyLogger = new SchedulingStrategyLogger(this.Configuration);
