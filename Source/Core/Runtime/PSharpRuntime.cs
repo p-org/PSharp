@@ -69,11 +69,6 @@ namespace Microsoft.PSharp
         /// </summary>
         public event OnFailureHandler OnFailure;
 
-        /// <summary>
-        /// Handles the <see cref="OnFailure"/> event.
-        /// </summary>
-        public delegate void OnFailureHandler(Exception ex);
-
         #endregion
 
         #region factory methods
