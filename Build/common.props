@@ -2,9 +2,9 @@
   <Import Project="dependencies.props"/>
   <Import Project="version.props"/>
   <PropertyGroup>
-    <Product>Microsoft PSharp</Product>
+    <Product>PSharp</Product>
     <Company>Microsoft Corporation</Company>
-    <Copyright>Copyright © 2018 Microsoft Corporation</Copyright>
+    <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/p-org/PSharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
