@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Build\common.props" />
-  <Import Project="..\..\Build\key.props" />
+  <Import Project="..\..\Common\build.props" />
+  <Import Project="..\..\Common\key.props" />
   <PropertyGroup>
     <Description>Scheduling strategies for testing actor-based systems.</Description>
     <AssemblyName>Microsoft.PSharp.TestingServices.SchedulingStrategies</AssemblyName>

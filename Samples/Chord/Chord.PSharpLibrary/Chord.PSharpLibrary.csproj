@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.samples.props" />
-  <PropertyGroup>
-    <Description>The Chord P# sample.</Description>
-    <AssemblyName>Chord.PSharpLibrary</AssemblyName>
-    <RootNamespace>Chord.PSharpLibrary</RootNamespace>
-  </PropertyGroup>
-</Project>

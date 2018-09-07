@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\build.props" />
+  <PropertyGroup>
+    <Description>The MultiPaxos P# sample.</Description>
+    <AssemblyName>MultiPaxos</AssemblyName>
+    <RootNamespace>MultiPaxos</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PSharp Include="Client.psharp" />
+    <PSharp Include="Events.psharp" />
+    <PSharp Include="GodMachine.psharp" />
+    <PSharp Include="LeaderElection.psharp" />
+    <PSharp Include="PaxosNode.psharp" />
+    <PSharp Include="Timer.psharp" />
+    <PSharp Include="ValidityCheck.psharp" />
+  </ItemGroup>
+</Project>

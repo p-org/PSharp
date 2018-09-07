@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\build.props" />
+  <PropertyGroup>
+    <Description>The FailureDetector P# sample.</Description>
+    <AssemblyName>FailureDetector</AssemblyName>
+    <RootNamespace>FailureDetector</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PSharp Include="Driver.psharp" />
+    <PSharp Include="FailureDetector.psharp" />
+    <PSharp Include="Liveness.psharp" />
+    <PSharp Include="Node.psharp" />
+    <PSharp Include="Safety.psharp" />
+    <PSharp Include="Timer.psharp" />
+  </ItemGroup>
+</Project>

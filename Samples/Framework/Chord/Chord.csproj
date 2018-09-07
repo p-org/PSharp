@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\build.props" />
+  <PropertyGroup>
+    <Description>The Chord P# sample.</Description>
+    <AssemblyName>Chord</AssemblyName>
+    <RootNamespace>Chord</RootNamespace>
+  </PropertyGroup>
+</Project>

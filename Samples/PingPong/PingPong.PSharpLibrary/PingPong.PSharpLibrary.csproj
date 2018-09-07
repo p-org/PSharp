@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.samples.props" />
-  <PropertyGroup>
-    <Description>The PingPong P# sample.</Description>
-    <AssemblyName>PingPong.PSharpLibrary</AssemblyName>
-    <RootNamespace>PingPong.PSharpLibrary</RootNamespace>
-  </PropertyGroup>
-</Project>
