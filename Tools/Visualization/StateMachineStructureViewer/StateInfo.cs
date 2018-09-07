@@ -40,6 +40,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             if (gotoTransitions == null || recompute)
             {
+                gotoTransitions = new Dictionary<string, string>();
                 foreach (var kvpair in stateDeclaration.GotoStateTransitions)
                 {
                     EventInfo eventInfo = this.machineInfo.LookupEvent(kvpair.Key.Text);
@@ -56,6 +57,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             if (pushTransitions == null || recompute)
             {
+                pushTransitions = new Dictionary<string, string>();
                 foreach (var kvpair in stateDeclaration.PushStateTransitions)
                 {
                     EventInfo eventInfo = this.machineInfo.LookupEvent(kvpair.Key.Text);

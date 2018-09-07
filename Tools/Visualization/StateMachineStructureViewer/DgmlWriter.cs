@@ -14,7 +14,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         private static char[] unfriendlyNameSeparators = { '.' };
         private static string FriendlyName(string uniqueName)
         {
-            return uniqueName.Split(unfriendlyNameSeparators)[0];
+            return uniqueName.Split(unfriendlyNameSeparators).Last();
         }
 
         public static void WriteAll(IEnumerable<MachineInfo> machines, XmlTextWriter writer)
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 StateInfo stateInfo = ResolutionHelper.Instance().GetState( stateName );
                 StateDeclaration sdecl = stateInfo.stateDeclaration;
                 writer.WriteStartElement("Node");
-                writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, stateName));
+                writer.WriteAttributeString("Id", stateName);
                 writer.WriteAttributeString("Label", FriendlyName(stateName) );
 
                 if ( /*TODO*/ true)

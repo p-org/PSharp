@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         public static string TokenListToStateName(List<Token> tokenList)
         {
-            return String.Join("", tokenList);
+            return String.Join(".", tokenList.Select(x => x.Text));
         }
 
         public static string TokenListToEventName(List<Token> tokenList)
@@ -100,13 +100,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             string stateGroupNameFull = "";
             for (var sg = stateGroupContext; sg != null; sg = sg.Group)
             {
-                stateGroupNameFull += '.' + sg.Identifier.Text;
+                stateGroupNameFull = '.'  + sg.Identifier.Text + stateGroupNameFull;
             }
             return CreateUniqueName(machineContext) + stateGroupNameFull;
         }
 
         public static string CreateUniqueName(StateDeclaration sdecl)
         {
+            //return CreateUniqueName(sdecl.Machine) + sdecl.GetFullyQualifiedName('.');
             return CreateUniqueNameForStateIdentifier(sdecl.Machine, sdecl.Group, sdecl.Identifier.Text);
             //return CreateUniqueName(sdecl.Machine) + sdecl.GetFullyQualifiedName('.');
         }

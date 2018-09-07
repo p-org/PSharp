@@ -211,7 +211,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     resolutionHelper.PopulateStates(machineInfo);
                     resolutionHelper.PopulateEvents(machineInfo);
                 }
-                
+
+
                 MemoryStream memStream = new MemoryStream();
                 using (var writer = new XmlTextWriter(memStream, Encoding.UTF8))
                 {

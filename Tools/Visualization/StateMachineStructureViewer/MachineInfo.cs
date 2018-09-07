@@ -136,7 +136,26 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 {
                     states.Add(ResolutionHelper.CreateUniqueName(sdecl));
                 }
+                foreach (StateGroupDeclaration sgDecl in machineDeclaration.StateGroupDeclarations)
+                {
+                    computeStatesDeclaredInStateGroup(sgDecl);
+                }
             }
+            return states;
+        }
+
+        private HashSet<string> computeStatesDeclaredInStateGroup(StateGroupDeclaration stateGroup)
+        {
+            foreach (StateDeclaration sdecl in stateGroup.StateDeclarations)
+            {
+                states.Add(ResolutionHelper.CreateUniqueName(sdecl));
+            }
+
+            foreach (StateGroupDeclaration sgDecl in stateGroup.StateGroupDeclarations)
+            {
+                computeStatesDeclaredInStateGroup(sgDecl);
+            }
+            
             return states;
         }
 
