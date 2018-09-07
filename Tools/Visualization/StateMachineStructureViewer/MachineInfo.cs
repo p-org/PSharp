@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
-    class MachineInfo
+    internal class MachineInfo
     {
         public string uniqueName { get; }
         internal PSharpProgram program;
         internal MachineDeclaration machineDeclaration;
         internal MachineInfo baseMachine;
         
-        public MachineInfo(MachineDeclaration mdecl, PSharpProgram prog)
+        internal MachineInfo(MachineDeclaration mdecl, PSharpProgram prog)
         {
             uniqueName = ResolutionHelper.CreateUniqueName(mdecl);
             machineDeclaration = mdecl;

@@ -147,29 +147,53 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         #region populate api
 
-        public void populateMachines(PSharpProgram prog)
+        public void PopulateMachines(List<PSharpProgram> programs)
         {
-            foreach (var ns in prog.NamespaceDeclarations)
+            foreach (PSharpProgram prog in programs)
             {
-                foreach (var mdecl in ns.MachineDeclarations)
+                foreach (var ns in prog.NamespaceDeclarations)
                 {
-                    MachineInfo machine = new MachineInfo(mdecl, prog);
-                    machineLookup.Add(machine.uniqueName, machine);
+                    foreach (var mdecl in ns.MachineDeclarations)
+                    {
+                        MachineInfo mInfo = new MachineInfo(mdecl, prog);
+                        machineLookup.Add(mInfo.uniqueName, mInfo);
+                    }
                 }
             }
         }
 
-
-        internal void populateStates(MachineInfo machineInfo)
+        internal void PopulateStates(MachineInfo machineInfo)
         {
+            // States directly under machine
             foreach (StateDeclaration sdecl in machineInfo.machineDeclaration.StateDeclarations)
             {
                 StateInfo sInfo = new StateInfo(sdecl, machineInfo);
                 stateLookup.Add(sInfo.uniqueName, sInfo);
             }
+            // States in stategroups
+            
+            foreach (StateGroupDeclaration sgDecl in machineInfo.machineDeclaration.StateGroupDeclarations)
+            {
+                PopulateStatesFromStateGroup(machineInfo, sgDecl);
+            }
         }
 
-        internal void populateEvents(MachineInfo machineInfo)
+        private void PopulateStatesFromStateGroup(MachineInfo machineInfo, StateGroupDeclaration stateGroup)
+        {
+            // States directly within state group
+            foreach (StateDeclaration sdecl in stateGroup.StateDeclarations)
+            {
+                StateInfo sInfo = new StateInfo(sdecl, machineInfo);
+                stateLookup.Add(sInfo.uniqueName, sInfo);
+            }
+            // Recurse into other stategroups
+            foreach (StateGroupDeclaration sgDecl in stateGroup.StateGroupDeclarations)
+            {
+                PopulateStatesFromStateGroup(machineInfo, sgDecl);
+            }
+        }
+
+        internal void PopulateEvents(MachineInfo machineInfo)
         {
             foreach (EventDeclaration edecl in machineInfo.machineDeclaration.EventDeclarations)
             {

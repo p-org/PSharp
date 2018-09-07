@@ -158,10 +158,11 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             errors = null;
             ParsingEngine.Create(context).Run();
             Console.WriteLine("Found nPsharpPrograms=" + context.GetProjects()[0].PSharpPrograms.Count);
+            
             foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
             {
                 Console.WriteLine(" -- start program --");
-                ResolutionHelper.Instance().populateMachines(prog);
+                
                 int x = 5;
                 if (x > 4)
                 {
@@ -189,11 +190,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             
             
 
-            foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
-            {
-
-            }
-
         }
 
 
@@ -204,23 +200,22 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         /// <returns>Text</returns>
         public static string CreateDgml(CompilationContext context, out string errors, Version csVersion)
         {
-            int x = 5;
-            if (x > 4)
-            {
-                
-                testStuff(context, out errors);
-                return "";
-            }
-
             try
             {
-                ParsingEngine.Create(context).Run();
                 errors = null;
+                ParsingEngine.Create(context).Run();
+                ResolutionHelper resolutionHelper = ResolutionHelper.Instance();
+                resolutionHelper.PopulateMachines(context.GetProjects()[0].PSharpPrograms);
+                foreach (MachineInfo machineInfo in resolutionHelper.GetAllMachines())
+                {
+                    resolutionHelper.PopulateStates(machineInfo);
+                    resolutionHelper.PopulateEvents(machineInfo);
+                }
                 
                 MemoryStream memStream = new MemoryStream();
                 using (var writer = new XmlTextWriter(memStream, Encoding.UTF8))
                 {
-                    EmitStateMachineStructure(context.GetProjects()[0].PSharpPrograms[0], writer);
+                    EmitStateMachineStructure(ResolutionHelper.Instance().GetAllMachines(), writer);
                     //context.GetProjects()[0].PSharpPrograms[0].EmitStateMachineStructure(writer);
                 }
                 return Encoding.UTF8.GetString(memStream.ToArray());
@@ -236,22 +231,15 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         /// Emits dgml representation of the state machine structure
         /// </summary>
         /// <param name="writer">XmlTestWriter</param>
-        public static void EmitStateMachineStructure(PSharpProgram prog, XmlTextWriter writer)
+        internal static void EmitStateMachineStructure(List<MachineInfo> machines, XmlTextWriter writer)
         {
-
-
+            
             // Starts document.
             writer.WriteStartDocument(true);
             writer.Formatting = Formatting.Indented;
             writer.Indentation = 2;
-
-            // Starts DirectedGraph element.
             
-            DgmlWriter.WriteAll(ResolutionHelper.Instance().GetAllMachines(), writer);
-
-
-            // Ends DirectedGraph element.
-            writer.WriteEndElement();
+            DgmlWriter.WriteAll(machines, writer);
 
             // Ends document.
             writer.WriteEndDocument();

@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             this.eventDeclaration = edecl;
             this.machineInfo = machineInfo;
-            this.uniqueName = machineInfo.uniqueName + '.' + edecl.TextUnit;
+            this.uniqueName = machineInfo.uniqueName + '.' + edecl.Identifier.Text;
         }
     }
 }
