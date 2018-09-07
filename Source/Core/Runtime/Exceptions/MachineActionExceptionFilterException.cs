@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// The exception that is thrown by the P# runtime upon a machine action failure.
@@ -18,7 +18,8 @@ namespace Microsoft.PSharp
         /// <param name="message">Message</param>
         internal MachineActionExceptionFilterException(string message)
             : base(message)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the exception.
@@ -27,6 +28,7 @@ namespace Microsoft.PSharp
         /// <param name="innerException">Inner exception</param>
         internal MachineActionExceptionFilterException(string message, Exception innerException)
             : base(message, innerException)
-        { }
+        {
+        }
     }
 }

@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Threading.Tasks;
-
-using BenchmarkDotNet.Attributes;
 using System.Collections.Concurrent;
-using Microsoft.PSharp.IO;
+using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
 {
@@ -137,7 +136,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         public void RunWithLogger()
         {
             var configuration = PSharp.Configuration.Create().WithVerbosityEnabled(0);
-            var runtime = new StateMachineRuntime(configuration);            
+            var runtime = new ProductionRuntime(configuration);            
             ConcurrentQueue<MachineId> machines = new ConcurrentQueue<MachineId>();
             Parallel.For(0, Clients, index =>
             {

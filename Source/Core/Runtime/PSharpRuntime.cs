@@ -3,14 +3,16 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Net;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Net;
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
 {
@@ -19,8 +21,6 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class PSharpRuntime : IDisposable
     {
-        #region fields
-
         /// <summary>
         /// The configuration used by the runtime.
         /// </summary>
@@ -46,10 +46,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private Type TimerMachineType = null;
 
-        #endregion
-
-        #region properties
-
         /// <summary>
         /// Network provider used for remote communication.
         /// </summary>
@@ -60,16 +56,10 @@ namespace Microsoft.PSharp
         /// </summary>
         public ILogger Logger { get; private set; }
 
-        #endregion
-
-        #region events
-
         /// <summary>
         /// Event that is fired when the P# program throws an exception.
         /// </summary>
         public event OnFailureHandler OnFailure;
-
-        #endregion
 
         #region factory methods
 
@@ -79,7 +69,7 @@ namespace Microsoft.PSharp
         /// <returns>Runtime</returns>
         public static PSharpRuntime Create()
         {
-            return new StateMachineRuntime();
+            return new ProductionRuntime();
         }
 
         /// <summary>
@@ -90,7 +80,7 @@ namespace Microsoft.PSharp
         /// <returns>Runtime</returns>
         public static PSharpRuntime Create(Configuration configuration)
         {
-            return new StateMachineRuntime(configuration);
+            return new ProductionRuntime(configuration);
         }
 
         #endregion
@@ -348,7 +338,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">The machine that is sending the event.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="targetMachine">Receives the target machine, if found.</param>
-        protected bool GetTargetMachine(MachineId targetMachineId, Event e, AbstractMachine sender,
+        protected bool GetTargetMachine(MachineId targetMachineId, Event e, BaseMachine sender,
             Guid operationGroupId, out Machine targetMachine)
         {
             if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
@@ -412,7 +402,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal abstract void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
+        internal abstract void SendEvent(MachineId mid, Event e, BaseMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
@@ -424,7 +414,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>True if event was handled, false if the event was only enqueued</returns>
-        internal abstract Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
+        internal abstract Task<bool> SendEventAndExecute(MachineId mid, Event e, BaseMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a remote machine.
@@ -433,7 +423,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal abstract void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options);
+        internal abstract void SendEventRemotely(MachineId mid, Event e, BaseMachine sender, SendOptions options);
 
         /// <summary>
         /// Checks that a machine can start its event handler. Returns false if the event
@@ -486,7 +476,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
-        internal abstract void Monitor(Type type, AbstractMachine sender, Event e);
+        internal abstract void Monitor(Type type, BaseMachine sender, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -527,7 +517,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal abstract bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue);
+        internal abstract bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
@@ -536,7 +526,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal abstract bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId);
+        internal abstract bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
@@ -545,7 +535,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        internal abstract int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue);
+        internal abstract int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
 
         #endregion
 
@@ -789,7 +779,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <returns>Operation group Id</returns>
-        internal Guid GetNewOperationGroupId(AbstractMachine sender, Guid? operationGroupId)
+        internal Guid GetNewOperationGroupId(BaseMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {
@@ -811,7 +801,7 @@ namespace Microsoft.PSharp
         /// <param name="created">Machine created</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="operationGroupId">Operation group id</param>
-        internal void SetOperationGroupIdForMachine(Machine created, AbstractMachine sender, Guid? operationGroupId)
+        internal void SetOperationGroupIdForMachine(Machine created, BaseMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {

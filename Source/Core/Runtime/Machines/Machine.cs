@@ -13,16 +13,15 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// Abstract class representing a state-machine.
     /// </summary>
-    public abstract class Machine : AbstractMachine
+    public abstract class Machine : BaseMachine
     {
-        #region static fields
-
         /// <summary>
         /// Is the machine state cached yet?
         /// </summary>
@@ -45,10 +44,6 @@ namespace Microsoft.PSharp
         /// available actions.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
-
-        #endregion
-
-        #region fields
 
         /// <summary>
         /// A stack of machine states. The state on the top of
@@ -120,10 +115,6 @@ namespace Microsoft.PSharp
         /// (suppressing the exception)
         /// </summary>
         private bool OnExceptionRequestedGracefulHalt;
-
-        #endregion
-
-        #region properties
 
         /// <summary>
         /// The logger installed to the P# runtime.
@@ -203,10 +194,6 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Static constructor.
         /// </summary>
@@ -233,8 +220,6 @@ namespace Microsoft.PSharp
             this.IsPopInvoked = false;
             this.OnExceptionRequestedGracefulHalt = false;
         }
-
-        #endregion
 
         #region P# user API
 
@@ -855,7 +840,7 @@ namespace Microsoft.PSharp
                         return;
                     }
 
-                    var unhandledEx = new UnhandledEventException(this.Id, currentState, e, "Unhandled Event");
+                    var unhandledEx = new UnhandledEventException(currentState, e, "Unhandled Event");
                     if (OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
                     {
                         HaltMachine();

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-
 using BenchmarkDotNet.Attributes;
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp.Core.Tests.Performance
 {
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         {
             var tcs = new TaskCompletionSource<bool>();
 
-            var runtime = new StateMachineRuntime();
+            var runtime = new ProductionRuntime();
             runtime.CreateMachine(typeof(Server), null,
                 new Server.Configure(tcs, this.Clients, this.EventsPerClient),
                 null);

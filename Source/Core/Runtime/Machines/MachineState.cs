@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+using Microsoft.PSharp.Runtime;
+
 namespace Microsoft.PSharp
 {
     /// <summary>

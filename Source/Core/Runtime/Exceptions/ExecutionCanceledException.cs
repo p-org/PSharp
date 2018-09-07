@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// The exception that is thrown in a P# machine upon cancellation
@@ -16,6 +14,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes a new instance of the exception.
         /// </summary>
-        internal ExecutionCanceledException() { }
+        internal ExecutionCanceledException()
+        {
+        }
     }
 }

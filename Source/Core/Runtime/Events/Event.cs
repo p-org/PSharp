@@ -13,8 +13,6 @@ namespace Microsoft.PSharp
     [DataContract]
     public abstract class Event
     {
-        #region fields
-
         /// <summary>
         /// Specifies that there must not be more than k instances
         /// of e in the input queue of any machine.
@@ -33,10 +31,6 @@ namespace Microsoft.PSharp
         /// accuracy of liveness checking when state-caching is enabled.
         /// </summary> 
         public virtual int HashedState => 0;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -67,7 +61,5 @@ namespace Microsoft.PSharp
             this.Assert = assert;
             this.Assume = assume;
         }
-
-        #endregion
     }
 }

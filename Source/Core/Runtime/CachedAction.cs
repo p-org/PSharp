@@ -7,7 +7,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     internal class CachedAction
     {

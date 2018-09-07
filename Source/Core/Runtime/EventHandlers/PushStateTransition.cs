@@ -4,12 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
-
     /// <summary>
     /// Defines a push state transition.
     /// </summary>

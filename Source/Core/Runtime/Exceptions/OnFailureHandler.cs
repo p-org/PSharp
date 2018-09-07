@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Handles the <see cref="PSharpRuntime.OnFailure"/> event.

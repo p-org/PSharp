@@ -7,23 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
+
 {
     /// <summary>
     /// Factory for creating P# machines.
     /// </summary>
     internal static class MachineFactory
     {
-        #region static fields
-
         /// <summary>
         /// Cache storing machine constructors.
         /// </summary>
         private static Dictionary<Type, Func<Machine>> MachineConstructorCache;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Static constructor.
@@ -33,15 +28,11 @@ namespace Microsoft.PSharp
             MachineConstructorCache = new Dictionary<Type, Func<Machine>>();
         }
 
-        #endregion
-
-        #region methods
-
         /// <summary>
-        /// Creates a new P# machine of the specified type.
+        /// Creates a new <see cref="Machine"/> of the specified type.
         /// </summary>
-        /// <param name="type">Type</param>
-        /// <returns>Machine</returns>
+        /// <param name="type">Type of the machine.</param>
+        /// <returns>The created machine.</returns>
         public static Machine Create(Type type)
         {
             lock (MachineConstructorCache)
@@ -61,8 +52,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if the constructor of the specified machine type exists in the cache.
         /// </summary>
-        /// <param name="type">Type</param>
-        /// <returns>Boolean</returns>
+        /// <param name="type">Type of the machine.</param>
+        /// <returns>True if the constructor exists, else false.</returns>
         internal static bool IsCached(Type type)
         {
             lock (MachineConstructorCache)
@@ -70,7 +61,5 @@ namespace Microsoft.PSharp
                 return MachineConstructorCache.ContainsKey(type);
             }
         }
-
-        #endregion
     }
 }
