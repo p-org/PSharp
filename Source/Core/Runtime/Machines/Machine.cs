@@ -751,6 +751,8 @@ namespace Microsoft.PSharp
             }
 
             bool completed = false;
+            Event previouslyDequeuedEvent = null;
+
             while (!this.Info.IsHalted && base.Runtime.IsRunning)
             {
                 var defaultHandling = false;
@@ -812,8 +814,23 @@ namespace Microsoft.PSharp
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
 
+                if (dequeued)
+                {
+                    // Inform the user of a successful dequeue once ReceivedEvent is set.
+                    previouslyDequeuedEvent = nextEventInfo.Event;
+                    await this.OnEventDequeueAsync(previouslyDequeuedEvent);
+                }
+
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
+
+                if (this.RaisedEvent == null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
+                {
+                    // Inform the user that the machine is done handling the current event.
+                    // The machine will either go idle or dequeue its next event.
+                    await this.OnEventHandledAsync(previouslyDequeuedEvent);
+                    previouslyDequeuedEvent = null;
+                }
             }
 
             return completed;
@@ -1840,6 +1857,42 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region user callbacks
+
+        /// <summary>
+        /// User callback that is invoked when the machine successfully dequeues
+        /// an event from its inbox. This method is not called when the dequeue
+        /// happens via a Receive statement.
+        /// </summary>
+        /// <param name="e">The dequeued event.</param>
+        /// <returns></returns>
+        protected virtual Task OnEventDequeueAsync(Event e)
+        {
+            return Task.FromResult(true);
+        }
+
+        /// <summary>
+        /// User callback that is invoked when the machine finishes handling a dequeued event,
+        /// unless the handler of the dequeued event raised an event or caused the machine to
+        /// halt (either normally or due to an exception). Unless this callback raises an event,
+        /// the machine will either become idle or dequeue the next event from its inbox.
+        /// </summary>
+        /// <param name="e">The dequeued event whose handler has just finished.</param>
+        /// <returns></returns>
+        protected virtual Task OnEventHandledAsync(Event e)
+        {
+            return Task.FromResult(true);
+        }
+
+        /// <summary>
+        /// User callback that is invoked when a machine halts.
+        /// </summary>
+        protected virtual void OnHalt()
+        {
+        }
+
+        #endregion
+
         #region cleanup methods
 
         /// <summary>
@@ -1878,10 +1931,6 @@ namespace Microsoft.PSharp
             this.OnHalt();
         }
 
-        /// <summary>
-        /// User callback when a machine halts.
-        /// </summary>
-        protected virtual void OnHalt() { }
 
         #endregion
     }
