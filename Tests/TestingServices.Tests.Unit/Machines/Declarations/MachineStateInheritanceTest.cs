@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class MachineStateInheritanceTest : BaseTest
     {
+        public MachineStateInheritanceTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event { }
 
         class M1 : Machine

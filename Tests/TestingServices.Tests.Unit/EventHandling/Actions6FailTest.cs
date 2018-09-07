@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Microsoft.PSharp.Utilities;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
@@ -16,6 +15,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     /// </summary>
     public class Actions6FailTest : BaseTest
     {
+        public Actions6FailTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class Config : Event
         {
             public MachineId Id;

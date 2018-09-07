@@ -5,13 +5,17 @@
 
 using System;
 using System.Threading.Tasks;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class TestIgnoreRaised : BaseTest
+    public class IgnoreRaisedTest : BaseTest
     {
+        public IgnoreRaisedTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E1 : Event { }
         class E2 : Event
         {
@@ -22,7 +26,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
         class Unit : Event { }
-
 
         class A : Machine
         {

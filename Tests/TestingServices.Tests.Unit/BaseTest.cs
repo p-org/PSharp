@@ -8,14 +8,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using Microsoft.PSharp.IO;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public abstract class BaseTest
     {
+        protected readonly ITestOutputHelper TestOutput;
+
+        public BaseTest(ITestOutputHelper output)
+        {
+            this.TestOutput = output;
+        }
+
         #region successful tests
 
         protected void AssertSucceeded(Action<PSharpRuntime> test)
@@ -26,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected void AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
         {
-            InMemoryLogger logger = new InMemoryLogger();
+            TestOutputLogger logger = new TestOutputLogger(this.TestOutput);
 
             try
             {
@@ -96,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, Func<HashSet<string>, bool> expectedOutputFunc, bool replay)
         {
-            InMemoryLogger logger = new InMemoryLogger();
+            TestOutputLogger logger = new TestOutputLogger(this.TestOutput);
 
             try
             {
@@ -156,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
                 $"Type '{exceptionType}' is not an exception type.");
 
-            InMemoryLogger logger = new InMemoryLogger();
+            TestOutputLogger logger = new TestOutputLogger(this.TestOutput);
 
             try
             {

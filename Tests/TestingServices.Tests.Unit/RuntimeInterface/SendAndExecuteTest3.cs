@@ -5,13 +5,17 @@
 
 using System;
 using System.Threading.Tasks;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class SendAndExecuteTest3 : BaseTest
     {
+        public SendAndExecuteTest3(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event
         {
             public int x;

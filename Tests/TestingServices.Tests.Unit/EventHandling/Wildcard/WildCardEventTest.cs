@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class WildCardEventTest : BaseTest
     {
+        public WildCardEventTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class A : Machine
         {
             [Start]
