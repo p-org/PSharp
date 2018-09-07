@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = string.Empty;
 
             try
             {
@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var indent1 = GetIndent(indentLevel + 1);
             var indent2 = GetIndent(indentLevel + 2);
 
-            string text = "";
+            string text = string.Empty;
 
             if ((this.Program as AbstractPSharpProgram).GetProject().CompilationContext.
                 Configuration.CompilationTarget == CompilationTarget.Remote)
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += "\n" + indent0 + "{\n";
 
-            var newLine = "";
+            var newLine = string.Empty;
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
             {
                 text += indent1 + "public ";

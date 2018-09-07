@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             node.OpenBraceToken = base.TokenStream.Peek();
 
-            var text = "";
+            var text = string.Empty;
 
             int counter = 0;
             while (!base.TokenStream.Done)

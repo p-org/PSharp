@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var runtime = PSharpRuntime.Create();
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
-            var message = "";
+            var message = string.Empty;
 
             runtime.OnFailure += delegate (Exception ex)
             {

@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(node.ArgumentList.Arguments[0]);
 
-            string payload = "";
+            string payload = string.Empty;
             for (int i = 1; i < node.ArgumentList.Arguments.Count; i++)
             {
                 if (i == node.ArgumentList.Arguments.Count - 1)

@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Tool path</returns>
         internal static string GetToolPath(string settingName, string toolName)
         {
-            string toolPath = "";
+            string toolPath = string.Empty;
             try
             {
                 toolPath = Environment.GetEnvironmentVariable(settingName);

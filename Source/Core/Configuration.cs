@@ -293,9 +293,8 @@ namespace Microsoft.PSharp
         public bool EnableCycleDetection;
 
         /// <summary>
-        /// If this option is enabled, then all <see cref="Machine.HashedState"/>
-        /// and <see cref="Event.HashedState"/> state-hashing methods are used
-        /// to improve the accurracy of state-caching for liveness checking.
+        /// If this option is enabled, then the user-defined state-hashing methods
+        /// are used to improve the accurracy of state-caching for liveness checking.
         /// </summary>
         [DataMember]
         public bool EnableUserDefinedStateHashing;
@@ -462,9 +461,9 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Configuration()
         {
-            this.SolutionFilePath = "";
-            this.OutputFilePath = "";
-            this.ProjectName = "";
+            this.SolutionFilePath = string.Empty;
+            this.OutputFilePath = string.Empty;
+            this.ProjectName = string.Empty;
             
             this.Timeout = 0;
 
@@ -483,9 +482,9 @@ namespace Microsoft.PSharp
 
             this.RuntimeGeneration = 0;
 
-            this.AssemblyToBeAnalyzed = "";
-            this.TestingRuntimeAssembly = "";
-            this.TestMethodName = "";
+            this.AssemblyToBeAnalyzed = string.Empty;
+            this.TestingRuntimeAssembly = string.Empty;
+            this.TestMethodName = string.Empty;
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.ReductionStrategy = ReductionStrategy.None;
@@ -516,8 +515,8 @@ namespace Microsoft.PSharp
 
             this.AttachDebugger = false;
 
-            this.ScheduleFile = "";
-            this.ScheduleTrace = "";
+            this.ScheduleFile = string.Empty;
+            this.ScheduleTrace = string.Empty;
 
             this.EnableDataRaceDetection = false;
 
@@ -527,7 +526,7 @@ namespace Microsoft.PSharp
 
             this.ContainerId = 0;
             this.NumberOfContainers = 1;
-            this.RemoteApplicationFilePath = "";
+            this.RemoteApplicationFilePath = string.Empty;
 
             this.Verbose = 1;
             this.ShowWarnings = false;

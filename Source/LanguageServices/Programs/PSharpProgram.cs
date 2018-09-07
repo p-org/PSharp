@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.LanguageServices
             // Perform sanity checking on the P# program.
             BasicTypeChecking();
 
-            var text = "";
+            var text = string.Empty;
             const int indentLevel = 0;
 
             foreach (var node in this.UsingDeclarations)
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.LanguageServices
                 text += node.TextUnit.Text;
             }
 
-            var newLine = "";
+            var newLine = string.Empty;
             foreach (var node in this.NamespaceDeclarations)
             {
                 text += newLine;

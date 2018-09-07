@@ -5,7 +5,6 @@
 
 namespace Microsoft.PSharp.Timers
 {
-	#region internal events
 	class InitTimer : Event
 	{
 		/// <summary>
@@ -74,9 +73,7 @@ namespace Microsoft.PSharp.Timers
             this.flush = flush;
         }
     }
-    #endregion
 
-    #region public events
     /// <summary>
     /// Timeout event sent by the timer.
     /// </summary>
@@ -96,6 +93,4 @@ namespace Microsoft.PSharp.Timers
             this.Tid = tid;
 		}
 	}
-
-	#endregion
 }

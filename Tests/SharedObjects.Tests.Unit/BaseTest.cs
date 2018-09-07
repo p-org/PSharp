@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
         private string GetBugReport(ITestingEngine engine)
         {
-            string report = "";
+            string report = string.Empty;
             foreach (var bug in engine.TestReport.BugReports)
             {
                 report += bug + "\n";

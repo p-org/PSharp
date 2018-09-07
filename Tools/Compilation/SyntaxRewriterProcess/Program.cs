@@ -35,7 +35,7 @@ namespace Microsoft.PSharp
                 string outputFileName = args[count];
                 count++;
                 // Get input file as string
-                var inputString = "";
+                var inputString = string.Empty;
                 try
                 {
                     inputString = System.IO.File.ReadAllText(inputFileName);
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
                 }
 
                 // Translate and write to output file
-                string errors = "";
+                string errors = string.Empty;
                 var outputString = Translate(inputString, out errors);
                 if (outputString == null)
                 {
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp
 
         public bool Execute()
         {
-            string processInputString = "";
+            string processInputString = string.Empty;
             for (int i = 0; i < InputFiles.Length; i++)
             {
                 processInputString += InputFiles[i].ItemSpec;

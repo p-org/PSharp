@@ -10,7 +10,7 @@ namespace Microsoft.PSharp.IO
     /// <summary>
     /// Logger that writes text in-memory.
     /// </summary>
-    internal sealed class InMemoryLogger : StateMachineLogger
+    internal sealed class InMemoryLogger : MachineLogger
     {
         /// <summary>
         /// Underlying string writer.
