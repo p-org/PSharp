@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Build\common.props" />
-  <Import Project="..\..\Build\key.props" />
+  <Import Project="..\..\Common\build.props" />
+  <Import Project="..\..\Common\key.props" />
   <PropertyGroup>
     <Description>The P# framework core libraries and runtime.</Description>
     <AssemblyName>Microsoft.PSharp</AssemblyName>

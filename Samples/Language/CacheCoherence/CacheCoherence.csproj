@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\build.props" />
+  <PropertyGroup>
+    <Description>The CacheCoherence P# sample.</Description>
+    <AssemblyName>CacheCoherence</AssemblyName>
+    <RootNamespace>CacheCoherence</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PSharp Include="Client.psharp" />
+    <PSharp Include="CPU.psharp" />
+    <PSharp Include="Events.psharp" />
+    <PSharp Include="Host.psharp" />
+  </ItemGroup>
+</Project>

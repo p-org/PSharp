@@ -1,0 +1,45 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Raft
+{
+    monitor SafetyMonitor
+    {
+		//unused: int CurrentTerm;
+        HashSet<int> TermsWithLeader;
+
+		start state Init
+		{
+			entry
+			{
+				//this.CurrentTerm = -1;
+				this.TermsWithLeader = new HashSet<int>();
+				raise(LocalEvent);
+			}
+
+			on LocalEvent goto Monitoring;
+		}
+
+		state Monitoring
+		{
+			on NotifyLeaderElected do ProcessLeaderElected;
+		}
+
+		void ProcessLeaderElected()
+        {
+            var term = (trigger as NotifyLeaderElected).Term;
+
+            assert(!this.TermsWithLeader.Contains(term), "Detected more than one leader in term " + term);
+            this.TermsWithLeader.Add(term);
+        }
+    }
+}
+
