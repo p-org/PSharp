@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class PopTest : BaseTest
     {
         public PopTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class M : Machine

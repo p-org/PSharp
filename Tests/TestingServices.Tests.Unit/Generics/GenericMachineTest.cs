@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GenericMachineTest : BaseTest
     {
         public GenericMachineTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class M<T> : Machine

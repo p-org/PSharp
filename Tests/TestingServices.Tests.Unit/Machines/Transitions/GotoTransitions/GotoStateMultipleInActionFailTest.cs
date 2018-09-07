@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GotoStateTopLevelActionFailTest : BaseTest
     {
         public GotoStateTopLevelActionFailTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         public enum ErrorType

@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GenericMonitorTest : BaseTest
     {
         public GenericMonitorTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Program<T> : Machine
@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         }
 
         class E : Event { }
-         
+
         class M<T> : Monitor
         {
             [Start]

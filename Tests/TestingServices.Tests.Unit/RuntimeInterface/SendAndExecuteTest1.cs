@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class SendAndExecuteTest1 : BaseTest
     {
         public SendAndExecuteTest1(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Configure : Event
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
                 if (e.ExecuteSynchronously)
                 {
-                     b = await this.Runtime.CreateMachineAndExecute(typeof(B)); 
+                     b = await this.Runtime.CreateMachineAndExecute(typeof(B));
                 }
                 else
                 {

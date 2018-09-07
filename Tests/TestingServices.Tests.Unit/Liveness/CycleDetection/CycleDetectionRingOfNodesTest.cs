@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class CycleDetectionRingOfNodesTest : BaseTest
     {
         public CycleDetectionRingOfNodesTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Configure : Event

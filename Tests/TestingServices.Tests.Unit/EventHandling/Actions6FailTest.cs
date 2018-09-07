@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class Actions6FailTest : BaseTest
     {
         public Actions6FailTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Config : Event

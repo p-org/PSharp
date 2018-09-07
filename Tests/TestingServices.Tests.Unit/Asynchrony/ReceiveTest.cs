@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class ReceiveTest : BaseTest
     {
         public ReceiveTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event { }

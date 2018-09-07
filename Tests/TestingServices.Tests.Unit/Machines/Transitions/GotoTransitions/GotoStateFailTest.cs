@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GotoStateFailTest : BaseTest
     {
         public GotoStateFailTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Program : Machine
@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void EntryInit()
             {
-                // This line no longer builds after converting from Goto(typeof(T)) to Goto<T>() 
+                // This line no longer builds after converting from Goto(typeof(T)) to Goto<T>()
                 // due to the "where T: MachineState" constraint on Goto<T>().
                 //this.Goto<object>();
 

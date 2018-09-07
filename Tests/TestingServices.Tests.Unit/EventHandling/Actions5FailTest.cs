@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class Actions5FailTest : BaseTest
     {
         public Actions5FailTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Config : Event
@@ -76,11 +76,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Send(GhostMachine, new E1());
 
                 // we wait in this state until E2 comes from Ghost,
-                // then handle E2 using the inherited handler Action1 
+                // then handle E2 using the inherited handler Action1
                 // installed by Init
                 // then wait until E4 comes from Ghost, and since
-                // there's no handler for E4 in this pushed state, 
-                // this state is popped, and E4 goto handler from Init 
+                // there's no handler for E4 in this pushed state,
+                // this state is popped, and E4 goto handler from Init
                 // is invoked
             }
 

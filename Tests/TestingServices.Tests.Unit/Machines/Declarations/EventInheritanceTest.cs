@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class EventInheritanceTest : BaseTest
     {
         public EventInheritanceTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         [Fact]

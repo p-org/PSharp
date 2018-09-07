@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class CycleDetectionDefaultHandlerTest : BaseTest
     {
         public CycleDetectionDefaultHandlerTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Configure : Event
