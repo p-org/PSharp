@@ -4,14 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class CycleDetectionRingOfNodesTest : BaseTest
     {
-        class Configure: Event
+        public CycleDetectionRingOfNodesTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
+        class Configure : Event
         {
             public bool ApplyFix;
 

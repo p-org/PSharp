@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class EntryPointEventSendingTest : BaseTest
     {
+        public EntryPointEventSendingTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class Transfer : Event
         {
             public int Value;

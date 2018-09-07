@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class PushStateTest : BaseTest
     {
+        public PushStateTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class A : Machine
         {
             [Start]

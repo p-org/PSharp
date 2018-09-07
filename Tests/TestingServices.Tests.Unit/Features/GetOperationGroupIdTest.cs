@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class GetOperationGroupIdTest : BaseTest
     {
+        public GetOperationGroupIdTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         static Guid OperationGroup = Guid.NewGuid();
 
         class E : Event

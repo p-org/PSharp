@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class AmbiguousEventHandlerTest : BaseTest
     {
+        public AmbiguousEventHandlerTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event { }
 
         class Program : Machine

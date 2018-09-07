@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class GenericMonitorTest : BaseTest
     {
+        public GenericMonitorTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class Program<T> : Machine
         {
             T Item;

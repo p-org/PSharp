@@ -6,11 +6,16 @@
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class OnEventDequeueOrHandledTest : BaseTest
     {
+        public OnEventDequeueOrHandledTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event { }
 
         class E1 : Event { }

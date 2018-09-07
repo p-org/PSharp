@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class ReceivingExternalEventTest : BaseTest
     {
+        public ReceivingExternalEventTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event
         {
             public int Value;

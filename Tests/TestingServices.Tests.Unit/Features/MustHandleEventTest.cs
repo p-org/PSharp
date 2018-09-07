@@ -5,13 +5,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class MustHandleEventTest : BaseTest
     {
+        public MustHandleEventTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event
         {
             public MachineId Id;

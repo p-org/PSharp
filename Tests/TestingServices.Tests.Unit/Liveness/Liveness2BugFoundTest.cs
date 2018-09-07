@@ -4,15 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Microsoft.PSharp.Utilities;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class Liveness2BugFoundTest : BaseTest
     {
+        public Liveness2BugFoundTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class Unit : Event { }
         class UserEvent : Event { }
         class Done : Event { }

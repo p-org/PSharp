@@ -5,13 +5,17 @@
 
 using System;
 using System.Threading.Tasks;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class ExternalConcurrencyTest : BaseTest
     {
+        public ExternalConcurrencyTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class E : Event { }
 
         class M : Machine

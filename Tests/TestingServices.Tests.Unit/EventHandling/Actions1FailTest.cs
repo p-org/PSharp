@@ -4,15 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Microsoft.PSharp.Utilities;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class Actions1FailTest : BaseTest
     {
+        public Actions1FailTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class Config : Event
         {
             public MachineId Id;

@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class Liveness2LoopMachineTest : BaseTest
     {
+        public Liveness2LoopMachineTest(ITestOutputHelper output)
+               : base(output)
+        { }
+
         class Unit : Event { }
         class UserEvent : Event { }
         class Done : Event { }
