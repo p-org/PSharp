@@ -2,10 +2,10 @@ P# Samples
 ==========
 A collection of samples that show how to use the P# framework to build and systematically test asynchronous event-driven applications.
 
-We provide samples that show how to use (1) P# as a C# framework (see the `.\Framework` directory) and (2) P# as a high-level language (see the `.\Language` directory). It is up to you to decide which P# mode to use to develop your application or service.
+We provide samples that show how to use (1) P# as a C# framework (see the [Framework](Framework) directory) and (2) P# as a high-level language (see the [Language](Language) directory). It is up to you to decide which P# mode to use to develop your application or service.
 
 ## Where to start
-If you are new to P#, please check out the **PingPong** and **FailureDetector** samples (inside `.\Framework` and `.\Language`), which give an introduction to using basic and more advanced features of P#. If you have any questions, please get in touch!
+If you are new to P#, please check out the **PingPong** and **FailureDetector** samples (inside [Framework](Framework) and [Language](Language)), which give an introduction to using basic and more advanced features of P#. If you have any questions, please get in touch!
 
 ## Samples
 - **PingPong**, a simple application that consists of a client and a server sending ping and pong messages for a number of turns.
