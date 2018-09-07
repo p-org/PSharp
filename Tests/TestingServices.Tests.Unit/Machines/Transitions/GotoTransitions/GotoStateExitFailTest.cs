@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GotoStateExitFailTest : BaseTest
     {
         public GotoStateExitFailTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Program : Machine
@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 // This assert is reachable.
                 this.Assert(false, "Bug found.");
             }
-            
+
             class Done : MachineState { }
         }
 

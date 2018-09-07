@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class Nondet1Test : BaseTest
     {
         public Nondet1Test(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Unit : Event { }

@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class WarmStateTest : BaseTest
     {
         public WarmStateTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Unit : Event { }

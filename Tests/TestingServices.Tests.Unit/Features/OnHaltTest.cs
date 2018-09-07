@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class OnHaltTest : BaseTest
     {
         public OnHaltTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event

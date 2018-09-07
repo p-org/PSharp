@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class NameofTest : BaseTest
     {
         public NameofTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         static int WithNameofValue;

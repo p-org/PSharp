@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class Liveness3Test : BaseTest
     {
         public Liveness3Test(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Unit : Event { }

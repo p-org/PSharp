@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class EntryPointMachineExecutionTest : BaseTest
     {
         public EntryPointMachineExecutionTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class M : Machine

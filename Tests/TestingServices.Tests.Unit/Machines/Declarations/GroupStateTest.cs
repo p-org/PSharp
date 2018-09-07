@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GroupStateTest : BaseTest
     {
         public GroupStateTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event { }

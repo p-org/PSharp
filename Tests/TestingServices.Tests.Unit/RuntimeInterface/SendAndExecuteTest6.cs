@@ -14,7 +14,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class SendAndExecuteTest6 : BaseTest
     {
         public SendAndExecuteTest6(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event

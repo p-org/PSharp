@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class AmbiguousEventHandlerTest : BaseTest
     {
         public AmbiguousEventHandlerTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event { }

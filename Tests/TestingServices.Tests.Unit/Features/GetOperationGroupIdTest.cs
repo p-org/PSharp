@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GetOperationGroupIdTest : BaseTest
     {
         public GetOperationGroupIdTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         static Guid OperationGroup = Guid.NewGuid();

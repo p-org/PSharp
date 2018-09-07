@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class CycleDetectionRandomChoiceTest : BaseTest
     {
         public CycleDetectionRandomChoiceTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Configure : Event

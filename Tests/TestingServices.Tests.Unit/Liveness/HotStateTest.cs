@@ -14,7 +14,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class HotStateTest : BaseTest
     {
         public HotStateTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Config : Event

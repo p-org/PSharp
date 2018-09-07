@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class EntryPointEventSendingTest : BaseTest
     {
         public EntryPointEventSendingTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Transfer : Event

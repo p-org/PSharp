@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class ReceivingExternalEventTest : BaseTest
     {
         public ReceivingExternalEventTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert((this.ReceivedEvent as E).Value == 2);
             }
         }
-        
+
         [Fact]
         public void TestReceivingExternalEvents()
         {

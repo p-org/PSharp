@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class OnEventDequeueOrHandledTest : BaseTest
     {
         public OnEventDequeueOrHandledTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event { }

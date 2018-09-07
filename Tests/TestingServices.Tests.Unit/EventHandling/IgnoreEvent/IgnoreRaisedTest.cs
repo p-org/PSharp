@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class IgnoreRaisedTest : BaseTest
     {
         public IgnoreRaisedTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E1 : Event { }

@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class MustHandleEventTest : BaseTest
     {
         public MustHandleEventTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class E : Event
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                
+
             }
         }
 

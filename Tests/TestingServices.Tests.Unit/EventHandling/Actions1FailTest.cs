@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class Actions1FailTest : BaseTest
     {
         public Actions1FailTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Config : Event
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             class S2 : MachineState { }
         }
-        
+
         /// <summary>
         /// Tests basic semantics of actions and goto transitions.
         /// </summary>

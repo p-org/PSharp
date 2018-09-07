@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     public class GotoStateTest : BaseTest
     {
         public GotoStateTest(ITestOutputHelper output)
-               : base(output)
+            : base(output)
         { }
 
         class Program1 : Machine
