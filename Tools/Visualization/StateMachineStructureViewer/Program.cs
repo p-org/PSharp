@@ -153,10 +153,49 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             Output.WriteLine("{0}", result);
         }
 
-        private static void CreateCompilationContext(string infile)
+        private static void testStuff(CompilationContext context, out string errors)
         {
-            throw new NotImplementedException();
+            errors = null;
+            ParsingEngine.Create(context).Run();
+            Console.WriteLine("Found nPsharpPrograms=" + context.GetProjects()[0].PSharpPrograms.Count);
+            foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
+            {
+                Console.WriteLine(" -- start program --");
+                ResolutionHelper.Instance().PopulateLookup(prog);
+                int x = 5;
+                if (x > 4)
+                {
+                    foreach (var ns in prog.NamespaceDeclarations)
+                    {
+                        Console.WriteLine(ns.QualifiedName);
+                    }
+                    List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(prog);
+                    foreach (var asn in activeNamespaces)
+                    {
+                        Console.WriteLine("- " + asn);
+                    }
+                }
+                Console.WriteLine(" -- end program --");
+            }
+
+
+            foreach (var minfoKv in ResolutionHelper.Instance().machineLookup)
+            {
+                List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(minfoKv.Value.program);
+                minfoKv.Value.resolveBaseMachine(activeNamespaces);
+                Console.WriteLine("{0} < {1} ", minfoKv.Value.uniqueName, (minfoKv.Value.baseMachine != null) ? minfoKv.Value.baseMachine.uniqueName : "null");
+            }
+            
+            
+            
+
+            foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
+            {
+
+            }
+
         }
+
 
         /// <summary>
         /// Produces the Dgml file for the given program
@@ -165,52 +204,19 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         /// <returns>Text</returns>
         public static string CreateDgml(CompilationContext context, out string errors, Version csVersion)
         {
-
+            int x = 5;
+            if (x > 4)
+            {
+                
+                testStuff(context, out errors);
+                return "";
+            }
 
             try
             {
                 ParsingEngine.Create(context).Run();
                 errors = null;
-                 int x = 5;
-                if (x > 4)
-                {
-                    Console.WriteLine("Found nPsharpPrograms=" + context.GetProjects()[0].PSharpPrograms.Count);
-                    foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
-                    {
-                        Console.WriteLine(" -- start program --");
-                        MachineResolver.Instance().PopulateLookup(prog);
-                        if ( x > 4 )
-                        {
-                            foreach (var ns in prog.NamespaceDeclarations)
-                            {
-                                Console.WriteLine(ns.QualifiedName);
-                            }
-                            List<string> activeNamespaces = MachineResolver.GetActiveNamespacesFromUsingDirectives(prog);
-                            foreach (var asn in activeNamespaces)
-                            {
-                                Console.WriteLine("- " + asn);
-                            }
-                        }
-                        Console.WriteLine(" -- end program --");
-                    }
-
-
-                    foreach(var minfoKv in MachineResolver.Instance().machineLookup)
-                    {
-                        List<string> activeNamespaces = MachineResolver.GetActiveNamespacesFromUsingDirectives(minfoKv.Value.program);
-                        minfoKv.Value.resolveBaseMachine(activeNamespaces);
-                        Console.WriteLine("{0} < {1} ", minfoKv.Value.uniqueName, (minfoKv.Value.baseMachine!=null)? minfoKv.Value.baseMachine.uniqueName : "null");
-                    }
-                        
-
-                    return "";
-                }
-
-                foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
-                {
-
-                }
-
+                
                 MemoryStream memStream = new MemoryStream();
                 using (var writer = new XmlTextWriter(memStream, Encoding.UTF8))
                 {

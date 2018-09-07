@@ -1,4 +1,5 @@
-﻿using Microsoft.PSharp.LanguageServices;
+﻿
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using System;
 using System.Collections.Generic;
@@ -14,17 +15,17 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         internal PSharpProgram program;
         internal MachineDeclaration machineDeclaration;
         internal MachineInfo baseMachine;
-
         
 
         public MachineInfo(MachineDeclaration mdecl, PSharpProgram prog)
         {
             events = new HashSet<string>();
             states = new HashSet<string>();
-            uniqueName = MachineResolver.CreateUniqueName(mdecl);
+            uniqueName = ResolutionHelper.CreateUniqueName(mdecl);
             machineDeclaration = mdecl;
             program = prog;
             baseMachine = null;
+            
         }
 
         
@@ -34,14 +35,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         // Set of fully qualified names of the states declared ( or inherited ) in this machine 
         HashSet<string> states;
 
-        public void resolveBaseMachine(List<string> activeNamespaces)
+        internal void resolveBaseMachine(List<string> activeNamespaces)
         {
             string machineNamespace = machineDeclaration.Namespace.QualifiedName;
             if (machineDeclaration.BaseNameTokens.Count > 0 )
             {
-                string baseMachineName = MachineResolver.baseTypeTokenListToIdentifier(machineDeclaration.BaseNameTokens);
+                string baseMachineName = ResolutionHelper.baseTypeTokenListToIdentifier(machineDeclaration.BaseNameTokens);
                 Console.WriteLine("baseMachineName=" + baseMachineName);
-                baseMachine = MachineResolver.Instance().LookupMachine(baseMachineName, machineNamespace, activeNamespaces );
+                baseMachine = ResolutionHelper.Instance().LookupMachine(baseMachineName, machineNamespace, activeNamespaces );
                 if(baseMachine == null)
                 {
                     throw new Exception(String.Format("BaseMachine {0} not found for machine {1}" , baseMachineName, this.uniqueName) );
@@ -49,6 +50,45 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
 
         }
+
+
+        internal StateInfo lookupState(string identifierText, StateGroupDeclaration stateGroupContext = null)
+        {
+
+            int x = 5;
+            if (x > 4) { 
+                throw new NotImplementedException("Not done");
+            }
+            // TODO: All of this.
+            StateInfo foundState = null;
+            while (stateGroupContext!=null && foundState == null) {
+                foundState = ResolutionHelper.Instance().LookupState(identifierText, this.machineDeclaration, stateGroupContext);
+                stateGroupContext = stateGroupContext.Group;
+            }
+            if (foundState == null) { 
+                foundState = ResolutionHelper.Instance().LookupState(identifierText, this.machineDeclaration, null);
+            }
+
+            if ( foundState == null && baseMachine != null)
+            {
+                return baseMachine.lookupState(identifierText, stateGroupContext);
+            }
+            else
+            {
+                return foundState;
+            }
+        }
         
+        internal EventInfo lookupEvent(string identifierText)
+        {
+            // First look up events local to this machine
+            EventInfo eventInfo = ResolutionHelper.Instance().LookupEvent(identifierText, this.machineDeclaration);
+            if ( eventInfo == null)
+            {
+                List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(this.program);
+                eventInfo = ResolutionHelper.Instance().LookupEvent(identifierText, this.machineDeclaration.Namespace.QualifiedName, activeNamespaces);
+            }
+            return eventInfo;
+        }
     }
 }
