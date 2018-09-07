@@ -6,11 +6,12 @@
 using System;
 using System.Runtime.Serialization;
 
+using Microsoft.PSharp.Runtime;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class that contains a P# event, and its
-    /// associated information.
+    /// Contains an <see cref="Event"/>, and its associated metadata. 
     /// </summary>
     [DataContract]
     internal class EventInfo

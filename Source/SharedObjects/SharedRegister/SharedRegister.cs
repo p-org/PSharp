@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
@@ -19,7 +20,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// <param name="value">Initial value</param>
         public static ISharedRegister<T> Create<T>(PSharpRuntime runtime, T value = default(T)) where T : struct
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedRegister<T>(value);
             }

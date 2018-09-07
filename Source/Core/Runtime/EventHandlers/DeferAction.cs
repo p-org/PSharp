@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Defines a defer action.
     /// </summary>
     internal sealed class DeferAction : EventActionHandler
     {
-
     }
 }

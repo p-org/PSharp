@@ -5,16 +5,14 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Stores machine-related information, which can used
-    /// for scheduling and testing.
+    /// Stores machine-related information, which is used for various
+    /// internal purposes, including scheduling and testing.
     /// </summary>
     internal class MachineInfo
     {
-        #region fields
-
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
@@ -52,10 +50,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal int ProgramCounter;
 
-        #endregion
-
-        #region properties
-
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
@@ -66,14 +60,10 @@ namespace Microsoft.PSharp
         /// </summary>
         public string Name => MachineId.Name;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="mid">MachineId</param>
+        /// <param name="mid">The machine id.</param>
         internal MachineInfo(MachineId mid)
         {
             MachineId = mid;
@@ -84,10 +74,6 @@ namespace Microsoft.PSharp
             OperationGroupId = Guid.Empty;
             ProgramCounter = 0;
         }
-
-        #endregion
-
-        #region generic public and override methods
 
         /// <summary>
         /// Determines whether the specified System.Object is equal
@@ -128,7 +114,5 @@ namespace Microsoft.PSharp
         {
             return MachineId.Name;
         }
-
-        #endregion
     }
 }

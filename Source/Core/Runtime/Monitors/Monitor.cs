@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
 {
@@ -21,8 +22,6 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class Monitor
     {
-        #region static fields
-
         /// <summary>
         /// Map from monitor types to a set of all
         /// possible states types.
@@ -40,10 +39,6 @@ namespace Microsoft.PSharp
         /// available actions.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap;
-
-        #endregion
-
-        #region fields
 
         /// <summary>
         /// The runtime that executes this monitor.
@@ -92,10 +87,6 @@ namespace Microsoft.PSharp
         /// Checks if the current action called a transition statement.
         /// </summary>
         internal bool CurrentActionCalledTransitionStatement;
-
-        #endregion
-
-        #region properties
 
         /// <summary>
         /// The unique monitor id.
@@ -170,10 +161,6 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal Event ReceivedEvent { get; private set; }
 
-        #endregion
-
-        #region initialization
-
         /// <summary>
         /// Static constructor.
         /// </summary>
@@ -205,8 +192,6 @@ namespace Microsoft.PSharp
             this.IsInsideOnExit = false;
             this.CurrentActionCalledTransitionStatement = false;
         }
-
-        #endregion
 
         #region P# user API
 

@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
@@ -20,7 +21,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// <param name="runtime">PSharpRuntime</param>
         public static ISharedDictionary<TKey, TValue> Create<TKey, TValue>(PSharpRuntime runtime)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedDictionary<TKey, TValue>();
             }
@@ -41,7 +42,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// <param name="runtime">PSharp runtime</param>
         public static ISharedDictionary<TKey, TValue> Create<TKey, TValue>(IEqualityComparer<TKey> comparer, PSharpRuntime runtime)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedDictionary<TKey, TValue>(comparer);
             }

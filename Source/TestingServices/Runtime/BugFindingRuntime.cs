@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
@@ -24,8 +25,6 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal sealed class BugFindingRuntime : PSharpRuntime
     {
-        #region fields
-
         /// <summary>
         /// The bug-finding scheduler.
         /// </summary>
@@ -86,8 +85,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Records if a machine was triggered by an enqueue
         /// </summary>
         internal bool startEventHandlerCalled;
-
-        #endregion
 
         #region initialization
 
@@ -641,7 +638,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override void SendEvent(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
             this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
@@ -675,7 +672,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>True if event was handled, false if the event was only enqueued</returns>
-        internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
             this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
@@ -723,7 +720,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override void SendEventRemotely(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             this.SendEvent(mid, e, sender, options);
         }
@@ -738,7 +735,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="runNewHandler">Run a new handler</param>
         /// <returns>EventInfo</returns>
-        private EventInfo EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
+        private EventInfo EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
         {
             if (sender != null && sender is Machine)
             {
@@ -924,7 +921,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="sender">Sender machine</param>
         /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
-        internal override void Monitor(Type type, AbstractMachine sender, Event e)
+        internal override void Monitor(Type type, BaseMachine sender, Event e)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "Monitor");
             if (sender != null && sender is Machine)
@@ -1068,7 +1065,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="caller">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal override bool GetNondeterministicBooleanChoice(AbstractMachine caller, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(BaseMachine caller, int maxValue)
         {
             this.AssertCorrectCallerMachine(caller as Machine, "Random");
             if (caller != null && caller is Machine)
@@ -1093,7 +1090,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="caller">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine caller, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(BaseMachine caller, string uniqueId)
         {
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
             if (caller != null && caller is Machine)
@@ -1118,7 +1115,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="caller">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        internal override int GetNondeterministicIntegerChoice(AbstractMachine caller, int maxValue)
+        internal override int GetNondeterministicIntegerChoice(BaseMachine caller, int maxValue)
         {
             this.AssertCorrectCallerMachine(caller as Machine, "RandomInteger");
             if (caller != null && caller is Machine)
@@ -1460,7 +1457,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="sender">Sender machine</param>
         /// <param name="monitor">Monitor</param>
         /// <param name="e">Event</param>
-        private void ReportActivityCoverageOfMonitorEvent(AbstractMachine sender, Monitor monitor, Event e)
+        private void ReportActivityCoverageOfMonitorEvent(BaseMachine sender, Monitor monitor, Event e)
         {
             string originMachine = (sender == null) ? "Env" : sender.GetType().Name;
             string originState = (sender == null) ? "Env" :

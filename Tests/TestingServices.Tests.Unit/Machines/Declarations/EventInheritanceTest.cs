@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
@@ -286,7 +286,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestEventInheritanceRun()
         {
             var tcs = new TaskCompletionSource<bool>();
-            var runtime = new StateMachineRuntime();
+            var runtime = new ProductionRuntime();
             var a = runtime.CreateMachine(typeof(A), null, new A.Configure(tcs), null);
             runtime.SendEvent(a, new A.E3());
             runtime.SendEvent(a, new E1());

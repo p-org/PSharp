@@ -5,7 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit

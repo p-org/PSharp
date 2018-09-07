@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
@@ -19,7 +20,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// <param name="value">Initial value</param>
         public static ISharedCounter Create(PSharpRuntime runtime, int value = 0)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedCounter(value);
             }

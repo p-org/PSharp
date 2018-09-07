@@ -7,14 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Abstract class representing a P# machine.
     /// </summary>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract class AbstractMachine
+    public abstract class BaseMachine
     {
         /// <summary>
         /// The runtime that executes this machine.
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            AbstractMachine m = obj as AbstractMachine;
+            BaseMachine m = obj as BaseMachine;
             if (m == null ||
                 this.GetType() != m.GetType())
             {

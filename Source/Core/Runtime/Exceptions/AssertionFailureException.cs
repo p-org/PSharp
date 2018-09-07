@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// The exception that is thrown by the P# runtime upon assertion failure.
@@ -19,7 +19,6 @@ namespace Microsoft.PSharp
         internal AssertionFailureException(string message)
             : base(message)
         {
-
         }
 
         /// <summary>
@@ -30,7 +29,6 @@ namespace Microsoft.PSharp
         internal AssertionFailureException(string message, Exception innerException)
             : base(message, innerException)
         {
-
         }
     }
 }

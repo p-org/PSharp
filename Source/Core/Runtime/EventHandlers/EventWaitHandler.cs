@@ -5,15 +5,13 @@
 
 using System;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Defines an event wait handler.
     /// </summary>
     internal class EventWaitHandler
     {
-        #region fields
-
         /// <summary>
         /// Type of the event to handle.
         /// </summary>
@@ -24,10 +22,6 @@ namespace Microsoft.PSharp
         /// predicate evaluates to true.
         /// </summary>
         internal readonly Func<Event, bool> Predicate;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -49,7 +43,5 @@ namespace Microsoft.PSharp
             this.EventType = eventType;
             this.Predicate = predicate;
         }
-
-        #endregion
     }
 }

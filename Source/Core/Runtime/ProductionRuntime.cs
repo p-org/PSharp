@@ -4,33 +4,26 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Runtime for executing state-machines in production.
     /// </summary>
-    internal sealed class StateMachineRuntime : PSharpRuntime
+    internal sealed class ProductionRuntime : PSharpRuntime
     {
-        #region fields
-
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
         private List<Monitor> Monitors;
 
-        #endregion
-
-        #region initialization
-
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal StateMachineRuntime()
+        internal ProductionRuntime()
             : base()
         {
             this.Initialize();
@@ -40,7 +33,7 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        internal StateMachineRuntime(Configuration configuration)
+        internal ProductionRuntime(Configuration configuration)
             : base(configuration)
         {
             this.Initialize();
@@ -53,8 +46,6 @@ namespace Microsoft.PSharp
         {
             this.Monitors = new List<Monitor>();
         }
-
-        #endregion
 
         #region runtime interface
 
@@ -392,7 +383,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override void SendEvent(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override void SendEvent(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
@@ -418,7 +409,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>True if event was handled, false if the event was only enqueued</returns>
-        internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
@@ -443,7 +434,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="options">Optional parameters of a send operation.</param>
-        internal override void SendEventRemotely(MachineId mid, Event e, AbstractMachine sender, SendOptions options)
+        internal override void SendEventRemotely(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             base.NetworkProvider.RemoteSend(mid, e);
         }
@@ -456,7 +447,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="operationGroupId">Operation group id</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        private void EnqueueEvent(Machine machine, Event e, AbstractMachine sender, Guid operationGroupId, ref bool runNewHandler)
+        private void EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, ref bool runNewHandler)
         {
             EventInfo eventInfo = new EventInfo(e, null);
             eventInfo.SetOperationGroupId(operationGroupId);
@@ -581,7 +572,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="type">Type of the monitor</param>
         /// <param name="e">Event</param>
-        internal override void Monitor(Type type, AbstractMachine sender, Event e)
+        internal override void Monitor(Type type, BaseMachine sender, Event e)
         {
             if (!base.Configuration.EnableMonitorsInProduction)
             {
@@ -623,7 +614,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal override bool GetNondeterministicBooleanChoice(AbstractMachine machine, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -645,7 +636,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal override bool GetFairNondeterministicBooleanChoice(AbstractMachine machine, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(machine, 2);
         }
@@ -657,7 +648,7 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Integer</returns>
-        internal override int GetNondeterministicIntegerChoice(AbstractMachine machine, int maxValue)
+        internal override int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);
