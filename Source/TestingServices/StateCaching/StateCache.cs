@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 
 namespace Microsoft.PSharp.TestingServices.StateCaching
@@ -18,7 +19,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// The P# testing runtime.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly BaseTestingRuntime Runtime;
 
         /// <summary>
         /// Set of fingerprints.
@@ -28,8 +29,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
-        internal StateCache(TestingRuntime runtime)
+        /// <param name="runtime">BaseTestingRuntime</param>
+        internal StateCache(BaseTestingRuntime runtime)
         {
             Runtime = runtime;
             Fingerprints = new HashSet<Fingerprint>();

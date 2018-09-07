@@ -5,7 +5,8 @@
 
 using System;
 using System.Runtime.Serialization;
-using System.Threading;
+
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
 {
@@ -13,170 +14,151 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId
+    public sealed class MachineId : IMachineId, IEquatable<MachineId>, IComparable<MachineId>
     {
-        #region fields
-
         /// <summary>
-        /// The P# runtime that executes the machine with this id.
+        /// The runtime that executes the machine with this id.
         /// </summary>
-        public PSharpRuntime Runtime { get; private set; }
-
-        /// <summary>
-        /// Name of the machine.
-        /// </summary>
-        [DataMember]
-        public readonly string Name;
-
-        /// <summary>
-        /// Optional friendly name of the machine.
-        /// </summary>
-        [DataMember]
-        private readonly string FriendlyName;
-
-        /// <summary>
-        /// Type of the machine with this id.
-        /// </summary>
-        [DataMember]
-        public readonly string Type;
+        public IPSharpRuntime Runtime { get; private set; }
 
         /// <summary>
         /// Unique id value.
         /// </summary>
         [DataMember]
-        public readonly ulong Value;
+        public ulong Value { get; private set; }
 
         /// <summary>
-        /// Generation of the runtime that created this machine id.
+        /// Type of the machine.
         /// </summary>
         [DataMember]
-        public readonly ulong Generation;
+        public string Type { get; private set; }
 
         /// <summary>
-        /// Endpoint.
+        /// Name of the machine.
         /// </summary>
         [DataMember]
-        public readonly string Endpoint;
+        public string Name { get; private set; }
 
-        #endregion
-
-        #region constructors
+        /// <summary>
+        /// Optional friendly name of the machine.
+        /// </summary>
+        [DataMember]
+        public string FriendlyName { get; private set; }
 
         /// <summary>
         /// Creates a new machine id.
         /// </summary>
+        /// <param name="runtime">The P# runtime.</param>
         /// <param name="type">Machine type</param>
+        /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
-        /// <param name="runtime">PSharpRuntime</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime)
-        {
-            FriendlyName = friendlyName;
-            Runtime = runtime;
-            Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
-            
-            // Atomically increments and safely wraps into an unsigned long.
-            Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
-
-            // Checks for overflow.
-            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-
-            Generation = runtime.Configuration.RuntimeGeneration;
-
-            Type = type.FullName;
-            if (friendlyName != null && friendlyName.Length > 0)
-            {
-                Name = string.Format("{0}({1})", friendlyName, Value);
-            }
-            else
-            {
-                Name = string.Format("{0}({1})", Type, Value);
-            }
-        }
+        internal MachineId(IPSharpRuntime runtime, Type type, ulong value, string friendlyName)
+            : this(runtime, type.FullName, friendlyName, value)
+        { }
 
         /// <summary>
-        /// Create a fresh MachineId borrowing information from a given id.
+        /// Create a fresh machine id borrowing information from the specified id.
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)
+            : this(mid.Runtime, mid.Type, mid.FriendlyName, mid.Value)
+        { }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="runtime">The P# runtime.</param>
+        /// <param name="type">Machine type</param>
+        /// <param name="friendlyName">Friendly machine name</param>
+        /// <param name="value">Unique id value.</param>
+        private MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value)
         {
-            Runtime = mid.Runtime;
-            Endpoint = mid.Endpoint;
+            this.Runtime = runtime;
+            this.Value = value;
+            this.Type = type;
+            this.FriendlyName = friendlyName;
 
-            // Atomically increments and safely wraps into an unsigned long.
-            Value = (ulong)Interlocked.Increment(ref Runtime.MachineIdCounter) - 1;
-
-            // Checks for overflow.
-            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-
-            Generation = mid.Generation;
-            Type = mid.Type;
-
-            if (FriendlyName != null && FriendlyName.Length > 0)
+            if (friendlyName != null && friendlyName.Length > 0)
             {
-                Name = string.Format("{0}({1})", FriendlyName, Value);
+                this.Name = string.Format("{0}({1})", friendlyName, value);
             }
             else
             {
-                Name = string.Format("{0}({1})", Type, Value);
+                this.Name = string.Format("{0}({1})", type, value);
             }
         }
 
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
-        internal void Bind(PSharpRuntime runtime)
+        /// <param name="runtime">The P# runtime.</param>
+        internal void Bind(IPSharpRuntime runtime)
         {
-            Runtime = runtime;
+            this.Runtime = runtime;
         }
 
-        #endregion
-
-        #region generic public and override methods
-        
         /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
+        /// Determines whether the specified <see cref="object"/> is equal
+        /// to the current <see cref="object"/>.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is IMachineId mid)
             {
-                return false;
+                return this.Value == mid.Value;
             }
 
-            MachineId mid = obj as MachineId;
-            if (mid == null)
-            {
-                return false;
-            }
-
-            return Value == mid.Value && Generation == mid.Generation;
+            return false;
         }
 
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>int</returns>
         public override int GetHashCode()
         {
             int hash = 17;
-            hash = hash * 23 + Value.GetHashCode();
-            hash = hash * 23 + Generation.GetHashCode();
+            hash = hash * 23 + this.Value.GetHashCode();
             return hash;
         }
 
         /// <summary>
         /// Returns a string that represents the current machine id.
         /// </summary>
-        /// <returns>string</returns>
         public override string ToString()
         {
-            return Name;
+            return this.Name;
         }
 
-        #endregion
+        /// <summary>
+        /// Indicates whether the specified <see cref="MachineId"/> is equal
+        /// to the current <see cref="MachineId"/>.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
+        public bool Equals(MachineId other)
+        {
+            return this.Equals((object)other);
+        }
+
+        /// <summary>
+        /// Compares the specified <see cref="MachineId"/> with the current
+        /// <see cref="MachineId"/> for ordering or sorting purposes.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public int CompareTo(MachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
+        }
+
+        bool IEquatable<IMachineId>.Equals(IMachineId other)
+        {
+            return this.Equals(other);
+        }
+
+        int IComparable<IMachineId>.CompareTo(IMachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
+        }
     }
 }

@@ -101,15 +101,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMustHandleFail1()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M1));
                 r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
             });
 
             var config = Configuration.Create();
 
-            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()'.\n";
-            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()'.";
+            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()' halted before " +
+                "dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
                 foreach (var report in bugReports)
@@ -128,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMustHandleFail2()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M2));
                 r.SendEvent(m, new E());
                 r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
@@ -136,8 +137,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()'.\n";
-            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()'.";
+            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()' halted before " +
+                "dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
                 foreach (var report in bugReports)
@@ -156,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMustHandleFail3()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M5));
                 r.SendEvent(m, new Halt());
                 r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
@@ -165,7 +167,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var config = Configuration.Create().WithNumberOfIterations(1);
 
-            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M5()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
+            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M5()' halted before " +
+                "dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.";
 
             AssertFailed(config, test, 1, new HashSet<string> { bugReport }, true);
         }
@@ -173,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMustHandleSuccess()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M3));
                 r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
                 r.SendEvent(m, new Halt());
@@ -186,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMustHandleDeferFail()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M4));
                 r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
                 r.SendEvent(m, new Halt());

@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IPSharpRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(0));
             });
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IPSharpRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(1));
             });
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IPSharpRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(2));
             });
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IPSharpRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(3));
             });

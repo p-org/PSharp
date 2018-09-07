@@ -24,7 +24,7 @@ namespace SendAndReceive
         /// <param name="runtime">The runtime.</param>
         /// <param name="mid">Target machine id.</param>
         /// <param name="ev">Event to send whose respose we're interested in getting.</param>
-        public static async Task<T> GetResponse(PSharpRuntime runtime, MachineId mid, Func<MachineId, Event> ev)
+        public static async Task<T> GetResponse(IPSharpRuntime runtime, MachineId mid, Func<MachineId, Event> ev)
         {
             var conf = new Config(mid, ev);
             // This method awaits until the GetResponseMachine finishes its Execute method

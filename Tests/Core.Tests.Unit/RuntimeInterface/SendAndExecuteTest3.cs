@@ -1,17 +1,21 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class SendAndExecuteTest3 
+    public class SendAndExecuteTest3 : BaseTest
     {
+        public SendAndExecuteTest3(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Conf : Event
         {
             public TaskCompletionSource<bool> tcs;
@@ -44,8 +48,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
                 var e = new E();
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                await this.Runtime.SendEventAndExecute(m, e);
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                await runtime.SendEventAndExecuteAsync(m, e);
                 this.Assert(e.x == 1);
                 tcs.SetResult(true);
             }
@@ -83,7 +88,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestSyncSendBlocks()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

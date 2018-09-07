@@ -101,16 +101,6 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region runtime options
-
-        /// <summary>
-        /// The current runtime generation.
-        /// </summary>
-        [DataMember]
-        public ulong RuntimeGeneration;
-
-        #endregion
-
         #region bug finding options
 
         /// <summary>
@@ -479,8 +469,6 @@ namespace Microsoft.PSharp
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
             this.RewriteCSharpVersion = new Version();
-
-            this.RuntimeGeneration = 0;
 
             this.AssemblyToBeAnalyzed = string.Empty;
             this.TestingRuntimeAssembly = string.Empty;

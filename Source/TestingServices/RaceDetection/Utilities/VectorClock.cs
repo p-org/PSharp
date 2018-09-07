@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
     /// Maps each machine(Id) to its clock. The clock is represented as an Epoch c@t.
     /// Here, c is the clock value and t the identifier for the machine
     /// We re-encode the mId into the value so that comparisons between epochs and VCs
-    /// are direct. Currently used by the TestingRuntime which does not
+    /// are direct. Currently used by the <see cref="ITestingRuntime"/> which does not
     /// run machines concurrently. Future (multi-threaded) clients will need to call the APIs with
     /// exclusive access to certain parameters/this (as indicated in the comments)
     /// </summary>

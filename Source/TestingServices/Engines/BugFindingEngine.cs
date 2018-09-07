@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -47,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration, Action<IPSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
         }
@@ -110,7 +112,13 @@ namespace Microsoft.PSharp.TestingServices
 
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
-                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
+                    var knownTypes = new HashSet<Type> { typeof(MachineId) };
+                    if (base.TestRuntimeGetKnownSerializableMachineIdTypesMethod != null)
+                    {
+                        knownTypes.UnionWith((IEnumerable<Type>)base.TestRuntimeGetKnownSerializableMachineIdTypesMethod.Invoke(null, new object[] { }));
+                    }
+
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace), knownTypes);
                     base.Logger.WriteLine($"..... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
@@ -175,7 +183,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        private BugFindingEngine(Configuration configuration, Action<IPSharpRuntime> action)
             : base(configuration, action)
         {
             if (base.Configuration.EnableDataRaceDetection)
@@ -302,11 +310,11 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             // Runtime used to serialize and test the program in this iteration.
-            TestingRuntime runtime = null;
+            ITestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
-            InMemoryLogger runtimeLogger = null;
+            ILogger runtimeLogger = null;
 
             // Gets a handle to the standard output and error streams.
             var stdOut = Console.Out;
@@ -317,16 +325,17 @@ namespace Microsoft.PSharp.TestingServices
                 // Creates a new instance of the bug-finding runtime.
                 if (base.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
-                        new object[] { base.Configuration, base.Strategy, base.Reporter });
+                    runtime = (ITestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                        new object[] { base.Strategy, base.Reporter, base.Configuration });
                 }
                 else
                 {
-                    runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = TestingRuntime.Create(base.Strategy, base.Reporter, base.Configuration);
                 }
 
                 if (base.Configuration.EnableDataRaceDetection)
                 {
+                    // Register the runtime with the reporter.
                     this.Reporter.RegisterRuntime(runtime);
                 }
 
@@ -334,19 +343,44 @@ namespace Microsoft.PSharp.TestingServices
                 // the standard output and error streams.
                 if (base.Configuration.Verbose < 2)
                 {
-                    runtimeLogger = new InMemoryLogger();
+                    if (base.TestRuntimeGetInMemoryLoggerMethod != null)
+                    {
+                        runtimeLogger = (ILogger)base.TestRuntimeGetInMemoryLoggerMethod.Invoke(null, new object[] { });
+                    }
+                    else
+                    {
+                        runtimeLogger = new InMemoryLogger();
+                    }
+
                     runtime.SetLogger(runtimeLogger);
 
                     // Sets the scheduling strategy logger to the in-memory logger.
                     base.SchedulingStrategyLogger.SetLogger(runtimeLogger);
 
-                    var writer = new LogWriter(new DisposingLogger());
+                    ILogger disposingLogger = null;
+                    if (base.TestRuntimeGetDisposingLoggerMethod != null)
+                    {
+                        disposingLogger = (ILogger)base.TestRuntimeGetDisposingLoggerMethod.Invoke(null, new object[] { });
+                    }
+                    else
+                    {
+                        disposingLogger = new DisposingLogger();
+                    }
+
+                    var writer = new LogWriter(disposingLogger);
                     Console.SetOut(writer);
                     Console.SetError(writer);
                 }
 
                 // Runs the test inside the P# test-harness machine.
-                runtime.RunTestHarness(base.TestMethod, base.TestAction);
+                if (base.TestMethod != null)
+                {
+                    runtime.RunTestHarness(base.TestMethod);
+                }
+                else if (base.TestAction != null)
+                {
+                    runtime.RunTestHarness(base.TestAction);
+                }
 
                 // Wait for the test to terminate.
                 runtime.Wait();
@@ -429,8 +463,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Gathers the exploration strategy statistics for
         /// the latest testing iteration.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
-        private void GatherIterationStatistics(TestingRuntime runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        private void GatherIterationStatistics(ITestingRuntime runtime)
         {
             TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
@@ -440,8 +474,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
-        private void ConstructReproducableTrace(TestingRuntime runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        private void ConstructReproducableTrace(ITestingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
 

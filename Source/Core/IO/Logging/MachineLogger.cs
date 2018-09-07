@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Constructs the logger. The logger will be assigned the runtime
         /// <see cref="PSharp.Configuration"/> object when it is passed to
-        /// <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
+        /// <see cref="IPSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public MachineLogger(int loggingVerbosity = 2)
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
-        public virtual void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName,
+        public virtual void OnSend(MachineId targetMachineId, IMachineId senderId, string senderStateName,
             string eventName, Guid? operationGroupId, bool isTargetHalted)
         {
             if (this.IsVerbose)
@@ -334,7 +334,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
-        public virtual string FormatOnSendString(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName,
+        public virtual string FormatOnSendString(MachineId targetMachineId, IMachineId senderId, string senderStateName, string eventName,
             Guid? operationGroupId, bool isTargetHalted)
         {
             var guid = (operationGroupId.HasValue && operationGroupId.Value != Guid.Empty) ?
@@ -353,7 +353,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
         /// <param name="creator">Id of the host machine, null otherwise.</param>
-        public virtual void OnCreateMachine(MachineId machineId, MachineId creator)
+        public virtual void OnCreateMachine(MachineId machineId, IMachineId creator)
         {
             if (this.IsVerbose)
             {
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
         /// <param name="creator">Id of the host machine, null otherwise.</param>
-        public virtual string FormatOnCreateMachineString(MachineId machineId, MachineId creator)
+        public virtual string FormatOnCreateMachineString(MachineId machineId, IMachineId creator)
         {
             var source = creator == null ? "the Runtime" : $"machine '{creator.Name}'";
             return $"<CreateLog> Machine '{machineId}' was created by {source}.";

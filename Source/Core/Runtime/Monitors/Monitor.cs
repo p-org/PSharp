@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,9 +41,9 @@ namespace Microsoft.PSharp
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap;
 
         /// <summary>
-        /// The runtime that executes this monitor.
+        /// The runtime manager that executes this monitor.
         /// </summary>
-        private PSharpRuntime Runtime;
+        private IRuntimeMachineManager RuntimeManager;
 
         /// <summary>
         /// The monitor state.
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The logger installed to the P# runtime.
         /// </summary>
-        protected ILogger Logger => this.Runtime.Logger;
+        protected ILogger Logger => this.RuntimeManager.Logger;
 
         /// <summary>
         /// Gets the current state.
@@ -184,11 +184,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this monitor.
         /// </summary>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
         /// <param name="mid">The monitor id.</param>
-        internal void Initialize(MachineId mid)
+        internal void Initialize(IRuntimeMachineManager runtimeManager, MachineId mid)
         {
+            this.RuntimeManager = runtimeManager;
             this.Id = mid;
-            this.Runtime = mid.Runtime;
             this.IsInsideOnExit = false;
             this.CurrentActionCalledTransitionStatement = false;
         }
@@ -234,7 +235,7 @@ namespace Microsoft.PSharp
             this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
             EventInfo raisedEvent = new EventInfo(e, new EventOriginInfo(
                 this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
-            this.Runtime.NotifyRaisedEvent(this, raisedEvent);
+            this.RuntimeManager.NotifyRaisedEvent(this, raisedEvent);
             this.HandleEvent(e);
         }
 
@@ -245,7 +246,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected void Assert(bool predicate)
         {
-            this.Runtime.Assert(predicate);
+            this.RuntimeManager.Assert(predicate);
         }
 
         /// <summary>
@@ -257,7 +258,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected void Assert(bool predicate, string s, params object[] args)
         {
-            this.Runtime.Assert(predicate, s, args);
+            this.RuntimeManager.Assert(predicate, s, args);
         }
 
         #endregion
@@ -270,7 +271,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            this.Runtime.Logger.OnMonitorEvent(this.GetType().Name, this.Id, this.CurrentStateName,
+            this.RuntimeManager.Logger.OnMonitorEvent(this.GetType().Name, this.Id, this.CurrentStateName,
                 e.GetType().FullName, isProcessing: true);
             this.HandleEvent(e);
         }
@@ -308,7 +309,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    this.Runtime.NotifyExitedState(this);
+                    this.RuntimeManager.NotifyExitedState(this);
                     this.State = null;
                     continue;
                 }
@@ -344,7 +345,7 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-            this.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
+            this.RuntimeManager.NotifyInvokedAction(this, action, ReceivedEvent);
             this.ExecuteAction(action);
         }
 
@@ -354,7 +355,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            this.Runtime.NotifyEnteredState(this);
+            this.RuntimeManager.NotifyEnteredState(this);
 
             MethodInfo entryAction = null;
             if (this.State.EntryAction != null)
@@ -377,7 +378,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
-            this.Runtime.NotifyExitedState(this);
+            this.RuntimeManager.NotifyExitedState(this);
 
             MethodInfo exitAction = null;
             if (this.State.ExitAction != null)
@@ -416,18 +417,28 @@ namespace Microsoft.PSharp
             {
                 action.Invoke(this, null);
             }
-            catch (ExecutionCanceledException ex)
-            {
-                throw ex;
-            }
-            catch (TaskSchedulerException ex)
-            {
-                throw ex;
-            }
             catch (Exception ex)
             {
-                // Reports the unhandled exception.
-                this.ReportUnhandledException(ex, action.Name);
+                Exception innerException = ex;
+                while (innerException is TargetInvocationException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is ExecutionCanceledException || innerException is TaskSchedulerException)
+                {
+                    throw ex;
+                }
+                else
+                {
+                    // Reports the unhandled exception.
+                    this.ReportUnhandledException(innerException, action.Name);
+                }
             }
         }
 
@@ -502,10 +513,10 @@ namespace Microsoft.PSharp
         internal void CheckLivenessTemperature()
         {
             if (this.State.IsHot &&
-                this.Runtime.Configuration.LivenessTemperatureThreshold > 0)
+                this.RuntimeManager.Configuration.LivenessTemperatureThreshold > 0)
             {
                 this.LivenessTemperature++;
-                this.Runtime.Assert(this.LivenessTemperature <= this.Runtime.
+                this.RuntimeManager.Assert(this.LivenessTemperature <= this.RuntimeManager.
                     Configuration.LivenessTemperatureThreshold,
                     $"Monitor '{this.GetType().Name}' detected potential liveness " +
                     $"bug in hot state '{this.CurrentStateName}'.");
@@ -519,9 +530,9 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void CheckLivenessTemperature(int livenessTemperature)
         {
-            if (livenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
+            if (livenessTemperature > this.RuntimeManager.Configuration.LivenessTemperatureThreshold)
             {
-                this.Runtime.Assert(livenessTemperature <= this.Runtime.Configuration.LivenessTemperatureThreshold,
+                this.RuntimeManager.Assert(livenessTemperature <= this.RuntimeManager.Configuration.LivenessTemperatureThreshold,
                     $"Monitor '{this.GetType().Name}' detected infinite execution that violates a liveness property.");
             }
         }
@@ -855,7 +866,7 @@ namespace Microsoft.PSharp
         private void ReportUnhandledException(Exception ex, string actionName)
         {
             var state = (this.CurrentState == null) ? "<unknown>" : this.CurrentStateName;
-            this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+            this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                 $"in monitor '{this.Id}', state '{state}', action '{actionName}', " +
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +

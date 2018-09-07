@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -38,9 +39,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Assert(false);
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -55,9 +61,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
-                this.Receive(typeof(Event)).Wait();
+                await this.Receive(typeof(Event));
             }
         }
 
@@ -72,9 +78,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Raise(new E());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -89,9 +100,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Goto<Init>();
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -121,13 +137,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
                 // no-ops but no failure
-                this.Send(sender, new E());
+                await this.SendAsync(sender, new E());
                 this.Random();
                 this.Assert(true);
-                this.CreateMachine(typeof(Dummy));
+                await this.CreateMachineAsync(typeof(Dummy));
             }
         }
 
@@ -141,7 +157,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestHaltCalled()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M1));
             });
 
@@ -151,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestReceiveOnHalt()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M2a));
             });
 
@@ -162,7 +178,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestRaiseOnHalt()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M2b));
             });
 
@@ -173,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestGotoOnHalt()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M2c));
             });
 
@@ -184,7 +200,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestAPIsOnHalt()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M4));
                 r.CreateMachine(typeof(M3), new E(m));
             });

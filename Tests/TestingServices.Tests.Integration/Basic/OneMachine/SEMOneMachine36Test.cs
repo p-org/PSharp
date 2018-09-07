@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestNullEventHandler1()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Real1));
             });
 

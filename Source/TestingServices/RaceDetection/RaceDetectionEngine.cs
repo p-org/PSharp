@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState;
-using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState;
+using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 
 namespace Microsoft.PSharp.TestingServices.RaceDetection
 {
@@ -62,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// We need a reference to the runtime to query it for the currently
         /// executing machine's Id at read/write operations
         /// </summary>
-        private TestingRuntime Runtime;
+        private ITestingRuntime Runtime;
 
         /// <summary>
         /// Counter to track the number of enqueue operations.
@@ -89,6 +91,10 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// </summary>
         private ulong CreateCount;
 
+        public Dictionary<ulong, bool> InAction { get; set; }
+
+        public long InMonitor { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -106,9 +112,14 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             ResetCounters();
         }
 
-        public Dictionary<ulong, bool> InAction { get; set; }
-
-        public long InMonitor { get; set; }
+        /// <summary>
+        /// Registers the testing runtime.
+        /// </summary>
+        /// <param name="runtime">ITestingRuntime</param>
+        public void RegisterRuntime(ITestingRuntime runtime)
+        {
+            this.Runtime = runtime;
+        }
 
         public bool TryGetCurrentMachineId(out ulong machineId)
         {
@@ -122,18 +133,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             return true;
         }
 
-        /// <summary>
-        /// Registers the testing runtime.
-        /// </summary>
-        /// <param name="runtime">The testing runtime.</param>
-        public void RegisterRuntime(PSharpRuntime runtime)
-        {
-            runtime.Assert((runtime as TestingRuntime) != null,
-                "Requires passed runtime to support method GetCurrentMachineId");
-            this.Runtime = runtime as TestingRuntime;
-        }
-
-        public void RegisterCreateMachine(MachineId source, MachineId target)
+        public void RegisterCreateMachine(IMachineId source, IMachineId target)
         {
             LogCreate(source, target);
             CreateCount++;
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             sourceMachineState.IncrementEpochAndVC();
         }
 
-        public void RegisterDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        public void RegisterDequeue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
         {
             LogDequeue(source, target, e, sequenceNumber);
             DequeueCount++;
@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             currentState.JoinThenIncrement(ES[sequenceNumber]);
         }
 
-        public void RegisterEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        public void RegisterEnqueue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
         {
             LogEnqueue(source, target, e, sequenceNumber);
             EnqueueCount++;
@@ -476,7 +476,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             return firstMonitor == secondMonitor;
         }
 
-        private InstrMachineState GetCurrentState(MachineId machineId)
+        private InstrMachineState GetCurrentState(IMachineId machineId)
         {
             if (MS.ContainsKey(machineId.Value))
             {
@@ -490,7 +490,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LogCreate(MachineId source, MachineId target)
+        private void LogCreate(IMachineId source, IMachineId target)
         {
             if (Config.EnableRaceDetectorLogging)
             {
@@ -499,7 +499,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LogDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        private void LogDequeue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
         {
             if (Config.EnableRaceDetectorLogging)
             {
@@ -508,7 +508,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LogEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
+        private void LogEnqueue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
         {
             if (Config.EnableRaceDetectorLogging)
             {

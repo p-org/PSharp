@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
@@ -23,24 +22,24 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The testing runtime hosting this shared dictionary.
         /// </summary>
-        private TestingRuntime Runtime;
+        ITestingRuntime Runtime;
 
         /// <summary>
         /// Initializes the shared dictionary.
         /// </summary>
         /// <param name="comparer">Comparre for keys</param>
-        /// <param name="runtime">TestingRuntime</param>
-        public MockSharedDictionary(IEqualityComparer<TKey> comparer, TestingRuntime runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        public MockSharedDictionary(IEqualityComparer<TKey> comparer, ITestingRuntime runtime)
         {
             this.Runtime = runtime;
             if (comparer != null)
             {
-                this.DictionaryMachine = this.Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>),
+                DictionaryMachine = this.Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>),
                     SharedDictionaryEvent.InitEvent(comparer));
             }
             else
             {
-                this.DictionaryMachine = this.Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>));
+                DictionaryMachine = this.Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>));
             }
         }
 
@@ -52,8 +51,9 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True or false depending on whether the new key/value pair was added.</returns>
         public bool TryAdd(TKey key, TValue value)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
-            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryAddEvent(key, value, currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+            this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared dictionary.");
+            this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryAddEvent(key, value, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<bool>)).Result as SharedDictionaryResponseEvent<bool>;
             return e.Value;
         }
@@ -67,8 +67,9 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True if the value with key was equal to comparisonValue and was replaced with newValue; otherwise, false.</returns>
         public bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
-            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryUpdateEvent(key, newValue, comparisonValue, currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+            this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared dictionary.");
+            this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryUpdateEvent(key, newValue, comparisonValue, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<bool>)).Result as SharedDictionaryResponseEvent<bool>;
             return e.Value;
         }
@@ -81,8 +82,9 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True if the key was found; otherwise, false.</returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
-            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryGetEvent(key, currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+            this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared dictionary.");
+            this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryGetEvent(key, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result
                 as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
             value = e.Value.Item2;
@@ -98,17 +100,17 @@ namespace Microsoft.PSharp.SharedObjects
         {
             get
             {
-                var currentMachine = this.Runtime.GetCurrentMachine();
-                this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.GetEvent(key, currentMachine.Id));
+                var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+                this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared dictionary.");
+                this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.GetEvent(key, currentMachine.Id));
                 var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<TValue>)).Result as SharedDictionaryResponseEvent<TValue>;
                 return e.Value;
             }
             set
             {
-                this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.SetEvent(key, value));
+                this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.SetEvent(key, value));
             }
         }
-
 
         /// <summary>
         /// Removes the specified key from the dictionary.
@@ -118,8 +120,9 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True if the element is successfully removed; otherwise, false.</returns>
         public bool TryRemove(TKey key, out TValue value)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
-            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryRemoveEvent(key, currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+            this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared dictionary.");
+            this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryRemoveEvent(key, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result
                 as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
             value = e.Value.Item2;
@@ -134,8 +137,9 @@ namespace Microsoft.PSharp.SharedObjects
         {
             get
             {
-                var currentMachine = this.Runtime.GetCurrentMachine();
-                this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.CountEvent(currentMachine.Id));
+                var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+                this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared dictionary.");
+                this.Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.CountEvent(currentMachine.Id));
                 var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<int>)).Result as SharedDictionaryResponseEvent<int>;
                 return e.Value;
             }

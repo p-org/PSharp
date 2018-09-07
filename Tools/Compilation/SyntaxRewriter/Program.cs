@@ -196,9 +196,9 @@ namespace Microsoft.PSharp
                 {
                     // Replaces Program.psharp with the actual file name.
                     errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
-                    
+
                     // Prints a compiler error with log.
-                    File.WriteAllText(OutputFiles[i].ItemSpec, 
+                    File.WriteAllText(OutputFiles[i].ItemSpec,
                         string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
                 }
             }

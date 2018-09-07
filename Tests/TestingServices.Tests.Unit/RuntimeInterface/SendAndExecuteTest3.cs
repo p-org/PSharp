@@ -37,8 +37,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var e = new E();
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await this.Runtime.SendEventAndExecute(m, e);
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, e);
                 this.Assert(handled);
                 this.Assert(e.x == 1);
             }
@@ -76,13 +77,12 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSendBlocks()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Harness));
             });
             var config = Configuration.Create().WithNumberOfIterations(100);
 
             base.AssertSucceeded(config, test);
         }
-
     }
 }

@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = this.Id.Runtime.GetCurrentOperationGroupId(Id);
                 Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
@@ -51,12 +51,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                Runtime.SendEvent(Id, new E(Id), OperationGroup);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent(Id, new E(Id), OperationGroup);
             }
 
             void CheckEvent()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = this.Id.Runtime.GetCurrentOperationGroupId(Id);
                 Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
             }
         }
@@ -70,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M4));
-                Runtime.GetCurrentOperationGroupId(target);
+                this.Id.Runtime.GetCurrentOperationGroupId(target);
             }
         }
 
@@ -83,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestGetOperationGroupIdNotSet()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M1));
             });
 
@@ -93,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestGetOperationGroupIdSet()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M2));
             });
 
@@ -103,7 +104,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestGetOperationGroupIdOfNotCurrentMachine()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M3));
             });
 

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,8 +39,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M), this.ReceivedEvent);
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M), this.ReceivedEvent);
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
             }
@@ -94,7 +95,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestHandledExceptionOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(true));
             });
@@ -106,7 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(false));
             });
@@ -116,7 +117,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 foreach (var report in bugReports)
                 {
-                    if (!report.StartsWith("Exception 'System.Exception' was thrown in machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()'"))
+                    if (!report.StartsWith("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()' threw exception 'System.Exception' in "))
                     {
                         return false;
                     }
@@ -124,6 +125,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return true;
             }, true);
         }
-
     }
 }

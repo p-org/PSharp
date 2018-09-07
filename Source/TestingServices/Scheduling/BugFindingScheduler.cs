@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -16,12 +17,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// <summary>
     /// Class implementing the basic P# bug-finding scheduler.
     /// </summary>
-    internal sealed class BugFindingScheduler
+    public sealed class BugFindingScheduler
     {
         /// <summary>
         /// The P# testing runtime.
         /// </summary>
-        private TestingRuntime Runtime;
+        private BaseTestingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for bug-finding.
@@ -37,12 +38,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// The scheduler completion source.
         /// </summary>
         private readonly TaskCompletionSource<bool> CompletionSource;
-        
+
         /// <summary>
         /// Checks if the scheduler is running.
         /// </summary>
         private bool IsSchedulerRunning;
-        
+
         /// <summary>
         /// The currently schedulable info.
         /// </summary>
@@ -71,9 +72,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
+        /// <param name="runtime">BaseTestingRuntime</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal BugFindingScheduler(TestingRuntime runtime, ISchedulingStrategy strategy)
+        internal BugFindingScheduler(BaseTestingRuntime runtime, ISchedulingStrategy strategy)
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
@@ -143,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     this.ScheduledMachine.IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
-                
+
                 lock (current)
                 {
                     if (!current.IsEventHandlerRunning)
@@ -195,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
-            
+
             return choice;
         }
 

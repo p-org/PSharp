@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
@@ -17,26 +16,25 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Machine modeling the shared register.
         /// </summary>
-        private readonly MachineId RegisterMachine;
+        MachineId RegisterMachine;
 
         /// <summary>
         /// The testing runtime hosting this shared register.
         /// </summary>
-        private TestingRuntime Runtime;
+        ITestingRuntime Runtime;
 
         /// <summary>
         /// Initializes the shared register.
         /// </summary>
         /// <param name="value">Initial value</param>
-        /// <param name="runtime">this.Runtime</param>
-        public MockSharedRegister(T value, TestingRuntime runtime)
+        /// <param name="runtime">ITestingRuntime</param>
+        public MockSharedRegister(T value, ITestingRuntime runtime)
         {
             this.Runtime = runtime;
             this.RegisterMachine = this.Runtime.CreateMachine(typeof(SharedRegisterMachine<T>));
             this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.SetEvent(value));
         }
-
-
+        
         /// <summary>
         /// Reads and updates the register.
         /// </summary>
@@ -44,7 +42,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>Resulting value of the register</returns>
         public T Update(Func<T, T> func)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+            this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared register.");
             this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.UpdateEvent(func, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
             return e.Value;
@@ -56,7 +55,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>Current value</returns>
         public T GetValue()
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetCurrentMachine() as Machine;
+            this.Runtime.Assert(currentMachine != null, "Only a machine can interact with a shared register.");
             this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.GetEvent(currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
             return e.Value;

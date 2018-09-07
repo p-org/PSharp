@@ -45,7 +45,27 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The P# test runtime factory method.
         /// </summary>
-        internal MethodInfo TestRuntimeFactoryMethod;
+        protected MethodInfo TestRuntimeFactoryMethod;
+
+        /// <summary>
+        /// The P# test runtime get type method.
+        /// </summary>
+        private MethodInfo TestRuntimeGetTypeMethod;
+
+        /// <summary>
+        /// The P# test runtime get known serializable <see cref="IMachineId"/> types method.
+        /// </summary>
+        protected MethodInfo TestRuntimeGetKnownSerializableMachineIdTypesMethod;
+
+        /// <summary>
+        /// The P# test runtime get default in-memory logger method.
+        /// </summary>
+        protected MethodInfo TestRuntimeGetInMemoryLoggerMethod;
+
+        /// <summary>
+        /// The P# test runtime get default disposing logger method.
+        /// </summary>
+        protected MethodInfo TestRuntimeGetDisposingLoggerMethod;
 
         /// <summary>
         /// A P# test method.
@@ -70,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// A P# test action.
         /// </summary>
-        internal Action<PSharpRuntime> TestAction;
+        internal Action<IPSharpRuntime> TestAction;
 
         /// <summary>
         /// Set of callbacks to invoke at the end
@@ -84,7 +104,7 @@ namespace Microsoft.PSharp.TestingServices
         protected IO.ILogger Logger;
 
         /// <summary>
-        /// The bug-finding scheduling strategy.
+        /// The scheduling strategy to be used during testing.
         /// </summary>
         protected ISchedulingStrategy Strategy;
 
@@ -188,12 +208,77 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(ex.Message);
             }
 
+            this.LoadConfigurationFileFromAssembly(configuration.AssemblyToBeAnalyzed);
+            this.LoadTestingRuntimeInfoFromConfiguration(configuration);
+
+            this.FindEntryPoint();
+            this.TestInitMethod = FindTestMethod(typeof(TestInit));
+            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
+            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
+        {
+            this.Initialize(configuration);
+            this.Assembly = assembly;
+            this.LoadTestingRuntimeInfoFromConfiguration(configuration);
+            this.FindEntryPoint();
+            this.TestInitMethod = FindTestMethod(typeof(TestInit));
+            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
+            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="action">Action</param>
+        protected AbstractTestingEngine(Configuration configuration, Action<IPSharpRuntime> action)
+        {
+            this.Initialize(configuration);
+            this.LoadTestingRuntimeInfoFromConfiguration(configuration);
+            this.TestAction = action;
+        }
+
+        /// <summary>
+        /// Loads the testing runtime information (if any) from the specificied configuration.
+        /// </summary>
+        private void LoadTestingRuntimeInfoFromConfiguration(Configuration configuration)
+        {
+            if (configuration.TestingRuntimeAssembly != "")
+            {
+                try
+                {
+                    this.RuntimeAssembly = Assembly.LoadFrom(configuration.TestingRuntimeAssembly);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    Error.ReportAndExit(ex.Message);
+                }
+
+                this.FindRuntimeFactoryMethod();
+                this.FindRuntimeGetTypeMethod();
+                this.FindRuntimeGetKnownSerializableMachineIdTypes();
+                this.FindRuntimeGetInMemoryLoggerMethod();
+                this.FindRuntimeGetDisposingLoggerMethod();
+            }
+        }
+
+        /// <summary>
+        /// Loads the configuration file of the given assembly (if one exists) and absorb its settings.
+        /// </summary>
+        /// <param name="assemblyPath">Path to the assembly.</param>
+        private void LoadConfigurationFileFromAssembly(string assemblyPath)
+        {
 #if NET46 || NET45
-            // Load config file and absorb its settings.
             try
             {
-                var configFile = ConfigurationManager.OpenExeConfiguration(configuration.AssemblyToBeAnalyzed);
-
+                var configFile = ConfigurationManager.OpenExeConfiguration(assemblyPath);
                 var settings = configFile.AppSettings.Settings;
                 foreach (var key in settings.AllKeys)
                 {
@@ -212,55 +297,10 @@ namespace Microsoft.PSharp.TestingServices
                 Error.Report(ex.Message);
             }
 #endif
-
-            if (configuration.TestingRuntimeAssembly != "")
-            {
-                try
-                {
-                    this.RuntimeAssembly = Assembly.LoadFrom(configuration.TestingRuntimeAssembly);
-                }
-                catch (FileNotFoundException ex)
-                {
-                    Error.ReportAndExit(ex.Message);
-                }
-
-                this.FindRuntimeFactoryMethod();
-            }
-
-            this.FindEntryPoint();
-            this.TestInitMethod = FindTestMethod(typeof(TestInit));
-            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
-            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
         }
 
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
-        protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
-        {
-            this.Initialize(configuration);
-            this.Assembly = assembly;
-            this.FindEntryPoint();
-            this.TestInitMethod = FindTestMethod(typeof(TestInit));
-            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
-            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
-        {
-            this.Initialize(configuration);
-            this.TestAction = action;
-        }
-
-        /// <summary>
-        /// Initialized the testing engine.
+        /// Initializes the testing engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         private void Initialize(Configuration configuration)
@@ -440,8 +480,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
             List<MethodInfo> runtimeFactoryMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeCreate), flags, this.RuntimeAssembly);
-            foreach (var x in runtimeFactoryMethods)
-                Console.WriteLine(x.Name);
 
             if (runtimeFactoryMethods.Count == 0)
             {
@@ -454,24 +492,166 @@ namespace Microsoft.PSharp.TestingServices
                     $"'{runtimeFactoryMethods.Count}' factory methods were found instead.");
             }
 
-            if (runtimeFactoryMethods[0].ReturnType != typeof(TestingRuntime) ||
+            if (runtimeFactoryMethods[0].ReturnType != typeof(ITestingRuntime) ||
                 runtimeFactoryMethods[0].ContainsGenericParameters ||
                 runtimeFactoryMethods[0].IsAbstract || runtimeFactoryMethods[0].IsVirtual ||
                 runtimeFactoryMethods[0].IsConstructor ||
                 runtimeFactoryMethods[0].IsPublic || !runtimeFactoryMethods[0].IsStatic ||
                 runtimeFactoryMethods[0].GetParameters().Length != 3 ||
-                runtimeFactoryMethods[0].GetParameters()[0].ParameterType != typeof(Configuration) ||
-                runtimeFactoryMethods[0].GetParameters()[1].ParameterType != typeof(ISchedulingStrategy) ||
-                runtimeFactoryMethods[0].GetParameters()[2].ParameterType != typeof(IRegisterRuntimeOperation))
+                runtimeFactoryMethods[0].GetParameters()[0].ParameterType != typeof(ISchedulingStrategy) ||
+                runtimeFactoryMethods[0].GetParameters()[1].ParameterType != typeof(IRegisterRuntimeOperation) ||
+                runtimeFactoryMethods[0].GetParameters()[2].ParameterType != typeof(Configuration))
             {
-                Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
+                Error.ReportAndExit("Incorrect testing runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static TestingRuntime " +
-                    $"{runtimeFactoryMethods[0].Name}(Configuration configuration, ISchedulingStrategy strategy, " +
-                    "IRegisterRuntimeOperation reporter) {{ ... }}");
+                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static ITestingRuntime " +
+                    $"{runtimeFactoryMethods[0].Name}(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, " +
+                    "Configuration configuration) {{ ... }}");
             }
 
             this.TestRuntimeFactoryMethod = runtimeFactoryMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the testing runtime type, if one is provided.
+        /// </summary>
+        private void FindRuntimeGetTypeMethod()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetTypeMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetType), flags, this.RuntimeAssembly);
+
+            if (runtimeGetTypeMethods.Count == 0)
+            {
+                Error.ReportAndExit($"Failed to find a testing runtime get type method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetTypeMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get type method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetType).FullName}'. " +
+                    $"'{runtimeGetTypeMethods.Count}' get type methods were found instead.");
+            }
+
+            if (runtimeGetTypeMethods[0].ReturnType != typeof(Type) ||
+                runtimeGetTypeMethods[0].ContainsGenericParameters ||
+                runtimeGetTypeMethods[0].IsAbstract || runtimeGetTypeMethods[0].IsVirtual ||
+                runtimeGetTypeMethods[0].IsConstructor ||
+                runtimeGetTypeMethods[0].IsPublic || !runtimeGetTypeMethods[0].IsStatic ||
+                runtimeGetTypeMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect testing runtime get type method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetType).FullName}] internal static Type " +
+                    $"{runtimeGetTypeMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetTypeMethod = runtimeGetTypeMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the known <see cref="IMachineId"/> serializable types, if they are provided.
+        /// </summary>
+        private void FindRuntimeGetKnownSerializableMachineIdTypes()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetIdTypesMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetKnownSerializableMachineIdTypes),
+                flags, this.RuntimeAssembly);
+
+            if (runtimeGetIdTypesMethods.Count == 0)
+            {
+                Error.ReportAndExit("Failed to find a testing runtime get known serializable machine id types " +
+                    $"method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetIdTypesMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get known serializable machine id types method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).FullName}'. " +
+                    $"'{runtimeGetIdTypesMethods.Count}' get in-memory logger methods were found instead.");
+            }
+
+            if (!typeof(IEnumerable<Type>).IsAssignableFrom(runtimeGetIdTypesMethods[0].ReturnType) ||
+                runtimeGetIdTypesMethods[0].ContainsGenericParameters ||
+                runtimeGetIdTypesMethods[0].IsAbstract || runtimeGetIdTypesMethods[0].IsVirtual ||
+                runtimeGetIdTypesMethods[0].IsConstructor ||
+                runtimeGetIdTypesMethods[0].IsPublic || !runtimeGetIdTypesMethods[0].IsStatic ||
+                runtimeGetIdTypesMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect testing runtime get known serializable machine id types method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).FullName}] internal static IEnumerable<Type> " +
+                    $"{runtimeGetIdTypesMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetKnownSerializableMachineIdTypesMethod = runtimeGetIdTypesMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the default testing runtime in-memory logger, if one is provided.
+        /// </summary>
+        private void FindRuntimeGetInMemoryLoggerMethod()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetLoggerMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetInMemoryLogger), flags, this.RuntimeAssembly);
+
+            if (runtimeGetLoggerMethods.Count == 0)
+            {
+                Error.ReportAndExit($"Failed to find a testing runtime get in-memory logger method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetLoggerMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get in-memory logger method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetInMemoryLogger).FullName}'. " +
+                    $"'{runtimeGetLoggerMethods.Count}' get in-memory logger methods were found instead.");
+            }
+
+            if (!typeof(IO.ILogger).IsAssignableFrom(runtimeGetLoggerMethods[0].ReturnType) ||
+                runtimeGetLoggerMethods[0].ContainsGenericParameters ||
+                runtimeGetLoggerMethods[0].IsAbstract || runtimeGetLoggerMethods[0].IsVirtual ||
+                runtimeGetLoggerMethods[0].IsConstructor ||
+                runtimeGetLoggerMethods[0].IsPublic || !runtimeGetLoggerMethods[0].IsStatic ||
+                runtimeGetLoggerMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect testing runtime get in-memory logger method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetInMemoryLogger).FullName}] internal static ILogger " +
+                    $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetInMemoryLoggerMethod = runtimeGetLoggerMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the default testing runtime disposing logger, if one is provided.
+        /// </summary>
+        private void FindRuntimeGetDisposingLoggerMethod()
+        {
+            BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
+            List<MethodInfo> runtimeGetLoggerMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeGetDisposingLogger), flags, this.RuntimeAssembly);
+
+            if (runtimeGetLoggerMethods.Count == 0)
+            {
+                Error.ReportAndExit($"Failed to find a testing runtime get disposing logger method in the '{this.RuntimeAssembly.FullName}' assembly.");
+            }
+            else if (runtimeGetLoggerMethods.Count > 1)
+            {
+                Error.ReportAndExit("Only one testing runtime get disposing logger method can be declared with " +
+                    $"the attribute '{typeof(TestRuntimeGetDisposingLogger).FullName}'. " +
+                    $"'{runtimeGetLoggerMethods.Count}' get disposing logger methods were found instead.");
+            }
+
+            if (!typeof(IO.ILogger).IsAssignableFrom(runtimeGetLoggerMethods[0].ReturnType) ||
+                runtimeGetLoggerMethods[0].ContainsGenericParameters ||
+                runtimeGetLoggerMethods[0].IsAbstract || runtimeGetLoggerMethods[0].IsVirtual ||
+                runtimeGetLoggerMethods[0].IsConstructor ||
+                runtimeGetLoggerMethods[0].IsPublic || !runtimeGetLoggerMethods[0].IsStatic ||
+                runtimeGetLoggerMethods[0].GetParameters().Length != 0)
+            {
+                Error.ReportAndExit("Incorrect testing runtime get disposing logger method declaration. Please " +
+                    "declare the method as follows:\n" +
+                    $"  [{typeof(TestRuntimeGetDisposingLogger).FullName}] internal static ILogger " +
+                    $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
+            }
+
+            this.TestRuntimeGetDisposingLoggerMethod = runtimeGetLoggerMethods[0];
         }
 
         /// <summary>
@@ -523,20 +703,29 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(msg);
             }
 
-            var testMethod = filteredTestMethods[0];
+            Type runtimeType;
+            if (this.TestRuntimeGetTypeMethod != null)
+            {
+                runtimeType = (Type)this.TestRuntimeGetTypeMethod.Invoke(null, new object[] { });
+            }
+            else
+            {
+                runtimeType = typeof(IPSharpRuntime);
+            }
 
+            var testMethod = filteredTestMethods[0];
             if (testMethod.ReturnType != typeof(void) ||
                 testMethod.ContainsGenericParameters ||
                 testMethod.IsAbstract || testMethod.IsVirtual ||
                 testMethod.IsConstructor ||
                 !testMethod.IsPublic || !testMethod.IsStatic ||
                 testMethod.GetParameters().Length != 1 ||
-                testMethod.GetParameters()[0].ParameterType != typeof(PSharpRuntime))
+                testMethod.GetParameters()[0].ParameterType != runtimeType)
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(Test).FullName}] public static void " +
-                    $"{testMethod.Name}(PSharpRuntime runtime) {{ ... }}");
+                    $"{testMethod.Name}({runtimeType.FullName} runtime) {{ ... }}");
             }
 
             this.TestMethod = testMethod;

@@ -8,6 +8,9 @@ using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Xunit;
 using Xunit.Abstractions;
 
+using Xunit;
+using Xunit.Abstractions;
+
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class OperationGroupingTest : BaseTest
@@ -72,7 +75,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                Runtime.SendEvent(Id, new E(), OperationGroup1);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent(Id, new E(), OperationGroup1);
             }
 
             void CheckEvent()
@@ -142,7 +146,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M6S));
-                Runtime.SendEvent(target, new E(), OperationGroup1);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent(target, new E(), OperationGroup1);
             }
         }
 
@@ -169,7 +174,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8));
-                Runtime.SendEvent(target, new E(Id), OperationGroup1);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
@@ -203,7 +209,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8S));
-                Runtime.SendEvent(target, new E(Id), OperationGroup1);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
@@ -223,7 +230,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
                 Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -237,7 +245,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M10S));
-                Runtime.SendEvent(target, new E(Id), OperationGroup1);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
             void CheckEvent()
@@ -258,7 +267,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 var target = CreateMachine(typeof(M11S));
                 var id = (Info as ISchedulable).NextOperationGroupId;
                 Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                Runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
+                var runtime = this.Id.Runtime;
+                runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -278,7 +288,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingSingleMachineNoSend()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M1));
             });
 
@@ -288,7 +298,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingSingleMachineSend()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M2));
             });
 
@@ -298,7 +308,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingSingleMachineSendStarter()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M2S));
             });
 
@@ -308,7 +318,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesCreate()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M3));
             });
 
@@ -318,7 +328,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSend()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M5));
             });
 
@@ -328,7 +338,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSendStarter()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M5S));
             });
 
@@ -338,7 +348,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSendBack()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M7));
             });
 
@@ -348,7 +358,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSendBackStarter()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M7S));
             });
 
@@ -358,7 +368,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(M9S));
             });
 

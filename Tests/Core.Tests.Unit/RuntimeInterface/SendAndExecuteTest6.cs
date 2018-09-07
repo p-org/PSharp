@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,14 +7,17 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class SendAndExecuteTest6 
+    public class SendAndExecuteTest6 : BaseTest
     {
-        class E : Event
-        {
-        }
+        public SendAndExecuteTest6(ITestOutputHelper output)
+            : base(output)
+        { }
+
+        class E : Event { }
 
         class Config : Event
         {
@@ -27,7 +30,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.tcs = tcs;
             }
         }
-    
+
         class Harness : Machine
         {
             [Start]
@@ -37,8 +40,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config).tcs;
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M), this.ReceivedEvent);
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M), this.ReceivedEvent);
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
             }
@@ -80,7 +84,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestHandledExceptionOnSendExec()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
@@ -97,7 +103,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             var message = string.Empty;
@@ -115,8 +123,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             tcs.Task.Wait();
 
             Assert.True(failed);
-            Assert.StartsWith("Exception of type 'System.Exception' was thrown", message);
+            Assert.Contains("Exception of type 'System.Exception' was thrown.", message);
         }
-
     }
 }

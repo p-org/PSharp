@@ -3,15 +3,19 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class SendAndExecuteTest5 
+    public class SendAndExecuteTest5 : BaseTest
     {
+        public SendAndExecuteTest5(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Conf : Event
         {
             public TaskCompletionSource<bool> tcs;
@@ -35,8 +39,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
@@ -54,9 +59,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Monitor<SafetyMonitor>(new M_Halts());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -94,10 +104,11 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestMachineHaltsOnSendExec()
         {
-            var config = Configuration.Create();
-            config.EnableMonitorsInProduction = true;
+            var configuration = Configuration.Create();
+            configuration.EnableMonitorsInProduction = true;
 
-            var runtime = PSharpRuntime.Create(config);
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
@@ -111,6 +122,5 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             Assert.False(failed);
         }
-
     }
 }

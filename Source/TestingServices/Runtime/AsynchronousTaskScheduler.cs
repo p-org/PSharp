@@ -9,7 +9,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Scheduling;
+
+namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
     /// The P# asynchronous task scheduler.
@@ -19,19 +22,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The P# testing runtime.
         /// </summary>
-        private TestingRuntime Runtime;
+        private BaseTestingRuntime Runtime;
 
         /// <summary>
-        /// Map from task ids to machines.
+        /// Map from task ids to machine data.
         /// </summary>
-        private ConcurrentDictionary<int, Machine> TaskMap;
+        private readonly ConcurrentDictionary<int, (IMachineId mid, SchedulableInfo info)> TaskMap;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">PSharpBugFindingRuntime</param>
-        /// <param name="taskMap">Task map</param>
-        internal AsynchronousTaskScheduler(TestingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        /// <param name="runtime">The P# testing runtime.</param>
+        /// <param name="taskMap">Map from task ids to machine data.</param>
+        internal AsynchronousTaskScheduler(BaseTestingRuntime runtime, ConcurrentDictionary<int, (IMachineId, SchedulableInfo)> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;
@@ -56,14 +59,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 // this case, get the currently scheduled machine (this was the machine
                 // that spawned this task).
                 int prevTaskId = Runtime.Scheduler.ScheduledMachine.TaskId;
-                Machine machine = this.TaskMap[prevTaskId];
 
-                this.TaskMap.TryRemove(prevTaskId, out machine);
-                this.TaskMap.TryAdd(task.Id, machine);
+                this.TaskMap.TryRemove(prevTaskId, out (IMachineId id, SchedulableInfo info) machineData);
+                this.TaskMap.TryAdd(task.Id, machineData);
 
                 // Change the task previously associated with the machine to the new task.
-                (machine.Info as SchedulableInfo).TaskId = task.Id;
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId}' to '{task.Id}'.");
+                (machineData.info as SchedulableInfo).TaskId = task.Id;
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machineData.id}' changed task '{prevTaskId}' to '{task.Id}'.");
 
                 // Execute the new task.
                 this.Execute(task);

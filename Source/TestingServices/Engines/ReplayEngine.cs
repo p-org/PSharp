@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.Utilities;
 
@@ -54,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>ReplayEngine</returns>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static ReplayEngine Create(Configuration configuration, Action<IPSharpRuntime> action)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration, action);
@@ -67,7 +68,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="action">Action</param>
         /// <param name="trace">Reproducable trace</param>
         /// <returns>ReplayEngine</returns>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action, string trace)
+        public static ReplayEngine Create(Configuration configuration, Action<IPSharpRuntime> action, string trace)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             configuration.ScheduleTrace = trace;
@@ -128,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        private ReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
+        private ReplayEngine(Configuration configuration, Action<IPSharpRuntime> action)
             : base(configuration, action)
         {
 
@@ -143,11 +144,11 @@ namespace Microsoft.PSharp.TestingServices
             Task task = new Task(() =>
             {
                 // Runtime used to serialize and test the program.
-                TestingRuntime runtime = null;
+                ITestingRuntime runtime = null;
 
                 // Logger used to intercept the program output if no custom logger
                 // is installed and if verbosity is turned off.
-                InMemoryLogger runtimeLogger = null;
+                ILogger runtimeLogger = null;
 
                 // Gets a handle to the standard output and error streams.
                 var stdOut = Console.Out;
@@ -164,29 +165,53 @@ namespace Microsoft.PSharp.TestingServices
                     // Creates a new instance of the bug-finding runtime.
                     if (base.TestRuntimeFactoryMethod != null)
                     {
-                        runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
-                            new object[] { base.Configuration, base.Strategy, base.Reporter });
+                        runtime = (ITestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                            new object[] { base.Strategy, base.Reporter, base.Configuration });
                     }
                     else
                     {
-                        runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                        runtime = TestingRuntime.Create(base.Strategy, base.Reporter, base.Configuration);
                     }
-
 
                     // If verbosity is turned off, then intercept the program log, and also redirect
                     // the standard output and error streams into the runtime logger.
                     if (base.Configuration.Verbose < 2)
                     {
-                        runtimeLogger = new InMemoryLogger();
+                        if (base.TestRuntimeGetInMemoryLoggerMethod != null)
+                        {
+                            runtimeLogger = (ILogger)base.TestRuntimeGetInMemoryLoggerMethod.Invoke(null, new object[] { });
+                        }
+                        else
+                        {
+                            runtimeLogger = new InMemoryLogger();
+                        }
+
                         runtime.SetLogger(runtimeLogger);
 
-                        var writer = new LogWriter(new DisposingLogger());
+                        ILogger disposingLogger = null;
+                        if (base.TestRuntimeGetDisposingLoggerMethod != null)
+                        {
+                            disposingLogger = (ILogger)base.TestRuntimeGetDisposingLoggerMethod.Invoke(null, new object[] { });
+                        }
+                        else
+                        {
+                            disposingLogger = new DisposingLogger();
+                        }
+
+                        var writer = new LogWriter(disposingLogger);
                         Console.SetOut(writer);
                         Console.SetError(writer);
                     }
 
                     // Runs the test inside the P# test-harness machine.
-                    runtime.RunTestHarness(base.TestMethod, base.TestAction);
+                    if (base.TestMethod != null)
+                    {
+                        runtime.RunTestHarness(base.TestMethod);
+                    }
+                    else if (base.TestAction != null)
+                    {
+                        runtime.RunTestHarness(base.TestAction);
+                    }
 
                     // Wait for the test to terminate.
                     runtime.Wait();

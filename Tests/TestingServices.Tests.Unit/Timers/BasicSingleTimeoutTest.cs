@@ -7,6 +7,8 @@ using System;
 using Microsoft.PSharp.Timers;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
@@ -48,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(1000);
             config.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(T1));
             });
 

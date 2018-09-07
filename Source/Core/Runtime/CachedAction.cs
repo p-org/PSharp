@@ -12,12 +12,12 @@ namespace Microsoft.PSharp.Runtime
     internal class CachedAction
     {
         internal readonly MethodInfo MethodInfo;
-        private Action Action;
-        private Func<Task> TaskFunc;
+        private readonly Action Action;
+        private readonly Func<Task> TaskFunc;
 
         internal bool IsAsync => this.TaskFunc != null;
 
-        internal CachedAction(MethodInfo methodInfo, Machine machine)
+        internal CachedAction(MethodInfo methodInfo, BaseMachine machine)
         {
             this.MethodInfo = methodInfo;
 

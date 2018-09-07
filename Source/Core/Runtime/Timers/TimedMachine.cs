@@ -31,10 +31,11 @@ namespace Microsoft.PSharp.Timers
             // The specified period must be valid
             this.Assert(period >= 0, "Timer period must be non-negative");
 
-            var mid = this.Runtime.CreateMachineId(this.Runtime.GetTimerMachineType());
+            var mid = this.RuntimeManager.CreateMachineId(this.RuntimeManager.GetTimerMachineType());
             var tid = new TimerId(mid, payload);
 
-            this.Runtime.CreateMachine(mid, this.Runtime.GetTimerMachineType(), new InitTimer(this.Id, tid, IsPeriodic, period));
+            this.RuntimeManager.CreateMachineAsync(mid, this.RuntimeManager.GetTimerMachineType(), null,
+                new InitTimer(this.Id, tid, IsPeriodic, period), null, this.Id, this.Info, this.CurrentStateName).Wait();
 
             timers.Add(tid);
             return tid;
@@ -51,7 +52,7 @@ namespace Microsoft.PSharp.Timers
             this.Assert(timers.Contains(timer), "Illegal timer-id given to StopTimer");
             timers.Remove(timer);
 
-            this.Send(timer.mid, new HaltTimerEvent(this.Id, flush));
+            this.SendAsync(timer.mid, new HaltTimerEvent(this.Id, flush)).Wait();
 
             // Flush the buffer: the timer being stopped sends a markup event to the inbox of this machine.
             // Keep dequeuing eTimeout events (with payload being the timer being stopped), until we see the markup event.

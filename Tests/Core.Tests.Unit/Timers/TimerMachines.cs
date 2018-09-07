@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
             else
             {
-                // Start a one-off timer 
+                // Start a one-off timer.
                 tid = StartTimer(payload, 10, false);
             }
         }
@@ -115,6 +115,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             }
         }
     }
+
     class FlushingClient : TimedMachine
     {
         /// <summary>
@@ -222,8 +223,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             TimerId tid = (this.ReceivedEvent as TransferTimerAndTCS).tid;
             TaskCompletionSource<bool> tcs = (this.ReceivedEvent as TransferTimerAndTCS).TCS;
 
-            // trying to stop a timer created by a different machine. 
-            // should throw an assertion violation
+            // Trying to stop a timer created by a different machine.
+            // This should throw an assertion violation.
             try
             {
                 await this.StopTimer(tid, true);

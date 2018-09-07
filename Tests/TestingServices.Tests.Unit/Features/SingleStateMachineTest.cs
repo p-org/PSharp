@@ -51,10 +51,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return Task.CompletedTask;
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
                 count++;
-                this.Runtime.SendEvent(sender, new E(count, this.Id));
+                await this.SendAsync(sender, new E(count, this.Id));
             }
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSingleStateMachine()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Harness));
             });
             var configuration = Configuration.Create();
@@ -85,6 +85,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             AssertSucceeded(configuration, test);
         }
-
     }
 }

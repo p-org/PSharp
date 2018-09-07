@@ -83,9 +83,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal SchedulableInfo(MachineId mid)
-            : base(mid)
+        /// <param name="mid">The machine id.</param>
+        /// <param name="type">The machine type.</param>
+        internal SchedulableInfo(IMachineId mid, Type type)
+            : base(mid, type)
         {
             IsEnabled = false;
             IsActive = false;

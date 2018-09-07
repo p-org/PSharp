@@ -7,11 +7,16 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class SendAndExecuteTest7 
+    public class SendAndExecuteTest7 : BaseTest
     {
+        public SendAndExecuteTest7(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
         }
@@ -37,8 +42,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config).tcs;
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
             }
@@ -55,7 +61,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestUnhandledEventOnSendExec()
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             var message = string.Empty;
@@ -76,6 +84,5 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             Assert.Equal("Machine 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+M(1)' received event 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.",
                 message);
         }
-
     }
 }

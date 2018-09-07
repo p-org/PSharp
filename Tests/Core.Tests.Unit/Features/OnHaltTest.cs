@@ -5,12 +5,18 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class OnHaltTest
+    public class OnHaltTest : BaseTest
     {
+        public OnHaltTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
             public MachineId Id;
@@ -39,9 +45,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Assert(false);
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -56,9 +67,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
-                this.Receive(typeof(Event)).Wait();
+                await this.Receive(typeof(Event));
             }
         }
 
@@ -73,9 +84,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Raise(new E());
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -90,9 +106,14 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override Task OnHaltAsync()
             {
                 this.Goto<Init>();
+#if NET45
+                return Task.FromResult(0);
+#else
+                return Task.CompletedTask;
+#endif
             }
         }
 
@@ -122,13 +143,13 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 this.Raise(new Halt());
             }
 
-            protected override void OnHalt()
+            protected override async Task OnHaltAsync()
             {
                 // no-ops but no failure
-                this.Send(this.Id, new E());
+                await this.SendAsync(this.Id, new E());
                 this.Random();
                 this.Assert(true);
-                this.CreateMachine(typeof(Dummy));
+                await this.CreateMachineAsync(typeof(Dummy));
 
                 tcs.TrySetResult(true);
             }
@@ -136,7 +157,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
         private void AssertSucceeded(Type machine)
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate
@@ -153,7 +176,9 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
         private void AssertFailed(Type machine)
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

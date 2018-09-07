@@ -39,10 +39,6 @@ namespace PingPong.CustomLogging
             // Executes the P# program.
             Program.Execute(runtime);
 
-            // Disposes the logger and removes it from the runtime.
-            myLogger.Dispose();
-            runtime.RemoveLogger();
-
             // The P# runtime executes asynchronously, so we wait
             // to not terminate the process.
             Console.WriteLine("Press Enter to terminate...");
@@ -55,7 +51,7 @@ namespace PingPong.CustomLogging
         /// </summary>
         /// <param name="runtime"></param>
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IPSharpRuntime runtime)
         {
             // Assigns a user-defined name to this network environment machine.
             runtime.CreateMachine(typeof(NetworkEnvironment), "TheUltimateNetworkEnvironmentMachine");
@@ -65,7 +61,7 @@ namespace PingPong.CustomLogging
     /// <summary>
     /// Custom logger that just dumps to console.
     /// </summary>
-    class MyLogger : StateMachineLogger
+    class MyLogger : MachineLogger
     {
         /// <summary>
         /// Writes the specified string value.

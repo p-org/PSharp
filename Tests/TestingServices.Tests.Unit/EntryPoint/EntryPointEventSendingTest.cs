@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointEventSending()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 MachineId m = r.CreateMachine(typeof(M));
                 r.SendEvent(m, new Transfer(0));
             });

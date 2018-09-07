@@ -28,8 +28,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E());
+                var runtime = this.Id.Runtime;
+                var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
+                var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);
             }
 
@@ -45,12 +46,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestUnhandledEventOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(Harness));
             });
 
             base.AssertFailed(test, "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+M()' received event 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.", true);
         }
-
     }
 }

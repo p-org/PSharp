@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            [OnEventGotoState(typeof(Unit), typeof(WaitForUser))]
+            [OnEventGotoState(typeof(Unit), typeof(WaitingForUser))]
             class Init : MachineState { }
 
             void InitOnEntry()
@@ -35,8 +35,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(WaitForUserOnEntry))]
-            [OnEventGotoState(typeof(UserEvent), typeof(HandleEvent))]
-            class WaitForUser : MachineState { }
+            [OnEventGotoState(typeof(UserEvent), typeof(HandlingEvent))]
+            class WaitingForUser : MachineState { }
 
             void WaitForUserOnEntry()
             {
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
 
             [OnEntry(nameof(HandleEventOnEntry))]
-            class HandleEvent : MachineState { }
+            class HandlingEvent : MachineState { }
 
             void HandleEventOnEntry()
             {
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.LivenessTemperatureThreshold = 200;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(EventHandler));
             });

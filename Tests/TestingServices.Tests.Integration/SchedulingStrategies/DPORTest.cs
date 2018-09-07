@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestDPOR1Reduces()
         {
-            var test = new Action<PSharpRuntime>(r =>
+            var test = new Action<IPSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestDPOR2NonDet()
         {
-            var test = new Action<PSharpRuntime>(r =>
+            var test = new Action<IPSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter, false, true));
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestDPOR3CreatingMany()
         {
-            var test = new Action<PSharpRuntime>(r =>
+            var test = new Action<IPSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 r.CreateMachine(typeof(LevelOne),
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestDPOR4UseReceive()
         {
-            var test = new Action<PSharpRuntime>(r =>
+            var test = new Action<IPSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(ReceiveWaiter));
 

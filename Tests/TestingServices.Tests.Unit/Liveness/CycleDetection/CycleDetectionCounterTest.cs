@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(true, false));
             });
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.EnableUserDefinedStateHashing = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(false, false));
             });
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.EnableUserDefinedStateHashing = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(true, true));
             });

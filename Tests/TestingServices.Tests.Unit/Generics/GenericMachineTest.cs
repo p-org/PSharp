@@ -46,14 +46,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestGenericMachine1()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M<int>)); });
+            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(M<int>)); });
             base.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestGenericMachine2()
         {
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
+            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
             base.AssertSucceeded(test);
         }
     }

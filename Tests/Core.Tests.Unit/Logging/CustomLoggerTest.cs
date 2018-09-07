@@ -10,13 +10,19 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class CustomLoggerTest
+    public class CustomLoggerTest : BaseTest
     {
+        public CustomLoggerTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class CustomLogger : MachineLogger
         {
             private StringBuilder StringBuilder;
@@ -121,8 +127,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             CustomLogger logger = new CustomLogger();
 
-            Configuration config = Configuration.Create().WithVerbosityEnabled(2);
-            PSharpRuntime runtime = PSharpRuntime.Create(config);
+            Configuration configuration = Configuration.Create().WithVerbosityEnabled(2);
+            var runtime = new ProductionRuntime(configuration);
             runtime.SetLogger(logger);
 
             var tcs = new TaskCompletionSource<bool>();
@@ -158,7 +164,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         {
             CustomLogger logger = new CustomLogger();
 
-            PSharpRuntime runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             runtime.SetLogger(logger);
 
             var tcs = new TaskCompletionSource<bool>();
@@ -173,7 +180,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         [Fact]
         public void TestNullCustomLoggerFail()
         {
-            PSharpRuntime runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
 
             InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => runtime.SetLogger(null));
             Assert.Equal("Cannot install a null logger.", ex.Message);

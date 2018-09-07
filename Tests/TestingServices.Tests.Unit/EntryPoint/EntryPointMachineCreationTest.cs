@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointMachineCreation()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 MachineId m = r.CreateMachine(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));
                 r.Assert(m != null && m != null, "Machine ids are null.");

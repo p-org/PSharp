@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,10 +15,10 @@ namespace Microsoft.PSharp.Core.Tests.Performance
     {
         public partial class SimpleMachine
         {
-            private PSharpRuntime instance;
-            
+            private IPSharpRuntime Runtime;
+
             public SimpleMachine()
-            {                
+            {
                 this.Counter = 0;
             }
 
@@ -28,25 +28,21 @@ namespace Microsoft.PSharp.Core.Tests.Performance
                 Task.Factory.StartNew(async () =>
                 {
                     await Task.Delay(0);
-                    this.instance.SendEvent(this.Id, new Timeout());
+                    this.Runtime.SendEvent(this.Id, new Timeout());
                 });
             }
 
-            public void PersistInline()
-            {
-
-            }
+            public void PersistInline() { }
         }
-
 
         public class SetContextMessage : Event
         {
-            public PSharpRuntime runtime;
+            public IPSharpRuntime Runtime;
 
-            public SetContextMessage(PSharpRuntime runtime)
+            public SetContextMessage(IPSharpRuntime runtime)
                 : base()
             {
-                this.runtime = runtime;
+                this.Runtime = runtime;
             }
         }
 
@@ -56,8 +52,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             {
                 public Timeout()
                     : base()
-                {
-                }
+                { }
             }
 
             //ISimpleMachineContext context;
@@ -66,26 +61,20 @@ namespace Microsoft.PSharp.Core.Tests.Performance
 
             [Microsoft.PSharp.Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Unknown : MachineState
-            {
-            }
+            class Unknown : MachineState { }
 
             [OnEntry("psharp_SimpleThinking_on_entry_action")]
             [OnEventDoAction(typeof(SimpleMachine.Timeout), "IncrementCounter")]
-            class SimpleThinking : MachineState
-            {
-            }
+            class SimpleThinking : MachineState { }
 
             [OnEntry("psharp_AdvancedThinking_on_entry_action")]
             [OnEventDoAction(typeof(SimpleMachine.Timeout), "IncrementCounter")]
-            class AdvancedThinking : MachineState
-            {
-            }
+            class AdvancedThinking : MachineState { }
 
             void InitOnEntry()
             {
                 this.Counter = 0;
-                this.instance = (this.ReceivedEvent as SetContextMessage).runtime;
+                this.Runtime = (this.ReceivedEvent as SetContextMessage).Runtime;
                 this.SendMessageToPSharp();
                 this.Goto<SimpleThinking>();
             }
@@ -136,7 +125,7 @@ namespace Microsoft.PSharp.Core.Tests.Performance
         public void RunWithLogger()
         {
             var configuration = PSharp.Configuration.Create().WithVerbosityEnabled(0);
-            var runtime = new ProductionRuntime(configuration);            
+            var runtime = new ProductionRuntime(configuration);
             ConcurrentQueue<MachineId> machines = new ConcurrentQueue<MachineId>();
             Parallel.For(0, Clients, index =>
             {
@@ -147,6 +136,6 @@ namespace Microsoft.PSharp.Core.Tests.Performance
             {
                 runtime.SendEvent(machine, new Halt());
             }
-        }        
+        }
     }
 }

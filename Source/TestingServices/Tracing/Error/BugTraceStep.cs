@@ -6,6 +6,8 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 
+using Microsoft.PSharp.Runtime;
+
 namespace Microsoft.PSharp.TestingServices.Tracing.Error
 {
     /// <summary>
@@ -29,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// The machine initiating the action.
         /// </summary>
         [DataMember]
-        internal MachineId Machine;
+        internal IMachineId Machine;
 
         /// <summary>
         /// The machine state.
@@ -53,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// The target machine.
         /// </summary>
         [DataMember]
-        internal MachineId TargetMachine;
+        internal IMachineId TargetMachine;
 
         /// <summary>
         /// The taken nondeterministic boolean choice.
@@ -89,17 +91,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="type">BugTraceStepType</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="machineState">MachineState</param>
-        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="mid">The id of the machine.</param>
+        /// <param name="machineStateName">The name of the machine state.</param>
+        /// <param name="eventInfo">The event metadata.</param>
         /// <param name="action">MethodInfo</param>
         /// <param name="targetMachine">Target machine</param>
         /// <param name="boolChoice">Boolean choice</param>
         /// <param name="intChoice">Integer choice</param>
         /// <param name="extraInfo">Extra info</param>
         /// <returns>BugTraceStep</returns>
-        internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
-            string machineState, EventInfo eventInfo, MethodInfo action, MachineId targetMachine,
+        internal static BugTraceStep Create(int index, BugTraceStepType type, IMachineId mid,
+            string machineStateName, EventInfo eventInfo, MethodInfo action, IMachineId targetMachine,
             bool? boolChoice, int? intChoice, string extraInfo)
         {
             var traceStep = new BugTraceStep();
@@ -107,8 +109,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             traceStep.Index = index;
             traceStep.Type = type;
 
-            traceStep.Machine = machine;
-            traceStep.MachineState = machineState;
+            traceStep.Machine = mid;
+            traceStep.MachineState = machineStateName;
 
             traceStep.EventInfo = eventInfo;
 

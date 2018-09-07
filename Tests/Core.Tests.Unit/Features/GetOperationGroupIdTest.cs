@@ -5,12 +5,18 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class GetOperationGroupIdTest 
+    public class GetOperationGroupIdTest : BaseTest
     {
+        public GetOperationGroupIdTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         static Guid OperationGroup = Guid.NewGuid();
 
         class E : Event
@@ -33,7 +39,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = this.Id.Runtime.GetCurrentOperationGroupId(this.Id);
                 Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
@@ -47,19 +53,21 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                Runtime.SendEvent(Id, new E(Id), OperationGroup);
+                this.Id.Runtime.SendEvent(this.Id, new E(Id), OperationGroup);
             }
 
             void CheckEvent()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
+                var id = this.Id.Runtime.GetCurrentOperationGroupId(Id);
                 Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
             }
         }
 
         private void AssertSucceeded(Type machine)
         {
-            var runtime = PSharpRuntime.Create();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.SetLogger(new TestOutputLogger(this.TestOutput));
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
             runtime.OnFailure += delegate

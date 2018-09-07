@@ -47,16 +47,18 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var e = (this.ReceivedEvent as Configure);
-                MachineId b;
 
+                MachineId b;
                 if (e.ExecuteSynchronously)
                 {
-                     b = await this.Runtime.CreateMachineAndExecute(typeof(B));
+                    var runtime = this.Id.Runtime;
+                    b = await runtime.CreateMachineAndExecuteAsync(typeof(B));
                 }
                 else
                 {
-                    b = this.Runtime.CreateMachine(typeof(B));
+                    b = this.CreateMachine(typeof(B));
                 }
+
                 this.Send(b, new E1());
             }
         }
@@ -77,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSendAndExecuteNoDeadlockWithReceive()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(A), new Configure(false));
             });
 
@@ -88,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestSendAndExecuteDeadlockWithReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(10);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.CreateMachine(typeof(A), new Configure(true));
             });
 

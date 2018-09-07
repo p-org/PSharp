@@ -8,33 +8,76 @@ using System.Reflection;
 
 using Microsoft.PSharp.Runtime;
 
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
     /// The P# test harness machine. This is the root machine
     /// that executes a test method during testing.
     /// </summary>
-    internal sealed class TestHarnessMachine : BaseMachine
+    internal sealed class TestHarnessMachine
     {
+        /// <summary>
+        /// The runtime manager that executes this machine.
+        /// </summary>
+        private IRuntimeMachineManager RuntimeManager;
+
+        /// <summary>
+        /// The runtime that executes the test.
+        /// </summary>
+        private IPSharpRuntime Runtime;
+
+        /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        private MachineId Id;
+
         /// <summary>
         /// The test method.
         /// </summary>
-        private MethodInfo TestMethod;
+        private readonly MethodInfo TestMethod;
 
         /// <summary>
         /// The test action.
         /// </summary>
-        private Action<PSharpRuntime> TestAction;
+        private readonly Action<IPSharpRuntime> TestAction;
+
+        /// <summary>
+        /// Stores machine-related information, which can used
+        /// for scheduling and testing.
+        /// </summary>
+        internal MachineInfo Info { get; private set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="testMethod">MethodInfo</param>
-        /// <param name="testAction">Action</param>
-        internal TestHarnessMachine(MethodInfo testMethod, Action<PSharpRuntime> testAction)
+        internal TestHarnessMachine(MethodInfo testMethod)
         {
             this.TestMethod = testMethod;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="testAction">Action</param>
+        internal TestHarnessMachine(Action<IPSharpRuntime> testAction)
+        {
             this.TestAction = testAction;
+        }
+
+        /// <summary>
+        /// Initializes this machine.
+        /// </summary>
+        /// <param name="runtimeManager">The runtime machine manager.</param>
+        /// <param name="runtime">The runtime that executes the test.</param>
+        /// <param name="mid">MachineId</param>
+        /// <param name="info">MachineInfo</param>
+        internal void Initialize(IRuntimeMachineManager runtimeManager, IPSharpRuntime runtime, MachineId mid, MachineInfo info)
+        {
+            this.RuntimeManager = runtimeManager;
+            this.Runtime = runtime;
+            this.Id = mid;
+            this.Info = info;
         }
 
         /// <summary>
@@ -47,14 +90,14 @@ namespace Microsoft.PSharp.TestingServices
                 // Starts the test.
                 if (this.TestAction != null)
                 {
-                    base.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
-                    this.TestAction(base.Id.Runtime);
+                    this.RuntimeManager.Log("<TestHarnessLog> Running anonymous test method.");
+                    this.TestAction(this.Runtime);
                 }
                 else
                 {
-                    base.Runtime.Log("<TestHarnessLog> Running test method " +
+                    this.RuntimeManager.Log("<TestHarnessLog> Running test method " +
                         $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
-                    this.TestMethod.Invoke(null, new object[] { base.Id.Runtime });
+                    this.TestMethod.Invoke(null, new object[] { this.Runtime });
                 }
             }
             catch (TargetInvocationException ex)
@@ -72,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.TestAction != null)
             {
-                base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                     $"in anonymous test method, " +
                     $"'{ex.Source}':\n" +
                     $"   {ex.Message}\n" +
@@ -80,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                this.RuntimeManager.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                     $"in test method '{this.TestMethod.DeclaringType}.{this.TestMethod.Name}', " +
                     $"'{ex.Source}':\n" +
                     $"   {ex.Message}\n" +

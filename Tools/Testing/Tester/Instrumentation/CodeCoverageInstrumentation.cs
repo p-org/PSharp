@@ -226,7 +226,7 @@ namespace Microsoft.PSharp.TestingServices
 #endif
 
         /// <summary>
-        /// Set the <see cref="OutputDirectory"/> to either the user-specified <see cref="Configuration.OutputFilePath"/> 
+        /// Set the <see cref="OutputDirectory"/> to either the user-specified <see cref="Configuration.OutputFilePath"/>
         /// or to a unique output directory name in the same directory as <see cref="Configuration.AssemblyToBeAnalyzed"/>
         /// and starting with its name.
         /// </summary>

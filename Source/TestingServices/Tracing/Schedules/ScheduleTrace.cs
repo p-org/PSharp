@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
     /// A trace is a series of transitions from some
     /// initial state to some end state.
     /// </summary>
-    internal sealed class ScheduleTrace : IEnumerable, IEnumerable<ScheduleStep>
+    public sealed class ScheduleTrace : IEnumerable, IEnumerable<ScheduleStep>
     {
         /// <summary>
         /// The steps of the schedule trace.

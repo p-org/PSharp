@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Runtime;
+
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
@@ -18,8 +20,14 @@ namespace Microsoft.PSharp.TestingServices
     /// the runtime for the currently running machine, and whether
     /// the runtime is in an action.
     /// </summary>
-    public interface IRegisterRuntimeOperation
+    internal interface IRegisterRuntimeOperation
     {
+        /// <summary>
+        /// Registers the testing runtime.
+        /// </summary>
+        /// <param name="runtime">ITestingRuntime</param>
+        void RegisterRuntime(ITestingRuntime runtime);
+
         /// <summary>
         /// InAction[machineId.Value] = true iff the runtime executing an action
         /// in machine with Id machineId
@@ -62,7 +70,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="target">The id of the machine receiving the event</param>
         /// <param name="e">The event sent</param>
         /// <param name="sequenceNumber">Is n if this is the n'th enqueue</param>
-        void RegisterEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber);
+        /// </summary>
+        void RegisterEnqueue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber);
 
         /// <summary>
         /// Process the deq and begin of an action by a machine.
@@ -71,20 +80,15 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="target">The id of the machine processing the event</param>
         /// <param name="e">The event being processed</param>
         /// <param name="sequenceNumber">Is n if this is the n'th enqueue</param>
-        void RegisterDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber);
+        /// </summary>
+        void RegisterDequeue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber);
 
         /// <summary>
-        /// Update the internal data structures and vector clocks when a machine creates another machine.
+        /// Update the internal data structures and vector clocks when a machine creates another.
+        /// <param name="source">The id of the machine that is the creator</param>
+        /// <param name="target">The id of the machine that is freshly created</param>
         /// </summary>
-        /// <param name="source">The id of the machine that is the creator.</param>
-        /// <param name="target">The id of the machine that is freshly created.</param>
-        void RegisterCreateMachine(MachineId source, MachineId target);
-
-        /// <summary>
-        /// Set the runtime an implementer should forward TryGetCurrentMachineId calls to.
-        /// </summary>
-        /// <param name="runtime"></param>
-        void RegisterRuntime(PSharpRuntime runtime);
+        void RegisterCreateMachine(IMachineId source, IMachineId target);
 
         /// <summary>
         /// Return true if the runtime is currently executing a machine's action.

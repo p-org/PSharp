@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Timers
         private MachineId Client;
 
         /// <summary>
-        /// TimerId
+        /// TimerId.
         /// </summary>
         private TimerId tid;
 
@@ -51,9 +51,7 @@ namespace Microsoft.PSharp.Timers
         [Start]
         [OnEntry(nameof(InitializeTimer))]
         [OnEventDoAction(typeof(HaltTimerEvent), nameof(DisposeTimer))]
-        private class Init : MachineState
-        {
-        }
+        private class Init : MachineState { }
 
         private void InitializeTimer()
         {
@@ -64,7 +62,7 @@ namespace Microsoft.PSharp.Timers
             this.tid = e.tid;
 
             this.IsTimerEnabled = true;
-            this.timer = new System.Timers.Timer(Period);
+            this.timer = new Timer(Period);
 
             if (!IsPeriodic)
             {
@@ -86,7 +84,7 @@ namespace Microsoft.PSharp.Timers
             {
                 if (this.IsTimerEnabled)
                 {
-                    Runtime.SendEvent(this.Client, new TimerElapsedEvent(tid));
+                    this.RuntimeManager.Runtime.SendEvent(this.Client, new TimerElapsedEvent(tid));
                 }
             }
         }

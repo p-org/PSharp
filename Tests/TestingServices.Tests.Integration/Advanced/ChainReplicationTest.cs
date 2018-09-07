@@ -1443,7 +1443,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 2;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<IPSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(InvariantMonitor));
                 r.RegisterMonitor(typeof(ServerResponseSeqMonitor));
                 r.CreateMachine(typeof(Environment));

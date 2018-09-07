@@ -16,7 +16,12 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
-        protected MachineId MachineId;
+        protected IMachineId MachineId;
+
+        /// <summary>
+        /// The type of the machine.
+        /// </summary>
+        internal Type MachineType;
 
         /// <summary>
         /// Is the machine halted.
@@ -64,15 +69,17 @@ namespace Microsoft.PSharp.Runtime
         /// Constructor.
         /// </summary>
         /// <param name="mid">The machine id.</param>
-        internal MachineInfo(MachineId mid)
+        /// <param name="type">The machine type.</param>
+        internal MachineInfo(IMachineId mid, Type type)
         {
-            MachineId = mid;
-            IsHalted = false;
-            IsWaitingToReceive = false;
-            IsInsideOnExit = false;
-            CurrentActionCalledTransitionStatement = false;
-            OperationGroupId = Guid.Empty;
-            ProgramCounter = 0;
+            this.MachineId = mid;
+            this.MachineType = type;
+            this.IsHalted = false;
+            this.IsWaitingToReceive = false;
+            this.IsInsideOnExit = false;
+            this.CurrentActionCalledTransitionStatement = false;
+            this.OperationGroupId = Guid.Empty;
+            this.ProgramCounter = 0;
         }
 
         /// <summary>
