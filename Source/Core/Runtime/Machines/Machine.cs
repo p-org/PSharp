@@ -794,7 +794,6 @@ namespace Microsoft.PSharp
 
                 if (dequeued)
                 {
-
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
                     // to schedule a machine when a new operation is dequeued.
@@ -815,10 +814,9 @@ namespace Microsoft.PSharp
                 // Assigns the received event.
                 this.ReceivedEvent = nextEventInfo.Event;
 
-                if(dequeued)
+                if (dequeued)
                 {
-                    // inform the user of a successful dequeue
-                    // once ReceivedEvent is set
+                    // Inform the user of a successful dequeue once ReceivedEvent is set.
                     previouslyDequeuedEvent = nextEventInfo.Event;
                     await this.OnEventDequeueAsync(previouslyDequeuedEvent);
                 }
@@ -828,8 +826,8 @@ namespace Microsoft.PSharp
 
                 if (this.RaisedEvent == null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
                 {
-                    // inform the user that the machine is done processing.
-                    // It will either go idle or dequeue its next message.
+                    // Inform the user that the machine is done handling the current event.
+                    // The machine will either go idle or dequeue its next event.
                     await this.OnEventHandledAsync(previouslyDequeuedEvent);
                     previouslyDequeuedEvent = null;
                 }
@@ -1862,40 +1860,36 @@ namespace Microsoft.PSharp
         #region user callbacks
 
         /// <summary>
-        /// User callback that is invoked when the machine
-        /// successfully dequeues an event from its inbox.
-        /// This method is not called when the dequeue happens
-        /// via Receive.
+        /// User callback that is invoked when the machine successfully dequeues
+        /// an event from its inbox. This method is not called when the dequeue
+        /// happens via a Receive statement.
         /// </summary>
-        /// <param name="ev">The dequeued event</param>
+        /// <param name="e">The dequeued event.</param>
         /// <returns></returns>
-        protected virtual Task OnEventDequeueAsync(Event ev)
+        protected virtual Task OnEventDequeueAsync(Event e)
         {
             return Task.FromResult(true);
         }
 
         /// <summary>
-        /// User callback that is invoked when the machine
-        /// is done processing an event. It is guaranteed that
-        /// there is no raised event when this method is called.
-        /// Unless this method raises an event itself, the machine will either 
-        /// become idle or dequeue the next event from its inbox.
-        /// This method is not called when the processing of an 
-        /// event caused the machine to halt. It does not matter 
-        /// if the halt was normal or exceptional.
+        /// User callback that is invoked when the machine finishes handling a dequeued event,
+        /// unless the handler of the dequeued event raised an event or caused the machine to
+        /// halt (either normally or due to an exception). Unless this callback raises an event,
+        /// the machine will either become idle or dequeue the next event from its inbox.
         /// </summary>
-        /// <param name="ev">The dequeued event whose processing has just finished</param>
+        /// <param name="e">The dequeued event whose handler has just finished.</param>
         /// <returns></returns>
-        protected virtual Task OnEventHandledAsync(Event ev)
+        protected virtual Task OnEventHandledAsync(Event e)
         {
             return Task.FromResult(true);
         }
 
-
         /// <summary>
-        /// User callback when a machine halts.
+        /// User callback that is invoked when a machine halts.
         /// </summary>
-        protected virtual void OnHalt() { }
+        protected virtual void OnHalt()
+        {
+        }
 
         #endregion
 

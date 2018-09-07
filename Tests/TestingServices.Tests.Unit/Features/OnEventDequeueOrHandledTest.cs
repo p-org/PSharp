@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="OnProcessingTest.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Threading.Tasks;
@@ -18,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class OnProcessingTest : BaseTest
+    public class OnEventDequeueOrHandledTest : BaseTest
     {
         class E : Event { }
 
@@ -63,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Process()
             {
-                if(counter == 0 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E1)
+                if (counter == 0 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E1)
                 {
                     counter++;
                 }
@@ -84,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                     this.Assert(false);
                 }
 
-                if(counter == 4)
+                if (counter == 4)
                 {
                     this.Goto<S2>();
                 }
@@ -281,8 +272,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 this.Monitor<Spec4>(new Done());
             }
-
-
         }
 
         [Fact]
