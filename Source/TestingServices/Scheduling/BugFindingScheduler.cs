@@ -19,9 +19,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     internal sealed class BugFindingScheduler
     {
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private BugFindingRuntime Runtime;
+        private TestingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for bug-finding.
@@ -71,9 +71,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
+        /// <param name="runtime">TestingRuntime</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal BugFindingScheduler(BugFindingRuntime runtime, ISchedulingStrategy strategy)
+        internal BugFindingScheduler(TestingRuntime runtime, ISchedulingStrategy strategy)
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
@@ -169,7 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic boolean choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         internal bool GetNextNondeterministicBooleanChoice(int maxValue, string uniqueId = null)
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic integer choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {

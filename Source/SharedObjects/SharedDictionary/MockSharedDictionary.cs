@@ -18,29 +18,29 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Machine modeling the shared dictionary.
         /// </summary>
-        MachineId DictionaryMachine;
+        private readonly MachineId DictionaryMachine;
 
         /// <summary>
-        /// The bug-finding runtime hosting this shared dictionary.
+        /// The testing runtime hosting this shared dictionary.
         /// </summary>
-        BugFindingRuntime Runtime;
+        private TestingRuntime Runtime;
 
         /// <summary>
         /// Initializes the shared dictionary.
         /// </summary>
         /// <param name="comparer">Comparre for keys</param>
-        /// <param name="Runtime">BugFindingRuntime</param>
-        public MockSharedDictionary(IEqualityComparer<TKey> comparer, BugFindingRuntime Runtime)
+        /// <param name="runtime">TestingRuntime</param>
+        public MockSharedDictionary(IEqualityComparer<TKey> comparer, TestingRuntime runtime)
         {
-            this.Runtime = Runtime;
+            this.Runtime = runtime;
             if (comparer != null)
             {
-                DictionaryMachine = Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>),
+                this.DictionaryMachine = this.Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>),
                     SharedDictionaryEvent.InitEvent(comparer));
             }
             else
             {
-                DictionaryMachine = Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>));
+                this.DictionaryMachine = this.Runtime.CreateMachine(typeof(SharedDictionaryMachine<TKey, TValue>));
             }
         }
 
@@ -52,8 +52,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True or false depending on whether the new key/value pair was added.</returns>
         public bool TryAdd(TKey key, TValue value)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryAddEvent(key, value, currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryAddEvent(key, value, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<bool>)).Result as SharedDictionaryResponseEvent<bool>;
             return e.Value;
         }
@@ -67,8 +67,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True if the value with key was equal to comparisonValue and was replaced with newValue; otherwise, false.</returns>
         public bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryUpdateEvent(key, newValue, comparisonValue, currentMachine.Id));
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryUpdateEvent(key, newValue, comparisonValue, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<bool>)).Result as SharedDictionaryResponseEvent<bool>;
             return e.Value;
         }
@@ -81,9 +81,10 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True if the key was found; otherwise, false.</returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryGetEvent(key, currentMachine.Id));
-            var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryGetEvent(key, currentMachine.Id));
+            var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result
+                as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
             value = e.Value.Item2;
             return e.Value.Item1;
         }
@@ -97,14 +98,14 @@ namespace Microsoft.PSharp.SharedObjects
         {
             get
             {
-                var currentMachine = Runtime.GetCurrentMachine();
-                Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.GetEvent(key, currentMachine.Id));
+                var currentMachine = this.Runtime.GetCurrentMachine();
+                this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.GetEvent(key, currentMachine.Id));
                 var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<TValue>)).Result as SharedDictionaryResponseEvent<TValue>;
                 return e.Value;
             }
             set
             {
-                Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.SetEvent(key, value));
+                this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.SetEvent(key, value));
             }
         }
 
@@ -117,9 +118,10 @@ namespace Microsoft.PSharp.SharedObjects
         /// <returns>True if the element is successfully removed; otherwise, false.</returns>
         public bool TryRemove(TKey key, out TValue value)
         {
-            var currentMachine = Runtime.GetCurrentMachine();
-            Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.TryRemoveEvent(key, currentMachine.Id));
-            var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
+            var currentMachine = this.Runtime.GetCurrentMachine();
+            this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.TryRemoveEvent(key, currentMachine.Id));
+            var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<Tuple<bool, TValue>>)).Result
+                as SharedDictionaryResponseEvent<Tuple<bool, TValue>>;
             value = e.Value.Item2;
             return e.Value.Item1;
         }
@@ -132,8 +134,8 @@ namespace Microsoft.PSharp.SharedObjects
         {
             get
             {
-                var currentMachine = Runtime.GetCurrentMachine();
-                Runtime.SendEvent(DictionaryMachine, SharedDictionaryEvent.CountEvent(currentMachine.Id));
+                var currentMachine = this.Runtime.GetCurrentMachine();
+                this.Runtime.SendEvent(this.DictionaryMachine, SharedDictionaryEvent.CountEvent(currentMachine.Id));
                 var e = currentMachine.Receive(typeof(SharedDictionaryResponseEvent<int>)).Result as SharedDictionaryResponseEvent<int>;
                 return e.Value;
             }

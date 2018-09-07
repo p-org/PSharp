@@ -83,9 +83,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             AssertFailed(configuration, test, numExpectedErrors, bugReports =>
             {
-                foreach(var expected in expectedOutputs)
+                foreach (var expected in expectedOutputs)
                 {
-                    if(!bugReports.Contains(expected))
+                    if (!bugReports.Contains(expected))
                     {
                         return false;
                     }

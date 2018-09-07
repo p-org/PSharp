@@ -354,7 +354,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                         "' cannot ignore other event '" + e + "' when ignoring the wildcard event."));
                 }
 
-                foreach(var e in actionEvents.Where(s => !isWildCard(s)))
+                foreach (var e in actionEvents.Where(s => !isWildCard(s)))
                 {
                     base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot define action on '" + e + "' when ignoring the wildcard event."));

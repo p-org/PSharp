@@ -339,4 +339,3 @@ namespace Microsoft.PSharp.IO
         }
     }
 }
-

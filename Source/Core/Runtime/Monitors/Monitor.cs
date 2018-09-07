@@ -138,7 +138,7 @@ namespace Microsoft.PSharp
         {
             get
             {
-                return CurrentStateName + 
+                return CurrentStateName +
                     (IsInHotState() ? "[hot]" :
                     IsInColdState() ? "[cold]" :
                     "");
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this monitor.
         /// </summary>
-        /// <param name="mid">MachineId</param>
+        /// <param name="mid">The monitor id.</param>
         internal void Initialize(MachineId mid)
         {
             this.Id = mid;
@@ -193,7 +193,7 @@ namespace Microsoft.PSharp
             this.CurrentActionCalledTransitionStatement = false;
         }
 
-        #region P# user API
+        #region user interface
 
         /// <summary>
         /// Returns from the execution context, and transitions
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp
         protected void Goto<S>() where S : MonitorState
         {
 #pragma warning disable 618
-            Goto(typeof(S));
+            this.Goto(typeof(S));
 #pragma warning restore 618
         }
 
@@ -595,7 +595,7 @@ namespace Microsoft.PSharp
                 hash = hash * 31 + this.CurrentState.GetHashCode();
 
                 // Adds the user-defined hashed state.
-                hash = hash * 31 + this.GetHashedState(); 
+                hash = hash * 31 + this.GetHashedState();
 
                 return hash;
             }

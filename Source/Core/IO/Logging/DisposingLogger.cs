@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.IO
         public void OnPop(MachineId machineId, string currStateName, string restoredStateName) { }
 
         /// <summary>
-        /// When an event cannot be handled in the current state, its exit handler is executed and then the state is 
+        /// When an event cannot be handled in the current state, its exit handler is executed and then the state is
         /// popped and any previous "current state" is reentered. This handler is called when that pop has been done.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
@@ -128,8 +128,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an BaseMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>

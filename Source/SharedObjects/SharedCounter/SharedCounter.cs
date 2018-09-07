@@ -9,7 +9,7 @@ using Microsoft.PSharp.TestingServices;
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Shared counter that can be safely shared by multiple P# state-machines.
+    /// Shared counter that can be safely shared by multiple P# machines.
     /// </summary>
     public static class SharedCounter
     {
@@ -24,9 +24,9 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedCounter(value);
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is TestingServices.TestingRuntime)
             {
-                return new MockSharedCounter(value, runtime as BugFindingRuntime);
+                return new MockSharedCounter(value, runtime as TestingRuntime);
             }
             else
             {

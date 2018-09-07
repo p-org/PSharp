@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
     [DataContract]
     public class CoverageInfo
     {
-        #region fields
-
         /// <summary>
         /// Map from machines to states.
         /// </summary>
@@ -36,10 +34,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         [DataMember]
         public HashSet<Transition> Transitions { get; private set; }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -49,10 +43,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             this.RegisteredEvents = new HashSet<Tuple<string, string, string>>();
             this.Transitions = new HashSet<Transition>();
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         /// Adds a new transition.
@@ -120,10 +110,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             }
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Adds a new state.
         /// </summary>
@@ -138,7 +124,5 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 
             this.MachinesToStates[machineName].Add(stateName);
         }
-
-        #endregion
     }
 }

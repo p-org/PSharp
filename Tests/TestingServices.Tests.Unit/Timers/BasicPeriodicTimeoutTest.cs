@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 				count++;
 				this.Assert(count <= 10);
 
-				if(count == 10)
+				if (count == 10)
 				{
 					await StopTimer(tid, flush: true);
 				}

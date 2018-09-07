@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
                 var counter = (this.ReceivedEvent as E).counter;
                 var tcs = (this.ReceivedEvent as E).tcs;
 
-                for(int i = 0; i < N; i++)
+                for (int i = 0; i < N; i++)
                 {
                     counter.Increment();
 

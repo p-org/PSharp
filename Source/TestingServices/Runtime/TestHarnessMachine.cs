@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
     /// The P# test harness machine. This is the root machine
-    /// that executes a test method during bug-finding.
+    /// that executes a test method during testing.
     /// </summary>
     internal sealed class TestHarnessMachine : BaseMachine
     {

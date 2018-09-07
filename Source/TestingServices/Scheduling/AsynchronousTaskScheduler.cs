@@ -17,9 +17,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     internal sealed class AsynchronousTaskScheduler : TaskScheduler
     {
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private BugFindingRuntime Runtime;
+        private TestingRuntime Runtime;
 
         /// <summary>
         /// Map from task ids to machines.
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
         /// <param name="taskMap">Task map</param>
-        internal AsynchronousTaskScheduler(BugFindingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        internal AsynchronousTaskScheduler(TestingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;

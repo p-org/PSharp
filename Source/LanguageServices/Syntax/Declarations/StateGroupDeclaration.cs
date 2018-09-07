@@ -101,7 +101,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite(int indentLevel)
         {
             string text = string.Empty;
-
             foreach (var node in this.StateGroupDeclarations)
             {
                 node.Rewrite(indentLevel + 1);
