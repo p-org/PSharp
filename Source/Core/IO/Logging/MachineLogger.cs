@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.IO
     /// of the <see cref="Write(string)"/> method if the <see cref="Configuration.Verbose"/> option is set to
     /// >= <see cref="LoggingVerbosity"/>. This class may be subclassed and its methods overridden.
     /// </summary>
-    public abstract class StateMachineLogger : ILogger
+    public abstract class MachineLogger : ILogger
     {
         /// <summary>
         /// The configuration that sets the logging verbosity.
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.IO
         /// object when it is passed to <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
-        public StateMachineLogger(int loggingVerbosity = 2)
+        public MachineLogger(int loggingVerbosity = 2)
         {
             this.LoggingVerbosity = loggingVerbosity;
         }
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
         /// <param name="eventName">Name of the event.</param>
         public virtual void OnEnqueue(MachineId machineId, string eventName)
         {
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Returns a string formatted for the <see cref="OnEnqueue"/> event and its parameters.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
         /// <param name="eventName">Name of the event.</param>
         public virtual string FormatOnEnqueueString(MachineId machineId, string eventName)
         {
@@ -103,13 +103,13 @@ namespace Microsoft.PSharp.IO
         /// Called when an event is dequeued by a machine.
         /// </summary>
         /// <param name="machineId">Id of the machine that the event is being dequeued by.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">Name of the event.</param>
-        public virtual void OnDequeue(MachineId machineId, string currentStateName, string eventName)
+        public virtual void OnDequeue(MachineId machineId, string currStateName, string eventName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnDequeueString(machineId, currentStateName, eventName));
+                this.WriteLine(FormatOnDequeueString(machineId, currStateName, eventName));
             }
         }
 
@@ -117,23 +117,23 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnDequeue"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that the event is being dequeued by.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">Name of the event.</param>
-        public virtual string FormatOnDequeueString(MachineId machineId, string currentStateName, string eventName)
+        public virtual string FormatOnDequeueString(MachineId machineId, string currStateName, string eventName)
         {
-            return $"<DequeueLog> Machine '{machineId}' in state '{currentStateName}' dequeued event '{eventName}'.";
+            return $"<DequeueLog> Machine '{machineId}' in state '{currStateName}' dequeued event '{eventName}'.";
         }
 
         /// <summary>
         /// Called when the default event handler for a state is about to be executed.
         /// </summary>
         /// <param name="machineId">Id of the machine that the state will execute in.</param>
-        /// <param name="currentStateName">Name of the current state of the machine.</param>
-        public virtual void OnDefault(MachineId machineId, string currentStateName)
+        /// <param name="currStateName">Name of the current state of the machine.</param>
+        public virtual void OnDefault(MachineId machineId, string currStateName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnDefaultString(machineId, currentStateName));
+                this.WriteLine(FormatOnDefaultString(machineId, currStateName));
             }
         }
 
@@ -141,23 +141,23 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnDefault"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that the state will execute in.</param>
-        /// <param name="currentStateName">Name of the current state of the machine.</param>
-        public virtual string FormatOnDefaultString(MachineId machineId, string currentStateName)
+        /// <param name="currStateName">Name of the current state of the machine.</param>
+        public virtual string FormatOnDefaultString(MachineId machineId, string currStateName)
         {
-            return $"<DefaultLog> Machine '{machineId}' in state '{currentStateName}' is executing the default handler.";
+            return $"<DefaultLog> Machine '{machineId}' in state '{currStateName}' is executing the default handler.";
         }
 
         /// <summary>
         /// Called when a machine transitions states via a 'goto'.
         /// </summary>
         /// <param name="machineId">Id of the machine.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The target state of goto.</param>
-        public void OnGoto(MachineId machineId, string currentStateName, string newStateName)
+        public void OnGoto(MachineId machineId, string currStateName, string newStateName)
         {
             if(this.IsVerbose)
             {
-                this.WriteLine(FormatOnGotoString(machineId, currentStateName, newStateName));
+                this.WriteLine(FormatOnGotoString(machineId, currStateName, newStateName));
             }
         }
 
@@ -165,24 +165,24 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnGoto"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The target state of goto.</param>
-        public virtual string FormatOnGotoString(MachineId machineId, string currentStateName, string newStateName)
+        public virtual string FormatOnGotoString(MachineId machineId, string currStateName, string newStateName)
         {
-            return $"<GotoLog> Machine '{machineId}' is transitioning from state '{currentStateName}' to state '{newStateName}'.";
+            return $"<GotoLog> Machine '{machineId}' is transitioning from state '{currStateName}' to state '{newStateName}'.";
         }
         
         /// <summary>
         /// Called when a machine is being pushed to a state.
         /// </summary>
         /// <param name="machineId">Id of the machine being pushed to the state</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The state the machine is pushed to.</param>
-        public virtual void OnPush(MachineId machineId, string currentStateName, string newStateName)
+        public virtual void OnPush(MachineId machineId, string currStateName, string newStateName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnPushString(machineId, currentStateName, newStateName));
+                this.WriteLine(FormatOnPushString(machineId, currStateName, newStateName));
             }
         }
 
@@ -190,24 +190,24 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnPush"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine being pushed to the state</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The state the machine is pushed to.</param>
-        public virtual string FormatOnPushString(MachineId machineId, string currentStateName, string newStateName)
+        public virtual string FormatOnPushString(MachineId machineId, string currStateName, string newStateName)
         {
-            return $"<PushLog> Machine '{machineId}' pushed from state '{currentStateName}' to state '{newStateName}'.";
+            return $"<PushLog> Machine '{machineId}' pushed from state '{currStateName}' to state '{newStateName}'.";
         }
 
         /// <summary>
         /// Called when a machine has been popped from a state.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="restoredStateName">The name of the state being re-entered, if any</param>
-        public virtual void OnPop(MachineId machineId, string currentStateName, string restoredStateName)
+        public virtual void OnPop(MachineId machineId, string currStateName, string restoredStateName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnPopString(machineId, currentStateName, restoredStateName));
+                this.WriteLine(FormatOnPopString(machineId, currStateName, restoredStateName));
             }
         }
 
@@ -215,13 +215,13 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnPop"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="restoredStateName">The name of the state being re-entered, if any</param>
-        public virtual string FormatOnPopString(MachineId machineId, string currentStateName, string restoredStateName)
+        public virtual string FormatOnPopString(MachineId machineId, string currStateName, string restoredStateName)
         {
-            var curStateName = string.IsNullOrEmpty(currentStateName) ? "[not recorded]" : currentStateName;
+            var curStateName = string.IsNullOrEmpty(currStateName) ? "[not recorded]" : currStateName;
             var reenteredStateName = restoredStateName ?? string.Empty;
-            return $"<PopLog> Machine '{machineId}' popped state '{currentStateName}' and reentered state '{reenteredStateName}'.";
+            return $"<PopLog> Machine '{machineId}' popped state '{currStateName}' and reentered state '{reenteredStateName}'.";
         }
 
         /// <summary>
@@ -229,14 +229,13 @@ namespace Microsoft.PSharp.IO
         /// popped and any previous "current state" is reentered. This handler is called when that pop has been done.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>
-        ///     (which is being re-entered), if any</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
-        public virtual void OnPopUnhandledEvent(MachineId machineId, string currentStateName, string eventName)
+        public virtual void OnPopUnhandledEvent(MachineId machineId, string currStateName, string eventName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnPopUnhandledEventString(machineId, currentStateName, eventName));
+                this.WriteLine(FormatOnPopUnhandledEventString(machineId, currStateName, eventName));
             }
         }
 
@@ -244,14 +243,13 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnPopUnhandledEvent"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>
-        ///     (which is being re-entered), if any</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
-        public virtual string FormatOnPopUnhandledEventString(MachineId machineId, string currentStateName, string eventName)
+        public virtual string FormatOnPopUnhandledEventString(MachineId machineId, string currStateName, string eventName)
         {
-            var reenteredStateName = string.IsNullOrEmpty(currentStateName)
+            var reenteredStateName = string.IsNullOrEmpty(currStateName)
                 ? string.Empty
-                : $" and reentered state '{currentStateName}";
+                : $" and reentered state '{currStateName}";
             return $"<PopLog> Machine '{machineId}' popped with unhandled event '{eventName}'{reenteredStateName}.";
         }
 
@@ -259,15 +257,15 @@ namespace Microsoft.PSharp.IO
         /// Called when an event is received by a machine.
         /// </summary>
         /// <param name="machineId">Id of the machine that received the event.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">The name of the event.</param>
         /// <param name="wasBlocked">The machine was waiting for one or more specific events,
         ///     and <paramref name="eventName"/> was one of them</param>
-        public virtual void OnReceive(MachineId machineId, string currentStateName, string eventName, bool wasBlocked)
+        public virtual void OnReceive(MachineId machineId, string currStateName, string eventName, bool wasBlocked)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnReceiveString(machineId, currentStateName, eventName, wasBlocked));
+                this.WriteLine(FormatOnReceiveString(machineId, currStateName, eventName, wasBlocked));
             }
         }
 
@@ -275,27 +273,27 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnReceive"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that received the event.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">The name of the event.</param>
         /// <param name="wasBlocked">The machine was waiting for one or more specific events,
         ///     and <paramref name="eventName"/> was one of them</param>
-        public virtual string FormatOnReceiveString(MachineId machineId, string currentStateName, string eventName, bool wasBlocked)
+        public virtual string FormatOnReceiveString(MachineId machineId, string currStateName, string eventName, bool wasBlocked)
         {
             var unblocked = wasBlocked ? " and unblocked" : string.Empty;
-            return $"<ReceiveLog> Machine '{machineId}' in state '{currentStateName}' dequeued event '{eventName}'{unblocked}.";
+            return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' dequeued event '{eventName}'{unblocked}.";
         }
 
         /// <summary>
         /// Called when a machine enters a wait state.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        public virtual void OnWait(MachineId machineId, string currentStateName, string eventNames)
+        public virtual void OnWait(MachineId machineId, string currStateName, string eventNames)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnWaitString(machineId, currentStateName, ref eventNames));
+                this.WriteLine(FormatOnWaitString(machineId, currStateName, ref eventNames));
             }
         }
 
@@ -303,21 +301,21 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnWait"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        public virtual string FormatOnWaitString(MachineId machineId, string currentStateName, ref string eventNames)
+        public virtual string FormatOnWaitString(MachineId machineId, string currStateName, ref string eventNames)
         {
             if (string.IsNullOrEmpty(eventNames))
             {
                 eventNames = "[any]";
             }
-            return $"<ReceiveLog> Machine '{machineId}' in state '{currentStateName}' dequeued event '{eventNames}'.";
+            return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' dequeued event '{eventNames}'.";
         }
 
         /// <summary>
         /// Called when an event is sent to a target machine.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>        
+        /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
         ///     (if it is a non-Machine specialization of an BaseMachine, it is not applicable).</param>
@@ -336,7 +334,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Returns a string formatted for the <see cref="OnSend"/> event and its parameters.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>        
+        /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
         ///     (if it is a non-Machine specialization of an BaseMachine, it is not applicable).</param>
@@ -480,13 +478,13 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine raises an event.
         /// </summary>
         /// <param name="machineId">The id of the machine raising the event.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="eventName">The name of the event being raised.</param>
-        public virtual void OnMachineEvent(MachineId machineId, string currentStateName, string eventName)
+        public virtual void OnMachineEvent(MachineId machineId, string currStateName, string eventName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineEventString(machineId, currentStateName, eventName));
+                this.WriteLine(FormatOnMachineEventString(machineId, currStateName, eventName));
             }
         }
 
@@ -494,24 +492,24 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnMachineEvent"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">The id of the machine raising the event.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="eventName">The name of the event being raised.</param>
-        public virtual string FormatOnMachineEventString(MachineId machineId, string currentStateName, string eventName)
+        public virtual string FormatOnMachineEventString(MachineId machineId, string currStateName, string eventName)
         {
-            return $"<RaiseLog> Machine '{machineId}' in state '{currentStateName}' raised event '{eventName}'.";
+            return $"<RaiseLog> Machine '{machineId}' in state '{currStateName}' raised event '{eventName}'.";
         }
 
         /// <summary>
         /// Called when a machine executes an action.
         /// </summary>
         /// <param name="machineId">The id of the machine executing the action.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        public virtual void OnMachineAction(MachineId machineId, string currentStateName, string actionName)
+        public virtual void OnMachineAction(MachineId machineId, string currStateName, string actionName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineActionString(machineId, currentStateName, actionName));
+                this.WriteLine(FormatOnMachineActionString(machineId, currStateName, actionName));
             }
         }
 
@@ -519,11 +517,11 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnMachineAction"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">The id of the machine executing the action.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        public virtual string FormatOnMachineActionString(MachineId machineId, string currentStateName, string actionName)
+        public virtual string FormatOnMachineActionString(MachineId machineId, string currStateName, string actionName)
         {
-            return $"<ActionLog> Machine '{machineId}' in state '{currentStateName}' invoked action '{actionName}'.";
+            return $"<ActionLog> Machine '{machineId}' in state '{currStateName}' invoked action '{actionName}'.";
         }
 
         /// <summary>
@@ -531,13 +529,13 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        public virtual void OnMachineExceptionThrown(MachineId machineId, string currentStateName, string actionName, Exception ex)
+        public virtual void OnMachineExceptionThrown(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineExceptionThrownString(machineId, currentStateName, actionName, ex));
+                this.WriteLine(FormatOnMachineExceptionThrownString(machineId, currStateName, actionName, ex));
             }
         }
 
@@ -546,11 +544,11 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        public virtual string FormatOnMachineExceptionThrownString(MachineId machineId, string currentStateName, string actionName, Exception ex)
+        public virtual string FormatOnMachineExceptionThrownString(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
-            return $"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' threw an exception '{ex.GetType().Name}'.";
+            return $"<ExceptionLog> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' threw an exception '{ex.GetType().Name}'.";
         }
 
         /// <summary>
@@ -558,13 +556,13 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        public virtual void OnMachineExceptionHandled(MachineId machineId, string currentStateName, string actionName, Exception ex)
+        public virtual void OnMachineExceptionHandled(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineExceptionHandledString(machineId, currentStateName, actionName, ex));
+                this.WriteLine(FormatOnMachineExceptionHandledString(machineId, currStateName, actionName, ex));
             }
         }
 
@@ -573,11 +571,11 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        public virtual string FormatOnMachineExceptionHandledString(MachineId machineId, string currentStateName, string actionName, Exception ex)
+        public virtual string FormatOnMachineExceptionHandledString(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
-            return $"<ExceptionLog> Machine '{machineId}' in state '{currentStateName}' running action '{actionName}' chose to handle the exception '{ex.GetType().Name}'.";
+            return $"<ExceptionLog> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' chose to handle the exception '{ex.GetType().Name}'.";
         }
 
         /// <summary>
@@ -621,15 +619,15 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that will process or has raised the event.</param>
         /// <param name="monitorId">ID of the monitor that will process or has raised the event</param>
-        /// <param name="currentStateName">The name of the state in which the event is being raised.</param>
+        /// <param name="currStateName">The name of the state in which the event is being raised.</param>
         /// <param name="eventName">The name of the event.</param>
         /// <param name="isProcessing">If true, the monitor is processing the event; otherwise it has raised it.</param>
-        public virtual void OnMonitorEvent(string monitorTypeName, MachineId monitorId, string currentStateName,
+        public virtual void OnMonitorEvent(string monitorTypeName, MachineId monitorId, string currStateName,
             string eventName, bool isProcessing)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMonitorEventString(monitorTypeName, monitorId, currentStateName, eventName, isProcessing));
+                this.WriteLine(FormatOnMonitorEventString(monitorTypeName, monitorId, currStateName, eventName, isProcessing));
             }
         }
 
@@ -638,13 +636,13 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that will process or has raised the event.</param>
         /// <param name="monitorId">ID of the monitor that will process or has raised the event</param>
-        /// <param name="currentStateName">The name of the state in which the event is being raised.</param>
+        /// <param name="currStateName">The name of the state in which the event is being raised.</param>
         /// <param name="eventName">The name of the event.</param>
         /// <param name="isProcessing">If true, the monitor is processing the event; otherwise it has raised it.</param>
-        public virtual string FormatOnMonitorEventString(string monitorTypeName, MachineId monitorId, string currentStateName, string eventName, bool isProcessing)
+        public virtual string FormatOnMonitorEventString(string monitorTypeName, MachineId monitorId, string currStateName, string eventName, bool isProcessing)
         {
             var activity = isProcessing ? "is processing" : "raised";
-            return $"<MonitorLog> Monitor '{monitorTypeName}' with id '{monitorId}' in state '{currentStateName}' {activity} event '{eventName}'.";
+            return $"<MonitorLog> Monitor '{monitorTypeName}' with id '{monitorId}' in state '{currStateName}' {activity} event '{eventName}'.";
         }
 
         /// <summary>
@@ -652,13 +650,13 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that is executing the action.</param>
         /// <param name="monitorId">ID of the monitor that is executing the action</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        public virtual void OnMonitorAction(string monitorTypeName, MachineId monitorId, string currentStateName, string actionName)
+        public virtual void OnMonitorAction(string monitorTypeName, MachineId monitorId, string currStateName, string actionName)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMonitorActionString(monitorTypeName, monitorId, currentStateName, actionName));
+                this.WriteLine(FormatOnMonitorActionString(monitorTypeName, monitorId, currStateName, actionName));
             }
         }
 
@@ -667,11 +665,11 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that is executing the action.</param>
         /// <param name="monitorId">ID of the monitor that is executing the action</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        public virtual string FormatOnMonitorActionString(string monitorTypeName, MachineId monitorId, string currentStateName, string actionName)
+        public virtual string FormatOnMonitorActionString(string monitorTypeName, MachineId monitorId, string currStateName, string actionName)
         {
-            return $"<MonitorLog> Monitor '{monitorTypeName}' with id '{monitorId}' in state '{currentStateName}' executed action '{actionName}'.";
+            return $"<MonitorLog> Monitor '{monitorTypeName}' with id '{monitorId}' in state '{currStateName}' executed action '{actionName}'.";
         }
 
         /// <summary>

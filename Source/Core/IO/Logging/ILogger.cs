@@ -3,13 +3,13 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.Utilities;
 using System;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Interface for the P# logger.
+    /// Interface of the P# runtime logger.
     /// </summary>
     public interface ILogger : IDisposable
     {
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
         /// </summary>
-        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>        
+        /// <param name="machineId">Id of the machine that the event is being enqueued to.</param>
         /// <param name="eventName">Name of the event.</param>
         void OnEnqueue(MachineId machineId, string eventName);
 
@@ -62,73 +62,72 @@ namespace Microsoft.PSharp.IO
         /// Called when an event is dequeued by a machine.
         /// </summary>
         /// <param name="machineId">Id of the machine that the event is being dequeued by.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">Name of the event.</param>
-        void OnDequeue(MachineId machineId, string currentStateName, string eventName);
+        void OnDequeue(MachineId machineId, string currStateName, string eventName);
 
         /// <summary>
         /// Called when the default event handler for a state is about to be executed.
         /// </summary>
         /// <param name="machineId">Id of the machine that the state will execute in.</param>
-        /// <param name="currentStateName">Name of the current state of the machine.</param>
-        void OnDefault(MachineId machineId, string currentStateName);
+        /// <param name="currStateName">Name of the current state of the machine.</param>
+        void OnDefault(MachineId machineId, string currStateName);
 
         /// <summary>
         /// Called when a machine transitions states via a 'goto'.
         /// </summary>
         /// <param name="machineId">Id of the machine.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The target state of goto.</param>
-        void OnGoto(MachineId machineId, string currentStateName, string newStateName);
+        void OnGoto(MachineId machineId, string currStateName, string newStateName);
 
         /// <summary>
         /// Called when a machine is being pushed to a state.
         /// </summary>
         /// <param name="machineId">Id of the machine being pushed to the state.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The state the machine is pushed to.</param>
-        void OnPush(MachineId machineId, string currentStateName, string newStateName);
+        void OnPush(MachineId machineId, string currStateName, string newStateName);
 
         /// <summary>
         /// Called when a machine has been popped from a state.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="restoredStateName">The name of the state being restored, if any.</param>
-        void OnPop(MachineId machineId, string currentStateName, string restoredStateName);
+        void OnPop(MachineId machineId, string currStateName, string restoredStateName);
 
         /// <summary>
         /// When an event cannot be handled in the current state, its exit handler is executed and then the state is 
         /// popped and any previous "current state" is reentered. This handler is called when that pop has been done.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>
-        ///     (which is being re-entered), if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventName">The name of the event that cannot be handled.</param>
-        void OnPopUnhandledEvent(MachineId machineId, string currentStateName, string eventName);
+        void OnPopUnhandledEvent(MachineId machineId, string currStateName, string eventName);
 
         /// <summary>
         /// Called when an event is received by a machine.
         /// </summary>
         /// <param name="machineId">Id of the machine that received the event.</param>
         /// <param name="eventName">The name of the event.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="wasBlocked">The machine was waiting for one or more specific events,
         ///     and <paramref name="eventName"/> was one of them</param>
-        void OnReceive(MachineId machineId, string currentStateName, string eventName, bool wasBlocked);
+        void OnReceive(MachineId machineId, string currStateName, string eventName, bool wasBlocked);
 
         /// <summary>
         /// Called when a machine enters a wait state.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
-        /// <param name="currentStateName">The name of the current state of <paramref name="machineId"/>, if any.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        void OnWait(MachineId machineId, string currentStateName, string eventNames);
+        void OnWait(MachineId machineId, string currStateName, string eventNames);
 
         /// <summary>
         /// Called when an event is sent to a target machine.
         /// </summary>
-        /// <param name="targetMachineId">Id of the target machine.</param>        
+        /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
         ///     (if it is a non-Machine specialization of an BaseMachine, it is not applicable).</param>
@@ -178,35 +177,35 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine raises an event.
         /// </summary>
         /// <param name="machineId">The id of the machine raising the event.</param>
-        /// <param name="currentStateName">The name of the current state of the machine raising the event.</param>
+        /// <param name="currStateName">The name of the current state of the machine raising the event.</param>
         /// <param name="eventName">The name of the event being raised.</param>
-        void OnMachineEvent(MachineId machineId, string currentStateName, string eventName);
+        void OnMachineEvent(MachineId machineId, string currStateName, string eventName);
 
         /// <summary>
         /// Called when a machine executes an action.
         /// </summary>
         /// <param name="machineId">The id of the machine executing the action.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        void OnMachineAction(MachineId machineId, string currentStateName, string actionName);
+        void OnMachineAction(MachineId machineId, string currStateName, string actionName);
 
         /// <summary>
         /// Called when a machine throws an exception
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        void OnMachineExceptionThrown(MachineId machineId, string currentStateName, string actionName, Exception ex);
+        void OnMachineExceptionThrown(MachineId machineId, string currStateName, string actionName, Exception ex);
 
         /// <summary>
         /// Called when a machine's OnException method is used to handle a thrown exception
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        /// <param name="currentStateName">The name of the current machine state.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
         /// <param name="ex">The exception.</param>
-        void OnMachineExceptionHandled(MachineId machineId, string currentStateName, string actionName, Exception ex);
+        void OnMachineExceptionHandled(MachineId machineId, string currStateName, string actionName, Exception ex);
 
         /// <summary>
         /// Called when a monitor enters or exits a state.
@@ -225,19 +224,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that will process or has raised the event.</param>
         /// <param name="monitorId">Id of the monitor that will process or has raised the event.</param>
-        /// <param name="currentStateName">The name of the state in which the event is being raised.</param>
+        /// <param name="currStateName">The name of the state in which the event is being raised.</param>
         /// <param name="eventName">The name of the event.</param>
         /// <param name="isProcessing">If true, the monitor is processing the event; otherwise it has raised it.</param>
-        void OnMonitorEvent(string monitorTypeName, MachineId monitorId, string currentStateName, string eventName, bool isProcessing);
+        void OnMonitorEvent(string monitorTypeName, MachineId monitorId, string currStateName, string eventName, bool isProcessing);
 
         /// <summary>
         /// Called when a monitor executes an action.
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that is executing the action.</param>
         /// <param name="monitorId">Name of type of the monitor that is executing the action.</param>
-        /// <param name="currentStateName">The name of the state in which the action is being executed.</param>
+        /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
-        void OnMonitorAction(string monitorTypeName, MachineId monitorId, string currentStateName, string actionName);
+        void OnMonitorAction(string monitorTypeName, MachineId monitorId, string currStateName, string actionName);
 
         /// <summary>
         /// Called for general error reporting via pre-constructed text.

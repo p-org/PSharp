@@ -190,8 +190,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
-            this.ReadableTrace = "";
-            this.ReproducableTrace = "";
+            this.ReadableTrace = string.Empty;
+            this.ReproducableTrace = string.Empty;
 
             if (base.Configuration.EnableDataRaceDetection)
             {
@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices
 
         private Task CreateBugFindingTask()
         {
-            string options = "";
+            string options = string.Empty;
             if (base.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
                 base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||

@@ -207,7 +207,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         private string GetBugReport(ITestingEngine engine)
         {
-            string report = "";
+            string report = string.Empty;
             foreach (var bug in engine.TestReport.BugReports)
             {
                 report += bug + "\n";

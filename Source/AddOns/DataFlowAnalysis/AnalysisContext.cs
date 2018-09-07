@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Callee</returns>
         public string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
         {
-            string callee = "";
+            string callee = string.Empty;
 
             if (invocation.Expression is MemberAccessExpressionSyntax)
             {
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>string</returns>
         private string GetFullQualifierNameOfSyntaxNode(SyntaxNode syntaxNode)
         {
-            string result = "";
+            string result = string.Empty;
 
             if (syntaxNode == null)
             {

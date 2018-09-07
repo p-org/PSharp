@@ -251,7 +251,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// <returns>Callee</returns>
         private static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
         {
-            string callee = "";
+            string callee = string.Empty;
 
             if (invocation.Expression is MemberAccessExpressionSyntax)
             {

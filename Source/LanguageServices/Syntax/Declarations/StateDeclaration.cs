@@ -335,7 +335,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = string.Empty;
             try
             {
                 text = this.GetRewrittenStateDeclaration(indentLevel);
@@ -381,13 +381,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var resolvedEvent = this.ResolvedEventIdentifierTokens[eventIdentifier];
             var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(
                 tok => tok.Type != TokenType.LeftAngleBracket);
-            string qualifiedEventIdentifier = "";
+            string qualifiedEventIdentifier = string.Empty;
             foreach (var tok in eventIdentifierTokens.Where(tok => tok.Type != TokenType.Dot))
             {
                 qualifiedEventIdentifier += $"_{tok.TextUnit.Text}";
             }
 
-            string typeId = "";
+            string typeId = string.Empty;
             if (eventIdentifierTokens.Count() != resolvedEvent.Item1.Count)
             {
                 typeId += "_type_" + this.ResolvedEventIdentifierTokens[eventIdentifier].Item2;
@@ -407,7 +407,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private string GetRewrittenStateDeclaration(int indentLevel)
         {
             var indent = GetIndent(indentLevel);
-            string text = "";
+            string text = string.Empty;
 
             if (this.IsStart)
             {
@@ -530,11 +530,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "";
+            string text = string.Empty;
 
             foreach (var transition in this.GotoStateTransitions)
             {
-                var onExitName = "";
+                var onExitName = string.Empty;
                 AnonymousActionHandler handler;
                 if (this.TransitionsOnExitActions.TryGetValue(transition.Key, out handler))
                 {
@@ -593,7 +593,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "";
+            string text = string.Empty;
 
             foreach (var transition in this.PushStateTransitions)
             {
@@ -639,11 +639,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "";
+            string text = string.Empty;
 
             foreach (var binding in this.ActionBindings)
             {
-                var actionName = "";
+                var actionName = string.Empty;
                 AnonymousActionHandler handler;
                 if (this.ActionHandlers.TryGetValue(binding.Key, out handler))
                 {

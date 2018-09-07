@@ -11,7 +11,7 @@ namespace Microsoft.PSharp.Runtime
 
 {
     /// <summary>
-    /// Factory for creating P# machines.
+    /// Factory for creating machines.
     /// </summary>
     internal static class MachineFactory
     {
@@ -37,8 +37,7 @@ namespace Microsoft.PSharp.Runtime
         {
             lock (MachineConstructorCache)
             {
-                Func<Machine> constructor;
-                if (!MachineConstructorCache.TryGetValue(type, out constructor))
+                if (!MachineConstructorCache.TryGetValue(type, out Func<Machine> constructor))
                 {
                     constructor = Expression.Lambda<Func<Machine>>(
                         Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();

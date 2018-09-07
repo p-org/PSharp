@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 node.Rewrite(indentLevel + 1);
             }
 
-            var newLine = "";
+            var newLine = string.Empty;
             var text = indent + this.GetRewrittenNamespaceDeclaration(ref newLine);
 
             var realMachines = this.MachineDeclarations.FindAll(m => !m.IsMonitor);

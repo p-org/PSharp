@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Contains the origin information of an <see cref="Event"/>. 
+    /// Contains the origin information of an <see cref="Event"/>.
     /// </summary>
     [DataContract]
     internal class EventOriginInfo

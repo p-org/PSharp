@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            string text = "";
+            string text = string.Empty;
             try
             {
                 text = this.GetRewrittenMethodDeclaration(indentLevel);

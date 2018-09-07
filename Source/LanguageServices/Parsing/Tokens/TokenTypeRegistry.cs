@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <returns>Text</returns>
         public static string GetText(TokenType type)
         {
-            var text = "";
+            var text = string.Empty;
 
             switch (type)
             {

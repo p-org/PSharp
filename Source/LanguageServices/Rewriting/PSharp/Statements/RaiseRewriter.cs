@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(invocation.ArgumentList.Arguments[0]);
 
-            string payload = "";
+            string payload = string.Empty;
             for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
             {
                 if (i == invocation.ArgumentList.Arguments.Count - 1)

@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.Net
         public LocalNetworkProvider(PSharpRuntime runtime)
         {
             this.Runtime = runtime;
-            this.LocalEndpoint = "";
+            this.LocalEndpoint = string.Empty;
         }
 
         #endregion

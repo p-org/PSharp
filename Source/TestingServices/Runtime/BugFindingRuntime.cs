@@ -1532,8 +1532,8 @@ namespace Microsoft.PSharp.TestingServices
             string originState = StateGroup.GetQualifiedStateName(machine.CurrentState);
             string destMachine = machine.GetType().Name;
 
-            string edgeLabel = "";
-            string destState = "";
+            string edgeLabel = string.Empty;
+            string destState = string.Empty;
             if (eventInfo.Event is GotoStateEvent)
             {
                 edgeLabel = "goto";
@@ -1592,8 +1592,8 @@ namespace Microsoft.PSharp.TestingServices
             string originState = StateGroup.GetQualifiedStateName(monitor.CurrentState);
             string destMachine = originMachine;
 
-            string edgeLabel = "";
-            string destState = "";
+            string edgeLabel = string.Empty;
+            string destState = string.Empty;
             if (e is GotoStateEvent)
             {
                 edgeLabel = "goto";

@@ -11,7 +11,7 @@ using Microsoft.PSharp.Runtime;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Contains an <see cref="Event"/>, and its associated metadata. 
+    /// Contains an <see cref="Event"/>, and its associated metadata.
     /// </summary>
     [DataContract]
     internal class EventInfo
