@@ -11,25 +11,120 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class DgmlWriter
     {
-
-        public static void WriteMachines(NamespaceDeclaration ndecl, XmlTextWriter writer)
+        private static char[] unfriendlyNameSeparators = { '.' };
+        private static string FriendlyName(string uniqueName)
         {
-            foreach (var mdecl in ndecl.MachineDeclarations)
+            return uniqueName.Split(unfriendlyNameSeparators)[0];
+        }
+
+        public static void WriteAll(IEnumerable<MachineInfo> machines, XmlTextWriter writer)
+        {
+
+            writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
+
+            writer.WriteStartElement("Nodes");
+            writer.WriteComment(" Start Machines ");
+            foreach (MachineInfo mInfo in machines)
             {
-                writer.WriteStartElement("Node");
-                writer.WriteAttributeString("Id", mdecl.Identifier.Text);
-                writer.WriteAttributeString("Group", "Expanded");
+                WriteMachine(mInfo, writer);
+            }
+            writer.WriteComment(" End Machines ");
+            // Move on to the states within the machines
+            writer.WriteComment(" Start States");
+            foreach (MachineInfo mInfo in machines)
+            {
+                WriteMachineStates(mInfo, writer);
+            }
+            writer.WriteComment(" End States ");
+            writer.WriteEndElement(/*"Nodes"*/);
+
+            // On to the edges
+
+            writer.WriteStartElement("Links");
+            foreach (MachineInfo mInfo in machines)
+            {
+                WriteMachineStateLinks(mInfo, writer);
+            }
+
+            foreach (MachineInfo mInfo in machines)
+            {
+                foreach(string stateName in mInfo.GetAllStates())
+                {
+                    WriteStateTransitions(ResolutionHelper.Instance().GetState(stateName), writer);
+                }
+            }
+            writer.WriteEndElement(/*"Links"*/);
+
+            WriteAppendix(writer);
+
+            writer.WriteEndElement(/*DirectedGraph*/);
+        }
+
+        private static void WriteAppendix(XmlTextWriter writer)
+        {
+            // Properties : Define custom properties to show Ignored, Deferred and Handled events
+            writer.WriteStartElement("Properties");
+            
+            string[] customProperties = {
+                "Ignores", "Defers", "Handles",
+            };
+            foreach (string propertyName in customProperties)
+            {
+                writer.WriteStartElement("Property");
+                writer.WriteAttributeString("Id", propertyName);
+                writer.WriteAttributeString("DataType", "System.String");
                 writer.WriteEndElement();
             }
+            
+            writer.WriteEndElement(/*"Properties"*/);
+            
+
+            // Categories
+            writer.WriteStartElement("Categories");
+
+            writer.WriteStartElement("Category");
+            writer.WriteAttributeString("Id", "GotoTransition");
+            writer.WriteEndElement();
+            writer.WriteStartElement("Category");
+            writer.WriteAttributeString("Id", "PushTransition");
+            writer.WriteAttributeString("StrokeDashArray", "2");
+            writer.WriteEndElement(/*"Category"*/);
+
+            writer.WriteEndElement(/*"Categories"*/);
         }
-        public static void WriteMachineStates(MachineDeclaration mdecl, XmlTextWriter writer)
+
+        public static void WriteMachine(MachineInfo machineInfo, XmlTextWriter writer)
         {
-            var machine = mdecl.Identifier.Text;
-            foreach (var sdecl in mdecl.GetAllStateDeclarations())
+            writer.WriteStartElement("Node");
+            writer.WriteAttributeString("Id", machineInfo.uniqueName);
+            writer.WriteAttributeString("Group", "Expanded");
+            writer.WriteEndElement(/*"Node"*/);
+        }
+        public static void WriteMachineStateLinks(MachineInfo mInfo, XmlTextWriter writer)
+        {
+            var machine = mInfo.uniqueName;
+            foreach (string stateName in mInfo.GetAllStates() )
             {
+                writer.WriteStartElement("Link");
+                writer.WriteAttributeString("Source", machine);
+                writer.WriteAttributeString("Target", stateName);
+                writer.WriteAttributeString("Category", "Contains");
+                writer.WriteEndElement(/*"Link"*/);
+            }
+        }
+
+
+        public static void WriteMachineStates(MachineInfo machineInfo, XmlTextWriter writer)
+        {
+            var machine = machineInfo.uniqueName;
+            writer.WriteComment(String.Format("Start states for Machine '{0}'", machineInfo.uniqueName));
+            foreach (string stateName in machineInfo.GetAllStates())
+            {
+                StateInfo stateInfo = ResolutionHelper.Instance().GetState( stateName );
+                StateDeclaration sdecl = stateInfo.stateDeclaration;
                 writer.WriteStartElement("Node");
-                writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
-                writer.WriteAttributeString("Label", sdecl.Identifier.Text);
+                writer.WriteAttributeString("Id", string.Format("{0}::{1}", machine, stateName));
+                writer.WriteAttributeString("Label", FriendlyName(stateName) );
 
                 if ( /*TODO*/ true)
                 {
@@ -40,49 +135,35 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
                 writer.WriteEndElement();
             }
+            writer.WriteComment(String.Format("End states for Machine '{0}'", machineInfo.uniqueName));
         }
 
-        public static void WriteMachineStateLinks(MachineDeclaration mdecl, XmlTextWriter writer)
-        {
-            var machine = mdecl.Identifier.Text;
-            foreach (var sdecl in mdecl.GetAllStateDeclarations())
+        public static void WriteStateTransitions(StateInfo sInfo, XmlTextWriter writer) {
+
+            string sourceStateName = sInfo.uniqueName;
+            writer.WriteComment(String.Format("Start outgoing transitions from {0}", sourceStateName));
+            foreach (var kvp in sInfo.GetGotoTransitions())
             {
                 writer.WriteStartElement("Link");
-                writer.WriteAttributeString("Source", machine);
-                writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
-                writer.WriteAttributeString("Category", "Contains");
+                writer.WriteAttributeString("Source", sourceStateName);
+                writer.WriteAttributeString("Target", kvp.Value);
+                writer.WriteAttributeString("Category", "GotoTransition");
+                writer.WriteAttributeString("Label", FriendlyName(kvp.Key) );
                 writer.WriteEndElement();
             }
-        }
 
-        public static void WriteStateTransitions(MachineDeclaration mdecl, XmlTextWriter writer)
-        {
-            var machine = mdecl.Identifier.Text;
-            foreach (var sdecl in mdecl.GetAllStateDeclarations())
+            foreach (var kvp in sInfo.GetPushTransitions())
             {
-                foreach (var kvp in sdecl.GotoStateTransitions)
-                {
-                    string targetState = string.Join(".", kvp.Value.Select(s => s.Text));
-                    writer.WriteStartElement("Link");
-                    writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
-                    writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, targetState));
-                    writer.WriteAttributeString("Category", "GotoTransition");
-                    writer.WriteAttributeString("Label", kvp.Key.Text);
-                    writer.WriteEndElement();
-                }
-
-                foreach (var kvp in sdecl.PushStateTransitions)
-                {
-                    string targetState = string.Join(".", kvp.Value.Select(s => s.Text));
-                    writer.WriteStartElement("Link");
-                    writer.WriteAttributeString("Source", string.Format("{0}::{1}", machine, sdecl.GetFullyQualifiedName('.')));
-                    writer.WriteAttributeString("Target", string.Format("{0}::{1}", machine, targetState));
-                    writer.WriteAttributeString("Category", "PushTransition");
-                    writer.WriteAttributeString("Label", kvp.Key.Text);
-                    writer.WriteEndElement();
-                }
+                writer.WriteStartElement("Link");
+                writer.WriteAttributeString("Source", sourceStateName);
+                writer.WriteAttributeString("Target", kvp.Value);
+                writer.WriteAttributeString("Category", "PushTransition");
+                writer.WriteAttributeString("Label", FriendlyName(kvp.Key));
+                writer.WriteEndElement();
             }
+            writer.WriteComment(String.Format("End outgoing transitions from {0}", sourceStateName));
         }
+        
 
         
 

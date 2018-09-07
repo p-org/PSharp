@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
             {
                 Console.WriteLine(" -- start program --");
-                ResolutionHelper.Instance().PopulateLookup(prog);
+                ResolutionHelper.Instance().populateMachines(prog);
                 int x = 5;
                 if (x > 4)
                 {
@@ -246,81 +246,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             writer.Indentation = 2;
 
             // Starts DirectedGraph element.
-            writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
+            
+            DgmlWriter.WriteAll(ResolutionHelper.Instance().GetAllMachines(), writer);
 
-            // Starts Nodes element.
-            writer.WriteStartElement("Nodes");
-
-            // Iterates machines.
-            foreach (var ndecl in prog.NamespaceDeclarations)
-            {
-                DgmlWriter.WriteMachines(ndecl, writer);
-            }
-
-            // Iterates states.
-            foreach (var ndecl in prog.NamespaceDeclarations)
-            {
-                foreach (var mdecl in ndecl.MachineDeclarations)
-                {
-                    DgmlWriter.WriteMachineStates(mdecl, writer);
-                }
-            }
-
-            // Ends Nodes element.
-            writer.WriteEndElement();
-
-            // Starts Links element.
-            writer.WriteStartElement("Links");
-
-            // Iterates states.
-            foreach (var ndecl in prog.NamespaceDeclarations)
-            {
-                foreach (var mdecl in ndecl.MachineDeclarations)
-                {
-                    DgmlWriter.WriteMachineStateLinks(mdecl, writer);
-                }
-            }
-
-            // Iterates state annotations.
-            foreach (var ndecl in prog.NamespaceDeclarations)
-            {
-                foreach (var mdecl in ndecl.MachineDeclarations)
-                {
-                    DgmlWriter.WriteStateTransitions(mdecl, writer);
-                }
-            }
-            // Ends Links element.
-            writer.WriteEndElement();
-
-            // Starts Properties element.
-            writer.WriteStartElement("Properties");
-            // Define custom properties to show Ignored, Deferred and Handled events
-            string[] customProperties = {
-                "Ignores", "Defers", "Handles",
-            };
-            foreach (string propertyName in customProperties)
-            {
-                writer.WriteStartElement("Property");
-                writer.WriteAttributeString("Id", propertyName);
-                writer.WriteAttributeString("DataType", "System.String");
-                writer.WriteEndElement();
-            }
-            // Ends Properties element.
-            writer.WriteEndElement();
-
-            // Starts Categories element
-            writer.WriteStartElement("Categories");
-
-            writer.WriteStartElement("Category");
-            writer.WriteAttributeString("Id", "GotoTransition");
-            writer.WriteEndElement();
-            writer.WriteStartElement("Category");
-            writer.WriteAttributeString("Id", "PushTransition");
-            writer.WriteAttributeString("StrokeDashArray", "2");
-            writer.WriteEndElement();
-
-            // Ends Categories element.
-            writer.WriteEndElement();
 
             // Ends DirectedGraph element.
             writer.WriteEndElement();

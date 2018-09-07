@@ -42,6 +42,19 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         }
 
+        internal MachineInfo GetMachine(string machineName)
+        {
+            return machineLookup[machineName];
+        }
+        internal StateInfo GetState(string stateName)
+        {
+            return stateLookup[stateName];
+        }
+        internal EventInfo GetEvent(string eventName)
+        {
+            return eventLookup[eventName];
+        }
+
         // Prevent multiple instances? 
         private ResolutionHelper() {
             machineLookup = new Dictionary<string, MachineInfo>();
@@ -62,6 +75,17 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         public static string baseTypeTokenListToIdentifier(List<Token> baseTypeTokenList)
         {
             return String.Join("", baseTypeTokenList.Select( x => x.Text) );
+        }
+
+
+        public static string TokenListToStateName(List<Token> tokenList)
+        {
+            return String.Join("", tokenList);
+        }
+
+        public static string TokenListToEventName(List<Token> tokenList)
+        {
+            return String.Join("", tokenList);
         }
 
         /* TODO: Can these be made private? */
@@ -123,7 +147,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         #region populate api
 
-        public void PopulateLookup(PSharpProgram prog)
+        public void populateMachines(PSharpProgram prog)
         {
             foreach (var ns in prog.NamespaceDeclarations)
             {
@@ -238,6 +262,11 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             {
                 return null;
             }
+        }
+
+        internal List<MachineInfo> GetAllMachines()
+        {
+            return machineLookup.Values.ToList();
         }
 
         /// <summary>
