@@ -464,7 +464,7 @@ namespace Microsoft.PSharp
             this.SolutionFilePath = string.Empty;
             this.OutputFilePath = string.Empty;
             this.ProjectName = string.Empty;
-            
+
             this.Timeout = 0;
 
             this.CompilationTarget = CompilationTarget.Execution;

@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.Utilities;
 using System;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.IO
 {
@@ -33,16 +33,15 @@ namespace Microsoft.PSharp.IO
         public bool IsVerbose => this.Configuration.Verbose >= LoggingVerbosity;
 
         /// <summary>
-        /// Constructs the logger. The logger will be assigned the Runtime's Configuration
-        /// object when it is passed to <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
+        /// Constructs the logger. The logger will be assigned the runtime
+        /// <see cref="PSharp.Configuration"/> object when it is passed to
+        /// <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public MachineLogger(int loggingVerbosity = 2)
         {
             this.LoggingVerbosity = loggingVerbosity;
         }
-
-        #region output
 
         /// <summary>
         /// Writes the specified string value.
@@ -71,10 +70,6 @@ namespace Microsoft.PSharp.IO
         /// <param name="format">Text</param>
         /// <param name="args">Arguments</param>
         public abstract void WriteLine(string format, params object[] args);
-
-        #endregion output
-
-        #region events
 
         /// <summary>
         /// Called when an event is about to be enqueued to a machine.
@@ -155,7 +150,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="newStateName">The target state of goto.</param>
         public void OnGoto(MachineId machineId, string currStateName, string newStateName)
         {
-            if(this.IsVerbose)
+            if (this.IsVerbose)
             {
                 this.WriteLine(FormatOnGotoString(machineId, currStateName, newStateName));
             }
@@ -171,11 +166,11 @@ namespace Microsoft.PSharp.IO
         {
             return $"<GotoLog> Machine '{machineId}' is transitioning from state '{currStateName}' to state '{newStateName}'.";
         }
-        
+
         /// <summary>
         /// Called when a machine is being pushed to a state.
         /// </summary>
-        /// <param name="machineId">Id of the machine being pushed to the state</param>
+        /// <param name="machineId">Id of the machine being pushed to the state.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The state the machine is pushed to.</param>
         public virtual void OnPush(MachineId machineId, string currStateName, string newStateName)
@@ -189,7 +184,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Returns a string formatted for the <see cref="OnPush"/> event and its parameters.
         /// </summary>
-        /// <param name="machineId">Id of the machine being pushed to the state</param>
+        /// <param name="machineId">Id of the machine being pushed to the state.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
         /// <param name="newStateName">The state the machine is pushed to.</param>
         public virtual string FormatOnPushString(MachineId machineId, string currStateName, string newStateName)
@@ -225,7 +220,7 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
-        /// When an event cannot be handled in the current state, its exit handler is executed and then the state is 
+        /// When an event cannot be handled in the current state, its exit handler is executed and then the state is
         /// popped and any previous "current state" is reentered. This handler is called when that pop has been done.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>
@@ -317,8 +312,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an BaseMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
@@ -336,12 +330,12 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="targetMachineId">Id of the target machine.</param>
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
-        /// <param name="senderStateName">The name of the current state of the sender machine, if applicable
-        ///     (if it is a non-Machine specialization of an BaseMachine, it is not applicable).</param>
+        /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
-        public virtual string FormatOnSendString(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName, Guid? operationGroupId, bool isTargetHalted)
+        public virtual string FormatOnSendString(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName,
+            Guid? operationGroupId, bool isTargetHalted)
         {
             var guid = (operationGroupId.HasValue && operationGroupId.Value != Guid.Empty) ?
                 operationGroupId.Value.ToString() : "<none>";
@@ -718,15 +712,9 @@ namespace Microsoft.PSharp.IO
             return $"<StrategyLog> Found bug using '{strategy}' strategy.{desc}";
         }
 
-        #endregion output
-
-        #region IDisposable
-
         /// <summary>
         /// Disposes the logger.
         /// </summary>
         public abstract void Dispose();
-
-        #endregion IDisposable
     }
 }

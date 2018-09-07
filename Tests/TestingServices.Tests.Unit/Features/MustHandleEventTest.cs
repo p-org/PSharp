@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
-                foreach(var report in bugReports)
+                foreach (var report in bugReports)
                 {
                     if (report != bugReport1 && report != bugReport2)
                     {

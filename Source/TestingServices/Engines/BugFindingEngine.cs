@@ -147,6 +147,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (base.Configuration.EnableDataRaceDetection)
             {
+                // Create a reporter to monitor operations for race detection.
                 this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
             }
 
@@ -301,7 +302,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             // Runtime used to serialize and test the program in this iteration.
-            BugFindingRuntime runtime = null;
+            TestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -316,18 +317,17 @@ namespace Microsoft.PSharp.TestingServices
                 // Creates a new instance of the bug-finding runtime.
                 if (base.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                    runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
                         new object[] { base.Configuration, base.Strategy, base.Reporter });
                 }
                 else
                 {
-                    runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
                 }
 
                 if (base.Configuration.EnableDataRaceDetection)
                 {
-                    // Create a reporter to monitor interesting operations for race detection
-                    this.Reporter.SetRuntime(runtime);
+                    this.Reporter.RegisterRuntime(runtime);
                 }
 
                 // If verbosity is turned off, then intercept the program log, and also dispose
@@ -378,7 +378,7 @@ namespace Microsoft.PSharp.TestingServices
                 // checked if no safety property violations have been found.
                 if (!runtime.Scheduler.BugFound)
                 {
-                    runtime.AssertNoMonitorInHotStateAtTermination();
+                    runtime.CheckNoMonitorInHotStateAtTermination();
                 }
 
                 if (runtime.Scheduler.BugFound)
@@ -429,8 +429,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Gathers the exploration strategy statistics for
         /// the latest testing iteration.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        private void GatherIterationStatistics(BugFindingRuntime runtime)
+        /// <param name="runtime">TestingRuntime</param>
+        private void GatherIterationStatistics(TestingRuntime runtime)
         {
             TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
@@ -440,8 +440,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        private void ConstructReproducableTrace(BugFindingRuntime runtime)
+        /// <param name="runtime">TestingRuntime</param>
+        private void ConstructReproducableTrace(TestingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
 

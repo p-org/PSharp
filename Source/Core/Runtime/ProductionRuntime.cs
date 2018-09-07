@@ -612,7 +612,7 @@ namespace Microsoft.PSharp.Runtime
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         internal override bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue)
         {
@@ -646,7 +646,7 @@ namespace Microsoft.PSharp.Runtime
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal override int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue)
         {

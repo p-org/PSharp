@@ -292,7 +292,7 @@ namespace Microsoft.PSharp
         /// during analysis or testing. The value is used to generate a number
         /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         public bool Random(int maxValue)
         {
@@ -304,7 +304,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing. The value is used
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         public int RandomInteger(int maxValue)
         {
@@ -515,7 +515,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         internal abstract bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
 
@@ -533,7 +533,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal abstract int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
 

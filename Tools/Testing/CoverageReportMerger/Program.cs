@@ -35,19 +35,19 @@ namespace Microsoft.PSharp
 
         static void Main(string[] args)
         {
-            if(!ParseArgs(args))
+            if (!ParseArgs(args))
             {
                 return;
             }
 
-            if(InputFiles.Count == 0)
+            if (InputFiles.Count == 0)
             {
                 Console.WriteLine("Error: No input files provided");
                 return;
             }
             
             var cinfo = new CoverageInfo();
-            foreach(var other in InputFiles)
+            foreach (var other in InputFiles)
             {
                 cinfo.Merge(other);
             }

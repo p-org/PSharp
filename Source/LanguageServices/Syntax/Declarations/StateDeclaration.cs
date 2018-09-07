@@ -336,6 +336,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite(int indentLevel)
         {
             string text = string.Empty;
+
             try
             {
                 text = this.GetRewrittenStateDeclaration(indentLevel);
@@ -531,7 +532,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             string text = string.Empty;
-
             foreach (var transition in this.GotoStateTransitions)
             {
                 var onExitName = string.Empty;
@@ -594,7 +594,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             string text = string.Empty;
-
             foreach (var transition in this.PushStateTransitions)
             {
                 text += indent + "[OnEventPushState(";
@@ -640,7 +639,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             string text = string.Empty;
-
             foreach (var binding in this.ActionBindings)
             {
                 var actionName = string.Empty;

@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.TestingServices
             Task task = new Task(() =>
             {
                 // Runtime used to serialize and test the program.
-                BugFindingRuntime runtime = null;
+                TestingRuntime runtime = null;
 
                 // Logger used to intercept the program output if no custom logger
                 // is installed and if verbosity is turned off.
@@ -164,12 +164,12 @@ namespace Microsoft.PSharp.TestingServices
                     // Creates a new instance of the bug-finding runtime.
                     if (base.TestRuntimeFactoryMethod != null)
                     {
-                        runtime = (BugFindingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                        runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
                             new object[] { base.Configuration, base.Strategy, base.Reporter });
                     }
                     else
                     {
-                        runtime = new BugFindingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                        runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
                     }
 
 
@@ -211,7 +211,7 @@ namespace Microsoft.PSharp.TestingServices
                     // checked if no safety property violations have been found.
                     if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                     {
-                        runtime.AssertNoMonitorInHotStateAtTermination();
+                        runtime.CheckNoMonitorInHotStateAtTermination();
                     }
 
                     if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)

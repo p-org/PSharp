@@ -171,6 +171,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             string text = string.Empty;
             string newLine = string.Empty;
+
             try
             {
                 text = this.GetRewrittenMachineDeclaration(indentLevel, ref newLine);

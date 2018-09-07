@@ -221,7 +221,7 @@ namespace Microsoft.PSharp
             this.OnExceptionRequestedGracefulHalt = false;
         }
 
-        #region P# user API
+        #region user interface
 
         /// <summary>
         /// Creates a new machine of the specified type and with the specified
@@ -511,7 +511,7 @@ namespace Microsoft.PSharp
         /// to generate a number in the range [0..maxValue), where 0
         /// triggers true.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         protected bool Random(int maxValue)
         {
@@ -541,7 +541,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing. The value is used
         /// to generate an integer in the range [0..maxValue).
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         protected int RandomInteger(int maxValue)
         {
@@ -1818,7 +1818,7 @@ namespace Microsoft.PSharp
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method</returns>
         private bool OnExceptionHandler(string methodName, Exception ex)
         {
-            if(ex is ExecutionCanceledException)
+            if (ex is ExecutionCanceledException)
             {
                 // internal exception, used by PsharpTester
                 return false;

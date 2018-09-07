@@ -11,7 +11,7 @@ using Microsoft.PSharp.TestingServices;
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Shared dictionary that can be safely shared by multiple P# state-machines.
+    /// Shared dictionary that can be safely shared by multiple P# machines.
     /// </summary>
     public static class SharedDictionary
     {
@@ -25,9 +25,9 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedDictionary<TKey, TValue>();
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is TestingServices.TestingRuntime)
             {
-                return new MockSharedDictionary<TKey, TValue>(null, runtime as BugFindingRuntime);
+                return new MockSharedDictionary<TKey, TValue>(null, runtime as TestingRuntime);
             }
             else
             {
@@ -46,9 +46,9 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedDictionary<TKey, TValue>(comparer);
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is TestingServices.TestingRuntime)
             {
-                return new MockSharedDictionary<TKey, TValue>(comparer, runtime as BugFindingRuntime);
+                return new MockSharedDictionary<TKey, TValue>(comparer, runtime as TestingRuntime);
             }
             else
             {

@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// Class implementing the P# bug-finding runtime.
     /// </summary>
-    internal sealed class BugFindingRuntime : PSharpRuntime
+    internal sealed class TestingRuntime : PSharpRuntime
     {
         /// <summary>
         /// The bug-finding scheduler.
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="strategy">SchedulingStrategy</param>
         /// <param name="reporter">Reporter to register runtime operations.</param>
         /// </summary>
-        internal BugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
+        internal TestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration)
         {
             this.Initialize();
@@ -803,7 +803,7 @@ namespace Microsoft.PSharp.TestingServices
 
                     await machine.RunEventHandler();
 
-                    if(syncCaller != null)
+                    if (syncCaller != null)
                     {
                         this.SendEvent(syncCaller, new QuiescentEvent(machine.Id));
                     }
@@ -1035,7 +1035,7 @@ namespace Microsoft.PSharp.TestingServices
         /// If the program is still running, then this method returns without
         /// performing a check.
         /// </summary>
-        internal void AssertNoMonitorInHotStateAtTermination()
+        internal void CheckNoMonitorInHotStateAtTermination()
         {
             if (!this.Scheduler.HasFullyExploredSchedule)
             {
@@ -1063,7 +1063,7 @@ namespace Microsoft.PSharp.TestingServices
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="caller">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         internal override bool GetNondeterministicBooleanChoice(BaseMachine caller, int maxValue)
         {
@@ -1113,7 +1113,7 @@ namespace Microsoft.PSharp.TestingServices
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="caller">Machine</param>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal override int GetNondeterministicIntegerChoice(BaseMachine caller, int maxValue)
         {

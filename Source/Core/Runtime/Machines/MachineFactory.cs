@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Microsoft.PSharp.Runtime
-
 {
     /// <summary>
     /// Factory for creating machines.
