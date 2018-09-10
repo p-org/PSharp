@@ -3,23 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 /* Used by tests to verify correctness */
 namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     #region Top Level Types
-    abstract class Edge
+    public abstract class Edge
     {
         string eventName;
         string targetName;
         
         public Edge(string evt, string tgt)
         {
-            eventName = evt;
+            eventName = (evt!=null)? evt : "(NULL)";
             targetName = tgt;
         }
 
-        public override int GetHashCode() 
+        /*public override int GetHashCode() 
         {
             return (int)(((long)eventName.GetHashCode() + targetName.GetHashCode() + GetType().GetHashCode() )/3);
         }
@@ -29,12 +30,29 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {   Edge e = obj as Edge;
             return (e.GetType() == this.GetType() && e.eventName == this.eventName && e.targetName == this.targetName);
         }
+        */
+
+        internal string DumpString()
+        {
+            return String.Format("({0},{1})", eventName, targetName);
+        }
     }
 
-    abstract class Vertex
+    public abstract class Vertex
     {
         string vertexName;
         HashSet<Edge> edges;
+
+        internal Vertex(string vName)
+        {
+            vertexName = vName;
+            edges = new HashSet<Edge>();
+        }
+        internal void AddEdge(Edge edge)
+        {
+            edges.Add(edge);
+        }
+
         public Vertex(string vName, Edge[] edgeArray)
         {
             vertexName = vName;
@@ -45,7 +63,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
         }
 
-
+        /*
         public override int GetHashCode()
         {
             return (int)(((long)vertexName.GetHashCode() + GetType().GetHashCode()) / 2);
@@ -55,31 +73,42 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             Vertex v = obj as Vertex;
             return (v.GetType() == this.GetType() && this.vertexName == v.vertexName);
-        }
+        }*/
 
         internal bool DeepCheckEquality(Vertex otherVertex)
         {
             return (
-                this.Equals(otherVertex) && 
+                this.GetType() == otherVertex.GetType() &&
+                this.vertexName == otherVertex.vertexName && 
                 this.edges.Count == otherVertex.edges.Count && 
                 this.edges.All(e => otherVertex.edges.Contains(e))
             );
+        }
+
+        public string DumpString()
+        {
+            string edgeStr = string.Join(", ", edges.Select(x=>x.DumpString()));
+            return String.Format("{0}({1}){{ {2} }}", this.GetType().Name, this.vertexName, edgeStr);
         }
     }
 
     public class StateMachineGraph
     {
         HashSet<Vertex> vertices;
+        public StateMachineGraph() {
+            vertices = new HashSet<Vertex>();
+        }
         // Handy constructor for Easy definition
-        StateMachineGraph(Vertex [] vertexArray)
+        public StateMachineGraph(Vertex[] vertexArray)
         {
+            vertices = new HashSet<Vertex>(vertexArray);
             if (vertices.Count != vertexArray.Length)
             {
                 throw new Exception("Duplicate Vertices");
             }
         }
 
-        bool DeepCheckEquality(StateMachineGraph G)
+        public bool DeepCheckEquality(StateMachineGraph G)
         {
             if (G.vertices.Count != this.vertices.Count)
             {
@@ -92,48 +121,166 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 // TryGetValue is a funny thing
                 otherVertices.Add(v, v);
             }
-            foreach(var v in G.vertices)
+            foreach (var v in G.vertices)
             {
-                if ( ! (otherVertices.ContainsKey(v) && v.DeepCheckEquality(otherVertices[v]) ) ){
+                if (!(otherVertices.ContainsKey(v) && v.DeepCheckEquality(otherVertices[v]))) {
                     return false;
                 }
             }
             return true;
         }
+
+        public string DumpString(){
+            return String.Join( ", ", vertices.Select(v => v.DumpString()) );
+        }
+
+        internal void AddVertex(Vertex vertex)
+        {
+            vertices.Add(vertex);
+        }
     }
     #endregion
     #region Specific Types
-    class M : Vertex {
-        public M(string vName, Edge[] edgeArray) : 
+    public class MachineVertex : Vertex {
+        internal MachineVertex(string vName) :
+            base(vName)
+        { }
+        public MachineVertex(string vName, Edge[] edgeArray) : 
             base(vName, edgeArray) { }
     }
-    class S : Vertex {
-        public S(string vName, Edge[] edgeArray) :
+    public class StateVertex : Vertex {
+        internal StateVertex(string vName) : 
+            base(vName) { }
+
+        public StateVertex(string vName, Edge[] edgeArray) :
             base(vName, edgeArray) { }
+        
     }
 
 
     // Link representing a Contains relation
-    class IN : Edge
+    public class ContainsLink : Edge
     {
-        public IN(string evt, string tgt) :
+        public ContainsLink(string evt, string tgt) :
             base(evt, tgt)
         { }
     }
 
     // Link representing GoTo transition
-    class GT : Edge
+    public class GotoTransition : Edge
     {
-        public GT(string evt, string tgt) : 
+        public GotoTransition(string evt, string tgt) : 
             base ( evt, tgt ) { }
     }
 
     // Link representing Push transition
-    class PT : Edge
+    public class PushTransition : Edge
     {
-        public PT(string evt, string tgt) :
+        public PushTransition(string evt, string tgt) :
             base(evt, tgt)
         { }
+    }
+    #endregion
+
+    #region dgml parser
+    public class DgmlParser {
+
+        private static XNamespace dgmlNamespace  = "http://schemas.microsoft.com/vs/2009/dgml";
+
+        public DgmlParser()
+        {
+
+        }
+        public StateMachineGraph parseDgml(XDocument xdoc)
+        {
+            
+            StateMachineGraph G = new StateMachineGraph();
+            Dictionary<string, Vertex> vertices = new Dictionary<string, Vertex>();
+            HashSet<Edge> edges = new HashSet<Edge>();
+
+            var vertexNodes = xdoc.Descendants(dgmlNamespace + "Node");
+            var linkNodes = xdoc.Descendants(dgmlNamespace  + "Link");
+            foreach (XElement node in vertexNodes)
+            {
+                Vertex v = ProcessNode(node, G);
+                if (v != null) {
+                    vertices.Add(node.Attribute("Id").Value, v);
+                }
+            }
+
+            foreach (XElement node in linkNodes)
+            {
+
+                Edge e = ProcessLink(node);
+                if (e != null)
+                {
+                    string sourceVertexName = node.Attribute("source").Value;
+                    //string targetVertexName = node.Attribute("target").Value;
+                    if (vertices.ContainsKey(sourceVertexName))
+                    {
+                        vertices[sourceVertexName].AddEdge(e);
+                    }
+                    else
+                    {
+                        throw new Exception("Unkown vertex with name: " + sourceVertexName);
+                    }
+                }
+            }
+            foreach ( var vertex in vertices.Values)
+            {
+                G.AddVertex(vertex);
+            }
+            return G;
+        }
+
+        private string FriendlyName(string localName)
+        {
+            return localName.Split( new char[]{'.'} ).Last();
+        }
+
+        private Vertex ProcessNode(XElement node, StateMachineGraph G)
+        {
+            Console.WriteLine(node.Attribute("NodeType").Value);
+            switch (node.Attribute("NodeType").Value)
+            {
+                case "Machine":
+                    return new MachineVertex(node.Attribute("Id").Value);
+
+                case "State":
+                    return new StateVertex(node.Attribute("Id").Value);
+
+                default:
+                    return null;
+            }
+        }
+
+        private Edge ProcessLink(XElement node)
+        {
+            if (node.Attribute("LinkType") != null)
+            {
+                string evt = (node.Attribute("label")!=null)? node.Attribute("label").Value : null;
+                string tgt = node.Attribute("target").Value;
+                switch (node.Attribute("LinkType").Value)
+                {
+                    case "Contains":
+                        return new ContainsLink(evt, tgt);
+
+                    case "GotoTransition":
+                        return new GotoTransition(evt, tgt);
+
+                    case "PushTransition":
+                        return new PushTransition(evt, tgt);
+
+                    default:
+                        return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+
+        }
     }
     #endregion
 
