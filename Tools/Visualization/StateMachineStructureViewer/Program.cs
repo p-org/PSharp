@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             foreach (var minfoKv in ResolutionHelper.Instance().machineLookup)
             {
                 List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(minfoKv.Value.program);
-                minfoKv.Value.resolveBaseMachine(activeNamespaces);
+                minfoKv.Value.resolveBaseMachine();
                 Console.WriteLine("{0} < {1} ", minfoKv.Value.uniqueName, (minfoKv.Value.baseMachine != null) ? minfoKv.Value.baseMachine.uniqueName : "null");
             }
             
@@ -206,8 +206,10 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 ParsingEngine.Create(context).Run();
                 ResolutionHelper resolutionHelper = ResolutionHelper.Instance();
                 resolutionHelper.PopulateMachines(context.GetProjects()[0].PSharpPrograms);
+
                 foreach (MachineInfo machineInfo in resolutionHelper.GetAllMachines())
                 {
+                    machineInfo.resolveBaseMachine();
                     resolutionHelper.PopulateStates(machineInfo);
                     resolutionHelper.PopulateEvents(machineInfo);
                 }
