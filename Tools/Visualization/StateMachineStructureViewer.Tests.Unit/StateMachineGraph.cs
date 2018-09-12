@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 /* Used by tests to verify correctness */
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
 {
     #region Top Level Types
     public abstract class Edge
