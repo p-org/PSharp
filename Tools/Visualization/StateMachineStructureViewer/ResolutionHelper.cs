@@ -41,6 +41,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             return singletonInstance;
 
         }
+        public static void ResetToNewInstance()
+        {
+            lock (singletonLock)
+            {
+                singletonInstance = new ResolutionHelper();
+            }
+        }
 
         internal MachineInfo GetMachine(string machineName)
         {

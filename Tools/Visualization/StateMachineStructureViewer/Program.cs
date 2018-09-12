@@ -31,6 +31,11 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
     /// </summary>
     public class StateDiagramViewer
     {
+        public static void ResetResolutionHelper()
+        {
+            ResolutionHelper.ResetToNewInstance();
+        }
+
         public static string GetDgmlForProgram(string prog)
         {
             Version csVersion = new Version(0, 0);

@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
 	<Link Source=""ns1.m1.s1"" Event=""ns1.m1.e2"" Label=""e2"" Target=""ns1.m1.s2"" Category=""GotoTransition""/>
   </Links>
 </DirectedGraph>";
-
+            // Program looks something like this:
             /*using System;
             namespace DgmlWriterTests.StateGroupTest
             {
@@ -100,18 +100,6 @@ namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
             Console.WriteLine(dumpstr2);
 
             Assert.True(expectedGraph.DeepCheckEquality(G));
-        }
-
-        [Fact]
-        public void TestMachineStateInheritance()
-        {
-            Assert.True(false);
-        }
-
-        [Fact]
-        public void TestStateMachineStructureViewerStateGroup()
-        {
-            Assert.True(false);
         }
     }
 }
