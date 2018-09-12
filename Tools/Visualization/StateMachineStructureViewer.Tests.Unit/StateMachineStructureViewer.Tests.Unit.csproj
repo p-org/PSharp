@@ -11,9 +11,10 @@
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
-
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
     <ProjectReference Include="..\StateMachineStructureViewer\StateMachineStructureViewer.csproj" />
+	<ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
   </ItemGroup>
 
 </Project>

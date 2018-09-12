@@ -31,6 +31,18 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
     /// </summary>
     public class StateDiagramViewer
     {
+        public static string GetDgmlForProgram(string prog)
+        {
+            Version csVersion = new Version(0, 0);
+            Configuration configuration = Configuration.Create();
+            configuration.Verbose = 2;
+            configuration.RewriteCSharpVersion = csVersion;
+            var context = CompilationContext.Create(configuration);
+
+            context.LoadSolution(prog);
+            return StateDiagramViewer.CreateDgml(context, out string errors, csVersion);
+        }
+
         static void Main(string[] args)
         {
             var infile = string.Empty;
@@ -124,6 +136,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     Output.WriteLine("Error: {0}", e.Message);
                     return;
                 }
+                //Console.WriteLine("Gonna do it");
+                //Console.WriteLine(GetDgmlForProgram(input_string));
+                //return;
                 context = CompilationContext.Create(configuration).LoadSolution(input_string);
             }
 
@@ -152,46 +167,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
             Output.WriteLine("{0}", result);
         }
-
-        private static void testStuff(CompilationContext context, out string errors)
-        {
-            errors = null;
-            ParsingEngine.Create(context).Run();
-            Console.WriteLine("Found nPsharpPrograms=" + context.GetProjects()[0].PSharpPrograms.Count);
-            
-            foreach (PSharpProgram prog in context.GetProjects()[0].PSharpPrograms)
-            {
-                Console.WriteLine(" -- start program --");
-                
-                int x = 5;
-                if (x > 4)
-                {
-                    foreach (var ns in prog.NamespaceDeclarations)
-                    {
-                        Console.WriteLine(ns.QualifiedName);
-                    }
-                    List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(prog);
-                    foreach (var asn in activeNamespaces)
-                    {
-                        Console.WriteLine("- " + asn);
-                    }
-                }
-                Console.WriteLine(" -- end program --");
-            }
-
-
-            foreach (var minfoKv in ResolutionHelper.Instance().machineLookup)
-            {
-                List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(minfoKv.Value.program);
-                minfoKv.Value.resolveBaseMachine(activeNamespaces);
-                Console.WriteLine("{0} < {1} ", minfoKv.Value.uniqueName, (minfoKv.Value.baseMachine != null) ? minfoKv.Value.baseMachine.uniqueName : "null");
-            }
-            
-            
-            
-
-        }
-
 
         /// <summary>
         /// Produces the Dgml file for the given program

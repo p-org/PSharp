@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             targetName = tgt;
         }
 
-        /*public override int GetHashCode() 
+        public override int GetHashCode() 
         {
             return (int)(((long)eventName.GetHashCode() + targetName.GetHashCode() + GetType().GetHashCode() )/3);
         }
@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {   Edge e = obj as Edge;
             return (e.GetType() == this.GetType() && e.eventName == this.eventName && e.targetName == this.targetName);
         }
-        */
+        
 
         internal string DumpString()
         {
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
         }
 
-        /*
+        
         public override int GetHashCode()
         {
             return (int)(((long)vertexName.GetHashCode() + GetType().GetHashCode()) / 2);
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             Vertex v = obj as Vertex;
             return (v.GetType() == this.GetType() && this.vertexName == v.vertexName);
-        }*/
+        }
 
         internal bool DeepCheckEquality(Vertex otherVertex)
         {
@@ -185,7 +185,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
     #region dgml parser
     public class DgmlParser {
 
-        private static XNamespace dgmlNamespace  = "http://schemas.microsoft.com/vs/2009/dgml";
+        private readonly static XNamespace dgmlNamespace  = "http://schemas.microsoft.com/vs/2009/dgml";
 
         public DgmlParser()
         {

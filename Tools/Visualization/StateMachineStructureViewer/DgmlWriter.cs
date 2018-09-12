@@ -11,7 +11,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class DgmlWriter
     {
-        private static char[] unfriendlyNameSeparators = { '.' };
+        private readonly static char[] unfriendlyNameSeparators = { '.' };
         private static string FriendlyName(string uniqueName)
         {
             return uniqueName.Split(unfriendlyNameSeparators).Last();

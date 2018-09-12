@@ -9,10 +9,13 @@ namespace StateMachineStructureViewer.Tests.Unit
     using GT = GotoTransition;
     using IN = ContainsLink;
 
-    public class UnitTest1
+    /* 
+     * Set of meta tests to make sure we're not interpreting the output wrong
+     */
+    public class DgmlParserTests
     {
         [Fact]
-        public void TestStateGroup()
+        public void TestDgmlParserStateGroup()
         {
             DgmlParser dgmlParser = new DgmlParser();
             string dgml =
@@ -70,11 +73,11 @@ namespace StateMachineStructureViewer.Tests.Unit
                 }
             }";*/
 
-            StateMachineGraph G = dgmlParser.parseDgml( XDocument.Parse(dgml) );
-            string dumpstr1= G.DumpString();
+            StateMachineGraph G = dgmlParser.parseDgml(XDocument.Parse(dgml));
+            string dumpstr1 = G.DumpString();
             Console.WriteLine(dumpstr1);
 
-            
+
             StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]
             {
              new MV("m1", new Edge[]{
@@ -96,7 +99,19 @@ namespace StateMachineStructureViewer.Tests.Unit
             string dumpstr2 = expectedGraph.DumpString();
             Console.WriteLine(dumpstr2);
 
-            Assert.True( expectedGraph.DeepCheckEquality(G) );
+            Assert.True(expectedGraph.DeepCheckEquality(G));
+        }
+
+        [Fact]
+        public void TestMachineStateInheritance()
+        {
+            Assert.True(false);
+        }
+
+        [Fact]
+        public void TestStateMachineStructureViewerStateGroup()
+        {
+            Assert.True(false);
         }
     }
 }
