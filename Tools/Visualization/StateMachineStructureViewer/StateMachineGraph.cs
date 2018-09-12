@@ -214,8 +214,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 Edge e = ProcessLink(node);
                 if (e != null)
                 {
-                    string sourceVertexName = node.Attribute("source").Value;
-                    //string targetVertexName = node.Attribute("target").Value;
+                    string sourceVertexName = node.Attribute("Source").Value;
+                    //string targetVertexName = node.Attribute("Target").Value;
                     if (vertices.ContainsKey(sourceVertexName))
                     {
                         vertices[sourceVertexName].AddEdge(e);
@@ -240,8 +240,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         private Vertex ProcessNode(XElement node, StateMachineGraph G)
         {
-            Console.WriteLine(node.Attribute("NodeType").Value);
-            switch (node.Attribute("NodeType").Value)
+            Console.WriteLine(node.Attribute("Category").Value);
+            switch (node.Attribute("Category").Value)
             {
                 case "Machine":
                     return new MachineVertex(node.Attribute("Id").Value);
@@ -256,11 +256,11 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         private Edge ProcessLink(XElement node)
         {
-            if (node.Attribute("LinkType") != null)
+            if (node.Attribute("Category") != null)
             {
-                string evt = (node.Attribute("label")!=null)? node.Attribute("label").Value : null;
-                string tgt = node.Attribute("target").Value;
-                switch (node.Attribute("LinkType").Value)
+                string evt = (node.Attribute("Event")!=null)? node.Attribute("Event").Value : null;
+                string tgt = node.Attribute("Target").Value;
+                switch (node.Attribute("Category").Value)
                 {
                     case "Contains":
                         return new ContainsLink(evt, tgt);

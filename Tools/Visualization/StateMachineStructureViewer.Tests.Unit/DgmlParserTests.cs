@@ -2,7 +2,7 @@ using Microsoft.PSharp.PSharpStateMachineStructureViewer;
 using System;
 using Xunit;
 using System.Xml.Linq;
-namespace StateMachineStructureViewer.Tests.Unit
+namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
 {
     using MV = MachineVertex;
     using SV = StateVertex;
@@ -22,26 +22,26 @@ namespace StateMachineStructureViewer.Tests.Unit
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DirectedGraph xmlns=""http://schemas.microsoft.com/vs/2009/dgml"">
   <Nodes>
-	<Node Id=""m1"" label=""m1"" NodeType=""Machine""/>
-	<Node Id=""init"" NodeType=""State"" label=""init""/>
-	<Node Id=""sg1.s1"" NodeType=""State"" label=""s1""/>
-	<Node Id=""sg1.s2"" NodeType=""State"" label=""s2""/>
-	<Node Id=""s1"" NodeType=""State"" label=""s1""/>
-	<Node Id=""s2"" NodeType=""State"" label=""s2""/>
-	<Node Id=""s3"" NodeType=""State"" label=""s2""/>
+	<Node Id=""ns1.m1"" Label=""m1"" Category=""Machine""/>
+	<Node Id=""ns1.m1.init"" Category=""State"" Label=""init""/>
+	<Node Id=""ns1.m1.sg1.s1"" Category=""State"" Label=""s1""/>
+	<Node Id=""ns1.m1.sg1.s2"" Category=""State"" Label=""s2""/>
+	<Node Id=""ns1.m1.s1"" Category=""State"" Label=""s1""/>
+	<Node Id=""ns1.m1.s2"" Category=""State"" Label=""s2""/>
+	<Node Id=""ns1.m1.s3"" Category=""State"" Label=""s2""/>
   </Nodes>
   <Links>
-    <Link source=""m1"" target=""init"" LinkType=""Contains""/>
-	<Link source=""m1"" target=""sg1.s1"" LinkType=""Contains""/>
-	<Link source=""m1"" target=""sg1.s2"" LinkType=""Contains""/>
-	<Link source=""m1"" target=""s1"" LinkType=""Contains""/>
-	<Link source=""m1"" target=""s2"" LinkType=""Contains""/>
-	<Link source=""m1"" target=""s3"" LinkType=""Contains""/>
+    <Link Source=""ns1.m1"" Target=""ns1.m1.init"" Category=""Contains""/>
+	<Link Source=""ns1.m1"" Target=""ns1.m1.sg1.s1"" Category=""Contains""/>
+	<Link Source=""ns1.m1"" Target=""ns1.m1.sg1.s2"" Category=""Contains""/>
+	<Link Source=""ns1.m1"" Target=""ns1.m1.s1"" Category=""Contains""/>
+	<Link Source=""ns1.m1"" Target=""ns1.m1.s2"" Category=""Contains""/>
+	<Link Source=""ns1.m1"" Target=""ns1.m1.s3"" Category=""Contains""/>
 	
-	<Link source=""init"" label=""e1""  target=""sg1.s1"" LinkType=""GotoTransition""/>
-	<Link source=""sg1.s1"" label=""e2""  target=""sg1.s2"" LinkType=""GotoTransition""/>
-	<Link source=""sg1.s1"" label=""e3""  target=""s3"" LinkType=""GotoTransition""/>
-	<Link source=""s1"" label=""e2""  target=""s2"" LinkType=""GotoTransition""/>
+	<Link Source=""ns1.m1.init"" Event=""ns1.m1.e1"" Label=""e1""  Target=""ns1.m1.sg1.s1"" Category=""GotoTransition""/>
+	<Link Source=""ns1.m1.sg1.s1"" Event=""ns1.m1.e2"" Label=""e2""  Target=""ns1.m1.sg1.s2"" Category=""GotoTransition""/>
+	<Link Source=""ns1.m1.sg1.s1"" Event=""ns1.m1.e3"" Label=""e3""  Target=""ns1.m1.s3"" Category=""GotoTransition""/>
+	<Link Source=""ns1.m1.s1"" Event=""ns1.m1.e2"" Label=""e2"" Target=""ns1.m1.s2"" Category=""GotoTransition""/>
   </Links>
 </DirectedGraph>";
 
@@ -52,7 +52,7 @@ namespace StateMachineStructureViewer.Tests.Unit
                 {
                 event e1;
                 event e2;
-                event e2nosg;
+                event e3;
                     start state Init
                     {
                         on e1 goto sg1.s1;
@@ -65,7 +65,7 @@ namespace StateMachineStructureViewer.Tests.Unit
                         state s2{ }
                     }
 
-                    state s1{ on e2 goto s2 }
+                    state s1{ on e2 goto s2; }
 
                     state s2{ }
                     state s3{ }
@@ -80,20 +80,20 @@ namespace StateMachineStructureViewer.Tests.Unit
 
             StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]
             {
-             new MV("m1", new Edge[]{
-                 new IN(null, "init"), new IN(null, "sg1.s1"), new IN(null, "sg1.s2") ,
-                 new IN(null, "s1"), new IN(null, "s2"), new IN(null, "s3")
+             new MV("ns1.m1", new Edge[]{
+                 new IN(null, "ns1.m1.init"), new IN(null, "ns1.m1.sg1.s1"), new IN(null, "ns1.m1.sg1.s2") ,
+                 new IN(null, "ns1.m1.s1"), new IN(null, "ns1.m1.s2"), new IN(null, "ns1.m1.s3")
              }),
-             new SV("init", new Edge[]{
-                 new GT("e1", "sg1.s1")
+             new SV("ns1.m1.init", new Edge[]{
+                 new GT("ns1.m1.e1", "ns1.m1.sg1.s1")
              }),
-             new SV("sg1.s1", new Edge[] {
-                 new GT("e2", "sg1.s2"), new GT("e3", "s3")
+             new SV("ns1.m1.sg1.s1", new Edge[] {
+                 new GT("ns1.m1.e2", "ns1.m1.sg1.s2"), new GT("ns1.m1.e3", "ns1.m1.s3")
              }),
-             new SV("sg1.s2", new Edge[] { } ),
-             new SV("s1", new Edge[] { new GT("e2", "s2") } ),
-             new SV("s2", new Edge[] { } ),
-             new SV("s3", new Edge[] { } )
+             new SV("ns1.m1.sg1.s2", new Edge[] { } ),
+             new SV("ns1.m1.s1", new Edge[] { new GT("ns1.m1.e2", "ns1.m1.s2") } ),
+             new SV("ns1.m1.s2", new Edge[] { } ),
+             new SV("ns1.m1.s3", new Edge[] { } )
             });
 
             string dumpstr2 = expectedGraph.DumpString();

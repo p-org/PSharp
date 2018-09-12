@@ -1,20 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <Import Project="..\..\..\Build\common.props" />
+  <Import Project="..\..\..\Build\key.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-
-    <IsPackable>false</IsPackable>
+    <Description>Unit tests for P# StateMachineStructureViewer.</Description>
+    <AssemblyName>Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit</RootNamespace>
+    <OutputPath>.\bin\</OutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
-    <ProjectReference Include="..\StateMachineStructureViewer\StateMachineStructureViewer.csproj" />
-	<ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\StateMachineStructureViewer\StateMachineStructureViewer.csproj" />
+  </ItemGroup>
 </Project>

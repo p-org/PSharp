@@ -76,7 +76,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             writer.WriteStartElement("Properties");
             
             string[] customProperties = {
-                "Ignores", "Defers", "Handles",
+                "Ignores", "Defers", "Handles", /* Vertex properties */
+                "Event" /* Edge properties */
             };
             foreach (string propertyName in customProperties)
             {
@@ -128,6 +129,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             writer.WriteStartElement("Node");
             writer.WriteAttributeString("Id", machineInfo.uniqueName);
+            writer.WriteAttributeString("Category", "Machine");
             writer.WriteAttributeString("Label", FriendlyName(machineInfo.uniqueName));
             writer.WriteAttributeString("Group", "Expanded");
             writer.WriteEndElement(/*"Node"*/);
@@ -164,7 +166,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
                 writer.WriteStartElement("Node");
                 writer.WriteAttributeString("Id", nodeId);
-                
+                writer.WriteAttributeString("Category", "State");
                 writer.WriteAttributeString("Label", FriendlyName(stateName) );
 
                 if (stateInfo.isStartState && !isInherited)
@@ -205,6 +207,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 writer.WriteStartElement("Link");
                 writer.WriteAttributeString("Source", sourceId);
                 writer.WriteAttributeString("Target", targetId);
+                writer.WriteAttributeString("Event", kvp.Key);
                 writer.WriteAttributeString("Category", "GotoTransition");
                 writer.WriteAttributeString("Label", FriendlyName(kvp.Key) );
                 writer.WriteEndElement();
