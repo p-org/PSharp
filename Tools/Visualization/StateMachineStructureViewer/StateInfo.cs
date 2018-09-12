@@ -15,13 +15,16 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         internal Dictionary<string, string> gotoTransitions;
         internal Dictionary<string, string> pushTransitions;
 
+        internal bool isStartState;
+
         public StateInfo(StateDeclaration sdecl, MachineInfo machineInfo)
         {
             this.stateDeclaration = sdecl;
             this.machineInfo = machineInfo;
             this.uniqueName = machineInfo.uniqueName + '.' + sdecl.GetFullyQualifiedName('.');
-            gotoTransitions = null;
-            pushTransitions = null;
+            this.gotoTransitions = null;
+            this.pushTransitions = null;
+            this.isStartState = sdecl.IsStart;
         }
 
         public Dictionary<string, string> GetGotoTransitions()

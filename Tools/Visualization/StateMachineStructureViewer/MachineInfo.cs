@@ -33,13 +33,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         HashSet<string> states;
 
         #region api
-        internal void resolveBaseMachine(List<string> activeNamespaces)
+        internal void resolveBaseMachine()
         {
             string machineNamespace = machineDeclaration.Namespace.QualifiedName;
+            List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(program);
             if (machineDeclaration.BaseNameTokens.Count > 0 )
             {
                 string baseMachineName = ResolutionHelper.baseTypeTokenListToIdentifier(machineDeclaration.BaseNameTokens);
-                Console.WriteLine("baseMachineName=" + baseMachineName);
                 baseMachine = ResolutionHelper.Instance().LookupMachine(baseMachineName, machineNamespace, activeNamespaces );
                 if(baseMachine == null)
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             // First look up events local to this machine
             EventInfo eventInfo = ResolutionHelper.Instance().LookupEvent(identifierText, this.machineDeclaration);
             // No luck? Could be from a parent event.
-            if (eventInfo == null)
+            if (eventInfo == null && baseMachine!=null)
             {
                 eventInfo = baseMachine.doLookupEvent(identifierText, false);
             }

@@ -136,9 +136,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     Output.WriteLine("Error: {0}", e.Message);
                     return;
                 }
-                //Console.WriteLine("Gonna do it");
-                //Console.WriteLine(GetDgmlForProgram(input_string));
-                //return;
+
                 context = CompilationContext.Create(configuration).LoadSolution(input_string);
             }
 
@@ -181,8 +179,10 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 ParsingEngine.Create(context).Run();
                 ResolutionHelper resolutionHelper = ResolutionHelper.Instance();
                 resolutionHelper.PopulateMachines(context.GetProjects()[0].PSharpPrograms);
+
                 foreach (MachineInfo machineInfo in resolutionHelper.GetAllMachines())
                 {
+                    machineInfo.resolveBaseMachine();
                     resolutionHelper.PopulateStates(machineInfo);
                     resolutionHelper.PopulateEvents(machineInfo);
                 }
