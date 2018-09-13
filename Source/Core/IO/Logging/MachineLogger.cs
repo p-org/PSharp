@@ -304,7 +304,7 @@ namespace Microsoft.PSharp.IO
             {
                 eventNames = "[any]";
             }
-            return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' is waiting to dequeue an event: '{eventNames}'.";
+            return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' is waiting to dequeue one of the events: '{eventNames}'.";
         }
 
         /// <summary>
