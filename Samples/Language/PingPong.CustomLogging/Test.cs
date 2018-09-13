@@ -65,7 +65,7 @@ namespace PingPong.CustomLogging
     /// <summary>
     /// Custom logger that just dumps to console.
     /// </summary>
-    class MyLogger : StateMachineLogger
+    class MyLogger : MachineLogger
     {
         /// <summary>
         /// Writes the specified string value.
