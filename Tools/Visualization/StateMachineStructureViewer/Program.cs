@@ -36,6 +36,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             ResolutionHelper.ResetToNewInstance();
         }
 
+        /* Convenience method for Tests & other services */
         public static string GetDgmlForProgram(string prog)
         {
             Version csVersion = new Version(0, 0);

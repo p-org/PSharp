@@ -84,6 +84,7 @@ namespace ns1
     {
         event e1;
         event e2;
+        event e3;
         start state binit
         {
             on e1 goto s1;
@@ -94,15 +95,21 @@ namespace ns1
             on e2 goto s2;
             entry { raise(s2); }
         }
-        state s2 { }
+        state s2 { 
+            on e3 goto s3;
+        }
+        state s3{}
     }
     machine dm1 : bm1
     {
         event e1;
         start state dinit {
-            on e1 goto s1;
+            on e1 goto s1;  // Transitition to inherited state
         }
-        state s2{ }
+        state s2{ 
+            on e3 goto s4;  // Override e3 handler
+        }
+        state s4{}
     }
 }
 ";
@@ -113,11 +120,13 @@ namespace ns1
             
             StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]{
                 new MV("ns1.bm1", new Edge[]{
-                    new IN(null, "ns1.bm1.binit"), new IN(null, "ns1.bm1.s1"), new IN(null, "ns1.bm1.s2")
+                    new IN(null, "ns1.bm1.binit"), new IN(null, "ns1.bm1.s1"),
+                        new IN(null, "ns1.bm1.s2"), new IN(null, "ns1.bm1.s3"),
                 }),
                 new MV("ns1.dm1", new Edge[]{
-                    new IN(null, "ns1.dm1.dinit"), new IN(null, "ns1.dm1.s2"),
-                    new IN(null, "ns1.dm1>ns1.bm1.binit"), new IN(null, "ns1.dm1>ns1.bm1.s1"), new IN(null, "ns1.dm1>ns1.bm1.s2")
+                    new IN(null, "ns1.dm1.dinit"), new IN(null, "ns1.dm1.s2"), new IN(null, "ns1.dm1.s4"),
+                    new IN(null, "ns1.dm1>ns1.bm1.binit"), new IN(null, "ns1.dm1>ns1.bm1.s1"),
+                        new IN(null, "ns1.dm1>ns1.bm1.s2"), new IN(null, "ns1.dm1>ns1.bm1.s3")
                 }),
                 // bm1 states
                 new SV("ns1.bm1.binit", new Edge[]{
@@ -126,12 +135,18 @@ namespace ns1
                 new SV("ns1.bm1.s1", new Edge[]{
                     new GT("ns1.bm1.e2", "ns1.bm1.s2")
                 }),
-                new SV("ns1.bm1.s2", new Edge[]{}),
+                new SV("ns1.bm1.s2", new Edge[]{
+                    new GT("ns1.bm1.e3", "ns1.bm1.s3")
+                }),
+                new SV("ns1.bm1.s3", new Edge[]{}),
                 // dm1 states
                 new SV("ns1.dm1.dinit", new Edge[]{
                     new GT("ns1.dm1.e1", "ns1.dm1>ns1.bm1.s1")
                 }),
-                new SV("ns1.dm1.s2", new Edge[]{}),
+                new SV("ns1.dm1.s4", new Edge[]{}),
+                new SV("ns1.dm1.s2", new Edge[]{
+                    new GT("ns1.bm1.e3", "ns1.dm1.s4")
+                }),
                 // States inherited by dm1
                 new SV("ns1.dm1>ns1.bm1.binit", new Edge[]{
                     new GT("ns1.bm1.e1", "ns1.dm1>ns1.bm1.s1")
@@ -139,7 +154,10 @@ namespace ns1
                 new SV("ns1.dm1>ns1.bm1.s1", new Edge[]{
                     new GT("ns1.bm1.e2", "ns1.dm1>ns1.bm1.s2")
                 }),
-                new SV("ns1.dm1>ns1.bm1.s2", new Edge[]{}),
+                new SV("ns1.dm1>ns1.bm1.s2", new Edge[]{
+                    new GT("ns1.bm1.e3", "ns1.dm1>ns1.bm1.s3")
+                }),
+                new SV("ns1.dm1>ns1.bm1.s3", new Edge[]{}),
             });
             
             Assert.True(expectedGraph.DeepCheckEquality(G));
