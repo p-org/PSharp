@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.props" />
-  <Import Project="..\..\..\Build\key.props" />
+  <Import Project="..\..\..\Common\build.props" />
+  <Import Project="..\..\..\Common\key.props" />
   <PropertyGroup>
     <Description>The P# syntax rewriter.</Description>
 	<!-- If you change this, Please update the Source\LanguageServices\Properties\InternalsVisibleTo.cs to use the new name -->
