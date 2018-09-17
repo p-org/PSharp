@@ -191,7 +191,7 @@ namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
         {
 
         }
-        public StateMachineGraph parseDgml(XDocument xdoc)
+        public StateMachineGraph ParseDgml(XDocument xdoc)
         {
             
             StateMachineGraph G = new StateMachineGraph();

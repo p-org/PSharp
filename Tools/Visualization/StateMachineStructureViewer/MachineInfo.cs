@@ -33,13 +33,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         HashSet<string> states;
 
         #region api
-        internal void resolveBaseMachine()
+        internal void ResolveBaseMachine()
         {
             string machineNamespace = machineDeclaration.Namespace.QualifiedName;
             List<string> activeNamespaces = ResolutionHelper.GetActiveNamespacesFromUsingDirectives(program);
             if (machineDeclaration.BaseNameTokens.Count > 0 )
             {
-                string baseMachineName = ResolutionHelper.baseTypeTokenListToIdentifier(machineDeclaration.BaseNameTokens);
+                string baseMachineName = ResolutionHelper.BaseTypeTokenListToIdentifier(machineDeclaration.BaseNameTokens);
                 baseMachine = ResolutionHelper.Instance().LookupMachine(baseMachineName, machineNamespace, activeNamespaces );
                 if(baseMachine == null)
                 {
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 }
             }
 
-            foreach (string declaredState in computeStatesDeclared(false))
+            foreach (string declaredState in ComputeStatesDeclared(false))
             {
                 states.Add(declaredState);
             }
@@ -71,19 +71,19 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         public StateInfo LookupState(string identifierText, StateGroupDeclaration stateGroupContext = null)
         {
-            return doLookupState(identifierText, stateGroupContext);
+            return DoLookupState(identifierText, stateGroupContext);
         }
         
         public EventInfo LookupEvent(string identifierText)
         {
-            return doLookupEvent(identifierText, true);
+            return DoLookupEvent(identifierText, true);
         }
 
         #endregion
 
         #region private lookup logic
 
-        private StateInfo doLookupState(string identifierText, StateGroupDeclaration stateGroupContext = null)
+        private StateInfo DoLookupState(string identifierText, StateGroupDeclaration stateGroupContext = null)
         {
             StateInfo foundState = null;
             while (stateGroupContext != null && foundState == null)
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
             if (foundState == null && baseMachine != null)
             {
-                return baseMachine.doLookupState(identifierText, stateGroupContext);
+                return baseMachine.DoLookupState(identifierText, stateGroupContext);
             }
             else
             {
@@ -106,14 +106,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
         }
 
-        private EventInfo doLookupEvent(string identifierText, bool checkNamespace)
+        private EventInfo DoLookupEvent(string identifierText, bool checkNamespace)
         {
             // First look up events local to this machine
             EventInfo eventInfo = ResolutionHelper.Instance().LookupEvent(identifierText, this.machineDeclaration);
             // No luck? Could be from a parent event.
             if (eventInfo == null && baseMachine!=null)
             {
-                eventInfo = baseMachine.doLookupEvent(identifierText, false);
+                eventInfo = baseMachine.DoLookupEvent(identifierText, false);
             }
             // Still no luck, try a global lookup if we've not been called by a base
             if ( checkNamespace && eventInfo == null)
@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
 
         // Computes the UniqueNames of the states declared in this machine. Does not include those inherited.
-        private HashSet<string> computeStatesDeclared(bool recompute=false)
+        private HashSet<string> ComputeStatesDeclared(bool recompute=false)
         {
             if (states == null || recompute)
             {
@@ -138,13 +138,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 }
                 foreach (StateGroupDeclaration sgDecl in machineDeclaration.StateGroupDeclarations)
                 {
-                    computeStatesDeclaredInStateGroup(sgDecl);
+                    ComputeStatesDeclaredInStateGroup(sgDecl);
                 }
             }
             return states;
         }
 
-        private HashSet<string> computeStatesDeclaredInStateGroup(StateGroupDeclaration stateGroup)
+        private HashSet<string> ComputeStatesDeclaredInStateGroup(StateGroupDeclaration stateGroup)
         {
             foreach (StateDeclaration sdecl in stateGroup.StateDeclarations)
             {
@@ -153,14 +153,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
             foreach (StateGroupDeclaration sgDecl in stateGroup.StateGroupDeclarations)
             {
-                computeStatesDeclaredInStateGroup(sgDecl);
+                ComputeStatesDeclaredInStateGroup(sgDecl);
             }
             
             return states;
         }
 
         // Computes the UniqueNames of the events declared in this machine. Does not include those inherited.
-        private HashSet<string> computeEventsDeclared(bool recompute = false)
+        private HashSet<string> ComputeEventsDeclared(bool recompute = false)
         {
             if (events == null || recompute)
             {

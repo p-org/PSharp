@@ -51,7 +51,7 @@ namespace ns3{
             string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
-            StateMachineGraph G = dgmlParser.parseDgml(XDocument.Parse(dgml));
+            StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
 
             StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]{
                     new MV("ns3.m1", new Edge[]{
@@ -106,7 +106,7 @@ namespace ns1{
             string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
-            StateMachineGraph G = dgmlParser.parseDgml(XDocument.Parse(dgml));
+            StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
             
             StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]
             {
@@ -172,7 +172,7 @@ namespace ns1
             string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
-            StateMachineGraph G = dgmlParser.parseDgml(XDocument.Parse(dgml));
+            StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
             
             StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]{
                 new MV("ns1.bm1", new Edge[]{

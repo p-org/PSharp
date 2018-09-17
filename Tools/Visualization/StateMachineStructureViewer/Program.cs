@@ -191,7 +191,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 // Populate events in machines
                 foreach (MachineInfo machineInfo in resolutionHelper.GetAllMachines())
                 {
-                    machineInfo.resolveBaseMachine();
+                    machineInfo.ResolveBaseMachine();
                     resolutionHelper.PopulateStates(machineInfo);
                     resolutionHelper.PopulateEvents(machineInfo);
                 }

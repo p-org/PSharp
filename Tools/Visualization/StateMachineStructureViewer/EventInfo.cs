@@ -9,9 +9,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class EventInfo
     {
-        private NamespaceDeclaration namespaceDeclaration;
-        private MachineInfo machineInfo;
-        private EventDeclaration eventDeclaration;
+        private readonly NamespaceDeclaration namespaceDeclaration;
+        private readonly MachineInfo machineInfo;
+        private readonly EventDeclaration eventDeclaration;
         public string uniqueName { get; }
 
         public EventInfo(EventDeclaration edecl, MachineInfo machineInfo)

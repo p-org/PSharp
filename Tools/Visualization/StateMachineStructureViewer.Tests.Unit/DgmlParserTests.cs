@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
                 }
             }";*/
 
-            StateMachineGraph G = dgmlParser.parseDgml(XDocument.Parse(dgml));
+            StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
             string dumpstr1 = G.DumpString();
             Console.WriteLine(dumpstr1);
 

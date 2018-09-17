@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     ) 
                 ).ToList();
         }
-        public static string baseTypeTokenListToIdentifier(List<Token> baseTypeTokenList)
+        public static string BaseTypeTokenListToIdentifier(List<Token> baseTypeTokenList)
         {
             return String.Join("", baseTypeTokenList.Select( x => x.Text) );
         }
