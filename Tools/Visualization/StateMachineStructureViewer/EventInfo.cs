@@ -9,6 +9,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class EventInfo
     {
+        private NamespaceDeclaration namespaceDeclaration;
         private MachineInfo machineInfo;
         private EventDeclaration eventDeclaration;
         public string uniqueName { get; }
@@ -17,7 +18,16 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             this.eventDeclaration = edecl;
             this.machineInfo = machineInfo;
-            this.uniqueName = machineInfo.uniqueName + '.' + edecl.Identifier.Text;
+            this.uniqueName = ResolutionHelper.CreateUniqueNameForEventIdentifier(machineInfo.machineDeclaration, edecl.Identifier.Text);
+            this.namespaceDeclaration = null;  // Access through machineInfo instead
+        }
+
+        public EventInfo(EventDeclaration edecl, NamespaceDeclaration ns)
+        {
+            this.eventDeclaration = edecl;
+            this.machineInfo = null;
+            this.uniqueName = ResolutionHelper.CreateUniqueNameForEventIdentifier(ns.QualifiedName, edecl.Identifier.Text);
+            this.namespaceDeclaration = ns;
         }
     }
 }

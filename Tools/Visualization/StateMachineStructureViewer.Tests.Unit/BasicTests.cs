@@ -15,6 +15,62 @@ namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
 
     public class BasicTests
     {
+        [Fact]
+        public void CrossNamespaceResolutionTest()
+        {
+
+            StateDiagramViewer.ResetResolutionHelper();
+            string prog = @"
+namespace ns1{
+    event e11;
+}
+namespace ns2{
+    event e21;
+}
+using ns1;
+namespace ns3{
+    event e31;
+	machine m1{
+		event el1;
+		start state init
+		{
+            on el1 goto sl1; 
+			on e11 goto s11; // 'using' ns1
+            on ns2.e21 goto s21; 
+            on e31 goto s31; 
+		}
+
+        state sl1{ }
+		state s11{ }
+		state s21{ }
+		state s31{ }
+	}
+}";
+
+            // Get DGML but remove first line.
+            string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
+            DgmlParser dgmlParser = new DgmlParser();
+
+            StateMachineGraph G = dgmlParser.parseDgml(XDocument.Parse(dgml));
+
+            StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]{
+                    new MV("ns3.m1", new Edge[]{
+                        new IN(null, "ns3.m1.init"), new IN(null, "ns3.m1.sl1"),
+                        new IN(null, "ns3.m1.s11"), new IN(null, "ns3.m1.s21"), new IN(null, "ns3.m1.s31"),
+                    }),
+                    new SV("ns3.m1.init", new Edge[] {
+                        new GT("ns1.e11", "ns3.m1.s11"), new GT("ns2.e21", "ns3.m1.s21"),
+                        new GT("ns3.e31", "ns3.m1.s31"), new GT("ns3.m1.el1", "ns3.m1.sl1"),
+                    }),
+
+                    new SV("ns3.m1.s11", new Edge[] { }),
+                    new SV("ns3.m1.s21", new Edge[] { }),
+                    new SV("ns3.m1.s31", new Edge[] { }),
+                    new SV("ns3.m1.sl1", new Edge[] { }),
+                });
+            Assert.True(expectedGraph.DeepCheckEquality(G));
+        }
+
 
         [Fact]
         public void TestStateGroup()

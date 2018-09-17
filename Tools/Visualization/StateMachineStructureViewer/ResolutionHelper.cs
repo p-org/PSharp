@@ -201,6 +201,21 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
         }
 
+        internal void PopulateGlobalEvents(List<PSharpProgram> programs)
+        {
+            foreach (PSharpProgram prog in programs)
+            {
+                foreach (var ns in prog.NamespaceDeclarations)
+                {
+                    foreach (var edecl in ns.EventDeclarations)
+                    {
+                        EventInfo eInfo = new EventInfo(edecl, ns);
+                        eventLookup.Add(eInfo.uniqueName, eInfo);
+                    }
+                }
+            }
+        }
+
         internal void PopulateEvents(MachineInfo machineInfo)
         {
             foreach (EventDeclaration edecl in machineInfo.machineDeclaration.EventDeclarations)

@@ -186,6 +186,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 ResolutionHelper resolutionHelper = ResolutionHelper.Instance();
                 resolutionHelper.PopulateMachines(context.GetProjects()[0].PSharpPrograms);
 
+                // Populate events in namespaces
+                resolutionHelper.PopulateGlobalEvents(context.GetProjects()[0].PSharpPrograms);
+                // Populate events in machines
                 foreach (MachineInfo machineInfo in resolutionHelper.GetAllMachines())
                 {
                     machineInfo.resolveBaseMachine();
