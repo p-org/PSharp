@@ -1,0 +1,157 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+
+namespace CacheCoherence
+{
+    internal machine Host
+    {
+        private machine CurrentClient;
+        private Tuple<machine, machine, machine> Clients;
+        private machine CurrentCPU;
+		private List<machine> SharerList;
+
+		private bool IsCurrReqExcl;
+		private bool IsExclGranted;
+
+		private int S;
+		private int I;
+
+        private start state Init
+        {
+            entry
+            {
+			    machine client1 = create(Client);
+				send(client1, clientConfig, this, false);
+
+				machine client2 = create(Client);
+				send(client2, clientConfig, this, false);
+
+				machine client3 = create(Client);
+				send(client3, clientConfig, this, false);
+
+                this.Clients = Tuple.Create(client1, client2, client3);
+
+				this.CurrentClient = null;
+				this.CurrentCPU = create(CPU);
+				send(CurrentCPU, cpuConfig, this.Clients);
+
+				this.SharerList = new List<machine>();
+				assert(this.SharerList.Count == 0);
+
+                raise(unit);
+            }
+
+            on unit goto Receiving;
+        }
+
+        private state Receiving
+        {
+			on req_share goto ShareRequest;
+			on req_excl goto ExclRequest;
+
+			defer invalidate_ack;
+        }
+
+		private state ShareRequest
+        {
+            entry
+            {
+			    CurrentClient = (trigger as req_share).client;
+				IsCurrReqExcl = false;
+
+				raise(unit);
+            }
+
+			on unit goto ProcessReq;
+        }
+
+		private state ExclRequest
+        {
+            entry
+            {
+			    CurrentClient = (trigger as req_excl).client;
+				IsCurrReqExcl = true;
+
+				raise(unit);
+            }
+
+			on unit goto ProcessReq;
+        }
+
+		private state ProcessReq
+        {
+            entry
+            {
+				if (IsCurrReqExcl || IsExclGranted)
+			    {
+				    raise(need_invalidate);
+			    }
+			    else
+				    raise(grant);
+            }
+
+			on need_invalidate goto Inv;
+			on grant goto GrantAccess;
+        }
+
+		private state Inv
+        {
+            entry
+            {
+			    I = 0;
+			    S = SharerList.Count;
+			    if (S == 0)
+				{
+				    raise(grant);
+					return;
+			    }
+			    while (I < S)
+			    {
+				    send(SharerList[I], invalidate);
+				    I = I + 1;
+			    }
+            }
+
+			on invalidate_ack do RecAck;
+
+			on grant goto GrantAccess;
+
+			defer req_share, req_excl;
+        }
+
+		private state GrantAccess
+        {
+            entry
+            {
+			    if (IsCurrReqExcl)
+			    {
+				    IsExclGranted = true;
+				    send(CurrentClient, grant_excl);
+			    }
+			    else
+			    {
+				    send(CurrentClient, grant_share);
+			    }
+
+			    SharerList.Insert(0, CurrentClient);
+
+				raise(unit);
+            }
+
+			on unit goto Receiving;
+        }
+
+		void RecAck()
+		{
+		    SharerList.RemoveAt(0);
+			S = SharerList.Count;
+		    if (S == 0)
+			    raise(grant);
+	    }
+    }
+}

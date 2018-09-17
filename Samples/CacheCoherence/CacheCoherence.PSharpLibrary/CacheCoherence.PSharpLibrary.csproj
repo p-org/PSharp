@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.samples.props" />
-  <PropertyGroup>
-    <Description>The CacheCoherence P# sample.</Description>
-    <AssemblyName>CacheCoherence.PSharpLibrary</AssemblyName>
-    <RootNamespace>CacheCoherence.PSharpLibrary</RootNamespace>
-  </PropertyGroup>
-</Project>

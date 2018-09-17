@@ -1,30 +1,21 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="TestHarnessMachine.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Reflection;
+
+using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
     /// The P# test harness machine. This is the root machine
-    /// that executes a test method during bug-finding.
+    /// that executes a test method during testing.
     /// </summary>
-    internal sealed class TestHarnessMachine : AbstractMachine
+    internal sealed class TestHarnessMachine : BaseMachine
     {
-        #region fields
-
         /// <summary>
         /// The test method.
         /// </summary>
@@ -34,10 +25,6 @@ namespace Microsoft.PSharp.TestingServices
         /// The test action.
         /// </summary>
         private Action<PSharpRuntime> TestAction;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -49,10 +36,6 @@ namespace Microsoft.PSharp.TestingServices
             this.TestMethod = testMethod;
             this.TestAction = testAction;
         }
-
-        #endregion
-
-        #region test harness logic
 
         /// <summary>
         /// Runs the test harness.
@@ -80,10 +63,6 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-        #endregion
-
-        #region error checking
-
         /// <summary>
         /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
         /// exception, and throws it to the user.
@@ -108,7 +87,5 @@ namespace Microsoft.PSharp.TestingServices
                     $"The stack trace is:\n{ex.StackTrace}");
             }
         }
-
-        #endregion
     }
 }

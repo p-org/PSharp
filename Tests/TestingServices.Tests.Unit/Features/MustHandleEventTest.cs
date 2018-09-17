@@ -1,26 +1,21 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="MustHandleEventTest.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class MustHandleEventTest : BaseTest
     {
+        public MustHandleEventTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
             public MachineId Id;
@@ -70,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                
+
             }
         }
 
@@ -117,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()' halted before dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.\n";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
-                foreach(var report in bugReports)
+                foreach (var report in bugReports)
                 {
                     if (report != bugReport1 && report != bugReport2)
                     {

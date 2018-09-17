@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.samples.props" />
-  <PropertyGroup>
-    <Description>The MultiPaxos P# sample.</Description>
-    <AssemblyName>MultiPaxos.PSharpLibrary</AssemblyName>
-    <RootNamespace>MultiPaxos.PSharpLibrary</RootNamespace>
-  </PropertyGroup>
-</Project>

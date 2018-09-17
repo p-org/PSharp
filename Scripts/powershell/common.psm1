@@ -1,29 +1,3 @@
-# Builds the specified .NET project using msbuild.
-function New-MSBuildProject([String]$msbuild, [String]$project, [String]$configuration)
-{
-    Write-Comment -prefix "..." -text "Building '$project' ($configuration)" -color "white"
-    $command = "$project /p:Configuration=$configuration"
-    $error_msg = "Failed to build '$project'"
-    Invoke-ToolCommand -tool $msbuild -command $command -error_msg $error_msg
-}
-
-# Builds the specified .NET project using dotnet.
-function New-DotnetProject([String]$dotnet, [String]$project, [String]$configuration) {
-    Write-Comment -prefix "..." -text "Building '$project' ($configuration)" -color "white"
-    $command = "build $project -c $configuration"
-    $error_msg = "Failed to build '$project'"
-    Invoke-ToolCommand -tool $dotnet -command $command -error_msg $error_msg
-}
-
-# Restores the packages for the specified .NET project.
-function Invoke-DotnetRestore([String]$dotnet, [String]$project)
-{
-    Write-Comment -prefix "..." -text "Restoring packages for '$project'" -color "white"
-    $command = "restore $project"
-    $error_msg = "Failed to restore packages for '$project'"
-    Invoke-ToolCommand -tool $dotnet -command $command -error_msg $error_msg
-}
-
 # Runs the specified .NET test using the specified framework.
 function Invoke-DotnetTest([String]$dotnet, [String]$project, [String]$target, [string]$filter, [string]$framework, [string]$verbosity) {
     Write-Comment -prefix "..." -text "Testing '$project' ($framework)" -color "white"

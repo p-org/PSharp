@@ -1,22 +1,14 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="BugFindingScheduler.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -26,12 +18,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     internal sealed class BugFindingScheduler
     {
-        #region fields
-
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private BugFindingRuntime Runtime;
+        private TestingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for bug-finding.
@@ -52,10 +42,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Checks if the scheduler is running.
         /// </summary>
         private bool IsSchedulerRunning;
-
-        #endregion
-
-        #region properties
         
         /// <summary>
         /// The currently schedulable info.
@@ -82,16 +68,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal string BugReport { get; private set; }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
+        /// <param name="runtime">TestingRuntime</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal BugFindingScheduler(BugFindingRuntime runtime, ISchedulingStrategy strategy)
+        internal BugFindingScheduler(TestingRuntime runtime, ISchedulingStrategy strategy)
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
@@ -101,10 +83,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.BugFound = false;
             this.HasFullyExploredSchedule = false;
         }
-
-        #endregion
-
-        #region scheduling methods
 
         /// <summary>
         /// Schedules the next <see cref="ISchedulable"/> operation to execute.
@@ -191,7 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic boolean choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         internal bool GetNextNondeterministicBooleanChoice(int maxValue, string uniqueId = null)
@@ -224,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic integer choice.
         /// </summary>
-        /// <param name="maxValue">Max value</param>
+        /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {
@@ -297,10 +275,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Blocks until the scheduler terminates.
         /// </summary>
         internal void Wait() => this.CompletionSource.Task.Wait();
-
-        #endregion
-
-        #region notifications
 
         /// <summary>
         /// Notify that an event handler has been created.
@@ -385,10 +359,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
         }
 
-        #endregion
-
-        #region utilities
-
         /// <summary>
         /// Returns the enabled schedulable ids.
         /// </summary>
@@ -459,10 +429,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             return report;
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the number of available machines to schedule.
@@ -571,7 +537,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
         }
-
-        #endregion
     }
 }
