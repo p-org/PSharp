@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\build.props" />
   <PropertyGroup>
     <Description>The PingPong P# sample.</Description>
@@ -6,8 +6,8 @@
     <RootNamespace>PingPong</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PSharp Include="NetworkEnvironment.psharp" />
-    <PSharp Include="Client.psharp" />
-    <PSharp Include="Server.psharp" />
+    <Compile Include="NetworkEnvironment.psharp" />
+    <Compile Include="Client.psharp" />
+    <Compile Include="Server.psharp" />
   </ItemGroup>
 </Project>

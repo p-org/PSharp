@@ -218,5 +218,57 @@ namespace ns1
             
             Assert.True(expectedGraph.DeepCheckEquality(G));
         }
+
+        [Fact]
+        public void TestStateInheritance()
+        {
+            StateDiagramViewer.ResetResolutionHelper();
+            string prog = @"
+namespace ns1{
+	machine m1{
+		event e1;
+		event e2;
+
+        start state init{} // just like that
+		state b1
+		{
+			on e1 goto s1; // Inherit
+            on e2 goto s21; // Override
+		}
+        
+		state d1 : b1 
+        { 
+            on e2 goto s22;
+        }
+
+		state s1{ }
+		state s21{ }
+        state s22{ }
+
+	}
+}";
+
+            // Get DGML but remove first line.
+            string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
+            DgmlParser dgmlParser = new DgmlParser();
+
+            StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
+
+            StateMachineGraph expectedGraph = new StateMachineGraph(new Vertex[]{
+                new MV("ns1.m1", new Edge[]{
+                    new IN(null, "ns1.m1.init"), new IN(null, "ns1.m1.b1"), new IN(null, "ns1.m1.d1"),
+                    new IN(null, "ns1.m1.s1"), new IN(null, "ns1.m1.s21"), new IN(null, "ns1.m1.s22"),
+                }),
+                new SV("ns1.m1.b1", new Edge[] {
+                    new GT("ns1.m1.e1", "ns1.m1.s1"), new GT("ns1.m1.e2", "ns1.m1.s21"),
+                }),
+                new SV("ns1.m1.d1", new Edge[] {
+                    new GT("ns1.m1.e1", "ns1.m1.s1"), new GT("ns1.m1.e2", "ns1.m1.s22"),
+                }),
+                new SV("ns1.m1.init"), new SV("ns1.m1.s1"), new SV("ns1.m1.s21"), new SV("ns1.m1.s22"),
+            });
+
+            Assert.True(expectedGraph.DeepCheckEquality(G));
+        }
     }
 }
