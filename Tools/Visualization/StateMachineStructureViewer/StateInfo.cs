@@ -5,6 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp.LanguageServices.Syntax;
 
+/*
+ * Known issues:
+ *  - Overriding an event handler with a different type of event handler does not throw an error
+ *      - e.g. : Overriding an OnEventDoAction with OnEventGoto
+ */
+
 namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class StateInfo
@@ -14,6 +20,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         internal StateDeclaration stateDeclaration { get; }
         internal Dictionary<string, string> gotoTransitions;
         internal Dictionary<string, string> pushTransitions;
+        internal StateInfo baseState;
 
         internal bool isStartState;
 
@@ -25,18 +32,53 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             this.gotoTransitions = null;
             this.pushTransitions = null;
             this.isStartState = sdecl.IsStart;
+            baseState = null;
         }
 
-        public Dictionary<string, string> GetGotoTransitions()
+        public void ResolveBaseState()
         {
-            // TODO: Inherited transitions.
-            return ComputeGotoTransitions(false);
+            if (stateDeclaration.BaseStateToken != null)
+            {
+                string baseStateName = stateDeclaration.BaseStateToken.Text;
+                baseState = this.machineInfo.LookupState(stateDeclaration.BaseStateToken.Text, stateDeclaration.Group);
+                if (baseState == null)
+                {
+                    throw new Exception(String.Format("BaseState {0} not found for state {1}", baseStateName, this.uniqueName));
+                }
+            }
         }
 
-        public Dictionary<string, string> GetPushTransitions()
+        public Dictionary<string, string> GetGotoTransitions(bool includeInherited=true)
         {
-            // TODO: Inherited transitions.
-            return ComputePushTransitions(false);
+            Dictionary<string, string> transitions = new Dictionary<string, string>();
+            if (includeInherited && baseState != null)
+            {
+                foreach ( var gt in baseState.GetGotoTransitions(includeInherited)) {
+                    transitions[gt.Key] = gt.Value;
+                }
+            }
+            foreach (var gt in ComputeGotoTransitions(false))
+            {
+                transitions[gt.Key] = gt.Value;
+            }
+            return transitions;
+        }
+
+        public Dictionary<string, string> GetPushTransitions(bool includeInherited = true)
+        {
+            Dictionary<string, string> transitions = new Dictionary<string, string>();
+            if (includeInherited && baseState != null)
+            {
+                foreach (var gt in baseState.GetPushTransitions(includeInherited))
+                {
+                    transitions[gt.Key] = gt.Value;
+                }
+            }
+            foreach (var gt in ComputePushTransitions(false))
+            {
+                transitions[gt.Key] = gt.Value;
+            }
+            return transitions;
         }
 
         private Dictionary<string, string> ComputeGotoTransitions(bool recompute)
@@ -71,6 +113,54 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 }
             }
             return pushTransitions;
+        }
+
+        public HashSet<string> GetIgnoredEvents(bool includeInherited = true)
+        {
+            HashSet<string> ignored = new HashSet<string>();
+            if(includeInherited && baseState != null) {
+                foreach(var evt in baseState.GetIgnoredEvents(includeInherited))
+                {
+                    ignored.Add(evt);
+                }
+            }
+            foreach (var evt in stateDeclaration.IgnoredEvents.Select(s => s.Text))
+            {
+                ignored.Add(evt);
+            }
+            return ignored;
+        }
+        public HashSet<string> GetDeferredEvents(bool includeInherited = true)
+        {
+            HashSet<string> deferred = new HashSet<string>();
+            if (includeInherited && baseState != null)
+            {
+                foreach (var evt in baseState.GetDeferredEvents(includeInherited))
+                {
+                    deferred.Add(evt);
+                }
+            }
+            foreach (var evt in stateDeclaration.DeferredEvents.Select(s => s.Text))
+            {
+                deferred.Add(evt);
+            }
+            return deferred;
+        }
+        public HashSet<string> GetHandledEvents(bool includeInherited = true)
+        {
+            HashSet<string> handled = new HashSet<string>();
+            if (includeInherited && baseState != null)
+            {
+                foreach (var evt in baseState.GetHandledEvents(includeInherited))
+                {
+                    handled.Add(evt);
+                }
+            }
+            foreach (var evt in stateDeclaration.ActionBindings.Keys.Select(s => s.Text))
+            {
+                handled.Add(evt);
+            }
+            return handled;
         }
     }
 }

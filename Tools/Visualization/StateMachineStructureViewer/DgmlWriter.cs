@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
             foreach (MachineInfo mInfo in machines)
             {
-                foreach(string stateName in mInfo.GetAllStates())
+                foreach(string stateName in mInfo.GetStates())
                 {
                     WriteStateTransitions(ResolutionHelper.Instance().GetState(stateName), writer, mInfo);
                 }
@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         public static void WriteMachineStateLinks(MachineInfo mInfo, XmlTextWriter writer)
         {
             var machine = mInfo.uniqueName;
-            foreach (string stateName in mInfo.GetAllStates() )
+            foreach (string stateName in mInfo.GetStates() )
             {
                 string stateId = IsInherited(stateName, mInfo.uniqueName) ? 
                     InheritedName(stateName, mInfo.uniqueName) : stateName;
@@ -154,16 +154,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             var machine = machineInfo.uniqueName;
             writer.WriteComment(String.Format("Start states for Machine '{0}'", machineInfo.uniqueName));
-            foreach (string stateName in machineInfo.GetAllStates())
+            foreach (string stateName in machineInfo.GetStates())
             {
                 StateInfo stateInfo = ResolutionHelper.Instance().GetState( stateName );
                 bool isInherited = IsInherited( stateInfo.uniqueName, machineInfo.uniqueName);
                 string nodeId = isInherited ? 
                     InheritedName(stateInfo.uniqueName, machineInfo.uniqueName) : stateInfo.uniqueName;
 
-                StateDeclaration sdecl = stateInfo.stateDeclaration;
                 
-
                 writer.WriteStartElement("Node");
                 writer.WriteAttributeString("Id", nodeId);
                 writer.WriteAttributeString("Category", "State");
@@ -179,9 +177,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 }
                 if ( /*TODO*/ true)
                 {
-                    writer.WriteAttributeString("Ignores", string.Join(", ", sdecl.IgnoredEvents.Select(s => s.Text)));
-                    writer.WriteAttributeString("Defers", string.Join(", ", sdecl.DeferredEvents.Select(s => s.Text)));
-                    writer.WriteAttributeString("Handles", string.Join(", ", sdecl.ActionBindings.Keys.Select(s => s.Text)));
+                    writer.WriteAttributeString("Ignores", string.Join(", ", stateInfo.GetIgnoredEvents(true)));
+                    writer.WriteAttributeString("Defers", string.Join(", ", stateInfo.GetDeferredEvents(true)));
+                    writer.WriteAttributeString("Handles", string.Join(", ", stateInfo.GetHandledEvents(true)));
                 }
 
                 writer.WriteEndElement();

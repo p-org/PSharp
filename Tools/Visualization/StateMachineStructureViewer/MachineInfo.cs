@@ -49,12 +49,12 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         }
 
-        public HashSet<string> GetAllStates()
+        public HashSet<string> GetStates(bool includeInherited=true)
         {
             HashSet<string> states = new HashSet<string>();
-            if (baseMachine != null)
+            if (includeInherited && baseMachine != null)
             {
-                var parentStates = baseMachine.GetAllStates();
+                var parentStates = baseMachine.GetStates();
                 foreach (var parentMachineState in parentStates)
                 {
                     states.Add(parentMachineState); // TODO : Do we add the fact that this is inherited? 

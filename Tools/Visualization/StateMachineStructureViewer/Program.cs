@@ -196,7 +196,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     resolutionHelper.PopulateEvents(machineInfo);
                 }
 
-
+                foreach (MachineInfo machineInfo in resolutionHelper.GetAllMachines())
+                {
+                    foreach (string stateName in machineInfo.GetStates(false))
+                    {
+                        ResolutionHelper.Instance().GetState(stateName).ResolveBaseState();
+                    }
+                }
                 MemoryStream memStream = new MemoryStream();
                 using (var writer = new XmlTextWriter(memStream, Encoding.UTF8))
                 {
