@@ -43,7 +43,10 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 baseState = this.machineInfo.LookupState(stateDeclaration.BaseStateToken.Text, stateDeclaration.Group);
                 if (baseState == null)
                 {
-                    throw new Exception(String.Format("BaseState {0} not found for state {1}", baseStateName, this.uniqueName));
+                    throw new StateMachineStructureViewerException(
+                        String.Format("BaseState {0} not found for state {1}", baseStateName, this.uniqueName),
+                        baseStateName,
+                        this.uniqueName);
                 }
             }
         }

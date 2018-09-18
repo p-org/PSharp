@@ -46,19 +46,29 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             var context = CompilationContext.Create(configuration);
 
             context.LoadSolution(prog);
-            return StateDiagramViewer.CreateDgml(context, out string errors, csVersion);
+            string dgml = StateDiagramViewer.CreateDgml(context, out string errors, csVersion);
+            if(dgml == null)
+            {
+                throw new StateMachineStructureViewerException(
+                    "GetDGML for program failed with errors:"+Environment.NewLine + errors, null, null);
+            }
+            return dgml;
         }
 
         static void Main(string[] args)
         {
-            var infile = string.Empty;
-            var outfile = string.Empty;
+            string infile = string.Empty;
+            string outfile = string.Empty;
             var projectFile = String.Empty;
             var solutionFile = String.Empty;
             var csVersion = new Version(0, 0);
 
-            var usage = "Usage: PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor]";
-            
+            var usage = "Usage: " + Environment.NewLine +
+                " PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor]" + Environment.NewLine +
+                "OR" + Environment.NewLine +
+                " PSharpStateMachineStructureViewer.exe /s:SolutionFile.sln /p:ProjectName [outfile.dgml] [/csVersion:major.minor]" + Environment.NewLine;
+
+            List<string> positionalArgs = new List<string>();
             if (args.Length >= 1 && args.Length <= 3)
             {
                 foreach (var arg in args)
@@ -98,19 +108,15 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                                 return;
                         }
                     }
-                    else if (infile.Length == 0)
-                    {
-                        infile = arg;
-                    }
                     else
                     {
-                        outfile = arg;
+                        positionalArgs.Add(arg);
                     }
                 }
             }
 
 
-            if( (projectFile.Length == 0 || solutionFile.Length==0) && infile.Length == 0)
+            if( (projectFile.Length == 0 || solutionFile.Length==0) && positionalArgs.Count < 1)
             {
                 Output.WriteLine(usage);
                 return;
@@ -124,13 +130,19 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             CompilationContext context = null;
             if (projectFile.Length > 0 && solutionFile.Length > 0 )
             {
+                if (positionalArgs.Count >= 1)
+                {
+                    outfile = positionalArgs[0];
+                }
+
                 configuration.ProjectName = projectFile;
                 configuration.SolutionFilePath = solutionFile;
                 context = CompilationContext.Create(configuration).LoadSolution();
             }
-            else if (infile.Length > 0)
+            else if (positionalArgs.Count >= 1)
             {
-
+                infile = positionalArgs[0];
+                outfile = positionalArgs.Count >= 2 ? positionalArgs[1] : outfile;
                 // Gets input file as string.
                 var input_string = "";
                 try
@@ -146,30 +158,31 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 context = CompilationContext.Create(configuration).LoadSolution(input_string);
             }
 
-            
-
-
             // Translates and prints on console or to file.
-            string errors = "";
+            string errors = string.Empty;
 
             var output = CreateDgml(context, out errors, csVersion);
-            var result = string.Format("{0}", output == null ? "Parse Error: " + errors :
-                output);
-
-            if (!string.IsNullOrEmpty(outfile))
+            if (output == null)
             {
-                try
+                Output.WriteLine("Parse Error: " + errors);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(outfile))
                 {
-                    File.WriteAllLines(outfile, new[] { result });
-                    return;
+                    try
+                    {
+                        File.WriteAllLines(outfile, new[] { output });
+                    }
+                    catch (Exception ex)
+                    {
+                        Output.WriteLine("Error writing to file: {0}", ex.Message);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Output.WriteLine("Error writing to file: {0}", ex.Message);
+                else { 
+                    Output.WriteLine("{0}", output);
                 }
             }
-
-            Output.WriteLine("{0}", result);
         }
 
         /// <summary>

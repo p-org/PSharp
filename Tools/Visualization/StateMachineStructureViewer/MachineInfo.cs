@@ -43,7 +43,10 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 baseMachine = ResolutionHelper.Instance().LookupMachine(baseMachineName, machineNamespace, activeNamespaces );
                 if(baseMachine == null)
                 {
-                    throw new Exception(String.Format("BaseMachine {0} not found for machine {1}" , baseMachineName, this.uniqueName) );
+                    throw new StateMachineStructureViewerException(
+                        String.Format("BaseMachine {0} not found for machine {1}" , baseMachineName, this.uniqueName),
+                        baseMachineName,
+                        this.uniqueName);
                 }
             }
 

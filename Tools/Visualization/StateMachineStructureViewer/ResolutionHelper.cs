@@ -95,7 +95,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             return String.Join("", tokenList);
         }
 
-        /* TODO: Can these be made private? */
         public static string CreateUniqueName(MachineDeclaration machineDecl)
         {
             return CreateUniqueNameForMachineIdentifier(machineDecl.Namespace, machineDecl.Identifier.Text );
@@ -265,7 +264,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             else if (activeNamespaceResults.Count > 1)
             {
                 // Too many
-                throw new Exception("Multiple candidates for name " + name);
+                throw new StateMachineStructureViewerException(
+                    "Multiple candidates for machine with name=" + name, name, currentNamespace);
             }
             else 
             {   // None
@@ -351,7 +351,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             else if (activeNamespaceResults.Count > 1)
             {
                 // Too many
-                throw new Exception("Multiple candidates for name " + name);
+                throw new StateMachineStructureViewerException(
+                    "Multiple candidates for name: " + name, name, currentNamespace);
             }
             else
             {   // None
