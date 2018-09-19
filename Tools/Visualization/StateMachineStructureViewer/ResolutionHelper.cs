@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                         MachineInfo mInfo = new MachineInfo(mdecl, prog);
                         if( machineLookup.ContainsKey(mInfo.uniqueName) )
                         {
-                            throw new StateMachineStructureViewerException(
+                            throw new StateDiagramViewerDuplicateTokenException(
                                 String.Format("Duplicate state declaration {0} in {1}", mInfo.uniqueName, ns.QualifiedName),
                                 mInfo.uniqueName,
                                 ns.QualifiedName
@@ -185,7 +185,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 StateInfo sInfo = new StateInfo(sdecl, machineInfo);
                 if( stateLookup.ContainsKey(sInfo.uniqueName) )
                 {
-                    throw new StateMachineStructureViewerException(
+                    throw new StateDiagramViewerDuplicateTokenException(
                         String.Format("Duplicate state declaration {0} in {1}", sInfo.uniqueName, machineInfo.uniqueName),
                         sInfo.uniqueName,
                         machineInfo.uniqueName);
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 if (stateLookup.ContainsKey(sInfo.uniqueName))
                 {
                     string stateGroupContext = CreateUniqueName(machineInfo.machineDeclaration, stateGroup);
-                    throw new StateMachineStructureViewerException(
+                    throw new StateDiagramViewerDuplicateTokenException(
                         String.Format("Duplicate state declaration {0} in {1}", sInfo.uniqueName, stateGroupContext),
                         sInfo.uniqueName,
                         stateGroupContext);
@@ -234,7 +234,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                         EventInfo eInfo = new EventInfo(edecl, ns);
                         if (eventLookup.ContainsKey(eInfo.uniqueName))
                         {
-                            throw new StateMachineStructureViewerException(
+                            throw new StateDiagramViewerDuplicateTokenException(
                                 String.Format("Duplicate event declaration {0} in {1}", eInfo.uniqueName, ns.QualifiedName),
                                 eInfo.uniqueName,
                                 ns.QualifiedName);
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 EventInfo eInfo = new EventInfo(edecl, machineInfo);
                 if (eventLookup.ContainsKey(eInfo.uniqueName))
                 {
-                    throw new StateMachineStructureViewerException(
+                    throw new StateDiagramViewerDuplicateTokenException(
                         String.Format("Duplicate event declaration {0} in {1}", eInfo.uniqueName, machineInfo.uniqueName),
                         eInfo.uniqueName,
                         machineInfo.uniqueName);
@@ -301,7 +301,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             else if (activeNamespaceResults.Count > 1)
             {
                 // Too many
-                throw new StateMachineStructureViewerException(
+                throw new StateDiagramViewerException(
                     "Multiple candidates for machine with name=" + name, name, currentNamespace);
             }
             else 
@@ -388,7 +388,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             else if (activeNamespaceResults.Count > 1)
             {
                 // Too many
-                throw new StateMachineStructureViewerException(
+                throw new StateDiagramViewerException(
                     "Multiple candidates for name: " + name, name, currentNamespace);
             }
             else

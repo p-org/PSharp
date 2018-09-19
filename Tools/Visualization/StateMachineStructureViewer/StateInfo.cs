@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 baseState = this.machineInfo.LookupState(stateDeclaration.BaseStateToken.Text, stateDeclaration.Group);
                 if (baseState == null)
                 {
-                    throw new StateMachineStructureViewerException(
+                    throw new StateDiagramViewerUnresolvedTokenException(
                         String.Format("BaseState {0} not found for state {1}", baseStateName, this.uniqueName),
                         baseStateName,
                         this.uniqueName);
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     EventInfo eventInfo = this.machineInfo.LookupEvent(kvpair.Key.Text);
                     if (eventInfo == null)
                     {
-                        throw new StateMachineStructureViewerException(
+                        throw new StateDiagramViewerUnresolvedTokenException(
                             String.Format("Event:{0} not found in machine:{1}", kvpair.Key.Text, this.machineInfo.uniqueName),
                             kvpair.Key.Text,
                             this.machineInfo.uniqueName
@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     EventInfo eventInfo = this.machineInfo.LookupEvent(kvpair.Key.Text);
                     if (eventInfo == null)
                     {
-                        throw new StateMachineStructureViewerException(
+                        throw new StateDiagramViewerUnresolvedTokenException(
                             String.Format("Event:{0} not found in machine:{1}", kvpair.Key.Text, this.machineInfo.uniqueName),
                             kvpair.Key.Text,
                             this.machineInfo.uniqueName

@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             string dgml = StateDiagramViewer.CreateDgml(context, out string errors, csVersion);
             if(dgml == null)
             {
-                throw new StateMachineStructureViewerException(
+                throw new StateDiagramViewerException(
                     "GetDGML for program failed with errors:"+Environment.NewLine + errors, null, null);
             }
             return dgml;
