@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             tcs.Task.Wait();
 
             Assert.True(failed);
-            Assert.Equal("Machine 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+M(1)' received event 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.",
+            Assert.Equal("Machine '1(Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+M)' received event 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.",
                 message);
         }
 

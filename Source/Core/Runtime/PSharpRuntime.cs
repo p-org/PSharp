@@ -37,6 +37,11 @@ namespace Microsoft.PSharp
         internal volatile bool IsRunning;
 
         /// <summary>
+        /// Checks if the runtime is a test runtime - mainly used for machine ID hash comparison
+        /// </summary>
+        internal bool IsTest;
+
+        /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
         protected ConcurrentDictionary<MachineId, Machine> MachineMap;

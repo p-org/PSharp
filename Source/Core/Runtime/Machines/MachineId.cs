@@ -26,7 +26,7 @@ namespace Microsoft.PSharp
         /// Name of the machine.
         /// </summary>
         [DataMember]
-        public readonly string Name;
+        public string Name { get; internal set; }
 
         /// <summary>
         /// Optional friendly name of the machine.
@@ -73,23 +73,45 @@ namespace Microsoft.PSharp
             FriendlyName = friendlyName;
             Runtime = runtime;
             Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
-            
+
             // Atomically increments and safely wraps into an unsigned long.
             Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
-
             // Checks for overflow.
             Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
 
             Generation = runtime.Configuration.RuntimeGeneration;
-
             Type = type.FullName;
-            if (friendlyName != null && friendlyName.Length > 0)
+
+            // Generate the name
+            this.GenerateName();
+        }
+
+        /// <summary>
+        /// Given the set of parameters - generated a name which will be used for display and hashing purposes
+        /// </summary>
+        private void GenerateName()
+        {
+            if (Runtime.IsTest)
             {
-                Name = string.Format("{0}({1})", friendlyName, Value);
+                if (FriendlyName != null && FriendlyName.Length > 0)
+                {
+                    Name = string.Format("{0}({1})", FriendlyName, Value);
+                }
+                else
+                {
+                    Name = string.Format("{0}({1})", Type, Value);
+                }
             }
             else
             {
-                Name = string.Format("{0}({1})", Type, Value);
+                if (FriendlyName != null && FriendlyName.Length > 0)
+                {
+                    Name = $"{FriendlyName}({Type})";
+                }
+                else
+                {
+                    Name = $"{Value}({Type})";
+                }
             }
         }
 
@@ -111,14 +133,7 @@ namespace Microsoft.PSharp
             Generation = mid.Generation;
             Type = mid.Type;
 
-            if (FriendlyName != null && FriendlyName.Length > 0)
-            {
-                Name = string.Format("{0}({1})", FriendlyName, Value);
-            }
-            else
-            {
-                Name = string.Format("{0}({1})", Type, Value);
-            }
+            this.GenerateName();
         }
 
         /// <summary>
@@ -153,7 +168,12 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return Value == mid.Value && Generation == mid.Generation;
+            if (Runtime.IsTest)
+            {
+                return Value == mid.Value && Generation == mid.Generation;
+            }
+
+            return Name == mid.Name;
         }
 
         /// <summary>
@@ -163,8 +183,17 @@ namespace Microsoft.PSharp
         public override int GetHashCode()
         {
             int hash = 17;
-            hash = hash * 23 + Value.GetHashCode();
-            hash = hash * 23 + Generation.GetHashCode();
+
+            if (this.Runtime.IsTest)
+            {
+                hash = hash * 23 + Value.GetHashCode();
+                hash = hash * 23 + Generation.GetHashCode();
+            }
+            else
+            {
+                hash = hash * 23 + Name.GetHashCode();
+            }
+
             return hash;
         }
 
