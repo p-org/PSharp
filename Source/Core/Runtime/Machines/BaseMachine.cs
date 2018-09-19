@@ -1290,8 +1290,9 @@ namespace Microsoft.PSharp.Runtime
             }
             else
             {
-                this.CheckProperty(method.ReturnType == typeof(void), "Action '{0}' in machine " +
-                    "'{1}' must have 'void' return type.", method.Name, this.GetType().Name);
+                this.CheckProperty(method.ReturnType == typeof(void) || method.ReturnType == typeof(Task),
+                    "Action '{0}' in machine '{1}' must have 'void' or 'Task' return type.",
+                    method.Name, this.GetType().Name);
             }
 
             return method;
