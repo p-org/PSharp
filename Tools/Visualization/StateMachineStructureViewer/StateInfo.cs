@@ -92,7 +92,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 foreach (var kvpair in stateDeclaration.GotoStateTransitions)
                 {
                     EventInfo eventInfo = this.machineInfo.LookupEvent(kvpair.Key.Text);
-
+                    if (eventInfo == null)
+                    {
+                        throw new StateMachineStructureViewerException(
+                            String.Format("Event:{0} not found in machine:{1}", kvpair.Key.Text, this.machineInfo.uniqueName),
+                            kvpair.Key.Text,
+                            this.machineInfo.uniqueName
+                            );
+                    }
                     string destStateName = ResolutionHelper.TokenListToStateName(kvpair.Value);
                     StateInfo destStateInfo = machineInfo.LookupState(destStateName, stateDeclaration.Group);
                     gotoTransitions.Add(eventInfo.uniqueName, destStateInfo.uniqueName);
@@ -109,7 +116,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 foreach (var kvpair in stateDeclaration.PushStateTransitions)
                 {
                     EventInfo eventInfo = this.machineInfo.LookupEvent(kvpair.Key.Text);
-
+                    if (eventInfo == null)
+                    {
+                        throw new StateMachineStructureViewerException(
+                            String.Format("Event:{0} not found in machine:{1}", kvpair.Key.Text, this.machineInfo.uniqueName),
+                            kvpair.Key.Text,
+                            this.machineInfo.uniqueName
+                            );
+                    }
                     string destStateName = ResolutionHelper.TokenListToStateName(kvpair.Value);
                     StateInfo destStateInfo = machineInfo.LookupState(destStateName, stateDeclaration.Group);
                     pushTransitions.Add(eventInfo.uniqueName, destStateInfo.uniqueName);

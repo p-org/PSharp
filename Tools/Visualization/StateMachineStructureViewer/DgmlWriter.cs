@@ -34,9 +34,10 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
             writer.WriteStartElement("Nodes");
             writer.WriteComment(" Start Machines ");
+            bool drawMachinesExpanded = (machines.ToList().Count <= 1);
             foreach (MachineInfo mInfo in machines)
             {
-                WriteMachine(mInfo, writer);
+                WriteMachine(mInfo, writer, drawMachinesExpanded);
             }
             writer.WriteComment(" End Machines ");
             // Move on to the states within the machines
@@ -125,13 +126,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             writer.WriteEndElement(/*"Styles"*/);
         }
 
-        public static void WriteMachine(MachineInfo machineInfo, XmlTextWriter writer)
+        public static void WriteMachine(MachineInfo machineInfo, XmlTextWriter writer, bool drawExpanded=false)
         {
             writer.WriteStartElement("Node");
             writer.WriteAttributeString("Id", machineInfo.uniqueName);
             writer.WriteAttributeString("Category", "Machine");
             writer.WriteAttributeString("Label", FriendlyName(machineInfo.uniqueName));
-            writer.WriteAttributeString("Group", "Expanded");
+            writer.WriteAttributeString("Group", (drawExpanded?"Expanded":"Collapsed"));
             writer.WriteEndElement(/*"Node"*/);
         }
         public static void WriteMachineStateLinks(MachineInfo mInfo, XmlTextWriter writer)

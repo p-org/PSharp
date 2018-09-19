@@ -5,7 +5,7 @@
     <Description>The P# syntax rewriter.</Description>
 	<!-- If you change this, Please update the Source\LanguageServices\Properties\InternalsVisibleTo.cs to use the new name -->
     <AssemblyName>PSharpStateMachineStructureViewer</AssemblyName>
-    <RootNamespace>PSharpStateMachineStructureViewer</RootNamespace>
+    <RootNamespace>Microsoft.Psharp.PSharpStateMachineStructureViewer</RootNamespace>
     <TargetFrameworks>net46</TargetFrameworks>
     <PackageTags>syntax;rewriter;psharp</PackageTags>
     <OutputPath>..\..\..\bin\</OutputPath>

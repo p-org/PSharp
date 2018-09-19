@@ -163,6 +163,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     foreach (var mdecl in ns.MachineDeclarations)
                     {
                         MachineInfo mInfo = new MachineInfo(mdecl, prog);
+                        if( machineLookup.ContainsKey(mInfo.uniqueName) )
+                        {
+                            throw new StateMachineStructureViewerException(
+                                String.Format("Duplicate state declaration {0} in {1}", mInfo.uniqueName, ns.QualifiedName),
+                                mInfo.uniqueName,
+                                ns.QualifiedName
+                                );
+                        }
                         machineLookup.Add(mInfo.uniqueName, mInfo);
                     }
                 }
@@ -175,6 +183,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             foreach (StateDeclaration sdecl in machineInfo.machineDeclaration.StateDeclarations)
             {
                 StateInfo sInfo = new StateInfo(sdecl, machineInfo);
+                if( stateLookup.ContainsKey(sInfo.uniqueName) )
+                {
+                    throw new StateMachineStructureViewerException(
+                        String.Format("Duplicate state declaration {0} in {1}", sInfo.uniqueName, machineInfo.uniqueName),
+                        sInfo.uniqueName,
+                        machineInfo.uniqueName);
+                }
                 stateLookup.Add(sInfo.uniqueName, sInfo);
             }
             // States in stategroups
@@ -191,6 +206,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             foreach (StateDeclaration sdecl in stateGroup.StateDeclarations)
             {
                 StateInfo sInfo = new StateInfo(sdecl, machineInfo);
+                if (stateLookup.ContainsKey(sInfo.uniqueName))
+                {
+                    string stateGroupContext = CreateUniqueName(machineInfo.machineDeclaration, stateGroup);
+                    throw new StateMachineStructureViewerException(
+                        String.Format("Duplicate state declaration {0} in {1}", sInfo.uniqueName, stateGroupContext),
+                        sInfo.uniqueName,
+                        stateGroupContext);
+                }
                 stateLookup.Add(sInfo.uniqueName, sInfo);
             }
             // Recurse into other stategroups
@@ -209,6 +232,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                     foreach (var edecl in ns.EventDeclarations)
                     {
                         EventInfo eInfo = new EventInfo(edecl, ns);
+                        if (eventLookup.ContainsKey(eInfo.uniqueName))
+                        {
+                            throw new StateMachineStructureViewerException(
+                                String.Format("Duplicate event declaration {0} in {1}", eInfo.uniqueName, ns.QualifiedName),
+                                eInfo.uniqueName,
+                                ns.QualifiedName);
+                        }
                         eventLookup.Add(eInfo.uniqueName, eInfo);
                     }
                 }
@@ -221,6 +251,13 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             {
                 // This may have to be static, since we don't know where the Machine declaration ends and the event declaration starts.
                 EventInfo eInfo = new EventInfo(edecl, machineInfo);
+                if (eventLookup.ContainsKey(eInfo.uniqueName))
+                {
+                    throw new StateMachineStructureViewerException(
+                        String.Format("Duplicate event declaration {0} in {1}", eInfo.uniqueName, machineInfo.uniqueName),
+                        eInfo.uniqueName,
+                        machineInfo.uniqueName);
+                }
                 eventLookup.Add(eInfo.uniqueName, eInfo);
             }
         }
