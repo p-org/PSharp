@@ -368,10 +368,13 @@ namespace Microsoft.PSharp.Runtime
             machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +
+            if (!result)
+            {
+                throw new MachineAlreadyCreatedException(IO.Utilities.Format("Machine with id '{0}' was already created in generation '{1}'. This typically occurs " +
                 "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
                 "runtime generation was deserialized, but the current runtime has not increased its generation value.",
-                mid.Value, mid.Generation);
+                mid.Value, mid.Generation));
+            }
 
             return machine;
         }
