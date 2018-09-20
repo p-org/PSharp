@@ -44,7 +44,7 @@ namespace Microsoft.PSharp
         /// Unique id value.
         /// </summary>
         [DataMember]
-        public readonly ulong Value;
+        public ulong Value { get; internal set; }
 
         /// <summary>
         /// Generation of the runtime that created this machine id.
@@ -58,6 +58,12 @@ namespace Microsoft.PSharp
         [DataMember]
         public readonly string Endpoint;
 
+        /// <summary>
+        /// Endpoint.
+        /// </summary>
+        [DataMember]
+        public readonly bool UseFriendlyNameForHashing;
+
         #endregion
 
         #region constructors
@@ -68,31 +74,32 @@ namespace Microsoft.PSharp
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="runtime">PSharpRuntime</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime)
+        /// <param name="useFriendlyNameHash">If friendly name needs to be used for hashing</param>
+        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime, bool useFriendlyNameHash = false)
         {
             FriendlyName = friendlyName;
             Runtime = runtime;
             Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
-
-            // Atomically increments and safely wraps into an unsigned long.
-            Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
-            // Checks for overflow.
-            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-
-            Generation = runtime.Configuration.RuntimeGeneration;
+            UseFriendlyNameForHashing = useFriendlyNameHash;
             Type = type.FullName;
 
-            // Generate the name
-            this.GenerateName();
+            this.GenerateNameAndValue();
+            
+            // Checks for overflow.
+            Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
+            Generation = runtime.Configuration.RuntimeGeneration;            
         }
 
         /// <summary>
-        /// Given the set of parameters - generated a name which will be used for display and hashing purposes
+        /// Given the set of parameters - generate a name and setup value for hashing
         /// </summary>
-        private void GenerateName()
+        private void GenerateNameAndValue()
         {
-            if (Runtime.IsTest)
+            if (!UseFriendlyNameForHashing)
             {
+                // Atomically increments and safely wraps into an unsigned long.
+                Value = (ulong)Interlocked.Increment(ref Runtime.MachineIdCounter) - 1;
+
                 if (FriendlyName != null && FriendlyName.Length > 0)
                 {
                     Name = string.Format("{0}({1})", FriendlyName, Value);
@@ -104,14 +111,8 @@ namespace Microsoft.PSharp
             }
             else
             {
-                if (FriendlyName != null && FriendlyName.Length > 0)
-                {
-                    Name = $"{FriendlyName}({Type})";
-                }
-                else
-                {
-                    Name = $"{Value}({Type})";
-                }
+                Name = $"{FriendlyName}({Type})";
+                Value = (ulong) Name.GetHashCode();
             }
         }
 
@@ -123,17 +124,15 @@ namespace Microsoft.PSharp
         {
             Runtime = mid.Runtime;
             Endpoint = mid.Endpoint;
+            FriendlyName = mid.FriendlyName;
+            UseFriendlyNameForHashing = mid.UseFriendlyNameForHashing;
+            Type = mid.Type;
 
-            // Atomically increments and safely wraps into an unsigned long.
-            Value = (ulong)Interlocked.Increment(ref Runtime.MachineIdCounter) - 1;
+            this.GenerateNameAndValue();
 
             // Checks for overflow.
             Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
-
             Generation = mid.Generation;
-            Type = mid.Type;
-
-            this.GenerateName();
         }
 
         /// <summary>
@@ -168,7 +167,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            if (Runtime.IsTest)
+            if (!UseFriendlyNameForHashing)
             {
                 return Value == mid.Value && Generation == mid.Generation;
             }
@@ -184,7 +183,7 @@ namespace Microsoft.PSharp
         {
             int hash = 17;
 
-            if (this.Runtime.IsTest)
+            if (!UseFriendlyNameForHashing)
             {
                 hash = hash * 23 + Value.GetHashCode();
                 hash = hash * 23 + Generation.GetHashCode();

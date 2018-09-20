@@ -143,7 +143,6 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
-            this.IsTest = true;
             this.Monitors = new List<Monitor>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;

@@ -37,11 +37,6 @@ namespace Microsoft.PSharp
         internal volatile bool IsRunning;
 
         /// <summary>
-        /// Checks if the runtime is a test runtime - mainly used for machine ID hash comparison
-        /// </summary>
-        internal bool IsTest;
-
-        /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
         protected ConcurrentDictionary<MachineId, Machine> MachineMap;
@@ -136,6 +131,23 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
 
         public MachineId CreateMachineId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
+
+        /// <summary>
+        /// Creates a fresh machine id that has not yet been bound to any machine.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <returns>MachineId</returns>
+
+        public MachineId CreateStringMachineId(Type type, string friendlyName) => new MachineId(type, friendlyName, this, true);
+
+        /// <summary>
+        /// Creates a fresh machine id that is not bound to any machine yet.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <param name="friendlyName">Friendly name</param>
+        /// <returns>MachineId</returns>
+        public MachineId CreateMachineStringId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
