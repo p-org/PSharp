@@ -151,7 +151,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         }
         #endregion
 
-
         #region populate api
 
         public void PopulateMachines(List<PSharpProgram> programs)

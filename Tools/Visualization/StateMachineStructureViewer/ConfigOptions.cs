@@ -8,6 +8,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     public class ConfigOptions
     {
+        // if true, Diagrams with multiple machines are drawn with machines collapsed.
         public bool CollapseMachines;
 
         public ConfigOptions()
@@ -24,7 +25,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 ";
         }
 
-        internal bool tryParseOption(string[] parts)
+        internal bool TryParseOption(string[] parts)
         {
             switch (parts[0])
             {

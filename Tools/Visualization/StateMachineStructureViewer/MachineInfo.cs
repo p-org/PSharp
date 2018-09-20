@@ -11,11 +11,18 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     internal class MachineInfo
     {
+        #region fields and constructors
         public string uniqueName { get; }
         internal PSharpProgram program;
         internal MachineDeclaration machineDeclaration;
         internal MachineInfo baseMachine;
-        
+
+        // Set of fully qualified names of the events declared ( or inherited ) in this machine
+        HashSet<string> events;
+
+        // Set of fully qualified names of the states declared ( or inherited ) in this machine 
+        HashSet<string> states;
+
         internal MachineInfo(MachineDeclaration mdecl, PSharpProgram prog)
         {
             uniqueName = ResolutionHelper.CreateUniqueName(mdecl);
@@ -24,13 +31,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             baseMachine = null;
             states = null;
         }
-
-        
-        // Set of fully qualified names of the events declared ( or inherited ) in this machine
-        HashSet<string> events;
-
-        // Set of fully qualified names of the states declared ( or inherited ) in this machine 
-        HashSet<string> states;
+        #endregion 
 
         #region api
         internal void ResolveBaseMachine()
@@ -179,5 +180,4 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
     }
     #endregion
     
-
 }

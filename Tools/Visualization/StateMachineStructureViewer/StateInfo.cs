@@ -15,6 +15,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class StateInfo
     {
+        #region fields
         public string uniqueName { get; }
         internal MachineInfo machineInfo { get; }
         internal StateDeclaration stateDeclaration { get; }
@@ -23,7 +24,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         internal StateInfo baseState;
 
         internal bool isStartState;
+        #endregion
 
+        #region initialization methods        
         public StateInfo(StateDeclaration sdecl, MachineInfo machineInfo)
         {
             this.stateDeclaration = sdecl;
@@ -50,7 +53,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 }
             }
         }
+        #endregion 
 
+        #region transition methods
         public Dictionary<string, string> GetGotoTransitions(bool includeInherited=true)
         {
             Dictionary<string, string> transitions = new Dictionary<string, string>();
@@ -131,7 +136,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
             return pushTransitions;
         }
+        #endregion
 
+        #region EventHandler methods
         public HashSet<string> GetIgnoredEvents(bool includeInherited = true)
         {
             HashSet<string> ignored = new HashSet<string>();
@@ -179,5 +186,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
             return handled;
         }
+        #endregion
     }
 }

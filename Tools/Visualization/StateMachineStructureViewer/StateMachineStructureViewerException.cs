@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
+    /* Abstract base exception */
     public abstract class StateMachineStructureViewerBaseException : Exception
     {
-        string token, context;
+        public readonly string token, context;
         public StateMachineStructureViewerBaseException(string msg, string token, string context) :
             base(msg)
         {
@@ -17,6 +18,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         }
     }
 
+    /* Specific exception types */
 
     public class StateDiagramViewerException : StateMachineStructureViewerBaseException
     {

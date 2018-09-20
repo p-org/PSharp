@@ -36,7 +36,12 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             ResolutionHelper.ResetToNewInstance();
         }
 
-        /* Convenience method for Tests & other services */
+
+        /// <summary>
+        /// Convenience method for Tests & other services
+        /// <param name="prog">The PSharp program for which the diagram should be generated</param>
+        /// <param name="config">ConfigOptions object. Defaults are used if null</param>
+        /// </summary>
         public static string GetDgmlForProgram(string prog, ConfigOptions config=null)
         {
             if (config == null)
@@ -124,7 +129,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                                 break;
 
                             default:
-                                if (!config.tryParseOption(parts)) { 
+                                if (!config.TryParseOption(parts)) { 
                                     Output.WriteLine($"Error: unknown option {parts[0]}");
                                     return;
                                 }
@@ -275,7 +280,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         /// <summary>
         /// Emits dgml representation of the state machine structure
         /// </summary>
+        /// <param name="machines">List of machines to include in the diagram</param>
         /// <param name="writer">XmlTestWriter</param>
+        /// <param name="config">ConfigOptions object</param>
         internal static void EmitStateMachineStructure(List<MachineInfo> machines, XmlTextWriter writer, ConfigOptions config)
         {
             

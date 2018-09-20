@@ -9,6 +9,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class EventInfo
     {
+        #region fields and constructor
         private readonly NamespaceDeclaration namespaceDeclaration;
         private readonly MachineInfo machineInfo;
         private readonly EventDeclaration eventDeclaration;
@@ -29,5 +30,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             this.uniqueName = ResolutionHelper.CreateUniqueNameForEventIdentifier(ns.QualifiedName, edecl.Identifier.Text);
             this.namespaceDeclaration = ns;
         }
+        #endregion
     }
 }

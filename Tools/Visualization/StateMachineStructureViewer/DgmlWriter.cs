@@ -19,6 +19,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             this.writer = writer;
         }
 
+        #region naming utils
         private readonly static char[] unfriendlyNameSeparators = { '.' };
         private static string FriendlyName(string uniqueName)
         {
@@ -29,12 +30,9 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         {
             return parentName + ">" + uniqueName;
         }
-        /*
-        private static bool IsStateInherited(MachineInfo machine, StateInfo state)
-        {
-            return state.uniqueName.StartsWith(machine.uniqueName);
-        }*/
+        #endregion
 
+        #region Write Methods
         public void WriteAll(IEnumerable<MachineInfo> machines)
         {
 
@@ -231,10 +229,6 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             }
             writer.WriteComment(String.Format("End outgoing transitions from {0}", sourceId));
         }
-        
-
-        
-
-
+        #endregion
     }
 }
