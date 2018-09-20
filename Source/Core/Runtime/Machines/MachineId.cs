@@ -112,7 +112,15 @@ namespace Microsoft.PSharp
             else
             {
                 Name = $"{FriendlyName}({Type})";
-                Value = (ulong) Name.GetHashCode();
+                if (Runtime.IsTest)
+                {
+                    // Atomically increments and safely wraps into an unsigned long.
+                    Value = (ulong)Interlocked.Increment(ref Runtime.MachineIdCounter) - 1;
+                }
+                else
+                {
+                    Value = (ulong)Name.GetHashCode();
+                }
             }
         }
 
@@ -167,7 +175,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            if (!UseFriendlyNameForHashing)
+            if (!UseFriendlyNameForHashing || (Runtime != null && Runtime.IsTest))
             {
                 return Value == mid.Value && Generation == mid.Generation;
             }
@@ -183,7 +191,7 @@ namespace Microsoft.PSharp
         {
             int hash = 17;
 
-            if (!UseFriendlyNameForHashing)
+            if (!UseFriendlyNameForHashing || (Runtime != null && Runtime.IsTest))
             {
                 hash = hash * 23 + Value.GetHashCode();
                 hash = hash * 23 + Generation.GetHashCode();
