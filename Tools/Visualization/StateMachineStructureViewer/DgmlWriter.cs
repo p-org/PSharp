@@ -11,6 +11,14 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 {
     class DgmlWriter
     {
+        ConfigOptions config;
+        XmlTextWriter writer;
+        public DgmlWriter(XmlTextWriter writer, ConfigOptions config)
+        {
+            this.config = config;
+            this.writer = writer;
+        }
+
         private readonly static char[] unfriendlyNameSeparators = { '.' };
         private static string FriendlyName(string uniqueName)
         {
@@ -27,24 +35,24 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             return state.uniqueName.StartsWith(machine.uniqueName);
         }*/
 
-        public static void WriteAll(IEnumerable<MachineInfo> machines, XmlTextWriter writer)
+        public void WriteAll(IEnumerable<MachineInfo> machines)
         {
 
             writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
 
             writer.WriteStartElement("Nodes");
             writer.WriteComment(" Start Machines ");
-            bool drawMachinesExpanded = (machines.ToList().Count <= 1);
+            bool drawMachinesCollapsed = ( config.CollapseMachines && machines.ToList().Count > 1);
             foreach (MachineInfo mInfo in machines)
             {
-                WriteMachine(mInfo, writer, drawMachinesExpanded);
+                WriteMachine(mInfo, drawMachinesCollapsed);
             }
             writer.WriteComment(" End Machines ");
             // Move on to the states within the machines
             writer.WriteComment(" Start States");
             foreach (MachineInfo mInfo in machines)
             {
-                WriteMachineStates(mInfo, writer);
+                WriteMachineStates(mInfo);
             }
             writer.WriteComment(" End States ");
             writer.WriteEndElement(/*"Nodes"*/);
@@ -54,24 +62,24 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             writer.WriteStartElement("Links");
             foreach (MachineInfo mInfo in machines)
             {
-                WriteMachineStateLinks(mInfo, writer);
+                WriteMachineStateLinks(mInfo);
             }
 
             foreach (MachineInfo mInfo in machines)
             {
                 foreach(string stateName in mInfo.GetStates())
                 {
-                    WriteStateTransitions(ResolutionHelper.Instance().GetState(stateName), writer, mInfo);
+                    WriteStateTransitions(ResolutionHelper.Instance().GetState(stateName), mInfo);
                 }
             }
             writer.WriteEndElement(/*"Links"*/);
 
-            WriteAppendix(writer);
+            WriteAppendix();
 
             writer.WriteEndElement(/*DirectedGraph*/);
         }
 
-        private static void WriteAppendix(XmlTextWriter writer)
+        private void WriteAppendix()
         {
             // Properties : Define custom properties to show Ignored, Deferred and Handled events
             writer.WriteStartElement("Properties");
@@ -126,16 +134,16 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             writer.WriteEndElement(/*"Styles"*/);
         }
 
-        public static void WriteMachine(MachineInfo machineInfo, XmlTextWriter writer, bool drawExpanded=false)
+        public void WriteMachine(MachineInfo machineInfo, bool drawCollapsed=false)
         {
             writer.WriteStartElement("Node");
             writer.WriteAttributeString("Id", machineInfo.uniqueName);
             writer.WriteAttributeString("Category", "Machine");
             writer.WriteAttributeString("Label", FriendlyName(machineInfo.uniqueName));
-            writer.WriteAttributeString("Group", (drawExpanded?"Expanded":"Collapsed"));
+            writer.WriteAttributeString("Group", (drawCollapsed ? "Collapsed" : "Expanded"));
             writer.WriteEndElement(/*"Node"*/);
         }
-        public static void WriteMachineStateLinks(MachineInfo mInfo, XmlTextWriter writer)
+        public void WriteMachineStateLinks(MachineInfo mInfo)
         {
             var machine = mInfo.uniqueName;
             foreach (string stateName in mInfo.GetStates() )
@@ -151,7 +159,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         }
 
 
-        public static void WriteMachineStates(MachineInfo machineInfo, XmlTextWriter writer)
+        public void WriteMachineStates(MachineInfo machineInfo)
         {
             var machine = machineInfo.uniqueName;
             writer.WriteComment(String.Format("Start states for Machine '{0}'", machineInfo.uniqueName));
@@ -188,12 +196,12 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             writer.WriteComment(String.Format("End states for Machine '{0}'", machineInfo.uniqueName));
         }
 
-        private static bool IsInherited(string propertyName, string ownerName)
+        private bool IsInherited(string propertyName, string ownerName)
         {
             return !propertyName.StartsWith(ownerName);
         }
 
-        public static void WriteStateTransitions(StateInfo sInfo, XmlTextWriter writer, MachineInfo machineContext) {
+        public void WriteStateTransitions(StateInfo sInfo, MachineInfo machineContext) {
 
             string sourceId = IsInherited(sInfo.uniqueName, machineContext.uniqueName) ?
                 InheritedName(sInfo.uniqueName, machineContext.uniqueName) : sInfo.uniqueName;

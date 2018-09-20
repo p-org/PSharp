@@ -37,8 +37,12 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         }
 
         /* Convenience method for Tests & other services */
-        public static string GetDgmlForProgram(string prog)
+        public static string GetDgmlForProgram(string prog, ConfigOptions config=null)
         {
+            if (config == null)
+            {
+                config = new ConfigOptions(); // Defaults
+            }
             Version csVersion = new Version(0, 0);
             Configuration configuration = Configuration.Create();
             configuration.Verbose = 2;
@@ -46,7 +50,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             var context = CompilationContext.Create(configuration);
 
             context.LoadSolution(prog);
-            string dgml = StateDiagramViewer.CreateDgml(context, out string errors, csVersion);
+            string dgml = StateDiagramViewer.CreateDgml(context, out string errors, csVersion, config);
             if(dgml == null)
             {
                 throw new StateDiagramViewerException(
@@ -64,12 +68,15 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             var csVersion = new Version(0, 0);
 
             var usage = "Usage: " + Environment.NewLine +
-                " PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor]" + Environment.NewLine +
+                " PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor] [options]" + Environment.NewLine +
                 "OR" + Environment.NewLine +
-                " PSharpStateMachineStructureViewer.exe /s:SolutionFile.sln /p:ProjectName [outfile.dgml] [/csVersion:major.minor]" + Environment.NewLine;
+                " PSharpStateMachineStructureViewer.exe /s:SolutionFile.sln /p:ProjectName [outfile.dgml] [/csVersion:major.minor] [options]" + Environment.NewLine +
+                "Options include:" + Environment.NewLine +
+                ConfigOptions.GetDescription();
 
             List<string> positionalArgs = new List<string>();
-            if (args.Length >= 1 && args.Length <= 3)
+            ConfigOptions config = new ConfigOptions();
+            if (args.Length >= 1 /*&& args.Length <= 3*/)
             {
                 foreach (var arg in args)
                 {
@@ -98,14 +105,30 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                                 break;
 
                             case "p":
+                                if(parts.Length != 2)
+                                {
+                                    Output.WriteLine("Error: option 'p' requires a value");
+                                    Output.WriteLine(usage);
+                                    return;
+                                }
                                 projectFile = parts[1];
                                 break;
                             case "s":
+                                if (parts.Length != 2)
+                                {
+                                    Output.WriteLine("Error: option 's' requires a value");
+                                    Output.WriteLine(usage);
+                                    return;
+                                }
                                 solutionFile = parts[1];
                                 break;
+
                             default:
-                                Output.WriteLine($"Error: unknown option {parts[0]}");
-                                return;
+                                if (!config.tryParseOption(parts)) { 
+                                    Output.WriteLine($"Error: unknown option {parts[0]}");
+                                    return;
+                                }
+                                break;
                         }
                     }
                     else
@@ -130,17 +153,30 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             CompilationContext context = null;
             if (projectFile.Length > 0 && solutionFile.Length > 0 )
             {
-                if (positionalArgs.Count >= 1)
+                if (positionalArgs.Count > 1)
                 {
-                    outfile = positionalArgs[0];
+                    Output.WriteLine("Too many positional arguments. Expected upto 1 ");
+                    Output.WriteLine(usage);
+                    return;
                 }
 
+                if (positionalArgs.Count == 1) { 
+                    outfile = positionalArgs[0];
+                }
                 configuration.ProjectName = projectFile;
                 configuration.SolutionFilePath = solutionFile;
                 context = CompilationContext.Create(configuration).LoadSolution();
             }
             else if (positionalArgs.Count >= 1)
             {
+
+                if (positionalArgs.Count > 2)
+                {
+                    Output.WriteLine("Too many positional arguments. Expected upto 2");
+                    Output.WriteLine(usage);
+                    return;
+                }
+
                 infile = positionalArgs[0];
                 outfile = positionalArgs.Count >= 2 ? positionalArgs[1] : outfile;
                 // Gets input file as string.
@@ -161,7 +197,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             // Translates and prints on console or to file.
             string errors = string.Empty;
 
-            var output = CreateDgml(context, out errors, csVersion);
+            var output = CreateDgml(context, out errors, csVersion, config);
             if (output == null)
             {
                 Output.WriteLine("Parse Error: " + errors);
@@ -190,7 +226,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Text</returns>
-        public static string CreateDgml(CompilationContext context, out string errors, Version csVersion)
+        public static string CreateDgml(CompilationContext context, out string errors, Version csVersion, ConfigOptions config)
         {
             try
             {
@@ -219,12 +255,17 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 MemoryStream memStream = new MemoryStream();
                 using (var writer = new XmlTextWriter(memStream, Encoding.UTF8))
                 {
-                    EmitStateMachineStructure(ResolutionHelper.Instance().GetAllMachines(), writer);
+                    EmitStateMachineStructure(ResolutionHelper.Instance().GetAllMachines(), writer, config);
                     //context.GetProjects()[0].PSharpPrograms[0].EmitStateMachineStructure(writer);
                 }
                 return Encoding.UTF8.GetString(memStream.ToArray());
             }
             catch (ParsingException ex)
+            {
+                errors = ex.Message;
+                return null;
+            }
+            catch(StateMachineStructureViewerBaseException ex)
             {
                 errors = ex.Message;
                 return null;
@@ -235,15 +276,15 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
         /// Emits dgml representation of the state machine structure
         /// </summary>
         /// <param name="writer">XmlTestWriter</param>
-        internal static void EmitStateMachineStructure(List<MachineInfo> machines, XmlTextWriter writer)
+        internal static void EmitStateMachineStructure(List<MachineInfo> machines, XmlTextWriter writer, ConfigOptions config)
         {
             
             // Starts document.
             writer.WriteStartDocument(true);
             writer.Formatting = Formatting.Indented;
             writer.Indentation = 2;
-            
-            DgmlWriter.WriteAll(machines, writer);
+            DgmlWriter dgmlWriter = new DgmlWriter(writer, config);
+            dgmlWriter.WriteAll(machines);
 
             // Ends document.
             writer.WriteEndDocument();
