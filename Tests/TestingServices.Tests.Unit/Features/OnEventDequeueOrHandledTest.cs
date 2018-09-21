@@ -108,8 +108,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return Task.FromResult(true);
             }
 
-            protected override Task OnEventHandledAsync(Event ev)
+            protected override Task OnEventHandledAsync(Event ev, bool wasIgnored)
             {
+                this.Assert(!wasIgnored);
                 this.Monitor<Spec1>(new End(ev));
                 return Task.FromResult(true);
             }
@@ -177,8 +178,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 return Task.FromResult(true);
             }
 
-            protected override Task OnEventHandledAsync(Event ev)
+            protected override Task OnEventHandledAsync(Event ev, bool wasIgnored)
             {
+                this.Assert(!wasIgnored);
                 this.Monitor<Spec2>(new End(ev));
                 return Task.FromResult(true);
             }
@@ -228,8 +230,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Monitor<Spec3>(new Done());
             }
 
-            protected override Task OnEventHandledAsync(Event ev)
+            protected override Task OnEventHandledAsync(Event ev, bool wasIgnored)
             {
+                this.Assert(!wasIgnored);
                 this.Assert(ev is E1);
                 this.Assert(this.CurrentState.Name == typeof(S2).Name);
                 this.Goto<S3>();
@@ -268,8 +271,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Process() { }
 
-            protected override Task OnEventHandledAsync(Event ev)
+            protected override Task OnEventHandledAsync(Event ev, bool wasIgnored)
             {
+                this.Assert(!wasIgnored);
                 this.Raise(new Halt());
                 return Task.FromResult(true);
             }

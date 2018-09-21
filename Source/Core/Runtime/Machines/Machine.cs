@@ -643,45 +643,6 @@ namespace Microsoft.PSharp
             {
                 var nextNode = node.Next;
                 var currentEventInfo = node.Value;
-                if (currentEventInfo.EventType.IsGenericType)
-                {
-                    var genericTypeDefinition = currentEventInfo.EventType.GetGenericTypeDefinition();
-                    var ignored = false;
-                    foreach (var tup in this.CurrentActionHandlerMap)
-                    {
-                        if (!(tup.Value is IgnoreAction)) continue;
-                        if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
-                            genericTypeDefinition.GetGenericTypeDefinition()))
-                        {
-                            ignored = true;
-                            break;
-                        }
-                    }
-
-                    if (ignored)
-                    {
-                        if (!checkOnly)
-                        {
-                            // Removes an ignored event.
-                            Inbox.Remove(node);
-                        }
-
-                        node = nextNode;
-                        continue;
-                    }
-                }
-
-                if (this.IsIgnored(currentEventInfo.EventType))
-                {
-                    if (!checkOnly)
-                    {
-                        // Removes an ignored event.
-                        Inbox.Remove(node);
-                    }
-
-                    node = nextNode;
-                    continue;
-                }
 
                 // Skips a deferred event.
                 if (!this.IsDeferred(currentEventInfo.EventType))
@@ -700,6 +661,7 @@ namespace Microsoft.PSharp
 
             return nextAvailableEventInfo;
         }
+
 
         /// <summary>
         /// Returns the raised <see cref="EventInfo"/> if
@@ -821,14 +783,22 @@ namespace Microsoft.PSharp
                     await this.OnEventDequeueAsync(previouslyDequeuedEvent);
                 }
 
-                // Handles next event.
-                await this.HandleEvent(nextEventInfo.Event);
+                var eventIgnored = false;
+                if (IsIgnored(nextEventInfo.EventType))
+                {
+                    eventIgnored = true;
+                }
+                else
+                {
+                    // Handles next event.
+                    await this.HandleEvent(nextEventInfo.Event);
+                }
 
                 if (this.RaisedEvent == null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
                 {
                     // Inform the user that the machine is done handling the current event.
                     // The machine will either go idle or dequeue its next event.
-                    await this.OnEventHandledAsync(previouslyDequeuedEvent);
+                    await this.OnEventHandledAsync(previouslyDequeuedEvent, eventIgnored);
                     previouslyDequeuedEvent = null;
                 }
             }
@@ -1324,6 +1294,27 @@ namespace Microsoft.PSharp
                 this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
             {
                 return false;
+            }
+
+            if (e.IsGenericType)
+            {
+                var genericTypeDefinition = e.GetGenericTypeDefinition();
+                var ignored = false;
+                foreach (var tup in this.CurrentActionHandlerMap)
+                {
+                    if (!(tup.Value is IgnoreAction)) continue;
+                    if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
+                        genericTypeDefinition.GetGenericTypeDefinition()))
+                    {
+                        ignored = true;
+                        break;
+                    }
+                }
+
+                if (ignored)
+                {
+                    return true;
+                }
             }
 
             if (this.CurrentActionHandlerMap.ContainsKey(e))
@@ -1872,14 +1863,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// User callback that is invoked when the machine finishes handling a dequeued event,
-        /// unless the handler of the dequeued event raised an event or caused the machine to
-        /// halt (either normally or due to an exception). Unless this callback raises an event,
+        /// User callback that is invoked when the machine finishes handling a dequeued event.
+        /// Note that handling of an event can go through a series of handlers because of raised events.
+        /// This method is called after event-raising stops. This means that unless this callback raises 
+        /// an event itself,
         /// the machine will either become idle or dequeue the next event from its inbox.
+        /// This method is not called when handling of an event causes the machine to 
+        /// halt (either normally or due to an exception). 
         /// </summary>
         /// <param name="e">The dequeued event whose handler has just finished.</param>
+        /// <param name="wasIgnored">True, if the event was ignored by the machine</param>
         /// <returns></returns>
-        protected virtual Task OnEventHandledAsync(Event e)
+        protected virtual Task OnEventHandledAsync(Event e, bool wasIgnored)
         {
             return Task.FromResult(true);
         }
