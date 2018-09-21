@@ -72,6 +72,11 @@ namespace Microsoft.PSharp.TestingServices
         private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
+        /// Machine Ids created from user strings by this runtime.
+        /// </summary>
+        internal ConcurrentDictionary<string, MachineId> StringValueToMachineId;
+
+        /// <summary>
         /// Set of all machine Ids created by this runtime.
         /// </summary>
         internal HashSet<MachineId> AllCreatedMachineIds;
@@ -147,6 +152,7 @@ namespace Microsoft.PSharp.TestingServices
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
             this.AllCreatedMachineIds = new HashSet<MachineId>();
+            this.StringValueToMachineId = new ConcurrentDictionary<string, MachineId>();
         }
 
         #endregion
@@ -218,6 +224,21 @@ namespace Microsoft.PSharp.TestingServices
 
             return this.CreateMachine(mid, type, friendlyName, e, creator, operationGroupId);
         }
+
+        /// <summary>
+        /// Creates a machine id, uniquely tied to the input string
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="uniqueName">Name that derives the MachineId</param>
+        /// <returns>MachineId</returns>
+
+        public override MachineId CreateMachineIdFromString(Type type, string uniqueName)
+        {
+            // note: it is important that all MachineIds in test mode use Value as Id, not StringValue
+            var mid = new MachineId(type, uniqueName, this);
+            return this.StringValueToMachineId.GetOrAdd(uniqueName, mid);
+        }
+
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and

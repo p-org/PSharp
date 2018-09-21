@@ -133,6 +133,15 @@ namespace Microsoft.PSharp
         public MachineId CreateMachineId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
 
         /// <summary>
+        /// Creates a machine id, uniquely tied to the input string
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="uniqueName">Name that derives the MachineId</param>
+        /// <returns>MachineId</returns>
+
+        public abstract MachineId CreateMachineIdFromString(Type type, string uniqueName);
+
+        /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
