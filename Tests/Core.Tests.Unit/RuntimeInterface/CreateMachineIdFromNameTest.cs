@@ -6,11 +6,10 @@
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests.Unit
 {
-    public class CreateIdFromString 
+    public class CreateMachineIdFromNameTest
     {
         class E : Event { }
 
@@ -52,7 +51,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             };
 
             var m1 = runtime.CreateMachine(typeof(M));
-            var m2 = runtime.CreateMachineIdFromString(typeof(M), "M");
+            var m2 = runtime.CreateMachineIdFromName(typeof(M), "M");
             runtime.Assert(!m1.Equals(m2));
             runtime.CreateMachine(m2, typeof(M), new Conf(tcs));
 
@@ -72,8 +71,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
                 tcs.SetResult(false);
             };
 
-            var m1 = runtime.CreateMachineIdFromString(typeof(M), "M1");
-            var m2 = runtime.CreateMachineIdFromString(typeof(M), "M2");
+            var m1 = runtime.CreateMachineIdFromName(typeof(M), "M1");
+            var m2 = runtime.CreateMachineIdFromName(typeof(M), "M2");
             runtime.Assert(!m1.Equals(m2));
             runtime.CreateMachine(m1, typeof(M));
             runtime.CreateMachine(m2, typeof(M), new Conf(tcs));
@@ -109,7 +108,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             try
             {
-                var m3 = runtime.CreateMachineIdFromString(typeof(M3), "M3");
+                var m3 = runtime.CreateMachineIdFromName(typeof(M3), "M3");
                 runtime.CreateMachine(m3, typeof(M2));
             }
             catch(Exception)
@@ -136,7 +135,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             try
             {
-                var m1 = r.CreateMachineIdFromString(typeof(M2), "M2");
+                var m1 = r.CreateMachineIdFromName(typeof(M2), "M2");
                 r.CreateMachine(m1, typeof(M2));
                 r.CreateMachine(m1, typeof(M2));
             }
@@ -176,8 +175,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         public void TestCreateWithId9()
         {
             var r = PSharpRuntime.Create();
-            var m1 = r.CreateMachineIdFromString(typeof(M4), "M4");
-            var m2 = r.CreateMachineIdFromString(typeof(M4), "M4");
+            var m1 = r.CreateMachineIdFromName(typeof(M4), "M4");
+            var m2 = r.CreateMachineIdFromName(typeof(M4), "M4");
             Assert.True(m1.Equals(m2));
         }
 
@@ -189,7 +188,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                var m = this.Runtime.CreateMachineIdFromString(typeof(M4), "M4");
+                var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
                 this.CreateMachine(m, typeof(M4), "friendly");
             }
         }
@@ -222,7 +221,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 await this.Runtime.CreateMachineAndExecute(typeof(M6));
-                var m = this.Runtime.CreateMachineIdFromString(typeof(M4), "M4");
+                var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
                 this.Runtime.SendEvent(m, this.ReceivedEvent);
             }
         }

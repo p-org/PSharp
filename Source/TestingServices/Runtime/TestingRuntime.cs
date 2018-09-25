@@ -168,7 +168,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the machine</param>
         /// <param name="uniqueName">Unique name used to create the machine id</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachineIdFromString(Type type, string uniqueName)
+        public override MachineId CreateMachineIdFromName(Type type, string uniqueName)
         {
             // It is important that all machine ids use the monotonically incrementing
             // value as the id during testing, and not the unique name.

@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the machine</param>
         /// <param name="uniqueName">Unique name used to create the machine id</param>
         /// <returns>MachineId</returns>
-        public override MachineId CreateMachineIdFromString(Type type, string uniqueName) => new MachineId(type, uniqueName, this, true);
+        public override MachineId CreateMachineIdFromName(Type type, string uniqueName) => new MachineId(type, uniqueName, this, true);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with

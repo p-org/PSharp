@@ -141,7 +141,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="uniqueName">Unique name used to create the machine id</param>
         /// <returns>MachineId</returns>
-        public abstract MachineId CreateMachineIdFromString(Type type, string uniqueName);
+        public abstract MachineId CreateMachineIdFromName(Type type, string uniqueName);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with

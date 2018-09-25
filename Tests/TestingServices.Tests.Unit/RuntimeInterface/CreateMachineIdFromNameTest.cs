@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
-    public class CreateIdFromString : BaseTest
+    public class CreateMachineIdFromNameTest : BaseTest
     {
-        public CreateIdFromString(ITestOutputHelper output)
+        public CreateMachineIdFromNameTest(ITestOutputHelper output)
             : base(output)
         { }
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 var m1 = r.CreateMachine(typeof(M));
-                var m2 = r.CreateMachineIdFromString(typeof(M), "M");
+                var m2 = r.CreateMachineIdFromName(typeof(M), "M");
                 r.Assert(!m1.Equals(m2));
                 r.CreateMachine(m2, typeof(M));
             });
@@ -64,8 +64,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
-                var m1 = r.CreateMachineIdFromString(typeof(M), "M1"); 
-                var m2 = r.CreateMachineIdFromString(typeof(M), "M2");
+                var m1 = r.CreateMachineIdFromName(typeof(M), "M1"); 
+                var m2 = r.CreateMachineIdFromName(typeof(M), "M2");
                 r.Assert(!m1.Equals(m2));
                 r.CreateMachine(m1, typeof(M));
                 r.CreateMachine(m2, typeof(M));
@@ -90,18 +90,19 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCreateWithId4()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                var m3 = r.CreateMachineIdFromString(typeof(M3), "M3");
+                var m3 = r.CreateMachineIdFromName(typeof(M3), "M3");
                 r.CreateMachine(m3, typeof(M2));
             });
 
-            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M3' to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M2'.", true);
+            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M3'" +
+                " to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M2'.", true);
         }
 
         [Fact]
         public void TestCreateWithId5()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                var m1 = r.CreateMachineIdFromString(typeof(M2), "M2");
+                var m1 = r.CreateMachineIdFromName(typeof(M2), "M2");
                 r.CreateMachine(m1, typeof(M2));
                 r.CreateMachine(m1, typeof(M2));
             });
@@ -113,18 +114,19 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCreateWithId6()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                var m = r.CreateMachineIdFromString(typeof(M2), "M2");
+                var m = r.CreateMachineIdFromName(typeof(M2), "M2");
                 r.SendEvent(m, new E());
             });
 
-            base.AssertFailed(test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+E to a MachineId '' that was never previously bound to a machine of type M2()", true);
+            base.AssertFailed(test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+E" +
+                " to a MachineId '' that was never previously bound to a machine of type M2()", true);
         }
 
         [Fact]
         public void TestCreateWithId7()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                var m = r.CreateMachineIdFromString(typeof(M2), "M2");
+                var m = r.CreateMachineIdFromName(typeof(M2), "M2");
                 r.CreateMachine(m, typeof(M2));
 
                 // Make sure that the machine halts
@@ -137,7 +139,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(m, typeof(M2));
             });
 
-            base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be reused to create a new machine of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M2", false);
+            base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be reused to create a new machine" +
+                " of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M2", false);
         }
 
         class E2 : Event
@@ -179,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestCreateWithId8()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                var m = r.CreateMachineIdFromString(typeof(M4), "M4");
+                var m = r.CreateMachineIdFromName(typeof(M4), "M4");
                 r.CreateMachine(typeof(M5), new E2(m));
                 r.CreateMachine(m, typeof(M4));
             });
@@ -187,15 +190,16 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(100);
             config.ReductionStrategy = Utilities.ReductionStrategy.None;
 
-            base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+E to a MachineId '' that was never previously bound to a machine of type M4()", false);
+            base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+E" +
+                " to a MachineId '' that was never previously bound to a machine of type M4()", false);
         }
 
         [Fact]
         public void TestCreateWithId9()
         {
             var test = new Action<PSharpRuntime>((r) => {
-                var m1 = r.CreateMachineIdFromString(typeof(M4), "M4");
-                var m2 = r.CreateMachineIdFromString(typeof(M4), "M4");
+                var m1 = r.CreateMachineIdFromName(typeof(M4), "M4");
+                var m2 = r.CreateMachineIdFromName(typeof(M4), "M4");
                 r.Assert(m1.Equals(m2));
             });
 
@@ -210,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var m = this.Runtime.CreateMachineIdFromString(typeof(M4), "M4");
+                var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
                 this.CreateMachine(m, typeof(M4), "friendly");
             }
         }
@@ -248,7 +252,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 await this.Runtime.CreateMachineAndExecute(typeof(M6));
-                var m = this.Runtime.CreateMachineIdFromString(typeof(M4), "M4");
+                var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
                 this.Runtime.SendEvent(m, new E());
             }
         }
