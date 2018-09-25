@@ -94,8 +94,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(m3, typeof(M2));
             });
 
-            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M3'" +
-                " to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M2'.", true);
+            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit." +
+                "CreateMachineIdFromNameTest+M3' to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit." +
+                "CreateMachineIdFromNameTest+M2'.", true);
         }
 
         [Fact]
@@ -118,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.SendEvent(m, new E());
             });
 
-            base.AssertFailed(test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+E" +
+            base.AssertFailed(test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineIdFromNameTest+E" +
                 " to a MachineId '' that was never previously bound to a machine of type M2()", true);
         }
 
@@ -140,7 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be reused to create a new machine" +
-                " of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+M2", false);
+                " of type Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineIdFromNameTest+M2", false);
         }
 
         class E2 : Event
@@ -190,7 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(100);
             config.ReductionStrategy = Utilities.ReductionStrategy.None;
 
-            base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateIdFromString+E" +
+            base.AssertFailed(config, test, "Cannot Send event Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineIdFromNameTest+E" +
                 " to a MachineId '' that was never previously bound to a machine of type M4()", false);
         }
 
