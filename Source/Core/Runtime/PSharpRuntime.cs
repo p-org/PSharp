@@ -133,12 +133,14 @@ namespace Microsoft.PSharp
         public MachineId CreateMachineId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
 
         /// <summary>
-        /// Creates a machine id, uniquely tied to the input string
+        /// Creates a machine id that is uniquely tied to the specified unique name. The
+        /// returned machine id can either be a fresh id (not yet bound to any machine),
+        /// or it can be bound to a previously created machine. In the second case, this
+        /// machine id can be directly used to communicate with the corresponding machine.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="uniqueName">Name that derives the MachineId</param>
+        /// <param name="uniqueName">Unique name used to create the machine id</param>
         /// <returns>MachineId</returns>
-
         public abstract MachineId CreateMachineIdFromString(Type type, string uniqueName);
 
         /// <summary>

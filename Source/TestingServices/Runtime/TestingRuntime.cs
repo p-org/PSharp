@@ -72,9 +72,9 @@ namespace Microsoft.PSharp.TestingServices
         private ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
-        /// Machine Ids created from user strings by this runtime.
+        /// Map that stores all unique names and their corresponding machine ids.
         /// </summary>
-        internal ConcurrentDictionary<string, MachineId> StringValueToMachineId;
+        internal ConcurrentDictionary<string, MachineId> NameValueToMachineId;
 
         /// <summary>
         /// Set of all machine Ids created by this runtime.
@@ -152,12 +152,29 @@ namespace Microsoft.PSharp.TestingServices
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
             this.AllCreatedMachineIds = new HashSet<MachineId>();
-            this.StringValueToMachineId = new ConcurrentDictionary<string, MachineId>();
+            this.NameValueToMachineId = new ConcurrentDictionary<string, MachineId>();
         }
 
         #endregion
 
         #region runtime interface
+
+        /// <summary>
+        /// Creates a machine id that is uniquely tied to the specified unique name. The
+        /// returned machine id can either be a fresh id (not yet bound to any machine),
+        /// or it can be bound to a previously created machine. In the second case, this
+        /// machine id can be directly used to communicate with the corresponding machine.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="uniqueName">Unique name used to create the machine id</param>
+        /// <returns>MachineId</returns>
+        public override MachineId CreateMachineIdFromString(Type type, string uniqueName)
+        {
+            // It is important that all machine ids use the monotonically incrementing
+            // value as the id during testing, and not the unique name.
+            var mid = new MachineId(type, uniqueName, this);
+            return this.NameValueToMachineId.GetOrAdd(uniqueName, mid);
+        }
 
         /// <summary>
         /// Creates a new machine of the specified type and with
@@ -224,22 +241,7 @@ namespace Microsoft.PSharp.TestingServices
 
             return this.CreateMachine(mid, type, friendlyName, e, creator, operationGroupId);
         }
-
-        /// <summary>
-        /// Creates a machine id, uniquely tied to the input string
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="uniqueName">Name that derives the MachineId</param>
-        /// <returns>MachineId</returns>
-
-        public override MachineId CreateMachineIdFromString(Type type, string uniqueName)
-        {
-            // note: it is important that all MachineIds in test mode use Value as Id, not StringValue
-            var mid = new MachineId(type, uniqueName, this);
-            return this.StringValueToMachineId.GetOrAdd(uniqueName, mid);
-        }
-
-
+        
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
         /// with the specified optional <see cref="Event"/>. This event can only be

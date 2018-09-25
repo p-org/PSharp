@@ -15,27 +15,13 @@ namespace Microsoft.PSharp
     [DataContract]
     public sealed class MachineId
     {
-        #region fields
-
         /// <summary>
         /// The P# runtime that executes the machine with this id.
         /// </summary>
         public PSharpRuntime Runtime { get; private set; }
 
         /// <summary>
-        /// Name of the machine.
-        /// </summary>
-        [DataMember]
-        public readonly string Name;
-
-        /// <summary>
-        /// Type of the machine with this id.
-        /// </summary>
-        [DataMember]
-        public readonly string Type;
-
-        /// <summary>
-        /// Unique id value, when <see cref="NameValue"/> is empty
+        /// Unique id, when <see cref="NameValue"/> is empty.
         /// </summary>
         [DataMember]
         public readonly ulong Value;
@@ -47,15 +33,16 @@ namespace Microsoft.PSharp
         public readonly string NameValue;
 
         /// <summary>
-        /// MachineId uses <see cref="NameValue"/> as identifier
+        /// Type of the machine with this id.
         /// </summary>
-        public bool IsNameUsedForHashing
-        {
-            get
-            {
-                return NameValue.Length > 0;
-            }
-        }
+        [DataMember]
+        public readonly string Type;
+
+        /// <summary>
+        /// Name of the machine used for logging.
+        /// </summary>
+        [DataMember]
+        public readonly string Name;
 
         /// <summary>
         /// Generation of the runtime that created this machine id.
@@ -69,9 +56,10 @@ namespace Microsoft.PSharp
         [DataMember]
         public readonly string Endpoint;
 
-        #endregion
-
-        #region constructors
+        /// <summary>
+        /// True if <see cref="NameValue"/> is used as the unique id, else false.
+        /// </summary>
+        public bool IsNameUsedForHashing => NameValue.Length > 0;
 
         /// <summary>
         /// Creates a new machine id.
@@ -104,7 +92,7 @@ namespace Microsoft.PSharp
             Generation = runtime.Configuration.RuntimeGeneration;
 
             Type = type.FullName;
-            if(IsNameUsedForHashing)
+            if (IsNameUsedForHashing)
             {
                 Name = NameValue;
             }
@@ -122,10 +110,6 @@ namespace Microsoft.PSharp
         {
             Runtime = runtime;
         }
-
-        #endregion
-
-        #region generic public and override methods
         
         /// <summary>
         /// Determines whether the specified System.Object is equal
@@ -135,26 +119,20 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is MachineId mid)
             {
-                return false;
+                // Use same machanism for hashing.
+                if (IsNameUsedForHashing != mid.IsNameUsedForHashing)
+                {
+                    return false;
+                }
+
+                return IsNameUsedForHashing ?
+                    NameValue.Equals(mid.NameValue) && Generation == mid.Generation :
+                    Value == mid.Value && Generation == mid.Generation;
             }
 
-            MachineId mid = obj as MachineId;
-            if (mid == null)
-            {
-                return false;
-            }
-
-            // Uses same machanism for hashing
-            if (IsNameUsedForHashing != mid.IsNameUsedForHashing)
-            {
-                return false;
-            }
-
-            return IsNameUsedForHashing ?
-                NameValue.Equals(mid.NameValue) && Generation == mid.Generation :
-                Value == mid.Value && Generation == mid.Generation;
+            return false;
         }
 
         /// <summary>
@@ -177,7 +155,5 @@ namespace Microsoft.PSharp
         {
             return Name;
         }
-
-        #endregion
     }
 }
