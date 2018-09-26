@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Build\common.props" />
-  <Import Project="..\..\Build\key.props" />
+  <Import Project="..\..\Common\build.props" />
+  <Import Project="..\..\Common\key.props" />
   <PropertyGroup>
-    <Description>The P# testing services.</Description>
+    <Description>The P# framework testing services.</Description>
     <AssemblyName>Microsoft.PSharp.TestingServices</AssemblyName>
     <RootNamespace>Microsoft.PSharp.TestingServices</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>asynchronous;event-driven;state-machines;systematic-testing;dotnet;csharp</PackageTags>
+    <PackageTags>psharp;state-machines;testing</PackageTags>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">

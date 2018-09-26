@@ -1,0 +1,89 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System.Collections.Generic;
+
+namespace BoundedAsync
+{
+	/// <summary>
+    /// Scheduler machine that creates a user-defined number of 'Process' machines.
+    /// </summary>
+    internal machine Scheduler
+    {
+		internal event Config (processNum: int);
+		internal event Unit;
+
+		List<machine> Processes;
+        int Count;
+
+        start state Init
+        {
+            entry
+            {
+				// Receives a configuration event containing the number of 'Process'
+				// machines to create.
+				int processNum = (trigger as Config).processNum;
+
+				// Assert that >= 3 'Process' machines will be created.
+				assert(processNum >= 3, "The number of 'Process' machines to spawn must be >= 3.");
+
+				// Creates the 'Process' machines.
+				this.Processes = new List<machine>(processNum);
+				for (int i = 0; i < processNum; i++)
+				{
+					this.Processes.Add(create(Process, Process.Config, this));
+				}
+
+				for (int i = 0; i < processNum; i++)
+				{
+					int left, right;
+
+					// Wrap left.
+					if (i == 0) left = processNum - 1;
+					else left = i - 1;
+
+					// Wrap right.
+					if (i == processNum - 1) right = 0;
+					else right = i + 1;
+
+					// Sends the machine a reference to its left and right neighbour machines.
+					send(this.Processes[i], Process.Initialize, this.Processes[left], this.Processes[right]);
+				}
+
+                Count = 0;
+
+				jump(Sync);
+            }
+        }
+
+        state Sync
+        {
+            exit
+            {
+				// When all 'Process' machines have synced, the scheduler sends
+				// a 'Resp' event to each one of them.
+				for (int i = 0; i < this.Processes.Count; i++)
+				{
+					send(this.Processes[i], Process.Resp);
+				}
+            }
+
+            on Process.Req do CountReq;
+            on Unit goto Sync;
+        }
+
+        void CountReq()
+        {
+            this.Count++;
+
+			// Checks if all processes have responded.
+            if (this.Count == this.Processes.Count)
+            {
+                this.Count = 0;
+                raise(Unit);
+            }
+        }
+    }
+}

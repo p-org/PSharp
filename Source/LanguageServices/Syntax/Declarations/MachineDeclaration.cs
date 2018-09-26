@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="MachineDeclaration.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -178,8 +169,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 node.Rewrite(indentLevel + 1);
             }
 
-            string text = "";
-            string newLine = "";
+            string text = string.Empty;
+            string newLine = string.Empty;
+
             try
             {
                 text = this.GetRewrittenMachineDeclaration(indentLevel, ref newLine);
@@ -335,7 +327,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.FieldDeclarations.Count > 0)
             {
                 text += newLine;
-                newLine = "";
+                newLine = string.Empty;
             }
 
             foreach (var node in this.FieldDeclarations)
@@ -347,7 +339,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.StateDeclarations.Count > 0)
             {
                 text += newLine;
-                newLine = "";
+                newLine = string.Empty;
             }
 
             foreach (var node in this.StateDeclarations)
@@ -359,7 +351,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.StateGroupDeclarations.Count > 0)
             {
                 text += newLine;
-                newLine = "";
+                newLine = string.Empty;
             }
 
             foreach (var node in this.StateGroupDeclarations)
@@ -377,7 +369,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine)
         {
-            string text = "";
+            string text = string.Empty;
             foreach (var state in this.GetAllStateDeclarations())
             {
                 if (state.EntryDeclaration != null)
@@ -404,7 +396,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenWithActions(int indentLevel, ref string newLine)
         {
-            string text = "";
+            string text = string.Empty;
             var indent = GetIndent(indentLevel);
 
             foreach (var state in this.GetAllStateDeclarations())

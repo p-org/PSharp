@@ -3,12 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{458F6344-4ADE-475F-8A31-4DF3D01CF364}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{458F6344-4ADE-475F-8A31-4DF3D01CF364}"
 	ProjectSection(SolutionItems) = preProject
-		Build\common.props = Build\common.props
-		Build\dependencies.props = Build\dependencies.props
-		Build\key.props = Build\key.props
-		Build\version.props = Build\version.props
+		Common\build.props = Common\build.props
+		Common\dependencies.props = Common\dependencies.props
+		Common\key.props = Common\key.props
+		Common\version.props = Common\version.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{83369B7E-5C21-4D49-A14C-E8A6A4892807}"
@@ -63,9 +63,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedObjects.Tests.Unit", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchedulingStrategies", "Source\SchedulingStrategies\SchedulingStrategies.csproj", "{2A3D4399-787C-4F97-8591-6A8021775AE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateMachineStructureViewer", "Tools\Visualization\StateMachineStructureViewer\StateMachineStructureViewer.csproj", "{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateDiagramViewer", "Tools\Visualization\StateDiagramViewer\StateDiagramViewer.csproj", "{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visualization", "Visualization", "{20540742-1E76-4B20-96A4-9274F0CF3F73}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateDiagramViewer.Tests.Unit", "Tools\Visualization\StateDiagramViewer.Tests.Unit\StateDiagramViewer.Tests.Unit.csproj", "{04B9E675-72F0-47DC-83F2-9752049E9315}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -157,6 +159,10 @@ Global
 		{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04B9E675-72F0-47DC-83F2-9752049E9315}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04B9E675-72F0-47DC-83F2-9752049E9315}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04B9E675-72F0-47DC-83F2-9752049E9315}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04B9E675-72F0-47DC-83F2-9752049E9315}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -187,6 +193,7 @@ Global
 		{2A3D4399-787C-4F97-8591-6A8021775AE0} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
 		{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC} = {20540742-1E76-4B20-96A4-9274F0CF3F73}
 		{20540742-1E76-4B20-96A4-9274F0CF3F73} = {9BC0914F-3068-4148-B778-4CA27D828D39}
+		{04B9E675-72F0-47DC-83F2-9752049E9315} = {20540742-1E76-4B20-96A4-9274F0CF3F73}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B9407046-CB24-4B07-8031-2749696EC7D8}

@@ -1,23 +1,15 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="SharedCounter.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
-    /// Shared counter that can be safely shared by multiple P# state-machines.
+    /// Shared counter that can be safely shared by multiple P# machines.
     /// </summary>
     public static class SharedCounter
     {
@@ -28,13 +20,13 @@ namespace Microsoft.PSharp.SharedObjects
         /// <param name="value">Initial value</param>
         public static ISharedCounter Create(PSharpRuntime runtime, int value = 0)
         {
-            if (runtime is StateMachineRuntime)
+            if (runtime is ProductionRuntime)
             {
                 return new ProductionSharedCounter(value);
             }
-            else if (runtime is TestingServices.BugFindingRuntime)
+            else if (runtime is TestingServices.TestingRuntime)
             {
-                return new MockSharedCounter(value, runtime as BugFindingRuntime);
+                return new MockSharedCounter(value, runtime as TestingRuntime);
             }
             else
             {

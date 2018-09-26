@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="CoverageInfo.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -25,8 +16,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
     [DataContract]
     public class CoverageInfo
     {
-        #region fields
-
         /// <summary>
         /// Map from machines to states.
         /// </summary>
@@ -45,10 +34,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         [DataMember]
         public HashSet<Transition> Transitions { get; private set; }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -58,10 +43,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             this.RegisteredEvents = new HashSet<Tuple<string, string, string>>();
             this.Transitions = new HashSet<Transition>();
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         /// Adds a new transition.
@@ -129,10 +110,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             }
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Adds a new state.
         /// </summary>
@@ -147,7 +124,5 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 
             this.MachinesToStates[machineName].Add(stateName);
         }
-
-        #endregion
     }
 }

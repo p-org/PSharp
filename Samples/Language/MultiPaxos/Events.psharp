@@ -1,0 +1,47 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+
+namespace MultiPaxos
+{
+    #region Events
+
+	event nodeConfig (rank: int);
+	event clientConfig (nodes: List<machine>);
+	event timerConfig (target: machine, timeout: int);
+	event leaderElectionConfig (nodes: List<machine>, node: machine, rank: int);
+
+    event prepare (proposer: machine, slot: int, proposal: Tuple<int, int>);
+    event accept (proposer: machine, slot: int, proposal: Tuple<int, int>, value: int);
+    event agree (slot: int, proposal: Tuple<int, int>, value: int);
+	event reject (slot: int, round: int);
+	event accepted (slot: int, proposal: Tuple<int, int>, value: int);
+	event local;
+	event success;
+	event allNodes (nodes: List<machine>);
+	event goPropose;
+	event chosen (slot: int, proposal: Tuple<int, int>, value: int);
+	event update (leader: int, value: int);
+
+	event monitor_valueChosen (proposer: machine, slot: int, proposal: Tuple<int, int>, value: int);
+	event monitor_valueProposed (proposer: machine, slot: int, proposal: Tuple<int, int>, value: int);
+
+	event monitor_client_sent (value: int);
+	event monitor_proposer_sent (value: int);
+	event monitor_proposer_chosen (value: int);
+
+	event ping;
+	event newLeader (currentLeader: machine, currentLeaderRank: int);
+	event timeout;
+	event startTimer;
+	event cancelTimer;
+	event cancelTimerSuccess;
+
+	event response;
+
+    #endregion
+}

@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="BugTrace.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System.Collections;
 using System.Collections.Generic;
@@ -27,13 +18,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     [DataContract]
     internal sealed class BugTrace : IEnumerable, IEnumerable<BugTraceStep>
     {
-        #region fields
-
         /// <summary>
         /// The steps of the bug trace.
         /// </summary>
         [DataMember]
-        private List<BugTraceStep> Steps;
+        private readonly List<BugTraceStep> Steps;
 
         /// <summary>
         /// The number of steps in the bug trace.
@@ -53,10 +42,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Constructor.
@@ -281,10 +266,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             return this.Steps.GetEnumerator();
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Pushes a new step to the trace.
         /// </summary>
@@ -299,7 +280,5 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
 
             this.Steps.Add(step);
         }
-
-        #endregion
     }
 }

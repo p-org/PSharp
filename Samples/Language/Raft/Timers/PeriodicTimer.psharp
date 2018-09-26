@@ -1,0 +1,60 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Raft
+{
+    machine PeriodicTimer
+    {
+		MachineId Target;
+
+		start state Init
+		{
+			on PConfigureEvent do Configure;
+			on PStartTimer goto Active;
+		}
+
+		void Configure()
+        {
+            this.Target = (trigger as PConfigureEvent).Target;
+        }
+
+		state Active
+		{
+			entry
+			{
+				send(this.Id, PTickEvent);
+			}
+
+			on PTickEvent do Tick;
+			on PCancelTimer goto Inactive;
+			ignore PStartTimer;
+		}
+
+		void Tick()
+        {
+            if (*)
+            {
+                this.Logger.WriteLine("\n [PeriodicTimer] " + this.Target + " | timed out\n");
+                send(this.Target, PTimeout);
+            }
+
+            raise(PCancelTimer);
+        }
+
+		state Inactive
+		{
+			on PStartTimer goto Active;
+			ignore PCancelTimer, PTickEvent;
+		}
+    }
+}
+
+

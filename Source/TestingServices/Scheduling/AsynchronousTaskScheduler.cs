@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="AsynchronousTaskScheduler.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Concurrent;
@@ -26,9 +17,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     internal sealed class AsynchronousTaskScheduler : TaskScheduler
     {
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private BugFindingRuntime Runtime;
+        private TestingRuntime Runtime;
 
         /// <summary>
         /// Map from task ids to machines.
@@ -40,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="runtime">PSharpBugFindingRuntime</param>
         /// <param name="taskMap">Task map</param>
-        internal AsynchronousTaskScheduler(BugFindingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        internal AsynchronousTaskScheduler(TestingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;

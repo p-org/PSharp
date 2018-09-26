@@ -1,26 +1,22 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="SendAndExecuteTest6.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Threading.Tasks;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public class SendAndExecuteTest6 : BaseTest
     {
+        public SendAndExecuteTest6(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class E : Event
         {
         }
@@ -118,9 +114,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create();
             base.AssertFailed(config, test, 1, bugReports =>
             {
-                foreach(var report in bugReports)
+                foreach (var report in bugReports)
                 {
-                    if(!report.StartsWith("Exception 'System.Exception' was thrown in machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()'"))
+                    if (!report.StartsWith("Exception 'System.Exception' was thrown in machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()'"))
                     {
                         return false;
                     }

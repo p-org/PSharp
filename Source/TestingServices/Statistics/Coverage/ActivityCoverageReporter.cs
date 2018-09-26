@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="ActivityCoverageReporter.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -25,17 +16,11 @@ namespace Microsoft.PSharp.TestingServices.Coverage
     /// </summary>
     public class ActivityCoverageReporter
     {
-        #region fields
-
         /// <summary>
         /// Data structure containing information
         /// regarding testing coverage.
         /// </summary>
         private readonly CoverageInfo CoverageInfo;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -45,10 +30,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         {
             this.CoverageInfo = coverageInfo;
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         /// Emits the visualization graph.
@@ -73,10 +54,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 this.WriteCoverageFile(writer);
             }
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Writes the visualization graph.
@@ -158,7 +135,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 writer.WriteAttributeString("Source", source);
                 writer.WriteAttributeString("Target", target);
                 writer.WriteAttributeString("Label", transition.EdgeLabel);
-                if(counter != 0)
+                if (counter != 0)
                 {
                     writer.WriteAttributeString("Index", counter.ToString());
                 }
@@ -182,8 +159,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         private void WriteCoverageFile(TextWriter writer)
         {
             var machines = new List<string>(this.CoverageInfo.MachinesToStates.Keys);
-
-            #region registered event coverage
 
             var uncoveredEvents = new HashSet<Tuple<string, string, string>>(this.CoverageInfo.RegisteredEvents);
             foreach (var transition in this.CoverageInfo.Transitions)
@@ -219,8 +194,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 machineToStatesToEvents[ev.Item1][ev.Item2].Add(ev.Item3);
             }
 
-            #endregion
-
             // Map from machine to its outgoing transitions
             var machineToOutgoingTransitions = new Dictionary<string, List<Transition>>();
             // Map from machine to its incoming transitions
@@ -250,8 +223,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             {
                 writer.WriteLine("Machine: {0}", machine);
                 writer.WriteLine("***************");
-
-                #region registered event coverage
 
                 var machineUncoveredEvents = new Dictionary<string, HashSet<string>>();
                 foreach (var state in this.CoverageInfo.MachinesToStates[machine])
@@ -283,8 +254,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 writer.WriteLine("Machine event coverage: {0}%", 
                     numTotalEvents == 0 ? "100" :
                     ((numTotalEvents - numUncoveredEvents) * 100.0 / numTotalEvents).ToString("F1"));
-
-                #endregion
 
                 // Find uncovered states
                 var uncoveredStates = new HashSet<string>(this.CoverageInfo.MachinesToStates[machine]);
@@ -418,7 +387,5 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         {
             return string.Format("{0}::{1}", stateName, machineName);
         }
-
-        #endregion
     }
 }

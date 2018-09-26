@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="ScheduleTrace.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System.Collections;
 using System.Collections.Generic;
@@ -24,8 +15,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
     /// </summary>
     internal sealed class ScheduleTrace : IEnumerable, IEnumerable<ScheduleStep>
     {
-        #region fields
-
         /// <summary>
         /// The steps of the schedule trace.
         /// </summary>
@@ -49,10 +38,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Constructor.
@@ -193,10 +178,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             return this.Steps.GetEnumerator();
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Pushes a new step to the trace.
         /// </summary>
@@ -211,7 +192,5 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 
             this.Steps.Add(step);
         }
-
-        #endregion
     }
 }

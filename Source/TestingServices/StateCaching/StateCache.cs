@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="StateCache.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
 
@@ -25,9 +16,9 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
     internal sealed class StateCache
     {
         /// <summary>
-        /// The P# bug-finding runtime.
+        /// The P# testing runtime.
         /// </summary>
-        private readonly BugFindingRuntime Runtime;
+        private readonly TestingRuntime Runtime;
 
         /// <summary>
         /// Set of fingerprints.
@@ -37,8 +28,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">BugFindingRuntime</param>
-        internal StateCache(BugFindingRuntime runtime)
+        /// <param name="runtime">TestingRuntime</param>
+        internal StateCache(TestingRuntime runtime)
         {
             Runtime = runtime;
             Fingerprints = new HashSet<Fingerprint>();

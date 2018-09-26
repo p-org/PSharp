@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="BugTraceStep.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -23,8 +14,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     [DataContract(IsReference = true)]
     internal sealed class BugTraceStep
     {
-        #region fields
-
         /// <summary>
         /// The unique index of this bug trace step.
         /// </summary>
@@ -95,10 +84,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         internal BugTraceStep Next;
 
-        #endregion
-
-        #region internal methods
-
         /// <summary>
         /// Creates a bug trace step.
         /// </summary>
@@ -143,10 +128,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             return traceStep;
         }
 
-        #endregion
-
-        #region generic public and override methods
-
         /// <summary>
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
@@ -177,7 +158,5 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         {
             return this.Index.GetHashCode();
         }
-
-        #endregion
     }
 }

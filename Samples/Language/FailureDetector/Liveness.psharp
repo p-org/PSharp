@@ -1,0 +1,69 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System.Collections.Generic;
+
+namespace FailureDetector
+{
+	/// <summary>
+    /// In addition to safety specifications, P# also allows programmers
+    /// to express liveness specifications such as absence of deadlocks
+    /// and livelocks in the test program, using a liveness monitor.
+    ///
+    /// This monitor starts in the state 'Init' and transitions to the
+    /// state 'Wait' upon receiving the event 'RegisterNodes', which
+    /// contains references to all nodes in the program.
+    ///
+    /// Whenever the 'Driver' machine receives a 'NodeFailed' event from
+    /// the 'FailureDetector' machine, it forwards that event to the
+    /// this monitor which then removes the machine whose failure was
+    /// detected from the set of nodes.
+    ///
+    /// The monitor exits the 'Hot' 'Init' state only when all nodes becomes
+    /// empty, i.e., when the failure of all node machines has been detected.
+    /// Thus, this monitor expresses the specification that failure of
+    /// every node machine must be eventually detected.
+    ///
+    /// Read the P# wiki (https://github.com/p-org/PSharp/wiki) to learn more
+    /// about liveness checking in P#.
+    /// </summary>
+    monitor Liveness
+    {
+		internal event RegisterNodes (nodes: HashSet<machine>);
+
+		HashSet<machine> Nodes;
+
+        start state Init
+        {
+			on RegisterNodes do
+			{
+				var nodes = (trigger as RegisterNodes).nodes;
+				this.Nodes = new HashSet<machine>(nodes);
+				jump(Wait);
+			}
+        }
+
+		/// <summary>
+        /// A hot state denotes that the liveness property is not
+        /// currently satisfied.
+        /// </summary>
+		hot state Wait
+		{
+			on FailureDetector.NodeFailed do
+			{
+				var node = (trigger as FailureDetector.NodeFailed).node;
+				this.Nodes.Remove(node);
+				if (this.Nodes.Count == 0)
+				{
+					// When the liveness property has been satisfied
+					// transition out of the hot state.
+					jump(Done);
+				}
+			}
+		}
+
+		state Done { }
+    }
+}

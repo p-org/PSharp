@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="VectorClock.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-//
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Diagnostics;
@@ -26,7 +17,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
     /// Maps each machine(Id) to its clock. The clock is represented as an Epoch c@t.
     /// Here, c is the clock value and t the identifier for the machine
     /// We re-encode the mId into the value so that comparisons between epochs and VCs
-    /// are direct. Currently used by the BugFindingRuntime which does not
+    /// are direct. Currently used by the TestingRuntime which does not
     /// run machines concurrently. Future (multi-threaded) clients will need to call the APIs with
     /// exclusive access to certain parameters/this (as indicated in the comments)
     /// </summary>

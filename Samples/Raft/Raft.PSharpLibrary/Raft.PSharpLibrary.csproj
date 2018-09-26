@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Build\common.samples.props" />
-  <PropertyGroup>
-    <Description>The Raft P# sample.</Description>
-    <AssemblyName>Raft.PSharpLibrary</AssemblyName>
-    <RootNamespace>Raft.PSharpLibrary</RootNamespace>
-  </PropertyGroup>
-</Project>

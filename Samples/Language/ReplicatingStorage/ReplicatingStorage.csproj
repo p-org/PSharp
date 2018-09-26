@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\build.props" />
+  <PropertyGroup>
+    <Description>The ReplicatingStorage P# sample.</Description>
+    <AssemblyName>ReplicatingStorage</AssemblyName>
+    <RootNamespace>ReplicatingStorage</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PSharp Include="Timers\FailureTimer.psharp" />
+    <PSharp Include="Timers\RepairTimer.psharp" />
+    <PSharp Include="Timers\SyncTimer.psharp" />
+    <PSharp Include="Client.psharp" />
+    <PSharp Include="Environment.psharp" />
+    <PSharp Include="Events.psharp" />
+    <PSharp Include="LivenessMonitor.psharp" />
+    <PSharp Include="NodeManager.psharp" />
+    <PSharp Include="StorageNode.psharp" />
+  </ItemGroup>
+</Project>

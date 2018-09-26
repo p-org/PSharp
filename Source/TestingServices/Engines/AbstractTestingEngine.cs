@@ -1,16 +1,7 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="AbstractTestingEngine.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-//
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -186,8 +177,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         protected AbstractTestingEngine(Configuration configuration)
         {
-            this.Configuration = configuration;
-            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.Initialize(configuration);
 
             try
             {
@@ -241,8 +231,6 @@ namespace Microsoft.PSharp.TestingServices
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
-
-            this.Initialize();
         }
 
         /// <summary>
@@ -252,14 +240,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="assembly">Assembly</param>
         protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
         {
-            this.Configuration = configuration;
-            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.Initialize(configuration);
             this.Assembly = assembly;
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
-            this.Initialize();
         }
 
         /// <summary>
@@ -269,20 +255,22 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="action">Action</param>
         protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
-            this.Configuration = configuration;
-            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.Initialize(configuration);
             this.TestAction = action;
-            this.Initialize();
         }
 
         /// <summary>
         /// Initialized the testing engine.
         /// </summary>
-        private void Initialize()
+        /// <param name="configuration">Configuration</param>
+        private void Initialize(Configuration configuration)
         {
+            this.Configuration = configuration;
             this.Logger = new ConsoleLogger();
             this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
             this.Profiler = new Profiler();
+
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
 
             // Initializes scheduling strategy specific components.
             this.SchedulingStrategyLogger = new SchedulingStrategyLogger(this.Configuration);
@@ -466,7 +454,7 @@ namespace Microsoft.PSharp.TestingServices
                     $"'{runtimeFactoryMethods.Count}' factory methods were found instead.");
             }
 
-            if (runtimeFactoryMethods[0].ReturnType != typeof(BugFindingRuntime) ||
+            if (runtimeFactoryMethods[0].ReturnType != typeof(TestingRuntime) ||
                 runtimeFactoryMethods[0].ContainsGenericParameters ||
                 runtimeFactoryMethods[0].IsAbstract || runtimeFactoryMethods[0].IsVirtual ||
                 runtimeFactoryMethods[0].IsConstructor ||
@@ -478,7 +466,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static BugFindingRuntime " +
+                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static TestingRuntime " +
                     $"{runtimeFactoryMethods[0].Name}(Configuration configuration, ISchedulingStrategy strategy, " +
                     "IRegisterRuntimeOperation reporter) {{ ... }}");
             }

@@ -1,36 +1,27 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="OnExceptionOutcome.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Outcome of Machine.OnException
+    /// The outcome when a machine throws an exception.
     /// </summary>
     public enum OnExceptionOutcome
     {
         /// <summary>
-        /// Throw the exception causing the runtime to fail
+        /// Throw the exception causing the runtime to fail.
         /// </summary>
         ThrowException = 0,
 
         /// <summary>
-        /// The exception was handled and Machine should continue execution
+        /// The exception was handled and Machine should continue execution.
         /// </summary>
         HandledException = 1,
 
         /// <summary>
-        /// Halt the machine (do not throw the exception)
+        /// Halt the machine (do not throw the exception).
         /// </summary>
         HaltMachine = 2
     }

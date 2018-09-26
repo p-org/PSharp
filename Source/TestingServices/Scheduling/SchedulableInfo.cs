@@ -1,19 +1,11 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="SchedulableInfo.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -24,8 +16,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     internal sealed class SchedulableInfo : MachineInfo, ISchedulable
     {
-        #region properties
-
         /// <summary>
         /// Id of the task executing the event handler of the machine.
         /// </summary>
@@ -73,10 +63,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal ulong EventHandlerOperationCount { get; private set; }
 
-        #endregion
-
-        #region fields
-
         /// <summary>
         /// Is the machine active.
         /// </summary>
@@ -93,10 +79,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// event handler.
         /// </summary>
         internal bool SkipNextReceiveSchedulingPoint;
-
-        #endregion
-
-        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -115,10 +97,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             OperationCount = 0;
             EventHandlerOperationCount = 0;
         }
-
-        #endregion
-
-        #region interface
 
         /// <summary>
         /// Sets the next operation to schedule.
@@ -165,7 +143,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             SkipNextReceiveSchedulingPoint = true;
             NextOperationMatchingSendIndex = 0;
         }
-
-        #endregion
     }
 }

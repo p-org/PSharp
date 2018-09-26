@@ -1,22 +1,12 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="Actions5FailTest.cs">
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
-//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
 
 using System;
-
 using Microsoft.PSharp.Utilities;
-
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
@@ -25,6 +15,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
     /// </summary>
     public class Actions5FailTest : BaseTest
     {
+        public Actions5FailTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
         class Config : Event
         {
             public MachineId Id;
@@ -82,11 +76,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Send(GhostMachine, new E1());
 
                 // we wait in this state until E2 comes from Ghost,
-                // then handle E2 using the inherited handler Action1 
+                // then handle E2 using the inherited handler Action1
                 // installed by Init
                 // then wait until E4 comes from Ghost, and since
-                // there's no handler for E4 in this pushed state, 
-                // this state is popped, and E4 goto handler from Init 
+                // there's no handler for E4 in this pushed state,
+                // this state is popped, and E4 goto handler from Init
                 // is invoked
             }
 

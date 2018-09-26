@@ -1,0 +1,48 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+
+namespace PingPong.MixedMode
+{
+    /// <summary>
+    /// We use the partial keyword to declare the high-level state-machine
+    /// transitions in the Client.psharp file, and the action-handler
+    /// implementation in the Client.cs file.
+    /// </summary>
+    internal partial machine Client
+    {
+        internal event Config (server: machine);
+        internal event Unit;
+        internal event Ping (client: machine);
+
+        machine Server;
+        int Counter;
+
+        start state Init
+        {
+            entry
+            {
+                this.Server = (trigger as Config).server;
+                this.Counter = 0;
+                jump(Active);
+            }
+        }
+
+        state Active
+        {
+            entry
+            {
+                SendPing();
+            }
+
+            on Server.Pong do SendPing;
+        }
+
+        // The implementation of 'SendPing' is available
+        // in the Server.cs file.
+        partial void SendPing();
+    }
+}
