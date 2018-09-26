@@ -18,7 +18,7 @@ namespace Microsoft.PSharp.StateDiagramViewer
         #region fields
         public readonly string uniqueName;
         internal readonly MachineInfo machineInfo;
-        internal StateDeclaration stateDeclaration { get; }
+        internal readonly StateDeclaration stateDeclaration;
         internal Dictionary<string, string> gotoTransitions;
         internal Dictionary<string, string> pushTransitions;
         internal StateInfo baseState;

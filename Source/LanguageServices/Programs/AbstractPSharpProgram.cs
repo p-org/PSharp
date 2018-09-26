@@ -6,7 +6,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Xml;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -50,12 +49,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// Rewrites the P# program to the C#-IR.
         /// </summary>
         public abstract void Rewrite();
-
-        /// <summary>
-        /// Emits dgml representation of the state machine structure
-        /// </summary>
-        /// <param name="writer">XmlTestWriter</param>
-        public abstract void EmitStateMachineStructure(XmlTextWriter writer);
 
         /// <summary>
         /// Returns the project of the P# program.
