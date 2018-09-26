@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.LanguageServices.Syntax;
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     /// <summary>
     /// Class for resolution of tokens

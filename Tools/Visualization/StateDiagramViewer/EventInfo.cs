@@ -5,15 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     class EventInfo
     {
         #region fields and constructor
+        public readonly string uniqueName;
         private readonly NamespaceDeclaration namespaceDeclaration;
         private readonly MachineInfo machineInfo;
         private readonly EventDeclaration eventDeclaration;
-        public string uniqueName { get; }
+        
 
         public EventInfo(EventDeclaration edecl, MachineInfo machineInfo)
         {

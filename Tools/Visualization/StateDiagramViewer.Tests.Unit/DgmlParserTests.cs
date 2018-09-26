@@ -1,4 +1,4 @@
-using Microsoft.PSharp.PSharpStateMachineStructureViewer;
+using Microsoft.PSharp.StateDiagramViewer;
 using System;
 using Xunit;
 using System.Xml.Linq;

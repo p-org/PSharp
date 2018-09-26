@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     class DgmlWriter
     {

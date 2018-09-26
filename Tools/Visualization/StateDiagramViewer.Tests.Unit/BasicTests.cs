@@ -1,4 +1,4 @@
-﻿using Microsoft.PSharp.PSharpStateMachineStructureViewer;
+﻿using Microsoft.PSharp.StateDiagramViewer;
 using System;
 using System.Xml.Linq;
 using Xunit;
@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.StateMachineStructureViewer.Tests.Unit
         public void CrossNamespaceResolutionTest()
         {
 
-            StateDiagramViewer.ResetResolutionHelper();
+            StateDiagramViewer.StateDiagramViewerProgram.ResetResolutionHelper();
             string prog = @"
 namespace ns1{
     event e11;
@@ -48,7 +48,7 @@ namespace ns3{
 }";
 
             // Get DGML but remove first line.
-            string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
+            string dgml = StateDiagramViewer.StateDiagramViewerProgram.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
             StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
@@ -75,7 +75,7 @@ namespace ns3{
         [Fact]
         public void TestStateGroup()
         {
-            StateDiagramViewer.ResetResolutionHelper();
+            StateDiagramViewer.StateDiagramViewerProgram.ResetResolutionHelper();
             string prog = @"
 namespace ns1{
 	machine m1{
@@ -103,7 +103,7 @@ namespace ns1{
 }";
 
             // Get DGML but remove first line.
-            string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
+            string dgml = StateDiagramViewer.StateDiagramViewerProgram.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
             StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
@@ -132,7 +132,7 @@ namespace ns1{
         [Fact]
         public void TestMachineStateInheritance()
         {
-            StateDiagramViewer.ResetResolutionHelper();
+            StateDiagramViewer.StateDiagramViewerProgram.ResetResolutionHelper();
             string prog = @"
 namespace ns1
 {
@@ -169,7 +169,7 @@ namespace ns1
     }
 }
 ";
-            string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
+            string dgml = StateDiagramViewer.StateDiagramViewerProgram.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
             StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));
@@ -222,7 +222,7 @@ namespace ns1
         [Fact]
         public void TestStateInheritance()
         {
-            StateDiagramViewer.ResetResolutionHelper();
+            StateDiagramViewer.StateDiagramViewerProgram.ResetResolutionHelper();
             string prog = @"
 namespace ns1{
 	machine m1{
@@ -249,7 +249,7 @@ namespace ns1{
 }";
 
             // Get DGML but remove first line.
-            string dgml = StateDiagramViewer.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
+            string dgml = StateDiagramViewer.StateDiagramViewerProgram.GetDgmlForProgram(prog).Split(Environment.NewLine.ToCharArray(), 2)[1];
             DgmlParser dgmlParser = new DgmlParser();
 
             StateMachineGraph G = dgmlParser.ParseDgml(XDocument.Parse(dgml));

@@ -7,14 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     internal class MachineInfo
     {
         #region fields and constructors
-        public string uniqueName { get; }
-        internal PSharpProgram program;
-        internal MachineDeclaration machineDeclaration;
+        public readonly string uniqueName;
+        internal readonly PSharpProgram program;
+        internal readonly MachineDeclaration machineDeclaration;
         internal MachineInfo baseMachine;
 
         // Set of fully qualified names of the events declared ( or inherited ) in this machine

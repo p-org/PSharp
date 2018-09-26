@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     public class ConfigOptions
     {
@@ -19,8 +19,8 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
 
         public static string GetDescription()
         {
-            return @"
-    /CollapseMachines: 
+            return 
+@"/CollapseMachines: 
         - If there are multiple machines, They are drawn collapsed by default
 ";
         }

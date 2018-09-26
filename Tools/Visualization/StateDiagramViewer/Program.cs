@@ -24,12 +24,12 @@ using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     /// <summary>
     /// A tool to produce Dgml files reflecting the State Diagram of machines in the PSharp program
     /// </summary>
-    public class StateDiagramViewer
+    public class StateDiagramViewerProgram
     {
         public static void ResetResolutionHelper()
         {
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             var context = CompilationContext.Create(configuration);
 
             context.LoadSolution(prog);
-            string dgml = StateDiagramViewer.CreateDgml(context, out string errors, csVersion, config);
+            string dgml = StateDiagramViewerProgram.CreateDgml(context, out string errors, csVersion, config);
             if(dgml == null)
             {
                 throw new StateDiagramViewerException(
@@ -73,9 +73,10 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
             var csVersion = new Version(0, 0);
 
             var usage = "Usage: " + Environment.NewLine +
-                " PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor] [options]" + Environment.NewLine +
+                "   PSharpStateMachineStructureViewer.exe file.psharp [file.dgml] [/csVersion:major.minor] [options]" + Environment.NewLine +
                 "OR" + Environment.NewLine +
-                " PSharpStateMachineStructureViewer.exe /s:SolutionFile.sln /p:ProjectName [outfile.dgml] [/csVersion:major.minor] [options]" + Environment.NewLine +
+                "   PSharpStateMachineStructureViewer.exe /s:SolutionFile.sln /p:ProjectName [outfile.dgml] [/csVersion:major.minor] [options]" + Environment.NewLine +
+                Environment.NewLine +
                 "Options include:" + Environment.NewLine +
                 ConfigOptions.GetDescription();
 
@@ -270,7 +271,7 @@ namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
                 errors = ex.Message;
                 return null;
             }
-            catch(StateMachineStructureViewerBaseException ex)
+            catch(StateDiagramViewerBaseException ex)
             {
                 errors = ex.Message;
                 return null;

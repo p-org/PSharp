@@ -11,13 +11,13 @@ using Microsoft.PSharp.LanguageServices.Syntax;
  *      - e.g. : Overriding an OnEventDoAction with OnEventGoto
  */
 
-namespace Microsoft.PSharp.PSharpStateMachineStructureViewer
+namespace Microsoft.PSharp.StateDiagramViewer
 {
     class StateInfo
     {
         #region fields
-        public string uniqueName { get; }
-        internal MachineInfo machineInfo { get; }
+        public readonly string uniqueName;
+        internal readonly MachineInfo machineInfo;
         internal StateDeclaration stateDeclaration { get; }
         internal Dictionary<string, string> gotoTransitions;
         internal Dictionary<string, string> pushTransitions;

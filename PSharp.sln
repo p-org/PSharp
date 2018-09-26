@@ -63,11 +63,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedObjects.Tests.Unit", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchedulingStrategies", "Source\SchedulingStrategies\SchedulingStrategies.csproj", "{2A3D4399-787C-4F97-8591-6A8021775AE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateMachineStructureViewer", "Tools\Visualization\StateMachineStructureViewer\StateMachineStructureViewer.csproj", "{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateDiagramViewer", "Tools\Visualization\StateDiagramViewer\StateDiagramViewer.csproj", "{944E0AF4-1F6E-4109-8823-9D4F4FAF0BEC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visualization", "Visualization", "{20540742-1E76-4B20-96A4-9274F0CF3F73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateMachineStructureViewer.Tests.Unit", "Tools\Visualization\StateMachineStructureViewer.Tests.Unit\StateMachineStructureViewer.Tests.Unit.csproj", "{04B9E675-72F0-47DC-83F2-9752049E9315}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateDiagramViewer.Tests.Unit", "Tools\Visualization\StateDiagramViewer.Tests.Unit\StateDiagramViewer.Tests.Unit.csproj", "{04B9E675-72F0-47DC-83F2-9752049E9315}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

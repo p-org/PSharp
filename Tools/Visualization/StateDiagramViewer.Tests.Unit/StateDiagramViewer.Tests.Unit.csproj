@@ -1,18 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\..\Common\build.props" />
   <Import Project="..\..\..\Common\key.props" />
   <PropertyGroup>
-    <Description>The P# syntax rewriter.</Description>
-	<!-- If you change this, Please update the Source\LanguageServices\Properties\InternalsVisibleTo.cs to use the new name -->
-    <AssemblyName>PSharpStateMachineStructureViewer</AssemblyName>
-    <RootNamespace>Microsoft.Psharp.PSharpStateMachineStructureViewer</RootNamespace>
-    <TargetFrameworks>net46</TargetFrameworks>
-    <PackageTags>syntax;rewriter;psharp</PackageTags>
-    <OutputPath>..\..\..\bin\</OutputPath>
+    <Description>Unit tests for P# StateDiagramViewer.</Description>
+    <AssemblyName>Microsoft.PSharp.StateDiagramViewer.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.StateDiagramViewer.Tests.Unit</RootNamespace>
+    <OutputPath>.\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
     <TargetFrameworks>net46</TargetFrameworks>
-    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='UNIX'">
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
@@ -24,6 +20,14 @@
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net46'">
-    <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StateDiagramViewer\StateDiagramViewer.csproj" />
   </ItemGroup>
 </Project>
