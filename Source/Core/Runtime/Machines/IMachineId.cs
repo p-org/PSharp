@@ -40,5 +40,10 @@ namespace Microsoft.PSharp
         /// Optional friendly name of the machine.
         /// </summary>
         string FriendlyName { get; }
+
+        /// <summary>
+        /// The endpoint where the machine with this id is located.
+        /// </summary>
+        string Endpoint { get; }
     }
 }

@@ -55,6 +55,12 @@ namespace Microsoft.PSharp
         public string FriendlyName { get; private set; }
 
         /// <summary>
+        /// The endpoint where the machine with this id is located.
+        /// </summary>
+        [DataMember]
+        public string Endpoint { get; private set; }
+
+        /// <summary>
         /// Creates a new machine id.
         /// </summary>
         /// <param name="runtime">The P# runtime.</param>
@@ -86,6 +92,7 @@ namespace Microsoft.PSharp
             this.Value = value;
             this.Type = type;
             this.FriendlyName = friendlyName;
+            this.Endpoint = string.Empty;
 
             if (friendlyName != null && friendlyName.Length > 0)
             {

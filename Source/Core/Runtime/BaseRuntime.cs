@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Map of unique machine id values to machines.
         /// </summary>
-        private protected readonly ConcurrentDictionary<ulong, IMachine> MachineMap;
+        private protected readonly ConcurrentDictionary<IMachineId, IMachine> MachineMap;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.Runtime
         {
             this.Configuration = configuration;
             this.MachineIdCounter = 0;
-            this.MachineMap = new ConcurrentDictionary<ulong, IMachine>();
+            this.MachineMap = new ConcurrentDictionary<IMachineId, IMachine>();
             this.IsRunning = true;
             this.SetLogger(logger);
         }
@@ -358,7 +358,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="targetMachine">Receives the target machine, if found.</param>
         protected bool GetMachineFromId(MachineId mid, out IMachine targetMachine)
         {
-            if (!this.MachineMap.TryGetValue(mid.Value, out targetMachine))
+            if (!this.MachineMap.TryGetValue(mid, out targetMachine))
             {
                 return false;
             }

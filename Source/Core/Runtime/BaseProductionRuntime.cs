@@ -214,7 +214,7 @@ namespace Microsoft.PSharp.Runtime
 
             IMachine machine = await this.CreateMachineAsync(mid, type);
 
-            bool result = this.MachineMap.TryAdd(mid.Value, machine);
+            bool result = this.MachineMap.TryAdd(mid, machine);
             this.Assert(result, "MachineId {0} = This typically occurs " +
                 "either if the machine id was created by another runtime instance, or if a machine id from a previous " +
                 "runtime generation was deserialized, but the current runtime has not increased its generation value.",
@@ -687,7 +687,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Task that represents the asynchronous operation.</returns>
         public override Task NotifyHaltedAsync(IMachine machine)
         {
-            this.MachineMap.TryRemove(machine.Id.Value, out machine);
+            this.MachineMap.TryRemove(machine.Id, out machine);
 #if NET45
             return Task.FromResult(0);
 #else
@@ -732,7 +732,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Guid</returns>
         public override Guid GetCurrentOperationGroupId(IMachineId currentMachineId)
         {
-            if (!this.MachineMap.TryGetValue(currentMachineId.Value, out IMachine machine))
+            if (!this.MachineMap.TryGetValue(currentMachineId, out IMachine machine))
             {
                 return Guid.Empty;
             }
