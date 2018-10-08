@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="EntryPointThrowExceptionTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointThrowException()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 MachineId m = r.CreateMachine(typeof(M));
                 throw new InvalidOperationException();
             });
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestEntryPointNoMachinesThrowException()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 throw new InvalidOperationException();
             });
 

@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="MachineStateInheritanceTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -437,7 +437,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateInheritingAbstractState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M1));
             });
@@ -449,7 +449,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateInheritingStateDuplicateStart()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M2));
             });
@@ -462,7 +462,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateInheritingStateOnEntry()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M3));
             });
@@ -474,7 +474,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingStateOnEntry()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M4));
             });
 
@@ -484,7 +484,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateInheritingStateOnEventDoAction()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M5));
             });
@@ -496,7 +496,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingStateOnEventDoAction()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M6));
             });
@@ -507,7 +507,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingTwoStatesOnEventDoAction()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M7));
             });
@@ -518,7 +518,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingDeepStateOnEventDoAction()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M8));
             });
@@ -529,7 +529,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateInheritingStateOnEventGotoState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M9));
             });
@@ -541,7 +541,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingStateOnEventGotoState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M10));
             });
@@ -553,7 +553,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingTwoStatesOnEventGotoState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M11));
             });
@@ -565,7 +565,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingDeepStateOnEventGotoState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M12));
             });
@@ -577,7 +577,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateInheritingStateOnEventPushState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M13));
             });
@@ -589,7 +589,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingStateOnEventPushState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M14));
             });
@@ -601,7 +601,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingTwoStatesOnEventPushState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M15));
             });
@@ -613,7 +613,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineStateOverridingDeepStateOnEventPushState()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M16));
             });

@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="OperationGroupingTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent(Id, new E(), OperationGroup1);
             }
 
@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M6S));
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent(target, new E(), OperationGroup1);
             }
         }
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8));
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8S));
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
@@ -238,7 +238,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
                 Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M10S));
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
@@ -275,7 +275,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 var target = CreateMachine(typeof(M11S));
                 var id = (Info as ISchedulable).NextOperationGroupId;
                 Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
@@ -296,7 +296,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingSingleMachineNoSend()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M1));
             });
 
@@ -306,7 +306,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingSingleMachineSend()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M2));
             });
 
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingSingleMachineSendStarter()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M2S));
             });
 
@@ -326,7 +326,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesCreate()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M3));
             });
 
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSend()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M5));
             });
 
@@ -346,7 +346,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSendStarter()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M5S));
             });
 
@@ -356,7 +356,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSendBack()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M7));
             });
 
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingTwoMachinesSendBackStarter()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M7S));
             });
 
@@ -376,7 +376,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M9S));
             });
 

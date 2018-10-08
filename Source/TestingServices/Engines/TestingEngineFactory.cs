@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="TestingEngineFactory.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
         public static ITestingEngine CreateBugFindingEngine(
-            Configuration configuration, Action<IPSharpRuntime> action)
+            Configuration configuration, Action<IMachineRuntime> action)
         {
             return BugFindingEngine.Create(configuration, action);
         }
@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static ITestingEngine CreateReplayEngine(Configuration configuration, Action<IPSharpRuntime> action)
+        public static ITestingEngine CreateReplayEngine(Configuration configuration, Action<IMachineRuntime> action)
         {
             return ReplayEngine.Create(configuration, action);
         }

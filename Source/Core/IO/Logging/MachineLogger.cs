@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="MachineLogger.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Constructs the logger. The logger will be assigned the runtime
         /// <see cref="PSharp.Configuration"/> object when it is passed to
-        /// <see cref="IPSharpRuntime.SetLogger(ILogger)"/>.
+        /// <see cref="IMachineRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public MachineLogger(int loggingVerbosity = 2)
@@ -175,7 +175,7 @@ namespace Microsoft.PSharp.IO
         {
             return $"<GotoLog> Machine '{machineId}' is transitioning from state '{currStateName}' to state '{newStateName}'.";
         }
-        
+
         /// <summary>
         /// Called when a machine is being pushed to a state.
         /// </summary>
@@ -229,7 +229,7 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
-        /// When an event cannot be handled in the current state, its exit handler is executed and then the state is 
+        /// When an event cannot be handled in the current state, its exit handler is executed and then the state is
         /// popped and any previous "current state" is reentered. This handler is called when that pop has been done.
         /// </summary>
         /// <param name="machineId">Id of the machine that the pop executed in.</param>

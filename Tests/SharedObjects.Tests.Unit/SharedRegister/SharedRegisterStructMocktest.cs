@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SharedRegisterStructMockTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
             {
                 var flag = (this.ReceivedEvent as Eflag).flag;
 
-                var counter = SharedRegister.Create<S>(this.Id.Runtime);
+                var counter = SharedRegister.Create<S>(this.Id.RuntimeProxy);
                 counter.SetValue(new S(1, 1));
 
                 this.CreateMachine(typeof(N), new E(counter));
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M), new Eflag(true));
             });
 
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M), new Eflag(false));
             });
 

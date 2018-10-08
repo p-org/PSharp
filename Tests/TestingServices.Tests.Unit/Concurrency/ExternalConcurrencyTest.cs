@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ExternalConcurrencyTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestExternalTaskSendingEvent()
         {
-            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(M)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(M)); });
             string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
             base.AssertFailed(test, bugReport, true);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestExternalTaskInvokingRandom()
         {
-            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(N)); });
             string bugReport = @"Detected task with id '' that is not controlled by the P# runtime.";
             base.AssertFailed(test, bugReport, true);
         }

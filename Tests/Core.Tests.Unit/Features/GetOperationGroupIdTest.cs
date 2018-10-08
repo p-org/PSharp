@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                var id = this.Id.Runtime.GetCurrentOperationGroupId(this.Id);
+                var id = this.Id.RuntimeProxy.GetCurrentOperationGroupId(this.Id);
                 Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
@@ -62,12 +62,12 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                this.Id.Runtime.SendEvent(this.Id, new E(Id), OperationGroup);
+                this.Id.RuntimeProxy.SendEvent(this.Id, new E(Id), OperationGroup);
             }
 
             void CheckEvent()
             {
-                var id = this.Id.Runtime.GetCurrentOperationGroupId(Id);
+                var id = this.Id.RuntimeProxy.GetCurrentOperationGroupId(Id);
                 Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
             }
         }

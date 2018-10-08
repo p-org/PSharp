@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="CreateMachineWithId.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId1()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 var m = r.CreateMachine(typeof(M));
                 var mprime = r.CreateMachineId(typeof(M));
@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var data = new Data();
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 var m1 = this.CreateMachine(typeof(M1), new E1(data));
                 var m2 = runtime.CreateMachineId(typeof(M1));
                 this.Send(m1, new TerminateReq(this.Id));
@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId2()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 var m = r.CreateMachine(typeof(Harness));
             });
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId3()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 var m3 = r.CreateMachineId(typeof(M3));
                 r.CreateMachine(m3, typeof(M2));
             });
@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId4()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 var m2 = r.CreateMachine(typeof(M2));
                 r.CreateMachine(m2, typeof(M2));
             });
@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId5()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 var m = r.CreateMachineId(typeof(M2));
                 r.SendEvent(m, new E());
             });
@@ -218,7 +218,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId6()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 var m = r.CreateMachine(typeof(M2));
 
                 // Make sure that the machine halts
@@ -274,7 +274,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestCreateWithId7()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 var m = r.CreateMachineId(typeof(M4));
                 r.CreateMachine(typeof(M5), new E2(m));
                 r.CreateMachine(m, typeof(M4));

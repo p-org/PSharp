@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="OnFailureHandler.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -17,7 +17,7 @@ using System;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Handles the <see cref="IPSharpRuntime.OnFailure"/> event.
+    /// Handles the <see cref="IMachineRuntime.OnFailure"/> event.
     /// </summary>
     public delegate void OnFailureHandler(Exception ex);
 }

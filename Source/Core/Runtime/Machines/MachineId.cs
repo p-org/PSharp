@@ -26,9 +26,9 @@ namespace Microsoft.PSharp
     public sealed class MachineId : IMachineId, IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
-        /// The runtime that executes the machine with this id.
+        /// Proxy to the runtime that executes the machine with this id.
         /// </summary>
-        public IPSharpRuntime Runtime { get; private set; }
+        public IMachineRuntimeProxy RuntimeProxy { get; private set; }
 
         /// <summary>
         /// Unique id value.
@@ -63,12 +63,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a new machine id.
         /// </summary>
-        /// <param name="runtime">The P# runtime.</param>
+        /// <param name="runtimeProxy">Proxy to the machine runtime.</param>
         /// <param name="type">Machine type</param>
         /// <param name="value">Unique id value.</param>
         /// <param name="friendlyName">Friendly machine name</param>
-        internal MachineId(IPSharpRuntime runtime, Type type, ulong value, string friendlyName)
-            : this(runtime, type.FullName, friendlyName, value)
+        internal MachineId(IMachineRuntimeProxy runtimeProxy, Type type, ulong value, string friendlyName)
+            : this(runtimeProxy, type.FullName, friendlyName, value)
         { }
 
         /// <summary>
@@ -76,19 +76,19 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal MachineId(MachineId mid)
-            : this(mid.Runtime, mid.Type, mid.FriendlyName, mid.Value)
+            : this(mid.RuntimeProxy, mid.Type, mid.FriendlyName, mid.Value)
         { }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="runtime">The P# runtime.</param>
+        /// <param name="runtimeProxy">Proxy to the machine runtime.</param>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="value">Unique id value.</param>
-        private MachineId(IPSharpRuntime runtime, string type, string friendlyName, ulong value)
+        private MachineId(IMachineRuntimeProxy runtimeProxy, string type, string friendlyName, ulong value)
         {
-            this.Runtime = runtime;
+            this.RuntimeProxy = runtimeProxy;
             this.Value = value;
             this.Type = type;
             this.FriendlyName = friendlyName;
@@ -107,10 +107,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        /// <param name="runtime">The P# runtime.</param>
-        internal void Bind(IPSharpRuntime runtime)
+        /// <param name="runtimeProxy">Proxy to the machine runtime.</param>
+        internal void Bind(IMachineRuntimeProxy runtimeProxy)
         {
-            this.Runtime = runtime;
+            this.RuntimeProxy = runtimeProxy;
         }
 
         /// <summary>

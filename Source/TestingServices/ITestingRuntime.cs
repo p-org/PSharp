@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ITestingRuntime.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// The interface of the P# testing runtime.
     /// </summary>
-    public interface ITestingRuntime : IPSharpRuntime
+    public interface ITestingRuntime : IMachineRuntime
     {
         /// <summary>
         /// The scheduler used to serialize the execution of
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Runs a test harness that executes the specified test action.
         /// </summary>
         /// <param name="testAction">The test action.</param>
-        void RunTestHarness(Action<IPSharpRuntime> testAction);
+        void RunTestHarness(Action<IMachineRuntime> testAction);
 
         /// <summary>
         /// Gets the id of the currently executing machine.

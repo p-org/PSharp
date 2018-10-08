@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="RaftTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -22,9 +22,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
     /// <summary>
     /// This is a simple implementation of the Raft consensus protocol
     /// described in the following paper:
-    /// 
+    ///
     /// https://raft.github.io/raft.pdf
-    /// 
+    ///
     /// This test contains a bug that leads to duplicate leader election
     /// in the same term.
     /// </summary>
@@ -249,9 +249,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             {
                 public int Term; // leader's term
                 public MachineId LeaderId; // so follower can redirect clients
-                public int PrevLogIndex; // index of log entry immediately preceding new ones 
+                public int PrevLogIndex; // index of log entry immediately preceding new ones
                 public int PrevLogTerm; // term of PrevLogIndex entry
-                public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
+                public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency)
                 public int LeaderCommit; // leader’s CommitIndex
 
                 public MachineId ReceiverEndpoint; // client
@@ -275,8 +275,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             /// </summary>
             public class AppendEntriesResponse : Event
             {
-                public int Term; // current Term, for leader to update itself 
-                public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm 
+                public int Term; // current Term, for leader to update itself
+                public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm
 
                 public MachineId Server;
                 public MachineId ReceiverEndpoint; // client
@@ -346,7 +346,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             /// <summary>
             /// Index of highest log entry known to be committed (initialized
-            /// to 0, increases monotonically). 
+            /// to 0, increases monotonically).
             /// </summary>
             int CommitIndex;
 
@@ -358,7 +358,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             /// <summary>
             /// For each server, index of the next log entry to send to that
-            /// server (initialized to leader last log index + 1). 
+            /// server (initialized to leader last log index + 1).
             /// </summary>
             Dictionary<MachineId, int> NextIndex;
 
@@ -1160,7 +1160,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(ClusterManager));
             });

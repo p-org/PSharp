@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ChainReplicationTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -22,10 +22,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
     /// <summary>
     /// A single-process implementation of the chain replication protocol written
     /// using P# as a C# library.
-    /// 
+    ///
     /// The chain replication protocol is described in the following paper:
     /// http://www.cs.cornell.edu/home/rvr/papers/OSDI04.pdf
-    ///  
+    ///
     /// This test contains a bug that leads to a safety assertion failure.
     /// </summary>
     public class ChainReplicationTest : BaseTest
@@ -1452,7 +1452,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 2;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(InvariantMonitor));
                 r.RegisterMonitor(typeof(ServerResponseSeqMonitor));
                 r.CreateMachine(typeof(Environment));

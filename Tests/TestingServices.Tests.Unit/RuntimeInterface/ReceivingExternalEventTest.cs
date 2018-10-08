@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ReceivingExternalEventTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-
+using Microsoft.PSharp.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,9 +37,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
         class Engine
         {
-            public static void Send(IPSharpRuntime runtime, MachineId target)
+            public static void Send(IMachineRuntimeProxy runtimeProxy, MachineId target)
             {
-                runtime.SendEvent(target, new E(2));
+                runtimeProxy.SendEvent(target, new E(2));
             }
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 Engine.Send(runtime, this.Id);
             }
 
@@ -61,11 +61,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Assert((this.ReceivedEvent as E).Value == 2);
             }
         }
-        
+
         [Fact]
         public void TestReceivingExternalEvents()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M));
             });
 

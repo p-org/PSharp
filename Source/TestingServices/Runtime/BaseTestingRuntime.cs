@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Runs a test harness that executes the specified test action.
         /// </summary>
         /// <param name="testAction">The test action.</param>
-        public virtual void RunTestHarness(Action<IPSharpRuntime> testAction)
+        public virtual void RunTestHarness(Action<IMachineRuntime> testAction)
         {
             this.Assert(Task.CurrentId != null, "The test harness machine must execute inside a task.");
             this.Assert(testAction != null, "The test harness machine cannot execute a null test action.");
@@ -218,7 +218,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         #region machine creation and execution
 
         /// <summary>
-        /// Runs the specified test harness. 
+        /// Runs the specified test harness.
         /// </summary>
         /// <param name="harness">The test harness machine.</param>
         protected void RunTestHarness(TestHarnessMachine harness)
@@ -465,7 +465,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
             else
             {
-                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                this.Assert(mid.RuntimeProxy == null || mid.RuntimeProxy == this, "Unbound machine id '{0}' was created by another runtime.",
+                    mid.Value);
                 this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Value, mid.Type, type.FullName);
                 mid.Bind(this);
@@ -479,7 +480,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.ReportActivityCoverageOfMachine(machine.GetType(), machine.GetAllStates(), machine.GetAllStateEventPairs());
             }
 
-            bool result = this.MachineMap.TryAdd(mid.Value, machine);
+            bool result = this.MachineMap.TryAdd(mid, machine);
             this.Assert(result, "Machine id '{0}' is already bound to an existing machine.", mid.Value);
 
             this.Assert(!this.CreatedMachineIds.Contains(mid), "Machine id '{0}' of a previously halted machine cannot be reused " +
@@ -1378,7 +1379,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         public override Task NotifyHaltedAsync(IMachine machine)
         {
             this.BugTrace.AddHaltStep(machine.Id, null);
-            this.MachineMap.TryRemove(machine.Id.Value, out machine);
+            this.MachineMap.TryRemove(machine.Id, out machine);
 #if NET45
             return Task.FromResult(0);
 #else
@@ -1576,20 +1577,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         #endregion
 
-        #region logging
-
-        /// <summary>
-        /// Logs the specified text.
-        /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
-        public override void Log(string format, params object[] args)
-        {
-            this.Logger.WriteLine(format, args);
-        }
-
-        #endregion
-
         #region operation group id
 
         /// <summary>
@@ -1604,7 +1591,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Assert(currentMachineId == this.GetCurrentMachineId(), "Trying to access the operation group id of " +
                 $"'{currentMachineId}', which is not the currently executing machine.");
 
-            if (!this.MachineMap.TryGetValue(currentMachineId.Value, out IMachine machine))
+            if (!this.MachineMap.TryGetValue(currentMachineId, out IMachine machine))
             {
                 return Guid.Empty;
             }

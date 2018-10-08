@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="FailureDetectorTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             [OnEntry(nameof(InjectFailuresOnEntry))]
             [OnEventDoAction(typeof(FailureDetector.NodeFailed), nameof(NodeFailedAction))]
             class InjectFailures : MachineState { }
-            
+
             void InjectFailuresOnEntry()
             {
                 foreach (var node in this.Nodes)
@@ -489,7 +489,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingIterations = 1;
             configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(Safety));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
@@ -512,7 +512,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.SchedulingIterations = 1;
             configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
@@ -533,7 +533,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = 270;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });

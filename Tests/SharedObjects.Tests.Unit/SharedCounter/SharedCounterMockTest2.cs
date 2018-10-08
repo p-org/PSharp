@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SharedCounterMockTest2.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
             {
                 var flag = (this.ReceivedEvent as Conf).flag;
 
-                var counter = SharedCounter.Create(this.Id.Runtime, 0);
+                var counter = SharedCounter.Create(this.Id.RuntimeProxy, 0);
                 var n = this.CreateMachine(typeof(N), new E(counter));
 
                 int v1 = counter.CompareExchange(10, 0); // if 0 then 10
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
                 {
                     this.Assert(
                         (v1 == 5 && v2 == 5) ||
-                        (v1 == 0 && v2 == 10) 
+                        (v1 == 0 && v2 == 10)
                         );
                 }
             }
@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(0));
             });
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(1));
             });
@@ -145,7 +145,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(2));
             });
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M), new Conf(3));
             });

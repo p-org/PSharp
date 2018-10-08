@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SendAndExecuteTest3.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var e = new E();
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
                 var handled = await runtime.SendEventAndExecuteAsync(m, e);
                 this.Assert(handled);
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSendBlocks()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(Harness));
             });
             var config = Configuration.Create().WithNumberOfIterations(100);

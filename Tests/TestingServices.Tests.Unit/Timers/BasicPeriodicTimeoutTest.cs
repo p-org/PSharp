@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="BasicPeriodicTimeoutTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 count = 0;
 
-                // Start a periodic timer 
+                // Start a periodic timer
                 tid = StartTimer(payload, 10, true);
 
             }
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(1000);
             ModelTimerMachine.NumStepsToSkip = 1;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(T1));
             });
             base.AssertSucceeded(test);

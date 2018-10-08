@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="TestHarnessMachine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// The runtime that executes the test.
         /// </summary>
-        private IPSharpRuntime Runtime;
+        private IMachineRuntime Runtime;
 
         /// <summary>
         /// The unique machine id.
@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// The test action.
         /// </summary>
-        private readonly Action<IPSharpRuntime> TestAction;
+        private readonly Action<IMachineRuntime> TestAction;
 
         /// <summary>
         /// Stores machine-related information, which can used
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Constructor.
         /// </summary>
         /// <param name="testAction">Action</param>
-        internal TestHarnessMachine(Action<IPSharpRuntime> testAction)
+        internal TestHarnessMachine(Action<IMachineRuntime> testAction)
         {
             this.TestAction = testAction;
         }
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="runtime">The runtime that executes the test.</param>
         /// <param name="mid">MachineId</param>
         /// <param name="info">MachineInfo</param>
-        internal void Initialize(IRuntimeMachineManager runtimeManager, IPSharpRuntime runtime, MachineId mid, MachineInfo info)
+        internal void Initialize(IRuntimeMachineManager runtimeManager, IMachineRuntime runtime, MachineId mid, MachineInfo info)
         {
             this.RuntimeManager = runtimeManager;
             this.Runtime = runtime;
@@ -99,12 +99,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 // Starts the test.
                 if (this.TestAction != null)
                 {
-                    this.RuntimeManager.Log("<TestHarnessLog> Running anonymous test method.");
+                    this.RuntimeManager.Logger.WriteLine("<TestHarnessLog> Running anonymous test method.");
                     this.TestAction(this.Runtime);
                 }
                 else
                 {
-                    this.RuntimeManager.Log("<TestHarnessLog> Running test method " +
+                    this.RuntimeManager.Logger.WriteLine("<TestHarnessLog> Running test method " +
                         $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
                     this.TestMethod.Invoke(null, new object[] { this.Runtime });
                 }

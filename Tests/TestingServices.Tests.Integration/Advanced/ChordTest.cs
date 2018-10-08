@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ChordTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -23,10 +23,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
     /// <summary>
     /// A single-process implementation of the chord peer-to-peer look up service
     /// written using P# as a C# library.
-    /// 
+    ///
     /// The Chord protocol is described in the following paper:
     /// https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf
-    ///  
+    ///
     /// This test contains a bug that leads to a liveness assertion failure.
     /// </summary>
     public class ChordTest : BaseTest
@@ -847,7 +847,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(ClusterManager));
@@ -867,8 +867,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.MaxSchedulingSteps = 100;
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
-            
-            var test = new Action<IPSharpRuntime>((r) => {
+
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(ClusterManager));
             });

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IPSharpRuntime.cs">
+// <copyright file="IMachineRuntime.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 //
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,17 +21,11 @@ using Microsoft.PSharp.Runtime;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The interface of the P# runtime. It provides APIs for creating machines,
-    /// sending events, writing and checking specifications, as well as various
-    /// runtime utilities.
+    /// The interface of a machine runtime. It provides APIs for creating machines,
+    /// sending events, checking specifications, and other runtime utilities.
     /// </summary>
-    public interface IPSharpRuntime : IDisposable
+    public interface IMachineRuntime : IDisposable
     {
-        /// <summary>
-        /// The installed logger.
-        /// </summary>
-        ILogger Logger { get; }
-
         /// <summary>
         /// Event that is fired when the P# program throws an exception.
         /// </summary>
@@ -126,7 +120,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        [Obsolete("Please use IPSharpRuntime.CreateMachineAndExecuteAsync(...) instead.")]
+        [Obsolete("Please use IMachineRuntime.CreateMachineAndExecuteAsync(...) instead.")]
         Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -140,7 +134,7 @@ namespace Microsoft.PSharp
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <param name="e">Event</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        [Obsolete("Please use IPSharpRuntime.CreateMachineAndExecuteAsync(...) instead.")]
+        [Obsolete("Please use IMachineRuntime.CreateMachineAndExecuteAsync(...) instead.")]
         Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -155,7 +149,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         /// <param name="operationGroupId">Optional operation group id.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
-        [Obsolete("Please use IPSharpRuntime.CreateMachineAndExecuteAsync(...) instead.")]
+        [Obsolete("Please use IMachineRuntime.CreateMachineAndExecuteAsync(...) instead.")]
         Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null);
 
         /// <summary>
@@ -223,7 +217,7 @@ namespace Microsoft.PSharp
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is true if
         /// the event was handled, false if the event was only enqueued.</returns>
-        [Obsolete("Please use IPSharpRuntime.SendEventAndExecuteAsync(...) instead.")]
+        [Obsolete("Please use IMachineRuntime.SendEventAndExecuteAsync(...) instead.")]
         Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null);
 
         /// <summary>
@@ -242,20 +236,6 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the monitor</param>
         void RegisterMonitor(Type type);
-
-        /// <summary>
-        /// Invokes the specified monitor with the specified <see cref="Event"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="e">Event</param>
-        void InvokeMonitor<T>(Event e);
-
-        /// <summary>
-        /// Invokes the specified monitor with the specified <see cref="Event"/>.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        /// <param name="e">Event</param>
-        void InvokeMonitor(Type type, Event e);
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled
@@ -299,12 +279,6 @@ namespace Microsoft.PSharp
         void Assert(bool predicate, string s, params object[] args);
 
         /// <summary>
-        /// Overrides the default machine type for instantiating timers.
-        /// </summary>
-        /// <param name="type">Type</param>
-        void SetTimerMachineType(Type type);
-
-        /// <summary>
         /// Returns the operation group id of the specified machine id. Returns <see cref="Guid.Empty"/>
         /// if the id is not set, or if the <see cref="IMachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
@@ -314,16 +288,15 @@ namespace Microsoft.PSharp
         Guid GetCurrentOperationGroupId(IMachineId currentMachineId);
 
         /// <summary>
-        /// Logs the specified text using .
-        /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
-        void Log(string format, params object[] args);
-
-        /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
         /// <param name="logger">ILogger</param>
         void SetLogger(ILogger logger);
+
+        /// <summary>
+        /// Overrides the default machine type for instantiating timers.
+        /// </summary>
+        /// <param name="type">Type</param>
+        void SetTimerMachineType(Type type);
     }
 }

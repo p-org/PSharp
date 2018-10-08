@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="IllegalTimerStoppageTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 TimerId tid = (this.ReceivedEvent as TransferTimer).tid;
 
-                // trying to stop a timer created by a different machine. 
+                // trying to stop a timer created by a different machine.
                 // should throw an assertion violation
                 await this.StopTimer(tid, true);
                 this.Raise(new Halt());
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(1000);
             config.MaxSchedulingSteps = 200;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(T2));
             });
             base.AssertFailed(test, 1, true);

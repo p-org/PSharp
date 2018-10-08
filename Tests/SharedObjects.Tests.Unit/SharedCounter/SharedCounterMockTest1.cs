@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SharedCounterMockTest1.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedCounter.Create(this.Id.Runtime, 0);
+                var counter = SharedCounter.Create(this.Id.RuntimeProxy, 0);
                 this.CreateMachine(typeof(N), new E(counter));
 
                 counter.Increment();
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(M));
             });
 

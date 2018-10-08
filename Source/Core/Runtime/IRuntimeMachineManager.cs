@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The P# runtime.
         /// </summary>
-        IPSharpRuntime Runtime { get; }
+        IMachineRuntime Runtime { get; }
 
         /// <summary>
         /// The configuration used by the runtime.
@@ -356,17 +356,6 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         void NotifyMachineExceptionHandled(IMachine machine, string currStateName, string actionName, Exception ex);
-
-        #endregion
-
-        #region logging
-
-        /// <summary>
-        /// Logs the specified text.
-        /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
-        void Log(string format, params object[] args);
 
         #endregion
 

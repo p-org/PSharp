@@ -32,7 +32,7 @@ namespace Raft.PSharpLanguage
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(IPSharpRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
             runtime.CreateMachine(typeof(ClusterManager));

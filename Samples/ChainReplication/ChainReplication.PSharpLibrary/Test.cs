@@ -33,7 +33,7 @@ namespace ChainReplication.PSharpLibrary
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(IPSharpRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(InvariantMonitor));
             runtime.RegisterMonitor(typeof(ServerResponseSeqMonitor));

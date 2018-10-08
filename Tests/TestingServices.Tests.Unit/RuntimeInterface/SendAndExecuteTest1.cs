@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SendAndExecuteTest1.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -61,8 +61,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 MachineId b;
                 if (e.ExecuteSynchronously)
                 {
-                    var runtime = this.Id.Runtime;
-                    b = await runtime.CreateMachineAndExecuteAsync(typeof(B)); 
+                    var runtime = this.Id.RuntimeProxy;
+                    b = await runtime.CreateMachineAndExecuteAsync(typeof(B));
                 }
                 else
                 {
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestSendAndExecuteNoDeadlockWithReceive()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(A), new Configure(false));
             });
 
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestSendAndExecuteDeadlockWithReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(10);
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(A), new Configure(true));
             });
 

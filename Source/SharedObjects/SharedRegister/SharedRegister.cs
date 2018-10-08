@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SharedRegister.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -25,21 +25,21 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Creates a new shared register.
         /// </summary>
-        /// <param name="runtime">IPSharpRuntime</param>
+        /// <param name="runtimeProxy">Proxy to the machine runtime.</param>
         /// <param name="value">Initial value</param>
-        public static ISharedRegister<T> Create<T>(IPSharpRuntime runtime, T value = default(T)) where T : struct
+        public static ISharedRegister<T> Create<T>(IMachineRuntimeProxy runtimeProxy, T value = default) where T : struct
         {
-            if (runtime is ProductionRuntime)
+            if (runtimeProxy is ProductionRuntime)
             {
                 return new ProductionSharedRegister<T>(value);
             }
-            else if (runtime is ITestingRuntime testingRuntime)
+            else if (runtimeProxy is ITestingRuntime testingRuntime)
             {
                 return new MockSharedRegister<T>(value, testingRuntime);
             }
             else
             {
-                throw new RuntimeException("Unknown runtime object of type: " + runtime.GetType().Name + ".");
+                throw new RuntimeException("Unknown runtime object of type: " + runtimeProxy.GetType().Name + ".");
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="GenericMachineTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -56,14 +56,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestGenericMachine1()
         {
-            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(M<int>)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(M<int>)); });
             base.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestGenericMachine2()
         {
-            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(N)); });
             base.AssertSucceeded(test);
         }
     }

@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Actions5FailTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -87,11 +87,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 this.Send(GhostMachine, new E1());
 
                 // we wait in this state until E2 comes from Ghost,
-                // then handle E2 using the inherited handler Action1 
+                // then handle E2 using the inherited handler Action1
                 // installed by Init
                 // then wait until E4 comes from Ghost, and since
-                // there's no handler for E4 in this pushed state, 
-                // this state is popped, and E4 goto handler from Init 
+                // there's no handler for E4 in this pushed state,
+                // this state is popped, and E4 goto handler from Init
                 // is invoked
             }
 
@@ -147,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(Real)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(Real)); });
             base.AssertFailed(configuration, test, 1, true);
         }
     }

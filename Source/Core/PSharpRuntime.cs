@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="PSharpRuntime.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -26,7 +26,7 @@ namespace Microsoft.PSharp
         /// Creates a new state-machine runtime.
         /// </summary>
         /// <returns>The P# runtime.</returns>
-        public static IPSharpRuntime Create()
+        public static IMachineRuntime Create()
         {
             return new ProductionRuntime(Configuration.Create());
         }
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="configuration">The runtime configuration to use.</param>
         /// <returns>The P# runtime.</returns>
-        public static IPSharpRuntime Create(Configuration configuration)
+        public static IMachineRuntime Create(Configuration configuration)
         {
             return new ProductionRuntime(configuration);
         }

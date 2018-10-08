@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ReplicatingStorageTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -23,9 +23,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
     /// <summary>
     /// This is a (much) simplified version of the replicating storage system described
     /// in the following paper:
-    /// 
+    ///
     /// https://www.usenix.org/system/files/conference/fast16/fast16-papers-deligiannis.pdf
-    /// 
+    ///
     /// This test contains the liveness bug discussed in the above paper.
     /// </summary>
     public class ReplicatingStorageTest : BaseTest
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
             internal class ShutDown : Event { }
             private class LocalEvent : Event { }
-            
+
             private MachineId Environment;
             private MachineId NodeManager;
             private int NodeId;
@@ -780,7 +780,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = 315;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });
@@ -801,7 +801,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             configuration.RandomSchedulingSeed = 2;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });

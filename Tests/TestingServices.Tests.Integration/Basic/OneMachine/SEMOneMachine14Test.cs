@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SEMOneMachine14Test.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 this.Assert(test == false); // reachable
             }
         }
-        
+
         /// <summary>
         /// P# semantics test: one machine, "goto" transition, action is not inherited
         /// by the destination state. This test checks that after "goto" transition,
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         [Fact]
         public void TestGotoTransInheritance()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(Real1));
             });
 

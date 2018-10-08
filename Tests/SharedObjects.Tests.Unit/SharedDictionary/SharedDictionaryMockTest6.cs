@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SharedDictionaryMockTest6.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = (this.ReceivedEvent as E).counter;
+                var counter = SharedDictionary.Create<int, string>(this.Id.RuntimeProxy);
 
                 this.CreateMachine(typeof(N), new E(counter));
                 counter.TryAdd(1, "M");
@@ -68,9 +68,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<IPSharpRuntime>((r) => {
-                var counter = SharedDictionary.Create<int, string>(r);
-                r.CreateMachine(typeof(M), new E(counter));
+            var test = new Action<IMachineRuntime>((r) => {
+                r.CreateMachine(typeof(M));
             });
 
             base.AssertFailed(config, test, "Detected an assertion failure.");

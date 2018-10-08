@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// A logger and configuration from the runtime to report races
         /// found (and possibly debug logs).
         /// </summary>
-        private ILogger Log;
+        private ILogger Logger;
 
         /// <summary>
         /// Configuration.
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             DescriptiveName = new Dictionary<ulong, string>();
             InAction = new Dictionary<ulong, bool>();
             InMonitor = -1;
-            this.Log = logger;
+            this.Logger = logger;
             this.Config = config;
             this.TestReport = testReport;
             ResetCounters();
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             // no hb rule needs to be triggered
             if (source == null)
             {
-                var newState = new InstrMachineState(target.Value, this.Log, Config.EnableRaceDetectorLogging);
+                var newState = new InstrMachineState(target.Value, this.Logger, Config.EnableRaceDetectorLogging);
                 MS[target.Value] = newState;
                 return;
             }
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             DescriptiveName[source.Value] = source.ToString();
 
             var sourceMachineState = GetCurrentState(source);
-            var targetState = new InstrMachineState(target.Value, this.Log, Config.EnableRaceDetectorLogging);
+            var targetState = new InstrMachineState(target.Value, this.Logger, Config.EnableRaceDetectorLogging);
             targetState.JoinEpochAndVC(sourceMachineState.VC);
             MS[target.Value] = targetState;
             sourceMachineState.IncrementEpochAndVC();
@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             if (!MS.ContainsKey(source))
             {
                 // WriteToLog("Saw a read in an action without a corresponding deq");
-                MS[source] = new InstrMachineState(source, this.Log, Config.EnableRaceDetectorLogging);
+                MS[source] = new InstrMachineState(source, this.Logger, Config.EnableRaceDetectorLogging);
             }
 
             // Implementation of the FastTrack rules for read operations
@@ -297,7 +297,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             if (!MS.ContainsKey(source))
             {
                 // WriteToLog("Saw a write in an action without a corresponding deq");
-                var newState = new InstrMachineState(source, this.Log, Config.EnableRaceDetectorLogging);
+                var newState = new InstrMachineState(source, this.Logger, Config.EnableRaceDetectorLogging);
                 MS[source] = newState;
             }
 
@@ -377,7 +377,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             this.ES.Clear();
             this.VS.Clear();
             this.InAction.Clear();
-            this.Runtime.Logger.WriteLine($"Iteration stats " +
+            this.Logger.WriteLine($"Iteration stats " +
                 $"Enq:{EnqueueCount} Deq:{DequeueCount} Create:{CreateCount} Read:{ReadCount} Write:{WriteCount}");
             ResetCounters();
         }
@@ -402,7 +402,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             var secondId = DescriptiveName[(ulong)sId];
             //Removing diagnostic from the report string
             string report = $"****RACE:****{nL}\t\t {first}:{firstId}{nL}\t\t {second}:{secondId}";
-            Log.WriteLine(report);
+            Logger.WriteLine(report);
             this.TestReport.BugReports.Add(report);
         }
 
@@ -493,7 +493,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             }
 
             // WriteToLog("Saw first operation for " + machineId);
-            var newState = new InstrMachineState(machineId.Value, this.Log, Config.EnableRaceDetectorLogging);
+            var newState = new InstrMachineState(machineId.Value, this.Logger, Config.EnableRaceDetectorLogging);
             MS[machineId.Value] = newState;
             return newState;
         }
@@ -503,7 +503,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine($"<RaceLog> Create({source}, {target})");
+                Logger.WriteLine($"<RaceLog> Create({source}, {target})");
             }
         }
 
@@ -512,7 +512,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine($"<RaceLog> Deq({source}, {target}, {e}, {sequenceNumber})");
+                Logger.WriteLine($"<RaceLog> Deq({source}, {target}, {e}, {sequenceNumber})");
             }
         }
 
@@ -521,7 +521,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine($"<RaceLog> Enq({source}, {target}, {e}, {sequenceNumber})");
+                Logger.WriteLine($"<RaceLog> Enq({source}, {target}, {e}, {sequenceNumber})");
             }
         }
 
@@ -530,7 +530,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine($"<RaceLog> Read({sourceLocation}, {source}, {objHandle}, {offset})");
+                Logger.WriteLine($"<RaceLog> Read({sourceLocation}, {source}, {objHandle}, {offset})");
             }
         }
 
@@ -539,7 +539,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         {
             if (Config.EnableRaceDetectorLogging)
             {
-                Log.WriteLine($"<RaceLog> Write({sourceLocation}, {source}, {objHandle}, {offset})");
+                Logger.WriteLine($"<RaceLog> Write({sourceLocation}, {source}, {objHandle}, {offset})");
             }
         }
     }

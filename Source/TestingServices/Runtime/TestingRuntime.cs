@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <returns></returns>
         [TestRuntimeGetType]
-        internal static Type GetRuntimeType() => typeof(IPSharpRuntime);
+        internal static Type GetRuntimeType() => typeof(IMachineRuntime);
 
         /// <summary>
         /// Constructor.

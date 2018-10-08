@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             {
                 var tcs = (this.ReceivedEvent as Conf).tcs;
                 var e = new E();
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
                 await runtime.SendEventAndExecuteAsync(m, e);
                 this.Assert(e.x == 1);

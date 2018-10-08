@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="BaseTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -27,13 +27,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
     {
         #region successful tests
 
-        protected void AssertSucceeded(Action<IPSharpRuntime> test)
+        protected void AssertSucceeded(Action<IMachineRuntime> test)
         {
             var configuration = GetConfiguration();
             AssertSucceeded(configuration, test);
         }
 
-        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<IPSharpRuntime> test)
+        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<IMachineRuntime> test)
         {
             InMemoryLogger logger = new InMemoryLogger();
             BugFindingEngine engine = null;
@@ -63,35 +63,35 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
 
         #region failed tests
 
-        protected void AssertFailed(Action<IPSharpRuntime> test, int numExpectedErrors)
+        protected void AssertFailed(Action<IMachineRuntime> test, int numExpectedErrors)
         {
             var configuration = GetConfiguration();
             AssertFailed(configuration, test, numExpectedErrors);
         }
 
-        protected void AssertFailed(Action<IPSharpRuntime> test, string expectedOutput)
+        protected void AssertFailed(Action<IMachineRuntime> test, string expectedOutput)
         {
             var configuration = GetConfiguration();
             AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
         }
 
-        protected void AssertFailed(Action<IPSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs)
+        protected void AssertFailed(Action<IMachineRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs)
         {
             var configuration = GetConfiguration();
             AssertFailed(configuration, test, numExpectedErrors, expectedOutputs);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, int numExpectedErrors)
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors)
         {
             AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>());
         }
 
-        protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, string expectedOutput)
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, string expectedOutput)
         {
             AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
         }
 
-        protected void AssertFailed(Configuration configuration, Action<IPSharpRuntime> test, int numExpectedErrors,
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors,
             ISet<string> expectedOutputs)
         {
             InMemoryLogger logger = new InMemoryLogger();

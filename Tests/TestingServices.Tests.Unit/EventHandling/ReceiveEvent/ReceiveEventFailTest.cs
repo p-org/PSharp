@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ReceiveEventFailTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            var test = new Action<IPSharpRuntime>((r) => { r.CreateMachine(typeof(Server)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(Server)); });
             var bugReport = "Livelock detected. 'Microsoft.PSharp.TestingServices.Tests.Unit.ReceiveEventFailTest+" +
                 "Client()' is waiting for an event, but no other schedulable choices are enabled.";
             base.AssertFailed(configuration, test, bugReport, true);
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(Server));
                 r.CreateMachine(typeof(Server));
             });
@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var configuration = base.GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.CreateMachine(typeof(Server));
                 r.CreateMachine(typeof(Server));
                 r.CreateMachine(typeof(Server));

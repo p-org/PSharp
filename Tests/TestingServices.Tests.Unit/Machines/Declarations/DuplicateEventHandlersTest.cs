@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="DuplicateEventHandlersTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerDo()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M1));
             });
@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerGoto()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M2));
             });
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerPush()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M3));
             });
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerInheritanceDo()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M4));
             });
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerInheritanceGoto()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M5));
             });
@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerInheritancePush()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M6));
             });
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestMachineDuplicateEventHandlerMixed()
         {
-            var test = new Action<IPSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M7));
             });

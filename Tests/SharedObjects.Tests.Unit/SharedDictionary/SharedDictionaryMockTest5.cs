@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SharedDictionaryMockTest5.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
-// 
+//
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 //      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -20,12 +20,22 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 {
     public class SharedDictionaryMockTest5 : BaseTest
     {
-        class E : Event
+        class E1 : Event
+        {
+            public bool flag;
+
+            public E1(bool flag)
+            {
+                this.flag = flag;
+            }
+        }
+
+        class E2 : Event
         {
             public ISharedDictionary<int, string> counter;
             public bool flag;
 
-            public E(ISharedDictionary<int, string> counter, bool flag)
+            public E2(ISharedDictionary<int, string> counter, bool flag)
             {
                 this.counter = counter;
                 this.flag = flag;
@@ -40,14 +50,14 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = (this.ReceivedEvent as E).counter;
-                var flag = (this.ReceivedEvent as E).flag;
+                var flag = (this.ReceivedEvent as E1).flag;
 
+                var counter = SharedDictionary.Create<int, string>(this.Id.RuntimeProxy);
                 counter.TryAdd(1, "M");
 
                 if (flag)
                 {
-                    this.CreateMachine(typeof(N), new E(counter, false));
+                    this.CreateMachine(typeof(N), new E2(counter, false));
                 }
 
                 string v;
@@ -73,11 +83,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = (this.ReceivedEvent as E).counter;
-                string v;
-                bool b;
+                var counter = (this.ReceivedEvent as E2).counter;
 
-                b = counter.TryGetValue(1, out v);
+                bool b;
+                b = counter.TryGetValue(1, out string v);
                 this.Assert(b);
                 this.Assert(v == "M");
 
@@ -90,9 +99,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<IPSharpRuntime>((r) => {
-                var counter = SharedDictionary.Create<int, string>(r);
-                r.CreateMachine(typeof(M), new E(counter, true));
+            var test = new Action<IMachineRuntime>((r) => {
+                r.CreateMachine(typeof(M), new E1(true));
             });
 
             base.AssertSucceeded(config, test);
@@ -103,9 +111,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<IPSharpRuntime>((r) => {
-                var counter = SharedDictionary.Create<int, string>(r);
-                r.CreateMachine(typeof(M), new E(counter, false));
+            var test = new Action<IMachineRuntime>((r) => {
+                r.CreateMachine(typeof(M), new E1(false));
             });
 
             base.AssertSucceeded(config, test);

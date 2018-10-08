@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// The base P# runtime.
     /// </summary>
-    internal abstract class BaseRuntime : IPSharpRuntime, IRuntimeMachineManager
+    internal abstract class BaseRuntime : IMachineRuntime, IMachineRuntimeProxy, IRuntimeMachineManager
     {
         /// <summary>
         /// Map of unique machine id values to machines.
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The P# runtime.
         /// </summary>
-        public IPSharpRuntime Runtime => this;
+        public IMachineRuntime Runtime => this;
 
         /// <summary>
         /// The configuration used by the runtime.
@@ -819,19 +819,6 @@ namespace Microsoft.PSharp.Runtime
         #endregion
 
         #region logging
-
-        /// <summary>
-        /// Logs the specified text.
-        /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
-        public virtual void Log(string format, params object[] args)
-        {
-            if (this.Configuration.Verbose > 1)
-            {
-                this.Logger.WriteLine(format, args);
-            }
-        }
 
         /// <summary>
         /// Installs the specified <see cref="ILogger"/>.

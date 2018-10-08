@@ -36,7 +36,7 @@ namespace ReplicatingStorage.PSharpLanguage
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(IPSharpRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(LivenessMonitor));
             runtime.CreateMachine(typeof(Environment));

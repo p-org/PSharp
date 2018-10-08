@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task InitOnEntry()
             {
-                var runtime = this.Id.Runtime;
+                var runtime = this.Id.RuntimeProxy;
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M), this.ReceivedEvent);
                 var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
@@ -104,7 +104,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestHandledExceptionOnSendExec()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(true));
             });
@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         [Fact]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var test = new Action<IPSharpRuntime>((r) => {
+            var test = new Action<IMachineRuntime>((r) => {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(false));
             });
