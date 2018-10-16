@@ -6,7 +6,7 @@
     <authors>Microsoft</authors>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>The P# language, runtime and testing infrastructure.</description>
     <releaseNotes>This release contains the 1.4.0 version of the P# language, runtime and testing infrastructure.</releaseNotes>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
