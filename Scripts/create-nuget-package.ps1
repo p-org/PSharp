@@ -18,7 +18,7 @@ if (-not (Test-Path $nuget)) {
     Write-Comment -prefix "..." -text "Installed 'nuget.exe' in '$nuget_exe_dir'" -color "white"
 }
 
-$command = "pack $nuget_exe_dir\PSharp.nuspec"
+$command = "pack $nuget_exe_dir\PSharp.nuspec -OutputDirectory $PSScriptRoot\..\bin\nuget"
 $error_msg = "Failed to create P# NuGet package"
 Invoke-ToolCommand -tool $nuget -command $command -error_msg $error_msg
 
