@@ -61,6 +61,11 @@ namespace Microsoft.PSharp
         /// </summary>
         public event OnFailureHandler OnFailure;
 
+        /// <summary>
+        /// Callback that is fired when a P# event (message) is dropped.
+        /// </summary>
+        public event OnDroppedHandler OnDropped;
+
         #region factory methods
 
         /// <summary>
@@ -875,6 +880,25 @@ namespace Microsoft.PSharp
             }
 
             this.OnFailure?.Invoke(exception);
+        }
+
+        /// <summary>
+        /// Has an <see cref="OnDropped"/> handler been registered by the user
+        /// </summary>
+        /// <returns>True if an OnDropped handler is registered</returns>
+        protected internal bool OnDroppedHandlerRegistered()
+        {
+            return this.OnDropped == null;
+        }
+
+        /// <summary>
+        /// Raises the <see cref="OnDropped"/> event with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <param name="e">Event being dropped</param>
+        /// <param name="mid">Target MachineId</param>
+        protected internal void RaiseOnDroppedEvent(Event e, MachineId mid)
+        {
+            this.OnDropped?.Invoke(e, mid);
         }
 
         /// <summary>

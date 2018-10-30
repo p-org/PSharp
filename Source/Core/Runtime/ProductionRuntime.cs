@@ -399,6 +399,7 @@ namespace Microsoft.PSharp.Runtime
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
+                RaiseOnDroppedEvent(e, mid);
                 return;
             }
 
@@ -425,6 +426,7 @@ namespace Microsoft.PSharp.Runtime
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
+                RaiseOnDroppedEvent(e, mid);
                 return true;
             }
 
@@ -846,6 +848,14 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="inbox">Machine inbox.</param>
         internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
         {
+            if (base.OnDroppedHandlerRegistered())
+            {
+                foreach (var evinfo in inbox)
+                {
+                    RaiseOnDroppedEvent(evinfo.Event, machine.Id);
+                }
+            }
+
             base.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);
         }

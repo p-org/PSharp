@@ -1920,12 +1920,16 @@ namespace Microsoft.PSharp
         /// </summary>
         private void HaltMachine()
         {
+            var inboxContents = new LinkedList<EventInfo>();
+
             lock (this.Inbox)
             {
                 this.Info.IsHalted = true;
-                base.Runtime.NotifyHalted(this, this.Inbox);
+                inboxContents = new LinkedList<EventInfo>(this.Inbox);
                 this.CleanUpResources();
             }
+
+            base.Runtime.NotifyHalted(this, inboxContents);
 
             // Invoke user callback outside the lock.
             this.OnHalt();

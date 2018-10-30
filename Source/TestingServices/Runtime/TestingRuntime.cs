@@ -674,6 +674,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{mid}'.\n");
+                RaiseOnDroppedEvent(e, mid);
                 return;
             }
 
@@ -711,6 +712,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{mid}'.\n");
+                RaiseOnDroppedEvent(e, mid);
                 return true;
             }
 
@@ -1425,6 +1427,14 @@ namespace Microsoft.PSharp.TestingServices
             var mustHandleEvent = inbox.FirstOrDefault(ev => ev.MustHandle);
             this.Assert(mustHandleEvent == null,
                 $"Machine '{machine.Id}' halted before dequeueing must-handle event '{mustHandleEvent?.EventName ?? string.Empty}'.\n");
+
+            if(base.OnDroppedHandlerRegistered())
+            {
+                foreach(var evinfo in inbox)
+                {
+                    RaiseOnDroppedEvent(evinfo.Event, machine.Id);
+                }
+            }
 
             this.BugTrace.AddHaltStep(machine.Id, null);
             this.Logger.OnHalt(machine.Id, inbox.Count);
