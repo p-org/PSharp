@@ -3,12 +3,10 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Handles the <see cref="PSharpRuntime.OnDropped"/> event.
+    /// Handles the <see cref="PSharpRuntime.OnEventDropped"/> event.
     /// </summary>
-    public delegate void OnDroppedHandler(Event e, MachineId target);
+    public delegate void OnEventDroppedHandler(Event e, MachineId target);
 }
