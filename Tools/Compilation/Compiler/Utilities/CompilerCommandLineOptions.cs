@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.Utilities
 {
     public sealed class CompilerCommandLineOptions : BaseCommandLineOptions
     {
-        #region public API
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -18,12 +16,7 @@ namespace Microsoft.PSharp.Utilities
         public CompilerCommandLineOptions(string[] args)
             : base (args)
         {
-            
         }
-
-        #endregion
-
-        #region protected methods
 
         /// <summary>
         /// Parses the given option.
@@ -31,21 +24,21 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            if (option.ToLower().StartsWith("/t:") && option.Length > 3)
+            if (this.IsMatch(option, @"[\/|-]t:") && option.Length > 3)
             {
-                if (option.ToLower().Substring(3).Equals("exe"))
+                if (this.IsMatch(option.Substring(14), @"exe$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Execution;
                 }
-                else if (option.ToLower().Substring(3).Equals("lib"))
+                else if (this.IsMatch(option.Substring(14), @"lib$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Library;
                 }
-                else if (option.ToLower().Substring(3).Equals("test"))
+                else if (this.IsMatch(option.Substring(14), @"test$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Testing;
                 }
-                else if (option.ToLower().Substring(3).Equals("remote"))
+                else if (this.IsMatch(option.Substring(14), @"remote$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Remote;
                 }
@@ -55,13 +48,13 @@ namespace Microsoft.PSharp.Utilities
                         "'/t:[x]', where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
-            else if (option.ToLower().StartsWith("/optimization:") && option.Length > 14)
+            else if (this.IsMatch(option, @"[\/|-]optimization:") && option.Length > 14)
             {
-                if (option.ToLower().Substring(14).Equals("debug"))
+                if (this.IsMatch(option.Substring(14), @"debug$"))
                 {
                     base.Configuration.OptimizationTarget = OptimizationTarget.Debug;
                 }
-                else if (option.ToLower().Substring(14).Equals("release"))
+                else if (this.IsMatch(option.Substring(14), @"release$"))
                 {
                     base.Configuration.OptimizationTarget = OptimizationTarget.Release;
                 }
@@ -71,7 +64,7 @@ namespace Microsoft.PSharp.Utilities
                         "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
-            else if (option.ToLower().StartsWith("/pass:") && option.Length > 6)
+            else if (this.IsMatch(option, @"[\/|-]pass:") && option.Length > 6)
             {
                 if (!option.ToLower().Substring(6).EndsWith(".dll"))
                 {
@@ -81,29 +74,29 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
             }
-            else if (option.ToLower().Equals("/dfa"))
+            else if (this.IsMatch(option, @"[\/|-]dfa$"))
             {
                 base.Configuration.AnalyzeDataFlow = true;
             }
-            else if (option.ToLower().Equals("/check-races"))
+            else if (this.IsMatch(option, @"[\/|-]check-races$"))
             {
                 base.Configuration.AnalyzeDataRaces = true;
             }
-            else if (option.ToLower().Equals("/emit-control-flow"))
+            else if (this.IsMatch(option, @"[\/|-]emit-control-flow$"))
             {
                 base.Configuration.ShowControlFlowInformation = true;
             }
-            else if (option.ToLower().Equals("/emit-data-flow"))
+            else if (this.IsMatch(option, @"[\/|-]emit-data-flow$"))
             {
                 base.Configuration.ShowDataFlowInformation = true;
             }
-            else if (option.ToLower().StartsWith("/emit-data-flow:") && option.Length > 16)
+            else if (this.IsMatch(option, @"[\/|-]emit-control-flow:") && option.Length > 16)
             {
-                if (option.ToLower().Substring(16).Equals("default"))
+                if (this.IsMatch(option.Substring(16), @"default$"))
                 {
                     base.Configuration.ShowDataFlowInformation = true;
                 }
-                else if (option.ToLower().Substring(16).Equals("full"))
+                else if (this.IsMatch(option.Substring(16), @"full$"))
                 {
                     base.Configuration.ShowFullDataFlowInformation = true;
                 }
@@ -113,11 +106,11 @@ namespace Microsoft.PSharp.Utilities
                         "level '/emit-data-flow:[x]', where [x] is 'default' or 'full'.");
                 }
             }
-            else if (option.ToLower().Equals("/time"))
+            else if (this.IsMatch(option, @"[\/|-]time$"))
             {
                 base.Configuration.EnableProfiling = true;
             }
-            else if (option.ToLower().Equals("/xsa"))
+            else if (this.IsMatch(option, @"[\/|-]xsa$"))
             {
                 base.Configuration.DoStateTransitionAnalysis = true;
             }
@@ -160,31 +153,29 @@ namespace Microsoft.PSharp.Utilities
             help += " --------------";
             help += "\n Basic options:";
             help += "\n --------------";
-            help += "\n  /?\t\t Show this help menu";
-            help += "\n  /s:[x]\t Path to a P# solution";
-            help += "\n  /p:[x]\t Name of a project in the P# solution";
-            help += "\n  /o:[x]\t Path for output files";
-            help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
-            help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
-            help += "\n  /warnings-on\t Show warnings";
-            help += "\n  /debug\t Enable debugging";
+            help += "\n  -?\t\t Show this help menu";
+            help += "\n  -s:[x]\t Path to a P# solution";
+            help += "\n  -p:[x]\t Name of a project in the P# solution";
+            help += "\n  -o:[x]\t Path for output files";
+            help += "\n  -timeout:[x]\t Timeout for the tool (default is no timeout)";
+            help += "\n  -v:[x]\t Enable verbose mode (values from '1' to '3')";
+            help += "\n  -warnings-on\t Show warnings";
+            help += "\n  -debug\t Enable debugging";
 
             help += "\n\n --------------------";
             help += "\n Compilation options:";
             help += "\n --------------------";
-            help += "\n  /t:[x]\t The compilation target ('exe', 'lib' or 'test')";
+            help += "\n  -t:[x]\t The compilation target ('exe', 'lib' or 'test')";
 
             help += "\n\n --------------------";
             help += "\n Analysis options:";
             help += "\n --------------------";
-            help += "\n  /dfa\t\t Enables data-flow analysis";
-            help += "\n  /check-races\t Enables race-checking analysis";
+            help += "\n  -dfa\t\t Enables data-flow analysis";
+            help += "\n  -check-races\t Enables race-checking analysis";
 
             help += "\n";
 
             Output.WriteLine(help);
         }
-
-        #endregion
     }
 }
