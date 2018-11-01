@@ -26,37 +26,37 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            if (this.IsMatch(option, @"[\/|-]test:") && option.Length > 6)
+            if (this.IsMatch(option, @"^[\/|-]test:") && option.Length > 6)
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
-            else if (this.IsMatch(option, @"[\/|-]runtime:") && option.Length > 9)
+            else if (this.IsMatch(option, @"^[\/|-]runtime:") && option.Length > 9)
             {
                 base.Configuration.TestingRuntimeAssembly = option.Substring(9);
             }
-            else if (this.IsMatch(option, @"[\/|-]method:") && option.Length > 8)
+            else if (this.IsMatch(option, @"^[\/|-]method:") && option.Length > 8)
             {
                 base.Configuration.TestMethodName = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"[\/|-]interactive$"))
+            else if (this.IsMatch(option, @"^[\/|-]interactive$"))
             {
                 base.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
             }
-            else if (this.IsMatch(option, @"[\/|-]sch:"))
+            else if (this.IsMatch(option, @"^[\/|-]sch:"))
             {
                 string scheduler = option.Substring(5);
-                if (this.IsMatch(scheduler, @"portfolio$"))
+                if (this.IsMatch(scheduler, @"^portfolio$"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Portfolio;
                 }
-                else if (this.IsMatch(scheduler, @"random$"))
+                else if (this.IsMatch(scheduler, @"^random$"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
-                else if (this.IsMatch(scheduler, @"probabilistic"))
+                else if (this.IsMatch(scheduler, @"^probabilistic"))
                 {
                     int i = 0;
-                    if (this.IsMatch(scheduler, @"probabilistic$") ||
+                    if (this.IsMatch(scheduler, @"^probabilistic$") ||
                         !int.TryParse(scheduler.Substring(14), out i) && i >= 0)
                     {
                         Error.ReportAndExit("Please give a valid number of coin " +
@@ -66,10 +66,10 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRandom;
                     base.Configuration.CoinFlipBound = i;
                 }
-                else if (this.IsMatch(scheduler, @"pct"))
+                else if (this.IsMatch(scheduler, @"^pct"))
                 {
                     int i = 0;
-                    if (this.IsMatch(scheduler, @"pct$") ||
+                    if (this.IsMatch(scheduler, @"^pct$") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
                         Error.ReportAndExit("Please give a valid number of priority " +
@@ -79,10 +79,10 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.PCT;
                     base.Configuration.PrioritySwitchBound = i;
                 }
-                else if (this.IsMatch(scheduler, @"fairpct"))
+                else if (this.IsMatch(scheduler, @"^fairpct"))
                 {
                     int i = 0;
-                    if (this.IsMatch(scheduler, @"fairpct$") ||
+                    if (this.IsMatch(scheduler, @"^fairpct$") ||
                         !int.TryParse(scheduler.Substring("fairpct:".Length), out i) && i >= 0)
                     {
                         Error.ReportAndExit("Please give a valid number of priority " +
@@ -92,26 +92,26 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.FairPCT;
                     base.Configuration.PrioritySwitchBound = i;
                 }
-                else if (this.IsMatch(scheduler, @"dfs$"))
+                else if (this.IsMatch(scheduler, @"^dfs$"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.DFS;
                 }
-                else if (this.IsMatch(scheduler, @"iddfs$"))
+                else if (this.IsMatch(scheduler, @"^iddfs$"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
                 }
-                else if (this.IsMatch(scheduler, @"dpor$"))
+                else if (this.IsMatch(scheduler, @"^dpor$"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
                 }
-                else if (this.IsMatch(scheduler, @"rdpor$"))
+                else if (this.IsMatch(scheduler, @"^rdpor$"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RDPOR;
                 }
-                else if (this.IsMatch(scheduler, @"db"))
+                else if (this.IsMatch(scheduler, @"^db"))
                 {
                     int i = 0;
-                    if (this.IsMatch(scheduler, @"db$") ||
+                    if (this.IsMatch(scheduler, @"^db$") ||
                         !int.TryParse(scheduler.Substring(3), out i) && i >= 0)
                     {
                         Error.ReportAndExit("Please give a valid delay " +
@@ -121,10 +121,10 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.DelayBounding;
                     base.Configuration.DelayBound = i;
                 }
-                else if (this.IsMatch(scheduler, @"rdb"))
+                else if (this.IsMatch(scheduler, @"^rdb"))
                 {
                     int i = 0;
-                    if (this.IsMatch(scheduler, @"rdb$") ||
+                    if (this.IsMatch(scheduler, @"^rdb$") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
                         Error.ReportAndExit("Please give a valid delay " +
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.Utilities
                         "experimental strategies also exist, but are not listed here).");
                 }
             }
-            else if (this.IsMatch(option, @"[\/|-]replay:") && option.Length > 8)
+            else if (this.IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(8));
                 if (!extension.Equals(".schedule"))
@@ -152,18 +152,18 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ScheduleFile = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"[\/|-]reduction:"))
+            else if (this.IsMatch(option, @"^[\/|-]reduction:"))
             {
                 string reduction = option.Substring(11);
-                if (this.IsMatch(reduction, @"none$"))
+                if (this.IsMatch(reduction, @"^none$"))
                 {
                     base.Configuration.ReductionStrategy = ReductionStrategy.None;
                 }
-                else if (this.IsMatch(reduction, @"omit$"))
+                else if (this.IsMatch(reduction, @"^omit$"))
                 {
                     base.Configuration.ReductionStrategy = ReductionStrategy.OmitSchedulingPoints;
                 }
-                else if (this.IsMatch(reduction, @"force$"))
+                else if (this.IsMatch(reduction, @"^force$"))
                 {
                     base.Configuration.ReductionStrategy = ReductionStrategy.ForceSchedule;
                 }
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.Utilities
                         "'-reduction:[x]', where [x] is 'none', 'omit' or 'force'.");
                 }
             }
-            else if (this.IsMatch(option, @"[\/|-]i:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]i:") && option.Length > 3)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0)
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SchedulingIterations = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]parallel:") && option.Length > 10)
+            else if (this.IsMatch(option, @"^[\/|-]parallel:") && option.Length > 10)
             {
                 uint i = 0;
                 if (!uint.TryParse(option.Substring(10), out i) || i <= 1)
@@ -195,11 +195,11 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ParallelBugFindingTasks = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]run-as-parallel-testing-task$"))
+            else if (this.IsMatch(option, @"^[\/|-]run-as-parallel-testing-task$"))
             {
                 base.Configuration.RunAsParallelBugFindingTask = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]testing-scheduler-endpoint:") && option.Length > 28)
+            else if (this.IsMatch(option, @"^[\/|-]testing-scheduler-endpoint:") && option.Length > 28)
             {
                 string endpoint = option.Substring(28);
                 if (endpoint.Length != 36)
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.TestingSchedulerEndPoint = endpoint;
             }
-            else if (this.IsMatch(option, @"[\/|-]testing-scheduler-process-id:") && option.Length > 30)
+            else if (this.IsMatch(option, @"^[\/|-]testing-scheduler-process-id:") && option.Length > 30)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(30), out i) && i >= 0)
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.TestingSchedulerProcessId = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]testing-process-id:") && option.Length > 20)
+            else if (this.IsMatch(option, @"^[\/|-]testing-process-id:") && option.Length > 20)
             {
                 uint i = 0;
                 if (!uint.TryParse(option.Substring(20), out i) && i >= 0)
@@ -232,41 +232,41 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.TestingProcessId = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]explore$"))
+            else if (this.IsMatch(option, @"^[\/|-]explore$"))
             {
                 base.Configuration.PerformFullExploration = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]coverage$"))
+            else if (this.IsMatch(option, @"^[\/|-]coverage$"))
             {
                 base.Configuration.ReportCodeCoverage = true;
                 base.Configuration.ReportActivityCoverage = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]coverage:code$"))
+            else if (this.IsMatch(option, @"^[\/|-]coverage:code$"))
             {
                 base.Configuration.ReportCodeCoverage = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]coverage:activity$"))
+            else if (this.IsMatch(option, @"^[\/|-]coverage:activity$"))
             {
                 base.Configuration.ReportActivityCoverage = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]coverage:activity-debug$"))
+            else if (this.IsMatch(option, @"^[\/|-]coverage:activity-debug$"))
             {
                 base.Configuration.ReportActivityCoverage = true;
                 base.Configuration.DebugActivityCoverage = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]instr:"))
+            else if (this.IsMatch(option, @"^[\/|-]instr:"))
             {
                 base.Configuration.AdditionalCodeCoverageAssemblies[option.Substring(7)] = false;
             }
-            else if (this.IsMatch(option, @"[\/|-]instr-list:"))
+            else if (this.IsMatch(option, @"^[\/|-]instr-list:"))
             {
                 base.Configuration.AdditionalCodeCoverageAssemblies[option.Substring(12)] = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]detect-races$"))
+            else if (this.IsMatch(option, @"^[\/|-]detect-races$"))
             {
                 base.Configuration.EnableDataRaceDetection = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]sch-seed:") && option.Length > 10)
+            else if (this.IsMatch(option, @"^[\/|-]sch-seed:") && option.Length > 10)
             {
                 int seed;
                 if (!int.TryParse(option.Substring(10), out seed))
@@ -277,7 +277,7 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.RandomSchedulingSeed = seed;
             }
-            else if (this.IsMatch(option, @"[\/|-]max-steps:") && option.Length > 11)
+            else if (this.IsMatch(option, @"^[\/|-]max-steps:") && option.Length > 11)
             {
                 int i = 0;
                 int j = 0;
@@ -314,11 +314,11 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.MaxUnfairSchedulingSteps = i;
                 base.Configuration.MaxFairSchedulingSteps = j;
             }
-            else if (this.IsMatch(option, @"[\/|-]depth-bound-bug$"))
+            else if (this.IsMatch(option, @"^[\/|-]depth-bound-bug$"))
             {
                 base.Configuration.ConsiderDepthBoundHitAsBug = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]prefix:") && option.Length > 8)
+            else if (this.IsMatch(option, @"^[\/|-]prefix:") && option.Length > 8)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(8), out i) && i >= 0)
@@ -329,7 +329,7 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SafetyPrefixBound = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]liveness-temperature-threshold:") && option.Length > 32)
+            else if (this.IsMatch(option, @"^[\/|-]liveness-temperature-threshold:") && option.Length > 32)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(32), out i) && i >= 0)
@@ -340,11 +340,11 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.LivenessTemperatureThreshold = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]cycle-detection$"))
+            else if (this.IsMatch(option, @"^[\/|-]cycle-detection$"))
             {
                 base.Configuration.EnableCycleDetection = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]custom-state-hashing$"))
+            else if (this.IsMatch(option, @"^[\/|-]custom-state-hashing$"))
             {
                 base.Configuration.EnableUserDefinedStateHashing = true;
             }

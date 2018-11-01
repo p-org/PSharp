@@ -25,19 +25,19 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            if (this.IsMatch(option, @"[\/|-]test:") && option.Length > 6)
+            if (this.IsMatch(option, @"^[\/|-]test:") && option.Length > 6)
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
-            else if (this.IsMatch(option, @"[\/|-]runtime:") && option.Length > 9)
+            else if (this.IsMatch(option, @"^[\/|-]runtime:") && option.Length > 9)
             {
                 base.Configuration.TestingRuntimeAssembly = option.Substring(9);
             }
-            else if (this.IsMatch(option, @"[\/|-]method:") && option.Length > 8)
+            else if (this.IsMatch(option, @"^[\/|-]method:") && option.Length > 8)
             {
                 base.Configuration.TestMethodName = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"[\/|-]replay:") && option.Length > 8)
+            else if (this.IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(8));
                 if (!extension.Equals(".schedule"))
@@ -48,15 +48,15 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ScheduleFile = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"[\/|-][attach-debugger|break]$"))
+            else if (this.IsMatch(option, @"^[\/|-][attach-debugger|break]$"))
             {
                 base.Configuration.AttachDebugger = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]cycle-detection$"))
+            else if (this.IsMatch(option, @"^[\/|-]cycle-detection$"))
             {
                 base.Configuration.EnableCycleDetection = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]custom-state-hashing$"))
+            else if (this.IsMatch(option, @"^[\/|-]custom-state-hashing$"))
             {
                 base.Configuration.EnableUserDefinedStateHashing = true;
             }

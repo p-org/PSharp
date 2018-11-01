@@ -24,21 +24,21 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            if (this.IsMatch(option, @"[\/|-]t:") && option.Length > 3)
+            if (this.IsMatch(option, @"^[\/|-]t:") && option.Length > 3)
             {
-                if (this.IsMatch(option.Substring(14), @"exe$"))
+                if (this.IsMatch(option.Substring(14), @"^exe$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Execution;
                 }
-                else if (this.IsMatch(option.Substring(14), @"lib$"))
+                else if (this.IsMatch(option.Substring(14), @"^lib$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Library;
                 }
-                else if (this.IsMatch(option.Substring(14), @"test$"))
+                else if (this.IsMatch(option.Substring(14), @"^test$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Testing;
                 }
-                else if (this.IsMatch(option.Substring(14), @"remote$"))
+                else if (this.IsMatch(option.Substring(14), @"^remote$"))
                 {
                     base.Configuration.CompilationTarget = CompilationTarget.Remote;
                 }
@@ -48,13 +48,13 @@ namespace Microsoft.PSharp.Utilities
                         "'/t:[x]', where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
-            else if (this.IsMatch(option, @"[\/|-]optimization:") && option.Length > 14)
+            else if (this.IsMatch(option, @"^[\/|-]optimization:") && option.Length > 14)
             {
-                if (this.IsMatch(option.Substring(14), @"debug$"))
+                if (this.IsMatch(option.Substring(14), @"^debug$"))
                 {
                     base.Configuration.OptimizationTarget = OptimizationTarget.Debug;
                 }
-                else if (this.IsMatch(option.Substring(14), @"release$"))
+                else if (this.IsMatch(option.Substring(14), @"^release$"))
                 {
                     base.Configuration.OptimizationTarget = OptimizationTarget.Release;
                 }
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.Utilities
                         "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
-            else if (this.IsMatch(option, @"[\/|-]pass:") && option.Length > 6)
+            else if (this.IsMatch(option, @"^[\/|-]pass:") && option.Length > 6)
             {
                 if (!option.ToLower().Substring(6).EndsWith(".dll"))
                 {
@@ -74,29 +74,29 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
             }
-            else if (this.IsMatch(option, @"[\/|-]dfa$"))
+            else if (this.IsMatch(option, @"^[\/|-]dfa$"))
             {
                 base.Configuration.AnalyzeDataFlow = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]check-races$"))
+            else if (this.IsMatch(option, @"^[\/|-]check-races$"))
             {
                 base.Configuration.AnalyzeDataRaces = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]emit-control-flow$"))
+            else if (this.IsMatch(option, @"^[\/|-]emit-control-flow$"))
             {
                 base.Configuration.ShowControlFlowInformation = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]emit-data-flow$"))
+            else if (this.IsMatch(option, @"^[\/|-]emit-data-flow$"))
             {
                 base.Configuration.ShowDataFlowInformation = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]emit-control-flow:") && option.Length > 16)
+            else if (this.IsMatch(option, @"^[\/|-]emit-control-flow:") && option.Length > 16)
             {
-                if (this.IsMatch(option.Substring(16), @"default$"))
+                if (this.IsMatch(option.Substring(16), @"^default$"))
                 {
                     base.Configuration.ShowDataFlowInformation = true;
                 }
-                else if (this.IsMatch(option.Substring(16), @"full$"))
+                else if (this.IsMatch(option.Substring(16), @"^full$"))
                 {
                     base.Configuration.ShowFullDataFlowInformation = true;
                 }
@@ -106,11 +106,11 @@ namespace Microsoft.PSharp.Utilities
                         "level '/emit-data-flow:[x]', where [x] is 'default' or 'full'.");
                 }
             }
-            else if (this.IsMatch(option, @"[\/|-]time$"))
+            else if (this.IsMatch(option, @"^[\/|-]time$"))
             {
                 base.Configuration.EnableProfiling = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]xsa$"))
+            else if (this.IsMatch(option, @"^[\/|-]xsa$"))
             {
                 base.Configuration.DoStateTransitionAnalysis = true;
             }

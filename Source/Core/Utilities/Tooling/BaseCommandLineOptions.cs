@@ -56,24 +56,24 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="option">Option</param>
         protected virtual void ParseOption(string option)
         {
-            if (this.IsMatch(option, @"[\/|-]?$"))
+            if (this.IsMatch(option, @"^[\/|-]?$"))
             {
                 this.ShowHelp();
                 Environment.Exit(0);
             }
-            else if (this.IsMatch(option, @"[\/|-]s:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]s:") && option.Length > 3)
             {
                 this.Configuration.SolutionFilePath = option.Substring(3);
             }
-            else if (this.IsMatch(option, @"[\/|-]p:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]p:") && option.Length > 3)
             {
                 this.Configuration.ProjectName = option.Substring(3);
             }
-            else if (this.IsMatch(option, @"[\/|-]o:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]o:") && option.Length > 3)
             {
                 this.Configuration.OutputFilePath = option.Substring(3);
             }
-            else if (this.IsMatch(option, @"[\/|-]v:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]v:") && option.Length > 3)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0 && i <= 3)
@@ -84,16 +84,16 @@ namespace Microsoft.PSharp.Utilities
 
                 this.Configuration.Verbose = i;
             }
-            else if (this.IsMatch(option, @"[\/|-]debug$"))
+            else if (this.IsMatch(option, @"^[\/|-]debug$"))
             {
                 this.Configuration.EnableDebugging = true;
                 Debug.IsEnabled = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]warnings-on$"))
+            else if (this.IsMatch(option, @"^[\/|-]warnings-on$"))
             {
                 this.Configuration.ShowWarnings = true;
             }
-            else if (this.IsMatch(option, @"[\/|-]timeout:") && option.Length > 9)
+            else if (this.IsMatch(option, @"^[\/|-]timeout:") && option.Length > 9)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(9), out i) &&
