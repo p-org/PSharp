@@ -42,7 +42,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         public void TestOnDroppedCalled1()
         {
             var test = new Action<PSharpRuntime>((r) => {
-
                 r.OnEventDropped += delegate (Event e, MachineId target)
                 {
                     r.Assert(false);
@@ -54,7 +53,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             AssertFailed(test, 1, true);
         }
-
 
         class M2 : Machine
         {
@@ -171,7 +169,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(1000);
             AssertSucceeded(config, test);
         }
-
     }
 }
-

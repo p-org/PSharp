@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -14,20 +13,20 @@ namespace Microsoft.PSharp.Core.Tests.Unit
         class E : Event
         {
             public MachineId Id;
-            public TaskCompletionSource<bool> tcs;
+            public TaskCompletionSource<bool> Tcs;
 
             public E() { }
 
             public E(MachineId id)
             {
-                Id = id;
+                this.Id = id;
             }
+
             public E(TaskCompletionSource<bool> tcs)
             {
-                this.tcs = tcs;
+                this.Tcs = tcs;
             }
         }
-
 
         class M1 : Machine
         {
@@ -46,6 +45,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var runtime = PSharpRuntime.Create();
             var called = false;
             var tcs = new TaskCompletionSource<bool>();
+
             runtime.OnEventDropped += delegate (Event e, MachineId target)
             {
                 called = true;
@@ -58,7 +58,6 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             tcs.Task.Wait(5000);
             Assert.True(called);
         }
-
 
         class M2 : Machine
         {
@@ -79,6 +78,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var runtime = PSharpRuntime.Create();
             var called = false;
             var tcs = new TaskCompletionSource<bool>();
+
             runtime.OnEventDropped += delegate (Event e, MachineId target)
             {
                 called = true;
@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
         class Monitor3 : Monitor
         {
-            TaskCompletionSource<bool> tcs;
+            TaskCompletionSource<bool> Tcs;
 
             [Start]
             [OnEventDoAction(typeof(E), nameof(InitOnEntry))]
@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void InitOnEntry()
             {
-                tcs = (this.ReceivedEvent as E).tcs;
+                this.Tcs = (this.ReceivedEvent as E).Tcs;
                 this.Goto<S1>();
             }
 
@@ -140,9 +140,8 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             void Done()
             {
-                tcs.SetResult(true);
+                this.Tcs.SetResult(true);
             }
-
         }
 
         class M3a : Machine
@@ -187,30 +186,27 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             var config = Configuration.Create();
             config.EnableMonitorsInProduction = true;
 
+            var runtime = PSharpRuntime.Create(config);
+            var tcs = new TaskCompletionSource<bool>();
+
+            runtime.RegisterMonitor(typeof(Monitor3));
+            runtime.InvokeMonitor(typeof(Monitor3), new E(tcs));
+
+            runtime.OnFailure += delegate
             {
-                var runtime = PSharpRuntime.Create(config);
-                var tcs = new TaskCompletionSource<bool>();
+                Assert.True(false);
+                tcs.SetResult(false);
+            };
 
-                runtime.RegisterMonitor(typeof(Monitor3));
-                runtime.InvokeMonitor(typeof(Monitor3), new E(tcs));
+            runtime.OnEventDropped += delegate (Event e, MachineId target)
+            {
+                runtime.InvokeMonitor(typeof(Monitor3), new EventDropped());
+            };
 
-                runtime.OnFailure += delegate
-                {
-                    Assert.True(false);
-                    tcs.SetResult(false);
-                };
-
-                runtime.OnEventDropped += delegate (Event e, MachineId target)
-                {
-                    runtime.InvokeMonitor(typeof(Monitor3), new EventDropped());
-                };
-
-                var m = runtime.CreateMachine(typeof(M3c));
-                runtime.CreateMachine(typeof(M3a), new E(m));
-                runtime.CreateMachine(typeof(M3b), new E(m));
-                tcs.Task.Wait(5000);
-            }
+            var m = runtime.CreateMachine(typeof(M3c));
+            runtime.CreateMachine(typeof(M3a), new E(m));
+            runtime.CreateMachine(typeof(M3b), new E(m));
+            tcs.Task.Wait(5000);
         }
-
     }
 }
