@@ -399,6 +399,7 @@ namespace Microsoft.PSharp.Runtime
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
+                this.TryHandleDroppedEvent(e, mid);
                 return;
             }
 
@@ -425,6 +426,7 @@ namespace Microsoft.PSharp.Runtime
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!base.GetTargetMachine(mid, e, sender, operationGroupId, out Machine machine))
             {
+                this.TryHandleDroppedEvent(e, mid);
                 return true;
             }
 
@@ -848,6 +850,14 @@ namespace Microsoft.PSharp.Runtime
         {
             base.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);
+
+            if (this.IsOnEventDroppedHandlerRegistered())
+            {
+                foreach (var evinfo in inbox)
+                {
+                    this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
+                }
+            }
         }
 
         #endregion

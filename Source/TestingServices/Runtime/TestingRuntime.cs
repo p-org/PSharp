@@ -674,6 +674,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{mid}'.\n");
+                this.TryHandleDroppedEvent(e, mid);
                 return;
             }
 
@@ -711,6 +712,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{mid}'.\n");
+                this.TryHandleDroppedEvent(e, mid);
                 return true;
             }
 
@@ -1429,6 +1431,14 @@ namespace Microsoft.PSharp.TestingServices
             this.BugTrace.AddHaltStep(machine.Id, null);
             this.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);
+
+            if (base.IsOnEventDroppedHandlerRegistered())
+            {
+                foreach(var evinfo in inbox)
+                {
+                    this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
+                }
+            }
         }
 
         /// <summary>

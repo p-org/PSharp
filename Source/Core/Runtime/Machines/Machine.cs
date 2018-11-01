@@ -853,14 +853,14 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the machine.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        HaltMachine();
+                        this.HaltMachine();
                         return;
                     }
 
                     var unhandledEx = new UnhandledEventException(currentState, e, "Unhandled Event");
                     if (OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
                     {
-                        HaltMachine();
+                        this.HaltMachine();
                         return;
                     }
                     else
@@ -1103,8 +1103,8 @@ namespace Microsoft.PSharp
                 }
                 else if (OnExceptionRequestedGracefulHalt)
                 {
-                    // gracefully halt
-                    HaltMachine();
+                    // Gracefully halt.
+                    this.HaltMachine();
                 }
                 else
                 {
@@ -1916,16 +1916,20 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Halts the machine
+        /// Halts the machine.
         /// </summary>
         private void HaltMachine()
         {
+            var inboxContents = new LinkedList<EventInfo>();
+
             lock (this.Inbox)
             {
                 this.Info.IsHalted = true;
-                base.Runtime.NotifyHalted(this, this.Inbox);
+                inboxContents = new LinkedList<EventInfo>(this.Inbox);
                 this.CleanUpResources();
             }
+
+            base.Runtime.NotifyHalted(this, inboxContents);
 
             // Invoke user callback outside the lock.
             this.OnHalt();
