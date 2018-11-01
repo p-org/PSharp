@@ -848,6 +848,9 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="inbox">Machine inbox.</param>
         internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
         {
+            base.Logger.OnHalt(machine.Id, inbox.Count);
+            this.MachineMap.TryRemove(machine.Id, out machine);
+
             if (this.IsOnEventDroppedHandlerRegistered())
             {
                 foreach (var evinfo in inbox)
@@ -855,9 +858,6 @@ namespace Microsoft.PSharp.Runtime
                     this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
                 }
             }
-
-            base.Logger.OnHalt(machine.Id, inbox.Count);
-            this.MachineMap.TryRemove(machine.Id, out machine);
         }
 
         #endregion

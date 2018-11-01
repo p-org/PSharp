@@ -886,7 +886,7 @@ namespace Microsoft.PSharp
         /// Checks if an <see cref="OnEventDropped"/> handler has been registered by the user.
         /// </summary>
         /// <returns>True if an <see cref="OnEventDropped"/> handler is registered.</returns>
-        protected internal bool IsOnEventDroppedHandlerRegistered() => this.OnEventDropped == null;
+        protected internal bool IsOnEventDroppedHandlerRegistered() => this.OnEventDropped != null;
 
         /// <summary>
         /// Tries to handle the specified dropped <see cref="Event"/>.

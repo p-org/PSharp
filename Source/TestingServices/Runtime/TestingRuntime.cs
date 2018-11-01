@@ -1428,6 +1428,10 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(mustHandleEvent == null,
                 $"Machine '{machine.Id}' halted before dequeueing must-handle event '{mustHandleEvent?.EventName ?? string.Empty}'.\n");
 
+            this.BugTrace.AddHaltStep(machine.Id, null);
+            this.Logger.OnHalt(machine.Id, inbox.Count);
+            this.MachineMap.TryRemove(machine.Id, out machine);
+
             if (base.IsOnEventDroppedHandlerRegistered())
             {
                 foreach(var evinfo in inbox)
@@ -1435,10 +1439,6 @@ namespace Microsoft.PSharp.TestingServices
                     this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
                 }
             }
-
-            this.BugTrace.AddHaltStep(machine.Id, null);
-            this.Logger.OnHalt(machine.Id, inbox.Count);
-            this.MachineMap.TryRemove(machine.Id, out machine);
         }
 
         /// <summary>
