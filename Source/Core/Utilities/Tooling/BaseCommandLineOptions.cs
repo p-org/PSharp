@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.RegularExpressions;
 using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.Utilities
@@ -13,8 +14,6 @@ namespace Microsoft.PSharp.Utilities
     /// </summary>
     public abstract class BaseCommandLineOptions
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
@@ -24,10 +23,6 @@ namespace Microsoft.PSharp.Utilities
         /// Command line options.
         /// </summary>
         protected string[] Options;
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Constructor.
@@ -55,60 +50,56 @@ namespace Microsoft.PSharp.Utilities
             return Configuration;
         }
 
-        #endregion
-
-        #region protected methods
-
         /// <summary>
         /// Parses the given option.
         /// </summary>
         /// <param name="option">Option</param>
         protected virtual void ParseOption(string option)
         {
-            if (option.ToLower().Equals("/?"))
+            if (this.IsMatch(option, @"^[\/|-]?$"))
             {
                 this.ShowHelp();
                 Environment.Exit(0);
             }
-            else if (option.ToLower().StartsWith("/s:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]s:") && option.Length > 3)
             {
                 this.Configuration.SolutionFilePath = option.Substring(3);
             }
-            else if (option.ToLower().StartsWith("/p:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]p:") && option.Length > 3)
             {
                 this.Configuration.ProjectName = option.Substring(3);
             }
-            else if (option.ToLower().StartsWith("/o:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]o:") && option.Length > 3)
             {
                 this.Configuration.OutputFilePath = option.Substring(3);
             }
-            else if (option.ToLower().StartsWith("/v:") && option.Length > 3)
+            else if (this.IsMatch(option, @"^[\/|-]v:") && option.Length > 3)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0 && i <= 3)
                 {
                     Error.ReportAndExit("Please give a valid verbosity level " +
-                        "'/v:[x]', where 1 <= [x] <= 3.");
+                        "'-v:[x]', where 1 <= [x] <= 3.");
                 }
 
                 this.Configuration.Verbose = i;
             }
-            else if (option.ToLower().Equals("/debug"))
+            else if (this.IsMatch(option, @"^[\/|-]debug$"))
             {
                 this.Configuration.EnableDebugging = true;
                 Debug.IsEnabled = true;
             }
-            else if (option.ToLower().Equals("/warnings-on"))
+            else if (this.IsMatch(option, @"^[\/|-]warnings-on$"))
             {
                 this.Configuration.ShowWarnings = true;
             }
-            else if (option.ToLower().StartsWith("/timeout:") && option.Length > 9)
+            else if (this.IsMatch(option, @"^[\/|-]timeout:") && option.Length > 9)
             {
                 int i = 0;
                 if (!int.TryParse(option.Substring(9), out i) &&
                     i > 0)
                 {
-                    Error.ReportAndExit("Please give a valid timeout '/timeout:[x]', where [x] > 0 seconds.");
+                    Error.ReportAndExit("Please give a valid timeout '-timeout:[x]', where [x] > 0 seconds.");
                 }
 
                 this.Configuration.Timeout = i;
@@ -136,6 +127,15 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected abstract void ShowHelp();
 
-        #endregion
+        /// <summary>
+        /// Checks if the given input is a matches the specified pattern.
+        /// </summary>
+        /// <param name="input">The input to match.</param>
+        /// <param name="pattern">The pattern to match.</param>
+        /// <returns>True if the input matches the pattern.</returns>
+        protected bool IsMatch(string input, string pattern)
+        {
+            return Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase);
+        }
     }
 }
