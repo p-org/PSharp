@@ -13,12 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// An exception that is thrown by the P# runtime.
     /// </summary>
+    [Serializable]
     public class RuntimeException : Exception
     {
         /// <summary>
@@ -41,6 +43,15 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="innerException">Inner exception</param>
         internal RuntimeException(string message, Exception innerException)
             : base(message, innerException)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the exception.
+        /// </summary>
+        /// <param name="info">Stores all the data needed to serialize or deserialize an object.</param>
+        /// <param name="context">Describes the source and destination of a given serialized stream.</param>
+        internal RuntimeException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         { }
     }
 }
