@@ -590,34 +590,6 @@ namespace Microsoft.PSharp
             {
                 var nextNode = node.Next;
                 var currentEventInfo = node.Value;
-                if (currentEventInfo.EventType.IsGenericType)
-                {
-                    var genericTypeDefinition = currentEventInfo.EventType.GetGenericTypeDefinition();
-                    var ignored = false;
-                    foreach (var tup in this.CurrentActionHandlerMap)
-                    {
-                        if (!(tup.Value is IgnoreAction)) continue;
-                        if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
-                            genericTypeDefinition.GetGenericTypeDefinition()))
-                        {
-                            ignored = true;
-                            break;
-                        }
-                    }
-
-                    if (ignored)
-                    {
-                        if (!checkOnly)
-                        {
-                            // Removes an ignored event.
-                            this.Inbox.Remove(node);
-                        }
-
-                        node = nextNode;
-                        continue;
-                    }
-                }
-
                 if (this.IsIgnored(currentEventInfo.EventType))
                 {
                     if (!checkOnly)

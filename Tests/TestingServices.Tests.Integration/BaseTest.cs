@@ -169,6 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
         {
             var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
             result = Regex.Replace(result, @"\([0-9]+\)", "()");
+            result = Regex.Replace(result, @"\[\[.*\]\]", "[[]]");
             return result;
         }
 

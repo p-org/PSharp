@@ -24,6 +24,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public abstract class BaseTest
     {
+        public const string NamespaceName = "Microsoft.PSharp.TestingServices.Tests.Unit";
+
         protected readonly ITestOutputHelper TestOutput;
 
         public BaseTest(ITestOutputHelper output)
@@ -238,6 +240,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         {
             var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
             result = Regex.Replace(result, @"\([0-9]+\)", "()");
+            result = Regex.Replace(result, @"\[\[.*\]\]", "[[]]");
+            this.TestOutput.WriteLine("res: " + result);
             return result;
         }
 
