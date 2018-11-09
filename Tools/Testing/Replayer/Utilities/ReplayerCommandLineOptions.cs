@@ -48,7 +48,11 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ScheduleFile = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"^[\/|-][attach-debugger|break]$"))
+            else if (this.IsMatch(option, @"^[\/|-]break$"))
+            {
+                base.Configuration.AttachDebugger = true;
+            }
+            else if (this.IsMatch(option, @"^[\/|-]attach-debugger$"))
             {
                 base.Configuration.AttachDebugger = true;
             }
