@@ -1,4 +1,6 @@
-[![NuGet](https://img.shields.io/nuget/v/Microsoft.PSharp.svg)](https://www.nuget.org/packages/Microsoft.PSharp/) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/p-org/PSharp/master/LICENSE.txt)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/p-org/PSharp/master/LICENSE.txt)
+[![NuGet](https://img.shields.io/nuget/v/Microsoft.PSharp.svg)](https://www.nuget.org/packages/Microsoft.PSharp/)
+[![Build status](https://p-language.visualstudio.com/plang-ci/_apis/build/status/psharp/psharp-win-build-and-test?branchName=master)](https://p-language.visualstudio.com/plang-ci/_build/latest?definitionId=1)
 
 P#
 ===
