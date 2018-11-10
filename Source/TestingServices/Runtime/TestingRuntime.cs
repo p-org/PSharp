@@ -855,7 +855,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
                 catch (ObjectDisposedException ex)
                 {
-                    IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}'. Reason: {ex.Message}.");
+                    IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}' with reason '{ex.Message}'.");
                 }
                 finally
                 {
