@@ -830,7 +830,6 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (syncCaller != null)
                     {
-                        //this.SendEvent(syncCaller.Id, new QuiescentEvent(machine.Id));
                         bool runNewHandler = false;
                         var operationGroupId = base.GetNewOperationGroupId(machine, machine.Info.OperationGroupId);
                         this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id), machine, operationGroupId, false, ref runNewHandler);
