@@ -482,7 +482,6 @@ namespace Microsoft.PSharp.TestingServices
             BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
             List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test), flags, this.Assembly);
 
-
             // Filter by test method name
             var filteredTestMethods = testMethods
                 .FindAll(mi => string.Format("{0}.{1}", mi.DeclaringType.FullName, mi.Name)

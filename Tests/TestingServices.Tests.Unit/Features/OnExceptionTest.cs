@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             async Task Act()
             {
-                await Task.Yield();
+                await Task.Delay(10);
                 throw new Ex1();
             }
 

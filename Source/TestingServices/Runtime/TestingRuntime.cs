@@ -495,7 +495,7 @@ namespace Microsoft.PSharp.TestingServices
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of the test harness machine.");
                     (harness.Info as SchedulableInfo).NotifyEventHandlerCompleted();
                     this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, harness.Info.Id);
-                    IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of the test harness machine.");
+                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of the test harness machine.");
                 }
                 catch (ExecutionCanceledException)
                 {
@@ -575,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
-            this.RunMachineEventHandler(machine, e, true, creator.Id, null);
+            this.RunMachineEventHandler(machine, e, true, creator, null);
 
             // wait until the machine reaches quiescence
             await creator.Receive(typeof(QuiescentEvent), rev => (rev as QuiescentEvent).mid == machine.Id);
@@ -727,14 +727,15 @@ namespace Microsoft.PSharp.TestingServices
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
             if (runNewHandler)
             {
-                this.RunMachineEventHandler(machine, null, false, sender.Id, eventInfo);
+                this.RunMachineEventHandler(machine, null, false, sender as Machine, eventInfo);
 
                 // wait until the machine reaches quiescence
                 await (sender as Machine).Receive(typeof(QuiescentEvent),
                     rev => (rev as QuiescentEvent).mid == mid);
                 return true;
             }
-            return startEventHandlerCalled;  
+
+            return startEventHandlerCalled;
         }
 
         /// <summary>
@@ -812,8 +813,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="isFresh">If true, then this is a new machine.</param>
         /// <param name="syncCaller">Caller machine that is blocked for quiscence.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh,
-            MachineId syncCaller, EventInfo enablingEvent)
+        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
         {
             Task task = new Task(async () =>
             {
@@ -830,10 +830,13 @@ namespace Microsoft.PSharp.TestingServices
 
                     if (syncCaller != null)
                     {
-                        this.SendEvent(syncCaller, new QuiescentEvent(machine.Id));
+                        //this.SendEvent(syncCaller.Id, new QuiescentEvent(machine.Id));
+                        bool runNewHandler = false;
+                        var operationGroupId = base.GetNewOperationGroupId(machine, machine.Info.OperationGroupId);
+                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id), machine, operationGroupId, false, ref runNewHandler);
                     }
 
-                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}'.");
+                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' with task id '{(machine.Info as SchedulableInfo).TaskId}'.");
                     (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
 
                     if (machine.Info.IsHalted)
@@ -845,11 +848,15 @@ namespace Microsoft.PSharp.TestingServices
                         this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
                     }
 
-                    IO.Debug.WriteLine($"<ScheduleDebug> Exit event handler of '{machine.Id}'.");
+                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of '{machine.Id}' with task id '{(machine.Info as SchedulableInfo).TaskId}'.");
                 }
                 catch (ExecutionCanceledException)
                 {
                     IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}'. Reason: {ex.Message}.");
                 }
                 finally
                 {
@@ -1414,7 +1421,6 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.ReportActivityCoverageOfReceivedEvent(machine, eventInfo);
             }
-
         }
 
         /// <summary>
