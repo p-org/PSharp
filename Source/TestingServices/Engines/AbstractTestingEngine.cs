@@ -179,6 +179,37 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Initialize(configuration);
 
+
+#if NET46 || NET45
+            // Load config file and absorb its settings.
+            try
+            {
+                System.Diagnostics.Debugger.Launch();
+                var newAppConfigFullPathName = Path.GetFullPath(configuration.AssemblyToBeAnalyzed + ".config");
+                AppDomain.CurrentDomain.SetData("APP_CONFIG_FILE", newAppConfigFullPathName);
+                BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+
+                typeof(ConfigurationManager)
+                    .GetField("s_initState", flags)
+                    .SetValue(null, 0);
+
+                typeof(ConfigurationManager)
+                    .GetField("s_configSystem", flags)
+                    .SetValue(null, null);
+
+                typeof(ConfigurationManager)
+                    .Assembly.GetTypes()
+                    .Where(x => x.FullName == "System.Configuration.ClientConfigPaths")
+                    .First()
+                    .GetField("s_current", flags)
+                    .SetValue(null, null);
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                Error.Report(ex.Message);
+            }
+#endif
+
             try
             {
                 this.Assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
@@ -188,35 +219,12 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(ex.Message);
             }
 
-#if NET46 || NET45
-            // Load config file and absorb its settings.
-            try
-            {
-                var configFile = ConfigurationManager.OpenExeConfiguration(configuration.AssemblyToBeAnalyzed);
-
-                var settings = configFile.AppSettings.Settings;
-                foreach (var key in settings.AllKeys)
-                {
-                    if (ConfigurationManager.AppSettings.Get(key) == null)
-                    {
-                        ConfigurationManager.AppSettings.Set(key, settings[key].Value);
-                    }
-                    else
-                    {
-                        ConfigurationManager.AppSettings.Add(key, settings[key].Value);
-                    }
-                }
-            }
-            catch (ConfigurationErrorsException ex)
-            {
-                Error.Report(ex.Message);
-            }
-#endif
 
             if (configuration.TestingRuntimeAssembly != "")
             {
                 try
                 {
+                    
                     this.RuntimeAssembly = Assembly.LoadFrom(configuration.TestingRuntimeAssembly);
                 }
                 catch (FileNotFoundException ex)
