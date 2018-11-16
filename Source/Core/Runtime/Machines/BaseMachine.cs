@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Gets the name of the current state.
         /// </summary>
-        private protected string CurrentStateName => this.CurrentState == null ? String.Empty
+        internal string CurrentStateName => this.CurrentState == null ? String.Empty
             : $"{this.CurrentState.DeclaringType}.{StateGroup.GetQualifiedStateName(this.CurrentState)}";
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace Microsoft.PSharp.Runtime
         /// Initializes information about the states of the machine.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        private async Task InitializeStateInformationAsync()
+        private protected virtual async Task InitializeStateInformationAsync()
         {
             Type machineType = this.GetType();
 
@@ -392,7 +392,7 @@ namespace Microsoft.PSharp.Runtime
         /// there is one available, else returns null.
         /// </summary>
         /// <returns>EventInfo</returns>
-        private protected EventInfo TryGetRaisedEvent()
+        internal EventInfo TryGetRaisedEvent()
         {
             EventInfo raisedEventInfo = null;
             if (this.RaisedEvent != null)
@@ -438,7 +438,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="e">Event to handle</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        private protected async Task HandleEvent(Event e)
+        internal virtual async Task HandleEvent(Event e)
         {
             this.Info.CurrentActionCalledTransitionStatement = false;
             var currentState = this.CurrentStateName;
@@ -953,7 +953,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the set of all states in the machine (for code coverage).
         /// </summary>
         /// <returns>Set of all states in the machine</returns>
-        private protected HashSet<string> GetAllStates()
+        internal HashSet<string> GetAllStates()
         {
             this.CheckProperty(this.MachineStates != null, "{0} hasn't populated its states yet.", this.Name);
 
@@ -970,7 +970,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the set of all (state, registered event) pairs in the machine (for code coverage).
         /// </summary>
         /// <returns>Set of all (state, registered event) pairs in the machine</returns>
-        private protected HashSet<(string state, string e)> GetAllStateEventPairs()
+        internal HashSet<(string state, string e)> GetAllStateEventPairs()
         {
             this.CheckProperty(this.MachineStates != null, "{0} hasn't populated its states yet.", this.Name);
 
@@ -1000,7 +1000,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the current state transition. Used for code coverage.
         /// </summary>
         /// <param name="eventInfo">The metadata of the event that caused the current transition.</param>
-        private protected (string machine, string originState, string destState, string edgeLabel) GetCurrentStateTransition(EventInfo eventInfo)
+        internal (string machine, string originState, string destState, string edgeLabel) GetCurrentStateTransition(EventInfo eventInfo)
         {
             string originState = StateGroup.GetQualifiedStateName(this.CurrentState);
             string edgeLabel = String.Empty;
