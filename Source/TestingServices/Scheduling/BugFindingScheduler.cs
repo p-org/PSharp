@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     this.ScheduledMachine.IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
-                
+
                 lock (current)
                 {
                     if (!current.IsEventHandlerRunning)
@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
-            
+
             return choice;
         }
 
