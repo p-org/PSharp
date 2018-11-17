@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -554,10 +555,19 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="type">Type of the monitor</param>
         internal override void TryCreateMonitor(Type type)
         {
+            // Check if monitors are enabled in production.
             if (!base.Configuration.EnableMonitorsInProduction)
             {
-                // No-op in production.
                 return;
+            }
+
+            lock (this.Monitors)
+            {
+                if (this.Monitors.Any(m => m.GetType() == type))
+                {
+                    // Idempotence: only one monitor per type can exist.
+                    return;
+                }
             }
 
             base.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
@@ -587,9 +597,9 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="e">Event</param>
         internal override void Monitor(Type type, BaseMachine sender, Event e)
         {
+            // Check if monitors are enabled in production.
             if (!base.Configuration.EnableMonitorsInProduction)
             {
-                // No-op in production.
                 return;
             }
 
