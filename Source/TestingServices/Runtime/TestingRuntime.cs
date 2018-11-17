@@ -924,6 +924,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the monitor</param>
         internal override void TryCreateMonitor(Type type)
         {
+            if (this.Monitors.Any(m => m.GetType() == type))
+            {
+                // Idempotence: only one monitor per type can exist.
+                return;
+            }
+
             this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
                 "is not a subclass of Monitor.\n");
 
@@ -969,15 +975,19 @@ namespace Microsoft.PSharp.TestingServices
                         this.ReportActivityCoverageOfMonitorEvent(sender, m, e);
                         this.ReportActivityCoverageOfMonitorTransition(m, e);
                     }
+
                     if (base.Configuration.EnableDataRaceDetection)
                     {
                         this.Reporter.InMonitor = (long)m.Id.Value;
                     }
+
                     m.MonitorEvent(e);
                     if (base.Configuration.EnableDataRaceDetection)
                     {
                         this.Reporter.InMonitor = -1;
                     }
+
+                    break;
                 }
             }
         }
