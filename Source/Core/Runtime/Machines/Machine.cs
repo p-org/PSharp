@@ -638,14 +638,13 @@ namespace Microsoft.PSharp
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        internal override async Task<bool> RunEventHandlerAsync()
+        internal override async Task RunEventHandlerAsync()
         {
             if (this.Info.IsHalted)
             {
-                return true;
+                return;
             }
 
-            bool completed = false;
             while (!this.Info.IsHalted && this.RuntimeManager.IsRunning)
             {
                 var defaultHandling = false;
@@ -678,7 +677,6 @@ namespace Microsoft.PSharp
 
                         if (nextEventInfo == null)
                         {
-                            completed = true;
                             this.IsActive = false;
                             break;
                         }
@@ -710,8 +708,6 @@ namespace Microsoft.PSharp
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
             }
-
-            return completed;
         }
 
         /// <summary>
@@ -720,7 +716,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        Task<bool> IMachine.RunEventHandlerAsync() => this.RunEventHandlerAsync();
+        Task IMachine.RunEventHandlerAsync() => this.RunEventHandlerAsync();
 
         /// <summary>
         /// Waits for an event to arrive.

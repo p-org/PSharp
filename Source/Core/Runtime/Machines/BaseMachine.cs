@@ -431,7 +431,7 @@ namespace Microsoft.PSharp.Runtime
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        internal abstract Task<bool> RunEventHandlerAsync();
+        internal abstract Task RunEventHandlerAsync();
 
         /// <summary>
         /// Handles the specified <see cref="Event"/>.

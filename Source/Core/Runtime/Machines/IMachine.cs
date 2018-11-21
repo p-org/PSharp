@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.Runtime
         /// is no next event to process or if the machine is halted.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        Task<bool> RunEventHandlerAsync();
+        Task RunEventHandlerAsync();
 
         /// <summary>
         /// Returns the cached state of this machine.
