@@ -1,0 +1,7 @@
+[
+    { "From": "A", "To": "C", "Message": "F", "State": { "A": "o", "C": "p" } },
+    { "From": "C", "To": "B", "Message": "B" },
+    { "From": "B", "To": "A", "Message": "Z", "State": { "A": "b" } },
+    { "From": "A", "To": "B", "Message": "Q", "State": { "B": "z" } },
+    { "From": "B", "To": "A", "Message": "H" }
+]

@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>P# Visualizer</title>
+    <link rel="stylesheet" href="app.css" type="text/css" />
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="d3.v4.min.js"></script>
+    <script src="app.js"></script>
+</head>
+<body>
+    <h1>P# Visualizer</h1>
+
+    <div class="section">
+        <input type="file" id="jsonFilePicker" style="display:none" />
+        <button id="jsonFilePickerButton">Load trace file</button>
+    </div>
+
+    <div class="section">
+        <input type="checkbox" id="simulationCheckbox" /> Simulation mode
+    </div>
+
+    <div class="section" id="machine-order"></div>
+
+    <div class="section">
+        <div id="diagram-container" class="section">
+            <svg id="diagram">
+            </svg>
+        </div>
+        <div id="machine-states">
+        </div>
+    </div>  
+</body>
+</html>

@@ -1,0 +1,41 @@
+﻿body {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.section {
+    margin-top: 20px;
+}
+
+.orderable-machine {
+    padding: 2px 5px 2px 5px;
+    margin-left: 3px;
+    border: solid 1px gray;
+    background-color: silver;
+    cursor: move;
+}
+
+#diagram-container {
+    display: inline-block;
+}
+
+#machine-states {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.machine-state-container {
+    padding-top: 30px;
+}
+
+.machine-name {
+    border-bottom: 1px solid lightgray;
+    min-width: 150px;
+}
+
+.machine-state {
+    padding-top: 2px;
+}
+
+.messageLine:hover {
+    stroke-width: 5px;
+}
