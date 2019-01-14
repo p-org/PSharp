@@ -116,6 +116,16 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
+            // Emits the visualization trace, if it exists.
+            if (this.BugTrace != null)
+            {
+                string[] bugTraces = Directory.GetFiles(directory, file + "_*.vis.json");
+                string visTracePath = directory + file + "_" + bugTraces.Length + ".vis.json";
+
+                base.Logger.WriteLine($"..... Writing {visTracePath}");
+                File.WriteAllText(visTracePath, this.BugTrace.FormatInJsonForVisualization());
+            }
+
             // Emits the reproducable trace, if it exists.
             if (!this.ReproducableTrace.Equals(""))
             {

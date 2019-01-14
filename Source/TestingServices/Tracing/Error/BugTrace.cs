@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Error
 {
@@ -246,6 +247,46 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             }
             
             return step;
+        }
+
+        /// <summary>
+        /// Returns a json format of the trace that can be used for visualization.
+        /// </summary>
+        /// <returns>The json trace.</returns>
+        internal string FormatInJsonForVisualization()
+        {
+            if (this.Steps.Count == 0)
+            {
+                return "";
+            }
+
+            // hack for now
+            int idxLastSend = this.Steps.FindLastIndex(s => s.Type == BugTraceStepType.SendEvent);
+
+            StringBuilder trace = new StringBuilder();
+            trace.AppendLine("[");
+            for (int i = 0; i < this.Steps.Count; i++)
+            {
+                BugTraceStep step = this.Steps[i];
+                if (step.Type == BugTraceStepType.SendEvent)
+                {
+                    trace.AppendLine("  {");
+                    trace.AppendLine($"    \"From\": \"{step.Machine}\",");
+                    trace.AppendLine($"    \"To\": \"{step.TargetMachine}\",");
+                    trace.AppendLine($"    \"Event\": \"{step.EventInfo.EventType}\"");
+                    if (i == idxLastSend/*this.Steps.Count - 1*/)
+                    {
+                        trace.AppendLine("  }");
+                    }
+                    else
+                    {
+                        trace.AppendLine("  },");
+                    }
+                }
+            }
+
+            trace.AppendLine("]");
+            return trace.ToString();
         }
 
         /// <summary>
