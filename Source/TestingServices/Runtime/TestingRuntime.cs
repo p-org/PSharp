@@ -679,6 +679,11 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             bool runNewHandler = false;
+            if (sender != null && sender is Machine)
+            {
+                this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
+            }
+
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
             if (runNewHandler)
             {
@@ -722,7 +727,12 @@ namespace Microsoft.PSharp.TestingServices
             // set to true by EnqueueEvent (even when the machine was previously Idle) when the event
             // e requires no action by the machine (i.e., it implicitly handles the event). In such a case, 
             // CheckStartEventHandler must have been called.
-            startEventHandlerCalled = false; 
+            startEventHandlerCalled = false;
+
+            if (sender != null && sender is Machine)
+            {
+                this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
+            }
 
             EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
             if (runNewHandler)
@@ -763,11 +773,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>EventInfo</returns>
         private EventInfo EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
         {
-            if (sender != null && sender is Machine)
-            {
-                this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
-            }
-
             EventOriginInfo originInfo = null;
             if (sender != null && sender is Machine)
             {
@@ -1044,6 +1049,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="calledAPI">Called API</param>
         internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
         {
+            if(!this.Configuration.EnableRaiseMustBeLastAssert)
+            {
+                // check disabled
+                return;
+            }
+
             this.Assert(!machine.Info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
                 "after calling raise, goto, push or pop in the same action.", machine.Id.Name, calledAPI);
         }

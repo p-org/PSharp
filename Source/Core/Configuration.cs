@@ -311,6 +311,13 @@ namespace Microsoft.PSharp
         [DataMember]
         public bool AttachDebugger;
 
+        /// <summary>
+        /// Enables the testing assertion that raise/goto/push/pop must 
+        /// be the last P# API called in an event handler.
+        /// </summary>
+        [DataMember]
+        public bool EnableRaiseMustBeLastAssert;
+
         #endregion
 
         #region trace replay options
@@ -512,6 +519,7 @@ namespace Microsoft.PSharp
             this.EnableCycleDetection = false;
             this.EnableUserDefinedStateHashing = false;
             this.EnableMonitorsInProduction = false;
+            this.EnableRaiseMustBeLastAssert = true;
 
             this.AttachDebugger = false;
 
