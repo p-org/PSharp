@@ -1049,9 +1049,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="calledAPI">Called API</param>
         internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
         {
-            if(!this.Configuration.EnableRaiseMustBeLastAssert)
+            if (!this.Configuration.EnableNoApiCallAfterTransitionStmtAssertion)
             {
-                // check disabled
+                // The check is disabled.
                 return;
             }
 

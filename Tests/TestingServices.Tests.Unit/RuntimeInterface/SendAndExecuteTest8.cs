@@ -31,12 +31,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 var handled = await this.Runtime.SendEventAndExecute(m, new E1());
                 this.Assert(handled);
             }
-
         }
 
         class M : Machine
         {
-
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Handle))]
             [IgnoreEvents(typeof(E2))]
@@ -57,6 +55,5 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             base.AssertSucceeded(test);
         }
-
     }
 }
