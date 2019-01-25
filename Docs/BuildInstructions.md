@@ -9,7 +9,7 @@ Optional: Get the [Visual Studio 2017 SDK](https://www.microsoft.com/en-us/downl
 # Building the P# project
 To build P#, either open `PSharp.sln` and build from inside Visual Studio 2017 (you may need to run `dotnet restore` from the command line prior to opening the solution in order to successfully compile), or run the following powershell script (available in the root directory) from the Visual Studio 2017 developer command prompt:
 ```
-powershell -c .\build.ps1
+powershell -c .Scripts\build.ps1
 ```
 
 # Building the samples
