@@ -262,11 +262,11 @@ namespace Microsoft.PSharp.Runtime
 
         /// <summary>
         /// Returns the operation group id of the specified machine id. Returns <see cref="Guid.Empty"/>
-        /// if the id is not set, or if the <see cref="IMachineId"/> is not associated with this runtime.
+        /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
         /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        Guid GetCurrentOperationGroupId(IMachineId currentMachineId);
+        Guid GetCurrentOperationGroupId(MachineId currentMachineId);
     }
 }

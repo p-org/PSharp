@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="eventName">The event being sent.</param>
         /// <param name="operationGroupId">The operation group id, if any.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
-        void OnSend(MachineId targetMachineId, IMachineId senderId, string senderStateName,
+        void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName,
             string eventName, Guid? operationGroupId, bool isTargetHalted);
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
         /// <param name="creator">Id of the host machine, null otherwise.</param>
-        void OnCreateMachine(MachineId machineId, IMachineId creator);
+        void OnCreateMachine(MachineId machineId, MachineId creator);
 
         /// <summary>
         /// Called when a monitor has been created.

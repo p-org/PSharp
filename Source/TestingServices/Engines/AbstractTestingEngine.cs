@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices
         private MethodInfo TestRuntimeGetTypeMethod;
 
         /// <summary>
-        /// The P# test runtime get known serializable <see cref="IMachineId"/> types method.
+        /// The P# test runtime get known serializable <see cref="MachineId"/> types method.
         /// </summary>
         protected MethodInfo TestRuntimeGetKnownSerializableMachineIdTypesMethod;
 
@@ -560,7 +560,7 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Finds the known <see cref="IMachineId"/> serializable types, if they are provided.
+        /// Finds the known <see cref="MachineId"/> serializable types, if they are provided.
         /// </summary>
         private void FindRuntimeGetKnownSerializableMachineIdTypes()
         {

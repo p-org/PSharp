@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Map of unique machine id values to machines.
         /// </summary>
-        private protected readonly ConcurrentDictionary<IMachineId, IMachine> MachineMap;
+        private protected readonly ConcurrentDictionary<MachineId, IMachine> MachineMap;
 
         /// <summary>
         /// Monotonically increasing machine id counter.
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.Runtime
         {
             this.Configuration = configuration;
             this.MachineIdCounter = 0;
-            this.MachineMap = new ConcurrentDictionary<IMachineId, IMachine>();
+            this.MachineMap = new ConcurrentDictionary<MachineId, IMachine>();
             this.IsRunning = true;
             this.SetLogger(logger);
         }
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.Runtime
             ulong value = (ulong)Interlocked.Increment(ref this.MachineIdCounter) - 1;
             // Checks for overflow.
             this.Assert(value != ulong.MaxValue, "Detected machine id overflow.");
-            return new MachineId(this, type, value, friendlyName);
+            return new MachineId(this, type.FullName, value, friendlyName, string.Empty, 0);
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public abstract Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Guid? operationGroupId,
-            IMachineId creatorId, MachineInfo creatorInfo, string creatorStateName);
+            MachineId creatorId, MachineInfo creatorInfo, string creatorStateName);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -348,7 +348,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="senderState">The state of the sender machine.</param>
         /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public abstract Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo,
+        public abstract Task SendEventAsync(MachineId mid, Event e, SendOptions options, MachineId senderId, MachineInfo senderInfo,
             Type senderState, string senderStateName);
 
         /// <summary>
@@ -422,7 +422,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerInfo">The metadata of the caller machine.</param>
         /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public abstract void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e);
+        public abstract void Monitor(Type type, MachineId callerId, MachineInfo callerInfo, Type callerState, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -481,7 +481,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        public abstract bool GetNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
+        public abstract bool GetNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
@@ -492,7 +492,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="uniqueId">Unique id.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        public abstract bool GetFairNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId);
+        public abstract bool GetFairNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
@@ -512,7 +512,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic integer choice.</returns>
-        public abstract int GetNondeterministicIntegerChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
+        public abstract int GetNondeterministicIntegerChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         #endregion
 
@@ -840,7 +840,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        public abstract Guid GetCurrentOperationGroupId(IMachineId currentMachineId);
+        public abstract Guid GetCurrentOperationGroupId(MachineId currentMachineId);
 
         /// <summary>
         /// Gets the new operation group id to propagate.

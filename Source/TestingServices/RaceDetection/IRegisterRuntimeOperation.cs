@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">The event sent</param>
         /// <param name="sequenceNumber">Is n if this is the n'th enqueue</param>
         /// </summary>
-        void RegisterEnqueue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber);
+        void RegisterEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber);
 
         /// <summary>
         /// Process the deq and begin of an action by a machine.
@@ -88,14 +88,14 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="e">The event being processed</param>
         /// <param name="sequenceNumber">Is n if this is the n'th enqueue</param>
         /// </summary>
-        void RegisterDequeue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber);
+        void RegisterDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber);
 
         /// <summary>
         /// Update the internal data structures and vector clocks when a machine creates another.
         /// <param name="source">The id of the machine that is the creator</param>
         /// <param name="target">The id of the machine that is freshly created</param>
         /// </summary>
-        void RegisterCreateMachine(IMachineId source, IMachineId target);
+        void RegisterCreateMachine(MachineId source, MachineId target);
 
         /// <summary>
         /// Return true if the runtime is currently executing a machine's action.

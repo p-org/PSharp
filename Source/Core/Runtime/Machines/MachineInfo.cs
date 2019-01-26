@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
-        protected IMachineId MachineId;
+        protected MachineId MachineId;
 
         /// <summary>
         /// The type of the machine.
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="mid">The machine id.</param>
         /// <param name="type">The machine type.</param>
-        internal MachineInfo(IMachineId mid, Type type)
+        internal MachineInfo(MachineId mid, Type type)
         {
             this.MachineId = mid;
             this.MachineType = type;

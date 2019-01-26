@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerInfo">The metadata of the caller machine.</param>
         /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public override void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e)
+        public override void Monitor(Type type, MachineId callerId, MachineInfo callerInfo, Type callerState, Event e)
         {
             if (!this.Configuration.EnableMonitorsInProduction)
             {

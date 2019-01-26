@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e,
-            Guid? operationGroupId, IMachineId creatorId, MachineInfo creatorInfo, string creatorStateName)
+            Guid? operationGroupId, MachineId creatorId, MachineInfo creatorInfo, string creatorStateName)
         {
             this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
             IMachine machine = await this.CreateMachineAsync(mid, type, friendlyName);
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.Runtime
                     "Unbound machine id '{0}' was created by another runtime.", mid.Name);
                 this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Name, mid.Type, type.FullName);
-                mid.Bind(this);
+                mid.RuntimeProxy = this;
             }
 
             IMachine machine = await this.CreateMachineAsync(mid, type);
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <param name="options">Optional parameters of a send operation.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public override async Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo,
+        public override async Task SendEventAsync(MachineId mid, Event e, SendOptions options, MachineId senderId, MachineInfo senderInfo,
             Type senderState, string senderStateName)
         {
             var operationGroupId = this.GetNewOperationGroupId(senderInfo, options?.OperationGroupId);
@@ -299,7 +299,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is true if
         /// the event was handled, false if the event was only enqueued.</returns>
-        private async Task<bool> SendEventAndExecuteAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId,
+        private async Task<bool> SendEventAndExecuteAsync(MachineId mid, Event e, SendOptions options, MachineId senderId,
             MachineInfo senderInfo, string senderStateName)
         {
             var operationGroupId = this.GetNewOperationGroupId(senderInfo, options?.OperationGroupId);
@@ -328,7 +328,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <param name="operationGroupId">The operation group id.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine status after the enqueue.</returns>
-        protected Task<MachineStatus> EnqueueEventAsync(IMachine machine, Event e, IMachineId senderId, string senderStateName, Guid operationGroupId)
+        protected Task<MachineStatus> EnqueueEventAsync(IMachine machine, Event e, MachineId senderId, string senderStateName, Guid operationGroupId)
         {
             EventInfo eventInfo = new EventInfo(e, null);
             eventInfo.SetOperationGroupId(operationGroupId);
@@ -423,7 +423,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        public override bool GetNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
+        public override bool GetNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -445,7 +445,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="uniqueId">Unique id.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        public override bool GetFairNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId)
+        public override bool GetFairNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(callerId, callerInfo, callerStateName, 2);
         }
@@ -459,7 +459,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic integer choice.</returns>
-        public override int GetNondeterministicIntegerChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
+        public override int GetNondeterministicIntegerChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);
@@ -725,12 +725,12 @@ namespace Microsoft.PSharp.Runtime
 
         /// <summary>
         /// Returns the operation group id of the specified machine id. Returns <see cref="Guid.Empty"/>
-        /// if the id is not set, or if the <see cref="IMachineId"/> is not associated with this runtime.
+        /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
         /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        public override Guid GetCurrentOperationGroupId(IMachineId currentMachineId)
+        public override Guid GetCurrentOperationGroupId(MachineId currentMachineId)
         {
             if (!this.MachineMap.TryGetValue(currentMachineId, out IMachine machine))
             {

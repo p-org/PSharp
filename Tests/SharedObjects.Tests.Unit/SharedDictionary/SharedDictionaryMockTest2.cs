@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedDictionary.Create<int, string>(this.Id.RuntimeProxy);
+                var counter = SharedDictionary.Create<int, string>(this.Id.GetRuntimeProxy());
 
                 counter.TryAdd(1, "M");
 

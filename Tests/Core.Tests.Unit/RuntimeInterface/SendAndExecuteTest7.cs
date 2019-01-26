@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
@@ -51,7 +52,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config).tcs;
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 var m = await runtime.CreateMachineAndExecuteAsync(typeof(M));
                 var handled = await runtime.SendEventAndExecuteAsync(m, new E());
                 this.Assert(handled);
@@ -90,8 +91,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
             tcs.Task.Wait();
 
             Assert.True(failed);
-            Assert.Equal("Machine 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+M(1)' received event 'Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7+E' that cannot be handled.",
-                message);
+
+            message = Regex.Replace(message, "Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7\\+", "");
+            message = Regex.Replace(message, "[0-9]+.[0-9]+|[0-9]", "");
+            Assert.Equal("Machine 'M()' received event 'E' that cannot be handled.", message);
         }
     }
 }

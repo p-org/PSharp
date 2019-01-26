@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
             {
                 var flag = (this.ReceivedEvent as Conf).flag;
 
-                var counter = SharedCounter.Create(this.Id.RuntimeProxy, 0);
+                var counter = SharedCounter.Create(this.Id.GetRuntimeProxy(), 0);
                 var n = this.CreateMachine(typeof(N), new E(counter));
 
                 int v1 = counter.CompareExchange(10, 0); // if 0 then 10

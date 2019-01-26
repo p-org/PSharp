@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="InMemoryLogger.cs">
+// <copyright file="ThreadSafeInMemoryLogger.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,9 +17,9 @@ using System.IO;
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Logger that writes text in-memory.
+    /// Thread safe logger that writes text in-memory.
     /// </summary>
-    public sealed class InMemoryLogger : MachineLogger
+    public sealed class ThreadSafeInMemoryLogger : MachineLogger
     {
         /// <summary>
         /// Underlying string writer.
@@ -29,10 +29,10 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Creates a new in-memory logger that logs everything by default.
         /// </summary>
-        public InMemoryLogger()
+        public ThreadSafeInMemoryLogger()
             : base(0)
         {
-            Writer = new StringWriter();
+            this.Writer = new StringWriter();
         }
 
         /// <summary>
@@ -41,7 +41,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="value">Text</param>
         public override void Write(string value)
         {
-            Writer.Write(value);
+            lock (this.Writer)
+            {
+                this.Writer.Write(value);
+            }
         }
 
         /// <summary>
@@ -51,7 +54,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void Write(string format, params object[] args)
         {
-            Writer.Write(format, args);
+            lock (this.Writer)
+            {
+                this.Writer.Write(format, args);
+            }
         }
 
         /// <summary>
@@ -61,7 +67,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="value">Text</param>
         public override void WriteLine(string value)
         {
-            Writer.WriteLine(value);
+            lock (this.Writer)
+            {
+                this.Writer.WriteLine(value);
+            }
         }
 
         /// <summary>
@@ -72,7 +81,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void WriteLine(string format, params object[] args)
         {
-            Writer.WriteLine(format, args);
+            lock (this.Writer)
+            {
+                this.Writer.WriteLine(format, args);
+            }
         }
 
         /// <summary>
@@ -80,7 +92,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override string ToString()
         {
-            return Writer.ToString();
+            lock (this.Writer)
+            {
+                return this.Writer.ToString();
+            }
         }
 
         /// <summary>
@@ -88,7 +103,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Dispose()
         {
-            Writer.Dispose();
+            this.Writer.Dispose();
         }
     }
 }

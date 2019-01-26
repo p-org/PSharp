@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var b = this.CreateMachine(typeof(B));
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 var handled = await runtime.SendEventAndExecuteAsync(b, new E1());
                 this.Assert(!handled);
             }
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             async Task InitOnEntry()
             {
                 var d = this.CreateMachine(typeof(D));
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 var handled = await runtime.SendEventAndExecuteAsync(d, new E1());
                 this.Assert(handled);
             }

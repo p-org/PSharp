@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
 
             void EntryInit()
             {
-                var counter = SharedCounter.Create(this.Id.RuntimeProxy, 0);
+                var counter = SharedCounter.Create(this.Id.GetRuntimeProxy(), 0);
                 var n = this.CreateMachine(typeof(N), new E(counter));
 
                 counter.Add(4);

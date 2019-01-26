@@ -57,12 +57,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Map from task ids to machine data.
         /// </summary>
-        protected readonly ConcurrentDictionary<int, (IMachineId mid, SchedulableInfo info)> TaskMap;
+        protected readonly ConcurrentDictionary<int, (MachineId mid, SchedulableInfo info)> TaskMap;
 
         /// <summary>
         /// Set of all machine Ids created by this runtime.
         /// </summary>
-        internal readonly HashSet<IMachineId> CreatedMachineIds;
+        internal readonly HashSet<MachineId> CreatedMachineIds;
 
         /// <summary>
         /// The root task id.
@@ -107,9 +107,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             : base(logger, configuration)
         {
             this.Monitors = new List<Monitor>();
-            this.TaskMap = new ConcurrentDictionary<int, (IMachineId, SchedulableInfo)>();
+            this.TaskMap = new ConcurrentDictionary<int, (MachineId, SchedulableInfo)>();
             this.RootTaskId = Task.CurrentId;
-            this.CreatedMachineIds = new HashSet<IMachineId>();
+            this.CreatedMachineIds = new HashSet<MachineId>();
 
             this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
@@ -382,7 +382,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         public override async Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e,
-            Guid? operationGroupId, IMachineId creatorId, MachineInfo creatorInfo, string creatorStateName)
+            Guid? operationGroupId, MachineId creatorId, MachineInfo creatorInfo, string creatorStateName)
         {
             this.Assert(this.IsSupportedMachineType(type), "Type '{0}' is not a machine.", type.Name);
             this.CheckMachineMethodInvocation(creatorId, creatorInfo, MachineApiNames.CreateMachineApiName);
@@ -469,7 +469,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     mid.Value);
                 this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Value, mid.Type, type.FullName);
-                mid.Bind(this);
+                mid.RuntimeProxy = this;
             }
 
             var isMachineTypeCached = this.IsMachineConstructorCached(type);
@@ -518,7 +518,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="senderState">The state of the sender machine.</param>
         /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        public override async Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo,
+        public override async Task SendEventAsync(MachineId mid, Event e, SendOptions options, MachineId senderId, MachineInfo senderInfo,
             Type senderState, string senderStateName)
         {
             this.CheckMachineMethodInvocation(senderId, senderInfo, MachineApiNames.SendEventApiName);
@@ -622,7 +622,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="mustHandle">MustHandle event</param>
         /// <param name="eventInfo">The enqueued event metadata.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine status after the enqueue.</returns>
-        protected Task<MachineStatus> EnqueueEventAsync(IMachine machine, Event e, IMachineId senderId, MachineInfo senderInfo, Type senderState,
+        protected Task<MachineStatus> EnqueueEventAsync(IMachine machine, Event e, MachineId senderId, MachineInfo senderInfo, Type senderState,
             string senderStateName, Guid operationGroupId, bool mustHandle, out EventInfo eventInfo)
         {
             EventOriginInfo originInfo = null;
@@ -707,7 +707,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out (IMachineId, SchedulableInfo) data);
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out (MachineId, SchedulableInfo) data);
                 }
             });
 
@@ -725,7 +725,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Gets the id of the currently executing machine.
         /// </summary>
         /// <returns>The machine id, or null, if not present.</returns>
-        public IMachineId GetCurrentMachineId()
+        public MachineId GetCurrentMachineId()
         {
             return this.GetCurrentMachine()?.Id;
         }
@@ -739,7 +739,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             //  The current task does not correspond to a machine.
             if (Task.CurrentId != null && this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
-                (IMachineId id, SchedulableInfo info) = this.TaskMap[(int)Task.CurrentId];
+                (MachineId id, SchedulableInfo info) = this.TaskMap[(int)Task.CurrentId];
                 if (id is MachineId mid && this.GetMachineFromId(mid, out IMachine machine))
                 {
                     return machine;
@@ -825,7 +825,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="callerInfo">The metadata of the caller machine.</param>
         /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        public override void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e)
+        public override void Monitor(Type type, MachineId callerId, MachineInfo callerInfo, Type callerState, Event e)
         {
             this.CheckMachineMethodInvocation(callerId, callerInfo, MachineApiNames.MonitorEventApiName);
 
@@ -888,7 +888,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="callerId">The id of the caller machine.</param>
         /// <param name="callerInfo">The metadata of the caller machine.</param>
         /// <param name="method">The called method.</param>
-        protected void CheckMachineMethodInvocation(IMachineId callerId, MachineInfo callerInfo, string method)
+        protected void CheckMachineMethodInvocation(MachineId callerId, MachineInfo callerInfo, string method)
         {
             if (callerId == null)
             {
@@ -954,7 +954,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         /// <param name="mid">The id of the machine.</param>
         /// <param name="info">The metadata of the machine.</param>
-        private void AssertTransitionStatement(IMachineId mid, MachineInfo info)
+        protected void AssertTransitionStatement(MachineId mid, MachineInfo info)
         {
             this.Assert(!info.IsInsideOnExit, "Machine '{0}' has called raise, goto, push or pop " +
                 "inside an OnExit method.", mid.Name);
@@ -970,7 +970,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="mid">The id of the machine.</param>
         /// <param name="info">The metadata of the machine.</param>
         /// <param name="method">The invoked machine method.</param>
-        private void AssertNoPendingTransitionStatement(IMachineId mid, MachineInfo info, string method)
+        protected void AssertNoPendingTransitionStatement(MachineId mid, MachineInfo info, string method)
         {
             this.Assert(!info.CurrentActionCalledTransitionStatement, "Machine '{0}' cannot call '{1}' " +
                 "after calling raise, goto, push or pop in the same action.", mid.Name, method);
@@ -989,7 +989,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        public override bool GetNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
+        public override bool GetNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
         {
             this.CheckMachineMethodInvocation(callerId, callerInfo, MachineApiNames.RandomApiName);
 
@@ -1012,7 +1012,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="uniqueId">Unique id.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        public override bool GetFairNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId)
+        public override bool GetFairNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId)
         {
             this.CheckMachineMethodInvocation(callerId, callerInfo, MachineApiNames.FairRandomApiName);
 
@@ -1035,7 +1035,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="callerStateName">The state name of the caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic integer choice.</returns>
-        public override int GetNondeterministicIntegerChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
+        public override int GetNondeterministicIntegerChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue)
         {
             this.CheckMachineMethodInvocation(callerId, callerInfo, MachineApiNames.RandomIntegerApiName);
             var choice = this.Scheduler.GetNextNondeterministicIntegerChoice(maxValue);
@@ -1581,12 +1581,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         /// <summary>
         /// Returns the operation group id of the specified machine. Returns <see cref="Guid.Empty"/>
-        /// if the id is not set, or if the <see cref="IMachineId"/> is not associated with this runtime.
+        /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
         /// <param name="currentMachineId">The id of the currently executing machine.</param>
         /// <returns>Guid</returns>
-        public override Guid GetCurrentOperationGroupId(IMachineId currentMachineId)
+        public override Guid GetCurrentOperationGroupId(MachineId currentMachineId)
         {
             this.Assert(currentMachineId == this.GetCurrentMachineId(), "Trying to access the operation group id of " +
                 $"'{currentMachineId}', which is not the currently executing machine.");

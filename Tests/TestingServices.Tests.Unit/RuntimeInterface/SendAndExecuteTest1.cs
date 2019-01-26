@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 MachineId b;
                 if (e.ExecuteSynchronously)
                 {
-                    var runtime = this.Id.RuntimeProxy;
+                    var runtime = this.Id.GetRuntimeProxy();
                     b = await runtime.CreateMachineAndExecuteAsync(typeof(B));
                 }
                 else

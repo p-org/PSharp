@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             return true;
         }
 
-        public void RegisterCreateMachine(IMachineId source, IMachineId target)
+        public void RegisterCreateMachine(MachineId source, MachineId target)
         {
             LogCreate(source, target);
             CreateCount++;
@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             sourceMachineState.IncrementEpochAndVC();
         }
 
-        public void RegisterDequeue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
+        public void RegisterDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
             LogDequeue(source, target, e, sequenceNumber);
             DequeueCount++;
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             currentState.JoinThenIncrement(ES[sequenceNumber]);
         }
 
-        public void RegisterEnqueue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
+        public void RegisterEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
             LogEnqueue(source, target, e, sequenceNumber);
             EnqueueCount++;
@@ -485,7 +485,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             return firstMonitor == secondMonitor;
         }
 
-        private InstrMachineState GetCurrentState(IMachineId machineId)
+        private InstrMachineState GetCurrentState(MachineId machineId)
         {
             if (MS.ContainsKey(machineId.Value))
             {
@@ -499,7 +499,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LogCreate(IMachineId source, IMachineId target)
+        private void LogCreate(MachineId source, MachineId target)
         {
             if (Config.EnableRaceDetectorLogging)
             {
@@ -508,7 +508,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LogDequeue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
+        private void LogDequeue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
             if (Config.EnableRaceDetectorLogging)
             {
@@ -517,7 +517,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void LogEnqueue(IMachineId source, IMachineId target, Event e, ulong sequenceNumber)
+        private void LogEnqueue(MachineId source, MachineId target, Event e, ulong sequenceNumber)
         {
             if (Config.EnableRaceDetectorLogging)
             {

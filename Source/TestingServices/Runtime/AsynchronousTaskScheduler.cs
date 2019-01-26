@@ -36,14 +36,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Map from task ids to machine data.
         /// </summary>
-        private readonly ConcurrentDictionary<int, (IMachineId mid, SchedulableInfo info)> TaskMap;
+        private readonly ConcurrentDictionary<int, (MachineId mid, SchedulableInfo info)> TaskMap;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="runtime">The P# testing runtime.</param>
         /// <param name="taskMap">Map from task ids to machine data.</param>
-        internal AsynchronousTaskScheduler(BaseTestingRuntime runtime, ConcurrentDictionary<int, (IMachineId, SchedulableInfo)> taskMap)
+        internal AsynchronousTaskScheduler(BaseTestingRuntime runtime, ConcurrentDictionary<int, (MachineId, SchedulableInfo)> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 // that spawned this task).
                 int prevTaskId = Runtime.Scheduler.ScheduledMachine.TaskId;
 
-                this.TaskMap.TryRemove(prevTaskId, out (IMachineId id, SchedulableInfo info) machineData);
+                this.TaskMap.TryRemove(prevTaskId, out (MachineId id, SchedulableInfo info) machineData);
                 this.TaskMap.TryAdd(task.Id, machineData);
 
                 // Change the task previously associated with the machine to the new task.

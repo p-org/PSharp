@@ -60,7 +60,7 @@ namespace Microsoft.PSharp
     internal sealed class TestRuntimeGetType : Attribute { }
 
     /// <summary>
-    /// Attribute for declaring the known serializable <see cref="IMachineId"/>
+    /// Attribute for declaring the known serializable <see cref="MachineId"/>
     /// types of the P# testing runtime.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]

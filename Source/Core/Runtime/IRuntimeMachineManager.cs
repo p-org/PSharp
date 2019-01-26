@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="creatorStateName">The state name of the creator machine.</param>
         /// <returns>Task that represents the asynchronous operation. The task result is the <see cref="MachineId"/>.</returns>
         Task<MachineId> CreateMachineAsync(MachineId mid, Type type, string friendlyName, Event e, Guid? operationGroupId,
-            IMachineId creatorId, MachineInfo creatorInfo, string creatorStateName);
+            MachineId creatorId, MachineInfo creatorInfo, string creatorStateName);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="senderState">The state of the sender machine.</param>
         /// <param name="senderStateName">The state name of the sender machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        Task SendEventAsync(MachineId mid, Event e, SendOptions options, IMachineId senderId, MachineInfo senderInfo, Type senderState, string senderStateName);
+        Task SendEventAsync(MachineId mid, Event e, SendOptions options, MachineId senderId, MachineInfo senderInfo, Type senderState, string senderStateName);
 
         #endregion
 
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerInfo">The metadata of the caller machine.</param>
         /// <param name="callerState">The state of the caller machine.</param>
         /// <param name="e">Event sent to the monitor.</param>
-        void Monitor(Type type, IMachineId callerId, MachineInfo callerInfo, Type callerState, Event e);
+        void Monitor(Type type, MachineId callerId, MachineInfo callerInfo, Type callerState, Event e);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it throws an
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The name of the current state, if any.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        bool GetNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
+        bool GetNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The name of the current state, if any.</param>
         /// <param name="uniqueId">Unique id.</param>
         /// <returns>The nondeterministic boolean choice.</returns>
-        bool GetFairNondeterministicBooleanChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId);
+        bool GetFairNondeterministicBooleanChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="callerStateName">The name of the current state, if any.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>The nondeterministic integer choice.</returns>
-        int GetNondeterministicIntegerChoice(IMachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
+        int GetNondeterministicIntegerChoice(MachineId callerId, MachineInfo callerInfo, string callerStateName, int maxValue);
 
         #endregion
 

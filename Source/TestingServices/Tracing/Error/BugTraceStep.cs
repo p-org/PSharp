@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// The machine initiating the action.
         /// </summary>
         [DataMember]
-        internal IMachineId Machine;
+        internal MachineId Machine;
 
         /// <summary>
         /// The machine state.
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// The target machine.
         /// </summary>
         [DataMember]
-        internal IMachineId TargetMachine;
+        internal MachineId TargetMachine;
 
         /// <summary>
         /// The taken nondeterministic boolean choice.
@@ -109,8 +109,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="intChoice">Integer choice</param>
         /// <param name="extraInfo">Extra info</param>
         /// <returns>BugTraceStep</returns>
-        internal static BugTraceStep Create(int index, BugTraceStepType type, IMachineId mid,
-            string machineStateName, EventInfo eventInfo, MethodInfo action, IMachineId targetMachine,
+        internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId mid,
+            string machineStateName, EventInfo eventInfo, MethodInfo action, MachineId targetMachine,
             bool? boolChoice, int? intChoice, string extraInfo)
         {
             var traceStep = new BugTraceStep();

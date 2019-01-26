@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
             {
                 var flag = (this.ReceivedEvent as E1).flag;
 
-                var counter = SharedDictionary.Create<int, string>(this.Id.RuntimeProxy);
+                var counter = SharedDictionary.Create<int, string>(this.Id.GetRuntimeProxy());
                 counter.TryAdd(1, "M");
 
                 if (flag)

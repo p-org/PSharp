@@ -97,7 +97,7 @@ namespace Microsoft.PSharp
         string IMachine.CurrentStateName => base.CurrentStateName;
 
         /// <summary>
-        /// The logger installed to the P# runtime.
+        /// The logger installed to the runtime.
         /// </summary>
         protected ILogger Logger => this.RuntimeManager.Logger;
 

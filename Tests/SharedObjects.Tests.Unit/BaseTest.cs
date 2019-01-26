@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests.Unit
         private string RemoveNonDeterministicValuesFromReport(string report)
         {
             var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
-            result = Regex.Replace(result, @"\([0-9]+\)", "()");
+            result = Regex.Replace(result, @"\([0-9].?[0-9]?\)", "()");
             result = Regex.Replace(result, @"\[\[.*\]\]", "[[]]");
             return result;
         }

@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void InitOnEntry()
             {
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent(Id, new E(), OperationGroup1);
             }
 
@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M6S));
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent(target, new E(), OperationGroup1);
             }
         }
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8));
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M8S));
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
@@ -238,7 +238,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 var id = (Info as ISchedulable).NextOperationGroupId;
                 Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             void InitOnEntry()
             {
                 var target = CreateMachine(typeof(M10S));
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent(target, new E(Id), OperationGroup1);
             }
 
@@ -275,7 +275,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 var target = CreateMachine(typeof(M11S));
                 var id = (Info as ISchedulable).NextOperationGroupId;
                 Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                var runtime = this.Id.RuntimeProxy;
+                var runtime = this.Id.GetRuntimeProxy();
                 runtime.SendEvent((ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
