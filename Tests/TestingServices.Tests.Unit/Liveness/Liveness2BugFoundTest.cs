@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             string bugReport = "Monitor 'WatchDog' detected liveness bug in hot state " +
-                "'Microsoft.PSharp.TestingServices.Tests.Unit.Liveness2BugFoundTest+WatchDog.CannotGetUserInput' " +
+                "'WatchDog.CannotGetUserInput' " +
                 "at the end of program execution.";
             base.AssertFailed(configuration, test, bugReport, true);
         }

@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_GOTO));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
+            var bugReport = "Machine 'Program()' " +
                 "has called multiple raise, goto, push or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_RAISE));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
+            var bugReport = "Machine 'Program()' " +
                 "has called multiple raise, goto, push or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_SEND));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
+            var bugReport = "Machine 'Program()' " +
                 "cannot call 'SendEvent' after calling raise, goto, push or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program), new Configure(ErrorType.ON_EXIT));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
+            var bugReport = "Machine 'Program()' " +
                 "has called raise, goto, push or pop inside an OnExit method.";
             base.AssertFailed(test, bugReport, true);
         }
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_PUSH));
             });
 
-            var bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.GotoStateTopLevelActionFailTest+Program()' " +
+            var bugReport = "Machine 'Program()' " +
                 "has called multiple raise, goto, push or pop in the same action.";
             base.AssertFailed(test, bugReport, true);
         }

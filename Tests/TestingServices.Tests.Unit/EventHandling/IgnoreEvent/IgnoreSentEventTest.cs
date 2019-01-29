@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var configuration = base.GetConfiguration();
             configuration.SchedulingIterations = 5;
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(Harness<B>)); });
-            string bugReport = $"Machine '{NamespaceName}.IgnoreSentEventTest+B()' received event '{NamespaceName}.IgnoreSentEventTest+Unit`1[[]]' that cannot be handled.";
+            string bugReport = $"Machine 'B()' received event 'Unit`1[]' that cannot be handled.";
             base.AssertFailed(test, bugReport, true);
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var configuration = base.GetConfiguration();
             configuration.SchedulingIterations = 5;
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(Harness<D>)); });
-            string bugReport = $"Machine '{NamespaceName}.IgnoreSentEventTest+D()' received event '{NamespaceName}.IgnoreSentEventTest+Unit' that cannot be handled.";
+            string bugReport = $"Machine 'D()' received event 'Unit' that cannot be handled.";
             base.AssertFailed(test, bugReport, true);
         }
     }

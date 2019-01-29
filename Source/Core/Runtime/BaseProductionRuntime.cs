@@ -207,8 +207,8 @@ namespace Microsoft.PSharp.Runtime
             {
                 this.Assert(mid.RuntimeProxy == null || mid.RuntimeProxy == this,
                     "Unbound machine id '{0}' was created by another runtime.", mid.Name);
-                this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
-                    mid.Name, mid.Type, type.FullName);
+                this.Assert(mid.Type == type.ToString(), "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                    mid.Name, mid.Type, type.ToString());
                 mid.RuntimeProxy = this;
             }
 
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.Runtime
             }
             else
             {
-                this.Logger.OnSend(mid, senderId, senderStateName, e.GetType().FullName, operationGroupId, isTargetHalted: true);
+                this.Logger.OnSend(mid, senderId, senderStateName, e.GetType().ToString(), operationGroupId, isTargetHalted: true);
             }
         }
 
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.Runtime
             var operationGroupId = this.GetNewOperationGroupId(senderInfo, options?.OperationGroupId);
             if (!this.GetMachineFromId(mid, out IMachine machine))
             {
-                this.Logger.OnSend(mid, senderId, senderStateName, e.GetType().FullName, operationGroupId, isTargetHalted: true);
+                this.Logger.OnSend(mid, senderId, senderStateName, e.GetType().ToString(), operationGroupId, isTargetHalted: true);
                 return true;
             }
 
@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.Runtime
         {
             EventInfo eventInfo = new EventInfo(e, null);
             eventInfo.SetOperationGroupId(operationGroupId);
-            this.Logger.OnSend(machine.Id, senderId, senderStateName, e.GetType().FullName, operationGroupId, isTargetHalted: false);
+            this.Logger.OnSend(machine.Id, senderId, senderStateName, e.GetType().ToString(), operationGroupId, isTargetHalted: false);
             return machine.EnqueueAsync(eventInfo);
         }
 

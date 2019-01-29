@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             string bugReport = "Monitor 'M' detected liveness bug in hot state " +
-                "'Microsoft.PSharp.TestingServices.Tests.Unit.HotStateTest+M.Init' " +
+                "'M.Init' " +
                 "at the end of program execution.";
             base.AssertFailed(configuration, test, bugReport, true);
         }

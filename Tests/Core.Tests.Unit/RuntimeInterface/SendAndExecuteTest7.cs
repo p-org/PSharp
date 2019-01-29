@@ -92,8 +92,10 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 
             Assert.True(failed);
 
-            message = Regex.Replace(message, "Microsoft.PSharp.Core.Tests.Unit.SendAndExecuteTest7\\+", "");
+            message = Regex.Replace(message, "", "");
             message = Regex.Replace(message, "[0-9]+.[0-9]+|[0-9]", "");
+            message = Regex.Replace(message, @"Microsoft\.[^+]*\+", "");
+            
             Assert.Equal("Machine 'M()' received event 'E' that cannot be handled.", message);
         }
     }

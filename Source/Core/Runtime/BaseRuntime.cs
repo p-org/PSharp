@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.Runtime
             ulong value = (ulong)Interlocked.Increment(ref this.MachineIdCounter) - 1;
             // Checks for overflow.
             this.Assert(value != ulong.MaxValue, "Detected machine id overflow.");
-            return new MachineId(this, type.FullName, value, friendlyName, string.Empty, 0);
+            return new MachineId(this, type.ToString(), value, friendlyName, string.Empty, 0);
         }
 
         /// <summary>

@@ -500,7 +500,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (runtimeFactoryMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one testing runtime factory method can be declared with " +
-                    $"the attribute '{typeof(TestRuntimeCreate).FullName}'. " +
+                    $"the attribute '{typeof(TestRuntimeCreate).ToString()}'. " +
                     $"'{runtimeFactoryMethods.Count}' factory methods were found instead.");
             }
 
@@ -516,7 +516,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect testing runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static ITestingRuntime " +
+                    $"  [{typeof(TestRuntimeCreate).ToString()}] internal static ITestingRuntime " +
                     $"{runtimeFactoryMethods[0].Name}(ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter, " +
                     "Configuration configuration) {{ ... }}");
             }
@@ -539,7 +539,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (runtimeGetTypeMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one testing runtime get type method can be declared with " +
-                    $"the attribute '{typeof(TestRuntimeGetType).FullName}'. " +
+                    $"the attribute '{typeof(TestRuntimeGetType).ToString()}'. " +
                     $"'{runtimeGetTypeMethods.Count}' get type methods were found instead.");
             }
 
@@ -552,7 +552,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect testing runtime get type method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeGetType).FullName}] internal static Type " +
+                    $"  [{typeof(TestRuntimeGetType).ToString()}] internal static Type " +
                     $"{runtimeGetTypeMethods[0].Name}() {{ ... }}");
             }
 
@@ -576,7 +576,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (runtimeGetIdTypesMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one testing runtime get known serializable machine id types method can be declared with " +
-                    $"the attribute '{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).FullName}'. " +
+                    $"the attribute '{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).ToString()}'. " +
                     $"'{runtimeGetIdTypesMethods.Count}' get in-memory logger methods were found instead.");
             }
 
@@ -589,7 +589,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect testing runtime get known serializable machine id types method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).FullName}] internal static IEnumerable<Type> " +
+                    $"  [{typeof(TestRuntimeGetKnownSerializableMachineIdTypes).ToString()}] internal static IEnumerable<Type> " +
                     $"{runtimeGetIdTypesMethods[0].Name}() {{ ... }}");
             }
 
@@ -611,7 +611,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (runtimeGetLoggerMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one testing runtime get in-memory logger method can be declared with " +
-                    $"the attribute '{typeof(TestRuntimeGetInMemoryLogger).FullName}'. " +
+                    $"the attribute '{typeof(TestRuntimeGetInMemoryLogger).ToString()}'. " +
                     $"'{runtimeGetLoggerMethods.Count}' get in-memory logger methods were found instead.");
             }
 
@@ -624,7 +624,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect testing runtime get in-memory logger method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeGetInMemoryLogger).FullName}] internal static ILogger " +
+                    $"  [{typeof(TestRuntimeGetInMemoryLogger).ToString()}] internal static ILogger " +
                     $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
             }
 
@@ -646,7 +646,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (runtimeGetLoggerMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one testing runtime get disposing logger method can be declared with " +
-                    $"the attribute '{typeof(TestRuntimeGetDisposingLogger).FullName}'. " +
+                    $"the attribute '{typeof(TestRuntimeGetDisposingLogger).ToString()}'. " +
                     $"'{runtimeGetLoggerMethods.Count}' get disposing logger methods were found instead.");
             }
 
@@ -659,7 +659,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect testing runtime get disposing logger method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeGetDisposingLogger).FullName}] internal static ILogger " +
+                    $"  [{typeof(TestRuntimeGetDisposingLogger).ToString()}] internal static ILogger " +
                     $"{runtimeGetLoggerMethods[0].Name}() {{ ... }}");
             }
 
@@ -696,13 +696,13 @@ namespace Microsoft.PSharp.TestingServices
                 else
                 {
                     Error.ReportAndExit("Cannot detect a P# test method. Use the " +
-                        $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
+                        $"attribute '[{typeof(Test).ToString()}]' to declare a test method.");
                 }
             }
             else if (filteredTestMethods.Count > 1)
             {
                 var msg = "Only one test method to the P# program can " +
-                    $"be declared with the attribute '{typeof(Test).FullName}'. " +
+                    $"be declared with the attribute '{typeof(Test).ToString()}'. " +
                     $"'{testMethods.Count}' test methods were found instead. Provide " +
                     $"/method flag to qualify the test method name you wish to use. " +
                     "Possible options are: " + Environment.NewLine;
@@ -736,8 +736,8 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
-                    $"  [{typeof(Test).FullName}] public static void " +
-                    $"{testMethod.Name}({runtimeType.FullName} runtime) {{ ... }}");
+                    $"  [{typeof(Test).ToString()}] public static void " +
+                    $"{testMethod.Name}({runtimeType.ToString()} runtime) {{ ... }}");
             }
 
             this.TestMethod = testMethod;
@@ -759,7 +759,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (testMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one test method to the P# program can " +
-                    $"be declared with the attribute '{attribute.FullName}'. " +
+                    $"be declared with the attribute '{attribute.ToString()}'. " +
                     $"'{testMethods.Count}' test methods were found instead.");
             }
 
@@ -772,7 +772,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
-                    $"  [{attribute.FullName}] public static void " +
+                    $"  [{attribute.ToString()}] public static void " +
                     $"{testMethods[0].Name}() {{ ... }}");
             }
 

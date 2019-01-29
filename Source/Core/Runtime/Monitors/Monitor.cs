@@ -281,7 +281,7 @@ namespace Microsoft.PSharp
         internal void MonitorEvent(Event e)
         {
             this.RuntimeManager.Logger.OnMonitorEvent(this.GetType().Name, this.Id, this.CurrentStateName,
-                e.GetType().FullName, isProcessing: true);
+                e.GetType().ToString(), isProcessing: true);
             this.HandleEvent(e);
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.PSharp
                 {
                     // If the event cannot be handled, then report an error and exit.
                     this.Assert(false, $"Monitor '{this.GetType().Name}' received event " +
-                        $"'{e.GetType().FullName}' that cannot be handled.");
+                        $"'{e.GetType().ToString()}' that cannot be handled.");
                 }
 
                 // If current state cannot handle the event then null the state.
@@ -687,8 +687,8 @@ namespace Microsoft.PSharp
                         // then used to create the state constructor.
                         Type declaringType = this.GetType();
                         while (!declaringType.IsGenericType ||
-                            !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
-                            0, declaringType.FullName.IndexOf('['))))
+                            !type.DeclaringType.ToString().Equals(declaringType.ToString().Substring(
+                            0, declaringType.ToString().IndexOf('['))))
                         {
                             declaringType = declaringType.BaseType;
                         }
@@ -709,7 +709,7 @@ namespace Microsoft.PSharp
                     this.Assert((state.IsCold && !state.IsHot) ||
                         (!state.IsCold && state.IsHot) ||
                         (!state.IsCold && !state.IsHot),
-                        $"State '{type.FullName}' of monitor '{this.Id}' " +
+                        $"State '{type.ToString()}' of monitor '{this.Id}' " +
                         "cannot be both cold and hot.");
 
                     StateMap[monitorType].Add(state);

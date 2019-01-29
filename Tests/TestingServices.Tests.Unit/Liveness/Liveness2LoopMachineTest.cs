@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'Microsoft.PSharp.TestingServices.Tests.Unit.Liveness2LoopMachineTest+LivenessMonitor.CannotGetUserInput'.";
+                "'LivenessMonitor.CannotGetUserInput'.";
             base.AssertFailed(configuration, test, bugReport, true);
         }
     }

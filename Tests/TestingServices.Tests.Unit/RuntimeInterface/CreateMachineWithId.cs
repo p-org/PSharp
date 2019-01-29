@@ -188,8 +188,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(m3, typeof(M2));
             });
 
-            base.AssertFailed(test, "Cannot bind machine id '' of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M3' " +
-                "to a machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2'.", true);
+            base.AssertFailed(test, "Cannot bind machine id '' of type 'M3' " +
+                "to a machine of type 'M2'.", true);
         }
 
         [Fact]
@@ -211,8 +211,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.SendEvent(m, new E());
             });
 
-            base.AssertFailed(test, "Cannot send event 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E' to " +
-                "unbound machine id 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2()'.", true);
+            base.AssertFailed(test, "Cannot send event 'E' to " +
+                "unbound machine id 'M2()'.", true);
         }
 
         [Fact]
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             });
 
             base.AssertFailed(test, "Machine id '' of a previously halted machine cannot be reused to create a new " +
-                "machine of type 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M2'.", false);
+                "machine of type 'M2'.", false);
         }
 
         class E2: Event
@@ -283,8 +283,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var config = Configuration.Create().WithNumberOfIterations(100);
             config.ReductionStrategy = Utilities.ReductionStrategy.None;
 
-            base.AssertFailed(config, test, "Cannot send event 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+E' to " +
-                "unbound machine id 'Microsoft.PSharp.TestingServices.Tests.Unit.CreateMachineWithId+M4()'.", false);
+            base.AssertFailed(config, test, "Cannot send event 'E' to " +
+                "unbound machine id 'M4()'.", false);
         }
     }
 }

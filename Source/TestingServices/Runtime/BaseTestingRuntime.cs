@@ -467,8 +467,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 this.Assert(mid.RuntimeProxy == null || mid.RuntimeProxy == this, "Unbound machine id '{0}' was created by another runtime.",
                     mid.Value);
-                this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
-                    mid.Value, mid.Type, type.FullName);
+                this.Assert(mid.Type == type.ToString(), "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                    mid.Value, mid.Type, type.ToString());
                 mid.RuntimeProxy = this;
             }
 
@@ -484,7 +484,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Assert(result, "Machine id '{0}' is already bound to an existing machine.", mid.Value);
 
             this.Assert(!this.CreatedMachineIds.Contains(mid), "Machine id '{0}' of a previously halted machine cannot be reused " +
-                "to create a new machine of type '{1}'.", mid.Value, type.FullName);
+                "to create a new machine of type '{1}'.", mid.Value, type.ToString());
             this.CreatedMachineIds.Add(mid);
 
             return machine;
@@ -522,7 +522,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             Type senderState, string senderStateName)
         {
             this.CheckMachineMethodInvocation(senderId, senderInfo, MachineApiNames.SendEventApiName);
-            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot send event '{0}' to unbound machine id '{1}'.", e.GetType().FullName, mid);
+            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot send event '{0}' to unbound machine id '{1}'.", e.GetType().ToString(), mid);
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = this.GetNewOperationGroupId(senderInfo, options?.OperationGroupId);
@@ -538,7 +538,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
             else
             {
-                this.Logger.OnSend(mid, senderId, senderStateName, e.GetType().FullName, operationGroupId, isTargetHalted: true);
+                this.Logger.OnSend(mid, senderId, senderStateName, e.GetType().ToString(), operationGroupId, isTargetHalted: true);
                 this.Assert(options == null || !options.MustHandle,
                     $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{mid}'.");
             }
@@ -577,7 +577,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Assert(sender != null, "Only a machine can execute 'SendEventAndExecuteAsync'. Avoid calling " +
                 "directly from the PSharp Test method. Instead call through a 'harness' machine.");
             this.CheckMachineMethodInvocation(sender.Id, sender.Info, MachineApiNames.SendEventAndExecuteApiName);
-            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot send event '{0}' to unbound machine id '{1}'.", e.GetType().FullName, mid);
+            this.Assert(this.CreatedMachineIds.Contains(mid), "Cannot send event '{0}' to unbound machine id '{1}'.", e.GetType().ToString(), mid);
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = this.GetNewOperationGroupId(sender.Info, options?.OperationGroupId);
@@ -585,9 +585,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             if (!this.GetMachineFromId(mid, out IMachine machine))
             {
                 this.Logger.OnSend(mid, sender?.Id, sender?.CurrentStateName ?? String.Empty,
-                    e.GetType().FullName, operationGroupId, isTargetHalted: true);
+                    e.GetType().ToString(), operationGroupId, isTargetHalted: true);
                 this.Assert(options == null || !options.MustHandle,
-                    $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{mid}'.");
+                    $"A must-handle event '{e.GetType().ToString()}' was sent to the halted machine '{mid}'.");
                 return true;
             }
 
@@ -641,7 +641,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             eventInfo.SetOperationGroupId(operationGroupId);
             eventInfo.SetMustHandle(mustHandle);
 
-            this.Logger.OnSend(machine.Id, senderId, senderStateName, e.GetType().FullName, operationGroupId, isTargetHalted: false);
+            this.Logger.OnSend(machine.Id, senderId, senderStateName, e.GetType().ToString(), operationGroupId, isTargetHalted: false);
 
             if (senderId != null)
             {
@@ -919,13 +919,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                 case MachineApiNames.CreateMachineAndExecuteApiName:
                     this.Assert(callerInfo.MachineType.IsSubclassOf(typeof(Machine)), "Only a machine of type '{0}' can execute 'CreateMachineAndExecute'.",
-                        typeof(Machine).FullName);
+                        typeof(Machine).ToString());
                     this.AssertNoPendingTransitionStatement(callerId, callerInfo, method);
                     break;
 
                 case MachineApiNames.SendEventAndExecuteApiName:
                     this.Assert(callerInfo.MachineType.IsSubclassOf(typeof(Machine)), "Only a machine of type '{0}' can execute 'SendEventAndExecute'.",
-                        typeof(Machine).FullName);
+                        typeof(Machine).ToString());
                     this.AssertNoPendingTransitionStatement(callerId, callerInfo, method);
                     break;
 

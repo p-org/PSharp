@@ -494,8 +494,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
-            var bugReport = "'Microsoft.PSharp.TestingServices.Tests.Integration." +
-                "FailureDetectorTest+Node()' ping count must be <= 3.";
+            var bugReport = "'FailureDetectorTest+Node()' ping count must be <= 3.";
             base.AssertFailed(configuration, test, bugReport);
         }
 
@@ -517,8 +516,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
-            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'Microsoft.PSharp.TestingServices.Tests.Integration.FailureDetectorTest+LivenessMonitor.Wait'.";
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state 'LivenessMonitor.Wait'.";
             base.AssertFailed(configuration, test, bugReport);
         }
 

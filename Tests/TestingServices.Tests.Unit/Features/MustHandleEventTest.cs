@@ -118,9 +118,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var config = Configuration.Create();
 
-            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()'.";
-            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M1()' halted before " +
-                "dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.";
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'M1()'.";
+            string bugReport2 = "Machine 'M1()' halted before " +
+                "dequeueing must-handle event 'E'.";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
                 foreach (var report in bugReports)
@@ -147,9 +147,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()'.";
-            string bugReport2 = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M2()' halted before " +
-                "dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.";
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'M2()'.";
+            string bugReport2 = "Machine 'M2()' halted before " +
+                "dequeueing must-handle event 'E'.";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
                 foreach (var report in bugReports)
@@ -177,8 +177,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var config = Configuration.Create().WithNumberOfIterations(1);
 
-            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+M5()' halted before " +
-                "dequeueing must-handle event 'Microsoft.PSharp.TestingServices.Tests.Unit.MustHandleEventTest+E'.";
+            string bugReport = "Machine 'M5()' halted before " +
+                "dequeueing must-handle event 'E'.";
 
             AssertFailed(config, test, 1, new HashSet<string> { bugReport }, true);
         }

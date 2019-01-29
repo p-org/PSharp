@@ -786,7 +786,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Integration
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'Microsoft.PSharp.TestingServices.Tests.Integration.ReplicatingStorageTest+LivenessMonitor.Repairing'.";
+                "'LivenessMonitor.Repairing'.";
             base.AssertFailed(configuration, test, bugReport);
         }
 

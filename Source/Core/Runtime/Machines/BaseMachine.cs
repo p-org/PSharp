@@ -58,6 +58,11 @@ namespace Microsoft.PSharp.Runtime
         #endregion
 
         /// <summary>
+        /// The unique machine id.
+        /// </summary>
+        protected internal MachineId Id { get; private set; }
+
+        /// <summary>
         /// Stores machine-related information, which can used
         /// for scheduling and testing.
         /// </summary>
@@ -221,13 +226,14 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
+        /// <param name="mid">The id of this machine.</param>
         /// <param name="info">The metadata of this machine.</param>
-        /// <param name="name">The unique name of this machine.</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        internal Task InitializeAsync(MachineInfo info, string name)
+        internal Task InitializeAsync(MachineId mid, MachineInfo info)
         {
+            this.Id = mid;
             this.Info = info;
-            this.Name = name;
+            this.Name = $"Machine '{mid}'";
             return this.InitializeStateInformationAsync();
         }
 
@@ -271,16 +277,21 @@ namespace Microsoft.PSharp.Runtime
 
                         if (type.IsGenericType)
                         {
-                            // If the state type is generic (only possible if inherited by a
-                            // generic machine declaration), then iterate through the base
-                            // machine classes to identify the runtime generic type, and use
-                            // it to instantiate the runtime state type. This type can be
-                            // then used to create the state constructor.
+                            string genericType = type.DeclaringType.ToString().Split('[')[0];
+
+                            // If the state type is generic (only possible if it belongs to a generic machine,
+                            // or inherited by a generic machine declaration), then iterate through the base
+                            // machine classes to identify the runtime generic type, and use it to instantiate
+                            // the runtime state type. This type can be then used to create the state constructor.
                             Type declaringType = this.GetType();
-                            while (!declaringType.IsGenericType ||
-                                !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
-                                0, declaringType.FullName.IndexOf('['))))
+                            while (declaringType != this.GetMachineType())
                             {
+                                int idx = declaringType.ToString().IndexOf('[');
+                                if (idx > 0 && declaringType.ToString().Substring(0, idx).Equals(genericType))
+                                {
+                                    break;
+                                }
+
                                 declaringType = declaringType.BaseType;
                             }
 
@@ -464,7 +475,7 @@ namespace Microsoft.PSharp.Runtime
                     else
                     {
                         // If the event cannot be handled then report an error and exit.
-                        this.CheckProperty(false, $"{this.Name} received event '{e.GetType().FullName}' that cannot be handled.");
+                        this.CheckProperty(false, $"{this.Name} received event '{e.GetType().ToString()}' that cannot be handled.");
                     }
                 }
 
@@ -526,7 +537,7 @@ namespace Microsoft.PSharp.Runtime
                     }
 
                     await this.DoStatePopAsync();
-                    this.NotifyPopUnhandledEvent(this.CurrentStateName, e.GetType().FullName);
+                    this.NotifyPopUnhandledEvent(this.CurrentStateName, e.GetType().ToString());
                     continue;
                 }
 
@@ -732,7 +743,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Task that represents the asynchronous operation.</returns>
         private async Task PushState(Type s)
         {
-            this.NotifyPushState(this.CurrentStateName, s.FullName);
+            this.NotifyPushState(this.CurrentStateName, s.ToString());
 
             var nextState = this.MachineStates.First(val => val.GetType().Equals(s));
             await this.DoStatePushAsync(nextState);

@@ -70,7 +70,7 @@ namespace Microsoft.PSharp
         {
             Event = e;
             EventType = e.GetType();
-            EventName = EventType.FullName;
+            EventName = EventType.ToString();
             MustHandle = false;
         }
 

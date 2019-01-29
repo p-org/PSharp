@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.Core.Tests.Unit
 <ActionLog> Machine 'M()' in state 'M.Init' invoked action 'Act'.
 ";
             string actual = Regex.Replace(logger.ToString(), "[0-9]+.[0-9]+|[0-9]", "");
-            actual = Regex.Replace(actual, "Microsoft.PSharp.Core.Tests.Unit.CustomLoggerTest\\+", "");
+            actual = Regex.Replace(actual, @"Microsoft\.[^+]*\+", "");
 
             HashSet<string> expectedSet = new HashSet<string>(Regex.Split(expected, "\r\n|\r|\n"));
             HashSet<string> actualSet = new HashSet<string>(Regex.Split(actual, "\r\n|\r|\n"));

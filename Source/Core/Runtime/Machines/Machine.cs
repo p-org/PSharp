@@ -58,11 +58,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The unique machine id.
         /// </summary>
-        protected internal MachineId Id { get; private set; }
-
-        /// <summary>
-        /// The unique machine id.
-        /// </summary>
         MachineId IMachine.Id => this.Id;
 
         /// <summary>
@@ -122,8 +117,7 @@ namespace Microsoft.PSharp
         internal Task InitializeAsync(IRuntimeMachineManager runtimeManager, MachineId mid, MachineInfo info)
         {
             this.RuntimeManager = runtimeManager;
-            this.Id = mid;
-            return base.InitializeAsync(info, $"Machine '{mid}'");
+            return base.InitializeAsync(mid, info);
         }
 
         #endregion
@@ -758,7 +752,7 @@ namespace Microsoft.PSharp
                 string eventNames = String.Empty;
                 foreach (var ewh in this.EventWaitHandlers)
                 {
-                    eventNames += " '" + ewh.EventType.FullName + "'";
+                    eventNames += " '" + ewh.EventType.ToString() + "'";
                 }
 
                 this.RuntimeManager.NotifyWaitEvents(this, eventInfoInInbox, eventNames);

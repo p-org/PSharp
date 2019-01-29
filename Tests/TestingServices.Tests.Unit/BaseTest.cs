@@ -24,8 +24,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 {
     public abstract class BaseTest
     {
-        public const string NamespaceName = "Microsoft.PSharp.TestingServices.Tests.Unit";
-
         protected readonly ITestOutputHelper TestOutput;
 
         public BaseTest(ITestOutputHelper output)
@@ -103,6 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 foreach (var expected in expectedOutputs)
                 {
+                    this.TestOutput.WriteLine("expected: " + expected);
                     if (!bugReports.Contains(expected))
                     {
                         return false;
@@ -154,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             foreach (var bugReport in engine.TestReport.BugReports)
             {
                 var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
-                //this.TestOutput.WriteLine("actual: " + actual);
+                this.TestOutput.WriteLine("actual: " + actual);
                 bugReports.Add(actual);
             }
 
@@ -239,9 +238,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
         private string RemoveNonDeterministicValuesFromReport(string report)
         {
             var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
-            result = Regex.Replace(result, @"\([0-9].?[0-9]?\)", "()");
-            result = Regex.Replace(result, @"\[\[.*\]\]", "[[]]");
-            this.TestOutput.WriteLine("res: " + result);
+            result = Regex.Replace(result, @"\([^)]*\)", "()");
+            result = Regex.Replace(result, @"\[[^)]*\]", "[]");
+            result = Regex.Replace(result, @"Microsoft\.[^+]*\+", "");
             return result;
         }
 

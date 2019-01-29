@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M2a));
             });
 
-            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.OnHaltTest+M2a()' invoked Receive while halted.";
+            string bugReport = "Machine 'M2a()' invoked Receive while halted.";
             AssertFailed(test, bugReport, true);
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M2b));
             });
 
-            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.OnHaltTest+M2b()' invoked Raise while halted.";
+            string bugReport = "Machine 'M2b()' invoked Raise while halted.";
             AssertFailed(test, bugReport, true);
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 r.CreateMachine(typeof(M2c));
             });
 
-            string bugReport = "Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.OnHaltTest+M2c()' invoked Goto while halted.";
+            string bugReport = "Machine 'M2c()' invoked Goto while halted.";
             AssertFailed(test, bugReport, true);
         }
 

@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 foreach (var report in bugReports)
                 {
-                    if (!report.StartsWith("Machine 'Microsoft.PSharp.TestingServices.Tests.Unit.SendAndExecuteTest6+M()' threw exception 'System.Exception' in "))
+                    if (!report.StartsWith("Machine 'M()' threw exception 'System.Exception' in "))
                     {
                         return false;
                     }

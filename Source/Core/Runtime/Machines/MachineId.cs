@@ -91,7 +91,7 @@ namespace Microsoft.PSharp
             this.Type = type;
             this.Value = value;
             this.FriendlyName = friendlyName;
-            this.Endpoint = string.Empty;
+            this.Endpoint = endpoint;
             this.RuntimeGeneration = runtimeGeneration;
 
             if (this.Endpoint != null && this.Endpoint.Length > 0 && this.FriendlyName != null && this.FriendlyName.Length > 0)
@@ -111,6 +111,11 @@ namespace Microsoft.PSharp
                 this.Name = string.Format("{0}({1}.{2})", type, this.RuntimeGeneration, this.Value);
             }
         }
+
+        /// <summary>
+        /// Parameterless constructor to be used by a serializer.
+        /// </summary>
+        internal MachineId() { }
 
         /// <summary>
         /// Returns a proxy to the runtime that executes the machine with this id.
