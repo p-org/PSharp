@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.IO
     /// <summary>
     /// Logger that writes text to the console.
     /// </summary>
-    internal class ConsoleLogger : MachineLogger
+    public class ConsoleLogger : MachineLogger
     {
         /// <summary>
         /// Writes the specified string value.

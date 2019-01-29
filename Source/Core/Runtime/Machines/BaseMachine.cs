@@ -241,7 +241,7 @@ namespace Microsoft.PSharp.Runtime
         /// Initializes information about the states of the machine.
         /// </summary>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        private protected virtual async Task InitializeStateInformationAsync()
+        private async Task InitializeStateInformationAsync()
         {
             Type machineType = this.GetType();
 
@@ -389,7 +389,7 @@ namespace Microsoft.PSharp.Runtime
             this.CheckProperty(initialStates.Count != 0, $"{this.Name} must declare a start state.");
             this.CheckProperty(initialStates.Count == 1, $"{this.Name} can not declare more than one start states.");
 
-            await this.DoStatePushAsync(initialStates.Single());
+            await this.DoStatePushInternalAsync(initialStates.Single());
 
             this.CheckStateValidity();
         }
@@ -781,7 +781,15 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="state">State that is to be pushed on to the top of the stack</param>
         /// <returns>Task that represents the asynchronous operation.</returns>
-        private protected virtual Task DoStatePushAsync(MachineState state)
+        private protected virtual Task DoStatePushAsync(MachineState state) => this.DoStatePushInternalAsync(state);
+
+        /// <summary>
+        /// Configures the state transitions of the machine
+        /// when a state is pushed on to the stack.
+        /// </summary>
+        /// <param name="state">State that is to be pushed on to the top of the stack</param>
+        /// <returns>Task that represents the asynchronous operation.</returns>
+        private Task DoStatePushInternalAsync(MachineState state)
         {
             this.GotoTransitions = state.GotoTransitions;
             this.PushTransitions = state.PushTransitions;
