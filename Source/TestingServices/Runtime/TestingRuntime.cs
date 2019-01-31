@@ -792,7 +792,7 @@ namespace Microsoft.PSharp.TestingServices
             if (sender != null)
             {
                 var stateName = sender is Machine ? (sender as Machine).CurrentStateName : "";
-                this.BugTrace.AddSendEventStep(sender.Id, stateName, eventInfo, machine.Id);
+                this.BugTrace.AddSendEventStep(sender, stateName, eventInfo, machine);
                 if (base.Configuration.EnableDataRaceDetection)
                 {
                     this.Reporter.RegisterEnqueue(sender.Id, machine.Id, e, (ulong)Scheduler.ScheduledSteps);

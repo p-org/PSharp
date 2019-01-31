@@ -1891,6 +1891,12 @@ namespace Microsoft.PSharp
         {
         }
 
+        /// <summary>
+        /// User callback that is invoked to get the current machine state information.
+        /// Only used during testing for debugging purposes.
+        /// </summary>
+        protected internal virtual string GetStateInfo() => string.Empty;
+
         #endregion
 
         #region cleanup methods

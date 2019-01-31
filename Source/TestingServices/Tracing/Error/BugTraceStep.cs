@@ -68,6 +68,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal int? RandomIntegerChoice;
 
         /// <summary>
+        /// The machine state info.
+        /// </summary>
+        [DataMember]
+        internal string MachineStateInfo;
+
+        /// <summary>
+        /// The target machine state info.
+        /// </summary>
+        [DataMember]
+        internal string TargetMachineStateInfo;
+
+        /// <summary>
         /// Extra information that can be used to
         /// enhance the trace reported to the user.
         /// </summary>
@@ -96,11 +108,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="targetMachine">Target machine</param>
         /// <param name="boolChoice">Boolean choice</param>
         /// <param name="intChoice">Integer choice</param>
+        /// <param name="machineStateInfo">Machine state info</param>
+        /// <param name="targetMachineStateInfo">Target machine state info</param>
         /// <param name="extraInfo">Extra info</param>
         /// <returns>BugTraceStep</returns>
         internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
             string machineState, EventInfo eventInfo, MethodInfo action, MachineId targetMachine,
-            bool? boolChoice, int? intChoice, string extraInfo)
+            bool? boolChoice, int? intChoice, string machineStateInfo, string targetMachineStateInfo,
+            string extraInfo)
         {
             var traceStep = new BugTraceStep();
 
@@ -120,6 +135,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             traceStep.TargetMachine = targetMachine;
             traceStep.RandomBooleanChoice = boolChoice;
             traceStep.RandomIntegerChoice = intChoice;
+            traceStep.MachineStateInfo = machineStateInfo;
+            traceStep.TargetMachineStateInfo = targetMachineStateInfo;
             traceStep.ExtraInfo = extraInfo;
 
             traceStep.Previous = null;
