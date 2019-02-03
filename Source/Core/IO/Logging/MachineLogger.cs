@@ -348,14 +348,14 @@ namespace Microsoft.PSharp.IO
             Guid? operationGroupId, bool isTargetHalted)
         {
             var guid = (operationGroupId.HasValue && operationGroupId.Value != Guid.Empty) ?
-                operationGroupId.Value.ToString() : "<none>";
+                $"Operation Group {operationGroupId.Value.ToString()}: " : string.Empty;
             var target = isTargetHalted
                         ? $"a halted machine '{targetMachineId}'"
                         : $"machine '{targetMachineId}'";
             var sender = senderId != null
                 ? $"Machine '{senderId}' in state '{senderStateName}'"
-                : $"The Runtime";
-            return $"<SendLog> Operation Group {guid}: {sender} sent event '{eventName}' to {target}.";
+                : $"The runtime";
+            return $"<SendLog> {guid}{sender} sent event '{eventName}' to {target}.";
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="creator">Id of the host machine, null otherwise.</param>
         public virtual string FormatOnCreateMachineString(MachineId machineId, MachineId creator)
         {
-            var source = creator == null ? "the Runtime" : $"machine '{creator.Name}'";
+            var source = creator == null ? "the runtime" : $"machine '{creator.Name}'";
             return $"<CreateLog> Machine '{machineId}' was created by {source}.";
         }
 
@@ -448,7 +448,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="result">The random result (may be bool or int).</param>
         public virtual string FormatOnRandomString(MachineId machineId, object result)
         {
-            var source = machineId != null ? $"Machine '{machineId}'" : "Runtime";
+            var source = machineId != null ? $"Machine '{machineId}'" : "The runtime";
             return $"<RandomLog> {source} nondeterministically chose '{result}'.";
         }
 
