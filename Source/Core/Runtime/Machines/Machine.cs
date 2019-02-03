@@ -96,6 +96,13 @@ namespace Microsoft.PSharp
         /// </summary>
         protected ILogger Logger => this.RuntimeManager.Logger;
 
+        /// <summary>
+        /// True if the machine is active, else false. The machine is active if it
+        /// is able to perform a next action (e.g. an event was enqueued). If the
+        /// event handler cannot dequeue an event, then it assigns this to false.
+        /// </summary>
+        private bool IsActive;
+
         #region initialization
 
         /// <summary>
@@ -105,6 +112,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new LinkedList<EventInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
+            this.IsActive = true;
         }
 
         /// <summary>

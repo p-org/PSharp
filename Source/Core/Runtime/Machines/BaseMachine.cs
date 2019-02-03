@@ -98,13 +98,6 @@ namespace Microsoft.PSharp.Runtime
         private protected EventInfo RaisedEvent;
 
         /// <summary>
-        /// True if the machine is active, else false. The machine is active if it
-        /// is able to perform a next action (e.g. an event was enqueued). If the
-        /// event handler cannot dequeue an event, then it assigns this to false.
-        /// </summary>
-        private protected bool IsActive;
-
-        /// <summary>
         /// Is pop invoked in the current action.
         /// </summary>
         private protected bool IsPopInvoked;
@@ -217,8 +210,6 @@ namespace Microsoft.PSharp.Runtime
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
-
-            this.IsActive = true;
             this.IsPopInvoked = false;
             this.OnExceptionRequestedGracefulHalt = false;
         }
