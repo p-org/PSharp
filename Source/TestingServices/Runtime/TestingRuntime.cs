@@ -1326,7 +1326,7 @@ namespace Microsoft.PSharp.TestingServices
                     (ulong)eventInfo.SendStep);
             }
 
-            this.BugTrace.AddDequeueEventStep(machine.Id, machine.CurrentStateName, eventInfo);
+            this.BugTrace.AddDequeueEventStep(machine, machine.CurrentStateName, eventInfo);
 
             if (base.Configuration.ReportActivityCoverage)
             {
