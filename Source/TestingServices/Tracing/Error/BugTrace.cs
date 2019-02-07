@@ -108,10 +108,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="machine">Machine</param>
         /// <param name="machineState">MachineState</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal void AddDequeueEventStep(MachineId machine, string machineState, EventInfo eventInfo)
+        internal void AddDequeueEventStep(Machine machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.DequeueEvent,
-                machine, machineState, eventInfo, null, null, null, null, null, null, null);
+                machine.Id, machineState, eventInfo, null, null, null, null, machine.GetStateInfo(), null, null);
             this.Push(scheduleStep);
         }
 
@@ -264,41 +264,27 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             }
 
             // hack for now
-            int idxLastSend = this.Steps.FindLastIndex(s => s.Type == BugTraceStepType.SendEvent);
+            int idxLastSend = this.Steps.FindLastIndex(s => s.Type == BugTraceStepType.DequeueEvent);
 
             StringBuilder trace = new StringBuilder();
             trace.AppendLine("[");
             for (int i = 0; i < this.Steps.Count; i++)
             {
                 BugTraceStep step = this.Steps[i];
-                if (step.Type == BugTraceStepType.SendEvent)
+                if (step.Type == BugTraceStepType.DequeueEvent)
                 {
                     trace.AppendLine("  {");
-                    trace.AppendLine($"    \"From\": \"{step.Machine}\",");
-                    trace.AppendLine($"    \"To\": \"{step.TargetMachine}\",");
+                    trace.AppendLine($"    \"From\": \"{step.EventInfo.OriginInfo.SenderMachineId}\",");
+                    trace.AppendLine($"    \"To\": \"{step.Machine}\",");
 
-                    bool fromStateInfoExists = step.MachineStateInfo != null && step.MachineStateInfo.Length > 0;
-                    bool toStateInfoExists = step.TargetMachineStateInfo != null && step.TargetMachineStateInfo.Length > 0;
-                    trace.AppendLine($"    \"Event\": \"{step.EventInfo.EventType}\"{((fromStateInfoExists || toStateInfoExists) ? "," : "")}");
+                    bool toStateInfoExists = step.MachineStateInfo != null && step.MachineStateInfo.Length > 0;
+                    trace.AppendLine($"    \"Event\": \"{step.EventInfo.EventType}\"{(toStateInfoExists ? "," : "")}");
 
-                    if (fromStateInfoExists || toStateInfoExists)
+                    if (toStateInfoExists)
                     {
                         trace.AppendLine($"    \"State\":");
                         trace.AppendLine("    {");
-                        if (fromStateInfoExists && toStateInfoExists)
-                        {
-                            trace.AppendLine($"    \"{step.Machine}\": \"{step.MachineStateInfo}\",");
-                            trace.AppendLine($"    \"{step.TargetMachine}\": \"{step.TargetMachineStateInfo}\"");
-                        }
-                        else if (fromStateInfoExists)
-                        {
-                            trace.AppendLine($"    \"{step.Machine}\": \"{step.MachineStateInfo}\"");
-                        }
-                        else
-                        {
-                            trace.AppendLine($"    \"{step.TargetMachine}\": \"{step.TargetMachineStateInfo}\"");
-                        }
-
+                        trace.AppendLine($"    \"{step.Machine}\": \"{step.MachineStateInfo}\"");
                         trace.AppendLine("    }");
                     }
 
