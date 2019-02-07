@@ -797,7 +797,7 @@ namespace Microsoft.PSharp
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
                     // to schedule a machine when a new operation is dequeued.
-                    base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                    //base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
                 }
                 else if (defaultHandling)
                 {
@@ -823,6 +823,8 @@ namespace Microsoft.PSharp
 
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
+
+                base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
 
                 if (this.RaisedEvent == null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
                 {
