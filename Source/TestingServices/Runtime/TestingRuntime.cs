@@ -777,8 +777,7 @@ namespace Microsoft.PSharp.TestingServices
             if (sender != null && sender is Machine)
             {
                 originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().Name,
-                    (sender as Machine).CurrentState == null ? "None" : 
-                    StateGroup.GetQualifiedStateName((sender as Machine).CurrentState));
+                    GetStateNameForCoverageReport((sender as Machine).CurrentState));
             }
             else
             {
@@ -1495,6 +1494,16 @@ namespace Microsoft.PSharp.TestingServices
         #region code coverage
 
         /// <summary>
+        /// Computes the string for a state name for the coverage report
+        /// </summary>
+        /// <param name="stateType">State Type</param>
+        /// <returns></returns>
+        private string GetStateNameForCoverageReport(Type stateType)
+        {
+            return stateType == null ? "None" : StateGroup.GetQualifiedStateName(stateType);
+        }
+
+        /// <summary>
         /// Reports coverage for the specified received event.
         /// </summary>
         /// <param name="machine">Machine</param>
@@ -1505,7 +1514,7 @@ namespace Microsoft.PSharp.TestingServices
             string originState = eventInfo.OriginInfo.SenderStateName;
             string edgeLabel = eventInfo.EventType.Name;
             string destMachine = machine.GetType().Name;
-            string destState = StateGroup.GetQualifiedStateName(machine.CurrentState);
+            string destState = GetStateNameForCoverageReport(machine.CurrentState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1520,12 +1529,12 @@ namespace Microsoft.PSharp.TestingServices
         {
             string originMachine = (sender == null) ? "Env" : sender.GetType().Name;
             string originState = (sender == null) ? "Env" :
-                (sender is Machine) ? StateGroup.GetQualifiedStateName((sender as Machine).CurrentState) :
+                (sender is Machine) ? GetStateNameForCoverageReport((sender as Machine).CurrentState) :
                 "Env";
 
             string edgeLabel = e.GetType().Name;
             string destMachine = monitor.GetType().Name;
-            string destState = StateGroup.GetQualifiedStateName(monitor.CurrentState);
+            string destState = GetStateNameForCoverageReport(monitor.CurrentState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1588,7 +1597,7 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
-            string originState = StateGroup.GetQualifiedStateName(machine.CurrentState);
+            string originState = GetStateNameForCoverageReport(machine.CurrentState);
             string destMachine = machine.GetType().Name;
 
             string edgeLabel = string.Empty;
@@ -1596,23 +1605,23 @@ namespace Microsoft.PSharp.TestingServices
             if (eventInfo.Event is GotoStateEvent)
             {
                 edgeLabel = "goto";
-                destState = StateGroup.GetQualifiedStateName((eventInfo.Event as GotoStateEvent).State);
+                destState = GetStateNameForCoverageReport((eventInfo.Event as GotoStateEvent).State);
             }
             else if (eventInfo.Event is PushStateEvent)
             {
                 edgeLabel = "push";
-                destState = StateGroup.GetQualifiedStateName((eventInfo.Event as PushStateEvent).State);
+                destState = GetStateNameForCoverageReport((eventInfo.Event as PushStateEvent).State);
             }
             else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = StateGroup.GetQualifiedStateName(
+                destState = GetStateNameForCoverageReport(
                     machine.GotoTransitions[eventInfo.EventType].TargetState);
             }
             else if (machine.PushTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = StateGroup.GetQualifiedStateName(
+                destState = GetStateNameForCoverageReport(
                     machine.PushTransitions[eventInfo.EventType].TargetState);
             }
             else
@@ -1632,10 +1641,10 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
         {
             string originMachine = machine.GetType().Name;
-            string originState = StateGroup.GetQualifiedStateName(fromState);
+            string originState = GetStateNameForCoverageReport(fromState);
             string destMachine = machine.GetType().Name;
             string edgeLabel = "pop";
-            string destState = StateGroup.GetQualifiedStateName(toState);
+            string destState = GetStateNameForCoverageReport(toState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1648,7 +1657,7 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfMonitorTransition(Monitor monitor, Event e)
         {
             string originMachine = monitor.GetType().Name;
-            string originState = StateGroup.GetQualifiedStateName(monitor.CurrentState);
+            string originState = GetStateNameForCoverageReport(monitor.CurrentState);
             string destMachine = originMachine;
 
             string edgeLabel = string.Empty;
@@ -1656,12 +1665,12 @@ namespace Microsoft.PSharp.TestingServices
             if (e is GotoStateEvent)
             {
                 edgeLabel = "goto";
-                destState = StateGroup.GetQualifiedStateName((e as GotoStateEvent).State);
+                destState = GetStateNameForCoverageReport((e as GotoStateEvent).State);
             }
             else if (monitor.GotoTransitions.ContainsKey(e.GetType()))
             {
                 edgeLabel = e.GetType().Name;
-                destState = StateGroup.GetQualifiedStateName(
+                destState = GetStateNameForCoverageReport(
                     monitor.GotoTransitions[e.GetType()].TargetState);
             }
             else
