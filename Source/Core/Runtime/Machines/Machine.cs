@@ -415,7 +415,7 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
-                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+                base.Id, this.GetType().Name, Machine.GetStateNameForCoverageReport(this.CurrentState)));
             base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent);
         }
 
@@ -732,7 +732,7 @@ namespace Microsoft.PSharp
         {
             base.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
             return new EventInfo(new Default(), new EventOriginInfo(
-                base.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+                base.Id, this.GetType().Name, Machine.GetStateNameForCoverageReport(this.CurrentState)));
         }
 
         #endregion
@@ -1122,7 +1122,7 @@ namespace Microsoft.PSharp
         private async Task GotoState(Type s, string onExitActionName)
         {
             this.Logger.OnGoto(this.Id, this.CurrentStateName, 
-                $"{s.DeclaringType}.{StateGroup.GetQualifiedStateName(s)}");
+                $"{s.DeclaringType}.{Machine.GetStateNameForCoverageReport(s)}");
 
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(onExitActionName);
@@ -1748,6 +1748,14 @@ namespace Microsoft.PSharp
 
             return pairs;
         }
+
+        /// <summary>
+        /// Returns the state name to be used for reporting code coverage.
+        /// </summary>
+        /// <param name="state">The machine state.</param>
+        /// <returns>The state name.</returns>
+        internal static string GetStateNameForCoverageReport(Type state) =>
+            state == null ? "None" : StateGroup.GetQualifiedStateName(state);
 
         #endregion
 
