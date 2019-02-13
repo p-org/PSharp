@@ -293,6 +293,12 @@ namespace Microsoft.PSharp.TestingServices
                 ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
                 this.Strategy = new ReplayStrategy(this.Configuration, schedule, isFair);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Minimize)
+            {
+                var scheduleDump = this.GetScheduleForReplay(out bool isFair);
+                ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
+                this.Strategy = new MinimizationStrategy(this.Configuration, schedule, isFair);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
                 this.Strategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
@@ -359,8 +365,9 @@ namespace Microsoft.PSharp.TestingServices
                     "available in parallel testing.");
             }
 
-            if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&
-                this.Configuration.ScheduleFile.Length > 0)
+            if ( this.Configuration.SchedulingStrategy != SchedulingStrategy.Minimize
+                && this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay
+                && this.Configuration.ScheduleFile.Length > 0)
             {
                 var scheduleDump = this.GetScheduleForReplay(out bool isFair);
                 ScheduleTrace schedule = new ScheduleTrace(scheduleDump);

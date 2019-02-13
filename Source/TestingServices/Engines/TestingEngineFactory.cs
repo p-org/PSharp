@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.TestingServices.Engines;
 using System;
 using System.Reflection;
 
@@ -81,6 +82,41 @@ namespace Microsoft.PSharp.TestingServices
         {
             return ReplayEngine.Create(configuration, action);
         }
+
+
+        /// <summary>
+        /// Creates a new P# minimizer engine.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <returns>MinimizerEngine</returns>
+        public static ITestingEngine CreateMinimizerEngine(Configuration configuration)
+        {
+            return MinimizerEngine.Create(configuration);
+        }
+
+        /// <summary>
+        /// Creates a new P# minimizer engine.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        /// <returns>MinimizerEngine</returns>
+        public static ITestingEngine CreateMinimizerEngine(Configuration configuration, Assembly assembly)
+        {
+            return MinimizerEngine.Create(configuration, assembly);
+        }
+
+        /// <summary>
+        /// Creates a new P# minimizer engine.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="action">Action</param>
+        /// <returns>MinimizerEngine</returns>
+        public static ITestingEngine CreateMinimizerEngine(Configuration configuration,
+            Action<PSharpRuntime> action)
+        {
+            return MinimizerEngine.Create(configuration, action);
+        }
+        
 
         #endregion
     }

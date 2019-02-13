@@ -24,6 +24,11 @@ namespace Microsoft.PSharp.Utilities
         [EnumMember(Value = "Replay")]
         Replay,
         /// <summary>
+        /// Trace minimization scheduling.
+        /// </summary>
+        [EnumMember(Value = "Minimize")]
+        Minimize,
+        /// <summary>
         /// Portfolio scheduling.
         /// </summary>
         [EnumMember(Value = "Portfolio")]
