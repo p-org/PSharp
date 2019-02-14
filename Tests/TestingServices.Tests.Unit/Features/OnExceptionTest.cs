@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             }
         }
 
-        class Done: Event { }
+        class Done : Event { }
 
         class GetsDone : Monitor
         {
@@ -257,6 +257,27 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             protected override void OnHalt()
             {
                 this.Monitor<GetsDone>(new Done());
+            }
+        }
+
+        class M6 : Machine
+        {
+            [Start]
+            class Init : MachineState { }
+
+            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            {
+                try
+                {
+                    this.Assert(ex is UnhandledEventException);
+                    this.Send(this.Id, new E(this.Id));
+                    this.Raise(new E());
+                }
+                catch (Exception)
+                {
+                    this.Assert(false);
+                }
+                return OnExceptionOutcome.HandledException;
             }
         }
 
@@ -353,5 +374,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             AssertSucceeded(test);
         }
 
+        [Fact]
+        public void TestSendOnUnhandledEventException()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachine(typeof(M6));
+                r.SendEvent(m, new E());
+            });
+
+            AssertSucceeded(test);
+        }
     }
 }
