@@ -79,8 +79,17 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>ITestingEngine</returns>
         public override ITestingEngine Run()
         {
-            Task task = this.CreateBugFindingTask();
-            this.Execute(task);
+            try
+            {
+                Task task = this.CreateBugFindingTask();
+                this.Execute(task);
+            }
+            catch (Exception ex)
+            {
+                base.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
+                this.TestReport.InternalErrors.Add(ex.ToString());
+            }
+
             return this;
         }
 

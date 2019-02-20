@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices
         public int NumOfFoundBugs { get; internal set; }
 
         /// <summary>
-        /// List of unique bug reports.
+        /// Set of unique bug reports.
         /// </summary>
         [DataMember]
         public HashSet<string> BugReports { get; internal set; }
@@ -98,9 +98,16 @@ namespace Microsoft.PSharp.TestingServices
         public int MaxUnfairStepsHitInUnfairTests { get; internal set; }
 
         /// <summary>
+        /// Set of internal errors. If no internal errors
+        /// occurred, then this set is empty.
+        /// </summary>
+        [DataMember]
+        public HashSet<string> InternalErrors { get; internal set; }
+
+        /// <summary>
         /// Lock for the test report.
         /// </summary>
-        private object Lock;
+        private readonly object Lock;
 
         #endregion
 
@@ -127,6 +134,8 @@ namespace Microsoft.PSharp.TestingServices
             this.MaxFairStepsHitInFairTests = 0;
             this.MaxUnfairStepsHitInFairTests = 0;
             this.MaxUnfairStepsHitInUnfairTests = 0;
+
+            this.InternalErrors = new HashSet<string>();
 
             this.Lock = new object();
         }
@@ -177,6 +186,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.MaxFairStepsHitInFairTests += testReport.MaxFairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInFairTests += testReport.MaxUnfairStepsHitInFairTests;
                 this.MaxUnfairStepsHitInUnfairTests += testReport.MaxUnfairStepsHitInUnfairTests;
+
+                this.InternalErrors.UnionWith(testReport.InternalErrors);
             }
 
             return true;

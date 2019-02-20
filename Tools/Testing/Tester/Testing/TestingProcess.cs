@@ -79,9 +79,9 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Starts the P# testing process.
+        /// Runs the P# testing process.
         /// </summary>
-        internal void Start()
+        internal void Run()
         {
 #if NET46 || NET45
             // Opens the remote notification listener.
@@ -100,12 +100,13 @@ namespace Microsoft.PSharp.TestingServices
 #if NET46 || NET45
             if (this.Configuration.RunAsParallelBugFindingTask)
             {
-                if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
+                if (this.TestingEngine.TestReport.InternalErrors.Count > 0)
                 {
-                    // A bug was found, set the exit code to a non-zero error code for general processing.
-                    // See https://msdn.microsoft.com/en-gb/library/windows/desktop/ms681381(v=vs.85).aspx
-                    Environment.ExitCode = 13804;
-
+                    Environment.ExitCode = (int)ExitCode.InternalError;
+                }
+                else if (this.TestingEngine.TestReport.NumOfFoundBugs > 0)
+                {
+                    Environment.ExitCode = (int)ExitCode.BugFound;
                     this.NotifyBugFound();
                 }
 
