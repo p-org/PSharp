@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new P# testing process scheduler.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <returns>TestingProcessScheduler</returns>
+        /// <returns>The testing process scheduler.</returns>
         internal static TestingProcessScheduler Create(Configuration configuration)
         {
             return new TestingProcessScheduler(configuration);
@@ -225,9 +225,9 @@ namespace Microsoft.PSharp.TestingServices
             this.CloseNotificationListener();
 #endif
 
-            // Merges and emits the test report.
             if (!ProcessCanceled)
             {
+                // Merges and emits the test report.
                 this.EmitTestReport();
             }
         }
@@ -285,8 +285,8 @@ namespace Microsoft.PSharp.TestingServices
 
             Output.WriteLine($"... Created '1' testing task.");
 
-            // Starts the testing process.
-            testingProcess.Start();
+            // Runs the testing process.
+            testingProcess.Run();
 
             // Get and merge the test report.
             TestReport testReport = this.GetTestReport(0);
@@ -466,6 +466,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.TestReports.Count == 0)
             {
+                Environment.ExitCode = (int)ExitCode.InternalError;
                 return;
             }
 
@@ -488,6 +489,19 @@ namespace Microsoft.PSharp.TestingServices
 
             Output.WriteLine(this.GlobalTestReport.GetText(this.Configuration, "..."));
             Output.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
+
+            if (this.GlobalTestReport.InternalErrors.Count > 0)
+            {
+                Environment.ExitCode = (int)ExitCode.InternalError;
+            }
+            else if (this.GlobalTestReport.NumOfFoundBugs > 0)
+            {
+                Environment.ExitCode = (int)ExitCode.BugFound;
+            }
+            else
+            {
+                Environment.ExitCode = (int)ExitCode.Success;
+            }
         }
     }
 }

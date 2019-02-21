@@ -32,7 +32,7 @@ namespace Microsoft.PSharp
             {
                 // Creates and runs a testing process.
                 TestingProcess testingProcess = TestingProcess.Create(configuration);
-                testingProcess.Start();
+                testingProcess.Run();
                 return;
             }
 
@@ -64,6 +64,9 @@ namespace Microsoft.PSharp
             Output.WriteLine(". Done");
         }
 
+        /// <summary>
+        /// Shutdowns any active monitors.
+        /// </summary>
         static void Shutdown()
         {
 #if NET46 || NET45
@@ -76,13 +79,18 @@ namespace Microsoft.PSharp
 #endif
         }
 
+        /// <summary>
+        /// Cancels the testing process.
+        /// </summary>
         static void CancelProcess()
         {
             if (TestingProcessScheduler.ProcessCanceled)
             {
                 return;
             }
+
             TestingProcessScheduler.ProcessCanceled = true;
+
 #if NET46 || NET45
             var monitorMessage = CodeCoverageMonitor.IsRunning ? " Shutting down the code coverage monitor (this may take a few seconds)..." : string.Empty;
 #else
