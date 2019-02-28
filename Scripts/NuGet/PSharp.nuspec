@@ -2,15 +2,15 @@
 <package >
   <metadata>
     <id>Microsoft.PSharp</id>
-    <version>1.4.6</version>
+    <version>1.4.7</version>
     <authors>Microsoft</authors>
     <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>The P# language, runtime and testing infrastructure.</description>
-    <releaseNotes>This release contains the 1.4.6 version of the P# framework.</releaseNotes>
+    <description>P# is a framework for building highly-reliable asynchronous reactive software.</description>
+    <releaseNotes>This release contains the 1.4.7 version of the P# framework.</releaseNotes>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
-    <tags>asynchrony event-driven state-machines reliability specifications testing .NET</tags>
+    <tags>asynchrony event-driven reactive state-machines reliability specifications testing .NET</tags>
   </metadata>
   <files>
     <!-- .NET Standard 2.0 -->
