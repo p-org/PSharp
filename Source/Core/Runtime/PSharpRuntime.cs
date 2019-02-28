@@ -297,7 +297,7 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic boolean choice, that can be controlled
         /// during analysis or testing.
         /// </summary>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         public bool Random()
         {
             return this.GetNondeterministicBooleanChoice(null, 2);
@@ -310,7 +310,7 @@ namespace Microsoft.PSharp
         /// <param name="callerMemberName">CallerMemberName</param>
         /// <param name="callerFilePath">CallerFilePath</param>
         /// <param name="callerLineNumber">CallerLineNumber</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         public bool FairRandom(
             [CallerMemberName] string callerMemberName = "",
             [CallerFilePath] string callerFilePath = "",
@@ -318,7 +318,7 @@ namespace Microsoft.PSharp
         {
             var havocId = string.Format("Runtime_{0}_{1}_{2}", 
                 callerMemberName, callerFilePath, callerLineNumber);
-            return GetFairNondeterministicBooleanChoice(null, havocId);
+            return this.GetFairNondeterministicBooleanChoice(null, havocId);
         }
 
         /// <summary>
@@ -327,19 +327,19 @@ namespace Microsoft.PSharp
         /// in the range [0..maxValue), where 0 triggers true.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         public bool Random(int maxValue)
         {
             return this.GetNondeterministicBooleanChoice(null, maxValue);
         }
 
         /// <summary>
-        /// Returns a nondeterministic integer choice, that can be
-        /// controlled during analysis or testing. The value is used
-        /// to generate an integer in the range [0..maxValue).
+        /// Returns a nondeterministic integer, that can be controlled during
+        /// analysis or testing. The value is used to generate an integer in
+        /// the range [0..maxValue).
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
+        /// <returns>The controlled nondeterministic integer.</returns>
         public int RandomInteger(int maxValue)
         {
             return this.GetNondeterministicIntegerChoice(null, maxValue);
