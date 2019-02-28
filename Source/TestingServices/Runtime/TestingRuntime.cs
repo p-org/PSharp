@@ -1143,6 +1143,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Boolean</returns>
         internal override bool GetFairNondeterministicBooleanChoice(BaseMachine caller, string uniqueId)
         {
+            if(caller == null)
+            {
+                caller = GetCurrentMachine();
+            }
+
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
             if (caller != null && caller is Machine)
             {
