@@ -15,6 +15,7 @@
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Source\SharedObjects\SharedObjects.csproj" />
     <ProjectReference Include="..\..\..\Source\TestingServices\TestingServices.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net46'">
