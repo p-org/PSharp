@@ -296,7 +296,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             runtime.SendEvent(a, new A.E3());
             runtime.SendEvent(a, new E1());
             runtime.SendEvent(a, new E2());
-            Assert.True(tcs.Task.Wait(2000), "Test timed out");
+            Assert.True(tcs.Task.Wait(3000), "Test timed out");
         }
     }
 }

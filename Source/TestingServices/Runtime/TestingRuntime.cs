@@ -1115,9 +1115,14 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="caller">Machine</param>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         internal override bool GetNondeterministicBooleanChoice(BaseMachine caller, int maxValue)
         {
+            if (caller == null)
+            {
+                caller = this.GetCurrentMachine();
+            }
+
             this.AssertCorrectCallerMachine(caller as Machine, "Random");
             if (caller != null && caller is Machine)
             {
@@ -1129,7 +1134,7 @@ namespace Microsoft.PSharp.TestingServices
             base.Logger.OnRandom(caller?.Id, choice);
 
             var stateName = caller is Machine ? (caller as Machine).CurrentStateName : "";
-            this.BugTrace.AddRandomChoiceStep(caller == null ? null : caller.Id, stateName, choice);
+            this.BugTrace.AddRandomChoiceStep(caller?.Id, stateName, choice);
 
             return choice;
         }
@@ -1140,9 +1145,14 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="caller">Machine</param>
         /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         internal override bool GetFairNondeterministicBooleanChoice(BaseMachine caller, string uniqueId)
         {
+            if (caller == null)
+            {
+                caller = this.GetCurrentMachine();
+            }
+
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
             if (caller != null && caller is Machine)
             {
@@ -1154,20 +1164,25 @@ namespace Microsoft.PSharp.TestingServices
             base.Logger.OnRandom(caller?.Id, choice);
 
             var stateName = caller is Machine ? (caller as Machine).CurrentStateName : "";
-            this.BugTrace.AddRandomChoiceStep(caller == null ? null : caller.Id, stateName, choice);
+            this.BugTrace.AddRandomChoiceStep(caller?.Id, stateName, choice);
 
             return choice;
         }
 
         /// <summary>
-        /// Returns a nondeterministic integer choice, that can be
+        /// Returns a nondeterministic integer, that can be
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="caller">Machine</param>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
+        /// <returns>The controlled nondeterministic integer.</returns>
         internal override int GetNondeterministicIntegerChoice(BaseMachine caller, int maxValue)
         {
+            if (caller == null)
+            {
+                caller = this.GetCurrentMachine();
+            }
+
             this.AssertCorrectCallerMachine(caller as Machine, "RandomInteger");
             if (caller != null && caller is Machine)
             {
@@ -1178,7 +1193,7 @@ namespace Microsoft.PSharp.TestingServices
             base.Logger.OnRandom(caller?.Id, choice);
 
             var stateName = caller is Machine ? (caller as Machine).CurrentStateName : "";
-            this.BugTrace.AddRandomChoiceStep(caller == null ? null : caller.Id, stateName, choice);
+            this.BugTrace.AddRandomChoiceStep(caller?.Id, stateName, choice);
 
             return choice;
         }
@@ -1676,9 +1691,9 @@ namespace Microsoft.PSharp.TestingServices
         #region utilities
 
         /// <summary>
-        /// Gets the currently executing <see cref="Machine"/>.
+        /// Gets the currently executing <see cref="Machine"/>, if one exists.
         /// </summary>
-        /// <returns>Machine or null, if not present</returns>
+        /// <returns>The currently executing machine.</returns>
         internal Machine GetCurrentMachine()
         {
             //  The current task does not correspond to a machine.

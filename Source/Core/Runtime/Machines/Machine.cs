@@ -499,7 +499,7 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         protected bool Random()
         {
             return base.Runtime.GetNondeterministicBooleanChoice(this, 2);
@@ -512,7 +512,7 @@ namespace Microsoft.PSharp
         /// triggers true.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         protected bool Random(int maxValue)
         {
             return base.Runtime.GetNondeterministicBooleanChoice(this, maxValue);
@@ -525,7 +525,7 @@ namespace Microsoft.PSharp
         /// <param name="callerMemberName">CallerMemberName</param>
         /// <param name="callerFilePath">CallerFilePath</param>
         /// <param name="callerLineNumber">CallerLineNumber</param>
-        /// <returns>Boolean</returns>
+        /// <returns>The controlled nondeterministic choice.</returns>
         protected bool FairRandom(
             [CallerMemberName] string callerMemberName = "",
             [CallerFilePath] string callerFilePath = "",
@@ -537,12 +537,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic integer choice, that can be
-        /// controlled during analysis or testing. The value is used
-        /// to generate an integer in the range [0..maxValue).
+        /// Returns a nondeterministic integer, that can be controlled during
+        /// analysis or testing. The value is used to generate an integer in
+        /// the range [0..maxValue).
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
+        /// <returns>The controlled nondeterministic integer.</returns>
         protected int RandomInteger(int maxValue)
         {
             return base.Runtime.GetNondeterministicIntegerChoice(this, maxValue);
