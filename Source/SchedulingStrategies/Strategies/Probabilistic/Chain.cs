@@ -52,7 +52,27 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         internal ulong otherId; // We might need just one
 
         internal Chain chain;
-        internal bool complete; 
+        //internal bool complete; 
+
+        internal static ChainEvent FromISchedulable(ISchedulable sch)
+        {
+            ulong otherId = 0;
+            switch (sch.NextOperationType)
+            {
+                case OperationType.Receive:
+                    otherId = sch.NextOperationMatchingSendIndex;
+                    break;
+                case OperationType.Send:
+                case OperationType.Create:
+                case OperationType.Start:
+                case OperationType.Stop:
+                    otherId = sch.NextTargetId;
+                    break;
+                default:
+                    throw new Exception("OperationType not yet supported by PCTCP: " + sch.NextOperationType);
+            }
+            return new ChainEvent(sch.NextOperationType, sch.Id, otherId);
+        }
 
         internal ChainEvent(OperationType _opType, ulong _machineId, ulong _otherId)
         {
@@ -75,10 +95,20 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
         internal bool MatchSchedulable(ISchedulable sch)
         {
-            if (sch.NextOperationType == opType && sch.NextTargetId == machineId)
+            if (sch.NextOperationType == opType && sch.Id == machineId)
             {
-                return (opType == OperationType.Start
-                    || (opType == OperationType.Receive && otherId == sch.NextOperationMatchingSendIndex));  // TODO: If we have a later event that has higher priority, is it blocked or does it promote all dependencies?
+                if(opType == OperationType.Receive)
+                {
+                    return otherId == sch.NextOperationMatchingSendIndex;
+                }
+                else
+                {
+                    if(otherId != sch.NextTargetId)
+                    {
+                        throw new Exception("This isnt a necessary check");
+                    }
+                    return otherId == sch.NextTargetId;
+                }
             }
             else
             {
@@ -88,7 +118,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
         internal void MarkComplete()
         {
-            complete = true;
             chain.markCompletion(this);
         }
     }

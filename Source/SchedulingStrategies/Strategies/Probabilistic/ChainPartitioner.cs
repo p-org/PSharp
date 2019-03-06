@@ -15,13 +15,16 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
         // Chains in prioritized order
         List<Chain> prioritizedList;
-        private ulong machinesCreatedSoFar;
+        //private ulong machinesCreatedSoFar;
+        private ulong highestKnownId;
         Dictionary<ChainEvent, Chain> chainTailCache;
         Dictionary<ulong, ChainEvent> runningHandlers;
 
 
         IRandomNumberGenerator HAX_RandomNumberGenerator;
         ILogger HAX_logger;
+        private bool initialized;
+
         internal ChainPartitioner(ILogger logger, IRandomNumberGenerator randnumGen)
         {
             prioritizedList = new List<Chain>();
@@ -39,43 +42,83 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             prioritizedList.Clear();
             runningHandlers.Clear();
             chainTailCache.Clear();
+            //machinesCreatedSoFar = 0;
+            highestKnownId = 0;
+            // TestHarness machine creation is done on first call of recordChoiceEffct
+            initialized = false;
+        }
 
-            // TestHarness machine creation is automatic (?)
-            machinesCreatedSoFar = 1;
-            Chain ch = new Chain();
-            ChainEvent chEvent = new ChainEvent(OperationType.Start, 0, 0);
-            InsertIntoChain(chEvent, ch);
-            prioritizedList.Add(ch);
-            runningHandlers.Add(0, chEvent);
+        internal void recordChoiceEffect(ISchedulable currentChoice, Dictionary<ulong, ISchedulable> nextEnabledChoices, ulong scheduledSteps)
+        {
+            ChainEvent currentChainEvent = null;
+            if (!initialized)
+            {
+                
+                currentChainEvent = new ChainEvent(OperationType.Start, 0, 0);
+                Chain ch = new Chain();
+
+                InsertIntoChain(currentChainEvent, ch);
+                //Insert
+                prioritizedList.Add(ch);
+
+                runningHandlers.Add(0, currentChainEvent);
+                //machinesCreatedSoFar++;
+                highestKnownId = 1;
+                initialized = true;
+            }
+            else
+            {
+                currentChainEvent = runningHandlers[currentChoice.Id];
+            }
+
+            currentChainEvent.MarkComplete();
+
+            ChainEvent createdEvent = null;
+            // Record the effect of our choice.
+            if (currentChainEvent.opType == OperationType.Create)
+            {
+                // A start operation has to be added to the chains
+                //ulong expectedMachineId = machinesCreatedSoFar++;
+                ulong expectedMachineId = nextEnabledChoices.Where(x => x.Key > highestKnownId ).Select( x=>x.Key).Max();
+                createdEvent = new ChainEvent(OperationType.Start, expectedMachineId, expectedMachineId);
+                highestKnownId = expectedMachineId;
+            }
+            else if (currentChainEvent.opType == OperationType.Send)
+            {
+                createdEvent = new ChainEvent(OperationType.Receive, currentChainEvent.otherId, scheduledSteps);
+            }
+
             
+            ISchedulable nextStepOfCurrentSchedulable = null;
+            if (nextEnabledChoices.TryGetValue(currentChainEvent.machineId, out nextStepOfCurrentSchedulable)) {
+                if (!IsContinuation(currentChainEvent, nextStepOfCurrentSchedulable))
+                {
+                    nextStepOfCurrentSchedulable = null;
+                }
+            }
+
+            // Mark EventHandler as complete if the next step is not a continuation.
+            ChainEvent nextStepChainEvent = null;
+            if (nextStepOfCurrentSchedulable != null)
+            {
+                nextStepChainEvent = ChainEvent.FromISchedulable(nextStepOfCurrentSchedulable);
+                    //  new ChainEvent(nextStepOfCurrentSchedulable.NextOperationType, nextStepOfCurrentSchedulable.NextTargetId, 0); // Can't be anything but 0
+            }
+
+           
+            if (HAX_RandomNumberGenerator.Next(2)==0)
+            {
+                if (nextStepChainEvent != null) { InsertChainEvent(nextStepChainEvent, new List<ChainEvent> { currentChainEvent }); }
+                if (createdEvent != null) { InsertChainEvent(createdEvent, new List<ChainEvent> { currentChainEvent }); }
+            }
+            else
+            {
+                if (createdEvent != null) { InsertChainEvent(createdEvent, new List<ChainEvent> { currentChainEvent }); }
+                if (nextStepChainEvent != null) { InsertChainEvent(nextStepChainEvent, new List<ChainEvent> { currentChainEvent }); }
+            }
+
         }
-
-        internal void recordSendEvent(ISchedulable causingSchedulable, ChainEvent causingChainEvent, ulong sendStepIndex)
-        {
-            ChainEvent chainEvent = new ChainEvent(OperationType.Receive, causingSchedulable.NextTargetId, sendStepIndex);
-            InsertChainEvent(chainEvent, new List<ChainEvent> { causingChainEvent });
-
-            HAX_logger.WriteLine($"recordSendEvent {chainEvent} caused by {causingChainEvent} at sendStepIndex {sendStepIndex}");
-        }
-
-        internal void recordCreateEvent(ISchedulable causingSchedulable, ChainEvent causingChainEvent)
-        {
-            
-            ulong expectedMachineId = machinesCreatedSoFar++;
-            ChainEvent chainEvent = new ChainEvent(OperationType.Start, expectedMachineId, 0);
-            InsertChainEvent( chainEvent, new List<ChainEvent>{ causingChainEvent } );
-
-            HAX_logger.WriteLine($"recordCreateEvent {chainEvent} caused by {causingChainEvent} ");
-        }
-
-
-        internal void recordCompleteEvent(ISchedulable causingSchedulable, ChainEvent causingChainEvent)
-        {
-            // TODO: I don't see how we can tell.
-            causingChainEvent.chain.markCompletion(causingChainEvent);
-
-            HAX_logger.WriteLine($"recorCompleteEvent {causingChainEvent}");
-        }
+        
         private void InsertChainEvent(ChainEvent chainEvent, List<ChainEvent> predecessors)
         {
             // TODO: Implement this stuff properly.
@@ -84,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             // TODO: I use non-deterministic random here :|
             List<ChainEvent> possibleInsertionPoints = predecessors.Where( x => chainTailCache.ContainsKey(x) ).ToList(); 
 
-            if ( possibleInsertionPoints.Count > 0 && false ) // This might cause trouble.
+            if ( possibleInsertionPoints.Count > 0 ) // This might cause trouble.
             {
                 Chain chain = chainTailCache[possibleInsertionPoints[HAX_RandomNumberGenerator.Next(possibleInsertionPoints.Count)]];
                 InsertIntoChain(chainEvent, chain);
@@ -108,79 +151,43 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             chainEvent.chain = chain;
             chainTailCache.Add(chain.Tail, chain);
         }
-
-        internal bool GetNext(out ISchedulable next, out ChainEvent nextChainEvent, List<ISchedulable> enabledChoices, ISchedulable current)
+        
+        internal bool GetNext(out ISchedulable next, out ChainEvent nextChainEvent, Dictionary<ulong, ISchedulable> enabledMachineToSChedulable, ISchedulable current)
         {
 
-            Dictionary<ulong, ISchedulable> enabledMachineToSChedulable = new Dictionary<ulong, ISchedulable>();
-            
-            foreach (ISchedulable sc in enabledChoices)
-            {
-                // TODO: Should this be Id and not NextTargetId ?
-                switch (sc.NextOperationType)
-                {
-                    case OperationType.Create:
-                    case OperationType.Send:
-                    case OperationType.Stop:
-                        enabledMachineToSChedulable.Add(sc.Id, sc);
-                        break;
-                    case OperationType.Receive:
-                    case OperationType.Start:
-                        enabledMachineToSChedulable.Add(sc.Id, sc);
-                        break;
-                    default:
-                        throw new Exception("OperationType is not yet supported by PCTCP: " + sc.NextOperationType);
-                }
-            }
-
+            nextChainEvent = null;
+            next = null;
             foreach ( Chain chain in prioritizedList)
             {
                 ChainEvent head = chain.getHead();
                 if (head != null && enabledMachineToSChedulable.ContainsKey(head.machineId))
                 {
                     ISchedulable sch = enabledMachineToSChedulable[head.machineId];
-                    if ( IsContinuation(head, sch) ) {
-                        nextChainEvent = head;
-                        next = sch;
-                        recordHandlerContinue(head);
-                        return true;
-                    }else if (head.MatchSchedulable(sch))
+                    if (head.MatchSchedulable(sch))
                     {
                         nextChainEvent = head;
                         next = sch;
-                        recordHandlerComplete(head);
-                        recordHandlerStart(head);
-                        return true;
+                        break;
                     }
                 }
             }
 
-            nextChainEvent = null;
-            next = null;
-            throw new Exception("This should not have happened, ideally");
+            // Could do with a single variable 'ChainEvent runningChainEvent;'
+            runningHandlers[next.Id] = nextChainEvent;
+            
+
+            if (next == null)
+            {
+                throw new Exception("This should not have happened, ideally");
+            }
+            else
+            {
+                return true;
+            }
             //return false;
         }
 
-
         #region Functions to know if continuation
-        private void recordHandlerStart(ChainEvent sch)
-        {
-            runningHandlers[sch.machineId] = sch;
-        }
-
-        private void recordHandlerContinue(ChainEvent sch)
-        {
-            // Do nothing
-        }
-        private void recordHandlerComplete(ChainEvent sch)
-        {
-            if(runningHandlers.ContainsKey(sch.machineId))
-            {
-                runningHandlers[sch.machineId].MarkComplete();
-            }
-            runningHandlers.Remove(sch.machineId);
-        }
-
         private bool IsContinuation(ChainEvent head, ISchedulable sch)
         {
             if (head.machineId != sch.Id)
@@ -194,15 +201,12 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                     case OperationType.Create:
                     case OperationType.Send:
                     case OperationType.Stop:
-                        return (
-                            runningHandlers.ContainsKey(head.machineId) 
-                            && head.otherId == runningHandlers[head.machineId].otherId);
+                        return true;
                     default:
                         return false;
 
                 }
             }
-            
         }
         #endregion
     }

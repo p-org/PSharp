@@ -156,10 +156,9 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <returns>Boolean</returns>
         private bool GetNextHelper(ref ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-
-
-            var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-            if (enabledChoices.Count == 0)
+            var enabledChoicesDict = choices.Where(choice => choice.IsEnabled).ToDictionary(x => x.Id);
+            chainPartitioner.recordChoiceEffect(current, enabledChoicesDict, (ulong)GetScheduledSteps());
+            if (enabledChoicesDict.Count == 0)
             {
                 return false;
             }
@@ -170,7 +169,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             
             if (next == null)
             {
-                if (!chainPartitioner.GetNext(out highestEnabled, out highestEnabledChainEvent, enabledChoices, current))
+                if (!chainPartitioner.GetNext(out highestEnabled, out highestEnabledChainEvent, enabledChoicesDict, current))
                 {
                     // Our chain partitioner could not decide what to schedule.
                     return false;
@@ -179,17 +178,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
             next = highestEnabled;
             ScheduledSteps++;
-            // Record the effect of our choice.
-            if (next.NextOperationType == OperationType.Create)
-            {
-                // A start operation has to be added to the chains
-                chainPartitioner.recordCreateEvent(next, highestEnabledChainEvent);
-            }
-            else if (next.NextOperationType == OperationType.Send)
-            {
-                chainPartitioner.recordSendEvent(next, highestEnabledChainEvent, (ulong)GetScheduledSteps());
-            }
-            
             
             return true;
         }
