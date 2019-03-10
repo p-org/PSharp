@@ -640,8 +640,8 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.",
                 mid.Value);
 
-            this.Assert(!AllCreatedMachineIds.Contains(mid), "MachineId '{0}' of a previously halted machine cannot be reused " +
-                "to create a new machine of type {1}", mid.Value, type.FullName);
+            this.Assert(!AllCreatedMachineIds.Contains(mid), "MachineId '{0}' of a previously halted " +
+                "machine cannot be reused to create a new machine of type '{1}'", mid.Value, type.FullName);
             AllCreatedMachineIds.Add(mid);
 
             this.Logger.OnCreateMachine(mid, creator?.Id);
@@ -664,8 +664,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override void SendEvent(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
-            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId '{1}' that was never " +
-                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid);
+            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot send event '{0}' to machine id '{1}' that was never " +
+                "previously bound to a machine of type '{2}'", e.GetType().FullName, mid.Value, mid.Type);
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, mid.Value);
             var operationGroupId = base.GetNewOperationGroupId(sender, options?.OperationGroupId);
@@ -704,8 +704,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override async Task<bool> SendEventAndExecute(MachineId mid, Event e, BaseMachine sender, SendOptions options)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
-            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot Send event {0} to a MachineId ({0},{1}) that was never " +
-                "previously bound to a machine of type {2}", e.GetType().FullName, mid.Value, mid.Generation, mid);
+            this.Assert(AllCreatedMachineIds.Contains(mid), "Cannot send event '{0}' to machine id '{1}' that was never " +
+                "previously bound to a machine of type '{2}'", e.GetType().FullName, mid.Value, mid.Type);
             this.Assert(sender != null && (sender is Machine), "Only a machine can execute CreateMachineAndExecute. " +
                 "Avoid calling directly from the PSharp Test method. " +
                 "Instead call through a 'harness' machine.");

@@ -1,0 +1,270 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.PSharp.TestingServices.Tests
+{
+    public class CreateMachineIdFromNameTest : BaseTest
+    {
+        public CreateMachineIdFromNameTest(ITestOutputHelper output)
+            : base(output)
+        { }
+
+        class E : Event { }
+
+        class LivenessMonitor : Monitor
+        {
+            [Start]
+            [Hot]
+            [OnEventGotoState(typeof(E), typeof(S2))]
+            class S1 : MonitorState { }
+
+            [Hot]
+            [OnEventGotoState(typeof(E), typeof(S3))]
+            class S2 : MonitorState { }
+
+            [Cold]
+            class S3 : MonitorState { }
+        }
+
+        class M : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.Monitor(typeof(LivenessMonitor), new E());
+            }
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName1()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                var m1 = r.CreateMachine(typeof(M));
+                var m2 = r.CreateMachineIdFromName(typeof(M), "M");
+                r.Assert(!m1.Equals(m2));
+                r.CreateMachine(m2, typeof(M));
+            });
+
+            base.AssertSucceeded(test);
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName2()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(LivenessMonitor));
+                var m1 = r.CreateMachineIdFromName(typeof(M), "M1"); 
+                var m2 = r.CreateMachineIdFromName(typeof(M), "M2");
+                r.Assert(!m1.Equals(m2));
+                r.CreateMachine(m1, typeof(M));
+                r.CreateMachine(m2, typeof(M));
+            });
+
+            base.AssertSucceeded(test);
+        }
+
+        class M2 : Machine
+        {
+            [Start]
+            class S : MachineState { }
+        }
+
+        class M3 : Machine
+        {
+            [Start]
+            class S : MachineState { }
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName4()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m3 = r.CreateMachineIdFromName(typeof(M3), "M3");
+                r.CreateMachine(m3, typeof(M2));
+            });
+
+            base.AssertFailed(test, "Cannot bind machine id '' of type 'M3' to a machine of type 'M2'.", true);
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName5()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m1 = r.CreateMachineIdFromName(typeof(M2), "M2");
+                r.CreateMachine(m1, typeof(M2));
+                r.CreateMachine(m1, typeof(M2));
+            });
+
+            base.AssertFailed(test, "Machine with id '' is already bound to an existing machine.", true);
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName6()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachineIdFromName(typeof(M2), "M2");
+                r.SendEvent(m, new E());
+            });
+
+            base.AssertFailed(test, "Cannot send event 'E' to machine id '' that was never " +
+                "previously bound to a machine of type 'M2'", true);
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName7()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachineIdFromName(typeof(M2), "M2");
+                r.CreateMachine(m, typeof(M2));
+
+                // Make sure that the machine halts
+                for (int i = 0; i < 100; i++)
+                {
+                    r.SendEvent(m, new Halt());
+                }
+
+                // trying to bring up a halted machine
+                r.CreateMachine(m, typeof(M2));
+            });
+
+            base.AssertFailed(test, "MachineId '' of a previously halted machine cannot be " +
+                "reused to create a new machine of type 'M2'", false);
+        }
+
+        class E2 : Event
+        {
+            public MachineId mid;
+
+            public E2(MachineId mid)
+            {
+                this.mid = mid;
+            }
+        }
+
+        class M4 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E), nameof(Process))]
+            class S : MachineState { }
+
+            void Process()
+            {
+                this.Monitor<WaitUntilDone>(new Done());
+            }
+        }
+
+        class M5 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class S : MachineState { }
+
+            void InitOnEntry()
+            {
+                var mid = (this.ReceivedEvent as E2).mid;
+                this.Send(mid, new E());
+            }
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName8()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m = r.CreateMachineIdFromName(typeof(M4), "M4");
+                r.CreateMachine(typeof(M5), new E2(m));
+                r.CreateMachine(m, typeof(M4));
+            });
+
+            var config = Configuration.Create().WithNumberOfIterations(100);
+            config.ReductionStrategy = Utilities.ReductionStrategy.None;
+
+            base.AssertFailed(config, test, "Cannot send event 'E' to machine id '' that was never " +
+                "previously bound to a machine of type 'M4'", false);
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName9()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                var m1 = r.CreateMachineIdFromName(typeof(M4), "M4");
+                var m2 = r.CreateMachineIdFromName(typeof(M4), "M4");
+                r.Assert(m1.Equals(m2));
+            });
+
+            base.AssertSucceeded(test);
+        }
+
+        class M6 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
+                this.CreateMachine(m, typeof(M4), "friendly");
+            }
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName10()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(M6));
+                r.CreateMachine(typeof(M6));
+            });
+
+            base.AssertFailed(test, "Machine with id '' is already bound to an existing machine.", true);
+        }
+
+        class Done : Event { }
+
+        class WaitUntilDone : Monitor
+        {
+            [Start]
+            [Hot]
+            [OnEventGotoState(typeof(Done), typeof(S2))]
+            class S1 : MonitorState { }
+
+            [Cold]
+            class S2 : MonitorState { }
+        }
+
+        class M7 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            class Init : MachineState { }
+
+            async Task InitOnEntry()
+            {
+                await this.Runtime.CreateMachineAndExecute(typeof(M6));
+                var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
+                this.Runtime.SendEvent(m, new E());
+            }
+        }
+
+        [Fact]
+        public void TestCreateMachineIdFromName11()
+        {
+            var test = new Action<PSharpRuntime>((r) => {
+                r.RegisterMonitor(typeof(WaitUntilDone));
+                r.CreateMachine(typeof(M7));
+            });
+
+            base.AssertSucceeded(test);
+        }
+    }
+}

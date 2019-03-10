@@ -19,17 +19,12 @@ powershell -c .\build.ps1 -samples
 ```
 
 # Running the tests
-To run all available unit-tests, execute the following powershell script (available in the `Tests` directory):
+To run all available tests, execute the following powershell script (available in the `Scripts` directory):
 ```
-.\Tests\run-unit-tests.ps1
-```
-
-To run all available integration-tests, execute the following powershell script (available in the `Tests` directory):
-```
-.\Tests\run-integration-tests.ps1
+.\Scripts\run-tests.ps1
 ```
 
-To run only a specific category of unit-tests, use the `-test` option to specify the category name, for example:
+To run only a specific category of tests, use the `-test` option to specify the category name, for example:
 ```
-.\Tests\run-unit-tests.ps1 -test core
+.\Scripts\run-tests.ps1 -test core
 ```
