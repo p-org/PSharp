@@ -6,7 +6,7 @@
     <AssemblyName>Microsoft.PSharp.Core.Tests.Performance</AssemblyName>
     <RootNamespace>Microsoft.PSharp.Core.Tests.Performance</RootNamespace>
     <OutputType>Exe</OutputType>
-    <OutputPath>.\bin\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
     <TargetFrameworks>netcoreapp2.1;net46</TargetFrameworks>

@@ -9,7 +9,7 @@ Internally, these data structures are written so that they use fast thread-safe 
 
 At the moment, the APIs used to implement `SharedObjects` are internal to P#. They may be made available externally in the future so that users can create their own library of shared data structures.
 
-**Example**: See how [this sample](https://github.com/p-org/PSharp/blob/master/Tests/SharedObjects.Tests.Unit/Mixed/MixedProductionTest.cs#L103) shares a `SharedDictionary` object and a `SharedCounter` object between two machines that access the objects concurrently.
+**Example**: See how [this sample](https://github.com/p-org/PSharp/blob/master/Tests/SharedObjects.Tests/Mixed/MixedProductionTest.cs#L103) shares a `SharedDictionary` object and a `SharedCounter` object between two machines that access the objects concurrently.
 
 ## Important remark on using `SharedDictionary<TKey, TValue>`
 Conceptually one should think of a P# SharedObject as a wrapper around a P# machine. Thus, one needs to be careful about stashing references inside a SharedObject and treat it in the same manner as sharing references between machines. In the case of a `SharedDictionary` both key and value objects (which are passed by reference into the dictionary) should not be mutated unless first removed from the dictionary because this can lead to a data race. Consider two machines that share a `SharedDictionary` object `D`. If both machines grab the value `D[k]` at the same key `k` they will each have a reference to the same value object, creating the potential for a data race (unless the intention is to only do read operations on the value object).
