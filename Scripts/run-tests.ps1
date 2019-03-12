@@ -45,4 +45,4 @@ foreach ($kvp in $targets.GetEnumerator()) {
     }
 }
 
-Write-Comment -prefix "." -text "Done testing." -color "green"
+Write-Comment -prefix "." -text "Done" -color "green"
