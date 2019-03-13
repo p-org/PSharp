@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
                 runningHandlers.Add(0, currentChainEvent);
                 //machinesCreatedSoFar++;
-                highestKnownId = 1;
+                highestKnownId = 0;
                 initialized = true;
             }
             else
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             next = null;
             foreach ( Chain chain in prioritizedList)
             {
-                ChainEvent head = chain.getHead();
+                ChainEvent head = chain.Head;
                 if (head != null && enabledMachineToSChedulable.ContainsKey(head.machineId))
                 {
                     ISchedulable sch = enabledMachineToSChedulable[head.machineId];
@@ -167,13 +167,12 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                     {
                         nextChainEvent = head;
                         next = sch;
+
                         break;
                     }
                 }
             }
 
-            // Could do with a single variable 'ChainEvent runningChainEvent;'
-            runningHandlers[next.Id] = nextChainEvent;
             
 
             if (next == null)
@@ -182,6 +181,9 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             }
             else
             {
+
+                // Could do with a single variable 'ChainEvent runningChainEvent;'
+                runningHandlers[next.Id] = nextChainEvent;
                 return true;
             }
             //return false;
@@ -209,5 +211,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             }
         }
         #endregion
+
+        public void PrintChains(ILogger logger)
+        {
+            logger.WriteLine("<PctcpChain>: ChainPartitioner Start");
+
+            foreach (Chain c in prioritizedList)
+            {
+                c.PrintChain(logger);
+            }
+            HAX_logger.WriteLine("<PctcpChain>: ChainPartitioner End");
+
+        }
     }
 }

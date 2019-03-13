@@ -59,6 +59,8 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         private List<int> PriorityChangePoints;
 
+        private ulong lastActionSchedulingStep;
+
         /// <summary>
         /// Creates a PCT strategy that uses the default random
         /// number generator (seed is based on current time).
@@ -84,6 +86,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             MaxScheduledSteps = maxSteps;
             ScheduledSteps = 0;
             ScheduleLength = 0;
+            lastActionSchedulingStep = 0;
             MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
             PrioritizedSchedulableChoices = new List<ISchedulable>();
             PriorityChangePoints = new List<int>();
@@ -157,7 +160,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         private bool GetNextHelper(ref ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var enabledChoicesDict = choices.Where(choice => choice.IsEnabled).ToDictionary(x => x.Id);
-            chainPartitioner.recordChoiceEffect(current, enabledChoicesDict, (ulong)GetScheduledSteps());
+            chainPartitioner.recordChoiceEffect(current, enabledChoicesDict, lastActionSchedulingStep);
             if (enabledChoicesDict.Count == 0)
             {
                 return false;
@@ -178,7 +181,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
             next = highestEnabled;
             ScheduledSteps++;
-            
+            lastActionSchedulingStep = (ulong)GetScheduledSteps();
+
+            //chainPartitioner.PrintChains(Logger);
+
             return true;
         }
 
@@ -229,7 +235,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             {
                 PriorityChangePoints.Add(point);
             }
+
+
             chainPartitioner.Reset();
+            lastActionSchedulingStep = 0;
             return true;
         }
 
@@ -241,6 +250,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         {
             ScheduleLength = 0;
             ScheduledSteps = 0;
+            lastActionSchedulingStep = 0;
             PrioritizedSchedulableChoices.Clear();
             PriorityChangePoints.Clear();
             chainPartitioner.Reset();

@@ -10,8 +10,8 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     internal class Chain
     {
-        int readTill;
-        List<ChainEvent> events;
+        internal int readTill;
+        internal List<ChainEvent> events;
 
         internal ChainEvent Tail
         {
@@ -29,10 +29,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             events.Add(chainEvent);
         }
 
-        internal ChainEvent getHead()
-        {
-            return ( readTill < events.Count)? events[readTill] : null ;
-        }
+        internal ChainEvent Head { get { return (readTill < events.Count) ? events[readTill] : null; }  }
 
         internal void markCompletion(ChainEvent causingChainEvent)
         {
@@ -43,6 +40,22 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             readTill++;
         }
 
+        public void PrintChain(ILogger logger)
+        {
+            char chainSeparator = '-';
+            logger.Write("<PctcpChain>: ");
+            int ci = 0;
+            foreach (ChainEvent ce in events)
+            {
+                if (readTill == ci)
+                {
+                    chainSeparator = '=';
+                }
+                ci++;
+                logger.Write($"{chainSeparator}[{ce.machineId},{ce.opType},{ce.otherId}]{chainSeparator}");
+            }
+            logger.WriteLine("###");
+        }
     }
 
     internal class ChainEvent
