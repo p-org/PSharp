@@ -8,23 +8,23 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
     internal class EventTreeNode
     {
         #region Fields
-        internal class EventTreeNodeNonDetChoice
-        {
-            int? integerChoice;
-            bool? booleanChoice;
+        //internal class EventTreeNodeNonDetChoice
+        //{
+        //    int? integerChoice;
+        //    bool? booleanChoice;
 
-            public EventTreeNodeNonDetChoice(bool choice)
-            {
-                this.booleanChoice = choice;
-                this.integerChoice = null;
-            }
+        //    public EventTreeNodeNonDetChoice(bool choice)
+        //    {
+        //        this.booleanChoice = choice;
+        //        this.integerChoice = null;
+        //    }
 
-            public EventTreeNodeNonDetChoice(int choice)
-            {
-                this.booleanChoice = null;
-                this.integerChoice = choice;
-            }
-        }
+        //    public EventTreeNodeNonDetChoice(int choice)
+        //    {
+        //        this.booleanChoice = null;
+        //        this.integerChoice = choice;
+        //    }
+        //}
         // This tree is binary. Often it many have only one child.
         internal EventTreeNode directChild;
         internal EventTreeNode createdChild;
@@ -35,13 +35,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal ulong srcMachineId;
         internal ulong targetMachineId;
         internal ulong otherId; // MatchingSendIndex etc.
-        
+
         //List<int> integerChoices;List<bool> booleanChoices;
-        List<EventTreeNodeNonDetChoice> nonDetChoices;
+        //List<EventTreeNodeNonDetChoice> nonDetChoices;
+        List<bool> nonDetBooleanChoices;
+        List<int> nonDetIntegerChoices;
         // An explored flag which you don't have to reset between iterations. 
         // ( explored <- lastExploredIter == thisIt )
-        private int lastExploredIteration;
-        private int deletedIterationIndex;
         internal int totalOrderingIndex;
         
         #endregion
@@ -54,24 +54,27 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             this.otherId = otherId;
 
             totalOrderingIndex = -1;
-            lastExploredIteration = -1;
-            deletedIterationIndex = -1;
         }
 
 
         internal void addIntegerChoice(int choice)
         {
-            if (nonDetChoices == null)
+            //if (nonDetChoices == null)
+            //{
+            //    nonDetChoices = new List<EventTreeNodeNonDetChoice>();
+            //}
+            //nonDetChoices.Add(new EventTreeNodeNonDetChoice(choice));
+            if (nonDetIntegerChoices == null)
             {
-                nonDetChoices = new List<EventTreeNodeNonDetChoice>();
+                nonDetIntegerChoices = new List<int>();
             }
-            nonDetChoices.Add(new EventTreeNodeNonDetChoice(choice));
+            nonDetIntegerChoices.Add(choice);
         }
 
         internal void setChildren(EventTreeNode nextNode, EventTreeNode createdNode)
         {
-            nextNode.parent = this;
-            createdNode.parent = this;
+            if (nextNode != null) { nextNode.parent = this; }
+            if (createdNode != null) { createdNode.parent = this; }
 
             this.directChild = nextNode;
             this.createdChild = createdNode;
@@ -79,13 +82,50 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal void addBooleanChoice(bool choice)
         {
-            if (nonDetChoices == null)
+            //if (nonDetChoices == null)
+            //{
+            //    nonDetChoices = new List<EventTreeNodeNonDetChoice>();
+            //}
+            //nonDetChoices.Add(new EventTreeNodeNonDetChoice(choice));
+            if (nonDetIntegerChoices == null)
             {
-                nonDetChoices = new List<EventTreeNodeNonDetChoice>();
+                nonDetBooleanChoices= new List<bool>();
             }
-            nonDetChoices.Add(new EventTreeNodeNonDetChoice(choice));
+            nonDetBooleanChoices.Add(choice);
         }
-        
+
+        internal bool getBoolean(int booleanChoiceIndex, out bool nextBool)
+        {
+            if (nonDetBooleanChoices!=null && booleanChoiceIndex < nonDetBooleanChoices.Count )
+            {
+                nextBool = nonDetBooleanChoices[booleanChoiceIndex];
+                return true;
+            }
+            else
+            {
+                nextBool = false;
+                return false;
+            }
+        }
+        internal bool getInteger(int integerChoiceIndex, out int nextInt)
+        {
+            if (nonDetIntegerChoices != null && integerChoiceIndex < nonDetIntegerChoices.Count)
+            {
+                nextInt= nonDetIntegerChoices[integerChoiceIndex];
+                return true;
+            }
+            else
+            {
+                nextInt = 0;
+                return false;
+            }
+        }
+
+        internal EventTreeNode getChildEvent()
+        {
+            return directChild;
+        }
+
 
         internal bool checkEquality(ISchedulable sch)
         {
@@ -109,28 +149,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 return false;
             }
         }
-
-        #region exploration deletion bookkeeping
-        internal bool CheckAndPropagateDeleted(int currentIterationIndex)
+        /// <summary>
+        /// Prints a description
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
         {
-            this.deletedIterationIndex = parent.deletedIterationIndex;
-            return (this.deletedIterationIndex >= currentIterationIndex);
+            return $"({srcMachineId}, {opType})";
         }
-        void markExplored(int iterationIdx)
-        {
-            lastExploredIteration = iterationIdx;
-        }
-        bool isExplored(int iterationIdx)
-        {
-            return lastExploredIteration == iterationIdx;
-        }
-
-        internal EventTreeNode getChildEvent()
-        {
-            return directChild;
-        }
-        #endregion
-
     }
 
 }

@@ -123,6 +123,9 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
             Task task = new Task(() =>
             {
+                bool reachedMinimum = false;
+                MinimizationStrategy typedStrategy = (base.Strategy as MinimizationStrategy);
+                Tracing.Schedule.ScheduleTrace minimalTrace = null;
                 try
                 {
                     if (base.TestInitMethod != null)
@@ -132,6 +135,11 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     }
 
                     int maxIterations = base.Configuration.SchedulingIterations;
+
+                    
+                    bool bugFoundEveryTime = true;
+                    //TODO: Remove this
+                    maxIterations = 10;
                     for (int i = 0; i < maxIterations; i++)
                     {
                         if (this.CancellationTokenSource.IsCancellationRequested)
@@ -140,13 +148,23 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         }
 
                         // Runs a new testing iteration.
-                        this.RunNextIteration(i);
+                        bool bugFoundThisIter = this.RunNextIteration(i);
 
-                        if (!base.Strategy.PrepareForNextIteration())
+                        
+
+                        bugFoundEveryTime = bugFoundEveryTime && bugFoundThisIter;
+                        // We need to replay + randomwalk till we're convinced OR till we show recovery.
+                        bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
+                        
+                        if (!minimizationIterationCanContinue)
                         {
+                            Console.WriteLine($"Completed run for <TODO-somedescription>; bugFound={bugFoundThisIter}");
+                            
+                            reachedMinimum = true;
+                            minimalTrace = typedStrategy.getBestTrace();
                             break;
+                            // Or, Do one more sweep
                         }
-
                         // Increases iterations if there is a specified timeout
                         // and the default iteration given.
                         if (base.Configuration.SchedulingIterations == 1 &&
@@ -169,12 +187,18 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     }
                 }
+                finally
+                {
+                    
+                    Logger.WriteLine($"<MinimizationEngine> ReachedMinimum:{reachedMinimum}, " +
+                        $"bestScheduleLength={minimalTrace?.Count}");
+                }
             }, base.CancellationTokenSource.Token);
 
             return task;
         }
 
-        private void RunNextIteration(int i)
+        private bool RunNextIteration(int i)
         {
             // Runtime used to serialize and test the program.
             TestingRuntime runtime = null;
@@ -187,6 +211,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
             var stdOut = Console.Out;
             var stdErr = Console.Error;
 
+            bool foundBugInIter = false;
             try
             {
                 if (base.TestInitMethod != null)
@@ -241,6 +266,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                 Console.WriteLine(base.Strategy);
                 this.InternalError = (base.Strategy as MinimizationStrategy).ErrorText;
 
+                Console.WriteLine("Is this being done?");
                 // Checks that no monitor is in a hot state at termination. Only
                 // checked if no safety property violations have been found.
                 if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
@@ -252,6 +278,8 @@ namespace Microsoft.PSharp.TestingServices.Engines
                 {
                     base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
+
+                (base.Strategy as MinimizationStrategy).recordResult(runtime.Scheduler.BugFound, runtime.ScheduleTrace);
 
                 TestReport report = runtime.Scheduler.GetReport();
                 report.CoverageInfo.Merge(runtime.CoverageInfo);
@@ -272,11 +300,13 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     Console.SetOut(stdOut);
                     Console.SetError(stdErr);
                 }
-
+                foundBugInIter = runtime.Scheduler.BugFound;
                 // Cleans up the runtime.
                 runtimeLogger?.Dispose();
                 runtime?.Dispose();
+
             }
+            return foundBugInIter;
         }
     }
 }

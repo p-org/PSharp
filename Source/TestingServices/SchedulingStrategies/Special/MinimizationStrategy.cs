@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -24,13 +27,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The P# program schedule trace.
         /// </summary>
-        private ScheduleTrace ScheduleTrace;
+        private ScheduleTrace originalScheduleTrace;
 
         /// <summary>
         /// The suffix strategy.
         /// </summary>
         private ISchedulingStrategy SuffixStrategy;
-
+        
         /// <summary>
         /// Is the scheduler that produced the
         /// schedule trace fair?
@@ -52,6 +55,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal string ErrorText { get; private set; }
 
+
+
         #endregion
 
         #region public API
@@ -61,30 +66,44 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="trace">ScheduleTrace</param>
+        /// <param name="minimizationGuide"></param>
         /// <param name="isFair">Is scheduler fair</param>
-        public MinimizationStrategy(Configuration configuration, ScheduleTrace trace, /*List<Type> externalEventTypes, */bool isFair)
-            : this(configuration, trace, isFair, null)
+        public MinimizationStrategy(Configuration configuration, ScheduleTrace trace, IMinimizationGuide minimizationGuide, bool isFair)
+            : this(configuration, trace, minimizationGuide, isFair, null)
         { }
         /* /// <param name="externalEventTypes">Specifies a list of "external" events which are to be pruned first</param> */
-
+        
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="trace">ScheduleTrace</param>
+        /// <param name="minimizationGuide"></param>
         /// <param name="isFair">Is scheduler fair</param>
         /// <param name="suffixStrategy">The suffix strategy.</param>
-        public MinimizationStrategy(Configuration configuration, ScheduleTrace trace, bool isFair, ISchedulingStrategy suffixStrategy)
+        public MinimizationStrategy(Configuration configuration, ScheduleTrace trace, IMinimizationGuide minimizationGuide, bool isFair, ISchedulingStrategy suffixStrategy)
         {
             Configuration = configuration;
-            ScheduleTrace = trace;
+            originalScheduleTrace = trace;
             ScheduledSteps = 0;
             IsSchedulerFair = isFair;
             IsReplaying = true;
             SuffixStrategy = suffixStrategy;
             ErrorText = string.Empty;
+
+            MinimizationGuide = minimizationGuide;
+            lastDroppedEventIndex = 0;
+            //latestScheduleTrace = trace;
+
+            replayStrategy = new ReplayStrategy(configuration, trace, isFair, SuffixStrategy);
+            enterReplayMode(trace);
+            traceEditor = new TreeTraceEditor(guideTree, programModel);
+
+            //isFirstStep = true;
         }
+
+        //private bool isFirstStep;
 
         /// <summary>
         /// Returns the next choice to schedule.
@@ -97,59 +116,52 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (IsReplaying)
             {
-                var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
-                if (enabledChoices.Count == 0)
-                {
-                    next = null;
-                    return false;
-                }
+                return GetNextReplayMode(out next, choices, current);
+            }
+            else
+            {
+                return GetNextEditMode(out next, choices, current);
+                
+            }
+        }
 
-                try
-                {
-                    if (ScheduledSteps >= ScheduleTrace.Count)
-                    {
-                        ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-
-                    ScheduleStep nextStep = ScheduleTrace[ScheduledSteps];
-                    if (nextStep.Type != ScheduleStepType.SchedulingChoice)
-                    {
-                        ErrorText = "Trace is not reproducible: next step is not a scheduling choice.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-
-                    next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
-                    if (next == null)
-                    {
-                        ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-                }
-                catch (InvalidOperationException ex)
-                {
-                    if (SuffixStrategy == null)
-                    {
-                        if (!Configuration.DisableEnvironmentExit)
-                        {
-                            Error.ReportAndExit(ex.Message);
-                        }
-
-                        next = null;
-                        return false;
-                    }
-                    else
-                    {
-                        IsReplaying = false;
-                        return SuffixStrategy.GetNext(out next, choices, current);
-                    }
-                }
-
-                ScheduledSteps++;
-                return true;
+        private bool GetNextReplayMode(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            if (ConstructTree)
+            {
+                programModel.recordSchedulingChoiceResult(current, choices.ToDictionary(x => x.Id), (ulong)GetScheduledSteps());
             }
 
-            return SuffixStrategy.GetNext(out next, choices, current);
+            if (replayStrategy.GetNext(out next, choices, current)){
+
+                if (ConstructTree)
+                {
+                    programModel.recordSchedulingChoiceStart(next, (ulong)GetScheduledSteps());
+                }
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        public bool GetNextEditMode(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            if (ConstructTree)
+            {
+                programModel.recordSchedulingChoiceResult(current, choices.ToDictionary(x => x.Id), (ulong)GetScheduledSteps());
+            }
+
+            bool result = traceEditor.GetNext(out next, choices, current);
+
+            ScheduledSteps++;
+            if (result)
+            {
+                if (ConstructTree)
+                {
+                    programModel.recordSchedulingChoiceStart(next, (ulong)GetScheduledSteps());
+                }
+            }
+            return result;
         }
 
         /// <summary>
@@ -162,54 +174,50 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (IsReplaying)
             {
-                ScheduleStep nextStep = null;
+                return GetNextBooleanChoiceReplayMode(maxValue, out next);
+            }
+            else
+            {
+                return GetNextBooleanChoiceEditMode(maxValue, out next);
+            }
+        }
 
-                try
+        public bool GetNextBooleanChoiceReplayMode(int maxValue, out bool next) {
+            if (replayStrategy.GetNextBooleanChoice(maxValue, out next))
+            {
+                if (ConstructTree)
                 {
-                    if (ScheduledSteps >= ScheduleTrace.Count)
-                    {
-                        ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-
-                    nextStep = ScheduleTrace[ScheduledSteps];
-                    if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
-                    {
-                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-
-                    if (nextStep.BooleanChoice == null)
-                    {
-                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
+                    programModel.RecordBooleanChoice(next);
                 }
-                catch (InvalidOperationException ex)
-                {
-                    if (SuffixStrategy == null)
-                    {
-                        if (!Configuration.DisableEnvironmentExit)
-                        {
-                            Error.ReportAndExit(ex.Message);
-                        }
-
-                        next = false;
-                        return false;
-                    }
-                    else
-                    {
-                        IsReplaying = false;
-                        return SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
-                    }
-                }
-
-                next = nextStep.BooleanChoice.Value;
-                ScheduledSteps++;
                 return true;
             }
+            else
+            {
+                return false;
+            }
+        }
 
-            return SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
+        public bool GetNextBooleanChoiceEditMode(int maxValue, out bool next)
+        {
+            if (traceEditor.GetNextBooleanChoice(maxValue, out next))
+            {
+                ScheduledSteps++;
+                if (ConstructTree)
+                {
+                    programModel.RecordBooleanChoice(next);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            
+        }
+
+        internal ScheduleTrace getBestTrace()
+        {
+            return guideTree.getActualTrace();
         }
 
         /// <summary>
@@ -222,54 +230,43 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (IsReplaying)
             {
-                ScheduleStep nextStep = null;
+                return GetNextIntegerChoiceReplayMode(maxValue, out next);
+            }
+            else
+            {
+                return GetNextIntegerChoiceEditMode(maxValue, out next);
+            }
+        }
 
-                try
+        private bool GetNextIntegerChoiceReplayMode(int maxValue, out int next)
+        {
+            if(replayStrategy.GetNextIntegerChoice(maxValue, out next)){
+                if (ConstructTree)
                 {
-                    if (ScheduledSteps >= ScheduleTrace.Count)
-                    {
-                        ErrorText = "Trace is not reproducible: execution is longer than trace.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-
-                    nextStep = ScheduleTrace[ScheduledSteps];
-                    if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
-                    {
-                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic choice.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
-
-                    if (nextStep.IntegerChoice == null)
-                    {
-                        ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
-                        throw new InvalidOperationException(ErrorText);
-                    }
+                    programModel.RecordIntegerChoice(next);
                 }
-                catch (InvalidOperationException ex)
-                {
-                    if (SuffixStrategy == null)
-                    {
-                        if (!Configuration.DisableEnvironmentExit)
-                        {
-                            Error.ReportAndExit(ex.Message);
-                        }
-
-                        next = 0;
-                        return false;
-                    }
-                    else
-                    {
-                        IsReplaying = false;
-                        return SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
-                    }
-                }
-
-                next = nextStep.IntegerChoice.Value;
-                ScheduledSteps++;
                 return true;
             }
+            else
+            {
+                return false;
+            }
+        }
 
-            return SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
+        public bool GetNextIntegerChoiceEditMode(int maxValue, out int next) {
+            if (traceEditor.GetNextIntegerChoice(maxValue, out next))
+            {
+                ScheduledSteps++;
+                if (ConstructTree)
+                {
+                    programModel.RecordIntegerChoice(next);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -314,6 +311,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
+            replayStrategy.PrepareForNextIteration();
             ScheduledSteps = 0;
             if (SuffixStrategy != null)
             {
@@ -332,6 +330,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             ScheduledSteps = 0;
+            replayStrategy.Reset();
             SuffixStrategy?.Reset();
         }
 
@@ -341,13 +340,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Scheduled steps</returns>
         public int GetScheduledSteps()
         {
-            if (SuffixStrategy != null)
+            if (IsReplaying) // is replaying
             {
-                return ScheduledSteps + SuffixStrategy.GetScheduledSteps();
-            }
-            else
+                return replayStrategy.GetScheduledSteps();
+            }else
             {
-                return ScheduledSteps;
+                return ScheduledSteps; // I'm not even sure what this is
             }
         }
 
@@ -374,13 +372,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool IsFair()
         {
+            // TODO: This.
             if (SuffixStrategy != null)
             {
                 return SuffixStrategy.IsFair();
             }
             else
             {
-                return IsSchedulerFair;
+                return false; // Can't guarantee the edited trace is fair
             }
         }
 
@@ -398,6 +397,114 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return "Replay";
             }
+        }
+
+        #endregion
+
+
+        #region Minimization Stuff
+
+
+
+        // Minimization stuff
+        // TODO: Binary search Delta Debugging. Till then -> linear search.
+
+        // Edit mode stuff
+        private bool WasAbandoned;
+        private bool ConstructTree;
+        // Deletion
+        private int lastDroppedEventIndex;
+        private IMinimizationGuide MinimizationGuide;
+
+        // Replay mode
+        ReplayStrategy replayStrategy;
+        private const int replaysRequired = 1; // How many before we conclude we hit the bug?
+        private int replaysRemaining; // 
+
+        // Exchange between the two modes:
+        //private TreeTraceEditor candidateTrace; // Current trace being constructed / evaluated.
+        //private TreeTraceEditor bestTraceSoFar; // Smallest trace we know which reproduces. 
+        private ProgramModel programModel;
+        private TreeTraceEditor traceEditor;
+        private EventTree guideTree;
+
+        private void enterEditMode(bool bugReproduced)
+        {
+            IsReplaying = false;
+            if (bugReproduced)
+            {
+                // TODO: Rethink this in terms of program model
+                //// Swap them 
+                guideTree = programModel.getTree();
+                // Since we dropped it, We don't need to 
+            }
+            else
+            {
+                lastDroppedEventIndex++;
+            }
+            
+            programModel = new ProgramModel();
+            traceEditor.prepareForNextIteration(bugReproduced);
+            WasAbandoned = false;
+            ConstructTree = true;
+        }
+
+        private void enterReplayMode(ScheduleTrace trace)
+        {
+            IsReplaying = true;
+            //traceToReplay = trace; // Doesn't work. Make new trace
+            replayStrategy = new ReplayStrategy(Configuration, trace, IsSchedulerFair);
+            replaysRemaining = replaysRequired;
+
+            programModel = new ProgramModel();
+            ConstructTree = true;
+        }
+
+
+
+        public void recordResult(bool bugFound, ScheduleTrace scheduleTrace)
+        {
+            programModel.getTree().setActualTrace(scheduleTrace);
+            if(WasAbandoned)
+            {   // The edit went catastrophically wrong. Re-enter edit mode
+                enterEditMode(false);
+            }
+            else if (IsReplaying)
+            {   //  If we didn't get a bug, This can't be deleted.
+                if (!bugFound)
+                {
+                    enterEditMode(false);
+                }
+                else
+                {
+                    replaysRemaining--;
+                    // We were constructing. Now we've constructed. Keep it.
+                    ConstructTree = false;
+                    if (replaysRemaining == 0)
+                    {
+                        enterEditMode(true);
+                    }
+                }
+            }
+            else
+            {   // We were editing. If we did hit the bug, Just replay to confirm. Else try the next index
+                if (!bugFound)
+                {
+                    enterEditMode(false);
+                }
+                else
+                {
+
+                    //enterReplayMode(scheduleTrace);// Let's actually enter edit mode 
+                    
+                }
+            }
+        }
+
+        internal bool ShouldDeliverEvent(BaseMachine sender, Event e, Machine receiver)
+        {
+            //TODO: Properly
+            return traceEditor?.ShouldDeliverEvent(e) ?? true ;
         }
 
         #endregion

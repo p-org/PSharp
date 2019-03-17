@@ -1,4 +1,5 @@
 ﻿using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         public EventTree()
         {
             root = null;
+            totalOrdering = new List<EventTreeNode>();
         }
 
         #region Tree construction
 
         private EventTreeNode activeNode;
+        private ScheduleTrace actualTrace;
 
         public EventTreeNode getActiveNode()
         {
@@ -62,20 +65,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         public void initializeWithRoot(EventTreeNode root)
         {
             this.root = root;
-            totalOrdering.Add(root);
         }
         internal static EventTreeNode CreateStartNode(ulong creatorMachineId, ulong createdMachineId)
         {
-            return new EventTreeNode(OperationType.Start, creatorMachineId, createdMachineId, 0); 
+            return new EventTreeNode(OperationType.Start, createdMachineId, createdMachineId, 0); 
         }
 
         internal static EventTreeNode CreateReceiveNode(ulong senderMachineId, ulong receiverMachineId, ulong sendIndex)
         {
-            return new EventTreeNode(OperationType.Receive, senderMachineId, receiverMachineId, sendIndex);
+            return new EventTreeNode(OperationType.Receive, receiverMachineId, receiverMachineId, sendIndex);
         }
 
         internal static EventTreeNode CreateNodeFromISchedulable(ISchedulable sch)
-        {
+        { 
             ulong targetMachineId = 0;
             switch (sch.NextOperationType)
             {
@@ -100,6 +102,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 throw new ArgumentException(message);
             }
+        }
+
+        internal void setActualTrace(ScheduleTrace scheduleTrace)
+        {
+            this.actualTrace = scheduleTrace;
+        }
+
+        internal ScheduleTrace getActualTrace()
+        {
+            return this.actualTrace;
         }
         #endregion
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,37 +10,38 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
     internal class ProgramModel
     {
 
-        internal EventTree constructedTree;
+        internal EventTree constructTree;
 
         // Program model
         private EventTreeNode currentHandler;
+
         private ulong highestKnownId;
-        private int currentIterationIndex;
-
-        internal int totalOrderingIndex; // Index of next step to be executed
-        internal ulong actualStepsExecuted; // Count of how many steps we've actually executed ( is this even needed here? Let the strategy do it? )
-
         private Dictionary<ulong, EventTreeNode> sendIndexToReceiveEvent;
         private Dictionary<ulong, EventTreeNode> machineIdToStartEvent;
         private Dictionary<ulong, EventTreeNode> machineIdToRunningEvent;
+
+        private bool isFirstStep;
 
         public ProgramModel()
         {
             sendIndexToReceiveEvent = new Dictionary<ulong, EventTreeNode>();
             machineIdToStartEvent = new Dictionary<ulong, EventTreeNode>();
+            machineIdToRunningEvent = new Dictionary<ulong, EventTreeNode>();
+            constructTree = new EventTree();
+
+            ResetProgramModel();
         }
 
 
-        public void ResetProgramModel(int currentIterationIndex)
+        public void ResetProgramModel()
         {
-            this.currentIterationIndex = currentIterationIndex;
-
             sendIndexToReceiveEvent.Clear();
             machineIdToStartEvent.Clear();
+            machineIdToRunningEvent.Clear();
             currentHandler = null;
+            constructTree = new EventTree();
 
-            totalOrderingIndex = 0;
-            actualStepsExecuted = 0;
+            isFirstStep = true;
         }
 
         #region updates
@@ -47,25 +49,45 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             // TODO: I guess TestHarnessMachine is always 0 ?
             EventTreeNode root = EventTree.CreateStartNode(0, testHarnessMachineId);
+            constructTree.initializeWithRoot(root);
             currentHandler = root;
             highestKnownId = testHarnessMachineId;
+            constructTree.startScheduleChoice(root);
         }
 
         public void recordSchedulingChoiceStart(ISchedulable choice, ulong stepIndex)
         {
+            if( currentHandler!= null)
+            {
+                throw new ArgumentException("There is an ongoing handler");
+            }
+            if (!getTreeNodeFromISchedulable(choice, out currentHandler))
+            {
+                throw new ArgumentException("Cannot map choice back to TreeNode");
+            }
             if (currentHandler.opType == OperationType.Send)
             {
                 currentHandler.otherId = stepIndex;
             }
-            constructedTree.startScheduleChoice(currentHandler);
+
+            constructTree.startScheduleChoice(currentHandler);
 
         }
 
         public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex)
         {
-            if (!currentHandler.checkEquality(current))
+            if (isFirstStep)
+            {   // Needs some help here.
+                initializeWithTestHarnessMachine(current.Id);
+                isFirstStep = false;
+            }
+            else
             {
-                throw new ArgumentException("Current did not match CurrentHandler");
+                //if (!currentHandler.checkEquality(current)// Too strong. Current != next of last time
+                if (currentHandler.srcMachineId != current.Id )
+                {
+                    throw new ArgumentException("Current did not match CurrentHandler");
+                }
             }
 
             EventTreeNode createdNode = null;
@@ -74,17 +96,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 // A start operation has to be added to the chains
                 //ulong expectedMachineId = machinesCreatedSoFar++;
-                ulong expectedMachineId = machineToChoices.Where(x => x.Key > highestKnownId).Select(x => x.Key).Max();
-                createdNode = EventTree.CreateStartNode(currentHandler.srcMachineId, currentHandler.targetMachineId);
+                ulong expectedMachineId = machineToChoices.Where(x => x.Key > highestKnownId && x.Value.IsEnabled).Select(x => x.Key).Max();
+                createdNode = EventTree.CreateStartNode(currentHandler.srcMachineId, expectedMachineId);
 
                 highestKnownId = expectedMachineId;
-                machineIdToStartEvent.Add(createdNode.targetMachineId, createdNode);
+                machineIdToStartEvent.Add(expectedMachineId, createdNode);
 
             }
             else if (currentHandler.opType == OperationType.Send)
             {
                 createdNode = EventTree.CreateReceiveNode(currentHandler.srcMachineId, currentHandler.targetMachineId, currentHandler.otherId);
-                sendIndexToReceiveEvent.Add(createdNode.targetMachineId, createdNode);
+                sendIndexToReceiveEvent.Add(createdNode.otherId, createdNode);
             }
 
             ISchedulable nextStepOfCurrentSchedulable = null;
@@ -103,7 +125,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 nextNode = EventTree.CreateNodeFromISchedulable(nextStepOfCurrentSchedulable);
             }
 
-            constructedTree.completeScheduleChoice(currentHandler, nextNode, createdNode);
+            constructTree.completeScheduleChoice(currentHandler, nextNode, createdNode);
+            machineIdToRunningEvent[currentHandler.srcMachineId] = currentHandler;
+            currentHandler = null;
 
         }
 
@@ -175,6 +199,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             return matched;
         }
 
+        internal EventTree getTree()
+        {
+            return constructTree;
+        }
+        
+
         #endregion
+
     }
 }
