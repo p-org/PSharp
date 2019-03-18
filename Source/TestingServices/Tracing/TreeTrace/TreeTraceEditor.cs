@@ -148,7 +148,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             BestGuideTree = guideTree;
             currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
             ranOutOfEvents = false;
-            //withHeldCandidates = new HashSet<int>();
             reset();
         }
 
@@ -157,13 +156,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (bugFound)
             {
                 BestGuideTree = activeProgramModel.getTree();
-                // We need to increment because the Send event will appear regardless. We have to actively withhold it each time.
-                if (currentWithHoldCandidate != 0) // Why pollute?
-                {
-                    //withHeldCandidates.Add(currentWithHoldCandidate);
-                }
-
-
             }
             currentWithHoldCandidate++;
 
@@ -192,52 +184,40 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (currentRun.reachedEnd()){
                 return true;
             }
+            bool deliver = true;
             System.Console.WriteLine(e.GetType().FullName);
-            //if (e.GetType().FullName == "ReplicatingStorage.RepairTimer+Timeout")
             if ( eventIsCandidateToBeDropped(e) )
             {
                 eventSeenThisTime++;
-                //// TODO: Remove withHeldCandidates. It is now redundant thanks to EventTree.WithHeldSendIndices
-                //if (eventSeenThisTime == currentWithHoldCandidate || withHeldCandidates.Contains(eventSeenThisTime)|| currentRun.checkWithHeld(currentRun.activeNode))
-                //{
-                //    if (currentRun.activeNode != null ){//&& currentRun.activeNode.createdChild!=null
-                //        // No active node. This is one we don't know about.
-                //        if (currentRun.activeNode.createdChild != null)
-                //        {
-                //            currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex);
-                //            recordEventWithHeld();
-                //        }
-                //        else if(!currentRun.checkWithHeld(currentRun.activeNode))
-                //        {
-                //            // TODO: Clean this up by removing withHelCandidates in favour of tree.withheld
-                //            throw new ArgumentException("This should not happen. createdChild should be null only if it comes from the tree.");
-                //        }
-                //        recordEventWithHeld();
-                //    }
-                //    else
-                //    {   // TODO: deal with this better
-                //        throw new ArgumentException("How did we come up with an external event that isn't in the trace?");
-                //    }
 
-                //    return false;
-                //}
-                //else
-                //{
-                //    return true;
-                //}
-                if (currentRun.checkWithHeld(currentRun.activeNode) || eventSeenThisTime == currentWithHoldCandidate)
+                if (currentRun.checkWithHeld(currentRun.activeNode))
                 {
-                    recordEventWithHeld();
-                    return false;
+                    deliver = false;
+                    if (eventSeenThisTime == currentWithHoldCandidate)
+                    {
+                        // Don't waste this deletion run. It's already 
+                        currentWithHoldCandidate++;
+                    }
+
                 }
-                else
+                else if (eventSeenThisTime == currentWithHoldCandidate)
                 {
-                    return true;
+                    deliver = false;
                 }
             }
-            else
+
+            if (deliver)
             {
                 return true;
+            }
+            else
+            { 
+                if (currentRun.activeNode != null && currentRun.activeNode.createdChild != null)
+                {
+                    currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex);
+                }
+                recordEventWithHeld();
+                return false;
             }
         }
 
@@ -358,9 +338,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> enabledChoices, ulong scheduledSteps)
         {
-            // We need to delete the withheld events in the trace as well.
-            bool wasWithHeld = (currentRun.activeNode!=null && currentRun.activeNode.createdChild!=null) ? currentRun.checkDeleted(currentRun.activeNode.createdChild) : false;
-            activeProgramModel.recordSchedulingChoiceResult(current, enabledChoices, scheduledSteps, wasWithHeld);
+            activeProgramModel.recordSchedulingChoiceResult(current, enabledChoices, scheduledSteps);
         }
 
         internal void RecordIntegerChoice(int next)

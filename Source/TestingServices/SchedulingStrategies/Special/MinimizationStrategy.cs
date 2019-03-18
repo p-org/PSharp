@@ -395,7 +395,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            return GetScheduledSteps() > 2* originalTraceLength;
+            return GetScheduledSteps() >  Configuration.LivenessTemperatureThreshold + originalTraceLength;
         }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         // Replay mode
         ReplayStrategy replayStrategy;
-        private const int replaysRequired = 1; // How many before we conclude we hit the bug?
+        private const int replaysRequired = 1; // How many before we conclude we hit the bug? For future if we want more confidence of reproducing
         private int replaysRemaining; // 
 
         // Exchange between the two modes:
@@ -512,7 +512,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    enterEditMode(true);
+                    enterEditMode(true);    // For now, Assume we hit the bug - no need to verify by running multiple times.
                     //enterReplayMode(scheduleTrace);// Let's actually enter edit mode 
                     
                 }

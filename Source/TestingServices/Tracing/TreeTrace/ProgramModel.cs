@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         }
 
-        public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex, bool wasWithHeld)
+        public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex)
         {
             if (isFirstStep)
             {   // Needs some help here.
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 machineIdToStartEvent.Add(expectedMachineId, createdNode);
 
             }
-            else if (currentHandler.opType == OperationType.Send && !wasWithHeld)
+            else if (currentHandler.opType == OperationType.Send && !constructTree.checkWithHeld(currentHandler))
             {
                 createdNode = EventTree.CreateReceiveNode(currentHandler.srcMachineId, currentHandler.targetMachineId, currentHandler.otherId);
                 // The send index should mean this is never scheduled
@@ -126,12 +126,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (nextStepOfCurrentSchedulable != null)
             {
                 nextNode = EventTree.CreateNodeFromISchedulable(nextStepOfCurrentSchedulable);
-            }
-            if (wasWithHeld)
-            {
-                // Track deleted nodes, don't add them to tree or scheduler
-                deletedNodes.Add(createdNode);
-                //createdNode = null;
             }
 
             constructTree.completeScheduleChoice(currentHandler, nextNode, createdNode);
