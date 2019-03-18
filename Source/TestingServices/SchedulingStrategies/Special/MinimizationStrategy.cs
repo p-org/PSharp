@@ -221,9 +221,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             return result;
         }
 
-        internal ScheduleTrace getBestTrace()
+        internal EventTree getBestTree()
         {
-            return traceEditor.getGuideTree().getActualTrace();
+            return traceEditor.getGuideTree();
         }
 
         /// <summary>

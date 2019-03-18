@@ -313,7 +313,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         #endregion
 
         #region program model updates
-
+        
         internal void recordSchedulingChoiceStart(ISchedulable next, ulong scheduledSteps)
         {
             activeProgramModel.recordSchedulingChoiceStart(next, scheduledSteps);

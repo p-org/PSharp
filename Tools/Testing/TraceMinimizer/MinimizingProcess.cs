@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
+using System.IO;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
@@ -46,7 +48,26 @@ namespace Microsoft.PSharp
             ITestingEngine engine = TestingEngineFactory.CreateMinimizerEngine(this.Configuration);
 
             engine.Run();
+
+            this.EmitTraces(engine);
+            
+
             Output.WriteLine(engine.Report());
+        }
+
+        private void EmitTraces(ITestingEngine engine)
+        {
+            string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
+            string dir = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) + 
+                Path.DirectorySeparatorChar + "MinimizedTraces" + Path.DirectorySeparatorChar +
+                    Path.GetFileName(file) + Path.DirectorySeparatorChar; ;
+
+            // If this is a separate (sub-)process, CodeCoverageInstrumentation.OutputDirectory may not have been set up.
+            Directory.CreateDirectory(dir);
+
+            file += "_" + this.Configuration.TestingProcessId;
+            Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
+            engine.TryEmitTraces(dir, file);
         }
 
         #endregion

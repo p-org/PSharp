@@ -3,6 +3,7 @@ using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 {
@@ -112,6 +113,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal ScheduleTrace getActualTrace()
         {
             return this.actualTrace;
+        }
+
+        internal string serialize()
+        {
+            StringBuilder s = new StringBuilder();
+            foreach (EventTreeNode etn in totalOrdering)
+            {
+                s.Append(etn.serialize()).Append(Environment.NewLine); ;
+            }
+            return s.ToString();
         }
         #endregion
 

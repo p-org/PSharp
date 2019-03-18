@@ -157,6 +157,34 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             return $"({srcMachineId}, {opType})";
         }
+
+        internal string serialize()
+        {
+            StringBuilder sb = new StringBuilder();
+            int ccIndex = (createdChild == null || createdChild.totalOrderingIndex == -1) ? -1 : createdChild.totalOrderingIndex;
+            int dcIndex = (directChild== null || directChild.totalOrderingIndex == -1) ? -1 : directChild.totalOrderingIndex;
+            sb.Append($"{totalOrderingIndex}:{srcMachineId}:{targetMachineId}:{otherId}:{dcIndex}:{ccIndex}");
+
+            sb.Append(":");
+            if (nonDetIntegerChoices != null)
+            {
+                foreach (int i in nonDetIntegerChoices)
+                {
+                    sb.Append(i + ",");
+                }
+            }
+
+            sb.Append(":");
+            if (nonDetBooleanChoices != null) { 
+                foreach (bool b in nonDetBooleanChoices)
+                {
+                    sb.Append(b?"t":"f");
+                }
+            }
+
+            return sb.ToString();
+        }
+        
     }
 
 }

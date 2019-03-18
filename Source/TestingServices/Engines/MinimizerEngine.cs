@@ -7,12 +7,16 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
 
 namespace Microsoft.PSharp.TestingServices.Engines
 {
     internal sealed class MinimizerEngine : AbstractTestingEngine
     {
         private bool HAX_IsTempBug;
+        private EventTree minimalTree;
+        private bool traceEditorReachedMinimum;
 
         /// <summary>
         /// Text describing an internal replay error.
@@ -125,9 +129,9 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
             Task task = new Task(() =>
             {
-                bool reachedMinimum = false;
+                traceEditorReachedMinimum = false;
                 MinimizationStrategy typedStrategy = (base.Strategy as MinimizationStrategy);
-                Tracing.Schedule.ScheduleTrace minimalTrace = null;
+                
                 try
                 {
                     if (base.TestInitMethod != null)
@@ -141,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     
                     //bool bugFoundEveryTime = true;
                     //TODO: Remove this
-                    maxIterations = 220;
+                    maxIterations = 3;
                     for (int i = 0; i < maxIterations; i++)
                     {
                         if (this.CancellationTokenSource.IsCancellationRequested)
@@ -155,7 +159,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         //bugFoundEveryTime = bugFoundEveryTime && bugFoundThisIter;
                         if (bugFoundThisIter)
                         {
-                            minimalTrace = typedStrategy.getBestTrace();
+                            minimalTree = typedStrategy.getBestTree();
                         }
                         // We need to replay + randomwalk till we're convinced OR till we show recovery.
                         bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
@@ -165,7 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         {
                             Console.WriteLine($"Completed run for <TODO-somedescription>; bugFound={bugFoundThisIter}");
                             
-                            reachedMinimum = true;
+                            traceEditorReachedMinimum = true;
                             
                             break;
                             // Or, Do one more sweep
@@ -195,10 +199,8 @@ namespace Microsoft.PSharp.TestingServices.Engines
                 finally
                 {
                     
-                    Logger.WriteLine($"<MinimizationEngine> ReachedMinimum:{reachedMinimum}, " +
-                        $"bestScheduleLength={minimalTrace?.Count}");
-
-
+                    Logger.WriteLine($"<MinimizationEngine> ReachedMinimum:{traceEditorReachedMinimum}, " +
+                        $"bestScheduleLength={minimalTree?.totalOrdering?.Count}");
                 }
             }, base.CancellationTokenSource.Token);
 
@@ -317,5 +319,77 @@ namespace Microsoft.PSharp.TestingServices.Engines
             }
             return foundBugInIter;
         }
+
+        #region otherstuff
+        public override void TryEmitTraces(string directory, string file)
+        {   
+            StringBuilder stringBuilder = new StringBuilder();
+
+            if (this.Strategy.IsFair())
+            {
+                stringBuilder.Append("--fair-scheduling").Append(Environment.NewLine);
+            }
+
+            if (base.Configuration.EnableCycleDetection)
+            {
+                stringBuilder.Append("--cycle-detection").Append(Environment.NewLine);
+                stringBuilder.Append("--liveness-temperature-threshold:" +
+                    base.Configuration.LivenessTemperatureThreshold).
+                    Append(Environment.NewLine);
+            }
+            else
+            {
+                stringBuilder.Append("--liveness-temperature-threshold:" +
+                    base.Configuration.LivenessTemperatureThreshold).
+                    Append(Environment.NewLine);
+            }
+
+            if (!base.Configuration.TestMethodName.Equals(""))
+            {
+                stringBuilder.Append("--test-method:" +
+                    base.Configuration.TestMethodName).
+                    Append(Environment.NewLine);
+            }
+            
+            stringBuilder.Append("--reached-minimum:" + traceEditorReachedMinimum).Append(Environment.NewLine);
+            
+
+            stringBuilder.Append(minimalTree.serialize());
+            File.WriteAllText( directory+file+".mintrace" , stringBuilder.ToString());
+        }
+
+        //public void deserialize()
+        //{
+
+        //    bool isFair = false;
+        //    foreach (var line in scheduleDump)
+        //    {
+        //        if (!line.StartsWith("--"))
+        //        {
+        //            break;
+        //        }
+
+        //        if (line.Equals("--fair-scheduling"))
+        //        {
+        //            isFair = true;
+        //        }
+        //        else if (line.Equals("--cycle-detection"))
+        //        {
+        //            this.Configuration.EnableCycleDetection = true;
+        //        }
+        //        else if (line.StartsWith("--liveness-temperature-threshold:"))
+        //        {
+        //            this.Configuration.LivenessTemperatureThreshold =
+        //                Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
+        //        }
+        //        else if (line.StartsWith("--test-method:"))
+        //        {
+        //            this.Configuration.TestMethodName =
+        //                line.Substring("--test-method:".Length);
+        //        }
+        //    }
+        //}
+
+        #endregion
     }
 }
