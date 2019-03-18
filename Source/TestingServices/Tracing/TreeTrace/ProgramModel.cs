@@ -21,14 +21,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private Dictionary<ulong, EventTreeNode> machineIdToRunningEvent;
 
         private bool isFirstStep;
+        private HashSet<EventTreeNode> deletedNodes;
 
         public ProgramModel()
         {
             sendIndexToReceiveEvent = new Dictionary<ulong, EventTreeNode>();
             machineIdToStartEvent = new Dictionary<ulong, EventTreeNode>();
             machineIdToRunningEvent = new Dictionary<ulong, EventTreeNode>();
-            constructTree = new EventTree();
+            deletedNodes = new HashSet<EventTreeNode>();
 
+            constructTree = new EventTree();
+            
             ResetProgramModel();
         }
 
@@ -74,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         }
 
-        public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex)
+        public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex, bool wasWithHeld)
         {
             if (isFirstStep)
             {   // Needs some help here.
@@ -106,7 +109,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             else if (currentHandler.opType == OperationType.Send)
             {
                 createdNode = EventTree.CreateReceiveNode(currentHandler.srcMachineId, currentHandler.targetMachineId, currentHandler.otherId);
-                sendIndexToReceiveEvent.Add(createdNode.otherId, createdNode);
+                // The send index should mean this is never scheduled
+                if (!wasWithHeld)
+                {
+                    sendIndexToReceiveEvent.Add(createdNode.otherId, createdNode);
+                }
             }
 
             ISchedulable nextStepOfCurrentSchedulable = null;
@@ -123,6 +130,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (nextStepOfCurrentSchedulable != null)
             {
                 nextNode = EventTree.CreateNodeFromISchedulable(nextStepOfCurrentSchedulable);
+            }
+            if (wasWithHeld)
+            {
+                // Track deleted nodes, don't add them to tree or scheduler
+                deletedNodes.Add(createdNode);
+                //createdNode = null;
             }
 
             constructTree.completeScheduleChoice(currentHandler, nextNode, createdNode);

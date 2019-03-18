@@ -12,6 +12,8 @@ namespace Microsoft.PSharp.TestingServices.Engines
 {
     internal sealed class MinimizerEngine : AbstractTestingEngine
     {
+        private bool HAX_IsTempBug;
+
         /// <summary>
         /// Text describing an internal replay error.
         /// </summary>
@@ -137,9 +139,9 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     int maxIterations = base.Configuration.SchedulingIterations;
 
                     
-                    bool bugFoundEveryTime = true;
+                    //bool bugFoundEveryTime = true;
                     //TODO: Remove this
-                    maxIterations = 10;
+                    maxIterations = 220;
                     for (int i = 0; i < maxIterations; i++)
                     {
                         if (this.CancellationTokenSource.IsCancellationRequested)
@@ -149,19 +151,22 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
                         // Runs a new testing iteration.
                         bool bugFoundThisIter = this.RunNextIteration(i);
-
                         
-
-                        bugFoundEveryTime = bugFoundEveryTime && bugFoundThisIter;
+                        //bugFoundEveryTime = bugFoundEveryTime && bugFoundThisIter;
+                        if (bugFoundThisIter)
+                        {
+                            minimalTrace = typedStrategy.getBestTrace();
+                        }
                         // We need to replay + randomwalk till we're convinced OR till we show recovery.
                         bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
+                        Console.WriteLine($"Iteration {i} completed. bugFound={bugFoundThisIter}; HAX_IsTempBug={HAX_IsTempBug} ; TraceLength={typedStrategy.traceEditor.getGuideTree().totalOrdering.Count}; ");
                         
                         if (!minimizationIterationCanContinue)
                         {
                             Console.WriteLine($"Completed run for <TODO-somedescription>; bugFound={bugFoundThisIter}");
                             
                             reachedMinimum = true;
-                            minimalTrace = typedStrategy.getBestTrace();
+                            
                             break;
                             // Or, Do one more sweep
                         }
@@ -192,6 +197,8 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     
                     Logger.WriteLine($"<MinimizationEngine> ReachedMinimum:{reachedMinimum}, " +
                         $"bestScheduleLength={minimalTrace?.Count}");
+
+
                 }
             }, base.CancellationTokenSource.Token);
 
@@ -243,7 +250,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     Console.SetOut(writer);
                     Console.SetError(writer);
                 }
-
+                HAX_IsTempBug = false;
                 // Runs the test inside the P# test-harness machine.
                 runtime.RunTestHarness(base.TestMethod, base.TestAction);
 
@@ -263,12 +270,14 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     // Disposes the test state.
                     base.TestDisposeMethod.Invoke(null, new object[] { });
                 }
-                Console.WriteLine(base.Strategy);
+
                 this.InternalError = (base.Strategy as MinimizationStrategy).ErrorText;
 
-                Console.WriteLine("Is this being done?");
+
                 // Checks that no monitor is in a hot state at termination. Only
                 // checked if no safety property violations have been found.
+                HAX_IsTempBug = (runtime as TestingRuntime).HAX_Monitors[0].HAX_LivenessTemperature >= Configuration.LivenessTemperatureThreshold;
+
                 if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                 {
                     runtime.CheckNoMonitorInHotStateAtTermination();
@@ -280,7 +289,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                 }
 
                 (base.Strategy as MinimizationStrategy).recordResult(runtime.Scheduler.BugFound, runtime.ScheduleTrace);
-
+                
                 TestReport report = runtime.Scheduler.GetReport();
                 report.CoverageInfo.Merge(runtime.CoverageInfo);
                 this.TestReport.Merge(report);

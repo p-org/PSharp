@@ -11,24 +11,26 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
     {
 
 
-        private EventTree GuideTree;
+        private EventTree BestGuideTree;
 
         // Use as read only. Let SchedulingStrategy do updates
         // TODO: Move to TraceIteration
-        private ProgramModel activeProgramModel;
+        internal ProgramModel activeProgramModel;
 
         //private int currentIterationIndex;
 
         internal ulong actualStepsExecuted; // Count of how many steps we've actually executed ( is this even needed here? Let the strategy do it? )
 
-        HashSet<int> WithHeldEventIndices;
-        int currentWithHoldCandidate;
+        int currentWithHoldCandidate; // 1 indexed :p
+        HashSet<int> withHeldCandidates;
 
-        bool ranOutOfEvents;
+        internal bool ranOutOfEvents;
         int eventSeenThisTime;
-        TraceIteration currentRun;
+        TraceIteration currentRun; // Make private
 
-        
+
+
+
 
         // Deletion Tracking
         internal class TraceIteration {
@@ -36,17 +38,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             EventTree guideTree;
             internal int totalOrderingIndex = 0;
 
-            internal EventTreeNode activeMatch;
-            private int activeMatch_boolIndex;
-            private int activeMatch_intIndex;
+            internal EventTreeNode activeNode;
+            private int activeNode_boolIndex;
+            private int activeNode_intIndex;
             HashSet<int> deletedIndices;
+            internal int HAX_deletedCount;
 
             public TraceIteration(EventTree GuideTree)
             {
                 guideTree = GuideTree;
                 totalOrderingIndex = 0;
                 deletedIndices = new HashSet<int>();
-                setActiveMatch(null);
+                setActiveNode(null);
+                HAX_deletedCount = 0;
             }
 
             public EventTreeNode peek()
@@ -58,16 +62,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 totalOrderingIndex++;
             }
-            
+
             public void addDeletion(int index)
             {
                 deletedIndices.Add(index);
             }
             public bool checkDeleted(EventTreeNode etn)
             {
-                if (etn.parent!=null && deletedIndices.Contains(etn.parent.totalOrderingIndex))
+                if (deletedIndices.Contains(etn.totalOrderingIndex))
                 {
-                    deletedIndices.Add(etn.totalOrderingIndex);
+                    if (etn.directChild != null) { deletedIndices.Add(etn.directChild.totalOrderingIndex); }
+                    if (etn.createdChild != null) { deletedIndices.Add(etn.createdChild.totalOrderingIndex); }
                     return true;
                 }
                 else
@@ -76,18 +81,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 }
             }
 
-            public void setActiveMatch(EventTreeNode match)
+            public void setActiveNode(EventTreeNode match)
             {
-                activeMatch = match;
-                activeMatch_boolIndex = 0;
-                activeMatch_intIndex = 0;
+                activeNode = match;
+                activeNode_boolIndex = 0;
+                activeNode_intIndex = 0;
             }
             public bool getNondetBooleanChoice(out bool nextBool)
             {
 
-                if (activeMatch != null && activeMatch.getBoolean(activeMatch_boolIndex, out nextBool))
+                if (activeNode != null && activeNode.getBoolean(activeNode_boolIndex, out nextBool))
                 {
-                    activeMatch_boolIndex++;
+                    activeNode_boolIndex++;
                     return true;
                 }
                 else
@@ -100,9 +105,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             public bool getNondetIntegerChoice(out int nextInt)
             {
 
-                if (activeMatch != null && activeMatch.getInteger(activeMatch_intIndex, out nextInt))
+                if (activeNode != null && activeNode.getInteger(activeNode_intIndex, out nextInt))
                 {
-                    activeMatch_intIndex++;
+                    activeNode_intIndex++;
                     return true;
                 }
                 else
@@ -120,19 +125,25 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             internal bool reachedEnd()
             {
-                return totalOrderingIndex >= guideTree.totalOrdering.Count;
+                if(guideTree?.totalOrdering != null)
+                {
+                    return totalOrderingIndex >= guideTree.totalOrdering.Count;
+                }
+                else
+                {
+                    return false;
+                }
+                
             }
         }
 
 
-        public TreeTraceEditor(EventTree guideTree, ProgramModel programModel)
+        public TreeTraceEditor(EventTree guideTree)
         {
-            GuideTree = guideTree;
-            activeProgramModel = programModel;
-            WithHeldEventIndices = new HashSet<int>();
-            currentWithHoldCandidate = -1;
+            BestGuideTree = guideTree;
+            currentWithHoldCandidate = 0;
             ranOutOfEvents = false;
-
+            withHeldCandidates = new HashSet<int>();
             reset();
         }
 
@@ -140,88 +151,57 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             if (bugFound)
             {
-                WithHeldEventIndices.Add(currentWithHoldCandidate);
+                BestGuideTree = activeProgramModel.getTree();
+                // We need to increment because the Send event will appear regardless. We have to actively withhold it each time.
+                if (currentWithHoldCandidate != 0) // Why pollute?
+                {
+                    withHeldCandidates.Add(currentWithHoldCandidate);
+                }
+
+
             }
             currentWithHoldCandidate++;
-            ranOutOfEvents = ranOutOfEvents && (eventSeenThisTime > currentWithHoldCandidate);
+
+            ranOutOfEvents = (eventSeenThisTime < currentWithHoldCandidate);
             reset();
             return ranOutOfEvents;
         }
 
+
         public void reset()
         {
             eventSeenThisTime = 0;
-            currentRun = new TraceIteration(GuideTree);
+            currentRun = new TraceIteration(BestGuideTree);
+            activeProgramModel = new ProgramModel();
         }
 
 
-        // Queries
-        internal bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        internal EventTree getGuideTree()
         {
-            Dictionary<ulong, ISchedulable> enabledChoices = choices.Where(x=>x.IsEnabled).ToDictionary(x => x.Id);
-            // Skip everything deleted ?
-            // TODO: Can we be smarter? Check if any of the deleted ones could actually be one worth delivering
-            //      i.e., matches the enabledOne, whereas the next non-deleted one does not match (??) idk.
-            while(!currentRun.reachedEnd() && currentRun.checkDeleted(currentRun.peek()))
-            {
-                currentRun.next();
-            }
-
-            // Now we need to see if we can schedule this event. If it doesn't exist, what do we do? Ignore?
-            next = null;
-
-            bool matched = false;
-            while( !matched )
-            {
-                EventTreeNode currentNode =  currentRun.peek();
-                if (enabledChoices.ContainsKey(currentNode.srcMachineId)) {
-
-                    ISchedulable candidate = enabledChoices[currentNode.srcMachineId];
-                    EventTreeNode potentialMatch;
-                    if (activeProgramModel.getTreeNodeFromISchedulable(candidate, out potentialMatch)) {
-                        if (currentRun.coarseMatch(potentialMatch))
-                        {
-                            // It's likely a match. 
-                            currentRun.setActiveMatch(currentNode);
-                            currentRun.next();
-                            // TODO: Should we backtrack?
-                        }
-                        else
-                        {   // It's likely not the one we were looking for. 
-                            // We could always assume it is and backtrack, but better keep coarse matching coarse.
-                            // For now, just deliver this message assuming it's an added, unexpected extra.
-                            // TODO: What if it's the next one? And the one we're expecting never appears because 
-                            //  it's a hidden causal relation which got deleted :(
-                            currentRun.setActiveMatch(null); // TODO: Should this be currentNode anyway? Don't think so
-                        }
-                    }
-
-                    next = candidate;
-                    matched = true;
-                    
-                }
-                else
-                {   // The machine we expected is not here. Assume it got deleted and skip to next one ?
-                    currentRun.next();
-                }
-                
-            }
-            
-            return matched;
-        
+            return BestGuideTree;
         }
-
-
 
         internal bool ShouldDeliverEvent(Event e)
         {
             //TODO: Properly
+            if (currentRun.reachedEnd()){
+                return true;
+            }
             System.Console.WriteLine(e.GetType().FullName);
-            if (e.GetType().FullName == "Environment.TickEvent")
+            //if (e.GetType().FullName == "ReplicatingStorage.RepairTimer+Timeout")
+            if ( eventIsCandidateToBeDropped(e) )
             {
-                if (eventSeenThisTime == currentWithHoldCandidate || WithHeldEventIndices.Contains(eventSeenThisTime))
+                eventSeenThisTime++;
+                if (eventSeenThisTime == currentWithHoldCandidate || withHeldCandidates.Contains(eventSeenThisTime) )
                 {
-                    currentRun.addDeletion(currentRun.totalOrderingIndex);
+                    if (currentRun.activeNode != null //&& currentRun.activeNode.createdChild!=null
+                        ) {
+                        currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex);
+                    }
+                    else
+                    {   // TODO: deal with this better
+                        throw new ArgumentException("How did we come up with an external event that isn't in the trace?");
+                    }
                     return false;
                 }
                 else
@@ -233,6 +213,80 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 return true;
             }
+        }
+
+        internal bool reachedEnd()
+        {
+            return currentRun.reachedEnd();
+        }
+
+        private bool eventIsCandidateToBeDropped(Event e)
+        {
+            return (
+                e.GetType().FullName == "ReplicatingStorage.SyncTimer+Timeout" 
+                );
+        }
+
+
+
+        // Queries
+        #region program model queries
+        internal bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
+        {
+            Dictionary<ulong, ISchedulable> enabledChoices = choices.Where(x => x.IsEnabled).ToDictionary(x => x.Id);
+            // Skip everything deleted ?
+            // TODO: Can we be smarter? Check if any of the deleted ones could actually be one worth delivering
+            //      i.e., matches the enabledOne, whereas the next non-deleted one does not match (??) idk.
+            while (!currentRun.reachedEnd() && currentRun.checkDeleted(currentRun.peek()))
+            {
+                currentRun.HAX_deletedCount++;
+                currentRun.next();
+            }
+
+            // Now we need to see if we can schedule this event. If it doesn't exist, what do we do? Ignore?
+            next = null;
+
+            bool matched = false;
+            while (!currentRun.reachedEnd() && !matched)
+            {
+                EventTreeNode currentNode = currentRun.peek();
+                if (enabledChoices.ContainsKey(currentNode.srcMachineId))
+                {
+
+                    ISchedulable candidate = enabledChoices[currentNode.srcMachineId];
+                    EventTreeNode potentialMatch;
+                    if (activeProgramModel.getTreeNodeFromISchedulable(candidate, out potentialMatch))
+                    {
+                        if (currentRun.coarseMatch(potentialMatch))
+                        {
+                            // It's likely a match. 
+                            currentRun.setActiveNode(currentNode);
+                            currentRun.next();
+                            // TODO: Should we backtrack?
+                        }
+                        else
+                        {   // It's likely not the one we were looking for. 
+                            // We could always assume it is and backtrack, but better keep coarse matching coarse.
+                            // For now, just deliver this message assuming it's an added, unexpected extra.
+                            // TODO: What if it's the next one? And the one we're expecting never appears because 
+                            //  it's a hidden causal relation which got deleted :(
+                            currentRun.setActiveNode(null); // TODO: Should this be currentNode anyway? Don't think so
+                        }
+                    }
+
+                    next = candidate;
+                    matched = true;
+
+                }
+                else
+                {   // The machine we expected is not here. Assume it got deleted and skip to next one ?
+                    currentRun.next();
+                }
+
+            }
+
+            return matched;
+
         }
 
         internal bool GetNextBooleanChoice(int maxValue, out bool next)
@@ -256,7 +310,32 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
 
         }
+        #endregion
 
+        #region program model updates
 
+        internal void recordSchedulingChoiceStart(ISchedulable next, ulong scheduledSteps)
+        {
+            activeProgramModel.recordSchedulingChoiceStart(next, scheduledSteps);
+        }
+
+        internal void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> enabledChoices, ulong scheduledSteps)
+        {
+            // We need to delete the withheld events in the trace as well.
+            bool wasWithHeld = (currentRun.activeNode!=null && currentRun.activeNode.createdChild!=null) ? currentRun.checkDeleted(currentRun.activeNode.createdChild) : false;
+            activeProgramModel.recordSchedulingChoiceResult(current, enabledChoices, scheduledSteps, wasWithHeld);
+        }
+
+        internal void RecordIntegerChoice(int next)
+        {
+            activeProgramModel.RecordIntegerChoice(next);
+        }
+
+        internal void RecordBooleanChoice(bool next)
+        {
+            activeProgramModel.RecordBooleanChoice(next);
+        }
+
+        #endregion
     }
 }

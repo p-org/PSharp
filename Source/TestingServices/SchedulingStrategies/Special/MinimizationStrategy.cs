@@ -93,12 +93,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             ErrorText = string.Empty;
 
             MinimizationGuide = minimizationGuide;
-            lastDroppedEventIndex = 0;
-            //latestScheduleTrace = trace;
 
             replayStrategy = new ReplayStrategy(configuration, trace, isFair, SuffixStrategy);
             enterReplayMode(trace);
-            traceEditor = new TreeTraceEditor(guideTree, programModel);
+            traceEditor = new TreeTraceEditor(null);
 
             //isFirstStep = true;
         }
@@ -129,14 +127,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (ConstructTree)
             {
-                programModel.recordSchedulingChoiceResult(current, choices.ToDictionary(x => x.Id), (ulong)GetScheduledSteps());
+                traceEditor.recordSchedulingChoiceResult(current, choices.ToDictionary(x => x.Id), (ulong)GetScheduledSteps());
             }
 
             if (replayStrategy.GetNext(out next, choices, current)){
 
                 if (ConstructTree)
                 {
-                    programModel.recordSchedulingChoiceStart(next, (ulong)GetScheduledSteps());
+                    traceEditor.recordSchedulingChoiceStart(next, (ulong)GetScheduledSteps());
                 }
                 return true;
             }else{
@@ -148,19 +146,25 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (ConstructTree)
             {
-                programModel.recordSchedulingChoiceResult(current, choices.ToDictionary(x => x.Id), (ulong)GetScheduledSteps());
+                traceEditor.recordSchedulingChoiceResult(current, choices.ToDictionary(x => x.Id), (ulong)GetScheduledSteps());
             }
 
             bool result = traceEditor.GetNext(out next, choices, current);
-
-            ScheduledSteps++;
             if (result)
             {
+                ScheduledSteps++;
                 if (ConstructTree)
                 {
-                    programModel.recordSchedulingChoiceStart(next, (ulong)GetScheduledSteps());
+                    traceEditor.recordSchedulingChoiceStart(next, (ulong)GetScheduledSteps());
                 }
             }
+            else if(!result && traceEditor.reachedEnd() && SuffixStrategy!=null)
+            {
+                // Stop logging past this point
+                ConstructTree = false;
+                result = SuffixStrategy.GetNext(out next, choices, current);
+            }
+            
             return result;
         }
 
@@ -187,7 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 if (ConstructTree)
                 {
-                    programModel.RecordBooleanChoice(next);
+                    traceEditor.RecordBooleanChoice(next);
                 }
                 return true;
             }
@@ -199,25 +203,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         public bool GetNextBooleanChoiceEditMode(int maxValue, out bool next)
         {
-            if (traceEditor.GetNextBooleanChoice(maxValue, out next))
+            bool result = traceEditor.GetNextBooleanChoice(maxValue, out next);
+            if (result)
             {
                 ScheduledSteps++;
                 if (ConstructTree)
                 {
-                    programModel.RecordBooleanChoice(next);
+                    traceEditor.RecordBooleanChoice(next);
                 }
-                return true;
             }
-            else
+            else if (!result && traceEditor.reachedEnd() && SuffixStrategy != null)
             {
-                return false;
+                // Stop logging past this point
+                ConstructTree = false;
+                result = SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
             }
-            
+            return result;
         }
 
         internal ScheduleTrace getBestTrace()
         {
-            return guideTree.getActualTrace();
+            return traceEditor.getGuideTree().getActualTrace();
         }
 
         /// <summary>
@@ -243,7 +249,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if(replayStrategy.GetNextIntegerChoice(maxValue, out next)){
                 if (ConstructTree)
                 {
-                    programModel.RecordIntegerChoice(next);
+                    traceEditor.RecordIntegerChoice(next);
                 }
                 return true;
             }
@@ -254,19 +260,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         public bool GetNextIntegerChoiceEditMode(int maxValue, out int next) {
-            if (traceEditor.GetNextIntegerChoice(maxValue, out next))
+
+            bool result = traceEditor.GetNextIntegerChoice(maxValue, out next);
+            if (result)
             {
                 ScheduledSteps++;
                 if (ConstructTree)
                 {
-                    programModel.RecordIntegerChoice(next);
+                    traceEditor.RecordIntegerChoice(next);
                 }
-                return true;
             }
-            else
+            else if (!result && traceEditor.reachedEnd() && SuffixStrategy != null)
             {
-                return false;
+                // Stop logging past this point
+                ConstructTree = false;
+                result = SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
             }
+            return result;
+
         }
 
         /// <summary>
@@ -313,14 +324,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             replayStrategy.PrepareForNextIteration();
             ScheduledSteps = 0;
+            bool result = !traceEditor.ranOutOfEvents;
             if (SuffixStrategy != null)
             {
-                return SuffixStrategy.PrepareForNextIteration();
+                result = result && SuffixStrategy.PrepareForNextIteration();
             }
-            else
-            {
-                return false;
-            }
+
+            // TODO:
+            return result;
         }
 
         /// <summary>
@@ -345,7 +356,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return replayStrategy.GetScheduledSteps();
             }else
             {
-                return ScheduledSteps; // I'm not even sure what this is
+                return ScheduledSteps + (SuffixStrategy?.GetScheduledSteps()??0); // I'm not even sure what this is
             }
         }
 
@@ -356,14 +367,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            if (SuffixStrategy != null)
-            {
-                return SuffixStrategy.HasReachedMaxSchedulingSteps();
-            }
-            else
-            {
-                return false;
-            }
+            return GetScheduledSteps() > originalScheduleTrace.Count;
         }
 
         /// <summary>
@@ -413,7 +417,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private bool WasAbandoned;
         private bool ConstructTree;
         // Deletion
-        private int lastDroppedEventIndex;
         private IMinimizationGuide MinimizationGuide;
 
         // Replay mode
@@ -422,28 +425,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private int replaysRemaining; // 
 
         // Exchange between the two modes:
-        //private TreeTraceEditor candidateTrace; // Current trace being constructed / evaluated.
-        //private TreeTraceEditor bestTraceSoFar; // Smallest trace we know which reproduces. 
-        private ProgramModel programModel;
-        private TreeTraceEditor traceEditor;
-        private EventTree guideTree;
+
+        //private 
+        internal TreeTraceEditor traceEditor;
 
         private void enterEditMode(bool bugReproduced)
         {
             IsReplaying = false;
-            if (bugReproduced)
-            {
-                // TODO: Rethink this in terms of program model
-                //// Swap them 
-                guideTree = programModel.getTree();
-                // Since we dropped it, We don't need to 
-            }
-            else
-            {
-                lastDroppedEventIndex++;
-            }
-            
-            programModel = new ProgramModel();
             traceEditor.prepareForNextIteration(bugReproduced);
             WasAbandoned = false;
             ConstructTree = true;
@@ -456,7 +444,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             replayStrategy = new ReplayStrategy(Configuration, trace, IsSchedulerFair);
             replaysRemaining = replaysRequired;
 
-            programModel = new ProgramModel();
             ConstructTree = true;
         }
 
@@ -464,7 +451,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         public void recordResult(bool bugFound, ScheduleTrace scheduleTrace)
         {
-            programModel.getTree().setActualTrace(scheduleTrace);
+            traceEditor.activeProgramModel.getTree().setActualTrace(scheduleTrace);
             if(WasAbandoned)
             {   // The edit went catastrophically wrong. Re-enter edit mode
                 enterEditMode(false);
@@ -494,7 +481,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-
+                    enterEditMode(true);
                     //enterReplayMode(scheduleTrace);// Let's actually enter edit mode 
                     
                 }
@@ -503,7 +490,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         internal bool ShouldDeliverEvent(BaseMachine sender, Event e, Machine receiver)
         {
-            //TODO: Properly
             return traceEditor?.ShouldDeliverEvent(e) ?? true ;
         }
 
