@@ -295,9 +295,12 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Minimize)
             {
-                var scheduleDump = this.GetScheduleForReplay(out bool isFair);
-                ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
-                this.Strategy = new MinimizationStrategy(this.Configuration, schedule, isFair);
+                ISchedulingStrategy suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                string[] scheduleDump = this.GetScheduleForReplay(out bool isFair);    
+                //ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
+                this.Strategy = new MinimizationStrategy(this.Configuration, scheduleDump, suffixStrategy);
+                
+                
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {

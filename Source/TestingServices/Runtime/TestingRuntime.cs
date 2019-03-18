@@ -64,7 +64,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
-        private List<Monitor> Monitors;
+        internal List<Monitor> Monitors;
+        internal List<Monitor> HAX_Monitors { get { return Monitors; } }
 
         /// <summary>
         /// Map from task ids to machines.
@@ -91,6 +92,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal bool startEventHandlerCalled;
 
+        internal ISchedulingStrategy HAX_strategy;
+
         #region initialization
 
         /// <summary>
@@ -107,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices
             this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
             this.StateCache = new StateCache(this);
-
+            this.HAX_strategy = strategy;
             this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
             this.CoverageInfo = new CoverageInfo();
             this.Reporter = reporter;
@@ -241,7 +244,7 @@ namespace Microsoft.PSharp.TestingServices
 
             return this.CreateMachine(mid, type, friendlyName, e, creator, operationGroupId);
         }
-        
+
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
         /// with the specified optional <see cref="Event"/>. This event can only be
@@ -563,7 +566,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
             this.Assert(creator != null, "Only a machine can execute CreateMachineAndExecute. " +
-                "Avoid calling directly from the PSharp Test method. " + 
+                "Avoid calling directly from the PSharp Test method. " +
                 "Instead call through a 'harness' machine.");
             this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
 
@@ -777,7 +780,7 @@ namespace Microsoft.PSharp.TestingServices
             if (sender != null && sender is Machine)
             {
                 originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().Name,
-                    (sender as Machine).CurrentState == null ? "None" : 
+                    (sender as Machine).CurrentState == null ? "None" :
                     StateGroup.GetQualifiedStateName((sender as Machine).CurrentState));
             }
             else
@@ -791,20 +794,29 @@ namespace Microsoft.PSharp.TestingServices
             eventInfo.SetMustHandle(mustHandle);
 
             var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            this.Logger.OnSend(machine.Id, sender?.Id, senderState,
-                e.GetType().FullName, operationGroupId, isTargetHalted:false);
-
-            if (sender != null)
+            bool deliver = (HAX_strategy as MinimizationStrategy).ShouldDeliverEvent(sender, e, machine);
+            if (!deliver)
             {
-                var stateName = sender is Machine ? (sender as Machine).CurrentStateName : "";
-                this.BugTrace.AddSendEventStep(sender.Id, stateName, eventInfo, machine.Id);
-                if (base.Configuration.EnableDataRaceDetection)
-                {
-                    this.Reporter.RegisterEnqueue(sender.Id, machine.Id, e, (ulong)Scheduler.ScheduledSteps);
-                }
+                this.Logger.OnSend(machine.Id, sender?.Id, senderState,
+                    "__DROPPED__" + e.GetType().FullName, operationGroupId, isTargetHalted: false);
             }
+            else
+            {
+                this.Logger.OnSend(machine.Id, sender?.Id, senderState,
+                    e.GetType().FullName, operationGroupId, isTargetHalted: false);
 
-            machine.Enqueue(eventInfo, ref runNewHandler);
+                if (sender != null)
+                {
+                    var stateName = sender is Machine ? (sender as Machine).CurrentStateName : "";
+                    this.BugTrace.AddSendEventStep(sender.Id, stateName, eventInfo, machine.Id);
+                    if (base.Configuration.EnableDataRaceDetection)
+                    {
+                        this.Reporter.RegisterEnqueue(sender.Id, machine.Id, e, (ulong)Scheduler.ScheduledSteps);
+                    }
+                }
+
+                machine.Enqueue(eventInfo, ref runNewHandler);
+            }
 
             return eventInfo;
         }
@@ -1304,7 +1316,7 @@ namespace Microsoft.PSharp.TestingServices
             this.BugTrace.AddRaiseEventStep(monitor.Id, monitorState, eventInfo);
 
             this.Logger.OnMonitorEvent(monitor.GetType().Name, monitor.Id, monitor.CurrentStateName,
-                eventInfo.EventName, isProcessing:false);
+                eventInfo.EventName, isProcessing: false);
         }
 
         /// <summary>
@@ -1325,7 +1337,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
+                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
                 this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
             }
 
@@ -1403,7 +1415,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfoInInbox.SendStep;
+                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfoInInbox.SendStep;
 
                 // The event was already in the inbox when we executed a receive action.
                 // We've dequeued it by this point.
@@ -1425,17 +1437,17 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked:true);
+            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
 
             // A subsequent enqueue from m' unblocked the receive action of machine.
             if (base.Configuration.EnableDataRaceDetection)
             {
-                Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, eventInfo.Event, (ulong) eventInfo.SendStep);
+                Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, eventInfo.Event, (ulong)eventInfo.SendStep);
             }
 
             machine.Info.IsWaitingToReceive = false;
             (machine.Info as SchedulableInfo).IsEnabled = true;
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) eventInfo.SendStep;
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
 
             if (base.Configuration.ReportActivityCoverage)
             {
@@ -1460,7 +1472,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (base.IsOnEventDroppedHandlerRegistered())
             {
-                foreach(var evinfo in inbox)
+                foreach (var evinfo in inbox)
                 {
                     this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
                 }
@@ -1477,7 +1489,7 @@ namespace Microsoft.PSharp.TestingServices
             // If the default event handler fires, the next receive in NotifyDefaultHandlerFired
             // will use this as its NextOperationMatchingSendIndex.
             // If it does not fire, NextOperationMatchingSendIndex will be overwritten.
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong) this.Scheduler.ScheduledSteps;
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)this.Scheduler.ScheduledSteps;
         }
 
         /// <summary>

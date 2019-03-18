@@ -144,8 +144,6 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
                     
                     //bool bugFoundEveryTime = true;
-                    //TODO: Remove this
-                    maxIterations = 3;
                     for (int i = 0; i < maxIterations; i++)
                     {
                         if (this.CancellationTokenSource.IsCancellationRequested)
@@ -325,6 +323,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
         {   
             StringBuilder stringBuilder = new StringBuilder();
 
+            stringBuilder.Append("--is-mintrace").Append(Environment.NewLine);
             if (this.Strategy.IsFair())
             {
                 stringBuilder.Append("--fair-scheduling").Append(Environment.NewLine);
@@ -357,38 +356,6 @@ namespace Microsoft.PSharp.TestingServices.Engines
             stringBuilder.Append(minimalTree.serialize());
             File.WriteAllText( directory+file+".mintrace" , stringBuilder.ToString());
         }
-
-        //public void deserialize()
-        //{
-
-        //    bool isFair = false;
-        //    foreach (var line in scheduleDump)
-        //    {
-        //        if (!line.StartsWith("--"))
-        //        {
-        //            break;
-        //        }
-
-        //        if (line.Equals("--fair-scheduling"))
-        //        {
-        //            isFair = true;
-        //        }
-        //        else if (line.Equals("--cycle-detection"))
-        //        {
-        //            this.Configuration.EnableCycleDetection = true;
-        //        }
-        //        else if (line.StartsWith("--liveness-temperature-threshold:"))
-        //        {
-        //            this.Configuration.LivenessTemperatureThreshold =
-        //                Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
-        //        }
-        //        else if (line.StartsWith("--test-method:"))
-        //        {
-        //            this.Configuration.TestMethodName =
-        //                line.Substring("--test-method:".Length);
-        //        }
-        //    }
-        //}
 
         #endregion
     }

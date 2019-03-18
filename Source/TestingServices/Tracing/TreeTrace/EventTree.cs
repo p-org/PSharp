@@ -11,6 +11,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
     {
         internal EventTreeNode root;
         internal List<EventTreeNode> totalOrdering;
+        internal List<int> withHeldSendIndices;
+        
+        public static char[] fieldSeparator = new char[] { ':' };
+        public static char[] valueSeparator = new char[] { ',' };
 
         // Caches
 
@@ -18,6 +22,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             root = null;
             totalOrdering = new List<EventTreeNode>();
+            withHeldSendIndices = new List<int>();
         }
 
         #region Tree construction
@@ -50,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             ConsistencyAssert(node == activeNode, "Argument node does not match active node");
             node.addBooleanChoice(choice);
         }
-
+        
         public void completeScheduleChoice(EventTreeNode node, EventTreeNode nextNode, EventTreeNode createdNode)
         {
             if (node != activeNode ) {
@@ -59,6 +64,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             node.setChildren(nextNode, createdNode);
             activeNode = null;
         }
+
+        
 
         #endregion
 
@@ -75,6 +82,76 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal static EventTreeNode CreateReceiveNode(ulong senderMachineId, ulong receiverMachineId, ulong sendIndex)
         {
             return new EventTreeNode(OperationType.Receive, receiverMachineId, receiverMachineId, sendIndex);
+        }
+
+        internal int CountSteps()
+        {
+            int stepCount = 0;
+            foreach( EventTreeNode etn in totalOrdering)
+            {
+                stepCount +=
+                    1 +
+                    (etn.nonDetBooleanChoices?.Count ?? 0 )+
+                    (etn.nonDetIntegerChoices?.Count ?? 0);
+            }
+            return stepCount;
+        }
+
+        internal static EventTree FromTrace(string[] scheduleDump)
+        {
+            // We just need the withheld-indices from the meta
+            EventTree traceTree = new EventTree();
+            
+            Dictionary<int, Tuple<int, int>> children = new Dictionary<int, Tuple<int, int>>();
+            // Parse meta and create total ordering.
+            foreach (string line in scheduleDump)
+            {
+                if (line.StartsWith("--"))
+                {
+                    // Is meta
+                    if (line.StartsWith("--tree-withheldindices"))
+                    {
+                        string indices = line.Split(fieldSeparator, 2)[1];
+                        foreach(string wi in indices.Split(valueSeparator)) {
+                            int val = 0;
+                            if (wi.Length > 0 && Int32.TryParse(wi, out val))
+                            {
+                                traceTree.withHeldSendIndices.Add(val);
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
+                    // Is a step
+
+                    int createdChild = 0;
+                    int directChild = 0;
+                    EventTreeNode etn = EventTreeNode.deserialize(line, out directChild, out createdChild);
+                    children.Add(etn.totalOrderingIndex, new Tuple<int, int>(directChild, createdChild));
+                    ConsistencyAssert( (etn.totalOrderingIndex==traceTree.totalOrdering.Count), 
+                        $"Unexpected stepIndex={etn.totalOrderingIndex} in trace. Expected stepIndex={traceTree.totalOrdering.Count}");
+                    traceTree.totalOrdering.Add(etn);
+                }
+            }
+            // Now create the tree;
+            traceTree.root = traceTree.totalOrdering[0];
+            foreach (EventTreeNode etn in traceTree.totalOrdering)
+            {
+                etn.setChildren(
+                    (children[etn.totalOrderingIndex].Item1==-1)? null : traceTree.totalOrdering[children[etn.totalOrderingIndex].Item1],
+                    (children[etn.totalOrderingIndex].Item2==-1)? null : traceTree.totalOrdering[children[etn.totalOrderingIndex].Item2]
+                );
+            }
+
+            return traceTree;
+            
+        }
+
+        internal bool checkWithHeld(EventTreeNode etn)
+        {
+            return withHeldSendIndices.Contains(etn.totalOrderingIndex);
         }
 
         internal static EventTreeNode CreateNodeFromISchedulable(ISchedulable sch)
@@ -118,6 +195,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal string serialize()
         {
             StringBuilder s = new StringBuilder();
+            s.Append("--tree-withheldindices:" );
+            foreach(int wi in withHeldSendIndices)
+            {
+                s.Append(wi+",");
+            }
+            s.Append(Environment.NewLine);
+
             foreach (EventTreeNode etn in totalOrdering)
             {
                 s.Append(etn.serialize()).Append(Environment.NewLine); ;

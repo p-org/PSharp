@@ -24,10 +24,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private Configuration Configuration;
 
-        /// <summary>
-        /// The P# program schedule trace.
-        /// </summary>
-        private ScheduleTrace originalScheduleTrace;
+        private int originalTraceLength;
 
         /// <summary>
         /// The suffix strategy.
@@ -38,12 +35,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Is the scheduler that produced the
         /// schedule trace fair?
         /// </summary>
-        private bool IsSchedulerFair;
+        private bool IsOriginalSchedulerFair;
 
         /// <summary>
         /// Is the scheduler replaying the trace?
         /// </summary>
-        private bool IsReplaying;
+        private bool IsReplayingPsharpScheduleTrace;
 
         /// <summary>
         /// The number of scheduled steps.
@@ -54,6 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Text describing a replay error.
         /// </summary>
         internal string ErrorText { get; private set; }
+        public bool IsMintraceDump { get; private set; }
 
 
 
@@ -65,40 +63,70 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="trace">ScheduleTrace</param>
-        /// <param name="minimizationGuide"></param>
-        /// <param name="isFair">Is scheduler fair</param>
-        public MinimizationStrategy(Configuration configuration, ScheduleTrace trace, IMinimizationGuide minimizationGuide, bool isFair)
-            : this(configuration, trace, minimizationGuide, isFair, null)
-        { }
-        /* /// <param name="externalEventTypes">Specifies a list of "external" events which are to be pruned first</param> */
-        
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="trace">ScheduleTrace</param>
-        /// <param name="minimizationGuide"></param>
-        /// <param name="isFair">Is scheduler fair</param>
+        /// <param name="scheduleDump">scheduleDump</param>
         /// <param name="suffixStrategy">The suffix strategy.</param>
-        public MinimizationStrategy(Configuration configuration, ScheduleTrace trace, IMinimizationGuide minimizationGuide, bool isFair, ISchedulingStrategy suffixStrategy)
+        public MinimizationStrategy(Configuration configuration, string[] scheduleDump, ISchedulingStrategy suffixStrategy)
         {
             Configuration = configuration;
-            originalScheduleTrace = trace;
             ScheduledSteps = 0;
-            IsSchedulerFair = isFair;
-            IsReplaying = true;
+            
+            IsReplayingPsharpScheduleTrace = true;
+            replayStrategy = null;
             SuffixStrategy = suffixStrategy;
             ErrorText = string.Empty;
 
-            MinimizationGuide = minimizationGuide;
+            ParseScheduleDumpMeta(scheduleDump);
+            if ( IsMintraceDump )
+            {
+                // TODO: We need to create the traceEditor tree up here
+                EventTree et = EventTree.FromTrace(scheduleDump);
+                traceEditor = new TreeTraceEditor(et);
+                enterEditMode(false); // TODO: False or true?
+                originalTraceLength = et.CountSteps();
+            }
+            else
+            {
+                traceEditor = new TreeTraceEditor(null);
+                ScheduleTrace trace = new ScheduleTrace(scheduleDump);
+                enterReplayMode(trace);
+                originalTraceLength = trace.Count;
+            }
 
-            replayStrategy = new ReplayStrategy(configuration, trace, isFair, SuffixStrategy);
-            enterReplayMode(trace);
-            traceEditor = new TreeTraceEditor(null);
+        }
 
-            //isFirstStep = true;
+        private void ParseScheduleDumpMeta(string[] scheduleDump)
+        {
+            IsOriginalSchedulerFair = false;
+            IsMintraceDump = false;
+            foreach (string line in scheduleDump)
+            {
+                if (!line.StartsWith("--"))
+                {
+                    break;
+                }
+
+                if (line.Equals("--fair-scheduling"))
+                {
+                    IsOriginalSchedulerFair = true;
+                }
+                else if (line.Equals("--cycle-detection"))
+                {
+                    this.Configuration.EnableCycleDetection = true;
+                }
+                else if (line.StartsWith("--liveness-temperature-threshold:"))
+                {
+                    this.Configuration.LivenessTemperatureThreshold =
+                        Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
+                }
+                else if (line.StartsWith("--test-method:"))
+                {
+                    this.Configuration.TestMethodName =
+                        line.Substring("--test-method:".Length);
+                }else if (line.StartsWith("--is-mintrace"))
+                {
+                    IsMintraceDump = true;
+                }
+            }
         }
 
         //private bool isFirstStep;
@@ -112,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            if (IsReplaying)
+            if (IsReplayingPsharpScheduleTrace)
             {
                 return GetNextReplayMode(out next, choices, current);
             }
@@ -176,7 +204,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            if (IsReplaying)
+            if (IsReplayingPsharpScheduleTrace)
             {
                 return GetNextBooleanChoiceReplayMode(maxValue, out next);
             }
@@ -234,7 +262,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            if (IsReplaying)
+            if (IsReplayingPsharpScheduleTrace)
             {
                 return GetNextIntegerChoiceReplayMode(maxValue, out next);
             }
@@ -322,7 +350,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
-            replayStrategy.PrepareForNextIteration();
+            replayStrategy?.PrepareForNextIteration();
             ScheduledSteps = 0;
             bool result = !traceEditor.ranOutOfEvents;
             if (SuffixStrategy != null)
@@ -341,7 +369,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public void Reset()
         {
             ScheduledSteps = 0;
-            replayStrategy.Reset();
+            replayStrategy?.Reset();
             SuffixStrategy?.Reset();
         }
 
@@ -351,7 +379,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Scheduled steps</returns>
         public int GetScheduledSteps()
         {
-            if (IsReplaying) // is replaying
+            if (IsReplayingPsharpScheduleTrace) // is replaying
             {
                 return replayStrategy.GetScheduledSteps();
             }else
@@ -367,7 +395,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            return GetScheduledSteps() > originalScheduleTrace.Count;
+            return GetScheduledSteps() > 2* originalTraceLength;
         }
 
         /// <summary>
@@ -417,7 +445,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private bool WasAbandoned;
         private bool ConstructTree;
         // Deletion
-        private IMinimizationGuide MinimizationGuide;
+        //private IMinimizationGuide MinimizationGuide;
 
         // Replay mode
         ReplayStrategy replayStrategy;
@@ -431,7 +459,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private void enterEditMode(bool bugReproduced)
         {
-            IsReplaying = false;
+            IsReplayingPsharpScheduleTrace = false;
             traceEditor.prepareForNextIteration(bugReproduced);
             WasAbandoned = false;
             ConstructTree = true;
@@ -439,9 +467,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         private void enterReplayMode(ScheduleTrace trace)
         {
-            IsReplaying = true;
+            IsReplayingPsharpScheduleTrace = true;
             //traceToReplay = trace; // Doesn't work. Make new trace
-            replayStrategy = new ReplayStrategy(Configuration, trace, IsSchedulerFair);
+            replayStrategy = new ReplayStrategy(Configuration, trace, IsOriginalSchedulerFair);
+            // Don't use suffix strategy for replay
+            // replayStrategy = new ReplayStrategy(configuration, trace, IsOriginalSchedulerFair, SuffixStrategy);
+            
             replaysRemaining = replaysRequired;
 
             ConstructTree = true;
@@ -456,7 +487,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {   // The edit went catastrophically wrong. Re-enter edit mode
                 enterEditMode(false);
             }
-            else if (IsReplaying)
+            else if (IsReplayingPsharpScheduleTrace)
             {   //  If we didn't get a bug, This can't be deleted.
                 if (!bugFound)
                 {
@@ -490,7 +521,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         internal bool ShouldDeliverEvent(BaseMachine sender, Event e, Machine receiver)
         {
-            return traceEditor?.ShouldDeliverEvent(e) ?? true ;
+            if (IsReplayingPsharpScheduleTrace)
+            {
+                return true;
+            }
+            else
+            {
+                return traceEditor?.ShouldDeliverEvent(e) ?? true;
+            }
         }
 
         #endregion

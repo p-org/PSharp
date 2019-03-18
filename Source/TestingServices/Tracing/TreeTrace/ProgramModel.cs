@@ -29,7 +29,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             machineIdToStartEvent = new Dictionary<ulong, EventTreeNode>();
             machineIdToRunningEvent = new Dictionary<ulong, EventTreeNode>();
             deletedNodes = new HashSet<EventTreeNode>();
-
             constructTree = new EventTree();
             
             ResetProgramModel();
@@ -106,14 +105,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 machineIdToStartEvent.Add(expectedMachineId, createdNode);
 
             }
-            else if (currentHandler.opType == OperationType.Send)
+            else if (currentHandler.opType == OperationType.Send && !wasWithHeld)
             {
                 createdNode = EventTree.CreateReceiveNode(currentHandler.srcMachineId, currentHandler.targetMachineId, currentHandler.otherId);
                 // The send index should mean this is never scheduled
-                if (!wasWithHeld)
-                {
-                    sendIndexToReceiveEvent.Add(createdNode.otherId, createdNode);
-                }
+                sendIndexToReceiveEvent.Add(createdNode.otherId, createdNode);
             }
 
             ISchedulable nextStepOfCurrentSchedulable = null;
@@ -153,6 +149,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             currentHandler.addBooleanChoice(choice);
         }
+
+
+        internal void recordEventWithHeld()
+        {
+            constructTree.withHeldSendIndices.Add(currentHandler.totalOrderingIndex);
+        }
+
         #endregion
 
         #region ischedulable matching
@@ -216,7 +219,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             return constructTree;
         }
-        
+
 
         #endregion
 

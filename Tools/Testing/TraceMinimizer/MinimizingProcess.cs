@@ -57,7 +57,10 @@ namespace Microsoft.PSharp
 
         private void EmitTraces(ITestingEngine engine)
         {
-            string file = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
+            
+            string file = Path.GetFileNameWithoutExtension(
+                (this.Configuration.ScheduleFile.Equals("")) ? this.Configuration.AssemblyToBeAnalyzed : this.Configuration.ScheduleFile
+            );
             string dir = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) + 
                 Path.DirectorySeparatorChar + "MinimizedTraces" + Path.DirectorySeparatorChar +
                     Path.GetFileName(file) + Path.DirectorySeparatorChar; ;
@@ -65,8 +68,9 @@ namespace Microsoft.PSharp
             // If this is a separate (sub-)process, CodeCoverageInstrumentation.OutputDirectory may not have been set up.
             Directory.CreateDirectory(dir);
 
-            file += "_" + this.Configuration.TestingProcessId;
-            Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces:");
+            file += "_" + this.Configuration.TestingProcessId + "_"+ DateTime.Now.Millisecond;
+            Output.WriteLine($"... Emitting task {this.Configuration.TestingProcessId} traces to: " 
+                + dir +  file + ".*" );
             engine.TryEmitTraces(dir, file);
         }
 

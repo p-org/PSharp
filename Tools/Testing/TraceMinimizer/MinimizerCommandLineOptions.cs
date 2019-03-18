@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.Utilities
             else if (this.IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(8));
-                if (!extension.Equals(".schedule"))
+                if (!extension.Equals(".schedule") && !extension.Equals(".mintrace"))
                 {
                     Error.ReportAndExit("Please give a valid schedule file " +
                         "'-replay:[x]', where [x] has extension '.schedule'.");
@@ -58,6 +58,17 @@ namespace Microsoft.PSharp.Utilities
             else if (this.IsMatch(option, @"^[\/|-]custom-state-hashing$"))
             {
                 base.Configuration.EnableUserDefinedStateHashing = true;
+            }
+            else if (this.IsMatch(option, @"^[\/|-]i:") && option.Length > 3)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(3), out i) && i > 0)
+                {
+                    Error.ReportAndExit("Please give a valid number of " +
+                        "iterations '-i:[x]', where [x] > 0.");
+                }
+
+                base.Configuration.SchedulingIterations = i;
             }
             else
             {

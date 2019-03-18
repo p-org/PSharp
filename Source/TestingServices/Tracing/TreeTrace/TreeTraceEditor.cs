@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal ulong actualStepsExecuted; // Count of how many steps we've actually executed ( is this even needed here? Let the strategy do it? )
 
         int currentWithHoldCandidate; // 1 indexed :p
-        HashSet<int> withHeldCandidates;
+        //HashSet<int> withHeldCandidates;
 
         internal bool ranOutOfEvents;
         int eventSeenThisTime;
@@ -135,15 +135,20 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 }
                 
             }
+
+            internal bool checkWithHeld(EventTreeNode etn)
+            {
+                return guideTree?.checkWithHeld(etn)??false;
+            }
         }
 
 
         public TreeTraceEditor(EventTree guideTree)
         {
             BestGuideTree = guideTree;
-            currentWithHoldCandidate = 0;
+            currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
             ranOutOfEvents = false;
-            withHeldCandidates = new HashSet<int>();
+            //withHeldCandidates = new HashSet<int>();
             reset();
         }
 
@@ -155,7 +160,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 // We need to increment because the Send event will appear regardless. We have to actively withhold it each time.
                 if (currentWithHoldCandidate != 0) // Why pollute?
                 {
-                    withHeldCandidates.Add(currentWithHoldCandidate);
+                    //withHeldCandidates.Add(currentWithHoldCandidate);
                 }
 
 
@@ -192,16 +197,37 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if ( eventIsCandidateToBeDropped(e) )
             {
                 eventSeenThisTime++;
-                if (eventSeenThisTime == currentWithHoldCandidate || withHeldCandidates.Contains(eventSeenThisTime) )
+                //// TODO: Remove withHeldCandidates. It is now redundant thanks to EventTree.WithHeldSendIndices
+                //if (eventSeenThisTime == currentWithHoldCandidate || withHeldCandidates.Contains(eventSeenThisTime)|| currentRun.checkWithHeld(currentRun.activeNode))
+                //{
+                //    if (currentRun.activeNode != null ){//&& currentRun.activeNode.createdChild!=null
+                //        // No active node. This is one we don't know about.
+                //        if (currentRun.activeNode.createdChild != null)
+                //        {
+                //            currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex);
+                //            recordEventWithHeld();
+                //        }
+                //        else if(!currentRun.checkWithHeld(currentRun.activeNode))
+                //        {
+                //            // TODO: Clean this up by removing withHelCandidates in favour of tree.withheld
+                //            throw new ArgumentException("This should not happen. createdChild should be null only if it comes from the tree.");
+                //        }
+                //        recordEventWithHeld();
+                //    }
+                //    else
+                //    {   // TODO: deal with this better
+                //        throw new ArgumentException("How did we come up with an external event that isn't in the trace?");
+                //    }
+
+                //    return false;
+                //}
+                //else
+                //{
+                //    return true;
+                //}
+                if (currentRun.checkWithHeld(currentRun.activeNode) || eventSeenThisTime == currentWithHoldCandidate)
                 {
-                    if (currentRun.activeNode != null //&& currentRun.activeNode.createdChild!=null
-                        ) {
-                        currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex);
-                    }
-                    else
-                    {   // TODO: deal with this better
-                        throw new ArgumentException("How did we come up with an external event that isn't in the trace?");
-                    }
+                    recordEventWithHeld();
                     return false;
                 }
                 else
@@ -273,6 +299,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                             currentRun.setActiveNode(null); // TODO: Should this be currentNode anyway? Don't think so
                         }
                     }
+                    else
+                    {
+                        // Hitting this would mean our program model is wrong,
+                        // We can't match an enabled node in our program model to the scheduler
+                        // The guidetree has nothing to do with it. That only comes into play during coarseMatch
+                        throw new ArgumentException("This really shouldn't happen. ");
+                    }
 
                     next = candidate;
                     matched = true;
@@ -313,7 +346,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         #endregion
 
         #region program model updates
-        
+
+        internal void recordEventWithHeld()
+        {
+            activeProgramModel.recordEventWithHeld();
+        }
         internal void recordSchedulingChoiceStart(ISchedulable next, ulong scheduledSteps)
         {
             activeProgramModel.recordSchedulingChoiceStart(next, scheduledSteps);

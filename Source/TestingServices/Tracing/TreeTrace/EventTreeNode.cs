@@ -38,8 +38,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         //List<int> integerChoices;List<bool> booleanChoices;
         //List<EventTreeNodeNonDetChoice> nonDetChoices;
-        List<bool> nonDetBooleanChoices;
-        List<int> nonDetIntegerChoices;
+        internal List<bool> nonDetBooleanChoices;
+        internal List<int> nonDetIntegerChoices;
         // An explored flag which you don't have to reset between iterations. 
         // ( explored <- lastExploredIter == thisIt )
         internal int totalOrderingIndex;
@@ -71,12 +71,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             nonDetIntegerChoices.Add(choice);
         }
 
-        internal void setChildren(EventTreeNode nextNode, EventTreeNode createdNode)
+        internal void setChildren(EventTreeNode directNode, EventTreeNode createdNode)
         {
-            if (nextNode != null) { nextNode.parent = this; }
+            if (directNode != null) { directNode.parent = this; }
             if (createdNode != null) { createdNode.parent = this; }
 
-            this.directChild = nextNode;
+            this.directChild = directNode;
             this.createdChild = createdNode;
         }
 
@@ -121,6 +121,79 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
         }
 
+        internal static EventTreeNode deserialize(string s, out int directChildIndex, out int createdChildIndex)
+        {
+            string[] fields = s.Split(EventTree.fieldSeparator);
+            // 0 -> totalOrderingIndex
+            int totalOrderingIndex = -1;
+            ulong srcMachineId = 0xffffffff;
+            ulong targetMachineId = 0xffffffff;
+            ulong otherId = 0xffffffff;
+
+            directChildIndex = -1;
+            createdChildIndex = -1;
+
+            OperationType opType = OperationType.Stop;
+            if (
+                fields.Length == 9 && 
+                Int32.TryParse(fields[0], out totalOrderingIndex) &&
+                Enum.TryParse(fields[1], out opType) &&
+                UInt64.TryParse(fields[2], out srcMachineId) &&
+                UInt64.TryParse(fields[3], out targetMachineId) &&
+                UInt64.TryParse(fields[4], out otherId) &&
+                Int32.TryParse(fields[5], out directChildIndex) &&
+                Int32.TryParse(fields[6], out createdChildIndex)
+            ) {
+                EventTreeNode etn = new EventTreeNode(opType, srcMachineId, targetMachineId, otherId);
+                etn.totalOrderingIndex = totalOrderingIndex;
+                
+                foreach (string intS in fields[7].Split(EventTree.valueSeparator))
+                {
+                    if (intS.Length == 0)
+                    {
+                        continue;
+                    }
+                    int intVal = 0;
+                    if (Int32.TryParse(intS, out intVal))
+                    {
+                        etn.addIntegerChoice(intVal);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Invalid integerChoice \"" + intS + "\" in line \"" + s + "\"");
+                    }
+                }
+
+                foreach (string boolS in fields[8].Split(EventTree.valueSeparator))
+                {
+                    if (boolS.Length == 0)
+                    {
+                        continue;
+                    }
+                    if (boolS.Equals("t"))
+                    {
+                        etn.addBooleanChoice(true);
+                    }
+                    else if (boolS.Equals("f"))
+                    {
+                        etn.addBooleanChoice(false);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Invalid booleanChoice \"" + boolS + "\" in line \"" + s + "\"");
+                    }
+                }
+
+                // Populate stuff
+
+                return etn;
+            }
+            else {
+                throw new ArgumentException("Invalid trace line \"" + s + "\"");
+            }
+            
+        }
+
         internal EventTreeNode getChildEvent()
         {
             return directChild;
@@ -163,7 +236,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             StringBuilder sb = new StringBuilder();
             int ccIndex = (createdChild == null || createdChild.totalOrderingIndex == -1) ? -1 : createdChild.totalOrderingIndex;
             int dcIndex = (directChild== null || directChild.totalOrderingIndex == -1) ? -1 : directChild.totalOrderingIndex;
-            sb.Append($"{totalOrderingIndex}:{srcMachineId}:{targetMachineId}:{otherId}:{dcIndex}:{ccIndex}");
+            sb.Append($"{totalOrderingIndex}:{opType}:{srcMachineId}:{targetMachineId}:{otherId}:{dcIndex}:{ccIndex}");
 
             sb.Append(":");
             if (nonDetIntegerChoices != null)
@@ -178,7 +251,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (nonDetBooleanChoices != null) { 
                 foreach (bool b in nonDetBooleanChoices)
                 {
-                    sb.Append(b?"t":"f");
+                    sb.Append(b?"t,":"f,");
                 }
             }
 
