@@ -3,22 +3,21 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Reflection;
-
 using BenchmarkDotNet.Running;
 
-namespace Microsoft.PSharp.Core.Tests.Performance
+namespace Microsoft.PSharp.Benchmarking
 {
     /// <summary>
-    /// The P# performance test runner.
+    /// The P# performance benchmark runner.
     /// </summary>
     class Program
     {
         static void Main(string[] args)
         {
-            //new CreateMachinesTest().CreateMachines();
-            //new MailboxTest().SendMessages();
-            BenchmarkSwitcher.FromAssembly(typeof(Program).GetTypeInfo().Assembly).Run(args);
+            //BenchmarkSwitcher.FromAssembly(typeof(Program).GetTypeInfo().Assembly).Run(args);
+            BenchmarkRunner.Run<MachineCreationBenchmark>();
+            BenchmarkRunner.Run<MessagingLatencyBenchmark>();
+            BenchmarkRunner.Run<MessagingThroughputBenchmark>();
         }
     }
 }

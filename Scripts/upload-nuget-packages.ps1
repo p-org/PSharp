@@ -17,7 +17,7 @@ $context = New-AzureStorageContext -StorageAccountName $account_name -StorageAcc
 
 $packages = Get-ChildItem "$package_dir"
 foreach ($p in $packages) {
-    Set-AzureStorageFileContent  -Context $context -ShareName $share_name -Source "$package_dir\$p" -Path "nuget\$p"
+    Set-AzureStorageFileContent -Context $context -ShareName $share_name -Source "$package_dir\$p" -Path "nuget\$p"
 }
 
 Write-Comment -prefix "." -text "Successfully uploaded the P# NuGet packages to Azure Storage" -color "green"
