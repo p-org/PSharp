@@ -62,8 +62,9 @@ namespace Microsoft.PSharp
                 (this.Configuration.ScheduleFile.Equals("")) ? this.Configuration.AssemblyToBeAnalyzed : this.Configuration.ScheduleFile
             );
             string dir = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) + 
-                Path.DirectorySeparatorChar + "MinimizedTraces" + Path.DirectorySeparatorChar +
-                    Path.GetFileName(file) + Path.DirectorySeparatorChar; ;
+                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar +
+                    Path.GetFileName(this.Configuration.AssemblyToBeAnalyzed) + Path.DirectorySeparatorChar +
+                    "PSharpTraceMinimizerOutput" + Path.DirectorySeparatorChar;
 
             // If this is a separate (sub-)process, CodeCoverageInstrumentation.OutputDirectory may not have been set up.
             Directory.CreateDirectory(dir);

@@ -161,6 +161,8 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal Event ReceivedEvent { get; private set; }
 
+        internal int HAX_LivenessTemperature { get { return LivenessTemperature; } }
+
         /// <summary>
         /// Static constructor.
         /// </summary>

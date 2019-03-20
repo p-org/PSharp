@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
+using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.TestingServices.Engines
 {
@@ -208,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
         private bool RunNextIteration(int i)
         {
             // Runtime used to serialize and test the program.
-            TestingRuntime runtime = null;
+            MinimizationRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -230,12 +231,12 @@ namespace Microsoft.PSharp.TestingServices.Engines
                 // Creates a new instance of the bug-finding runtime.
                 if (base.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
+                    runtime = (MinimizationRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
                         new object[] { base.Configuration, base.Strategy, base.Reporter });
                 }
                 else
                 {
-                    runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = new MinimizationRuntime(base.Configuration, base.Strategy, base.Reporter);
                 }
 
 
@@ -276,7 +277,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
                 // Checks that no monitor is in a hot state at termination. Only
                 // checked if no safety property violations have been found.
-                HAX_IsTempBug = (runtime as TestingRuntime).HAX_Monitors[0].HAX_LivenessTemperature >= Configuration.LivenessTemperatureThreshold;
+                HAX_IsTempBug = (runtime as MinimizationRuntime).HAX_Monitors[0].HAX_LivenessTemperature >= Configuration.LivenessTemperatureThreshold;
 
                 if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                 {
