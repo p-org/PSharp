@@ -21,12 +21,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal ulong actualStepsExecuted; // Count of how many steps we've actually executed ( is this even needed here? Let the strategy do it? )
 
-        int currentWithHoldCandidate; // 1 indexed :p
+        //int currentWithHoldCandidate; // 1 indexed :p
+        Stack<Tuple<int,int>> bSearchWithHoldCandidateStack;
         //HashSet<int> withHeldCandidates;
 
         internal bool ranOutOfEvents;
         int eventSeenThisTime;
         TraceIteration currentRun; // Make private
+        private int currentWithHoldRangeStart;
+        private int currentWithHoldRangeEnd;
 
 
 
@@ -146,20 +149,75 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         public TreeTraceEditor(EventTree guideTree)
         {
             BestGuideTree = guideTree;
-            currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
+            //currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
+            bSearchWithHoldCandidateStack = new Stack<Tuple<int, int>>();
+            currentWithHoldRangeStart = -1;
+            currentWithHoldRangeEnd = -1;
+            //bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(0, 0));// special marker
             ranOutOfEvents = false;
             reset();
         }
 
         public bool prepareForNextIteration(bool bugFound)
         {
-            if (bugFound)
+            if (currentWithHoldRangeStart == -1 && currentWithHoldRangeEnd == -1)
             {
-                BestGuideTree = activeProgramModel.getTree();
+                if (bugFound)
+                {   //Set it to the actual range of events
+                    BestGuideTree = activeProgramModel.getTree();
+                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(0,0));
+                }
+                else
+                {// This doesn't even reproduce the bug?
+                    throw new ArgumentException("Cannot reproduce the bug with the original trace.");
+                    //return false;
+                }
             }
-            currentWithHoldCandidate++;
-
-            ranOutOfEvents = (eventSeenThisTime < currentWithHoldCandidate);
+            else if (currentWithHoldRangeStart == 0 && currentWithHoldRangeEnd == 0){
+                // We were replaying without deletions
+                if (bugFound)
+                {   //Set it to the actual range of events
+                    BestGuideTree = activeProgramModel.getTree();
+                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(1, eventSeenThisTime));
+                }
+                else
+                {// This doesn't even reproduce the bug?
+                    throw new ArgumentException("Cannot reproduce the bug with the original trace.");
+                    //return false;
+                }
+            }
+            else
+            {
+                if (bugFound)
+                {// Awesome. We don't need to recurse
+                    BestGuideTree = activeProgramModel.getTree();
+                }
+                else
+                {
+                    if (currentWithHoldRangeStart != currentWithHoldRangeEnd)
+                    {   // Nawsome. We need to recurse :(
+                        int mid = (currentWithHoldRangeStart + currentWithHoldRangeEnd) / 2;
+                        bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(mid + 1, currentWithHoldRangeEnd));
+                        bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(currentWithHoldRangeStart, mid));
+                    }
+                    // Else, That event is necessary.
+                }
+            }
+            //currentWithHoldCandidate++;
+            
+            if (bSearchWithHoldCandidateStack.Count==0) {
+                ranOutOfEvents = true;
+                currentWithHoldRangeStart = 0;
+                currentWithHoldRangeEnd = 0;
+            }
+            else
+            {
+                //ranOutOfEvents = false; // Let's not risk this
+                Tuple<int, int> currentWithHoldTuple = bSearchWithHoldCandidateStack.Pop();
+                currentWithHoldRangeStart = currentWithHoldTuple.Item1;
+                currentWithHoldRangeEnd = currentWithHoldTuple.Item2;
+            }
+            
             reset();
             return ranOutOfEvents;
         }
@@ -193,14 +251,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 if (currentRun.checkWithHeld(currentRun.activeNode))
                 {
                     deliver = false;
-                    if (eventSeenThisTime == currentWithHoldCandidate)
-                    {
-                        // Don't waste this deletion run. It's already 
-                        currentWithHoldCandidate++;
-                    }
+                    // Don't do optimization hacks right now. It'll get confusing. +  we're doing bsearch anyway
+                    //if (eventSeenThisTime == currentWithHoldCandidate)
+                    //{
+                    //    // Don't waste this deletion run. It's already 
+                    //    currentWithHoldCandidate++;
+                    //}
 
                 }
-                else if (eventSeenThisTime == currentWithHoldCandidate)
+                else if (eventSeenThisTime >= currentWithHoldRangeStart && eventSeenThisTime <= currentWithHoldRangeEnd)
                 {
                     deliver = false;
                 }
