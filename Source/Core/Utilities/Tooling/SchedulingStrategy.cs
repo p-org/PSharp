@@ -49,6 +49,16 @@ namespace Microsoft.PSharp.Utilities
         [EnumMember(Value = "FairPCT")]
         FairPCT,
         /// <summary>
+        /// Prioritized scheduling with Chain Partitioning.
+        /// </summary>
+        [EnumMember(Value = "PCTCP")]
+        PCTCP,
+        /// <summary>
+        /// Prioritized scheduling with chain partitioning and Random tail.
+        /// </summary>
+        [EnumMember(Value = "FairPCTCP")]
+        FairPCTCP,
+        /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
         [EnumMember(Value = "DFS")]

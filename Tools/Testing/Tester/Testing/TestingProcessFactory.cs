@@ -76,7 +76,10 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             if (configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
-                configuration.SchedulingStrategy == SchedulingStrategy.FairPCT)
+                configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
+                configuration.SchedulingStrategy == SchedulingStrategy.PCTCP ||
+                configuration.SchedulingStrategy == SchedulingStrategy.FairPCTCP
+                )
             {
                 arguments.Append($"/sch:{configuration.SchedulingStrategy}:" +
                     $"{configuration.PrioritySwitchBound} ");

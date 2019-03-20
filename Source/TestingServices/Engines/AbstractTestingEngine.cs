@@ -316,6 +316,20 @@ namespace Microsoft.PSharp.TestingServices
                 var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
                 this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCTCP)
+            {
+                this.Strategy = new PCTCPStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound,
+                    this.SchedulingStrategyLogger, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCTCP)
+            {
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new PCTCPStrategy(prefixLength, this.Configuration.PrioritySwitchBound,
+                    this.SchedulingStrategyLogger, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
             {
                 this.Strategy = new DFSStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.SchedulingStrategyLogger);

@@ -66,6 +66,19 @@ namespace Microsoft.PSharp.Utilities
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRandom;
                     base.Configuration.CoinFlipBound = i;
                 }
+                else if (this.IsMatch(scheduler, @"^pctcp"))
+                {
+                    int i = 0;
+                    if (this.IsMatch(scheduler, @"^pctcp$") ||
+                        !int.TryParse(scheduler.Substring(6), out i) && i >= 0)
+                    {
+                        Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '-sch:pctcp:[bound]', where [bound] >= 0.");
+                    }
+
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.PCTCP;
+                    base.Configuration.PrioritySwitchBound = i;
+                }
                 else if (this.IsMatch(scheduler, @"^pct"))
                 {
                     int i = 0;
@@ -77,6 +90,19 @@ namespace Microsoft.PSharp.Utilities
                     }
 
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.PCT;
+                    base.Configuration.PrioritySwitchBound = i;
+                }
+                else if (this.IsMatch(scheduler, @"^fairpctcp"))
+                {
+                    int i = 0;
+                    if (this.IsMatch(scheduler, @"^fairpctcp$") ||
+                        !int.TryParse(scheduler.Substring("fairpctcp:".Length), out i) && i >= 0)
+                    {
+                        Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '-sch:fairpctcp:[bound]', where [bound] >= 0.");
+                    }
+
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.FairPCTCP;
                     base.Configuration.PrioritySwitchBound = i;
                 }
                 else if (this.IsMatch(scheduler, @"^fairpct"))
@@ -371,6 +397,8 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.ProbabilisticRandom &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.PCTCP &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCTCP &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DPOR &&
