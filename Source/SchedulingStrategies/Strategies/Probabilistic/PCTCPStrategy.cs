@@ -57,7 +57,13 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// List of priority change points, because we have a target priority.
         /// </summary>
-        private List<int> PriorityChangePoints;
+         private List<int> PriorityChangePoints;
+
+ 
+         /// <summary>
+         /// Number of changepoints encountered so far
+         /// </summary>
+         private List<int> PriorityChangePointsEncountered;
 
         private ulong lastActionSchedulingStep;
 
@@ -90,6 +96,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
             PrioritizedSchedulableChoices = new List<ISchedulable>();
             PriorityChangePoints = new List<int>();
+            PriorityChangePointsEncountered = new List<int>();
             chainPartitioner = new ChainPartitioner(logger, random);
         }
 
@@ -223,6 +230,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
             PrioritizedSchedulableChoices.Clear();
             PriorityChangePoints.Clear();
+            PriorityChangePointsEncountered.Clear();
 
             var range = new List<int>();
             for (int idx = 0; idx < ScheduleLength; idx++)
@@ -328,7 +336,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
             foreach (var choice in choices.Where(choice => !PrioritizedSchedulableChoices.Contains(choice)))
             {
-                var mIndex = RandomNumberGenerator.Next(PrioritizedSchedulableChoices.Count) + 1;
+                var mIndex = RandomNumberGenerator.Next(PrioritizedSchedulableChoices.Count - PriorityChangePointsEncountered.Count + 1);
                 PrioritizedSchedulableChoices.Insert(mIndex, choice);
                 Logger.WriteLine($"<PCTLog> Detected new schedulable choice '{choice.Name}' at index '{mIndex}'.");
             }
@@ -341,15 +349,42 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 }
                 else
                 {
-                    var priority = GetHighestPriorityEnabledChoice(choices);
+                    // [t-krgov] Start : A priority change point has a target priority associated with it.
+                    ISchedulable priority = GetHighestPriorityEnabledChoice(choices);
+                    int targetPriority = PriorityChangePoints.IndexOf(ScheduledSteps);
+                    int currentPriority = PrioritizedSchedulableChoices.IndexOf(priority);
+
+                    // Update PriorityChangePointsEncountered
+                    // If this ISchedulable has already had a priority change, we need to update the PriorityChangePointsEncountered accordingly.
+                    if (currentPriority >= (PrioritizedSchedulableChoices.Count - PriorityChangePointsEncountered.Count))
+                    {
+                        int indexToDelete = currentPriority - (PrioritizedSchedulableChoices.Count - PriorityChangePointsEncountered.Count);
+                        PriorityChangePointsEncountered.RemoveAt(indexToDelete);
+                    }
+
+                    // Insert at index
+                    int insertAtIndex = 0;
+                    foreach (int p in PriorityChangePointsEncountered)
+                    {
+                        if (p <= targetPriority)
+                        {
+                            insertAtIndex++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
                     PrioritizedSchedulableChoices.Remove(priority);
-                    PrioritizedSchedulableChoices.Add(priority);
-                    Logger.WriteLine($"<PCTLog> Schedulable '{priority}' changes to lowest priority.");
+                    PrioritizedSchedulableChoices.Insert(PrioritizedSchedulableChoices.Count - PriorityChangePointsEncountered.Count + insertAtIndex, priority);
+                    PriorityChangePointsEncountered.Insert(insertAtIndex, targetPriority);
+                    Logger.WriteLine($"<PCTLog> Schedulable '{priority}' assumes absolute priority='{targetPriority}'.");
+                    // [t-krgov] Start : A priority change point has a target priority associated with it.
                 }
             }
 
-            var prioritizedSchedulable = GetHighestPriorityEnabledChoice(choices);
-            Logger.WriteLine($"<PCTLog> Prioritized schedulable '{prioritizedSchedulable}'.");
+            ISchedulable prioritizedSchedulable = GetHighestPriorityEnabledChoice(choices);
             Logger.Write("<PCTLog> Priority list: ");
             for (int idx = 0; idx < PrioritizedSchedulableChoices.Count; idx++)
             {
@@ -412,14 +447,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         private void MovePriorityChangePointForward()
         {
-            PriorityChangePoints.Remove(ScheduledSteps);
+            int updateIndex = PriorityChangePoints.IndexOf(ScheduledSteps);
             var newPriorityChangePoint = ScheduledSteps + 1;
             while (PriorityChangePoints.Contains(newPriorityChangePoint))
             {
                 newPriorityChangePoint++;
             }
 
-            PriorityChangePoints.Add(newPriorityChangePoint);
+            PriorityChangePoints[updateIndex] = newPriorityChangePoint;
             Logger.WriteLine($"<PCTLog> Moving priority change to '{newPriorityChangePoint}'.");
         }
     }
