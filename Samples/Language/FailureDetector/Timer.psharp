@@ -20,7 +20,7 @@ namespace FailureDetector
         /// this machine models a timer by nondeterministically
         /// triggering a timeout, this value is not used.
         /// </summary>
-		internal event StartTimer (timeout: int);
+		internal event StartTimerEvent (timeout: int);
 		internal event Timeout;
 
 		internal event CancelSuccess;
@@ -59,18 +59,18 @@ namespace FailureDetector
             }
 
 			/// <summary>
-			/// It transitions to the 'WaitForCancel' state on a 'StartTimer' event.
+			/// It transitions to the 'WaitForCancel' state on a 'StartTimerEvent' event.
 			/// </summary>
-            on StartTimer goto WaitForCancel;
+            on StartTimerEvent goto WaitForCancel;
         }
 
         state WaitForCancel
         {
 			/// <summary>
-			/// Any 'StartTimer' event is dequeued and dropped without any action, while the timer
+			/// Any 'StartTimerEvent' event is dequeued and dropped without any action, while the timer
 			/// is in the 'WaitForCancel' state.
 			/// </summary>
-		    ignore StartTimer;
+		    ignore StartTimerEvent;
 
 			/// <summary>
 			/// The response to a 'CancelTimer' event is nondeterministic. During testing, P# will

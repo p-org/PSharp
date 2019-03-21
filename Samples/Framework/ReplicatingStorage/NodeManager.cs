@@ -93,7 +93,7 @@ namespace ReplicatingStorage
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
-        [DeferEvents(typeof(Client.Request), typeof(RepairTimer.Timeout))]
+        [DeferEvents(typeof(Client.Request), typeof(RepairTimer.TimeoutEvent))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -129,7 +129,7 @@ namespace ReplicatingStorage
         }
 
         [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
-        [OnEventDoAction(typeof(RepairTimer.Timeout), nameof(RepairNodes))]
+        [OnEventDoAction(typeof(RepairTimer.TimeoutEvent), nameof(RepairNodes))]
         [OnEventDoAction(typeof(StorageNode.SyncReport), nameof(ProcessSyncReport))]
         [OnEventDoAction(typeof(NotifyFailure), nameof(ProcessFailure))]
         class Active : MachineState { }

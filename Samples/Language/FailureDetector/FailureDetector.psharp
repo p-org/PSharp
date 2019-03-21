@@ -109,7 +109,7 @@ namespace FailureDetector
 				// away using P# to enable systematic testing (i.e. timeouts are triggered
 				// nondeterministically). In production, this model timer machine will be
 				// replaced by a real timer.
-				send(this.Timer, Timer.StartTimer, 100);
+				send(this.Timer, Timer.StartTimerEvent, 100);
 			}
 
 			/// <summary>
@@ -192,7 +192,7 @@ namespace FailureDetector
 				this.Responses.Clear();
 
 				// Starts the timer with a given timeout value (see details above).
-				send(this.Timer, Timer.StartTimer, 1000);
+				send(this.Timer, Timer.StartTimerEvent, 1000);
 			}
 
 			on Timer.Timeout goto SendPing;

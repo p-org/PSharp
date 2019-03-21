@@ -264,11 +264,11 @@ namespace Raft
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsFollower))]
-        [OnEventDoAction(typeof(ElectionTimer.Timeout), nameof(StartLeaderElection))]
+        [OnEventDoAction(typeof(ElectionTimer.TimeoutEvent), nameof(StartLeaderElection))]
         [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
         [OnEventGotoState(typeof(BecomeCandidate), typeof(Candidate))]
-        [IgnoreEvents(typeof(PeriodicTimer.Timeout))]
+        [IgnoreEvents(typeof(PeriodicTimer.TimeoutEvent))]
         class Follower : MachineState { }
 
         void FollowerOnInit()
@@ -276,7 +276,7 @@ namespace Raft
             this.LeaderId = null;
             this.VotesReceived = 0;
 
-            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
+            this.Send(this.ElectionTimer, new ElectionTimer.StartTimerEvent());
         }
 
         void RedirectClientRequest()
@@ -350,8 +350,8 @@ namespace Raft
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsCandidate))]
-        [OnEventDoAction(typeof(ElectionTimer.Timeout), nameof(StartLeaderElection))]
-        [OnEventDoAction(typeof(PeriodicTimer.Timeout), nameof(BroadcastVoteRequests))]
+        [OnEventDoAction(typeof(ElectionTimer.TimeoutEvent), nameof(StartLeaderElection))]
+        [OnEventDoAction(typeof(PeriodicTimer.TimeoutEvent), nameof(BroadcastVoteRequests))]
         [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeLeader), typeof(Leader))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
@@ -364,7 +364,7 @@ namespace Raft
             this.VotedFor = this.Id;
             this.VotesReceived = 1;
 
-            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
+            this.Send(this.ElectionTimer, new ElectionTimer.StartTimerEvent());
 
             this.Logger.WriteLine("\n [Candidate] " + this.ServerId + " | term " + this.CurrentTerm +
                 " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
@@ -375,7 +375,7 @@ namespace Raft
         void BroadcastVoteRequests()
         {
             // BUG: duplicate votes from same follower
-            this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimer());
+            this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimerEvent());
 
             for (int idx = 0; idx < this.Servers.Length; idx++)
             {
@@ -473,7 +473,7 @@ namespace Raft
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
         [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
-        [IgnoreEvents(typeof(ElectionTimer.Timeout), typeof(PeriodicTimer.Timeout))]
+        [IgnoreEvents(typeof(ElectionTimer.TimeoutEvent), typeof(PeriodicTimer.TimeoutEvent))]
         class Leader : MachineState { }
 
         void LeaderOnInit()

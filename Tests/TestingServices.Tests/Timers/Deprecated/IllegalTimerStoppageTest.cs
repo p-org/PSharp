@@ -5,17 +5,18 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.PSharp.Timers;
+using Microsoft.PSharp.Deprecated.Timers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.PSharp.TestingServices.Tests
+namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
 {
-    public class IllegalTimerStoppageTest : BaseTest
+    public class DeprecatedIllegalTimerStoppageTest : BaseTest
     {
-        public IllegalTimerStoppageTest(ITestOutputHelper output)
+        public DeprecatedIllegalTimerStoppageTest(ITestOutputHelper output)
             : base(output)
         { }
+
         private class TransferTimer : Event
         {
             public TimerId tid;

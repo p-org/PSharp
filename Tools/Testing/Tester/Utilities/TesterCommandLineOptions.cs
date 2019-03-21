@@ -175,8 +175,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (this.IsMatch(option, @"^[\/|-]i:") && option.Length > 3)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(3), out i) && i > 0)
+                if (!int.TryParse(option.Substring(3), out int i) && i > 0)
                 {
                     Error.ReportAndExit("Please give a valid number of " +
                         "iterations '-i:[x]', where [x] > 0.");
@@ -186,8 +185,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (this.IsMatch(option, @"^[\/|-]parallel:") && option.Length > 10)
             {
-                uint i = 0;
-                if (!uint.TryParse(option.Substring(10), out i) || i <= 1)
+                if (!uint.TryParse(option.Substring(10), out uint i) || i <= 1)
                 {
                     Error.ReportAndExit("Please give a valid number of " +
                         "parallel tasks '-parallel:[x]', where [x] > 1.");
@@ -212,8 +210,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (this.IsMatch(option, @"^[\/|-]testing-scheduler-process-id:") && option.Length > 30)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(30), out i) && i >= 0)
+                if (!int.TryParse(option.Substring(30), out int i) && i >= 0)
                 {
                     Error.ReportAndExit("Please give a valid testing scheduler " +
                         "process id '-testing-scheduler-process-id:[x]', where [x] >= 0.");
@@ -223,8 +220,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (this.IsMatch(option, @"^[\/|-]testing-process-id:") && option.Length > 20)
             {
-                uint i = 0;
-                if (!uint.TryParse(option.Substring(20), out i) && i >= 0)
+                if (!uint.TryParse(option.Substring(20), out uint i) && i >= 0)
                 {
                     Error.ReportAndExit("Please give a valid testing " +
                         "process id '-testing-process-id:[x]', where [x] >= 0.");
@@ -266,10 +262,18 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.EnableDataRaceDetection = true;
             }
+            else if (this.IsMatch(option, @"^[\/|-]timeout-delay:") && option.Length > 15)
+            {
+                if (!uint.TryParse(option.Substring(15), out uint timeoutDelay) && timeoutDelay >= 0)
+                {
+                    Error.ReportAndExit("Please give a valid timeout delay '-timeout-delay:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TimeoutDelay = timeoutDelay;
+            }
             else if (this.IsMatch(option, @"^[\/|-]sch-seed:") && option.Length > 10)
             {
-                int seed;
-                if (!int.TryParse(option.Substring(10), out seed))
+                if (!int.TryParse(option.Substring(10), out int seed))
                 {
                     Error.ReportAndExit("Please give a valid random scheduling " +
                         "seed '-sch-seed:[x]', where [x] is a signed 32-bit integer.");
@@ -320,8 +324,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (this.IsMatch(option, @"^[\/|-]prefix:") && option.Length > 8)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(8), out i) && i >= 0)
+                if (!int.TryParse(option.Substring(8), out int i) && i >= 0)
                 {
                     Error.ReportAndExit("Please give a valid safety prefix " +
                         "bound '-prefix:[x]', where [x] >= 0.");
@@ -331,8 +334,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (this.IsMatch(option, @"^[\/|-]liveness-temperature-threshold:") && option.Length > 32)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(32), out i) && i >= 0)
+                if (!int.TryParse(option.Substring(32), out int i) && i >= 0)
                 {
                     Error.ReportAndExit("Please give a valid liveness temperature threshold " +
                         "'-liveness-temperature-threshold:[x]', where [x] >= 0.");

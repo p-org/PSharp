@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
+using Microsoft.PSharp.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +21,8 @@ namespace Microsoft.PSharp.Core.Tests
 
         protected void Run(Configuration configuration, Action<PSharpRuntime> test)
         {
-            var logger = new Common.TestOutputLogger(this.TestOutput);
+            var logger = new ThreadSafeInMemoryLogger();
+            var outputLogger = new Common.TestOutputLogger(this.TestOutput);
 
             try
             {
@@ -35,7 +36,9 @@ namespace Microsoft.PSharp.Core.Tests
             }
             finally
             {
+                this.TestOutput.WriteLine(logger.ToString());
                 logger.Dispose();
+                outputLogger.Dispose();
             }
         }
 

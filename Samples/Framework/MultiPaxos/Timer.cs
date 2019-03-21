@@ -24,19 +24,19 @@ namespace MultiPaxos
             }
         }
 
-        internal class Timeout : Event
+        internal class TimeoutEvent : Event
         {
             public MachineId Timer;
 
-            public Timeout(MachineId id)
+            public TimeoutEvent(MachineId id)
                 : base(-1, -1)
             {
                 this.Timer = id;
             }
         }
 
-        internal class StartTimer : Event { }
-        internal class CancelTimer : Event { }
+        internal class StartTimerEvent : Event { }
+        internal class CancelTimerEvent : Event { }
 
         MachineId Target;
         int TimeoutValue;
@@ -53,22 +53,22 @@ namespace MultiPaxos
             this.Raise(new local());
         }
 
-        [OnEventGotoState(typeof(Timer.StartTimer), typeof(TimerStarted))]
-        [IgnoreEvents(typeof(Timer.CancelTimer))]
+        [OnEventGotoState(typeof(Timer.StartTimerEvent), typeof(TimerStarted))]
+        [IgnoreEvents(typeof(Timer.CancelTimerEvent))]
         class Loop : MachineState { }
 
 
         [OnEntry(nameof(TimerStartedOnEntry))]
         [OnEventGotoState(typeof(local), typeof(Loop))]
-        [OnEventGotoState(typeof(Timer.CancelTimer), typeof(Loop))]
-        [IgnoreEvents(typeof(Timer.StartTimer))]
+        [OnEventGotoState(typeof(Timer.CancelTimerEvent), typeof(Loop))]
+        [IgnoreEvents(typeof(Timer.StartTimerEvent))]
         class TimerStarted : MachineState { }
 
         void TimerStartedOnEntry()
         {
             if (this.Random())
             {
-                this.Send(this.Target, new Timer.Timeout(this.Id));
+                this.Send(this.Target, new Timer.TimeoutEvent(this.Id));
                 this.Raise(new local());
             }
         }

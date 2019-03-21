@@ -201,13 +201,13 @@ namespace MultiPaxos
         [OnEventDoAction(typeof(PaxosNode.Accept), nameof(AcceptAction))]
         [OnEventDoAction(typeof(LeaderElection.Ping), nameof(ForwardToLE))]
         [OnEventDoAction(typeof(LeaderElection.NewLeader), nameof(UpdateLeader))]
-        [IgnoreEvents(typeof(PaxosNode.Agree), typeof(PaxosNode.Accepted), typeof(Timer.Timeout), typeof(PaxosNode.Reject))]
+        [IgnoreEvents(typeof(PaxosNode.Agree), typeof(PaxosNode.Accepted), typeof(Timer.TimeoutEvent), typeof(PaxosNode.Reject))]
         class PerformOperation : MachineState { }
 
         [OnEntry(nameof(ProposeValuePhase1OnEntry))]
         [OnEventGotoState(typeof(PaxosNode.Reject), typeof(ProposeValuePhase1), nameof(ProposeValuePhase1RejectAction))]
         [OnEventGotoState(typeof(success), typeof(ProposeValuePhase2), nameof(ProposeValuePhase1SuccessAction))]
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(ProposeValuePhase1))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(ProposeValuePhase1))]
         [OnEventDoAction(typeof(PaxosNode.Agree), nameof(CountAgree))]
         [IgnoreEvents(typeof(PaxosNode.Accepted))]
         class ProposeValuePhase1 : MachineState { }
@@ -224,7 +224,7 @@ namespace MultiPaxos
             }
 
             this.Monitor<ValidityCheck>(new ValidityCheck.monitor_proposer_sent(this.ProposeVal));
-            this.Send(this.Timer, new Timer.StartTimer());
+            this.Send(this.Timer, new Timer.StartTimerEvent());
         }
 
         void ProposeValuePhase1RejectAction()
@@ -236,18 +236,18 @@ namespace MultiPaxos
                 this.MaxRound = round;
             }
 
-            this.Send(this.Timer, new Timer.CancelTimer());
+            this.Send(this.Timer, new Timer.CancelTimerEvent());
         }
 
         void ProposeValuePhase1SuccessAction()
         {
-            this.Send(this.Timer, new Timer.CancelTimer());
+            this.Send(this.Timer, new Timer.CancelTimerEvent());
         }
 
         [OnEntry(nameof(ProposeValuePhase2OnEntry))]
         [OnExit(nameof(ProposeValuePhase2OnExit))]
         [OnEventGotoState(typeof(PaxosNode.Reject), typeof(ProposeValuePhase1), nameof(ProposeValuePhase2RejectAction))]
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(ProposeValuePhase1))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(ProposeValuePhase1))]
         [OnEventDoAction(typeof(PaxosNode.Accepted), nameof(CountAccepted))]
         [IgnoreEvents(typeof(PaxosNode.Agree))]
         class ProposeValuePhase2 : MachineState { }
@@ -266,7 +266,7 @@ namespace MultiPaxos
                 this.Send(acceptor, new PaxosNode.Accept(this.Id, this.NextSlotForProposer, this.NextProposal, this.ProposeVal));
             }
 
-            this.Send(this.Timer, new Timer.StartTimer());
+            this.Send(this.Timer, new Timer.StartTimerEvent());
         }
 
         void ProposeValuePhase2OnExit()
@@ -276,7 +276,7 @@ namespace MultiPaxos
                 this.Monitor<BasicPaxosInvariant_P2b>(new BasicPaxosInvariant_P2b.monitor_valueChosen(
                     this.Id, this.NextSlotForProposer, this.NextProposal, this.ProposeVal));
 
-                this.Send(this.Timer, new Timer.CancelTimer());
+                this.Send(this.Timer, new Timer.CancelTimerEvent());
 
                 this.Monitor<ValidityCheck>(new ValidityCheck.monitor_proposer_chosen(this.ProposeVal));
 
@@ -293,11 +293,11 @@ namespace MultiPaxos
                 this.MaxRound = round;
             }
 
-            this.Send(this.Timer, new Timer.CancelTimer());
+            this.Send(this.Timer, new Timer.CancelTimerEvent());
         }
 
         [OnEntry(nameof(RunLearnerOnEntry))]
-        [IgnoreEvents(typeof(PaxosNode.Agree), typeof(PaxosNode.Accepted), typeof(Timer.Timeout),
+        [IgnoreEvents(typeof(PaxosNode.Agree), typeof(PaxosNode.Accepted), typeof(Timer.TimeoutEvent),
             typeof(PaxosNode.Prepare), typeof(PaxosNode.Reject), typeof(PaxosNode.Accept))]
         [DeferEvents(typeof(LeaderElection.NewLeader))]
         class RunLearner : MachineState { }

@@ -115,7 +115,7 @@ namespace FailureDetector
         [OnEventGotoState(typeof(RoundDone), typeof(Reset))]
         [OnEventPushState(typeof(TimerCancelled), typeof(WaitForCancelResponse))]
         [OnEventDoAction(typeof(Node.Pong), nameof(PongAction))]
-        [OnEventDoAction(typeof(Timer.Timeout), nameof(TimeoutAction))]
+        [OnEventDoAction(typeof(Timer.TimeoutEvent), nameof(TimeoutAction))]
         class SendPing : MachineState { }
 
         void SendPingOnEntry()
@@ -135,7 +135,7 @@ namespace FailureDetector
             // away using P# to enable systematic testing (i.e. timeouts are triggered
             // nondeterministically). In production, this model timer machine will be
             // replaced by a real timer.
-            this.Send(this.Timer, new Timer.StartTimer(100));
+            this.Send(this.Timer, new Timer.StartTimerEvent(100));
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace FailureDetector
                 // Checks if the status of alive nodes has changed.
                 if (this.Responses.Count == this.Alive.Count)
                 {
-                    this.Send(this.Timer, new Timer.CancelTimer());
+                    this.Send(this.Timer, new Timer.CancelTimerEvent());
                     this.Raise(new TimerCancelled());
                 }
             }
@@ -190,7 +190,7 @@ namespace FailureDetector
 
         [OnEventDoAction(typeof(Timer.CancelSuccess), nameof(CancelSuccessAction))]
         [OnEventDoAction(typeof(Timer.CancelFailure), nameof(CancelFailure))]
-        [DeferEvents(typeof(Timer.Timeout), typeof(Node.Pong))]
+        [DeferEvents(typeof(Timer.TimeoutEvent), typeof(Node.Pong))]
         class WaitForCancelResponse : MachineState { }
 
         void CancelSuccessAction()
@@ -204,7 +204,7 @@ namespace FailureDetector
         }
 
         [OnEntry(nameof(ResetOnEntry))]
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(SendPing))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(SendPing))]
         [IgnoreEvents(typeof(Node.Pong))]
         class Reset : MachineState { }
 
@@ -217,7 +217,7 @@ namespace FailureDetector
             this.Responses.Clear();
 
             // Starts the timer with a given timeout value (see details above).
-            this.Send(this.Timer, new Timer.StartTimer(1000));
+            this.Send(this.Timer, new Timer.StartTimerEvent(1000));
         }
     }
 }

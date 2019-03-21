@@ -25,7 +25,7 @@ namespace ReplicatingStorage
 		internal event SyncReport (NodeId: int, Data: int);
 		internal event SyncRequest (Data: int);
 		internal event SyConfigureEvent (Target: machine);
-        internal event StartTimer;
+        internal event StartTimerEvent;
         internal event CancelTimer;
         internal event Timeout;
 		internal event TickEvent;

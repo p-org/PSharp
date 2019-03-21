@@ -13,7 +13,7 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class MachineId
+    public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
         /// The P# runtime that executes the machine with this id.
@@ -154,6 +154,36 @@ namespace Microsoft.PSharp
         public override string ToString()
         {
             return Name;
+        }
+
+        /// <summary>
+        /// Indicates whether the specified <see cref="MachineId"/> is equal
+        /// to the current <see cref="MachineId"/>.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
+        public bool Equals(MachineId other)
+        {
+            return this.Equals((object)other);
+        }
+
+        /// <summary>
+        /// Compares the specified <see cref="MachineId"/> with the current
+        /// <see cref="MachineId"/> for ordering or sorting purposes.
+        /// </summary>
+        public int CompareTo(MachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
+        }
+
+        bool IEquatable<MachineId>.Equals(MachineId other)
+        {
+            return this.Equals(other);
+        }
+
+        int IComparable<MachineId>.CompareTo(MachineId other)
+        {
+            return string.Compare(this.Name, other?.Name);
         }
     }
 }

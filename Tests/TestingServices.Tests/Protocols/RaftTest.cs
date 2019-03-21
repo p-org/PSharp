@@ -429,7 +429,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.LeaderId = null;
                 this.VotesReceived = 0;
 
-                this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
+                this.Send(this.ElectionTimer, new ElectionTimer.StartTimerEvent());
             }
 
             void RedirectClientRequest()
@@ -513,7 +513,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.VotedFor = this.Id;
                 this.VotesReceived = 1;
 
-                this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
+                this.Send(this.ElectionTimer, new ElectionTimer.StartTimerEvent());
 
                 this.BroadcastVoteRequests();
             }
@@ -521,7 +521,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             void BroadcastVoteRequests()
             {
                 // BUG: duplicate votes from same follower
-                this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimer());
+                this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimerEvent());
 
                 for (int idx = 0; idx < this.Servers.Length; idx++)
                 {
@@ -1002,7 +1002,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimer : Event { }
+            internal class StartTimerEvent : Event { }
             internal class CancelTimer : Event { }
             internal class Timeout : Event { }
 
@@ -1012,7 +1012,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             class Init : MachineState { }
 
             void Configure()
@@ -1023,7 +1023,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
-            [IgnoreEvents(typeof(StartTimer))]
+            [IgnoreEvents(typeof(StartTimerEvent))]
             class Active : MachineState { }
 
             void ActiveOnEntry()
@@ -1041,7 +1041,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new CancelTimer());
             }
 
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
             class Inactive : MachineState { }
         }
@@ -1059,7 +1059,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimer : Event { }
+            internal class StartTimerEvent : Event { }
             internal class CancelTimer : Event { }
             internal class Timeout : Event { }
 
@@ -1069,7 +1069,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             class Init : MachineState { }
 
             void Configure()
@@ -1080,7 +1080,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
-            [IgnoreEvents(typeof(StartTimer))]
+            [IgnoreEvents(typeof(StartTimerEvent))]
             class Active : MachineState { }
 
             void ActiveOnEntry()
@@ -1098,7 +1098,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new CancelTimer());
             }
 
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
             class Inactive : MachineState { }
         }

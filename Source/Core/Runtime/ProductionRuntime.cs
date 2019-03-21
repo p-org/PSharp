@@ -9,6 +9,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Deprecated.Timers;
+using Microsoft.PSharp.Timers;
+
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
@@ -528,22 +531,20 @@ namespace Microsoft.PSharp.Runtime
 
         #endregion
 
-        #region Timers
+        #region timers
 
         /// <summary>
-        /// Return the timer machine type
+        /// Creates a new timer that sends a <see cref="Timers.TimerElapsedEvent"/> to its owner machine.
         /// </summary>
-        /// <returns></returns>
-        internal override Type GetTimerMachineType()
-        {
-            var timerType = base.GetTimerMachineType();
-            if (timerType == null)
-            {
-                return typeof(Timers.ProductionTimerMachine);
-            }
+        /// <param name="info">Stores information about the timer.</param>
+        /// <param name="owner">The owner machine.</param>
+        /// <returns>The machine timer.</returns>
+        internal override IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner) => new MachineTimer(info, owner);
 
-            return timerType;
-        }
+        /// <summary>
+        /// Returns the timer machine type.
+        /// </summary>
+        internal override Type GetTimerMachineType() => typeof(ProductionTimerMachine);
 
         #endregion
 

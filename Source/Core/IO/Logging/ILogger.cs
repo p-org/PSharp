@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+
+using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.IO
@@ -149,6 +151,18 @@ namespace Microsoft.PSharp.IO
         /// <param name="monitorTypeName">The name of the type of the monitor that has been created.</param>
         /// <param name="monitorId">The id of the monitor that has been created.</param>
         void OnCreateMonitor(string monitorTypeName, MachineId monitorId);
+
+        /// <summary>
+        /// Called when a machine timer has been created.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        void OnCreateTimer(TimerInfo info);
+
+        /// <summary>
+        /// Called when a machine timer has been stopped.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        void OnStopTimer(TimerInfo info);
 
         /// <summary>
         /// Called when a machine has been halted.

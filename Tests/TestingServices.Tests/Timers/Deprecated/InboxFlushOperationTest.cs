@@ -5,15 +5,15 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.PSharp.Timers;
+using Microsoft.PSharp.Deprecated.Timers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.PSharp.TestingServices.Tests
+namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
 {
-    public class InboxFlushOperationTest : BaseTest
+    public class DeprecatedInboxFlushOperationTest : BaseTest
     {
-        public InboxFlushOperationTest(ITestOutputHelper output)
+        public DeprecatedInboxFlushOperationTest(ITestOutputHelper output)
             : base(output)
         { }
 

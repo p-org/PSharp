@@ -21,9 +21,9 @@ namespace ReplicatingStorage
             }
         }
 
-        internal class StartTimer : Event { }
-        internal class CancelTimer : Event { }
-        internal class Timeout : Event { }
+        internal class StartTimerEvent : Event { }
+        internal class CancelTimerEvent : Event { }
+        internal class TimeoutEvent : Event { }
 
         private class TickEvent : Event { }
 
@@ -31,19 +31,19 @@ namespace ReplicatingStorage
 
         [Start]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+        [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
         class Init : MachineState { }
 
         void Configure()
         {
             this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-            this.Raise(new StartTimer());
+            this.Raise(new StartTimerEvent());
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
-        [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
-        [IgnoreEvents(typeof(StartTimer))]
+        [OnEventGotoState(typeof(CancelTimerEvent), typeof(Inactive))]
+        [IgnoreEvents(typeof(StartTimerEvent))]
         class Active : MachineState { }
 
         void ActiveOnEntry()
@@ -56,14 +56,14 @@ namespace ReplicatingStorage
             if (this.Random())
             {
                 this.Logger.WriteLine("\n [FailureTimer] " + this.Target + " | timed out\n");
-                this.Send(this.Target, new Timeout());
+                this.Send(this.Target, new TimeoutEvent());
             }
 
             this.Send(this.Id, new TickEvent());
         }
 
-        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
-        [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
+        [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
+        [IgnoreEvents(typeof(CancelTimerEvent), typeof(TickEvent))]
         class Inactive : MachineState { }
     }
 }

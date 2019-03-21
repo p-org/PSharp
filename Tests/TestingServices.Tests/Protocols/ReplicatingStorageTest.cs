@@ -410,7 +410,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimer : Event { }
+            internal class StartTimerEvent : Event { }
             internal class CancelTimer : Event { }
             internal class Timeout : Event { }
 
@@ -420,19 +420,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             class Init : MachineState { }
 
             void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-                this.Raise(new StartTimer());
+                this.Raise(new StartTimerEvent());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
-            [IgnoreEvents(typeof(StartTimer))]
+            [IgnoreEvents(typeof(StartTimerEvent))]
             class Active : MachineState { }
 
             void ActiveOnEntry()
@@ -450,7 +450,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Id, new TickEvent());
             }
 
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
             class Inactive : MachineState { }
         }
@@ -468,7 +468,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimer : Event { }
+            internal class StartTimerEvent : Event { }
             internal class CancelTimer : Event { }
             internal class Timeout : Event { }
 
@@ -478,19 +478,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             class Init : MachineState { }
 
             void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-                this.Raise(new StartTimer());
+                this.Raise(new StartTimerEvent());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
-            [IgnoreEvents(typeof(StartTimer))]
+            [IgnoreEvents(typeof(StartTimerEvent))]
             class Active : MachineState { }
 
             void ActiveOnEntry()
@@ -508,7 +508,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Id, new TickEvent());
             }
 
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
             class Inactive : MachineState { }
         }
@@ -526,7 +526,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimer : Event { }
+            internal class StartTimerEvent : Event { }
             internal class CancelTimer : Event { }
             internal class Timeout : Event { }
 
@@ -536,19 +536,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             class Init : MachineState { }
 
             void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-                this.Raise(new StartTimer());
+                this.Raise(new StartTimerEvent());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
-            [IgnoreEvents(typeof(StartTimer))]
+            [IgnoreEvents(typeof(StartTimerEvent))]
             class Active : MachineState { }
 
             void ActiveOnEntry()
@@ -566,7 +566,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Id, new TickEvent());
             }
 
-            [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
             class Inactive : MachineState { }
         }
