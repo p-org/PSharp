@@ -127,7 +127,7 @@ namespace TwoPhaseCommit
                     this.PendingWriteReq.Idx, this.PendingWriteReq.Val)));
             }
 
-            this.Send(this.Timer, new Timer.StartTimer(100));
+            this.Send(this.Timer, new Timer.StartTimerEvent(100));
             this.Raise(new Unit());
         }
 
@@ -151,7 +151,7 @@ namespace TwoPhaseCommit
         [OnEntry(nameof(CountingVoteOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(WaitingForCancelTimerResponse))]
         [OnEventGotoState(typeof(Replica.RespReplicaCommit), typeof(CountingVote), nameof(RespReplicaCommitAction))]
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(Loop), nameof(DoGlobalAbort))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(Loop), nameof(DoGlobalAbort))]
         [OnEventDoAction(typeof(Replica.RespReplicaAbort), nameof(HandleAbort))]
         [OnEventDoAction(typeof(Client.ReadReq), nameof(DoRead))]
         [DeferEvents(typeof(Client.WriteReq))]
@@ -181,7 +181,7 @@ namespace TwoPhaseCommit
                     this.PendingWriteReq.Idx, PendingWriteReq.Val));
 
                 this.Send(this.PendingWriteReq.Client, new WriteSuccess());
-                this.Send(this.Timer, new Timer.CancelTimer());
+                this.Send(this.Timer, new Timer.CancelTimerEvent());
 
                 this.Raise(new Unit());
             }
@@ -203,7 +203,7 @@ namespace TwoPhaseCommit
             if (this.CurrSeqNum == seqNum)
             {
                 this.DoGlobalAbort();
-                this.Send(this.Timer, new Timer.CancelTimer());
+                this.Send(this.Timer, new Timer.CancelTimerEvent());
                 this.Raise(new Unit());
             }
         }
@@ -218,14 +218,14 @@ namespace TwoPhaseCommit
             this.Send(this.PendingWriteReq.Client, new WriteFail());
         }
 
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(Loop))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(Loop))]
         [OnEventGotoState(typeof(Timer.CancelTimerSuccess), typeof(Loop))]
         [OnEventGotoState(typeof(Timer.CancelTimerFailure), typeof(WaitingForTimeout))]
         [DeferEvents(typeof(Client.WriteReq), typeof(Client.ReadReq))]
         [IgnoreEvents(typeof(Replica.RespReplicaCommit), typeof(Replica.RespReplicaAbort))]
         class WaitingForCancelTimerResponse : MachineState { }
 
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(Loop))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(Loop))]
         [DeferEvents(typeof(Client.WriteReq), typeof(Client.ReadReq))]
         [IgnoreEvents(typeof(Replica.RespReplicaCommit), typeof(Replica.RespReplicaAbort))]
         class WaitingForTimeout : MachineState { }

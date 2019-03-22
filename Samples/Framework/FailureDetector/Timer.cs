@@ -30,21 +30,21 @@ namespace FailureDetector
         /// this machine models a timer by nondeterministically
         /// triggering a timeout, this value is not used.
         /// </summary>
-        internal class StartTimer : Event
+        internal class StartTimerEvent : Event
         {
             public int Timeout;
 
-            public StartTimer(int timeout)
+            public StartTimerEvent(int timeout)
             {
                 this.Timeout = timeout;
             }
         }
 
-        internal class Timeout : Event { }
+        internal class TimeoutEvent : Event { }
 
         internal class CancelSuccess : Event { }
         internal class CancelFailure : Event { }
-        internal class CancelTimer : Event { }
+        internal class CancelTimerEvent : Event { }
 
         /// <summary>
         /// Reference to the owner of the timer.
@@ -69,10 +69,10 @@ namespace FailureDetector
         /// The timer waits in the 'WaitForReq' state for a request from the client.
         ///
         /// It responds with a 'CancelFailure' event on a 'CancelTimer' event.
-        [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction))]
+        [OnEventGotoState(typeof(CancelTimerEvent), typeof(WaitForReq), nameof(CancelTimerAction))]
         ///
-        /// It transitions to the 'WaitForCancel' state on a 'StartTimer' event.
-        [OnEventGotoState(typeof(StartTimer), typeof(WaitForCancel))]
+        /// It transitions to the 'WaitForCancel' state on a 'StartTimerEvent' event.
+        [OnEventGotoState(typeof(StartTimerEvent), typeof(WaitForCancel))]
         /// </summary>
         class WaitForReq : MachineState { }
 
@@ -82,17 +82,17 @@ namespace FailureDetector
         }
 
         /// <summary>
-        /// In the 'WaitForCancel' state, any 'StartTimer' event is dequeued and dropped without any
+        /// In the 'WaitForCancel' state, any 'StartTimerEvent' event is dequeued and dropped without any
         /// action (indicated by the 'IgnoreEvents' declaration).
-        [IgnoreEvents(typeof(StartTimer))]
-        [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction2))]
+        [IgnoreEvents(typeof(StartTimerEvent))]
+        [OnEventGotoState(typeof(CancelTimerEvent), typeof(WaitForReq), nameof(CancelTimerAction2))]
         [OnEventGotoState(typeof(Default), typeof(WaitForReq), nameof(DefaultAction))]
         /// </summary>
         class WaitForCancel : MachineState { }
 
         void DefaultAction()
         {
-            this.Send(this.Target, new Timeout());
+            this.Send(this.Target, new TimeoutEvent());
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace FailureDetector
             else
             {
                 this.Send(this.Target, new CancelFailure());
-                this.Send(this.Target, new Timeout());
+                this.Send(this.Target, new TimeoutEvent());
             }
         }
     }

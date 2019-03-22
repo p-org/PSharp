@@ -10,10 +10,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp
 {
@@ -49,14 +51,14 @@ namespace Microsoft.PSharp
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
-        private Stack<MachineState> StateStack;
+        private readonly Stack<MachineState> StateStack;
 
         /// <summary>
         /// A stack of maps that determine event handling action for
         /// each event type. These maps do not keep transition handlers.
         /// This stack has always the same height as StateStack.
         /// </summary>
-        private Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
+        private readonly Stack<Dictionary<Type, EventActionHandler>> ActionHandlerStack;
 
         /// <summary>
         /// Dictionary containing all the current goto state transitions.
@@ -71,7 +73,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private Dictionary<string, CachedAction> ActionMap;
+        private readonly Dictionary<string, CachedAction> ActionMap;
 
         /// <summary>
         /// Inbox of the state-machine. Incoming events are
@@ -92,7 +94,12 @@ namespace Microsoft.PSharp
         /// to false, then the received event is deferred. The optional action
         /// executes when the event is received.
         /// </summary>
-        private List<EventWaitHandler> EventWaitHandlers;
+        private readonly List<EventWaitHandler> EventWaitHandlers;
+
+        /// <summary>
+        /// Map that contains the active timers.
+        /// </summary>
+        private readonly Dictionary<TimerInfo, IMachineTimer> Timers;
 
         /// <summary>
         /// Completion source that contains the event obtained
@@ -215,6 +222,7 @@ namespace Microsoft.PSharp
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
+            this.Timers = new Dictionary<TimerInfo, IMachineTimer>();
 
             this.IsRunning = true;
             this.IsPopInvoked = false;
@@ -354,7 +362,7 @@ namespace Microsoft.PSharp
         protected void Goto<S>() where S: MachineState
         {
 #pragma warning disable 618
-            Goto(typeof(S));
+            this.Goto(typeof(S));
 #pragma warning restore 618
         }
 
@@ -493,6 +501,51 @@ namespace Microsoft.PSharp
         {
             base.Runtime.NotifyPop(this);
             this.IsPopInvoked = true;
+        }
+
+        /// <summary>
+        /// Starts a timer that sends a <see cref="TimerElapsedEvent"/> to this machine after the
+        /// specified due time. The timer accepts an optional payload to be used during timeout.
+        /// The timer is automatically disposed after it timeouts. To manually stop and dispose
+        /// the timer, invoke the <see cref="StopTimer"/> method.
+        /// </summary>
+        /// <param name="dueTime">The amount of time to wait before sending the first timeout event.</param>
+        /// <param name="payload">Optional payload of the timeout event.</param>
+        /// <returns>Handle that contains information about the timer.</returns>
+        protected TimerInfo StartTimer(TimeSpan dueTime, object payload = null)
+        {
+            // The specified due time and period must be valid.
+            this.Assert(dueTime.TotalMilliseconds >= 0, $"Machine '{this.Id}' registered a timer with a negative due time.");
+            return this.RegisterTimer(dueTime, Timeout.InfiniteTimeSpan, payload);
+        }
+
+        /// <summary>
+        /// Starts a periodic timer that sends a <see cref="TimerElapsedEvent"/> to this machine
+        /// after the specified due time, and then repeats after each specified period. The timer
+        /// accepts an optional payload to be used during timeout. The timer can be stopped by
+        /// invoking the <see cref="StopTimer"/> method.
+        /// </summary>
+        /// <param name="dueTime">The amount of time to wait before sending the first timeout event.</param>
+        /// <param name="period">The time interval between timeout events.</param>
+        /// <param name="payload">Optional payload of the timeout event.</param>
+        /// <returns>Handle that contains information about the timer.</returns>
+        protected TimerInfo StartPeriodicTimer(TimeSpan dueTime, TimeSpan period, object payload = null)
+        {
+            // The specified due time and period must be valid.
+            this.Assert(dueTime.TotalMilliseconds >= 0, $"Machine '{this.Id}' registered a periodic timer with a negative due time.");
+            this.Assert(period.TotalMilliseconds >= 0, $"Machine '{this.Id}' registered a periodic timer with a negative period.");
+            return this.RegisterTimer(dueTime, period, payload);
+        }
+
+        /// <summary>
+        /// Stops and disposes the specified timer.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        protected void StopTimer(TimerInfo info)
+        {
+            this.Assert(info.OwnerId == this.Id, "Machine '{0}' is not allowed to dispose timer '{1}', which is owned by machine '{2}'.",
+                this.Id, info, info.OwnerId);
+            this.UnregisterTimer(info);
         }
 
         /// <summary>
@@ -671,7 +724,7 @@ namespace Microsoft.PSharp
                     }
                 }
 
-                if (this.IsIgnored(currentEventInfo.EventType))
+                if (this.IsIgnored(currentEventInfo))
                 {
                     if (!checkOnly)
                     {
@@ -715,7 +768,7 @@ namespace Microsoft.PSharp
                 this.RaisedEvent = null;
 
                 // Checks if the raised event is ignored.
-                if (this.IsIgnored(raisedEventInfo.EventType))
+                if (this.IsIgnored(raisedEventInfo))
                 {
                     raisedEventInfo = null;
                 }
@@ -819,6 +872,13 @@ namespace Microsoft.PSharp
                     // Inform the user of a successful dequeue once ReceivedEvent is set.
                     previouslyDequeuedEvent = nextEventInfo.Event;
                     await this.OnEventDequeueAsync(previouslyDequeuedEvent);
+                }
+
+                if (nextEventInfo.Event is TimerElapsedEvent timeoutEvent &&
+                    timeoutEvent.Info.Period.TotalMilliseconds < 0)
+                {
+                    // If the timer is not periodic, then dispose it.
+                    this.UnregisterTimer(timeoutEvent.Info);
                 }
 
                 // Handles next event.
@@ -1312,23 +1372,30 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine ignores the specified event.
+        /// Checks if the specified event should be ignored.
         /// </summary>
-        /// <param name="e">Event type</param>
-        /// <returns>Boolean</returns>
-        private bool IsIgnored(Type e)
+        /// <param name="eventInfo">Event info</param>
+        private bool IsIgnored(EventInfo eventInfo)
         {
+            if (eventInfo.Event is TimerElapsedEvent timeoutEvent &&
+                !this.Timers.ContainsKey(timeoutEvent.Info))
+            {
+                // The timer that created this timeout event is not active.
+                return true;
+            }
+
             // If a transition is defined, then the event is not ignored.
-            if (this.GotoTransitions.ContainsKey(e) || this.PushTransitions.ContainsKey(e) ||
+            if (this.GotoTransitions.ContainsKey(eventInfo.EventType) ||
+                this.PushTransitions.ContainsKey(eventInfo.EventType) ||
                 this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
                 this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
             {
                 return false;
             }
 
-            if (this.CurrentActionHandlerMap.ContainsKey(e))
+            if (this.CurrentActionHandlerMap.ContainsKey(eventInfo.EventType))
             {
-                return this.CurrentActionHandlerMap[e] is IgnoreAction;
+                return this.CurrentActionHandlerMap[eventInfo.EventType] is IgnoreAction;
             }
 
             if (this.CurrentActionHandlerMap.ContainsKey(typeof(WildCardEvent)) &&
@@ -1341,10 +1408,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine defers the specified event.
+        /// Checks if the specified event should be deferred.
         /// </summary>
         /// <param name="e">Event type</param>
-        /// <returns>Boolean</returns>
         private bool IsDeferred(Type e)
         {
             // if transition is defined, then no
@@ -1589,6 +1655,42 @@ namespace Microsoft.PSharp
             this.DoStatePush(initialStates.Single());
 
             this.AssertStateValidity();
+        }
+
+        #endregion
+
+        #region timers
+
+        /// <summary>
+        /// Registers a new timer using the specified configuration.
+        /// </summary>
+        /// <param name="dueTime">The amount of time to wait before sending the first timeout event.</param>
+        /// <param name="period">The time interval between timeout events.</param>
+        /// <param name="payload">The payload of the timeout event.</param>
+        /// <returns>Handle that contains information about the timer.</returns>
+        private TimerInfo RegisterTimer(TimeSpan dueTime, TimeSpan period, object payload)
+        {
+            var info = new TimerInfo(this.Id, dueTime, period, payload);
+            var timer = base.Runtime.CreateMachineTimer(info, this);
+            this.Logger.OnCreateTimer(info);
+            this.Timers.Add(info, timer);
+            return info;
+        }
+
+        /// <summary>
+        /// Unregisters the specified timer.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        private void UnregisterTimer(TimerInfo info)
+        {
+            if (!this.Timers.TryGetValue(info, out IMachineTimer timer))
+            {
+                this.Assert(info.OwnerId == this.Id, "Timer '{0}' is already disposed.", info);
+            }
+
+            this.Logger.OnStopTimer(info);
+            this.Timers.Remove(info);
+            timer.Dispose();
         }
 
         #endregion
@@ -1914,27 +2016,26 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Cleans up resources at machine termination.
-        /// </summary>
-        private void CleanUpResources()
-        {
-            this.Inbox.Clear();
-            this.EventWaitHandlers.Clear();
-            this.ReceivedEvent = null;
-        }
-
-        /// <summary>
         /// Halts the machine.
         /// </summary>
         private void HaltMachine()
         {
+            // Dispose any active timers.
+            foreach (var timer in this.Timers.Keys)
+            {
+                this.UnregisterTimer(timer);
+            }
+
             var inboxContents = new LinkedList<EventInfo>();
 
             lock (this.Inbox)
             {
                 this.Info.IsHalted = true;
                 inboxContents = new LinkedList<EventInfo>(this.Inbox);
-                this.CleanUpResources();
+
+                this.Inbox.Clear();
+                this.EventWaitHandlers.Clear();
+                this.ReceivedEvent = null;
             }
 
             base.Runtime.NotifyHalted(this, inboxContents);

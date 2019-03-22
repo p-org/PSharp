@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+
+using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.IO
@@ -344,7 +346,7 @@ namespace Microsoft.PSharp.IO
                         : $"machine '{targetMachineId}'";
             var sender = senderId != null
                 ? $"Machine '{senderId}' in state '{senderStateName}'"
-                : $"The Runtime";
+                : $"The runtime";
             return $"<SendLog> Operation Group {guid}: {sender} sent event '{eventName}' to {target}.";
         }
 
@@ -368,7 +370,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="creator">Id of the host machine, null otherwise.</param>
         public virtual string FormatOnCreateMachineString(MachineId machineId, MachineId creator)
         {
-            var source = creator == null ? "the Runtime" : $"machine '{creator.Name}'";
+            var source = creator == null ? "the runtime" : $"machine '{creator.Name}'";
             return $"<CreateLog> Machine '{machineId}' was created by {source}.";
         }
 
@@ -393,6 +395,58 @@ namespace Microsoft.PSharp.IO
         public virtual string FormatOnCreateMonitorString(string monitorTypeName, MachineId monitorId)
         {
             return $"<CreateLog> Monitor '{monitorTypeName}' with id '{monitorId}' was created.";
+        }
+
+        /// <summary>
+        /// Called when a machine timer has been created.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        public void OnCreateTimer(TimerInfo info)
+        {
+            if (this.IsVerbose)
+            {
+                this.WriteLine(FormatOnCreateTimerString(info));
+            }
+        }
+
+        /// <summary>
+        /// Returns a string formatted for the <see cref="OnCreateTimer"/> event and its parameters.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        public virtual string FormatOnCreateTimerString(TimerInfo info)
+        {
+            var source = info.OwnerId == null ? "the runtime" : $"machine '{info.OwnerId.Name}'";
+            if (info.Period.TotalMilliseconds >= 0)
+            {
+                return $"<TimerLog> Timer '{info}' (due-time:{info.DueTime.TotalMilliseconds}ms; " +
+                    $"period :{info.Period.TotalMilliseconds}ms) was created by {source}.";
+            }
+            else
+            {
+                return $"<TimerLog> Timer '{info}' (due-time:{info.DueTime.TotalMilliseconds}ms) was created by {source}.";
+            }
+        }
+
+        /// <summary>
+        /// Called when a machine timer has been stopped.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        public void OnStopTimer(TimerInfo info)
+        {
+            if (this.IsVerbose)
+            {
+                this.WriteLine(FormatOnStopTimerString(info));
+            }
+        }
+
+        /// <summary>
+        /// Returns a string formatted for the <see cref="OnStopTimer"/> event and its parameters.
+        /// </summary>
+        /// <param name="info">Handle that contains information about the timer.</param>
+        public virtual string FormatOnStopTimerString(TimerInfo info)
+        {
+            var source = info.OwnerId == null ? "the runtime" : $"machine '{info.OwnerId.Name}'";
+            return $"<TimerLog> Timer '{info}' was stopped and disposed by {source}.";
         }
 
         /// <summary>

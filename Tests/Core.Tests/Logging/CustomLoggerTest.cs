@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.Core.Tests
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
 
-            string expected = @"<CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' was created by the Runtime.
+            string expected = @"<CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' was created by the runtime.
 <StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' enters state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init'.
 <ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' invoked action 'InitOnEntry'.
 <CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' was created by machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.

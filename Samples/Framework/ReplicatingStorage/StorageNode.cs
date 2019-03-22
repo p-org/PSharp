@@ -105,7 +105,7 @@ namespace ReplicatingStorage
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
-        [DeferEvents(typeof(SyncTimer.Timeout))]
+        [DeferEvents(typeof(SyncTimer.TimeoutEvent))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -131,7 +131,7 @@ namespace ReplicatingStorage
 
         [OnEventDoAction(typeof(StoreRequest), nameof(Store))]
         [OnEventDoAction(typeof(SyncRequest), nameof(Sync))]
-        [OnEventDoAction(typeof(SyncTimer.Timeout), nameof(GenerateSyncReport))]
+        [OnEventDoAction(typeof(SyncTimer.TimeoutEvent), nameof(GenerateSyncReport))]
         [OnEventDoAction(typeof(Environment.FaultInject), nameof(Terminate))]
         class Active : MachineState { }
 

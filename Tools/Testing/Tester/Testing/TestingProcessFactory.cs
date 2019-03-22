@@ -101,6 +101,8 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/explore ");
             }
 
+            arguments.Append($"/timeout-delay:{configuration.TimeoutDelay} ");
+
             if (configuration.ReportCodeCoverage && configuration.ReportActivityCoverage)
             {
                 arguments.Append($"/coverage ");

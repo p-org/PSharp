@@ -36,7 +36,7 @@
     "ca3d55f6ae823cd287a2810243f2bd6be5f4ba7b016c80da954371e591b10c97b0938f721c7149" +
     "3bc97f9e")]
 
-// Unit tests
+// Tests
 [assembly: InternalsVisibleTo("Microsoft.PSharp.LanguageServices.Tests,PublicKey=" +
     "0024000004800000940000000602000000240000525341310004000001000100d7971281941569" +
     "53fd8af100ac5ecaf1d96fab578562b91133663d6ccbf0b313d037a830a20d7af1ce02a6641d71" +

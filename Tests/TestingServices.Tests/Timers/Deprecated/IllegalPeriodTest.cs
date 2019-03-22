@@ -4,55 +4,44 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.PSharp.Timers;
+using System.Threading.Tasks;
+using Microsoft.PSharp.Deprecated.Timers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.PSharp.TestingServices.Tests
+namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
 {
-    public class BasicSingleTimeoutTest : BaseTest
+    public class DeprecatedIllegalPeriodTest : BaseTest
     {
-        public BasicSingleTimeoutTest(ITestOutputHelper output)
+        public DeprecatedIllegalPeriodTest(ITestOutputHelper output)
             : base(output)
         { }
 
-        private class T1 : TimedMachine
+        private class T4 : TimedMachine
         {
-            TimerId tid;
             object payload = new object();
-            int count;
 
             [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
+            [OnEntry(nameof(Initialize))]
             class Init : MachineState { }
-
-            void InitOnEntry()
+            async Task Initialize()
             {
-                count = 0;
-
-                // Start a one-off timer.
-                tid = StartTimer(payload, 10, false);
-            }
-
-            void HandleTimeout()
-            {
-                count++;
-                this.Assert(count == 1);
+                // Incorrect period, will throw assertion violation
+                TimerId tid = this.StartTimer(payload, -1, true);
+                await this.StopTimer(tid, flush: true);
             }
         }
 
         [Fact]
-        public void SingleTimeoutTest()
+        public void IllegalTimerStopTest()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);
             config.MaxSchedulingSteps = 200;
 
             var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(T1));
+                r.CreateMachine(typeof(T4));
             });
-
-            base.AssertSucceeded(test);
+            base.AssertFailed(test, 1, true);
         }
     }
 }

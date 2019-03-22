@@ -20,19 +20,19 @@ namespace TwoPhaseCommit
             }
         }
 
-        internal class StartTimer : Event
+        internal class StartTimerEvent : Event
         {
             public int Timeout;
 
-            public StartTimer(int timeout)
+            public StartTimerEvent(int timeout)
                 : base()
             {
                 this.Timeout = timeout;
             }
         }
 
-        internal class Timeout : Event { }
-        internal class CancelTimer : Event { }
+        internal class TimeoutEvent : Event { }
+        internal class CancelTimerEvent : Event { }
         internal class CancelTimerSuccess : Event { }
         internal class CancelTimerFailure : Event { }
         private class Unit : Event { }
@@ -50,21 +50,21 @@ namespace TwoPhaseCommit
             this.Raise(new Unit());
         }
 
-        [OnEventGotoState(typeof(StartTimer), typeof(TimerStarted))]
-        [IgnoreEvents(typeof(CancelTimer))]
+        [OnEventGotoState(typeof(StartTimerEvent), typeof(TimerStarted))]
+        [IgnoreEvents(typeof(CancelTimerEvent))]
         class Loop : MachineState { }
 
 
         [OnEntry(nameof(TimerStartedOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Loop))]
-        [OnEventDoAction(typeof(CancelTimer), nameof(CancelingTimer))]
+        [OnEventDoAction(typeof(CancelTimerEvent), nameof(CancelingTimer))]
         class TimerStarted : MachineState { }
 
         void TimerStartedOnEntry()
         {
             if (this.Random())
             {
-                this.Send(this.Target, new Timer.Timeout());
+                this.Send(this.Target, new Timer.TimeoutEvent());
                 this.Raise(new Unit());
             }
         }
@@ -74,7 +74,7 @@ namespace TwoPhaseCommit
             if (this.Random())
             {
                 this.Send(this.Target, new CancelTimerFailure());
-                this.Send(this.Target, new Timeout());
+                this.Send(this.Target, new TimeoutEvent());
             }
             else
             {

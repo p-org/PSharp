@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
@@ -19,53 +18,34 @@ namespace Microsoft.PSharp.Core.Tests
             : base(output)
         { }
 
-        class NonMachineSubClass { }
-
-        class Configure : Event
+        class SetupEvent : Event
         {
-            public TaskCompletionSource<bool> TCS;
-            public bool periodic;
+            public TaskCompletionSource<bool> Tcs;
 
-            public Configure(TaskCompletionSource<bool> tcs, bool periodic)
+            public SetupEvent(TaskCompletionSource<bool> tcs)
             {
-                this.TCS = tcs;
-                this.periodic = periodic;
+                this.Tcs = tcs;
             }
         }
 
-        class ConfigureWithPeriod : Event
+        class TransferTimerEvent : Event
         {
-            public TaskCompletionSource<bool> TCS;
-            public int period;
+            public TaskCompletionSource<bool> Tcs;
+            public TimerInfo Timer;
 
-            public ConfigureWithPeriod(TaskCompletionSource<bool> tcs, int period)
+            public TransferTimerEvent(TaskCompletionSource<bool> Tcs, TimerInfo timer)
             {
-                this.TCS = tcs;
-                this.period = period;
+                this.Tcs = Tcs;
+                this.Timer = timer;
             }
         }
 
-        class Marker : Event { }
-
-        class TransferTimerAndTCS : Event
+        class T1 : Machine
         {
-            public TimerId tid;
-            public TaskCompletionSource<bool> TCS;
+            TaskCompletionSource<bool> Tcs;
 
-            public TransferTimerAndTCS(TimerId tid, TaskCompletionSource<bool> TCS)
-            {
-                this.tid = tid;
-                this.TCS = TCS;
-            }
-        }
-
-        class T1 : TimedMachine
-        {
-            TimerId tid;
-            readonly object payload = new object();
-            TaskCompletionSource<bool> tcs;
-            int count;
-            bool periodic;
+            TimerInfo Timer;
+            int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -74,79 +54,71 @@ namespace Microsoft.PSharp.Core.Tests
 
             void InitOnEntry()
             {
-                Configure e = (this.ReceivedEvent as Configure);
-                tcs = e.TCS;
-                periodic = e.periodic;
-                count = 0;
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Count = 0;
 
-                if (periodic)
-                {
-                    // Start a periodic timer with 10ms timeouts
-                    tid = StartTimer(payload, 10, true);
-                }
-                else
-                {
-                    // Start a one-off timer 
-                    tid = StartTimer(payload, 10, false);
-                }
+                // Start a regular timer.
+                this.Timer = this.StartTimer(TimeSpan.FromMilliseconds(10));
             }
 
-            async Task HandleTimeout()
+            void HandleTimeout()
             {
-                count++;
-
-                // for testing single timeout
-                if (!periodic)
+                this.Count++;
+                if (this.Count == 1)
                 {
-                    // for a single timer, exactly one timeout should be received
-                    if (count == 1)
-                    {
-                        await StopTimer(tid, true);
-                        tcs.SetResult(true);
-                        this.Raise(new Halt());
-                    }
-                    else
-                    {
-                        await StopTimer(tid, true);
-                        tcs.SetResult(false);
-                        this.Raise(new Halt());
-                    }
+                    this.Tcs.SetResult(true);
+                    this.Raise(new Halt());
+                    return;
                 }
 
-                // for testing periodic timeouts
-                else
+                this.Tcs.SetResult(false);
+                this.Raise(new Halt());
+            }
+        }
+
+        class T2 : Machine
+        {
+            TaskCompletionSource<bool> Tcs;
+
+            TimerInfo Timer;
+            int Count;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Count = 0;
+
+                // Start a periodic timer.
+                this.Timer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(10));
+            }
+
+            void HandleTimeout()
+            {
+                this.Count++;
+                if (this.Count == 10)
                 {
-                    if (count == 100)
-                    {
-                        await StopTimer(tid, true);
-                        tcs.SetResult(true);
-                        this.Raise(new Halt());
-                    }
+                    this.StopTimer(this.Timer);
+                    this.Tcs.SetResult(true);
+                    this.Raise(new Halt());
                 }
             }
         }
-        class FlushingClient : TimedMachine
+
+        class T3 : Machine
         {
-            /// <summary>
-            /// A dummy payload object received with timeout events.
-            /// </summary>
-            readonly object payload = new object();
+            TaskCompletionSource<bool> Tcs;
+
+            TimerInfo PingTimer;
+            TimerInfo PongTimer;
 
             /// <summary>
-            /// Timer used in the Ping State.
-            /// </summary>
-            TimerId pingTimer;
-
-            /// <summary>
-            /// Timer used in the Pong state.
-            /// </summary>
-            TimerId pongTimer;
-
-            TaskCompletionSource<bool> tcs;
-
-            /// <summary>
-            /// Start the pingTimer and start handling the timeout events from it.
-            /// After handling 10 events, stop pingTimer and move to the Pong state.
+            /// Start the PingTimer and start handling the timeout events from it.
+            /// After handling 10 events, stop the timer and move to the Pong state.
             /// </summary>
             [Start]
             [OnEntry(nameof(DoPing))]
@@ -154,207 +126,162 @@ namespace Microsoft.PSharp.Core.Tests
             class Ping : MachineState { }
 
             /// <summary>
-            /// Start the pongTimer and start handling the timeout events from it.
-            /// After handling 10 events, stop pongTimer and move to the Ping state.
+            /// Start the PongTimer and start handling the timeout events from it.
+            /// After handling 10 events, stop the timer and move to the Ping state.
             /// </summary>
             [OnEntry(nameof(DoPong))]
-            [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeoutForPong))]
+            [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
             class Pong : MachineState { }
 
             private async Task DoPing()
             {
-                tcs = (this.ReceivedEvent as Configure).TCS;
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
 
-                // Start a periodic timer with timeout interval of 1sec.
-                // The timer generates TimerElapsedEvent with 'm' as payload.
-                pingTimer = StartTimer(payload, 5, true);
+                this.PingTimer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5));
                 await Task.Delay(100);
-                await this.StopTimer(pingTimer, flush: true);
+                this.StopTimer(this.PingTimer);
+
                 this.Goto<Pong>();
             }
 
-            /// <summary>
-            /// Handle timeout events from the pongTimer.
-            /// </summary>
             private void DoPong()
             {
-                // Start a periodic timer with timeout interval of 0.5sec.
-                // The timer generates TimerElapsedEvent with 'm' as payload.
-                pongTimer = StartTimer(payload, 50, false);
+                this.PongTimer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(50));
             }
 
-            private void HandleTimeoutForPong()
+            private void HandleTimeout()
             {
-                TimerElapsedEvent e = (this.ReceivedEvent as TimerElapsedEvent);
-
-                if (e.Tid == this.pongTimer)
+                var timeout = (this.ReceivedEvent as TimerElapsedEvent);
+                if (timeout.Info == this.PongTimer)
                 {
-                    tcs.SetResult(true);
+                    this.Tcs.SetResult(true);
                     this.Raise(new Halt());
                 }
                 else
                 {
-                    tcs.SetResult(false);
+                    this.Tcs.SetResult(false);
                     this.Raise(new Halt());
                 }
             }
         }
 
-        class T2 : TimedMachine
+        class T4 : Machine
         {
-            TimerId tid;
-            TaskCompletionSource<bool> tcs;
-            readonly object payload = new object();
-            MachineId m;
-
             [Start]
             [OnEntry(nameof(Initialize))]
-            [IgnoreEvents(typeof(TimerElapsedEvent))]
             class Init : MachineState { }
 
             void Initialize()
             {
-                tcs = (this.ReceivedEvent as Configure).TCS;
-                tid = this.StartTimer(this.payload, 100, true);
-                m = CreateMachine(typeof(T3), new TransferTimerAndTCS(tid, tcs));
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+
+                try
+                {
+                    this.StartTimer(TimeSpan.FromSeconds(-1));
+                }
+                catch (AssertionFailureException ex)
+                {
+                    this.Logger.WriteLine(ex.Message);
+                    tcs.SetResult(true);
+                    this.Raise(new Halt());
+                    return;
+                }
+
+                tcs.SetResult(false);
                 this.Raise(new Halt());
             }
         }
 
-        class T3 : TimedMachine
+        class T5 : Machine
         {
-            [Start]
-            [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
-
-            async Task Initialize()
-            {
-                TimerId tid = (this.ReceivedEvent as TransferTimerAndTCS).tid;
-                TaskCompletionSource<bool> tcs = (this.ReceivedEvent as TransferTimerAndTCS).TCS;
-
-                // trying to stop a timer created by a different machine. 
-                // should throw an assertion violation
-                try
-                {
-                    await this.StopTimer(tid, true);
-                }
-                catch (AssertionFailureException)
-                {
-                    tcs.SetResult(true);
-                    this.Raise(new Halt());
-                }
-            }
-        }
-
-        class T4 : TimedMachine
-        {
-            readonly object payload = new object();
-
             [Start]
             [OnEntry(nameof(Initialize))]
             class Init : MachineState { }
 
             void Initialize()
             {
-                var tcs = (this.ReceivedEvent as ConfigureWithPeriod).TCS;
-                var period = (this.ReceivedEvent as ConfigureWithPeriod).period;
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
 
                 try
                 {
-                    this.StartTimer(this.payload, period, true);
+                    this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(-1));
                 }
-                catch (AssertionFailureException)
+                catch (AssertionFailureException ex)
                 {
+                    this.Logger.WriteLine(ex.Message);
                     tcs.SetResult(true);
                     this.Raise(new Halt());
+                    return;
                 }
+
+                tcs.SetResult(false);
+                this.Raise(new Halt());
             }
         }
 
-        /// <summary>
-        /// Test to check assertion failure when attempting to create
-        /// a timer whose type does not extend Machine.
-        /// </summary>
         [Fact]
-        public void ExceptionOnInvalidTimerTypeTest()
+        public void TestBasicTimerOperation()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
-                Assert.Throws<AssertionFailureException>(() => r.SetTimerMachineType(typeof(NonMachineSubClass)));
-            });
-
-            base.Run(config, test);
-        }
-
-        /// <summary>
-        /// Check basic functions of a periodic timer.
-        /// </summary>
-        [Fact]
-        public void BasicPeriodicTimerOperationTest()
-        {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
             var test = new Action<PSharpRuntime>((r) => {
                 var tcs = new TaskCompletionSource<bool>();
-                r.CreateMachine(typeof(T1), new Configure(tcs, true));
+                r.CreateMachine(typeof(T1), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(config, test);
+            base.Run(configuration, test);
         }
 
         [Fact]
-        public void BasicSingleTimerOperationTest()
+        public void TestBasicPeriodicTimerOperation()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
             var test = new Action<PSharpRuntime>((r) => {
                 var tcs = new TaskCompletionSource<bool>();
-                r.CreateMachine(typeof(T1), new Configure(tcs, false));
+                r.CreateMachine(typeof(T2), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(config, test);
-        }
-
-        /// <summary>
-        /// Test if the flushing operation works correctly.
-        /// </summary>
-        [Fact]
-        public void InboxFlushOperationTest()
-        {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
-                var tcs = new TaskCompletionSource<bool>();
-                r.CreateMachine(typeof(FlushingClient), new Configure(tcs, true));
-                Assert.True(tcs.Task.Result);
-            });
-
-            base.Run(config, test);
+            base.Run(configuration, test);
         }
 
         [Fact]
-        public void IllegalTimerStoppageTest()
+        public void TestDropTimeoutsAfterTimerDisposal()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
             var test = new Action<PSharpRuntime>((r) => {
                 var tcs = new TaskCompletionSource<bool>();
-                r.CreateMachine(typeof(T2), new Configure(tcs, true));
+                r.CreateMachine(typeof(T3), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(config, test);
+            base.Run(configuration, test);
         }
 
         [Fact]
-        public void IllegalPeriodSpecificationTest()
+        public void TestIllegalDueTimeSpecification()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
             var test = new Action<PSharpRuntime>((r) => {
                 var tcs = new TaskCompletionSource<bool>();
-                r.CreateMachine(typeof(T4), new ConfigureWithPeriod(tcs, -1));
+                r.CreateMachine(typeof(T4), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(config, test);
+            base.Run(configuration, test);
+        }
+
+        [Fact]
+        public void TestIllegalPeriodSpecification()
+        {
+            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) => {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(T5), new SetupEvent(tcs));
+                Assert.True(tcs.Task.Result);
+            });
+
+            base.Run(configuration, test);
         }
     }
 }

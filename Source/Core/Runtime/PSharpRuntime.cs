@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp
 {
@@ -40,11 +41,6 @@ namespace Microsoft.PSharp
         /// Map from unique machine ids to machines.
         /// </summary>
         protected ConcurrentDictionary<MachineId, Machine> MachineMap;
-
-        /// <summary>
-        /// Type of Timer machine (used by TMachine)
-        /// </summary>
-        private Type TimerMachineType = null;
 
         /// <summary>
         /// Network provider used for remote communication.
@@ -473,26 +469,20 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region Timers
+        #region timers
 
         /// <summary>
-        /// Overrides the machine type for instantiating timers
+        /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
         /// </summary>
-        /// <param name="timerMachineType">Machine type</param>
-        public void SetTimerMachineType(Type timerMachineType)
-        {
-            this.Assert(timerMachineType.IsSubclassOf(typeof(Machine)), "TimerMachine must be a subclass of Machine");
-            this.TimerMachineType = timerMachineType;
-        }
+        /// <param name="info">Stores information about the timer.</param>
+        /// <param name="owner">The owner machine.</param>
+        /// <returns>The machine timer.</returns>
+        internal abstract IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner);
 
         /// <summary>
-        /// Return the timer machine type
+        /// Returns the timer machine type.
         /// </summary>
-        /// <returns></returns>
-        internal virtual Type GetTimerMachineType()
-        {
-            return TimerMachineType;
-        }
+        internal abstract Type GetTimerMachineType();
 
         #endregion
 

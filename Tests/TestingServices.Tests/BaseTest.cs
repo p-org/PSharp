@@ -217,9 +217,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private string RemoveNonDeterministicValuesFromReport(string report)
         {
-            var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
+            string result;
+            // Match a GUID or other ids (since they can be nondeterministic).
+            result = Regex.Replace(report, @"\'[0-9|a-z|A-Z|-]{36}\'|\'[0-9]+\'", "''");
             result = Regex.Replace(result, @"\([^)]*\)", "()");
             result = Regex.Replace(result, @"\[[^)]*\]", "[]");
+            // Match a namespace.
             result = Regex.Replace(result, @"Microsoft\.[^+]*\+", "");
             return result;
         }

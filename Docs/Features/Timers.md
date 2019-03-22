@@ -1,33 +1,31 @@
 Using timers in P#
 ==================
-P# has support for timers, which can either fire a one-off `TimerElapsedEvent`, or can continually generate such events with a user-defined periodicity. A sample which demonstrates the use of such timers is provided in `Samples\Timers\TimerSample`. In this article, we will walk-through the sample program, highlighting the salient issues related to the usage of P# timers.
+P# has built-in support for machine timers, which can send a `TimerElapsedEvent` to the machine that created them upon timeout, and periodic machine timers, which can continually send such events with a user-defined periodicity.
 
-To make use of timers, your P# machine must subclass `TimedMachine` (which itself is a subclass of `Machine`).
+To make use of timers, you must include the `Microsoft.PSharp.Timers` namespace. Timers are exposed via `Machine` APIs. You can start a non-periodic timer using the function `StartTimer`.
 ```C#
-using System;
-using Microsoft.PSharp;
-using Microsoft.PSharp.Timers;
-using System.Threading.Tasks;
-
-namespace TimerSample
-{
-	class Client : TimedMachine
-	{
-            // code
-        }
-}
+TimerInfo StartTimer(TimeSpan dueTime, object payload = null)
 ```
+`StartTimer` takes as argument:
+1. `TimeSpan dueTime`, which is the amount of time to wait before sending the timeout event.
+2. `object payload`, which is an optional payload of the timeout event.
 
-You start a timer using the function `StartTimer`, which takes as argument:
-1. `object payload`, which is piggybacked with the timeout events
-2. `int period`, which specifies the periodicity of repeated timeout events.
-3. `bool IsPeriodic`, which is `true` if periodic timeouts are required. If `false`, the created timer sends a single timeout event.
+`StartTimer` returns `TimerInfo`, which contains information about the created non-periodic timer. The non-periodic timer is automatically disposed after it timeouts. You can also pass the `TimerInfo` to the `StopTimer` machine method to manually stop and dispose the timer. The timer sends events of type `TimerElapsedEvent` back to the inbox of the machine which created it. The `TimerElapsedEvent` contains, as payload, the same `TimerInfo` returned during the timer creation (and the `Payload` is a public field within the `TimerInfo`). If you create multiple timers, then the `TimerInfo` handler can be used to distinguish the sources of the different `TimerElapsedEvent` events.
 
-`StartTimer` returns the `TimerId` of the created timer. You must hold on to this id, as it is required to stop the timer later on. The timer sends events of type `TimerElapsedEvent` back to the inbox of the machine which created it. The `TimerElapsedEvent` contains, as payload, the same `TimerId` object returned during the timer creation (and the `payload` is a public field within the `TimerId`). If you create multiple timers, then this `TimerId` payload can be used to distinguish the sources of the different `TimerElapsedEvent` events.
+You can start a periodic timer using the function `StartPeriodicTimer`.
+```C#
+TimerInfo StartPeriodicTimer(TimeSpan dueTime, TimeSpan period, object payload = null)
+```
+`StartPeriodicTimer` takes as argument:
+1. `TimeSpan dueTime`, which is the amount of time to wait before sending the timeout event.
+2. `TimeSpan period`, which is the time interval between timeout events.
+3. `object payload`, which is an optional payload of the timeout event.
 
-In the sample, we have a machine with two states: `Ping` and `Pong`. There are two timers: a `pingTimer`, which is operational when the machine is in the `Ping` state, and a `pongTimer`, which is operational when the machine is in the `Pong` state.
+This API and timer work similarly to `StartTimer`, however you need to manually stop a periodic timer using the `StopTimer` method. Note that when a machine halts, it automatically stops and disposes all its periodic and non-periodic timers.
 
-The machine starts off in the `Ping` state, handles 10 timeout events, shuts down the `pingTimer`, and transitions to the `Pong` state, where it performs analogous operations with the `pongTimer`.
+A sample which demonstrates the use of such timers is provided in `Samples\Timers\TimerSample`. In this article, we will walk-through the sample program, highlighting the salient issues related to the usage of P# timers.
+
+In the sample, we have a machine with two states: `Ping` and `Pong`. There are two timers: a ping timer (`PingTimerInfo`), which is operational when the machine is in the `Ping` state, and a pong timer (`PongTimerInfo`), which is operational when the machine is in the `Pong` state. The machine starts off in the `Ping` state, handles 10 timeout events, stops the ping timer, and transitions to the `Pong` state, where it performs analogous operations with the pong timer.
 ``` C#
 [Start]
 [OnEntry(nameof(DoPing))]
@@ -43,60 +41,47 @@ We show the event handlers for the `Ping` state (those for the `Pong` state are 
 ``` C#
 private void DoPing()
 {
-   count = 1;
-   pingTimer = StartTimer(payload, 50, true);
+   this.Count = 1;
+   this.PingTimerInfo = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), payload: new object());
 }
 
 private async Task HandleTimeoutForPing()
 {
-   TimerElapsedEvent e = (this.ReceivedEvent as TimerElapsedEvent);
+   var timeout = (this.ReceivedEvent as TimerElapsedEvent);
 
    // Ensure that we are handling a valid timeout event.
-   this.Assert(e.Tid == this.pingTimer, "Handling timeout event from an invalid timer.");
+   this.Assert(timeout.Info == this.PingTimerInfo, "Handling timeout event from an invalid timer.");
+   this.Logger.WriteLine("Ping count: {0}", this.Count);
 
-   this.Logger.WriteLine("ping count: {0}", count);
+   // Extract the payload.
+   object payload = timeout.Info.Payload;
 
-   // Extract the payload
-   Object payload = e.Tid.Payload;
-
-   // Increment the count
-   count++;
-
-   // Halt pingTimer after handling 10 timeout events
-   if (count == 10)
+   // Increment the count.
+   this.Count++;
+   if (this.Count == 10)
    {
-      // Stop the pingTimer, and flush the inbox of all timeout events generated by it
-      await StopTimer(pingTimer, flush: true);
-      this.Goto<Pong>();
+         // Stop the ping timer after handling 10 timeout events.
+         // This will cause any enqueued events from this timer to be ignored.
+         this.StopTimer(this.PingTimerInfo);
+         this.Goto<Pong>();
    }
 }
 ```
 
-The `DoPing` method starts a timer, and stores the handle to it in `pingTimer`. The timer, being periodic, repeatedly generates `TimerElpsedEvent` events at intervals of 50 milliseconds. On receiving an `TimerElapsedEvent` in the `Ping` state, the machine executes `HandleTimeoutForPing`. Here, we first extract the `TimerId` payload from the `TimerElapsedEvent`, and assert that we are processing the timeout events from the right timer (in this case, `pingTimer`). The `payload` can be further extracted from the `TimerId` object.
+The `DoPing` method starts a timer, and stores the handle to it in `PingTimerInfo`. The timer, being periodic, repeatedly generates `TimerElpsedEvent` events at intervals of 1 second. On receiving a `TimerElapsedEvent` in the `Ping` state, the machine executes `HandleTimeoutForPing`. Here, we first extract the `TimerInfo` from the `TimerElapsedEvent`, and assert that we are processing the timeout events from the correct timer (in this case, the ping timer). The `Payload` can be further extracted from the `TimerInfo`.
 
-During testing, timeouts are generated, by default, by a model timer of type `ModelTimerMachine` (as mentioned later, you can choose to run a machine of your own type). You can tune the probability of the timeouts generated using the `static` field `NumStepsToSkip` (which has the default value of 1). The higher the value, the lower is the probability of a timeout being fired by the `TimerModel` machine.
+In production, a timer is implemented using a lightweight and efficient `System.Threading.Timer`. However, during testing, timeouts are generated by a mock timer which is implemented as a P# machine. You can tune the probability of the mock timeouts generated by changing the configuration `TimeoutDelay` (which has the default value of 1), or by using the tester command line option `-timeout-delay`, which sets this configuration value. The higher the value, the lower is the probability of a timeout being fired during testing.
 
-When the `Ping` state processes 10 such timeouts, it stops the `pingTimer`. The `StopTimer` function requires the handle of the timer you want to stop, along with an option to flush the inbox of this machine. Flushing removes all the timeout events in the inbox of this machine, which are generated by the timer whose handle is passed as the first argument. In this case, we are asking P# to clear the inbox of the `Client` machine of all timeout events generated by the `pingTimer`.
+When the `Ping` state processes 10 such timeouts, it stops and disposes the ping timer by passing the `PingTimerInfo` to the `StopTimer` method. This will cause the owner machine to ignore any futher timeouts coming from the disposed timer. Only a machine that created a timer can stop that timer (this is asserted during testing), so make sure that you only call `StopTimer` for a `TimerInfo` that is owned by the same machine. In the example, you can only stop the ping timer from the instance of the `Client` machine which created it.
 
-`StopTimer` can only be used to stop a timer `t` from a machine which created `t` in the first place. In the example, you can only stop `pingTimer` from the instance of the `Client` machine which created it. Attempting to stop `pingTimer` from any other machine results in an assertion violation.
-
-A final note on timers. If unspecified, then P# uses, as default, a timer of type `ProductionTimerMachine` in production mode, or a timer model of type `ModelTimerMachine` during testing. You can, instead, choose to use your own timer implementation as follows:
-``` C#
-var configuration = Configuration.Create();
-var runtime = PSharpRuntime.Create(configuration);
-runtime.SetTimerMachineType(<YourTimerMachineType>);
-```
-`YourTimerMachineType` must subclass `Machine`.
-
-Returning to our running example, after we transition to the `Pong` state, we do an analogous operation with the `pongTimer`, and transition back to the `Ping` state, where the cycle repeats all over again.
+After we transition to the `Pong` state, we do an analogous operation with the `PongTimerInfo`, and transition back to the `Ping` state, where the cycle repeats all over again.
 
 You can choose to run as many timers in parallel as you wish. Here's a code snippet which demonstrates such usage:
 ```C#
-class MultiTimers : TimedMachine {
+class MultiTimers : Machine {
 
-   TimerId t1;
-   TimerId t2;
-   object payload = new object();
+   TimerInfo TimerInfo1;
+   TimerInfo TimerInfo2;
 
    [OnEntry(nameof(CreateMultipleTimers))]
    [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
@@ -104,19 +89,20 @@ class MultiTimers : TimedMachine {
 
    void CreateMultipleTimers() 
    {
-      t1 = StartTimer(object, 100, true);
-      t2 = StartTimer(object, 100, true);
+      this.TimerInfo1 = StartTimer(TimeSpan.FromMilliseconds(100));
+      this.TimerInfo2 = StartPeriodicTimer(TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(200));
    }
 
-   void HandleTimeout() {
-      TimerElapsedEvent e = (this.ReceivedEvent as TimerElapsedEvent);
-      if(e.Tid == t1) 
+   void HandleTimeout()
+   {
+      var timeout = (this.ReceivedEvent as TimerElapsedEvent);
+      if (timeout.Timer == this.TimerInfo1) 
       {
-         this.Logger.WriteLine("Timeout from t1");
+         this.Logger.WriteLine("Timeout from timer 1.");
       }
-      if(e.Tid == t2)
+      else if (timeout.Timer == this.TimerInfo2)
       {
-         this.Logger.WriteLine("Timeout from t2");
+         this.Logger.WriteLine("Timeout from timer 2.");
       }
    }
    // any other code

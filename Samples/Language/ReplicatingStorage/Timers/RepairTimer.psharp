@@ -14,13 +14,13 @@ namespace ReplicatingStorage
 		start state Init
 		{
 			on RConfigureEvent do Configure;
-			on StartTimer goto Active;
+			on StartTimerEvent goto Active;
 		}
 
 		void Configure()
         {
             this.Target = (trigger as RConfigureEvent).Target;
-            raise(StartTimer);
+            raise(StartTimerEvent);
         }
 
 		state Active
@@ -32,7 +32,7 @@ namespace ReplicatingStorage
 
 			on TickEvent do Tick;
 			on CancelTimer goto Inactive;
-			ignore StartTimer;
+			ignore StartTimerEvent;
 		}
 
 		void Tick()
@@ -48,7 +48,7 @@ namespace ReplicatingStorage
 
 		state Inactive
 		{
-			on StartTimer goto Active;
+			on StartTimerEvent goto Active;
 			ignore CancelTimer, TickEvent;
 		}
     }

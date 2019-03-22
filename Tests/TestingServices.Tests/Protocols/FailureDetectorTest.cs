@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     }
                 }
 
-                this.Send(this.Timer, new Timer.StartTimer(100));
+                this.Send(this.Timer, new Timer.StartTimerEvent(100));
             }
 
             void PongAction()
@@ -262,7 +262,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Attempts = 0;
                 this.Responses.Clear();
 
-                this.Send(this.Timer, new Timer.StartTimer(1000));
+                this.Send(this.Timer, new Timer.StartTimerEvent(1000));
             }
         }
 
@@ -312,11 +312,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimer : Event
+            internal class StartTimerEvent : Event
             {
                 public int Timeout;
 
-                public StartTimer(int timeout)
+                public StartTimerEvent(int timeout)
                 {
                     this.Timeout = timeout;
                 }
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
 
             [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction))]
-            [OnEventGotoState(typeof(StartTimer), typeof(WaitForCancel))]
+            [OnEventGotoState(typeof(StartTimerEvent), typeof(WaitForCancel))]
             class WaitForReq : MachineState { }
 
             void CancelTimerAction()
@@ -349,7 +349,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Target, new CancelFailure());
             }
 
-            [IgnoreEvents(typeof(StartTimer))]
+            [IgnoreEvents(typeof(StartTimerEvent))]
             [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction2))]
             [OnEventGotoState(typeof(Default), typeof(WaitForReq), nameof(DefaultAction))]
             class WaitForCancel : MachineState { }

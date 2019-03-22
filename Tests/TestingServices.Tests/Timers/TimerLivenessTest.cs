@@ -18,11 +18,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         class TimeoutReceivedEvent : Event { }
 
-        class Client : TimedMachine
+        class Client : Machine
         {
-            TimerId tid;
-            object payload = new object();
-
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
@@ -30,7 +27,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void Initialize()
             {
-                tid = StartTimer(payload, 10, false);
+                this.StartTimer(TimeSpan.FromMilliseconds(10));
             }
 
             private void HandleTimeout()
@@ -51,19 +48,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact]
-        public void PeriodicLivenessTest()
+        public void TestTimerLiveness()
         {
-            var config = base.GetConfiguration();
-            config.LivenessTemperatureThreshold = 150;
-            config.MaxSchedulingSteps = 300;
-            config.SchedulingIterations = 1000;
+            var configuration = base.GetConfiguration();
+            configuration.LivenessTemperatureThreshold = 150;
+            configuration.MaxSchedulingSteps = 300;
+            configuration.SchedulingIterations = 1000;
 
             var test = new Action<PSharpRuntime>((r) => {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));
             });
 
-            base.AssertSucceeded(config, test);
+            base.AssertSucceeded(configuration, test);
         }
     }
 }

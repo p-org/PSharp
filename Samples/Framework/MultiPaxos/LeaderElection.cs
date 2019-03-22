@@ -82,7 +82,7 @@ namespace MultiPaxos
         }
 
         [OnEntry(nameof(ProcessPingsOnEntry))]
-        [OnEventGotoState(typeof(Timer.Timeout), typeof(ProcessPings), nameof(ProcessPingsAction))]
+        [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(ProcessPings), nameof(ProcessPingsAction))]
         [OnEventDoAction(typeof(LeaderElection.Ping), nameof(CalculateLeader))]
         class ProcessPings : MachineState { }
 
@@ -93,20 +93,20 @@ namespace MultiPaxos
                 this.Send(server, new LeaderElection.Ping(this.Id, this.MyRank));
             }
 
-            this.Send(this.BroadCastTimeout, new Timer.StartTimer());
+            this.Send(this.BroadCastTimeout, new Timer.StartTimerEvent());
         }
 
         void ProcessPingsAction()
         {
-            var id = (this.ReceivedEvent as Timer.Timeout).Timer;
+            var id = (this.ReceivedEvent as Timer.TimeoutEvent).Timer;
 
             if (this.CommunicateLeaderTimeout.Equals(id))
             {
                 this.Assert(this.CurrentLeader.Item1 <= this.MyRank, "this.CurrentLeader <= this.MyRank");
                 this.Send(this.ParentServer, new LeaderElection.NewLeader(this.CurrentLeader.Item2, this.CurrentLeader.Item1));
                 this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
-                this.Send(this.CommunicateLeaderTimeout, new Timer.StartTimer());
-                this.Send(this.BroadCastTimeout, new Timer.CancelTimer());
+                this.Send(this.CommunicateLeaderTimeout, new Timer.StartTimerEvent());
+                this.Send(this.BroadCastTimeout, new Timer.CancelTimerEvent());
             }
         }
 

@@ -5,15 +5,16 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.PSharp.Timers;
+using Microsoft.PSharp.Deprecated.Timers;
+using Microsoft.PSharp.TestingServices.Deprecated.Timers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.PSharp.TestingServices.Tests
+namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
 {
-    public class BasicPeriodicTimeoutTest : BaseTest
+    public class DeprecatedBasicPeriodicTimeoutTest : BaseTest
     {
-        public BasicPeriodicTimeoutTest(ITestOutputHelper output)
+        public DeprecatedBasicPeriodicTimeoutTest(ITestOutputHelper output)
             : base(output)
         { }
 

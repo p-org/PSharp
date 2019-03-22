@@ -267,6 +267,13 @@ namespace Microsoft.PSharp
         public int CoinFlipBound;
 
         /// <summary>
+        /// The timeout delay used during testing. By default it is 1.
+        /// Increase to the make timeouts less frequent.
+        /// </summary>
+        [DataMember]
+        public uint TimeoutDelay;
+
+        /// <summary>
         /// Safety prefix bound. By default it is 0.
         /// </summary>
         [DataMember]
@@ -512,6 +519,7 @@ namespace Microsoft.PSharp
             this.PrioritySwitchBound = 0;
             this.DelayBound = 0;
             this.CoinFlipBound = 0;
+            this.TimeoutDelay = 1;
             this.SafetyPrefixBound = 0;
 
             this.EnableLivenessChecking = true;

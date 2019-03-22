@@ -12,11 +12,14 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Coverage;
+using Microsoft.PSharp.TestingServices.Deprecated.Timers;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.StateCaching;
+using Microsoft.PSharp.TestingServices.Timers;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -901,22 +904,26 @@ namespace Microsoft.PSharp.TestingServices
 
         #endregion
 
-        #region Timers
+        #region timers
 
         /// <summary>
-        /// Return the timer machine type
+        /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
         /// </summary>
-        /// <returns></returns>
-        internal override Type GetTimerMachineType()
+        /// <param name="info">Stores information about the timer.</param>
+        /// <param name="owner">The owner machine.</param>
+        /// <returns>The machine timer.</returns>
+        internal override IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner)
         {
-            var timerType = base.GetTimerMachineType();
-            if (timerType == null)
-            {
-                return typeof(Timers.ModelTimerMachine);
-            }
-
-            return timerType;
+            var mid = this.CreateMachineId(typeof(MockMachineTimer));
+            this.CreateMachine(mid, typeof(MockMachineTimer), new TimerSetupEvent(info, owner, this.Configuration.TimeoutDelay));
+            this.MachineMap.TryGetValue(mid, out Machine machine);
+            return machine as IMachineTimer;
         }
+
+        /// <summary>
+        /// Returns the timer machine type.
+        /// </summary>
+        internal override Type GetTimerMachineType() => typeof(ModelTimerMachine);
 
         #endregion
 

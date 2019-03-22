@@ -71,7 +71,7 @@ namespace ReplicatingStorage
 
         [OnEntry(nameof(ConfiguringOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
-        [DeferEvents(typeof(FailureTimer.Timeout))]
+        [DeferEvents(typeof(FailureTimer.TimeoutEvent))]
         class Configuring : MachineState { }
 
         void ConfiguringOnInit()
@@ -82,7 +82,7 @@ namespace ReplicatingStorage
         }
 
         [OnEventDoAction(typeof(NotifyNode), nameof(UpdateAliveNodes))]
-        [OnEventDoAction(typeof(FailureTimer.Timeout), nameof(InjectFault))]
+        [OnEventDoAction(typeof(FailureTimer.TimeoutEvent), nameof(InjectFault))]
         class Active : MachineState { }
 
         void UpdateAliveNodes()
