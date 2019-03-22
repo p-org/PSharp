@@ -10,7 +10,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-#if NET46 || NET45
+#if NET46
 using Tester.Utilities;
 #endif
 
@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.TestingServices
     internal static class CodeCoverageInstrumentation
     {
         internal static string OutputDirectory = string.Empty;
-#if NET46 || NET45
+#if NET46
         internal static List<string> InstrumentedAssemblyNames = new List<string>();
 
         internal static void Instrument(Configuration configuration)

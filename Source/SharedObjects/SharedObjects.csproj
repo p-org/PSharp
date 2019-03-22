@@ -10,7 +10,7 @@
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netstandard2.0;net46;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='UNIX'">
     <TargetFrameworks>netstandard2.0</TargetFrameworks>

@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#if NET46 || NET45
+#if NET46
 using System.ServiceModel;
 #endif
 using Microsoft.PSharp.TestingServices.Coverage;
@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// Interface for a remote P# testing process.
     /// </summary>
-#if NET46 || NET45
+#if NET46
     [ServiceContract(Namespace = "Microsoft.PSharp")]
     [ServiceKnownType("GetKnownTypes", typeof(KnownTypesProvider))]
 #endif
@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Returns the test report.
         /// </summary>
         /// <returns>TestReport</returns>
-#if NET46 || NET45
+#if NET46
         [OperationContract]
 #endif
         TestReport GetTestReport();
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Stops testing.
         /// </summary>
-#if NET46 || NET45
+#if NET46
         [OperationContract]
 #endif
         void Stop();

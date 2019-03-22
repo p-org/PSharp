@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(ex.Message);
             }
 
-#if NET46 || NET45
+#if NET46
             // Load config file and absorb its settings.
             try
             {

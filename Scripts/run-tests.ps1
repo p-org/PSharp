@@ -33,9 +33,7 @@ foreach ($kvp in $targets.GetEnumerator()) {
         }
 
         if ((($($kvp.Name) -eq "language-services") -and ($f -eq "netcoreapp2.1")) -or
-            (($($kvp.Name) -eq "language-services") -and ($f -eq "net45")) -or
-            (($($kvp.Name) -eq "static-analysis") -and ($f -eq "netcoreapp2.1")) -or
-            (($($kvp.Name) -eq "static-analysis") -and ($f -eq "net45"))) {
+            (($($kvp.Name) -eq "static-analysis") -and ($f -eq "netcoreapp2.1"))) {
             # Not supported
             continue
         }

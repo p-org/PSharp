@@ -33,14 +33,7 @@ namespace Microsoft.PSharp
         /// Initilizes the state machine on creation.
         /// </summary>
         /// <param name="e">Initial event provided on machine creation, or null otherwise.</param>
-        protected virtual Task InitOnEntry(Event e)
-        {
-#if NET45
-            return Task.FromResult(0);
-#else
-            return Task.CompletedTask;
-#endif
-        }
+        protected virtual Task InitOnEntry(Event e) => Task.CompletedTask;
 
         /// <summary>
         /// Process incoming event.

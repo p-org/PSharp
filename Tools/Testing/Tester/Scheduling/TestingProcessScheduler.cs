@@ -7,7 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-#if NET46 || NET45
+#if NET46
 using System.ServiceModel;
 using System.ServiceModel.Description;
 #endif
@@ -20,11 +20,11 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// The P# testing process scheduler.
     /// </summary>
-#if NET46 || NET45
+#if NET46
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
 #endif
     internal sealed class TestingProcessScheduler
-#if NET46 || NET45
+#if NET46
         : ITestingProcessScheduler
 #endif
     {
@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private Configuration Configuration;
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// The notification listening service.
         /// </summary>
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private object SchedulerLock;
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// The process id of the process that
         /// discovered a bug, else null.
@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal static bool ProcessCanceled;
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Set true if we have multiple parallel processes or are running code coverage.
         /// </summary>
@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         private TestingProcessScheduler(Configuration configuration)
         {
-#if NET46 || NET45
+#if NET46
             this.TestingProcesses = new Dictionary<uint, Process>();
 #endif
             this.TestingProcessChannels = new Dictionary<uint, ITestingProcess>();
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices
             this.GlobalTestReport = new TestReport(configuration);
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
-#if NET46 || NET45
+#if NET46
             this.BugFoundByProcess = null;
 
             // Code coverage should be run out-of-process; otherwise VSPerfMon won't shutdown correctly
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Configuration = configuration;
         }
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Notifies the testing process scheduler
         /// that a bug was found.
@@ -197,14 +197,14 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Run()
         {
-#if NET46 || NET45
+#if NET46
             // Opens the remote notification listener.
             this.OpenNotificationListener();
 #endif
 
             this.Profiler.StartMeasuringExecutionTime();
 
-#if NET46 || NET45
+#if NET46
             if (runOutOfProcess)
             {
                 this.CreateParallelTestingProcesses();
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Profiler.StopMeasuringExecutionTime();
 
-#if NET46 || NET45
+#if NET46
             // Closes the remote notification listener.
             this.CloseNotificationListener();
 #endif
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Creates the user specified number of parallel testing processes.
         /// </summary>
@@ -296,7 +296,7 @@ namespace Microsoft.PSharp.TestingServices
             }
         }
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Opens the remote notification listener. If there are
         /// less than two parallel testing processes, then this
@@ -410,12 +410,12 @@ namespace Microsoft.PSharp.TestingServices
         {
             TestReport testReport = null;
 
-#if NET46 || NET45
+#if NET46
             try
             {
 #endif
                 testReport = this.TestingProcessChannels[processId].GetTestReport();
-#if NET46 || NET45
+#if NET46
             }
             catch (CommunicationException ex)
             {
@@ -454,7 +454,7 @@ namespace Microsoft.PSharp.TestingServices
         private void EmitTestReport()
         {
             var testReports = new List<TestReport>(this.TestReports.Values);
-#if NET46 || NET45
+#if NET46
             foreach (var process in this.TestingProcesses)
             {
                 if (!this.TestReports.ContainsKey(process.Key))
@@ -470,7 +470,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-#if NET46 || NET45
+#if NET46
             if (this.Configuration.ReportActivityCoverage)
             {
                 Output.WriteLine($"... Emitting coverage reports:");

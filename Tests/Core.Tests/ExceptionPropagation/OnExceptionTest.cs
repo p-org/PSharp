@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             async Task InitOnEntry()
             {
-                await Task.FromResult(true);
+                await Task.CompletedTask;
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();                
             }
@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             async Task InitOnEntry()
             {
-                await Task.FromResult(true);
+                await Task.CompletedTask;
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
             }

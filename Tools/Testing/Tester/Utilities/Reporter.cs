@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     internal sealed class Reporter
     {
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Emits the testing coverage report.
         /// </summary>
