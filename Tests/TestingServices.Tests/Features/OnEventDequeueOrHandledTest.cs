@@ -105,13 +105,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             protected override Task OnEventDequeueAsync(Event ev)
             {
                 this.Monitor<Spec1>(new Begin(ev));
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
 
             protected override Task OnEventHandledAsync(Event ev)
             {
                 this.Monitor<Spec1>(new End(ev));
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
         }
 
@@ -174,13 +174,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             protected override Task OnEventDequeueAsync(Event ev)
             {
                 this.Monitor<Spec2>(new Begin(ev));
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
 
             protected override Task OnEventHandledAsync(Event ev)
             {
                 this.Monitor<Spec2>(new End(ev));
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
         }
 
@@ -233,7 +233,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Assert(ev is E1);
                 this.Assert(this.CurrentState.Name == typeof(S2).Name);
                 this.Goto<S3>();
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             protected override Task OnEventHandledAsync(Event ev)
             {
                 this.Raise(new Halt());
-                return Task.FromResult(true);
+                return Task.CompletedTask;
             }
             protected override void OnHalt()
             {

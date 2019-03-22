@@ -1976,10 +1976,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">The dequeued event.</param>
         /// <returns></returns>
-        protected virtual Task OnEventDequeueAsync(Event e)
-        {
-            return Task.FromResult(true);
-        }
+        protected virtual Task OnEventDequeueAsync(Event e) => Task.CompletedTask;
 
         /// <summary>
         /// User callback that is invoked when the machine finishes handling a dequeued event,
@@ -1989,10 +1986,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">The dequeued event whose handler has just finished.</param>
         /// <returns></returns>
-        protected virtual Task OnEventHandledAsync(Event e)
-        {
-            return Task.FromResult(true);
-        }
+        protected virtual Task OnEventHandledAsync(Event e) => Task.CompletedTask;
 
         /// <summary>
         /// User callback that is invoked when a machine halts.

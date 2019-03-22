@@ -7,7 +7,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-#if NET46 || NET45
+#if NET46
 using System.ServiceModel;
 using System.ServiceModel.Description;
 #endif
@@ -21,12 +21,12 @@ namespace Microsoft.PSharp.TestingServices
     /// <summary>
     /// A P# testing process.
     /// </summary>
-#if NET46 || NET45
+#if NET46
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
 #endif
     internal sealed class TestingProcess : ITestingProcess
     {
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// The notification listening service.
         /// </summary>
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private ITestingEngine TestingEngine;
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// The remote testing scheduler.
         /// </summary>
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Run()
         {
-#if NET46 || NET45
+#if NET46
             // Opens the remote notification listener.
             this.OpenNotificationListener();
 
@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TestingEngine.Run();
 
-#if NET46 || NET45
+#if NET46
             if (this.Configuration.RunAsParallelBugFindingTask)
             {
                 if (this.TestingEngine.TestReport.InternalErrors.Count > 0)
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-#if NET46 || NET45
+#if NET46
             // Closes the remote notification listener.
             this.CloseNotificationListener();
 
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration);
         }
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Opens the remote notification listener. If this is
         /// not a parallel testing process, then this operation
@@ -294,7 +294,7 @@ namespace Microsoft.PSharp.TestingServices
             this.TestingEngine.TryEmitTraces(CodeCoverageInstrumentation.OutputDirectory, file);
         }
 
-#if NET46 || NET45
+#if NET46
         /// <summary>
         /// Creates a timer that monitors the status of the parent process.
         /// </summary>

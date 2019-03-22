@@ -17,10 +17,6 @@
     <file src="..\..\bin\netstandard2.0\*.dll" target="lib\netstandard2.0" />
     <file src="..\..\bin\netstandard2.0\*.mdb" target="lib\netstandard2.0" />
     <file src="..\..\bin\netstandard2.0\*.xml" target="lib\netstandard2.0" />
-    <!-- .NET Standard 1.1 -->
-    <file src="..\..\bin\netstandard1.1\*.dll" target="lib\netstandard1.1" />
-    <file src="..\..\bin\netstandard1.1\*.mdb" target="lib\netstandard1.1" />
-    <file src="..\..\bin\netstandard1.1\*.xml" target="lib\netstandard1.1" />
     <!-- .NET Core 2.1 -->
     <file src="..\..\bin\netcoreapp2.1\*.dll" target="lib\netcoreapp2.1" />
     <file src="..\..\bin\netcoreapp2.1\*.mdb" target="lib\netcoreapp2.1" />
@@ -33,11 +29,5 @@
     <file src="..\..\bin\net46\*.exe" target="lib\net46" />
     <file src="..\..\bin\net46\*.exe.config" target="lib\net46" />
     <file src="..\..\bin\net46\*.targets" target="lib\net46" />
-    <!-- .NET Framework 4.5 -->
-    <file src="..\..\bin\net45\*.dll" target="lib\net45" />
-    <file src="..\..\bin\net45\*.mdb" target="lib\net45" />
-    <file src="..\..\bin\net45\*.xml" target="lib\net45" />
-    <file src="..\..\bin\net45\*.exe" target="lib\net45" />
-    <file src="..\..\bin\net45\*.exe.config" target="lib\net45" />
   </files>
 </package>
