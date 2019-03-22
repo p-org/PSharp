@@ -5,9 +5,17 @@
     <Description>Scheduling strategies for testing actor-based systems.</Description>
     <AssemblyName>Microsoft.PSharp.TestingServices.SchedulingStrategies</AssemblyName>
     <RootNamespace>Microsoft.PSharp.TestingServices.SchedulingStrategies</RootNamespace>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>testing;scheduling-strategies;dotnet;csharp</PackageTags>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
 </Project>
