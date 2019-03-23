@@ -531,7 +531,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingIterations = 1;
             configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(Safety));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
@@ -554,7 +554,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingIterations = 1;
             configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
@@ -576,7 +576,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.RandomSchedulingSeed = 270;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));

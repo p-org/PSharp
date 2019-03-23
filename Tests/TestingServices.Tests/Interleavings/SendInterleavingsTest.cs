@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.SchedulingIterations = 600;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(Receiver));
             });

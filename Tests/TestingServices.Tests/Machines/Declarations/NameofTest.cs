@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestAllNameofWithNameof()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M_With_nameof));
             });
@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestAllNameofWithoutNameof()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M_Without_nameof));
             });

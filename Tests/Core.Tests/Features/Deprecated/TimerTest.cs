@@ -291,7 +291,7 @@ namespace Microsoft.PSharp.Core.Tests.Deprecated
         public void BasicPeriodicTimerOperationTest()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T1), new Configure(tcs, true));
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.Core.Tests.Deprecated
         public void BasicSingleTimerOperationTest()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T1), new Configure(tcs, false));
@@ -322,7 +322,7 @@ namespace Microsoft.PSharp.Core.Tests.Deprecated
         public void InboxFlushOperationTest()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(FlushingClient), new Configure(tcs, true));
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp.Core.Tests.Deprecated
         public void IllegalTimerStoppageTest()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T2), new Configure(tcs, true));
@@ -350,7 +350,7 @@ namespace Microsoft.PSharp.Core.Tests.Deprecated
         public void IllegalPeriodSpecificationTest()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T4), new ConfigureWithPeriod(tcs, -1));

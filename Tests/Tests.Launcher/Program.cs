@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Tests.Launcher
 
 #pragma warning disable CA1801 // Parameter not used
         [Test]
-        public static void Execute(PSharpRuntime r)
+        public static void Execute(IMachineRuntime r)
         {
         }
 #pragma warning restore CA1801 // Parameter not used

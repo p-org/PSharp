@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestGroupState()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(M));
                 r.CreateMachine(typeof(Program));

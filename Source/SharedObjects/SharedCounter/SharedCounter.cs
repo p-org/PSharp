@@ -16,9 +16,9 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Creates a new shared counter.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
-        /// <param name="value">Initial value</param>
-        public static ISharedCounter Create(PSharpRuntime runtime, int value = 0)
+        /// <param name="runtime">The machine runtime.</param>
+        /// <param name="value">The initial value.</param>
+        public static ISharedCounter Create(IMachineRuntime runtime, int value = 0)
         {
             if (runtime is ProductionRuntime)
             {

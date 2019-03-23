@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// <summary>
         /// Registers the testing runtime.
         /// </summary>
-        public void RegisterRuntime(PSharpRuntime runtime)
+        public void RegisterRuntime(IMachineRuntime runtime)
         {
             runtime.Assert(
                 (runtime as TestingRuntime) != null,

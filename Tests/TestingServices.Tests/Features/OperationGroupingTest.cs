@@ -313,7 +313,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingSingleMachineNoSend()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M1));
             });
@@ -324,7 +324,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingSingleMachineSend()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M2));
             });
@@ -335,7 +335,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingSingleMachineSendStarter()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M2S));
             });
@@ -346,7 +346,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingTwoMachinesCreate()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M3));
             });
@@ -357,7 +357,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingTwoMachinesSend()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M5));
             });
@@ -368,7 +368,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingTwoMachinesSendStarter()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M5S));
             });
@@ -379,7 +379,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingTwoMachinesSendBack()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M7));
             });
@@ -390,7 +390,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingTwoMachinesSendBackStarter()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M7S));
             });
@@ -401,7 +401,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M9S));
             });

@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The runtime that executes this machine.
         /// </summary>
-        internal PSharpRuntime Runtime { get; private set; }
+        internal BaseRuntime Runtime { get; private set; }
 
         /// <summary>
         /// The unique machine id.
@@ -35,10 +35,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
-        /// <param name="mid">MachineId</param>
-        /// <param name="info">MachineInfo</param>
-        internal void Initialize(PSharpRuntime runtime, MachineId mid, MachineInfo info)
+        internal void Initialize(BaseRuntime runtime, MachineId mid, MachineInfo info)
         {
             this.Runtime = runtime;
             this.Id = mid;
@@ -46,32 +43,22 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
+        /// Determines whether the specified object is equal to the current object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is BaseMachine m &&
+                this.GetType() == m.GetType())
             {
-                return false;
+                return this.Id.Value == m.Id.Value;
             }
 
-            BaseMachine m = obj as BaseMachine;
-            if (m == null ||
-                this.GetType() != m.GetType())
-            {
-                return false;
-            }
-
-            return this.Id.Value == m.Id.Value;
+            return false;
         }
 
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>int</returns>
         public override int GetHashCode()
         {
             return this.Id.Value.GetHashCode();
@@ -80,7 +67,6 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Returns a string that represents the current machine.
         /// </summary>
-        /// <returns>string</returns>
         public override string ToString()
         {
             return this.Id.Name;
@@ -90,7 +76,6 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the set of all states in the machine
         /// (for code coverage).
         /// </summary>
-        /// <returns>Set of all states in the machine</returns>
         internal virtual HashSet<string> GetAllStates()
         {
             return new HashSet<string>();
@@ -100,7 +85,6 @@ namespace Microsoft.PSharp.Runtime
         /// Returns the set of all (states, registered event) pairs in the machine
         /// (for code coverage).
         /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the machine</returns>
         internal virtual HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
             return new HashSet<Tuple<string, string>>();

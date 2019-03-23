@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -103,12 +104,12 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestNoMemoryLeakAfterHalt()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M), new Configure(tcs));
                 tcs.Task.Wait();
-                r.Stop();
+                (r as ProductionRuntime).Stop();
             });
 
             this.Run(config, test);

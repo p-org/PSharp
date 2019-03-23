@@ -46,7 +46,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The runtime that executes this monitor.
         /// </summary>
-        private PSharpRuntime Runtime;
+        private BaseRuntime Runtime;
 
         /// <summary>
         /// The monitor state.
@@ -177,11 +177,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this monitor.
         /// </summary>
+        /// <param name="runtime">The runtime that executes this monitor.</param>
         /// <param name="mid">The monitor id.</param>
-        internal void Initialize(MachineId mid)
+        internal void Initialize(BaseRuntime runtime, MachineId mid)
         {
             this.Id = mid;
-            this.Runtime = mid.Runtime;
+            this.Runtime = runtime;
             this.IsInsideOnExit = false;
             this.CurrentActionCalledTransitionStatement = false;
         }

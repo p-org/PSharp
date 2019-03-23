@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxSchedulingSteps = 300;
             configuration.SchedulingIterations = 1000;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));

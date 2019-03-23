@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration, Action<IMachineRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
         }
@@ -167,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
-        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        private BugFindingEngine(Configuration configuration, Action<IMachineRuntime> action)
             : base(configuration, action)
         {
             if (this.Configuration.EnableDataRaceDetection)

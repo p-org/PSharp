@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>BugFindingEngine</returns>
         public static ITestingEngine CreateBugFindingEngine(Configuration configuration)
         {
             return BugFindingEngine.Create(configuration);
@@ -26,9 +24,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
-        /// <returns>BugFindingEngine</returns>
         public static ITestingEngine CreateBugFindingEngine(
             Configuration configuration, Assembly assembly)
         {
@@ -38,11 +33,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        /// <returns>BugFindingEngine</returns>
         public static ITestingEngine CreateBugFindingEngine(
-            Configuration configuration, Action<PSharpRuntime> action)
+            Configuration configuration, Action<IMachineRuntime> action)
         {
             return BugFindingEngine.Create(configuration, action);
         }
@@ -50,8 +42,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replay engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>BugFindingEngine</returns>
         public static ITestingEngine CreateReplayEngine(Configuration configuration)
         {
             return ReplayEngine.Create(configuration);
@@ -60,9 +50,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replay engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
-        /// <returns>BugFindingEngine</returns>
         public static ITestingEngine CreateReplayEngine(Configuration configuration, Assembly assembly)
         {
             return ReplayEngine.Create(configuration, assembly);
@@ -71,10 +58,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replay engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        /// <returns>BugFindingEngine</returns>
-        public static ITestingEngine CreateReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
+        public static ITestingEngine CreateReplayEngine(Configuration configuration, Action<IMachineRuntime> action)
         {
             return ReplayEngine.Create(configuration, action);
         }

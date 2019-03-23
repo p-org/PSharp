@@ -21,7 +21,7 @@ Read [here](#reproducing-and-debugging-traces) to learn how to reproduce traces 
 A P# test method can be declared as follows:
 ```c#
 [Microsoft.PSharp.Test]
-public static void Execute(PSharpRuntime runtime)
+public static void Execute(IMachineRuntime runtime)
 {
   runtime.RegisterMonitor(typeof(SomeMonitor));
   runtime.CreateMachine(typeof(SomeMachine));

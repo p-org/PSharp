@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// A P# test action.
         /// </summary>
-        internal Action<PSharpRuntime> TestAction;
+        internal Action<IMachineRuntime> TestAction;
 
         /// <summary>
         /// Set of callbacks to invoke at the end
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Initializes a new instance of the <see cref="AbstractTestingEngine"/> class.
         /// </summary>
-        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration, Action<IMachineRuntime> action)
         {
             this.Initialize(configuration);
             this.TestAction = action;
@@ -538,12 +538,12 @@ namespace Microsoft.PSharp.TestingServices
                 testMethod.IsConstructor ||
                 !testMethod.IsPublic || !testMethod.IsStatic ||
                 testMethod.GetParameters().Length != 1 ||
-                testMethod.GetParameters()[0].ParameterType != typeof(PSharpRuntime))
+                testMethod.GetParameters()[0].ParameterType != typeof(IMachineRuntime))
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(TestAttribute).FullName}] public static void " +
-                    $"{testMethod.Name}(PSharpRuntime runtime) {{ ... }}");
+                    $"{testMethod.Name}(IMachineRuntime runtime) {{ ... }}");
             }
 
             this.TestMethod = testMethod;

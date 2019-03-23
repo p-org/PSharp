@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class Engine
         {
-            public static bool FairRandom(PSharpRuntime runtime)
+            public static bool FairRandom(IMachineRuntime runtime)
             {
                 return runtime.FairRandom();
             }
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestFairRandom()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(UntilDone));
                 var m = r.CreateMachine(typeof(M));

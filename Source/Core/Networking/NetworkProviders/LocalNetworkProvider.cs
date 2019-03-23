@@ -15,7 +15,7 @@ namespace Microsoft.PSharp.Net
         /// <summary>
         /// Instance of the P# runtime.
         /// </summary>
-        private readonly PSharpRuntime Runtime;
+        private readonly IMachineRuntime Runtime;
 
         /// <summary>
         /// The local endpoint.
@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.Net
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalNetworkProvider"/> class.
         /// </summary>
-        public LocalNetworkProvider(PSharpRuntime runtime)
+        public LocalNetworkProvider(IMachineRuntime runtime)
         {
             this.Runtime = runtime;
             this.LocalEndpoint = string.Empty;

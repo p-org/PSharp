@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
             var config = Configuration.Create().WithNumberOfIterations(1000);
             config.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T2));
             });
