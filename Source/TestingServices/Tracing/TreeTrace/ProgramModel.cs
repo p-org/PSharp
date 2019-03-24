@@ -20,7 +20,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private Dictionary<ulong, EventTreeNode> machineIdToStartEvent;
         private Dictionary<ulong, EventTreeNode> machineIdToRunningEvent;
 
-        private bool isFirstStep;
         private HashSet<EventTreeNode> deletedNodes;
 
         public ProgramModel()
@@ -42,12 +41,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             machineIdToRunningEvent.Clear();
             currentHandler = null;
             constructTree = new EventTree();
-
-            isFirstStep = true;
         }
 
         #region updates
-        public void initializeWithTestHarnessMachine(ulong testHarnessMachineId)
+        public EventTreeNode initializeWithTestHarnessMachine(ulong testHarnessMachineId)
         {
             // TODO: I guess TestHarnessMachine is always 0 ?
             EventTreeNode root = EventTree.CreateStartNode(0, testHarnessMachineId);
@@ -55,6 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             currentHandler = root;
             highestKnownId = testHarnessMachineId;
             constructTree.startScheduleChoice(root);
+            return root;
         }
 
         public void recordSchedulingChoiceStart(ISchedulable choice, ulong stepIndex)
@@ -78,18 +76,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex)
         {
-            if (isFirstStep)
-            {   // Needs some help here.
-                initializeWithTestHarnessMachine(current.Id);
-                isFirstStep = false;
-            }
-            else
+            
+            //if (!currentHandler.checkEquality(current)// Too strong. Current != next of last time
+            if (currentHandler.srcMachineId != current.Id )
             {
-                //if (!currentHandler.checkEquality(current)// Too strong. Current != next of last time
-                if (currentHandler.srcMachineId != current.Id )
-                {
-                    throw new ArgumentException("Current did not match CurrentHandler");
-                }
+                throw new ArgumentException("Current did not match CurrentHandler");
             }
 
             EventTreeNode createdNode = null;

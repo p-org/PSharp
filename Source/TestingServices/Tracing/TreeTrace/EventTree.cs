@@ -23,11 +23,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             root = null;
             totalOrdering = new List<EventTreeNode>();
             withHeldSendIndices = new List<int>();
+            reproducedBug = false;
         }
 
         #region Tree construction
 
         private EventTreeNode activeNode;
+        private bool reproducedBug;
         private ScheduleTrace actualTrace;
 
         public EventTreeNode getActiveNode()
@@ -174,6 +176,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             return new EventTreeNode(sch.NextOperationType, sch.Id, targetMachineId, 0);
         }
 
+        internal bool reproducesBug()
+        {
+            return reproducedBug;
+        }
+
         private static void ConsistencyAssert(bool conditionResult, string message)
         {
             if (!conditionResult)
@@ -182,8 +189,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
         }
 
-        internal void setActualTrace(ScheduleTrace scheduleTrace)
+        internal void setResult(bool bugFound, ScheduleTrace scheduleTrace)
         {
+            this.reproducedBug = bugFound;
             this.actualTrace = scheduleTrace;
         }
 

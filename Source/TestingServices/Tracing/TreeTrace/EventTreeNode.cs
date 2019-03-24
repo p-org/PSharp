@@ -59,11 +59,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal void addIntegerChoice(int choice)
         {
-            //if (nonDetChoices == null)
-            //{
-            //    nonDetChoices = new List<EventTreeNodeNonDetChoice>();
-            //}
-            //nonDetChoices.Add(new EventTreeNodeNonDetChoice(choice));
             if (nonDetIntegerChoices == null)
             {
                 nonDetIntegerChoices = new List<int>();
@@ -82,12 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal void addBooleanChoice(bool choice)
         {
-            //if (nonDetChoices == null)
-            //{
-            //    nonDetChoices = new List<EventTreeNodeNonDetChoice>();
-            //}
-            //nonDetChoices.Add(new EventTreeNodeNonDetChoice(choice));
-            if (nonDetIntegerChoices == null)
+            if (nonDetBooleanChoices == null)
             {
                 nonDetBooleanChoices= new List<bool>();
             }

@@ -16,6 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         // Use as read only. Let SchedulingStrategy do updates
         // TODO: Move to TraceIteration
         internal ProgramModel activeProgramModel;
+        private bool isFirstStep;
 
         //private int currentIterationIndex;
 
@@ -25,15 +26,24 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         Stack<Tuple<int,int>> bSearchWithHoldCandidateStack;
         //HashSet<int> withHeldCandidates;
 
-        internal bool ranOutOfEvents;
+        //internal bool ranOutOfEvents;
         int eventSeenThisTime;
         TraceIteration currentRun; // Make private
-        private int currentWithHoldRangeStart;
-        private int currentWithHoldRangeEnd;
+        internal int currentWithHoldRangeStart;
+        internal int currentWithHoldRangeEnd;
+        internal enum TraceEditorMode
+        {
+            Initial,
 
+            ScheduleTraceReplay,
+            MinimizedTraceReplay,
+            TraceEdit,
 
+            EpochCompleted,
+        }
 
-
+        internal TraceEditorMode currentMode;
+        private static bool HAX_DoLinearScan = true; // HAX
 
         // Deletion Tracking
         internal class TraceIteration {
@@ -146,69 +156,100 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         }
 
 
-        public TreeTraceEditor(EventTree guideTree)
+        public TreeTraceEditor()
         {
-            BestGuideTree = guideTree;
+            BestGuideTree = null;
             //currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
             bSearchWithHoldCandidateStack = new Stack<Tuple<int, int>>();
-            currentWithHoldRangeStart = -1;
-            currentWithHoldRangeEnd = -1;
-            //bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(0, 0));// special marker
-            ranOutOfEvents = false;
+            currentMode = TraceEditorMode.Initial;
+            //ranOutOfEvents = false;
+        }
+        
+
+        public void reset()
+        {
+            eventSeenThisTime = 0;
+            currentWithHoldRangeStart = 0;
+            currentWithHoldRangeEnd = 0;
+            activeProgramModel = new ProgramModel();
+            isFirstStep = true;
+    }
+
+        public bool prepareForScheduleTraceReplay()
+        {
+            if(currentMode!= TraceEditorMode.Initial)
+            {
+                throw new ArgumentException("TraceEditor must be in Initial state to do ScheduleTraceReplay");
+            }
+            currentMode = TraceEditorMode.ScheduleTraceReplay;
+            currentRun = new TraceIteration(null);
             reset();
+            return true;
         }
 
-        public bool prepareForNextIteration(bool bugFound)
+        public bool prepareForMinimalTraceReplay(EventTree candidateGuideTree)
         {
-            if (currentWithHoldRangeStart == -1 && currentWithHoldRangeEnd == -1)
+            currentMode = TraceEditorMode.MinimizedTraceReplay;
+            currentRun = new TraceIteration(candidateGuideTree);
+            reset();
+            return true;
+        }
+
+        public bool prepareForTraceEditIteration()
+        {
+            switch (currentMode)
             {
-                if (bugFound)
-                {   //Set it to the actual range of events
-                    BestGuideTree = activeProgramModel.getTree();
-                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(0,0));
-                }
-                else
-                {// This doesn't even reproduce the bug?
-                    throw new ArgumentException("Cannot reproduce the bug with the original trace.");
-                    //return false;
-                }
+                case TraceEditorMode.Initial:
+                case TraceEditorMode.ScheduleTraceReplay:
+                case TraceEditorMode.EpochCompleted:
+                    throw new ArgumentException("Cannot start TraceEditIteration from state" + currentMode );
+                case TraceEditorMode.MinimizedTraceReplay:
+                    if (BestGuideTree == null) // Means initial run
+                    {
+                        if (activeProgramModel.getTree().reproducesBug()) {
+                            if (HAX_DoLinearScan)
+                            {
+                                for(int i = eventSeenThisTime; i>0 ; i--)
+                                {
+                                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(i,i));
+                                }
+                                
+                            }
+                            else
+                            {
+                                bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(1, eventSeenThisTime));
+                            }
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Cannot reproduce bug from ScheduleTrace");
+                        }
+                    }
+                    break;
             }
-            else if (currentWithHoldRangeStart == 0 && currentWithHoldRangeEnd == 0){
-                // We were replaying without deletions
-                if (bugFound)
-                {   //Set it to the actual range of events
-                    BestGuideTree = activeProgramModel.getTree();
-                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(1, eventSeenThisTime));
-                }
-                else
-                {// This doesn't even reproduce the bug?
-                    throw new ArgumentException("Cannot reproduce the bug with the original trace.");
-                    //return false;
-                }
+
+            currentMode = TraceEditorMode.MinimizedTraceReplay;
+
+            if (activeProgramModel.getTree().reproducesBug())
+            {
+                BestGuideTree = activeProgramModel.getTree();
             }
             else
             {
-                if (bugFound)
-                {// Awesome. We don't need to recurse
-                    BestGuideTree = activeProgramModel.getTree();
-                }
-                else
-                {
-                    if (currentWithHoldRangeStart != currentWithHoldRangeEnd)
-                    {   // Nawsome. We need to recurse :(
-                        int mid = (currentWithHoldRangeStart + currentWithHoldRangeEnd) / 2;
-                        bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(mid + 1, currentWithHoldRangeEnd));
-                        bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(currentWithHoldRangeStart, mid));
-                    }
-                    // Else, That event is necessary.
+                if (currentWithHoldRangeStart != currentWithHoldRangeEnd)
+                {   // Nawsome. We need to recurse :(
+                    int mid = (currentWithHoldRangeStart + currentWithHoldRangeEnd) / 2;
+                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(mid + 1, currentWithHoldRangeEnd));
+                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(currentWithHoldRangeStart, mid));
                 }
             }
-            //currentWithHoldCandidate++;
+
             
+            reset();
+
             if (bSearchWithHoldCandidateStack.Count==0) {
-                ranOutOfEvents = true;
-                currentWithHoldRangeStart = 0;
-                currentWithHoldRangeEnd = 0;
+                //ranOutOfEvents = true;
+                currentMode = TraceEditorMode.EpochCompleted;
             }
             else
             {
@@ -217,17 +258,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 currentWithHoldRangeStart = currentWithHoldTuple.Item1;
                 currentWithHoldRangeEnd = currentWithHoldTuple.Item2;
             }
-            
-            reset();
-            return ranOutOfEvents;
-        }
-
-
-        public void reset()
-        {
-            eventSeenThisTime = 0;
             currentRun = new TraceIteration(BestGuideTree);
-            activeProgramModel = new ProgramModel();
+
+            return currentMode==TraceEditorMode.EpochCompleted;
         }
 
 
@@ -236,6 +269,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             return BestGuideTree;
         }
 
+        
         internal bool ShouldDeliverEvent(Event e)
         {
             //TODO: Properly
@@ -288,7 +322,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private bool eventIsCandidateToBeDropped(Event e)
         {
             return (
-                e.GetType().FullName == "ReplicatingStorage.SyncTimer+Timeout" 
+                e.GetType().FullName == "ReplicatingStorage.SyncTimer+Timeout" ||
+                e.GetType().FullName == "Raft.PeriodicTimer+Timeout" || e.GetType().FullName == "Raft.ElectionTimer+Timeout" ||
+                e.GetType().FullName == "ChainReplication.Client+Update" || e.GetType().FullName == "ChainReplication.Client+Query"
                 );
         }
 
@@ -326,7 +362,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                         {
                             // It's likely a match. 
                             currentRun.setActiveNode(currentNode);
-                            currentRun.next();
                             // TODO: Should we backtrack?
                         }
                         else
@@ -397,7 +432,22 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> enabledChoices, ulong scheduledSteps)
         {
+            if (isFirstStep)
+            {   // Needs some help here.
+                EventTreeNode root = activeProgramModel.initializeWithTestHarnessMachine(current.Id); // Is this correct?
+                currentRun?.setActiveNode(root);
+                isFirstStep = false;
+            }
             activeProgramModel.recordSchedulingChoiceResult(current, enabledChoices, scheduledSteps);
+            if (currentRun!=null && currentRun.activeNode != null)
+            {
+                currentRun.next();
+            }
+        }
+
+        internal void recordResult(bool bugFound, ScheduleTrace scheduleTrace)
+        {
+            activeProgramModel.getTree().setResult(bugFound, scheduleTrace);
         }
 
         internal void RecordIntegerChoice(int next)
@@ -408,6 +458,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal void RecordBooleanChoice(bool next)
         {
             activeProgramModel.RecordBooleanChoice(next);
+        }
+
+        internal void prepareForMinimalTraceReplay()
+        {
+            prepareForMinimalTraceReplay(activeProgramModel.constructTree);
         }
 
         #endregion

@@ -40,7 +40,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Is the scheduler replaying the trace?
         /// </summary>
-        private bool IsReplayingPsharpScheduleTrace;
+        private bool IsReplayingPsharpScheduleTrace { get {
+                return traceEditor.currentMode == TreeTraceEditor.TraceEditorMode.ScheduleTraceReplay;
+            }
+        }
 
         /// <summary>
         /// The number of scheduled steps.
@@ -70,25 +73,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             Configuration = configuration;
             ScheduledSteps = 0;
             
-            IsReplayingPsharpScheduleTrace = true;
             replayStrategy = null;
             SuffixStrategy = suffixStrategy;
             ErrorText = string.Empty;
 
             ParseScheduleDumpMeta(scheduleDump);
+
+            ConstructTree = true;
+            WasAbandoned = false;
+
             if ( IsMintraceDump )
             {
                 // TODO: We need to create the traceEditor tree up here
                 EventTree et = EventTree.FromTrace(scheduleDump);
-                traceEditor = new TreeTraceEditor(et);
-                enterEditMode(false); // TODO: False or true?
+                traceEditor = new TreeTraceEditor();
+                traceEditor.prepareForMinimalTraceReplay(et); // TODO: False or true?
                 originalTraceLength = et.CountSteps();
             }
             else
             {
-                traceEditor = new TreeTraceEditor(null);
+                traceEditor = new TreeTraceEditor();
                 ScheduleTrace trace = new ScheduleTrace(scheduleDump);
-                enterReplayMode(trace);
+                replayStrategy = new ReplayStrategy(Configuration, trace, IsOriginalSchedulerFair);
+                traceEditor.prepareForScheduleTraceReplay();
                 originalTraceLength = trace.Count;
             }
 
@@ -352,7 +359,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             replayStrategy?.PrepareForNextIteration();
             ScheduledSteps = 0;
-            bool result = !traceEditor.ranOutOfEvents;
+            ConstructTree = true;
+
+            if (WasAbandoned)
+            {   // The edit went catastrophically wrong. Re-enter edit mode
+                //enterEditMode(false);
+                WasAbandoned = false;
+                traceEditor.prepareForTraceEditIteration();
+            }
+            else
+            {
+                ConstructTree = true;
+                switch (traceEditor.currentMode)
+                {
+                    case TreeTraceEditor.TraceEditorMode.ScheduleTraceReplay:
+                        traceEditor.prepareForMinimalTraceReplay();
+                        break;
+                    case TreeTraceEditor.TraceEditorMode.MinimizedTraceReplay:
+                        traceEditor.prepareForTraceEditIteration();
+                        break;
+                    case TreeTraceEditor.TraceEditorMode.TraceEdit:
+                            traceEditor.prepareForTraceEditIteration();
+                        break;
+                    case TreeTraceEditor.TraceEditorMode.EpochCompleted:
+                        break;
+                    default:
+                        throw new ArgumentException("TraceEditor is in invalid state");
+
+                }
+            }
+
+                
+            bool result = traceEditor.currentMode!= TreeTraceEditor.TraceEditorMode.EpochCompleted;
             if (SuffixStrategy != null)
             {
                 result = result && SuffixStrategy.PrepareForNextIteration();
@@ -444,79 +482,36 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         // Edit mode stuff
         private bool WasAbandoned;
         private bool ConstructTree;
+
         // Deletion
         //private IMinimizationGuide MinimizationGuide;
 
         // Replay mode
         ReplayStrategy replayStrategy;
-        private const int replaysRequired = 1; // How many before we conclude we hit the bug? For future if we want more confidence of reproducing
-        private int replaysRemaining; // 
+        //private int replaysRequired = 0; // How many before we conclude we hit the bug? For future if we want more confidence of reproducing
+        //private int replaysRemaining = 0; // 
 
         // Exchange between the two modes:
 
         //private 
         internal TreeTraceEditor traceEditor;
 
-        private void enterEditMode(bool bugReproduced)
-        {
-            IsReplayingPsharpScheduleTrace = false;
-            traceEditor.prepareForNextIteration(bugReproduced);
-            WasAbandoned = false;
-            ConstructTree = true;
-        }
+        //private void enterEditMode(bool bugReproduced)
+        //{
+        //    traceEditor(bugReproduced);
+        //    WasAbandoned = false;
+        //    ConstructTree = true;
+        //}
 
-        private void enterReplayMode(ScheduleTrace trace)
-        {
-            IsReplayingPsharpScheduleTrace = true;
-            //traceToReplay = trace; // Doesn't work. Make new trace
-            replayStrategy = new ReplayStrategy(Configuration, trace, IsOriginalSchedulerFair);
-            // Don't use suffix strategy for replay
-            // replayStrategy = new ReplayStrategy(configuration, trace, IsOriginalSchedulerFair, SuffixStrategy);
-            
-            replaysRemaining = replaysRequired;
-
-            ConstructTree = true;
-        }
-
-
-
+        
         public void recordResult(bool bugFound, ScheduleTrace scheduleTrace)
         {
-            traceEditor.activeProgramModel.getTree().setActualTrace(scheduleTrace);
-            if(WasAbandoned)
-            {   // The edit went catastrophically wrong. Re-enter edit mode
-                enterEditMode(false);
+            traceEditor.recordResult(bugFound, scheduleTrace);
+            if (IsReplayingPsharpScheduleTrace && !bugFound)
+            {
+                throw new ArgumentException("Could not reproduce bug with ScheduleTrace");
             }
-            else if (IsReplayingPsharpScheduleTrace)
-            {   //  If we didn't get a bug, This can't be deleted.
-                if (!bugFound)
-                {
-                    enterEditMode(false);
-                }
-                else
-                {
-                    replaysRemaining--;
-                    // We were constructing. Now we've constructed. Keep it.
-                    ConstructTree = false;
-                    if (replaysRemaining == 0)
-                    {
-                        enterEditMode(true);
-                    }
-                }
-            }
-            else
-            {   // We were editing. If we did hit the bug, Just replay to confirm. Else try the next index
-                if (!bugFound)
-                {
-                    enterEditMode(false);
-                }
-                else
-                {
-                    enterEditMode(true);    // For now, Assume we hit the bug - no need to verify by running multiple times.
-                    //enterReplayMode(scheduleTrace);// Let's actually enter edit mode 
-                    
-                }
-            }
+
         }
 
         internal bool ShouldDeliverEvent(BaseMachine sender, Event e, Machine receiver)
