@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         // We need to replay + randomwalk till we're convinced OR till we show recovery.
                         string lrString = $"({ typedStrategy.traceEditor.currentWithHoldRangeStart},{ typedStrategy.traceEditor.currentWithHoldRangeEnd})";
                         bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
-                        Console.WriteLine($"Iteration {i} completed. bugFound={bugFoundThisIter}; HAX_IsTempBug={HAX_IsTempBug} ; TraceLength={typedStrategy.traceEditor.getGuideTree()?.totalOrdering.Count}; {lrString} ");
+                        Console.WriteLine($"Iteration {i} completed. bugFound={bugFoundThisIter}; HAX_IsTempBug={HAX_IsTempBug} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ");
 
 
                         if (bugFoundThisIter)

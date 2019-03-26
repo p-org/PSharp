@@ -9,6 +9,7 @@ using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
+using Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -36,6 +37,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// schedule trace fair?
         /// </summary>
         private bool IsOriginalSchedulerFair;
+
+        private Stack<ITraceEditorControlUnit> controlStack;
 
         /// <summary>
         /// Is the scheduler replaying the trace?
@@ -81,15 +84,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             ParseScheduleDumpMeta(scheduleDump);
 
             ConstructTree = true;
-            WasAbandoned = false;
+            //WasAbandoned = false;
+
+            // TODO: 
+            controlStack = new Stack<ITraceEditorControlUnit>();
+            controlStack.Push(new MinimalTraceReplayControlUnit(5));
 
             if ( IsMintraceDump )
             {
                 // TODO: We need to create the traceEditor tree up here
                 EventTree et = EventTree.FromTrace(scheduleDump);
                 traceEditor = new TreeTraceEditor();
-                traceEditor.prepareForMinimalTraceReplay(et); // TODO: False or true?
+                
                 originalTraceLength = et.CountSteps();
+                // We need to call this stuff here
+
+                //traceEditor.prepareForMinimalTraceReplay(et); // TODO: Do we need this?
+                controlStack.Peek().PrepareForNextIteration(et);
             }
             else
             {
@@ -98,6 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 replayStrategy = new ReplayStrategy(Configuration, trace, IsOriginalSchedulerFair);
                 traceEditor.prepareForScheduleTraceReplay();
                 originalTraceLength = trace.Count;
+                controlStack.Push(new ScheduleTraceReplayControlUnit(trace));
             }
 
         }
@@ -259,7 +271,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         internal EventTree getBestTree()
         {
-            return traceEditor.getGuideTree();
+            //return traceEditor.getGuideTree();
+            return bestTree;
         }
 
         /// <summary>
@@ -362,55 +375,25 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             ScheduledSteps = 0;
             ConstructTree = true;
 
-            if (WasAbandoned)
-            {   // The edit went catastrophically wrong. Re-enter edit mode
-                //enterEditMode(false);
-                WasAbandoned = false;
-                traceEditor.prepareForTraceEditIteration();
-            }
-            else
+            EventTree currentTree = traceEditor.activeProgramModel.getTree();
+            while (controlStack.Count > 0)
             {
-                ConstructTree = true;
-                switch (traceEditor.currentMode)
+                ITraceEditorControlUnit currentControlMode = controlStack.Peek();
+                
+                currentControlMode.PrepareForNextIteration(currentTree);
+                currentTree = currentControlMode.BestTree;
+                if (currentControlMode.Completed) {
+                    controlStack.Pop();
+                }
+                else
                 {
-                    case TreeTraceEditor.TraceEditorMode.ScheduleTraceReplay:
-                        traceEditor.prepareForMinimalTraceReplay();
-                        //if (HAX_findCriticalTransition) {
-                        //    traceEditor.prepareForCriticalTransitionSearchIteration();
-                        //} else { 
-                        //    traceEditor.prepareForMinimalTraceReplay();
-                        //}
-                        break;
-                    case TreeTraceEditor.TraceEditorMode.MinimizedTraceReplay:
-                        if (HAX_findCriticalTransition)
-                        {
-                            traceEditor.prepareForCriticalTransitionSearchIteration();
-                        }
-                        else
-                        {
-                            traceEditor.prepareForTraceEditIteration();
-                        }
-                        
-                        break;
-                    case TreeTraceEditor.TraceEditorMode.CriticalTransitionSearch:
-                        if (!traceEditor.prepareForCriticalTransitionSearchIteration())
-                        {
-                            traceEditor.prepareForTraceEditIteration();
-                        }
-                        break;
-                    case TreeTraceEditor.TraceEditorMode.TraceEdit:
-                            traceEditor.prepareForTraceEditIteration();
-                        break;
-                    case TreeTraceEditor.TraceEditorMode.EpochCompleted:
-                        break;
-                    default:
-                        throw new ArgumentException("TraceEditor is in invalid state");
-
+                    traceEditor.prepareForNextIteration(controlStack.Peek());
+                    bestTree = controlStack.Peek().BestTree;
+                    break;
                 }
             }
-
-                
-            bool result = traceEditor.currentMode!= TreeTraceEditor.TraceEditorMode.EpochCompleted;
+            
+            bool result = (controlStack.Count > 0);
             if (SuffixStrategy != null)
             {
                 result = result && SuffixStrategy.PrepareForNextIteration();
@@ -500,7 +483,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         // TODO: Binary search Delta Debugging. Till then -> linear search.
 
         // Edit mode stuff
-        private bool WasAbandoned;
+        //private bool WasAbandoned;
         private bool ConstructTree;
 
         // Deletion
@@ -515,6 +498,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         //private 
         internal TreeTraceEditor traceEditor;
+        private EventTree bestTree;
 
         //private void enterEditMode(bool bugReproduced)
         //{
@@ -523,7 +507,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         //    ConstructTree = true;
         //}
 
-        
+
         public void recordResult(bool bugFound, ScheduleTrace scheduleTrace)
         {
             traceEditor.recordResult(bugFound, scheduleTrace);

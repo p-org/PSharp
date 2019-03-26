@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PSharpMinimizer.ControlUnits
+namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     interface ITraceEditorControlUnit
     {
@@ -20,9 +20,10 @@ namespace PSharpMinimizer.ControlUnits
         /// Inclusive right bound
         /// </summary>
         int Right { get;  }
+
         bool PrepareForNextIteration(EventTree resultTree);
 
-        bool Valid { get; }
+        bool Valid { get; }  // TODO: Revise what this means - Error or just that it did not reproduce the bug
         bool Completed { get; }
     }
 }

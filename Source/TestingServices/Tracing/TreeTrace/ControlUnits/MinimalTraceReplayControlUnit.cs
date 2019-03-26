@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PSharpMinimizer.ControlUnits
+namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
-    class MinimalTraceReplayControlUnit : ITraceEditorControlUnit
+    internal class MinimalTraceReplayControlUnit : ITraceEditorControlUnit
     {
         public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.MinimizedTraceReplay; } }
         public EventTree BestTree { get; private set; }
@@ -18,25 +18,33 @@ namespace PSharpMinimizer.ControlUnits
 
 
         private int nReplays;
-        MinimalTraceReplayControlUnit(EventTree guideTree, int nReplaysRequired)
+        public MinimalTraceReplayControlUnit(int nReplaysRequired)
         {
-            BestTree = guideTree;
+            BestTree = null;
             nReplays = nReplaysRequired;
+            Completed = false;
         }
+
+        
 
         public bool PrepareForNextIteration(EventTree resultTree)
         {
-            if (resultTree.reproducesBug() )
+            if (resultTree.reproducesBug())
+            {
+                BestTree = resultTree;
+            }
+
+            if (resultTree.reproducesBug())
             {
                 nReplays--;
-                Completed = (nReplays <= 0); 
+                Completed = (nReplays < 0);
             }
             else
             {
-                Valid = false;
                 Completed = true;
             }
-            return Completed;
+            Valid = (BestTree != null);
+            return Completed && Valid;
         }
     }
 }

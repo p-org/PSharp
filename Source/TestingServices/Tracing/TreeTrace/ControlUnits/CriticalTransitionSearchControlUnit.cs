@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
 
-namespace PSharpMinimizer.ControlUnits
+namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     internal class CriticalTransitionSearchControlUnit : ITraceEditorControlUnit
     {
@@ -43,7 +43,12 @@ namespace PSharpMinimizer.ControlUnits
         {
             if ( Left == Right )
             {
-                Valid = resultTree.reproducesBug();
+                if (resultTree.reproducesBug())
+                {
+                    BestTree = resultTree;
+                }
+                //else {Valid = false;} // This is not the critical transition
+                
                 Completed = true;
             }
             else {
@@ -59,9 +64,9 @@ namespace PSharpMinimizer.ControlUnits
                     Left = mid + 1;
                 }
             }
+            Valid = (BestTree!=null);
 
-
-            return Completed;
+            return Completed && Valid;
         }
     }
 

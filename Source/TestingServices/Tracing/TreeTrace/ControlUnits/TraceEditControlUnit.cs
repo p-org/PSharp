@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
 
-namespace PSharpMinimizer.ControlUnits
+namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     class TraceEditControlUnit : ITraceEditorControlUnit
     {
@@ -42,6 +42,7 @@ namespace PSharpMinimizer.ControlUnits
 
         TraceEditControlUnit(EventTree guideTree)
         {
+            Completed = false;
             if (guideTree.reproducesBug()) {
                 BestTree = guideTree;
                 //bSearchRightBounds = new Stack<Tuple<int, int>>();
@@ -63,18 +64,18 @@ namespace PSharpMinimizer.ControlUnits
             {
                 // We can do this since Left and Right is applied on the trace being constructed.
                 Left = Right + 1;
-                if(Left >= resultTree.totalOrdering.Count)
+                if (Left >= resultTree.totalOrdering.Count)
                 {
                     Completed = true;
                 }
                 else
                 {   // Reasonably, We've covered everything to the left of Right. Now we need to set our Left
-                    
-                    while(Right < Left && bSearchRightBounds.Count > 0 )
+
+                    while (Right < Left && bSearchRightBounds.Count > 0)
                     {
                         Right = bSearchRightBounds.Pop();
                     }
-                    if(Right < Left)
+                    if (Right < Left)
                     {   // The array may have grown (!!!) since. Not great for minimization, but this should work.
                         Right = resultTree.totalOrdering.Count - 1;
                     }
@@ -83,7 +84,11 @@ namespace PSharpMinimizer.ControlUnits
             }
             else
             {   // No bug 
-                if ( Left == Right )
+                if (BestTree == null)
+                {
+                    Valid = false;
+                }
+                else if ( Left == Right )
                 {   // Can't recurse
                     Left = Right + 1;
                     if (Left >= BestTree.totalOrdering.Count)    // Use BestTree because it is our guide
@@ -112,7 +117,8 @@ namespace PSharpMinimizer.ControlUnits
                 }
             }
 
-            return Completed;
+            return Completed && Valid;
         }
+
     }
 }

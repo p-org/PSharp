@@ -11,8 +11,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
     {
 
 
-        private EventTree BestGuideTree;
-
         // Use as read only. Let SchedulingStrategy do updates
         // TODO: Move to TraceIteration
         internal ProgramModel activeProgramModel;
@@ -20,12 +18,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         //private int currentIterationIndex;
 
-        internal ulong actualStepsExecuted; // Count of how many steps we've actually executed ( is this even needed here? Let the strategy do it? )
-
-        //int currentWithHoldCandidate; // 1 indexed :p
-        Stack<Tuple<int,int>> bSearchWithHoldCandidateStack;
-        //HashSet<int> withHeldCandidates;
-
+        
         //internal bool ranOutOfEvents;
         int eventSeenThisTime;
         TraceIteration currentRun; // Make private
@@ -44,9 +37,25 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         }
 
         internal TraceEditorMode currentMode;
-        private static bool HAX_DoLinearScan = true; // HAX
-        private int criticalTransitionSearch_Left;
-        private int criticalTransitionSearch_Right;
+
+        #region deprecated fields
+        // // Those deprecated when we created control units
+        //private static bool HAX_DoLinearScan = true; // HAX
+        //private int criticalTransitionSearch_Left;
+        //private int criticalTransitionSearch_Right;
+        //Stack<Tuple<int, int>> bSearchWithHoldCandidateStack;
+        //private EventTree BestGuideTree;
+        //internal EventTree getGuideTree()
+        //{
+        //    return BestGuideTree;
+        //}
+
+
+        // // Those deprecated when we started linear search
+        //int currentWithHoldCandidate; // 1 indexed :p
+        //HashSet<int> withHeldCandidates;
+
+        #endregion 
 
         // Deletion Tracking
         internal class TraceIteration {
@@ -144,21 +153,21 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             internal bool reachedEnd()
             {
-                if(guideTree?.totalOrdering != null)
+                if (guideTree?.totalOrdering != null)
                 {
-                    return ( criticalTransitionIndex >= 0 && totalOrderingIndex > criticalTransitionIndex ) 
+                    return (criticalTransitionIndex >= 0 && totalOrderingIndex > criticalTransitionIndex)
                         || (totalOrderingIndex >= guideTree.totalOrdering.Count);
                 }
                 else
                 {
                     return false;
                 }
-                
+
             }
 
             internal bool checkWithHeld(EventTreeNode etn)
             {
-                return guideTree?.checkWithHeld(etn)??false;
+                return guideTree?.checkWithHeld(etn) ?? false;
             }
 
             internal void setCriticalTransition(int criticalTransitionIndex)
@@ -170,16 +179,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         public TreeTraceEditor()
         {
-            BestGuideTree = null;
-            //currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
-            bSearchWithHoldCandidateStack = new Stack<Tuple<int, int>>();
+            //BestGuideTree = null;
             currentMode = TraceEditorMode.Initial;
+
+            //currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
+            //bSearchWithHoldCandidateStack = new Stack<Tuple<int, int>>();
             //ranOutOfEvents = false;
 
-            criticalTransitionSearch_Left = -1;
-            criticalTransitionSearch_Right = -1;
         }
-        
+
 
         public void reset()
         {
@@ -192,184 +200,236 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         #region prepare for next iteration
 
+        public bool prepareForNextIteration(ControlUnits.ITraceEditorControlUnit controlUnit)
+        {
+            switch (controlUnit.RequiredTraceEditorMode)
+            {
+                case TraceEditorMode.ScheduleTraceReplay:
+                    return prepareForScheduleTraceReplay();
+                case TraceEditorMode.MinimizedTraceReplay:
+                    return prepareForMinimalTraceReplay(controlUnit.BestTree);
+                case TraceEditorMode.CriticalTransitionSearch:
+                    return prepareForCriticalTransitionSearchIteration(controlUnit.BestTree, controlUnit.Left, controlUnit.Right);
+                case TraceEditorMode.TraceEdit:
+                    return prepareForTraceEditIteration(controlUnit.BestTree, controlUnit.Left, controlUnit.Right);
+                default:
+                    throw new ArgumentException("TraceEditor cannot do nextIteration in mode " + controlUnit.RequiredTraceEditorMode);
+            }
+        }
+
         public bool prepareForScheduleTraceReplay()
         {
-            if(currentMode!= TraceEditorMode.Initial)
-            {
-                throw new ArgumentException("TraceEditor must be in Initial state to do ScheduleTraceReplay");
-            }
-            currentMode = TraceEditorMode.ScheduleTraceReplay;
             currentRun = new TraceIteration(null);
             reset();
+
+            currentMode = TraceEditorMode.ScheduleTraceReplay;
             return true;
         }
 
         public bool prepareForMinimalTraceReplay(EventTree candidateGuideTree)
         {
-            currentMode = TraceEditorMode.MinimizedTraceReplay;
+            
             currentRun = new TraceIteration(candidateGuideTree);
             reset();
+
+            currentMode = TraceEditorMode.MinimizedTraceReplay;
             return true;
         }
 
-        public bool prepareForCriticalTransitionSearchIteration()
+        public bool prepareForCriticalTransitionSearchIteration(EventTree guideTree, int left, int right)
         {
-            bool result = false;
-            switch (currentMode)
-            {
-                //case TraceEditorMode.Initial:
-                //case TraceEditorMode.ScheduleTraceReplay:
-                //    if (activeProgramModel.getTree().reproducesBug())
-                //    {
-                //        result = true;
-                //        criticalTransitionSearch_Left = 0;
-                //        criticalTransitionSearch_Right = activeProgramModel.getTree().totalOrdering.Count - 1;
-                //    }
-                //    else
-                //    {
-                //        throw new ArgumentException("Replay did not reproduce bug.");
-                //    }
-                //    break;
-
-                // TODO: 26032019 you were here, Figuring out replays for critical transitions and rewriting the internal FSM
-                case TraceEditorMode.MinimizedTraceReplay:
-                    if (activeProgramModel.getTree().reproducesBug())
-                    {
-                        result = true;
-                        BestGuideTree = activeProgramModel.getTree();
-                        if (criticalTransitionSearch_Left == -1 && criticalTransitionSearch_Right == -1)
-                        {
-                            criticalTransitionSearch_Left = 0;
-                            criticalTransitionSearch_Right = activeProgramModel.getTree().totalOrdering.Count - 1;
-                        }
-                    }
-                    else if( BestGuideTree == null ) // && !activeProgramModel.getTree().reproducesBug()
-                    {
-                        throw new ArgumentException("No bug-reproducing guide tree for CriticalTransition.");
-                    }
-                    break;
-
-                case TraceEditorMode.CriticalTransitionSearch:
-                    if (activeProgramModel.getTree().reproducesBug())
-                    {
-                        BestGuideTree = activeProgramModel.getTree();
-                        if ( criticalTransitionSearch_Left == criticalTransitionSearch_Right )
-                        {
-                            result = false;
-                        }
-                        else
-                        {
-                            result = true;
-                            int mid = (criticalTransitionSearch_Left + criticalTransitionSearch_Right) / 2;
-                            criticalTransitionSearch_Right = mid;
-                        }
-                    }
-                    else
-                    {
-                        if ( criticalTransitionSearch_Left == criticalTransitionSearch_Right )
-                        {
-                            throw new ArgumentException("CriticalTransitionIndex converged on ");
-                        }
-                        else
-                        {
-                            result = true;
-
-                            int mid = (criticalTransitionSearch_Left + criticalTransitionSearch_Right) / 2;
-                            criticalTransitionSearch_Left = mid+1;
-                        }
-
-                    }
-                    break;
-                default:
-                    throw new ArgumentException("TraceEditor cannot do CriticalTransitionSearch from state " + currentMode);
-
-
-            }
-
-            if (result) {
-                prepareForMinimalTraceReplay(BestGuideTree);
-                currentMode = TraceEditorMode.CriticalTransitionSearch;
-                int criticalTransitionIndex = (criticalTransitionSearch_Left + criticalTransitionSearch_Right) / 2;
-                currentRun.setCriticalTransition(criticalTransitionIndex);
-            }
-            return result;
-        }
-
-
-        public bool prepareForTraceEditIteration()
-        {
-            switch (currentMode)
-            {
-                case TraceEditorMode.Initial:
-                case TraceEditorMode.ScheduleTraceReplay:
-                case TraceEditorMode.EpochCompleted:
-                    throw new ArgumentException("Cannot start TraceEditIteration from state" + currentMode );
-                case TraceEditorMode.MinimizedTraceReplay:
-                case TraceEditorMode.CriticalTransitionSearch:
-                    if (BestGuideTree == null) // Means initial run
-                    {
-                        if (activeProgramModel.getTree().reproducesBug()) {
-                            if (HAX_DoLinearScan)
-                            {
-                                for(int i = eventSeenThisTime; i>0 ; i--)
-                                {
-                                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(i,i));
-                                }
-                                
-                            }
-                            else
-                            {
-                                bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(1, eventSeenThisTime));
-                            }
-                        }
-                        else
-                        {
-                            throw new ArgumentException("Cannot reproduce bug from ScheduleTrace");
-                        }
-                    }
-                    break;
-            }
-
-            currentMode = TraceEditorMode.TraceEdit;
-
-            if (activeProgramModel.getTree().reproducesBug())
-            {
-                BestGuideTree = activeProgramModel.getTree();
-            }
-            else
-            {
-                if (currentWithHoldRangeStart != currentWithHoldRangeEnd)
-                {   // Nawsome. We need to recurse :(
-                    int mid = (currentWithHoldRangeStart + currentWithHoldRangeEnd) / 2;
-                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(mid + 1, currentWithHoldRangeEnd));
-                    bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(currentWithHoldRangeStart, mid));
-                }
-            }
-
-            
             reset();
 
-            if (bSearchWithHoldCandidateStack.Count==0) {
-                //ranOutOfEvents = true;
-                currentMode = TraceEditorMode.EpochCompleted;
-            }
-            else
-            {
-                //ranOutOfEvents = false; // Let's not risk this
-                Tuple<int, int> currentWithHoldTuple = bSearchWithHoldCandidateStack.Pop();
-                currentWithHoldRangeStart = currentWithHoldTuple.Item1;
-                currentWithHoldRangeEnd = currentWithHoldTuple.Item2;
-            }
-            currentRun = new TraceIteration(BestGuideTree);
+            int criticalTransitionIndex = (left + right) / 2;
+            currentRun.setCriticalTransition(criticalTransitionIndex);
 
-            return currentMode==TraceEditorMode.EpochCompleted;
+            currentMode = TraceEditorMode.CriticalTransitionSearch;
+            return true;
+        }
+
+        public bool prepareForTraceEditIteration(EventTree guideTree, int left, int right)
+        {
+            reset();
+
+            return true;
         }
         #endregion
+        #region old prepare for next iteration
 
-        internal EventTree getGuideTree()
-        {
-            return BestGuideTree;
-        }
+
+        //public bool prepareForScheduleTraceReplay()
+        //{
+        //    if(currentMode!= TraceEditorMode.Initial)
+        //    {
+        //        throw new ArgumentException("TraceEditor must be in Initial state to do ScheduleTraceReplay");
+        //    }
+        //    currentMode = TraceEditorMode.ScheduleTraceReplay;
+        //    currentRun = new TraceIteration(null);
+        //    reset();
+        //    return true;
+        //}
+
+        //public bool prepareForMinimalTraceReplay(EventTree candidateGuideTree)
+        //{
+        //    currentMode = TraceEditorMode.MinimizedTraceReplay;
+        //    currentRun = new TraceIteration(candidateGuideTree);
+        //    reset();
+        //    return true;
+        //}
+
+        //public bool prepareForCriticalTransitionSearchIteration()
+        //{
+        //    bool result = false;
+        //    switch (currentMode)
+        //    {
+        //        //case TraceEditorMode.Initial:
+        //        //case TraceEditorMode.ScheduleTraceReplay:
+        //        //    if (activeProgramModel.getTree().reproducesBug())
+        //        //    {
+        //        //        result = true;
+        //        //        criticalTransitionSearch_Left = 0;
+        //        //        criticalTransitionSearch_Right = activeProgramModel.getTree().totalOrdering.Count - 1;
+        //        //    }
+        //        //    else
+        //        //    {
+        //        //        throw new ArgumentException("Replay did not reproduce bug.");
+        //        //    }
+        //        //    break;
+
+        //        // TODO: 26032019 you were here, Figuring out replays for critical transitions and rewriting the internal FSM
+        //        case TraceEditorMode.MinimizedTraceReplay:
+        //            if (activeProgramModel.getTree().reproducesBug())
+        //            {
+        //                result = true;
+        //                BestGuideTree = activeProgramModel.getTree();
+        //                if (criticalTransitionSearch_Left == -1 && criticalTransitionSearch_Right == -1)
+        //                {
+        //                    criticalTransitionSearch_Left = 0;
+        //                    criticalTransitionSearch_Right = activeProgramModel.getTree().totalOrdering.Count - 1;
+        //                }
+        //            }
+        //            else if( BestGuideTree == null ) // && !activeProgramModel.getTree().reproducesBug()
+        //            {
+        //                throw new ArgumentException("No bug-reproducing guide tree for CriticalTransition.");
+        //            }
+        //            break;
+
+        //        case TraceEditorMode.CriticalTransitionSearch:
+        //            if (activeProgramModel.getTree().reproducesBug())
+        //            {
+        //                BestGuideTree = activeProgramModel.getTree();
+        //                if ( criticalTransitionSearch_Left == criticalTransitionSearch_Right )
+        //                {
+        //                    result = false;
+        //                }
+        //                else
+        //                {
+        //                    result = true;
+        //                    int mid = (criticalTransitionSearch_Left + criticalTransitionSearch_Right) / 2;
+        //                    criticalTransitionSearch_Right = mid;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if ( criticalTransitionSearch_Left == criticalTransitionSearch_Right )
+        //                {
+        //                    throw new ArgumentException("CriticalTransitionIndex converged on ");
+        //                }
+        //                else
+        //                {
+        //                    result = true;
+
+        //                    int mid = (criticalTransitionSearch_Left + criticalTransitionSearch_Right) / 2;
+        //                    criticalTransitionSearch_Left = mid+1;
+        //                }
+
+        //            }
+        //            break;
+        //        default:
+        //            throw new ArgumentException("TraceEditor cannot do CriticalTransitionSearch from state " + currentMode);
+
+
+        //    }
+
+        //    if (result) {
+        //        prepareForMinimalTraceReplay(BestGuideTree);
+        //        currentMode = TraceEditorMode.CriticalTransitionSearch;
+        //        int criticalTransitionIndex = (criticalTransitionSearch_Left + criticalTransitionSearch_Right) / 2;
+        //        currentRun.setCriticalTransition(criticalTransitionIndex);
+        //    }
+        //    return result;
+        //}
+
+
+        //public bool prepareForTraceEditIteration()
+        //{
+        //    switch (currentMode)
+        //    {
+        //        case TraceEditorMode.Initial:
+        //        case TraceEditorMode.ScheduleTraceReplay:
+        //        case TraceEditorMode.EpochCompleted:
+        //            throw new ArgumentException("Cannot start TraceEditIteration from state" + currentMode );
+        //        case TraceEditorMode.MinimizedTraceReplay:
+        //        case TraceEditorMode.CriticalTransitionSearch:
+        //            if (BestGuideTree == null) // Means initial run
+        //            {
+        //                if (activeProgramModel.getTree().reproducesBug()) {
+        //                    if (HAX_DoLinearScan)
+        //                    {
+        //                        for(int i = eventSeenThisTime; i>0 ; i--)
+        //                        {
+        //                            bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(i,i));
+        //                        }
+
+        //                    }
+        //                    else
+        //                    {
+        //                        bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(1, eventSeenThisTime));
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    throw new ArgumentException("Cannot reproduce bug from ScheduleTrace");
+        //                }
+        //            }
+        //            break;
+        //    }
+
+        //    currentMode = TraceEditorMode.TraceEdit;
+
+        //    if (activeProgramModel.getTree().reproducesBug())
+        //    {
+        //        BestGuideTree = activeProgramModel.getTree();
+        //    }
+        //    else
+        //    {
+        //        if (currentWithHoldRangeStart != currentWithHoldRangeEnd)
+        //        {   // Nawsome. We need to recurse :(
+        //            int mid = (currentWithHoldRangeStart + currentWithHoldRangeEnd) / 2;
+        //            bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(mid + 1, currentWithHoldRangeEnd));
+        //            bSearchWithHoldCandidateStack.Push(new Tuple<int, int>(currentWithHoldRangeStart, mid));
+        //        }
+        //    }
+
+
+        //    reset();
+
+        //    if (bSearchWithHoldCandidateStack.Count==0) {
+        //        //ranOutOfEvents = true;
+        //        currentMode = TraceEditorMode.EpochCompleted;
+        //    }
+        //    else
+        //    {
+        //        //ranOutOfEvents = false; // Let's not risk this
+        //        Tuple<int, int> currentWithHoldTuple = bSearchWithHoldCandidateStack.Pop();
+        //        currentWithHoldRangeStart = currentWithHoldTuple.Item1;
+        //        currentWithHoldRangeEnd = currentWithHoldTuple.Item2;
+        //    }
+        //    currentRun = new TraceIteration(BestGuideTree);
+
+        //    return currentMode==TraceEditorMode.EpochCompleted;
+        //}
+        #endregion
 
         
         internal bool ShouldDeliverEvent(Event e)

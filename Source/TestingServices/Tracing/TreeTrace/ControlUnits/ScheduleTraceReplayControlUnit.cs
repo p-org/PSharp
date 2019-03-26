@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PSharpMinimizer.ControlUnits
+namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     class ScheduleTraceReplayControlUnit : ITraceEditorControlUnit
     {
@@ -18,17 +18,24 @@ namespace PSharpMinimizer.ControlUnits
 
         public bool Completed { get; private set; }
 
-        ScheduleTraceReplayControlUnit(ScheduleTrace schedTrace)
+        public ScheduleTraceReplayControlUnit(ScheduleTrace schedTrace)
         {
             BestTree = null;
             ScheduleTrace = schedTrace;
+            Valid = true;
+            Completed = false;
         }
 
         public bool PrepareForNextIteration(EventTree resultTree)
         {
-            Valid = resultTree.reproducesBug();
+            if (resultTree.reproducesBug())
+            {
+                BestTree = resultTree;
+            }
             Completed = true;
-            return Completed;
+            Valid = resultTree.reproducesBug();
+            return Completed && Valid;
         }
+
     }
 }
