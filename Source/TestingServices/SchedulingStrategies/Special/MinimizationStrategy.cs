@@ -54,7 +54,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Text describing a replay error.
         /// </summary>
         internal string ErrorText { get; private set; }
-        public bool IsMintraceDump { get; private set; }
+        public bool IsMintraceDump;
+        public bool HAX_findCriticalTransition = true ;
 
 
 
@@ -374,9 +375,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     case TreeTraceEditor.TraceEditorMode.ScheduleTraceReplay:
                         traceEditor.prepareForMinimalTraceReplay();
+                        //if (HAX_findCriticalTransition) {
+                        //    traceEditor.prepareForCriticalTransitionSearchIteration();
+                        //} else { 
+                        //    traceEditor.prepareForMinimalTraceReplay();
+                        //}
                         break;
                     case TreeTraceEditor.TraceEditorMode.MinimizedTraceReplay:
-                        traceEditor.prepareForTraceEditIteration();
+                        if (HAX_findCriticalTransition)
+                        {
+                            traceEditor.prepareForCriticalTransitionSearchIteration();
+                        }
+                        else
+                        {
+                            traceEditor.prepareForTraceEditIteration();
+                        }
+                        
+                        break;
+                    case TreeTraceEditor.TraceEditorMode.CriticalTransitionSearch:
+                        if (!traceEditor.prepareForCriticalTransitionSearchIteration())
+                        {
+                            traceEditor.prepareForTraceEditIteration();
+                        }
                         break;
                     case TreeTraceEditor.TraceEditorMode.TraceEdit:
                             traceEditor.prepareForTraceEditIteration();
