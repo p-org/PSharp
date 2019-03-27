@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -14,11 +15,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         // Use as read only. Let SchedulingStrategy do updates
         // TODO: Move to TraceIteration
         internal ProgramModel activeProgramModel;
-        private bool isFirstStep;
+        private bool isFirstStep; 
+        private bool bugIsRecorded; // turns true once we set the bug.
 
         //private int currentIterationIndex;
 
-        
+
         //internal bool ranOutOfEvents;
         int eventSeenThisTime;
         TraceIteration currentRun; // Make private
@@ -60,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         // Deletion Tracking
         internal class TraceIteration {
 
-            EventTree guideTree;
+            internal EventTree guideTree;
             internal int totalOrderingIndex = 0;
 
             internal EventTreeNode activeNode;
@@ -70,6 +72,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             internal int HAX_deletedCount;
             private int criticalTransitionIndex;
 
+            public Dictionary<Monitor, Tuple<int,int>> HotMonitors { get; internal set; } // Maps some monitor identifier to the totalOrderingIndex
+
             public TraceIteration(EventTree GuideTree)
             {
                 guideTree = GuideTree;
@@ -77,6 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 criticalTransitionIndex = -1;
 
                 deletedIndices = new HashSet<int>();
+                HotMonitors = new Dictionary<Monitor, Tuple<int, int>>();
                 setActiveNode(null);
                 HAX_deletedCount = 0;
             }
@@ -174,14 +179,46 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 this.criticalTransitionIndex = criticalTransitionIndex;
             }
+
+            internal bool checkLivenessViolation(out int bugIndexOfGuideTree, out int BugIndexOfCurrentTree)
+            {
+                bool result = false;
+                bugIndexOfGuideTree = 0;
+                BugIndexOfCurrentTree = 0;
+
+
+                Monitor hotMonitor = null;
+                foreach (Monitor m in HotMonitors.Keys)
+                {
+                    if (m.HAX_IsLivenessTemperatureAboveTreshold())
+                    {
+                        hotMonitor = m;
+                        bugIndexOfGuideTree = HotMonitors[hotMonitor].Item1;
+                        BugIndexOfCurrentTree = HotMonitors[hotMonitor].Item2;
+                        result = true;
+                        break;
+                    }
+                }
+
+                return result;    
+            }
         }
 
+        internal void recordEnterHotstate(Monitor monitor)
+        {
+            currentRun.HotMonitors.Add(monitor, new Tuple<int,int>(currentRun.totalOrderingIndex, activeProgramModel.constructTree.totalOrdering.Count-1));
+        }
+
+        internal void recordExitHotState(Monitor monitor)
+        {
+            currentRun.HotMonitors.Remove(monitor);
+        }
 
         public TreeTraceEditor()
         {
             //BestGuideTree = null;
             currentMode = TraceEditorMode.Initial;
-
+            bugIsRecorded = false;
             //currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
             //bSearchWithHoldCandidateStack = new Stack<Tuple<int, int>>();
             //ranOutOfEvents = false;
@@ -611,7 +648,33 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal void recordResult(bool bugFound, ScheduleTrace scheduleTrace)
         {
-            activeProgramModel.getTree().setResult(bugFound, scheduleTrace);
+            int guideTreeIndex = -1, activeProgramModelIndex = -1;
+            bool bugActuallyFound = false;
+            if (bugFound)
+            {
+                // TODO: Verify bug equivalence
+                if( !currentRun.checkLivenessViolation(out guideTreeIndex, out activeProgramModelIndex))
+                {
+                    guideTreeIndex = currentRun.totalOrderingIndex;
+                    activeProgramModelIndex = activeProgramModel.constructTree.totalOrdering.Count - 1;
+                }
+                if (bugIsRecorded) {
+                    bugActuallyFound = verifyBugEquivalence(guideTreeIndex);
+                }
+                else
+                {   // We don't actually know what the bug is.
+                    bugActuallyFound = true;
+                    bugIsRecorded = true;
+                }
+            }
+
+            activeProgramModel.getTree().setResult(bugActuallyFound, scheduleTrace, activeProgramModelIndex);
+            
+        }
+
+        private bool verifyBugEquivalence(int guideTreeIndex)
+        {
+            return currentRun.guideTree.bugTriggeringStep == guideTreeIndex;
         }
 
         internal void RecordIntegerChoice(int next)

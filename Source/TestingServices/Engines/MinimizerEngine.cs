@@ -153,24 +153,25 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         }
 
                         // Runs a new testing iteration.
-                        bool bugFoundThisIter = this.RunNextIteration(i);
+                        bool aBugwasFoundThisIter= this.RunNextIteration(i);
 
+                        bool sameBugFoundThisIter = typedStrategy.HAX_WasTargetBugReproduced();
                         //bugFoundEveryTime = bugFoundEveryTime && bugFoundThisIter;
 
                         // We need to replay + randomwalk till we're convinced OR till we show recovery.
                         string lrString = $"{typedStrategy.controlStack.Peek().RequiredTraceEditorMode}:({ typedStrategy.controlStack.Peek().Left},{ typedStrategy.controlStack.Peek().Right})";
                         bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
-                        Console.WriteLine($"Iteration {i} completed. bugFound={bugFoundThisIter}; HAX_IsTempBug={HAX_IsTempBug} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ");
+                        Console.WriteLine($"Iteration {i} completed. bugFound={aBugwasFoundThisIter}; HAX_IsSameBug={sameBugFoundThisIter} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ");
 
 
-                        if (bugFoundThisIter)
+                        if (sameBugFoundThisIter)
                         {
                             minimalTree = typedStrategy.getBestTree();
                         }
 
                         if (!minimizationIterationCanContinue)
                         {
-                            Console.WriteLine($"Completed run for <TODO-somedescription>; bugFound={bugFoundThisIter}");
+                            Console.WriteLine($"Completed run for <TODO-somedescription>; bugFound={sameBugFoundThisIter}");
                             
                             traceEditorReachedMinimum = true;
                             
@@ -240,7 +241,7 @@ namespace Microsoft.PSharp.TestingServices.Engines
                 }
                 else
                 {
-                    runtime = new MinimizationRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = new MinimizationRuntime(base.Configuration, (base.Strategy as MinimizationStrategy), base.Reporter);
                 }
 
 

@@ -88,31 +88,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // TODO: I've been using this only for testing
             controlStack = new Stack<ITraceEditorControlUnit>();
-            //controlStack.Push(new MinimalTraceReplayControlUnit(2));
-            controlStack.Push(new CriticalTransitionSearchControlUnit(3));
+            controlStack.Push(new MinimalTraceReplayControlUnit(2));
+            //controlStack.Push(new CriticalTransitionSearchControlUnit(3));
 
+            traceEditor = new TreeTraceEditor();
+            EventTree et = null;
             if ( IsMintraceDump )
             {
                 // TODO: We need to create the traceEditor tree up here
-                EventTree et = EventTree.FromTrace(scheduleDump);
-                traceEditor = new TreeTraceEditor();
-                
+                et = EventTree.FromTrace(scheduleDump);
                 originalTraceLength = et.CountSteps();
                 // We need to call this stuff here
 
                 //traceEditor.prepareForMinimalTraceReplay(et); // TODO: Do we need this?
-                controlStack.Peek().PrepareForNextIteration(et);
             }
             else
             {
-                traceEditor = new TreeTraceEditor();
                 ScheduleTrace trace = new ScheduleTrace(scheduleDump);
                 replayStrategy = new ReplayStrategy(Configuration, trace, IsOriginalSchedulerFair);
-                traceEditor.prepareForScheduleTraceReplay();
                 originalTraceLength = trace.Count;
                 controlStack.Push(new ScheduleTraceReplayControlUnit(trace));
             }
+            traceEditor.prepareForNextIteration(controlStack.Peek());
+        }
 
+        internal void recordExitHotState(Monitor monitor)
+        {
+            traceEditor.recordExitHotState(monitor);
+        }
+
+        internal void recordEnterHotState(Monitor monitor)
+        {
+            traceEditor.recordEnterHotstate(monitor);
         }
 
         private void ParseScheduleDumpMeta(string[] scheduleDump)
@@ -170,6 +177,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return GetNextEditMode(out next, choices, current);
                 
             }
+        }
+
+        internal bool HAX_WasTargetBugReproduced()
+        {
+            return traceEditor.activeProgramModel.constructTree.reproducesBug();
         }
 
         private bool GetNextReplayMode(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)

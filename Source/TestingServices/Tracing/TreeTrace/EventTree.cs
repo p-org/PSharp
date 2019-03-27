@@ -12,7 +12,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal EventTreeNode root;
         internal List<EventTreeNode> totalOrdering;
         internal List<int> withHeldSendIndices;
-        
+
+        internal int bugTriggeringStep;
+
         public static char[] fieldSeparator = new char[] { ':' };
         public static char[] valueSeparator = new char[] { ',' };
 
@@ -31,6 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private EventTreeNode activeNode;
         private bool reproducedBug;
         private ScheduleTrace actualTrace;
+
 
         public EventTreeNode getActiveNode()
         {
@@ -189,10 +192,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
         }
 
-        internal void setResult(bool bugFound, ScheduleTrace scheduleTrace)
+        internal void setResult(bool bugFound, ScheduleTrace scheduleTrace, int bugTriggerStep)
         {
             this.reproducedBug = bugFound;
             this.actualTrace = scheduleTrace;
+            this.bugTriggeringStep = bugTriggerStep;
         }
 
         internal ScheduleTrace getActualTrace()

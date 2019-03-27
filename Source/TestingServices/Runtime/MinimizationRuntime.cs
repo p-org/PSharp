@@ -9,8 +9,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 {
     internal class MinimizationRuntime : TestingRuntime
     {
-        internal ISchedulingStrategy HAX_strategy;
-        internal MinimizationRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter) : base(configuration, strategy, reporter)
+        internal MinimizationStrategy HAX_strategy;
+        internal MinimizationRuntime(Configuration configuration, MinimizationStrategy strategy, IRegisterRuntimeOperation reporter) : base(configuration, strategy, reporter)
         {
             this.HAX_strategy = strategy;
         }
@@ -60,6 +60,30 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             return eventInfo;
+        }
+
+
+        /// <summary>
+        /// Notifies that a monitor entered a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        internal override void NotifyEnteredState(Monitor monitor)
+        {
+            base.NotifyEnteredState(monitor);
+            if (monitor.IsInHotState())
+            {
+                HAX_strategy.recordEnterHotState(monitor);
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a monitor exited a state.
+        /// </summary>
+        /// <param name="monitor">Monitor</param>
+        internal override void NotifyExitedState(Monitor monitor)
+        {
+            base.NotifyExitedState(monitor);
+            HAX_strategy.recordExitHotState(monitor);
         }
     }
 }

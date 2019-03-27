@@ -28,12 +28,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public void PrepareForNextIteration(EventTree resultTree)
         {
-            if (resultTree.reproducesBug())
+            if (resultTree != null)
             {
-                BestTree = resultTree;
+                if (resultTree.reproducesBug())
+                {
+                    BestTree = resultTree;
+                }
+                Completed = true;
+                Valid = resultTree.reproducesBug();
             }
-            Completed = true;
-            Valid = resultTree.reproducesBug();
         }
 
     }

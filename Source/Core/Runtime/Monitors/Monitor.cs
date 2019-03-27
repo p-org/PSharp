@@ -496,6 +496,11 @@ namespace Microsoft.PSharp
 
         #region liveness checking
 
+        internal bool HAX_IsLivenessTemperatureAboveTreshold()
+        {
+            return this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold;
+        }
+
         /// <summary>
         /// Checks the liveness temperature of the monitor and report
         /// a potential liveness bug if the temperature passes the
