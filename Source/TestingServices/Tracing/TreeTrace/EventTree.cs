@@ -13,6 +13,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal List<EventTreeNode> totalOrdering;
         internal List<int> withHeldSendIndices;
 
+        internal int criticalTransitionStep;
         internal int bugTriggeringStep;
 
         public static char[] fieldSeparator = new char[] { ':' };
@@ -26,6 +27,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             totalOrdering = new List<EventTreeNode>();
             withHeldSendIndices = new List<int>();
             reproducedBug = false;
+
+            criticalTransitionStep = -1;
+            bugTriggeringStep = -1;
         }
 
         #region Tree construction
@@ -197,6 +201,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             this.reproducedBug = bugFound;
             this.actualTrace = scheduleTrace;
             this.bugTriggeringStep = bugTriggerStep;
+        }
+
+        internal void setCriticalTransitionStep(int ctStep)
+        {
+            criticalTransitionStep = ctStep;
         }
 
         internal ScheduleTrace getActualTrace()

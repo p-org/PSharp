@@ -26,6 +26,20 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
          *       We still cover every event
          */
 
+        /*
+         * New question: 
+         * 1) How do you verify that we hit the same bug? 
+         * 2) The bug is not hit because of mindless deletion?
+         *  Idea: Given critical-transition step index Sc and bug Triggering Step index Sb, We can determine the following
+         *  1. A replay run Rr hits the same bug as the guide run Rg iff Rr.Sb corresponds to Rg.Sb
+         *  2. The deletion of an event at step Rg.Se in the guide run desirable if
+         *      a. By replaying the Rg till max(Rg.Sb, Rg.Sc) reproduces the same bug.
+         *      b.  Rg.Se < Rg.Sc and doing random walks from Rg.Se does not reproduce the same bug.
+         *      
+         *      Is this true: A deletion is desirable if Rg.Se > Rg.Sc    ( It shouldn't affect the outcome )
+         */
+
+
         public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.TraceEdit; } }
 
         public EventTree BestTree { get; private set; }
@@ -39,28 +53,40 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         //internal Stack< Tuple<int, int> > bSearchBounds;
         internal Stack<int> bSearchRightBounds;
+        private bool isInited;
 
-        TraceEditControlUnit(EventTree guideTree)
-        {
+        public TraceEditControlUnit() {
             Completed = false;
-            if (guideTree.reproducesBug()) {
+            Valid = true;
+            bSearchRightBounds = new Stack<int>();
+        }
+        private void Initialize(EventTree guideTree)
+        {
+            isInited = true;
+            if (guideTree.reproducesBug())
+            {
+                Valid = true;
+                Completed = false;
                 BestTree = guideTree;
-                //bSearchRightBounds = new Stack<Tuple<int, int>>();
-                bSearchRightBounds = new Stack<int>();
-                //bSearchBounds.Push( new Tuple<int,int>(1, nCandidateEventsCount));
                 Left = 0;
-                Right = guideTree.totalOrdering.Count-1;
+                Right = guideTree.totalOrdering.Count - 1;
             }
             else
             {
+                Completed = true;
+                Valid = false;
                 throw new ArgumentException("Can't do trace edit if guideTree doesn't reproduce bug");
             }
-            
+
         }
 
         public void PrepareForNextIteration(EventTree resultTree)
         {
-            if (resultTree.reproducesBug())
+            if (!isInited)
+            {
+                Initialize(resultTree);
+            }
+            else if (resultTree.reproducesBug())
             {
                 // We can do this since Left and Right is applied on the trace being constructed.
                 Left = Right + 1;

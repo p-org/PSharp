@@ -88,8 +88,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // TODO: I've been using this only for testing
             controlStack = new Stack<ITraceEditorControlUnit>();
-            controlStack.Push(new MinimalTraceReplayControlUnit(2));
-            //controlStack.Push(new CriticalTransitionSearchControlUnit(3));
+            //controlStack.Push(new TraceEditControlUnit());
+            controlStack.Push(new CriticalTransitionSearchControlUnit(3));
 
             traceEditor = new TreeTraceEditor();
             EventTree et = null;
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 et = EventTree.FromTrace(scheduleDump);
                 originalTraceLength = et.CountSteps();
                 // We need to call this stuff here
-
+                controlStack.Push(new MinimalTraceReplayControlUnit(1));
                 //traceEditor.prepareForMinimalTraceReplay(et); // TODO: Do we need this?
             }
             else
@@ -394,6 +394,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 ITraceEditorControlUnit currentControlMode = controlStack.Peek();
                 
                 currentControlMode.PrepareForNextIteration(currentTree);
+                // TODO: Check validity of currentControlMode
                 currentTree = currentControlMode.BestTree;
                 if (currentControlMode.Completed) {
                     controlStack.Pop();

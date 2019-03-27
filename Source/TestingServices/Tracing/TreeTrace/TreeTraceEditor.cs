@@ -26,6 +26,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         TraceIteration currentRun; // Make private
         internal int currentWithHoldRangeStart;
         internal int currentWithHoldRangeEnd;
+
+        internal TraceEditorMode currentMode { get { return currentRun?.iterationMode ?? TraceEditorMode.Initial ; } }
         internal enum TraceEditorMode
         {
             Initial,
@@ -38,7 +40,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             CriticalTransitionSearch,
         }
 
-        internal TraceEditorMode currentMode;
 
         #region deprecated fields
         // // Those deprecated when we created control units
@@ -57,7 +58,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         //int currentWithHoldCandidate; // 1 indexed :p
         //HashSet<int> withHeldCandidates;
 
-        #endregion 
+
+        //internal TraceEditorMode currentMode;
+
+        #endregion
 
         // Deletion Tracking
         internal class TraceIteration {
@@ -71,15 +75,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             HashSet<int> deletedIndices;
             internal int HAX_deletedCount;
             private int criticalTransitionIndex;
+            internal TraceEditorMode iterationMode;
 
             public Dictionary<Monitor, Tuple<int,int>> HotMonitors { get; internal set; } // Maps some monitor identifier to the totalOrderingIndex
 
-            public TraceIteration(EventTree GuideTree)
+            public TraceIteration(EventTree GuideTree, TraceEditorMode currentMode)
             {
                 guideTree = GuideTree;
                 totalOrderingIndex = 0;
                 criticalTransitionIndex = -1;
-
+                iterationMode = currentMode;
                 deletedIndices = new HashSet<int>();
                 HotMonitors = new Dictionary<Monitor, Tuple<int, int>>();
                 setActiveNode(null);
@@ -160,8 +165,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 if (guideTree?.totalOrdering != null)
                 {
-                    return (criticalTransitionIndex >= 0 && totalOrderingIndex > criticalTransitionIndex)
-                        || (totalOrderingIndex >= guideTree.totalOrdering.Count);
+                    switch (iterationMode)
+                    {
+                        case TraceEditorMode.CriticalTransitionSearch:
+                            return (criticalTransitionIndex >= 0 && totalOrderingIndex > criticalTransitionIndex);
+                        default:
+                            return (
+                                     totalOrderingIndex >= guideTree.totalOrdering.Count ||
+                                     (guideTree.bugTriggeringStep >= 0 && totalOrderingIndex > guideTree.bugTriggeringStep)
+                                 );
+                    }
                 }
                 else
                 {
@@ -217,7 +230,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         public TreeTraceEditor()
         {
             //BestGuideTree = null;
-            currentMode = TraceEditorMode.Initial;
+            //currentMode = TraceEditorMode.Initial;
             bugIsRecorded = false;
             //currentWithHoldCandidate = -1; // This so that prepareForNextIteration makes it 0
             //bSearchWithHoldCandidateStack = new Stack<Tuple<int, int>>();
@@ -256,40 +269,40 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         public bool prepareForScheduleTraceReplay()
         {
-            currentRun = new TraceIteration(null);
+            currentRun = new TraceIteration(null, TraceEditorMode.ScheduleTraceReplay);
             reset();
 
-            currentMode = TraceEditorMode.ScheduleTraceReplay;
+            //currentMode = TraceEditorMode.ScheduleTraceReplay;
             return true;
         }
 
         public bool prepareForMinimalTraceReplay(EventTree guideTree)
         {
             
-            currentRun = new TraceIteration(guideTree);
+            currentRun = new TraceIteration(guideTree, TraceEditorMode.MinimizedTraceReplay);
             reset();
 
-            currentMode = TraceEditorMode.MinimizedTraceReplay;
+            //currentMode = TraceEditorMode.MinimizedTraceReplay;
             return true;
         }
 
         public bool prepareForCriticalTransitionSearchIteration(EventTree guideTree, int left, int right)
         {
-            currentRun = new TraceIteration(guideTree);
+            currentRun = new TraceIteration(guideTree, TraceEditorMode.CriticalTransitionSearch);
             reset();
 
             int criticalTransitionIndex = (left + right) / 2;
             currentRun.setCriticalTransition(criticalTransitionIndex);
 
-            currentMode = TraceEditorMode.CriticalTransitionSearch;
+           //currentMode = TraceEditorMode.CriticalTransitionSearch;
             return true;
         }
 
         public bool prepareForTraceEditIteration(EventTree guideTree, int left, int right)
         {
-            currentRun = new TraceIteration(guideTree);
+            currentRun = new TraceIteration(guideTree, TraceEditorMode.TraceEdit);
             reset();
-
+            //currentMode = TraceEditorMode.TraceEdit;
             return true;
         }
         #endregion
@@ -674,7 +687,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         private bool verifyBugEquivalence(int guideTreeIndex)
         {
-            return currentRun.guideTree.bugTriggeringStep == guideTreeIndex;
+            switch (currentRun.iterationMode)
+            {
+                case TraceEditorMode.CriticalTransitionSearch:
+                    // Return true - Allow the reply ( if any ) to verify. Else nothing we can do.
+                    return true;
+                default:
+                    return currentRun.guideTree.bugTriggeringStep == guideTreeIndex;
+            }
         }
 
         internal void RecordIntegerChoice(int next)

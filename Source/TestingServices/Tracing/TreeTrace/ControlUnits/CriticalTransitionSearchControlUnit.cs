@@ -55,7 +55,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
             {
                 if (resultTree.reproducesBug())
                 {
-                    BestTree = resultTree;
+                    // Let's not change the best tree. Let's just set the critical transition.
+                    //BestTree = resultTree;
+                    BestTree.setCriticalTransitionStep(Left);
                 }
                 Completed = true;
                 Valid = resultTree.reproducesBug();
@@ -67,7 +69,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 if (resultTree.reproducesBug())
                 {
                     Right = mid;
-                    BestTree = resultTree;
+                    // Let's not change the best tree. Let's just set the critical transition.
+                    //BestTree = resultTree;
+                    //BestTree.setCriticalTransitionStep(mid);
                 }
                 else
                 {
