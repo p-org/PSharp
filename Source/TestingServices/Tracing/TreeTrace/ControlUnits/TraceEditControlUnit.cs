@@ -50,6 +50,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public bool Completed { get; private set; }
 
+        public int ReplayLength { get { return BestTree.totalOrdering.Count;  } }
+        public bool strictBugEquivalenceChecking { get { return true; } }
+
 
         //internal Stack< Tuple<int, int> > bSearchBounds;
         internal Stack<int> bSearchRightBounds;

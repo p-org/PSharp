@@ -18,6 +18,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public bool Completed { get; private set; }
 
+        public int ReplayLength { get { return ScheduleTrace.Count ; } }
+
+        public bool strictBugEquivalenceChecking { get { return false; } }
+
         public ScheduleTraceReplayControlUnit(ScheduleTrace schedTrace)
         {
             BestTree = null;

@@ -6,7 +6,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     class PruneSuffixControlUnit : ITraceEditorControlUnit
     {
-        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.PruneSuffix; } }
+        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.PrefixReplay; } }
         public EventTree BestTree { get; private set; }
         public int Left { get; private set; }
         public int Right { get; private set; }
@@ -15,6 +15,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public bool Completed { get; private set; }
 
+        public int ReplayLength { get {
+                int x = Math.Max(BestTree.criticalTransitionStep, BestTree.bugTriggeringStep);
+                return ((x >= 0) ? x : BestTree.totalOrdering.Count);
+            }
+        }
+
+        public bool strictBugEquivalenceChecking { get { return true; } }
 
         private int nReplays;
         public PruneSuffixControlUnit()

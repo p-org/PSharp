@@ -7,7 +7,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     internal class CriticalTransitionSearchControlUnit : ITraceEditorControlUnit
     {
-        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.CriticalTransitionSearch; } }
+        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.PrefixReplay; } }
         public EventTree BestTree { get; private set; }
         public int Left { get; private set; }
 
@@ -16,6 +16,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
         public bool Valid { get; private set; }
 
         public bool Completed { get; private set; }
+
+        public int ReplayLength { get { return (Left + Right) / 2; } }
+
+        // Can't be true, because then we won't find the actual critical transition if it's before the bugTriggeringStep
+        public bool strictBugEquivalenceChecking { get { return false; } } 
 
         private bool initialized;
         private int nReplaysRequired;

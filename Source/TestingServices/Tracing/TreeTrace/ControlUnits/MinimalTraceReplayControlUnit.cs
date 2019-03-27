@@ -7,7 +7,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
     internal class MinimalTraceReplayControlUnit : ITraceEditorControlUnit
     {
-        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.MinimizedTraceReplay; } }
+        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.PrefixReplay; } }
         public EventTree BestTree { get; private set; }
         public int Left { get; private set; }
         public int Right { get; private set; }
@@ -16,6 +16,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public bool Completed { get; private set; }
 
+        public int ReplayLength { get { return BestTree.totalOrdering.Count; } }
+
+        public bool strictBugEquivalenceChecking { get { return true; } }
 
         private int nReplays;
         public MinimalTraceReplayControlUnit(int nReplaysRequired)

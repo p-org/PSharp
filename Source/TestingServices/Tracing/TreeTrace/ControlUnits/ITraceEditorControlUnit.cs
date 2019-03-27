@@ -25,5 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         bool Valid { get; }  // TODO: Revise what this means - Error or just that it did not reproduce the bug
         bool Completed { get; }
+        int ReplayLength { get; }
+        bool strictBugEquivalenceChecking { get; }
     }
 }
