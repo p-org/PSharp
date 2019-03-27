@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         
 
-        public bool PrepareForNextIteration(EventTree resultTree)
+        public void PrepareForNextIteration(EventTree resultTree)
         {
             if (resultTree.reproducesBug())
             {
@@ -44,7 +44,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 Completed = true;
             }
             Valid = (BestTree != null);
-            return Completed && Valid;
         }
     }
 }

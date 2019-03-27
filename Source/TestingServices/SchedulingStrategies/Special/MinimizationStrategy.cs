@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private bool IsOriginalSchedulerFair;
 
-        private Stack<ITraceEditorControlUnit> controlStack;
+        /*private*/ internal Stack<ITraceEditorControlUnit> controlStack;
 
         /// <summary>
         /// Is the scheduler replaying the trace?
@@ -86,9 +86,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             ConstructTree = true;
             //WasAbandoned = false;
 
-            // TODO: 
+            // TODO: I've been using this only for testing
             controlStack = new Stack<ITraceEditorControlUnit>();
-            controlStack.Push(new MinimalTraceReplayControlUnit(5));
+            //controlStack.Push(new MinimalTraceReplayControlUnit(2));
+            controlStack.Push(new CriticalTransitionSearchControlUnit(3));
 
             if ( IsMintraceDump )
             {

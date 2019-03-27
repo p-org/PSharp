@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
         /// </summary>
         int Right { get;  }
 
-        bool PrepareForNextIteration(EventTree resultTree);
+        void PrepareForNextIteration(EventTree resultTree);
 
         bool Valid { get; }  // TODO: Revise what this means - Error or just that it did not reproduce the bug
         bool Completed { get; }

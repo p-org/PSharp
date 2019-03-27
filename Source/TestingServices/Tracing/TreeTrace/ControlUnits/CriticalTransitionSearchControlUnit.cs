@@ -17,15 +17,27 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public bool Completed { get; private set; }
 
+        private bool initialized;
+        private int nReplaysRequired;
+        private ITraceEditorControlUnit minTraceReplay;
 
-        internal CriticalTransitionSearchControlUnit(EventTree guideTree)
+        internal CriticalTransitionSearchControlUnit(int nReplaysToVerify)
         {
+            initialized = false;
+            Completed = false;
+            Valid = true;
+            nReplaysRequired = nReplaysToVerify;
+            minTraceReplay = new MinimalTraceReplayControlUnit(0); // Initially don't replay
+        }
 
-            if (guideTree.reproducesBug())
+        private void Initialize(EventTree resultTree)
+        {
+            initialized = true;
+            if (resultTree.reproducesBug())
             {
-                BestTree = guideTree;
+                BestTree = resultTree;
                 Left = 0;
-                Right = guideTree.totalOrdering.Count - 1;
+                Right = resultTree.totalOrdering.Count - 1;
                 Valid = true;
                 Completed = false;
             }
@@ -33,25 +45,23 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
             {
                 Valid = false;
                 Completed = true;
-                throw new ArgumentException("Cannot run critical transition search on non-buggy schedule");
             }
 
         }
 
-
-        public bool PrepareForNextIteration(EventTree resultTree)
+        private void refineBounds(EventTree resultTree)
         {
-            if ( Left == Right )
+            if (Left == Right)
             {
                 if (resultTree.reproducesBug())
                 {
                     BestTree = resultTree;
                 }
-                //else {Valid = false;} // This is not the critical transition
-                
                 Completed = true;
+                Valid = resultTree.reproducesBug();
             }
-            else {
+            else
+            {
 
                 int mid = (Left + Right) / 2;
                 if (resultTree.reproducesBug())
@@ -64,9 +74,28 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                     Left = mid + 1;
                 }
             }
-            Valid = (BestTree!=null);
+        }
 
-            return Completed && Valid;
+        public void PrepareForNextIteration(EventTree resultTree)
+        {
+            if (!initialized)
+            {
+                Initialize(resultTree);
+            }
+            else if (nReplaysRequired > 0) // Check if we require replays
+            {
+                minTraceReplay.PrepareForNextIteration(resultTree);
+                if (minTraceReplay.Completed)
+                {
+                    // TODO: Do we assume that the replay had no failures if resultTree.reproducesBug()
+                    refineBounds(resultTree);
+                    minTraceReplay = new MinimalTraceReplayControlUnit(nReplaysRequired);
+                }
+                
+            }
+            else{
+                refineBounds(resultTree);
+            }
         }
     }
 

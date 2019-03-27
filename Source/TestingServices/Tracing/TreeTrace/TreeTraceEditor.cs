@@ -226,10 +226,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             return true;
         }
 
-        public bool prepareForMinimalTraceReplay(EventTree candidateGuideTree)
+        public bool prepareForMinimalTraceReplay(EventTree guideTree)
         {
             
-            currentRun = new TraceIteration(candidateGuideTree);
+            currentRun = new TraceIteration(guideTree);
             reset();
 
             currentMode = TraceEditorMode.MinimizedTraceReplay;
@@ -238,6 +238,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         public bool prepareForCriticalTransitionSearchIteration(EventTree guideTree, int left, int right)
         {
+            currentRun = new TraceIteration(guideTree);
             reset();
 
             int criticalTransitionIndex = (left + right) / 2;
@@ -249,6 +250,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         public bool prepareForTraceEditIteration(EventTree guideTree, int left, int right)
         {
+            currentRun = new TraceIteration(guideTree);
             reset();
 
             return true;
