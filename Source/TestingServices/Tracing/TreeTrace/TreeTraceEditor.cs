@@ -38,6 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             EpochCompleted,
             CriticalTransitionSearch,
+            PruneSuffix,
         }
 
 
@@ -169,10 +170,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     {
                         case TraceEditorMode.CriticalTransitionSearch:
                             return (criticalTransitionIndex >= 0 && totalOrderingIndex > criticalTransitionIndex);
-                        default:
+                        case TraceEditorMode.PruneSuffix:
                             return (
                                      totalOrderingIndex >= guideTree.totalOrdering.Count ||
-                                     (guideTree.bugTriggeringStep >= 0 && totalOrderingIndex > guideTree.bugTriggeringStep)
+                                     (
+                                        guideTree.bugTriggeringStep >= 0 && totalOrderingIndex > guideTree.bugTriggeringStep 
+                                        && guideTree.criticalTransitionStep >= 0  && totalOrderingIndex > guideTree.criticalTransitionStep
+                                    )
+                                 );
+                        default:
+                            return (
+                                     totalOrderingIndex >= guideTree.totalOrdering.Count
+                                     // ||  (guideTree.bugTriggeringStep >= 0 && totalOrderingIndex > guideTree.bugTriggeringStep)
                                  );
                     }
                 }
@@ -262,9 +271,20 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     return prepareForCriticalTransitionSearchIteration(controlUnit.BestTree, controlUnit.Left, controlUnit.Right);
                 case TraceEditorMode.TraceEdit:
                     return prepareForTraceEditIteration(controlUnit.BestTree, controlUnit.Left, controlUnit.Right);
+                case TraceEditorMode.PruneSuffix:
+                    return prepareForPruneSuffixIteration(controlUnit.BestTree);
                 default:
                     throw new ArgumentException("TraceEditor cannot do nextIteration in mode " + controlUnit.RequiredTraceEditorMode);
             }
+        }
+
+        private bool prepareForPruneSuffixIteration(EventTree guideTree)
+        {
+            currentRun = new TraceIteration(guideTree, TraceEditorMode.PruneSuffix);
+            reset();
+
+            //currentMode = TraceEditorMode.MinimizedTraceReplay;
+            return true;
         }
 
         public bool prepareForScheduleTraceReplay()

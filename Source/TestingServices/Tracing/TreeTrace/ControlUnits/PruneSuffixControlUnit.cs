@@ -1,13 +1,12 @@
-﻿using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
-    internal class MinimalTraceReplayControlUnit : ITraceEditorControlUnit
+    class PruneSuffixControlUnit : ITraceEditorControlUnit
     {
-        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.MinimizedTraceReplay; } }
+        public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.PruneSuffix; } }
         public EventTree BestTree { get; private set; }
         public int Left { get; private set; }
         public int Right { get; private set; }
@@ -18,15 +17,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
 
         private int nReplays;
-        public MinimalTraceReplayControlUnit(int nReplaysRequired)
+        public PruneSuffixControlUnit()
         {
             BestTree = null;
-            nReplays = nReplaysRequired;
             Completed = false;
             Valid = true;
+            nReplays = 1;
         }
 
-        
+
 
         public void PrepareForNextIteration(EventTree resultTree)
         {
@@ -42,5 +41,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 Valid = false;
             }
         }
+
     }
 }

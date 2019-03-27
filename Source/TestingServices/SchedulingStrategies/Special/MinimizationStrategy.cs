@@ -89,6 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // TODO: I've been using this only for testing
             controlStack = new Stack<ITraceEditorControlUnit>();
             //controlStack.Push(new TraceEditControlUnit());
+            controlStack.Push(new PruneSuffixControlUnit());
             controlStack.Push(new CriticalTransitionSearchControlUnit(3));
 
             traceEditor = new TreeTraceEditor();
@@ -394,9 +395,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 ITraceEditorControlUnit currentControlMode = controlStack.Peek();
                 
                 currentControlMode.PrepareForNextIteration(currentTree);
-                // TODO: Check validity of currentControlMode
+                // TODO: Check validity of currentControlMode and setting of bestTree
                 currentTree = currentControlMode.BestTree;
                 if (currentControlMode.Completed) {
+                    if (currentControlMode.Valid)
+                    {   
+                        bestTree = controlStack.Peek().BestTree;
+                    }
                     controlStack.Pop();
                 }
                 else
