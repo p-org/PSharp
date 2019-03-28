@@ -1,11 +1,10 @@
-﻿using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 {
-    internal class MinimalTraceReplayControlUnit : ITraceEditorControlUnit
+    internal class PrefixReplayControlUnit : ITraceEditorControlUnit
     {
         public TreeTraceEditor.TraceEditorMode RequiredTraceEditorMode { get { return TreeTraceEditor.TraceEditorMode.PrefixReplay; } }
         public EventTree BestTree { get; private set; }
@@ -16,22 +15,22 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
         public bool Completed { get; private set; }
 
-        public int ReplayLength { get { return BestTree.totalOrdering.Count; } }
+        public int ReplayLength { get; }
 
         public bool strictBugEquivalenceChecking { get; }
 
         private int nReplays;
-        public MinimalTraceReplayControlUnit(int nReplaysRequired, bool strictBugEquivalenceChecking)
+        public PrefixReplayControlUnit(int nReplaysRequired, int replayLength, bool strictBugEquivalenceChecking)
         {
-            BestTree = null;
             nReplays = nReplaysRequired;
             Completed = false;
             Valid = true;
 
-            this.strictBugEquivalenceChecking = strictBugEquivalenceChecking; 
+            this.ReplayLength = replayLength;
+            this.strictBugEquivalenceChecking = strictBugEquivalenceChecking;
         }
 
-        
+
 
         public void PrepareForNextIteration(EventTree resultTree)
         {

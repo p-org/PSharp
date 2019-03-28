@@ -18,6 +18,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     internal sealed class MinimizationStrategy : ISchedulingStrategy
     {
+        public static int NREPLAYSREQUIRED = 2; //2;
+
         #region fields
 
         /// <summary>
@@ -88,9 +90,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // TODO: I've been using this only for testing
             controlStack = new Stack<ITraceEditorControlUnit>();
-            //controlStack.Push(new TraceEditControlUnit());
+            controlStack.Push(new TraceEditAndVerifyControlUnit());
             controlStack.Push(new PruneSuffixControlUnit());
-            controlStack.Push(new CriticalTransitionSearchControlUnit(3));
+            controlStack.Push(new CriticalTransitionSearchControlUnit(MinimizationStrategy.NREPLAYSREQUIRED));
 
             traceEditor = new TreeTraceEditor();
             EventTree et = null;
@@ -100,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 et = EventTree.FromTrace(scheduleDump);
                 originalTraceLength = et.CountSteps();
                 // We need to call this stuff here
-                controlStack.Push(new MinimalTraceReplayControlUnit(1));
+                controlStack.Push(new MinimalTraceReplayControlUnit(MinimizationStrategy.NREPLAYSREQUIRED, true));
                 //traceEditor.prepareForMinimalTraceReplay(et); // TODO: Do we need this?
             }
             else

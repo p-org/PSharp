@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
             Completed = false;
             Valid = true;
             nReplaysRequired = nReplaysToVerify;
-            minTraceReplay = new MinimalTraceReplayControlUnit(0); // Initially don't replay
+            minTraceReplay = new MinimalTraceReplayControlUnit(0, true); // Dummy to fix the control flow
         }
 
         private void Initialize(EventTree resultTree)
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 {
                     // TODO: Do we assume that the replay had no failures if resultTree.reproducesBug()
                     refineBounds(resultTree);
-                    minTraceReplay = new MinimalTraceReplayControlUnit(nReplaysRequired);
+                    minTraceReplay = new MinimalTraceReplayControlUnit(nReplaysRequired, false);
                 }
                 
             }

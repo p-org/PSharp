@@ -18,11 +18,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private bool isFirstStep; 
         private bool bugIsRecorded; // turns true once we set the bug.
 
-        //private int currentIterationIndex;
-
-
-        //internal bool ranOutOfEvents;
-        int eventSeenThisTime;
         TraceIteration currentRun; // Make private
         internal int currentWithHoldRangeStart;
         internal int currentWithHoldRangeEnd;
@@ -40,6 +35,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
 
         #region deprecated fields
+        //private int currentIterationIndex;
+        //internal bool ranOutOfEvents;
+        //int eventSeenThisTime;
         #endregion
 
         // Deletion Tracking
@@ -148,7 +146,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             {
                 if (guideTree?.totalOrdering != null)
                 {
-                    return ( replayLength >= 0 && totalOrderingIndex > replayLength );
+                    return ( replayLength >= 0 && totalOrderingIndex > Math.Min(guideTree.totalOrdering.Count-1, replayLength) );
                     //switch (iterationMode)
                     //{
                     //    case TraceEditorMode.PrefixReplay:
@@ -208,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         public void reset()
         {
-            eventSeenThisTime = 0;
+            //eventSeenThisTime = 0;
             currentWithHoldRangeStart = 0;
             currentWithHoldRangeEnd = 0;
             activeProgramModel = new ProgramModel();
@@ -281,14 +279,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
         }
 
+        private void copyMetaBetweenTrees(EventTree from, EventTree to)
+        {
+            to.criticalTransitionStep = from.criticalTransitionStep;
+        }
 
         public bool prepareForScheduleTraceReplay(bool strictBugEquivalenceChecking)
         {
             currentRun = new TraceIteration(null, TraceEditorMode.ScheduleTraceReplay);
 
             reset();
-
-            //currentMode = TraceEditorMode.ScheduleTraceReplay;
+            
             return true;
         }
         public bool prepareForPrefixReplay(EventTree guideTree, int replayLength, bool strictBugEquivalenceChecking)
@@ -297,6 +298,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             currentRun = new TraceIteration(guideTree, TraceEditorMode.PrefixReplay);
             reset();
             currentRun.setReplayLength(replayLength, strictBugEquivalenceChecking);
+
+            copyMetaBetweenTrees(guideTree, activeProgramModel.constructTree);
+
             return true;
         }
 
@@ -304,7 +308,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             currentRun = new TraceIteration(guideTree, TraceEditorMode.TraceEdit);
             reset();
-            //currentMode = TraceEditorMode.TraceEdit;
+
+            copyMetaBetweenTrees(guideTree, activeProgramModel.constructTree);
+            currentWithHoldRangeStart = left;
+            currentWithHoldRangeEnd = right;
+            
             return true;
         }
         #endregion
@@ -320,8 +328,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             System.Console.WriteLine(e.GetType().FullName);
             if ( eventIsCandidateToBeDropped(e) )
             {
-                eventSeenThisTime++;
-
+                int stepIndex = activeProgramModel.constructTree.totalOrdering.Count-1;
                 if (currentRun.checkWithHeld(currentRun.activeNode))
                 {
                     deliver = false;
@@ -333,7 +340,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     //}
 
                 }
-                else if (eventSeenThisTime >= currentWithHoldRangeStart && eventSeenThisTime <= currentWithHoldRangeEnd)
+                else if (stepIndex >= currentWithHoldRangeStart && stepIndex <= currentWithHoldRangeEnd)
                 {
                     deliver = false;
                 }
