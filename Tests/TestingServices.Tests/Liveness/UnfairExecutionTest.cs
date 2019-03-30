@@ -14,11 +14,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public UnfairExecutionTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Unit : Event { }
+        private class Unit : Event
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public MachineId A;
 
@@ -28,16 +31,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
-            MachineId N;
+            private MachineId N;
 
             [Start]
             [OnEntry(nameof(SOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(S2))]
-            class S : MachineState { }
+            private class S : MachineState
+            {
+            }
 
-            void SOnEntry()
+            private void SOnEntry()
             {
                 this.N = this.CreateMachine(typeof(N));
                 this.Send(this.N, new E(this.Id));
@@ -47,60 +52,71 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(S2OnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(S2))]
             [OnEventGotoState(typeof(E), typeof(S3))]
-            class S2 : MachineState { }
+            private class S2 : MachineState
+            {
+            }
 
-            void S2OnEntry()
+            private void S2OnEntry()
             {
                 this.Send(this.Id, new Unit());
             }
 
             [OnEntry(nameof(S3OnEntry))]
-            class S3 : MachineState { }
+            private class S3 : MachineState
+            {
+            }
 
-            void S3OnEntry()
+            private void S3OnEntry()
             {
                 this.Monitor<LivenessMonitor>(new E(this.Id));
                 this.Raise(new Halt());
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Foo))]
-            class S : MachineState { }
+            private class S : MachineState
+            {
+            }
 
-            void Foo()
+            private void Foo()
             {
                 this.Send((this.ReceivedEvent as E).A, new E(this.Id));
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(E), typeof(S2))]
-            class S : MonitorState { }
+            private class S : MonitorState
+            {
+            }
 
             [Cold]
-            class S2 : MonitorState { }
+            private class S2 : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestUnfairExecution()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.LivenessTemperatureThreshold = 150;
             configuration.SchedulingStrategy = SchedulingStrategy.PCT;
             configuration.MaxSchedulingSteps = 300;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(M));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

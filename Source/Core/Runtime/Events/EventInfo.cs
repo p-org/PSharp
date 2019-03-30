@@ -54,55 +54,48 @@ namespace Microsoft.PSharp
         internal bool MustHandle { get; private set; }
 
         /// <summary>
-        /// Creates a new <see cref="EventInfo"/>.
+        /// Initializes a new instance of the <see cref="EventInfo"/> class.
         /// </summary>
-        /// <param name="e">Event</param>
         internal EventInfo(Event e)
         {
-            Event = e;
-            EventType = e.GetType();
-            EventName = EventType.FullName;
-            MustHandle = false;
+            this.Event = e;
+            this.EventType = e.GetType();
+            this.EventName = this.EventType.FullName;
+            this.MustHandle = false;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="EventInfo"/> class.
         /// </summary>
-        /// <param name="e">Event</param>
-        /// <param name="originInfo">EventOriginInfo</param>
-        internal EventInfo(Event e, EventOriginInfo originInfo) : this(e)
+        internal EventInfo(Event e, EventOriginInfo originInfo)
+            : this(e)
         {
-            OriginInfo = originInfo;
+            this.OriginInfo = originInfo;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventInfo"/> class.
+        /// </summary>
+        internal EventInfo(Event e, EventOriginInfo originInfo, int sendStep)
+            : this(e, originInfo)
+        {
+            this.SendStep = sendStep;
         }
 
         /// <summary>
         /// Sets the operation group id associated with this event.
         /// </summary>
-        /// <param name="operationGroupId">Operation group id.</param>
         internal void SetOperationGroupId(Guid operationGroupId)
         {
             this.OperationGroupId = operationGroupId;
         }
 
         /// <summary>
-        /// Sets the MustHandle flag of the event
+        /// Sets the MustHandle flag of the event.
         /// </summary>
-        /// <param name="mustHandle">MustHandle flag</param>
         internal void SetMustHandle(bool mustHandle)
         {
             this.MustHandle = mustHandle;
-        }
-
-        /// <summary>
-        /// Construtor.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <param name="originInfo">EventOriginInfo</param>
-        /// <param name="sendStep">int</param>
-        internal EventInfo(Event e, EventOriginInfo originInfo, int sendStep)
-            : this(e, originInfo)
-        {
-            SendStep = sendStep;
         }
     }
 }

@@ -23,9 +23,8 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         private readonly CoverageInfo CoverageInfo;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ActivityCoverageReporter"/> class.
         /// </summary>
-        /// <param name="coverageInfo">CoverageInfo</param>
         public ActivityCoverageReporter(CoverageInfo coverageInfo)
         {
             this.CoverageInfo = coverageInfo;
@@ -34,7 +33,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// <summary>
         /// Emits the visualization graph.
         /// </summary>
-        /// <param name="graphFile">Graph file</param>
         public void EmitVisualizationGraph(string graphFile)
         {
             using (var writer = new XmlTextWriter(graphFile, Encoding.UTF8))
@@ -46,7 +44,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// <summary>
         /// Emits the code coverage report.
         /// </summary>
-        /// <param name="coverageFile">Code coverage file</param>
         public void EmitCoverageReport(string coverageFile)
         {
             using (var writer = new StreamWriter(coverageFile))
@@ -58,7 +55,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// <summary>
         /// Writes the visualization graph.
         /// </summary>
-        /// <param name="writer">XmlTextWriter</param>
         private void WriteVisualizationGraph(XmlTextWriter writer)
         {
             // Starts document.
@@ -88,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 foreach (var state in tup.Value)
                 {
                     writer.WriteStartElement("Node");
-                    writer.WriteAttributeString("Id", this.GetStateId(machine, state));
+                    writer.WriteAttributeString("Id", GetStateId(machine, state));
                     writer.WriteAttributeString("Label", state);
                     writer.WriteEndElement();
                 }
@@ -108,18 +104,19 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 {
                     writer.WriteStartElement("Link");
                     writer.WriteAttributeString("Source", machine);
-                    writer.WriteAttributeString("Target", this.GetStateId(machine, state));
+                    writer.WriteAttributeString("Target", GetStateId(machine, state));
                     writer.WriteAttributeString("Category", "Contains");
                     writer.WriteEndElement();
                 }
             }
 
             var parallelEdgeCounter = new Dictionary<Tuple<string, string>, int>();
+
             // Iterates transitions.
             foreach (var transition in this.CoverageInfo.Transitions)
             {
-                var source = this.GetStateId(transition.MachineOrigin, transition.StateOrigin);
-                var target = this.GetStateId(transition.MachineTarget, transition.StateTarget);
+                var source = GetStateId(transition.MachineOrigin, transition.StateOrigin);
+                var target = GetStateId(transition.MachineTarget, transition.StateTarget);
                 var counter = 0;
                 if (parallelEdgeCounter.ContainsKey(Tuple.Create(source, target)))
                 {
@@ -139,6 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 {
                     writer.WriteAttributeString("Index", counter.ToString());
                 }
+
                 writer.WriteEndElement();
             }
 
@@ -155,7 +153,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// <summary>
         /// Writes the visualization graph.
         /// </summary>
-        /// <param name="writer">TextWriter</param>
         private void WriteCoverageFile(TextWriter writer)
         {
             var machines = new List<string>(this.CoverageInfo.MachinesToStates.Keys);
@@ -173,12 +170,11 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 }
             }
 
-            writer.WriteLine("Total event coverage: {0}%",
-                this.CoverageInfo.RegisteredEvents.Count == 0 ? "100" : 
-                ((this.CoverageInfo.RegisteredEvents.Count - uncoveredEvents.Count) * 100.0 /
-                this.CoverageInfo.RegisteredEvents.Count).ToString("F1"));
+            string eventCoverage = this.CoverageInfo.RegisteredEvents.Count == 0 ? "100" :
+                ((this.CoverageInfo.RegisteredEvents.Count - uncoveredEvents.Count) * 100.0 / this.CoverageInfo.RegisteredEvents.Count).ToString("F1");
+            writer.WriteLine("Total event coverage: {0}%", eventCoverage);
 
-            // Map from machines to states to registered events
+            // Map from machines to states to registered events.
             var machineToStatesToEvents = new Dictionary<string, Dictionary<string, HashSet<string>>>();
             machines.ForEach(m => machineToStatesToEvents.Add(m, new Dictionary<string, HashSet<string>>()));
             machines.ForEach(m =>
@@ -194,11 +190,9 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 machineToStatesToEvents[ev.Item1][ev.Item2].Add(ev.Item3);
             }
 
-            // Map from machine to its outgoing transitions
+            // Maps from machines to transitions.
             var machineToOutgoingTransitions = new Dictionary<string, List<Transition>>();
-            // Map from machine to its incoming transitions
             var machineToIncomingTransitions = new Dictionary<string, List<Transition>>();
-            // Map from machine to intra-machine transitions
             var machineToIntraTransitions = new Dictionary<string, List<Transition>>();
 
             machines.ForEach(m => machineToIncomingTransitions.Add(m, new List<Transition>()));
@@ -218,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 }
             }
 
-            // Per-machine data
+            // Per-machine data.
             foreach (var machine in machines)
             {
                 writer.WriteLine("Machine: {0}", machine);
@@ -234,6 +228,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 {
                     machineUncoveredEvents[tr.StateTarget].Remove(tr.EdgeLabel);
                 }
+
                 foreach (var tr in machineToIntraTransitions[machine])
                 {
                     machineUncoveredEvents[tr.StateOrigin].Remove(tr.EdgeLabel);
@@ -251,11 +246,10 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                     numUncoveredEvents += tup.Value.Count;
                 }
 
-                writer.WriteLine("Machine event coverage: {0}%", 
-                    numTotalEvents == 0 ? "100" :
-                    ((numTotalEvents - numUncoveredEvents) * 100.0 / numTotalEvents).ToString("F1"));
+                eventCoverage = numTotalEvents == 0 ? "100" : ((numTotalEvents - numUncoveredEvents) * 100.0 / numTotalEvents).ToString("F1");
+                writer.WriteLine("Machine event coverage: {0}%", eventCoverage);
 
-                // Find uncovered states
+                // Find uncovered states.
                 var uncoveredStates = new HashSet<string>(this.CoverageInfo.MachinesToStates[machine]);
                 foreach (var tr in machineToIntraTransitions[machine])
                 {
@@ -273,7 +267,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                     uncoveredStates.Remove(tr.StateOrigin);
                 }
 
-                // state maps
+                // State maps.
                 var stateToIncomingEvents = new Dictionary<string, HashSet<string>>();
                 foreach (var tr in machineToIncomingTransitions[machine])
                 {
@@ -315,17 +309,17 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                     stateToIncomingStates[tr.StateTarget].Add(tr.StateOrigin);
                 }
 
-                // Per-state data
+                // Per-state data.
                 foreach (var state in this.CoverageInfo.MachinesToStates[machine])
                 {
                     writer.WriteLine();
-                    writer.WriteLine("\tState: {0}{1}", state, uncoveredStates.Contains(state) ? " is uncovered" : "");
+                    writer.WriteLine("\tState: {0}{1}", state, uncoveredStates.Contains(state) ? " is uncovered" : string.Empty);
                     if (!uncoveredStates.Contains(state))
                     {
-                        writer.WriteLine("\t\tState event coverage: {0}%",
-                            machineToStatesToEvents[machine][state].Count == 0 ? "100" :
+                        eventCoverage = machineToStatesToEvents[machine][state].Count == 0 ? "100" :
                             ((machineToStatesToEvents[machine][state].Count - machineUncoveredEvents[state].Count) * 100.0 /
-                              machineToStatesToEvents[machine][state].Count).ToString("F1"));
+                              machineToStatesToEvents[machine][state].Count).ToString("F1");
+                        writer.WriteLine("\t\tState event coverage: {0}%", eventCoverage);
                     }
 
                     if (stateToIncomingEvents.ContainsKey(state) && stateToIncomingEvents[state].Count > 0)
@@ -377,15 +371,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
             }
         }
 
-        /// <summary>
-        /// Gets the state id.
-        /// </summary>
-        /// <param name="machineName">Machine name</param>
-        /// <param name="stateName">State name</param>
-        /// <returns>State id</returns>
-        private string GetStateId(string machineName, string stateName)
-        {
-            return string.Format("{0}::{1}", stateName, machineName);
-        }
+        private static string GetStateId(string machineName, string stateName) =>
+            string.Format("{0}::{1}", stateName, machineName);
     }
 }

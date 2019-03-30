@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public NestedAccessesInCallTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestNestedAccessesInCall1Fail()
@@ -71,7 +72,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -139,7 +140,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -215,7 +216,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
     }
 }

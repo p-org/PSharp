@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 
         /// <summary>
         /// If the next operation is <see cref="OperationType.Receive"/>
-        /// then this gives the step index of the corresponding Send. 
+        /// then this gives the step index of the corresponding Send.
         /// </summary>
         ulong NextOperationMatchingSendIndex { get; }
 

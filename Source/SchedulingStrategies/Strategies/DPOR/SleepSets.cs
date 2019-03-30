@@ -26,23 +26,23 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
                 return;
             }
 
-            TidEntryList prevTop = stack.GetSecondFromTop();
-            TidEntry prevSelected = prevTop.List[prevTop.GetSelected(contract)];
+            ThreadEntryList prevTop = stack.GetSecondFromTop();
+            ThreadEntry prevSelected = prevTop.List[prevTop.GetSelected(contract)];
 
-            TidEntryList currTop = stack.GetTop();
+            ThreadEntryList currTop = stack.GetTop();
 
             // For each thread on the top of stack (except previously selected thread and new threads):
-            //   if thread was slept previously 
+            //   if thread was slept previously
             //   and thread's op was independent with selected op then:
             //     the thread is still slept.
             //   else: not slept.
-
             for (int i = 0; i < prevTop.List.Count; i++)
             {
                 if (i == prevSelected.Id)
                 {
                     continue;
                 }
+
                 if (prevTop.List[i].Sleep && !IsDependent(prevTop.List[i], prevSelected))
                 {
                     currTop.List[i].Sleep = true;
@@ -58,28 +58,25 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         /// even though this is not always the case:
         /// Create and Start, Send and Receive.
         /// </summary>
-        public static bool IsDependent(TidEntry a, TidEntry b)
+        public static bool IsDependent(ThreadEntry a, ThreadEntry b)
         {
-            // This method will not detect the dependency between 
-            // Create and Start (because Create's target id is always -1), 
+            // This method will not detect the dependency between
+            // Create and Start (because Create's target id is always -1),
             // but this is probably fine because we will never be checking that;
             // we only check enabled ops against other enabled ops.
             // Similarly, we assume that Send and Receive will always be independent
             // because the Send would need to enable the Receive to be dependent.
             // Receives are independent as they will always be from different threads,
             // but they should always have different target ids anyway.
-
-            if (
-                a.TargetId != b.TargetId || 
-                a.TargetType != b.TargetType || 
-                a.TargetId == -1 || 
+            if (a.TargetId != b.TargetId ||
+                a.TargetType != b.TargetType ||
+                a.TargetId == -1 ||
                 b.TargetId == -1)
             {
                 return false;
             }
 
             // Same target:
-
             if (a.TargetType == OperationTargetType.Inbox)
             {
                 return a.OpType == OperationType.Send && b.OpType == OperationType.Send;

@@ -16,81 +16,101 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SendInterleavingsTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class Config : Event
         {
-            public MachineId Id;
-            public Config(MachineId id) : base(-1, -1) { this.Id = id; }
         }
 
-        class Event1 : Event { }
-        class Event2 : Event { }
+        private class Config : Event
+        {
+            public MachineId Id;
 
-        class Receiver : Machine
+            public Config(MachineId id)
+                : base(-1, -1)
+            {
+                this.Id = id;
+            }
+        }
+
+        private class Event1 : Event
+        {
+        }
+
+        private class Event2 : Event
+        {
+        }
+
+        private class Receiver : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
             [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
-            class Init : MachineState { }
-
-            int count1 = 0;
-            void Initialize()
+            private class Init : MachineState
             {
-                var s1 = CreateMachine(typeof(Sender1));
+            }
+
+            private int count1 = 0;
+
+            private void Initialize()
+            {
+                var s1 = this.CreateMachine(typeof(Sender1));
                 this.Send(s1, new Config(this.Id));
-                var s2 = CreateMachine(typeof(Sender2));
+                var s2 = this.CreateMachine(typeof(Sender2));
                 this.Send(s2, new Config(this.Id));
             }
 
-            void OnEvent1()
+            private void OnEvent1()
             {
-                count1++;
+                this.count1++;
             }
-            void OnEvent2()
-            {
-                Assert(count1 != 1);
-            }
-        }
 
-        class Sender1 : Machine
-        {
-            [Start]
-            [OnEventDoAction(typeof(Config), nameof(Run))]
-            class State : MachineState { }
-
-            void Run()
+            private void OnEvent2()
             {
-                Send((this.ReceivedEvent as Config).Id, new Event1());
-                Send((this.ReceivedEvent as Config).Id, new Event1());
+                this.Assert(this.count1 != 1);
             }
         }
 
-        class Sender2 : Machine
+        private class Sender1 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(Config), nameof(Run))]
-            class State : MachineState { }
-
-            void Run()
+            private class State : MachineState
             {
-                Send((this.ReceivedEvent as Config).Id, new Event2());
+            }
+
+            private void Run()
+            {
+                this.Send((this.ReceivedEvent as Config).Id, new Event1());
+                this.Send((this.ReceivedEvent as Config).Id, new Event1());
+            }
+        }
+
+        private class Sender2 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(Config), nameof(Run))]
+            private class State : MachineState
+            {
+            }
+
+            private void Run()
+            {
+                this.Send((this.ReceivedEvent as Config).Id, new Event2());
             }
         }
 
         [Fact]
         public void TestSendInterleavingsAssertionFailure()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.SchedulingIterations = 600;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Receiver));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
     }
 }

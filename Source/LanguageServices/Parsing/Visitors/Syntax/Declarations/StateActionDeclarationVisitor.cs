@@ -16,76 +16,62 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class StateActionDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateActionDeclarationVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal StateActionDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Node</param>
         internal void Visit(StateDeclaration parentNode)
         {
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.Identifier &&
-                base.TokenStream.Peek().Type != TokenType.MulOp &&
-                base.TokenStream.Peek().Type != TokenType.HaltEvent &&
-                base.TokenStream.Peek().Type != TokenType.DefaultEvent))
+            if (this.TokenStream.Done ||
+                (this.TokenStream.Peek().Type != TokenType.Identifier &&
+                this.TokenStream.Peek().Type != TokenType.MulOp &&
+                this.TokenStream.Peek().Type != TokenType.HaltEvent &&
+                this.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
-                throw new ParsingException("Expected event identifier.",
-                    new List<TokenType>
-                {
+                throw new ParsingException(
+                    "Expected event identifier.",
                     TokenType.Identifier,
                     TokenType.HaltEvent,
-                    TokenType.DefaultEvent
-                });
+                    TokenType.DefaultEvent);
             }
 
-            var nameVisitor = new NameVisitor(base.TokenStream);
+            var nameVisitor = new NameVisitor(this.TokenStream);
 
             // Consumes multiple generic event names.
-            var eventIdentifiers =
-                nameVisitor.ConsumeMultipleNames(TokenType.EventIdentifier,
-                tt => nameVisitor.ConsumeGenericEventName(tt));
+            var eventIdentifiers = nameVisitor.ConsumeMultipleNames(TokenType.EventIdentifier, tt => nameVisitor.ConsumeGenericEventName(tt));
 
-            if (!base.TokenStream.Done &&
-                base.TokenStream.Peek().Type == TokenType.Identifier)
+            if (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type == TokenType.Identifier)
             {
-                throw new ParsingException("Expected \",\".",
-                    new List<TokenType>
-                {
-                    TokenType.Comma
-                });
+                throw new ParsingException("Expected \",\".", TokenType.Comma);
             }
 
-            if (!base.TokenStream.Done &&
-                (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket ||
-                 base.TokenStream.Peek().Type == TokenType.RightAngleBracket))
+            if (!this.TokenStream.Done &&
+                (this.TokenStream.Peek().Type == TokenType.LeftAngleBracket ||
+                 this.TokenStream.Peek().Type == TokenType.RightAngleBracket))
             {
-                throw new ParsingException("Invalid generic expression.",
-                    new List<TokenType> { });
+                throw new ParsingException("Invalid generic expression.");
             }
 
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.DoAction &&
-                base.TokenStream.Peek().Type != TokenType.GotoState &&
-                base.TokenStream.Peek().Type != TokenType.PushState))
+            if (this.TokenStream.Done ||
+                (this.TokenStream.Peek().Type != TokenType.DoAction &&
+                this.TokenStream.Peek().Type != TokenType.GotoState &&
+                this.TokenStream.Peek().Type != TokenType.PushState))
             {
-                throw new ParsingException("Expected \"do\", \"goto\" or \"push\".",
-                    new List<TokenType>
-                {
+                throw new ParsingException(
+                    "Expected \"do\", \"goto\" or \"push\".",
                     TokenType.DoAction,
                     TokenType.GotoState,
-                    TokenType.PushState
-                });
+                    TokenType.PushState);
             }
 
             var resolvedEventIdentifiers = new Dictionary<Token, List<Token>>();
@@ -105,65 +91,56 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         identifierBuilder.Append(token.TextUnit.Text);
                     }
 
-                    TextUnit textUnit = new TextUnit(identifierBuilder.ToString(),
-                        eventIdentifier[0].TextUnit.Line);
-                    resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier),
-                        eventIdentifier);
+                    TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifier[0].TextUnit.Line);
+                    resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier), eventIdentifier);
                 }
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.DoAction)
+            if (this.TokenStream.Peek().Type == TokenType.DoAction)
             {
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 bool isAsync = false;
-                if (base.TokenStream.Peek().Type == TokenType.Async)
+                if (this.TokenStream.Peek().Type == TokenType.Async)
                 {
                     isAsync = true;
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.Await)
+                if (this.TokenStream.Peek().Type == TokenType.Await)
                 {
-                    throw new ParsingException("'await' should not be used on actions.",
-                        new List<TokenType>());
+                    throw new ParsingException("'await' should not be used on actions.");
                 }
 
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.Identifier &&
-                    base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
+                if (this.TokenStream.Done ||
+                    (this.TokenStream.Peek().Type != TokenType.Identifier &&
+                    this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
                 {
                     var message = isAsync
                         ? "Expected action identifier or opening curly bracket."
                         : "Expected async keyword, action identifier, or opening curly bracket.";
-                    var list = new List<TokenType>
-                    {
-                        TokenType.Identifier,
-                        TokenType.LeftCurlyBracket
-                    };
-
                     if (!isAsync)
                     {
-                        list.Insert(0, TokenType.Async);
+                        throw new ParsingException(message, TokenType.Async, TokenType.Identifier, TokenType.LeftCurlyBracket);
                     }
-
-                    throw new ParsingException(message, list);
+                    else
+                    {
+                        throw new ParsingException(message, TokenType.Identifier, TokenType.LeftCurlyBracket);
+                    }
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
+                if (this.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
                 {
-                    var blockNode = new BlockSyntax(base.TokenStream.Program,
-                        parentNode.Machine, null);
-                    new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
+                    var blockNode = new BlockSyntax(this.TokenStream.Program, parentNode.Machine, null);
+                    new BlockSyntaxVisitor(this.TokenStream).Visit(blockNode);
 
                     foreach (var kvp in resolvedEventIdentifiers)
                     {
                         if (!parentNode.AddActionBinding(kvp.Key, kvp.Value, new AnonymousActionHandler(blockNode, isAsync)))
                         {
-                            throw new ParsingException("Unexpected action handler.",
-                                new List<TokenType>());
+                            throw new ParsingException("Unexpected action handler.");
                         }
                     }
                 }
@@ -171,85 +148,69 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 {
                     if (isAsync)
                     {
-                        throw new ParsingException("'async' should only be used on anonymous actions.",
-                            new List<TokenType>());
+                        throw new ParsingException("'async' should only be used on anonymous actions.");
                     }
 
-                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.ActionIdentifier));
+                    this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.ActionIdentifier));
 
-                    var actionIdentifier = base.TokenStream.Peek();
+                    var actionIdentifier = this.TokenStream.Peek();
                     foreach (var kvp in resolvedEventIdentifiers)
                     {
                         if (!parentNode.AddActionBinding(kvp.Key, kvp.Value, actionIdentifier))
                         {
-                            throw new ParsingException("Unexpected action handler.",
-                                new List<TokenType>());
+                            throw new ParsingException("Unexpected action handler.");
                         }
                     }
 
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                    if (base.TokenStream.Done ||
-                        base.TokenStream.Peek().Type != TokenType.Semicolon)
+                    if (this.TokenStream.Done ||
+                        this.TokenStream.Peek().Type != TokenType.Semicolon)
                     {
-                        throw new ParsingException("Expected \";\".",
-                            new List<TokenType>
-                        {
-                                TokenType.Semicolon
-                        });
+                        throw new ParsingException("Expected \";\".", TokenType.Semicolon);
                     }
                 }
             }
-            else if (base.TokenStream.Peek().Type == TokenType.GotoState)
+            else if (this.TokenStream.Peek().Type == TokenType.GotoState)
             {
                 var stateIdentifiers = this.ConsumeState();
 
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.WithExit &&
-                    base.TokenStream.Peek().Type != TokenType.Semicolon))
+                if (this.TokenStream.Done ||
+                    (this.TokenStream.Peek().Type != TokenType.WithExit &&
+                    this.TokenStream.Peek().Type != TokenType.Semicolon))
                 {
-                    throw new ParsingException("Expected \";\".",
-                        new List<TokenType>
-                    {
-                        TokenType.Semicolon
-                    });
+                    throw new ParsingException("Expected \";\".", TokenType.Semicolon);
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.WithExit)
+                if (this.TokenStream.Peek().Type == TokenType.WithExit)
                 {
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                     bool isAsync = false;
-                    if (base.TokenStream.Peek().Type == TokenType.Async)
+                    if (this.TokenStream.Peek().Type == TokenType.Async)
                     {
                         isAsync = true;
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.Index++;
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                     }
 
-                    if (base.TokenStream.Done ||
-                        base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
+                    if (this.TokenStream.Done ||
+                        this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
                     {
-                        throw new ParsingException("Expected \"{\".",
-                            new List<TokenType>
-                        {
-                            TokenType.LeftCurlyBracket
-                        });
+                        throw new ParsingException("Expected \"{\".", TokenType.LeftCurlyBracket);
                     }
 
-                    var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine, null);
-                    new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
+                    var blockNode = new BlockSyntax(this.TokenStream.Program, parentNode.Machine, null);
+                    new BlockSyntaxVisitor(this.TokenStream).Visit(blockNode);
 
                     foreach (var kvp in resolvedEventIdentifiers)
                     {
                         if (!parentNode.AddGotoStateTransition(kvp.Key, kvp.Value, stateIdentifiers,
                             new AnonymousActionHandler(blockNode, isAsync)))
                         {
-                            throw new ParsingException("Unexpected goto state transition.",
-                                new List<TokenType>());
+                            throw new ParsingException("Unexpected goto state transition.");
                         }
                     }
                 }
@@ -259,38 +220,31 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     {
                         if (!parentNode.AddGotoStateTransition(kvp.Key, kvp.Value, stateIdentifiers))
                         {
-                            throw new ParsingException("Unexpected goto state transition.",
-                                new List<TokenType>());
+                            throw new ParsingException("Unexpected goto state transition.");
                         }
                     }
                 }
             }
-            else if (base.TokenStream.Peek().Type == TokenType.PushState)
+            else if (this.TokenStream.Peek().Type == TokenType.PushState)
             {
                 if (parentNode.Machine.IsMonitor)
                 {
-                    throw new ParsingException("Monitors cannot \"push\".",
-                        new List<TokenType>());
+                    throw new ParsingException("Monitors cannot \"push\".");
                 }
 
                 var stateIdentifiers = this.ConsumeState();
 
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Semicolon)
+                if (this.TokenStream.Done ||
+                    this.TokenStream.Peek().Type != TokenType.Semicolon)
                 {
-                    throw new ParsingException("Expected \";\".",
-                        new List<TokenType>
-                    {
-                        TokenType.Semicolon
-                    });
+                    throw new ParsingException("Expected \";\".", TokenType.Semicolon);
                 }
 
                 foreach (var kvp in resolvedEventIdentifiers)
                 {
                     if (!parentNode.AddPushStateTransition(kvp.Key, kvp.Value, stateIdentifiers))
                     {
-                        throw new ParsingException("Unexpected push state transition.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected push state transition.");
                     }
                 }
             }
@@ -302,47 +256,42 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// </summary>
         private List<Token> ConsumeState()
         {
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected state identifier.",
-                    new List<TokenType>
-                {
-                        TokenType.Identifier
-                });
+                throw new ParsingException("Expected state identifier.", TokenType.Identifier);
             }
 
             var stateIdentifiers = new List<Token>();
             bool expectsDot = false;
 
-            while (!base.TokenStream.Done &&
-                base.TokenStream.Peek().Type != TokenType.WithExit &&
-                base.TokenStream.Peek().Type != TokenType.Semicolon)
+            while (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type != TokenType.WithExit &&
+                this.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                if ((!expectsDot && base.TokenStream.Peek().Type != TokenType.Identifier) ||
-                    (expectsDot && base.TokenStream.Peek().Type != TokenType.Dot))
+                if ((!expectsDot && this.TokenStream.Peek().Type != TokenType.Identifier) ||
+                    (expectsDot && this.TokenStream.Peek().Type != TokenType.Dot))
                 {
                     break;
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                if (this.TokenStream.Peek().Type == TokenType.Identifier)
                 {
-                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                        TokenType.StateIdentifier));
-                    stateIdentifiers.Add(base.TokenStream.Peek());
+                    this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.StateIdentifier));
+                    stateIdentifiers.Add(this.TokenStream.Peek());
 
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                     expectsDot = true;
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.Dot)
+                else if (this.TokenStream.Peek().Type == TokenType.Dot)
                 {
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                     expectsDot = false;
                 }
@@ -350,11 +299,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (!expectsDot)
             {
-                throw new ParsingException("Expected state identifier.",
-                    new List<TokenType>
-                {
-                        TokenType.Identifier
-                });
+                throw new ParsingException("Expected state identifier.", TokenType.Identifier);
             }
 
             return stateIdentifiers;

@@ -10,160 +10,164 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    // Sub-namespaces copy the expected result from Microsoft.PSharp.LanguageServices.Tests.EventInheritanceTests
-    // to verify the rewriting is correct.
-    namespace MultiPayloadMultiLevel
+    public sealed class MultiPayloadMultiLevelTester
     {
         internal class E10 : Event
         {
-            public short a10;
-            public ushort b10;
+            public short A10;
+            public ushort B10;
 
             public E10(short a10, ushort b10)
                 : base()
             {
                 Xunit.Assert.True(a10 == 1);
                 Xunit.Assert.True(b10 == 2);
-                this.a10 = a10;
-                this.b10 = b10;
+                this.A10 = a10;
+                this.B10 = b10;
             }
         }
 
         internal class E1 : E10
         {
-            public byte a1;
-            public bool b1;
+            public byte A1;
+            public bool B1;
 
             public E1(short a10, ushort b10, byte a1, bool b1)
                 : base(a10, b10)
             {
                 Xunit.Assert.True(a1 == 30);
                 Xunit.Assert.True(b1 == true);
-                this.a1 = a1;
-                this.b1 = b1;
+                this.A1 = a1;
+                this.B1 = b1;
             }
         }
 
         internal class E2 : E1
         {
-            public int a2;
-            public uint b2;
+            public int A2;
+            public uint B2;
 
             public E2(short a10, ushort b10, byte a1, bool b1, int a2, uint b2)
                 : base(a10, b10, a1, b1)
             {
                 Xunit.Assert.True(a2 == 100);
                 Xunit.Assert.True(b2 == 101);
-                this.a2 = a2;
-                this.b2 = b2;
+                this.A2 = a2;
+                this.B2 = b2;
             }
         }
 
-        public class Tester
+        public static void Test()
         {
-            public static void Test()
-            {
-                Assert.True(new E2(1, 2, 30, true, 100, 101) is E1);
-            }
+            Assert.True(new E2(1, 2, 30, true, 100, 101) is E1);
         }
     }
 
-    namespace MultiPayloadMultiLevel_Generic
+    public sealed class MultiPayloadMultiLevelGenericTester
     {
         internal class E10<Te10> : Event
         {
-            public short a10;
-            public ushort b10;
+            public short A10;
+            public ushort B10;
 
             public E10(short a10, ushort b10)
                 : base()
             {
                 Xunit.Assert.True(a10 == 1);
                 Xunit.Assert.True(b10 == 2);
-                this.a10 = a10;
-                this.b10 = b10;
+                this.A10 = a10;
+                this.B10 = b10;
             }
         }
 
         internal class E1<Te10, Te1> : E10<Te10>
         {
-            public byte a1;
-            public bool b1;
+            public byte A1;
+            public bool B1;
 
             public E1(short a10, ushort b10, byte a1, bool b1)
                 : base(a10, b10)
             {
                 Xunit.Assert.True(a1 == 30);
                 Xunit.Assert.True(b1 == true);
-                this.a1 = a1;
-                this.b1 = b1;
+                this.A1 = a1;
+                this.B1 = b1;
             }
         }
 
         internal class E2<Te2, Te1, Te10> : E1<Te10, Te1>
         {
-            public int a2;
-            public uint b2;
+            public int A2;
+            public uint B2;
 
             public E2(short a10, ushort b10, byte a1, bool b1, int a2, uint b2)
                 : base(a10, b10, a1, b1)
             {
                 Xunit.Assert.True(a2 == 100);
                 Xunit.Assert.True(b2 == 101);
-                this.a2 = a2;
-                this.b2 = b2;
+                this.A2 = a2;
+                this.B2 = b2;
             }
         }
 
-        public class Tester
+        public static void Test()
         {
-            public static void Test()
-            {
-                var e2 = new E2<string, int, bool>(1, 2, 30, true, 100, 101);
-                Assert.True(e2 is E1<bool, int>);
-                Assert.True(e2 is E10<bool>);
-            }
+            var e2 = new E2<string, int, bool>(1, 2, 30, true, 100, 101);
+            Assert.True(e2 is E1<bool, int>);
+            Assert.True(e2 is E10<bool>);
         }
     }
 
-    namespace AssertAssume
+    public sealed class AssertAssumeTester
     {
         internal class E1 : Event
         {
-            public E1() : base(1, -1) { }
+            public E1()
+                : base(1, -1)
+            {
+            }
         }
 
         internal class E2 : E1
         {
-            public E2() : base()
+            public E2()
+                : base()
             {
-                base.SetCardinalityConstraints(2, -1);
+                this.SetCardinalityConstraints(2, -1);
             }
         }
 
         internal class E3 : Event
         {
-            public E3() : base(-1, 3) { }
+            public E3()
+                : base(-1, 3)
+            {
+            }
         }
 
         internal class E4 : E3
         {
-            public E4() : base()
+            public E4()
+                : base()
             {
-                base.SetCardinalityConstraints(-1, 4);
+                this.SetCardinalityConstraints(-1, 4);
             }
         }
 
         internal class E5 : Event
         {
-            public E5() : base(5, -1) { }
+            public E5()
+                : base(5, -1)
+            {
+            }
         }
 
         internal class E6 : E5
         {
-            public E6() : base()
+            public E6()
+                : base()
             {
-                base.SetCardinalityConstraints(-1, 6);
+                this.SetCardinalityConstraints(-1, 6);
             }
         }
 
@@ -172,23 +176,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E7()
             : base()
         {
-                base.SetCardinalityConstraints(-1, -1);
+                this.SetCardinalityConstraints(-1, -1);
             }
         }
 
-        public class Tester
+        public static void Test()
         {
-            public static void Test()
-            {
-                bool verify(Event ev, int expectedAssert, int expectedAssume) => ev.Assert == expectedAssert && ev.Assume == expectedAssume;
-                Assert.True(verify(new E1(), 1, -1));
-                Assert.True(verify(new E2(), 2, -1));
-                Assert.True(verify(new E3(), -1, 3));
-                Assert.True(verify(new E4(), -1, 4));
-                Assert.True(verify(new E5(), 5, -1));
-                Assert.True(verify(new E6(), -1, 6));
-                Assert.True(verify(new E7(), -1, -1));
-            }
+            bool verify(Event ev, int expectedAssert, int expectedAssume) => ev.Assert == expectedAssert && ev.Assume == expectedAssume;
+            Assert.True(verify(new E1(), 1, -1));
+            Assert.True(verify(new E2(), 2, -1));
+            Assert.True(verify(new E3(), -1, 3));
+            Assert.True(verify(new E4(), -1, 4));
+            Assert.True(verify(new E5(), 5, -1));
+            Assert.True(verify(new E6(), -1, 6));
+            Assert.True(verify(new E7(), -1, -1));
         }
     }
 
@@ -196,27 +197,28 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public EventInheritanceTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        [Fact]
-        public void Test_MultiPayloadMultiLevel()
         {
-            MultiPayloadMultiLevel.Tester.Test();
         }
 
         [Fact]
-        public void Test_MultiPayloadMultiLevel_Generic()
+        public void TestMultiPayloadMultiLevel()
         {
-            MultiPayloadMultiLevel_Generic.Tester.Test();
+            MultiPayloadMultiLevelTester.Test();
         }
 
         [Fact]
-        public void Test_AssertAssume()
+        public void TestMultiPayloadMultiLevelGeneric()
         {
-            AssertAssume.Tester.Test();
+            MultiPayloadMultiLevelGenericTester.Test();
         }
 
-        class A : Machine
+        [Fact]
+        public void TestAssertAssume()
+        {
+            AssertAssumeTester.Test();
+        }
+
+        private class A : Machine
         {
             internal class Configure : Event
             {
@@ -235,45 +237,48 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private TaskCompletionSource<bool> TCS;
 
             public class E3 : E2
-            { }
+            {
+            }
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E1), nameof(E1_handler))]
             [OnEventDoAction(typeof(E2), nameof(E2_handler))]
             [OnEventDoAction(typeof(E3), nameof(E3_handler))]
-            class S0 : MachineState { }
+            private class S0 : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.TCS = (this.ReceivedEvent as Configure).TCS;
             }
 
-            void E1_handler()
+            private void E1_handler()
             {
                 ++E1count;
-                Xunit.Assert.True(ReceivedEvent is E1);
-                CheckComplete();
+                Xunit.Assert.True(this.ReceivedEvent is E1);
+                this.CheckComplete();
             }
 
-            void E2_handler()
+            private void E2_handler()
             {
                 ++E2count;
-                Xunit.Assert.True(ReceivedEvent is E1);
-                Xunit.Assert.True(ReceivedEvent is E2);
-                CheckComplete();
+                Xunit.Assert.True(this.ReceivedEvent is E1);
+                Xunit.Assert.True(this.ReceivedEvent is E2);
+                this.CheckComplete();
             }
 
-            void E3_handler()
+            private void E3_handler()
             {
                 ++E3count;
-                Xunit.Assert.True(ReceivedEvent is E1);
-                Xunit.Assert.True(ReceivedEvent is E2);
-                Xunit.Assert.True(ReceivedEvent is E3);
-                CheckComplete();
+                Xunit.Assert.True(this.ReceivedEvent is E1);
+                Xunit.Assert.True(this.ReceivedEvent is E2);
+                Xunit.Assert.True(this.ReceivedEvent is E3);
+                this.CheckComplete();
             }
 
-            void CheckComplete()
+            private void CheckComplete()
             {
                 if (E1count == 1 && E2count == 1 && E3count == 1)
                 {
@@ -282,16 +287,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class E1 : Event
-        { }
-        class E2 : E1
-        { }
+        private class E1 : Event
+        {
+        }
+
+        private class E2 : E1
+        {
+        }
 
         [Fact]
         public void TestEventInheritanceRun()
         {
             var tcs = new TaskCompletionSource<bool>();
-            var runtime = new ProductionRuntime();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             var a = runtime.CreateMachine(typeof(A), null, new A.Configure(tcs), null);
             runtime.SendEvent(a, new A.E3());
             runtime.SendEvent(a, new E1());

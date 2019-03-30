@@ -47,6 +47,5 @@ namespace Microsoft.PSharp.SharedObjects
         /// <param name="comparand">Value to compare against</param>
         /// <returns>The original value of the counter</returns>
         int CompareExchange(int value, int comparand);
-
     }
 }

@@ -37,7 +37,9 @@ namespace Microsoft.PSharp.Benchmarking
             }
         }
 
-        private class Message : Event { }
+        private class Message : Event
+        {
+        }
 
         private class Master : Machine
         {
@@ -49,7 +51,9 @@ namespace Microsoft.PSharp.Benchmarking
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(Message), nameof(SendMessage))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void InitOnEntry()
             {
@@ -80,7 +84,9 @@ namespace Microsoft.PSharp.Benchmarking
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(Message), nameof(SendMessage))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void InitOnEntry()
             {
@@ -101,7 +107,8 @@ namespace Microsoft.PSharp.Benchmarking
         {
             var tcs = new TaskCompletionSource<bool>();
 
-            var runtime = new ProductionRuntime();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
             runtime.CreateMachine(typeof(Master), null,
                 new SetupMasterEvent(tcs, this.NumMessages),
                 null);

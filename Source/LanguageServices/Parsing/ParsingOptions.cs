@@ -10,8 +10,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class ParsingOptions
     {
-        #region fields
-
         /// <summary>
         /// The parser should exit when it
         /// finds an error.
@@ -34,12 +32,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         internal bool SkipErrorChecking;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ParsingOptions"/> class.
         /// </summary>
         private ParsingOptions()
         {
@@ -49,24 +43,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.SkipErrorChecking = false;
         }
 
-        #endregion
-
-        #region public methods
-
         /// <summary>
         /// Creates an instance of the default
         /// P# parsing options.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
-        public static ParsingOptions CreateDefault()
-        {
-            return new ParsingOptions();
-        }
+        public static ParsingOptions CreateDefault() => new ParsingOptions();
 
         /// <summary>
         /// Enables the option to exit on error.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions EnableExitOnError()
         {
             this.ExitOnError = true;
@@ -76,7 +61,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Disables the option to exit on error.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions DisableExitOnError()
         {
             this.ExitOnError = false;
@@ -96,7 +80,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Disables warnings.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions DisableWarnings()
         {
             this.ShowWarnings = false;
@@ -106,7 +89,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Enables the option to throw a parsing exception.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions EnableThrowParsingException()
         {
             this.ThrowParsingException = true;
@@ -116,7 +98,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Disables the option to throw a parsing exception.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions DisableThrowParsingException()
         {
             this.ThrowParsingException = false;
@@ -126,7 +107,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Enables the option to skip error checking.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions EnableSkipErrorChecking()
         {
             this.SkipErrorChecking = true;
@@ -136,13 +116,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Disables the option to skip error checking.
         /// </summary>
-        /// <returns>ParsingOptions</returns>
         public ParsingOptions DisableSkipErrorChecking()
         {
             this.SkipErrorChecking = false;
             return this;
         }
-
-        #endregion
     }
 }

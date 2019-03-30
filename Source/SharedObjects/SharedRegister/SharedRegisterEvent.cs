@@ -8,12 +8,17 @@ namespace Microsoft.PSharp.SharedObjects
     /// <summary>
     /// Event used to communicate with a shared register machine.
     /// </summary>
-    internal class SharedRegisterEvent: Event 
+    internal class SharedRegisterEvent : Event
     {
         /// <summary>
         /// Supported shared register operations.
         /// </summary>
-        internal enum SharedRegisterOperation { GET, SET, UPDATE };
+        internal enum SharedRegisterOperation
+        {
+            GET,
+            SET,
+            UPDATE
+        }
 
         /// <summary>
         /// The operation stored in this event.
@@ -36,26 +41,19 @@ namespace Microsoft.PSharp.SharedObjects
         public MachineId Sender { get; private set; }
 
         /// <summary>
-        /// Creates a new event with the specified operation.
+        /// Initializes a new instance of the <see cref="SharedRegisterEvent"/> class.
         /// </summary>
-        /// <param name="op">SharedRegisterOperation</param>
-        /// <param name="value">Value</param>
-        /// <param name="func">Func</param>
-        /// <param name="sender">Sender</param>
-        SharedRegisterEvent(SharedRegisterOperation op, object value, object func, MachineId sender)
+        private SharedRegisterEvent(SharedRegisterOperation op, object value, object func, MachineId sender)
         {
-            Operation = op;
-            Value = value;
-            Func = func;
-            Sender = sender;
+            this.Operation = op;
+            this.Value = value;
+            this.Func = func;
+            this.Sender = sender;
         }
 
         /// <summary>
         /// Creates a new event for the 'UPDATE' operation.
         /// </summary>
-        /// <param name="func">Func</param>
-        /// <param name="sender">Sender</param>
-        /// <returns>SharedRegisterEvent</returns>
         public static SharedRegisterEvent UpdateEvent(object func, MachineId sender)
         {
             return new SharedRegisterEvent(SharedRegisterOperation.UPDATE, null, func, sender);
@@ -64,8 +62,6 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Creates a new event for the 'SET' operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>SharedRegisterEvent</returns>
         public static SharedRegisterEvent SetEvent(object value)
         {
             return new SharedRegisterEvent(SharedRegisterOperation.SET, value, null, null);
@@ -74,8 +70,6 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Creates a new event for the 'GET' operation.
         /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <returns>SharedRegisterEvent</returns>
         public static SharedRegisterEvent GetEvent(MachineId sender)
         {
             return new SharedRegisterEvent(SharedRegisterOperation.GET, null, null, sender);

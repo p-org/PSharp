@@ -3,15 +3,14 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.DataFlowAnalysis;
 using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -21,12 +20,10 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal sealed class StateMachine
     {
-        #region fields
-
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private AnalysisContext AnalysisContext;
+        private readonly AnalysisContext AnalysisContext;
 
         /// <summary>
         /// Name of the state-machine.
@@ -58,19 +55,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal bool IsAbstract;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateMachine"/> class.
         /// </summary>
-        /// <param name="classDecl">ClassDeclarationSyntax</param>
-        /// <param name="context">AnalysisContext</param>
         internal StateMachine(ClassDeclarationSyntax classDecl, AnalysisContext context)
         {
             this.AnalysisContext = context;
-            this.Name = this.AnalysisContext.GetFullClassName(classDecl);
+            this.Name = AnalysisContext.GetFullClassName(classDecl);
             this.Declaration = classDecl;
             this.BaseMachines = new HashSet<StateMachine>();
             this.MachineStates = new HashSet<MachineState>();
@@ -84,10 +75,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.FindAllStates();
             this.AnalyzeAllStates();
         }
-
-        #endregion
-
-        #region internal methods
 
         /// <summary>
         /// Summarizes the state-machine.
@@ -109,8 +96,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Returns all the successor summaries.
         /// </summary>
-        /// <param name="summary">MethodSummary</param>
-        /// <returns>MethodSummarys</returns>
         internal ISet<MethodSummary> GetSuccessorSummaries(MethodSummary summary)
         {
             var summaries = new HashSet<MethodSummary>();
@@ -160,10 +145,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             return summaries;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Finds all states in the machine.
         /// </summary>
@@ -192,7 +173,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Computes the summary for the specified method.
         /// </summary>
-        /// <param name="method">Method</param>
         private void SummarizeMethod(MethodDeclarationSyntax method)
         {
             var summary = MethodSummary.Create(this.AnalysisContext, method);
@@ -208,19 +188,16 @@ namespace Microsoft.PSharp.StaticAnalysis
             var methods = new HashSet<MethodDeclarationSyntax>(
                 this.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>());
 
-            //HashSet<StateMachine> baseMachines;
-            //if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
-            //{
+            // HashSet<StateMachine> baseMachines;
+            // if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
+            // {
             //    foreach (var baseMachine in baseMachines)
             //    {
             //        methods.UnionWith(baseMachine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>().
             //            Where(method => !method.Modifiers.Any(SyntaxKind.AbstractKeyword)));
             //    }
-            //}
-
+            // }
             return methods;
         }
-
-        #endregion
     }
 }

@@ -13,8 +13,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class RewritingTests
     {
-        #region failure tests
-
         [Fact]
         public void TestDuplicateStatesAndJump()
         {
@@ -40,15 +38,14 @@ state S2 {
             catch (RewritingException ex)
             {
                 exception_hit = true;
-                Assert.Equal(ex.Message.Replace(Environment.NewLine, string.Empty), 
-                    "Multiple declarations of the state 'S2'" + 
+                Assert.Equal(
+                    ex.Message.Replace(Environment.NewLine, string.Empty),
+                    "Multiple declarations of the state 'S2'" +
                     "File: Program.psharp" +
                     "Lines: 5 and 8");
             }
 
             Assert.True(exception_hit, "expected exception was not hit");
         }
-
-        #endregion
     }
 }

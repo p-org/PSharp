@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class MachineDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The namespace parent node.
         /// </summary>
@@ -108,17 +106,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal HashSet<QualifiedMethod> RewrittenMethods;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="namespaceNode">NamespaceDeclaration</param>
-        /// <param name="isMonitor">Is a monitor</param>
-        /// <param name="modSet">Modifier set</param>
         internal MachineDeclaration(IPSharpProgram program, NamespaceDeclaration namespaceNode,
             bool isMonitor, ModifierSet modSet)
             : base(program)
@@ -181,8 +171,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Debug.WriteLine("Exception was thrown during rewriting:");
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                Error.ReportAndExit("Failed to rewrite {0} '{1}'.",
-                    this.IsMonitor ? "monitor" : "machine", this.Identifier.TextUnit.Text);
+                Error.ReportAndExit("Failed to rewrite {0} '{1}'.", this.IsMonitor ? "monitor" : "machine", this.Identifier.TextUnit.Text);
             }
 
             var indent = GetIndent(indentLevel);
@@ -198,7 +187,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
 
             this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
@@ -215,8 +204,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Sanity checking:
-        /// -- no duplicate states and groups
+        /// Sanity checking: no duplicate states and groups.
         /// </summary>
         internal void CheckDeclaration()
         {
@@ -227,9 +215,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     throw new RewritingException(
                         $"Multiple declarations of the state '{decl.Identifier.Text}'" + Environment.NewLine +
-                        $"File: {Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
-                        $"Lines: {statesSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}"
-                        );
+                        $"File: {this.Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
+                        $"Lines: {statesSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}");
                 }
                 else
                 {
@@ -244,10 +231,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     throw new RewritingException(
                         $"Multiple declarations of the state group '{decl.Identifier.Text}'" + Environment.NewLine +
-                        $"File: {Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
-                        $"Lines: {groupsSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}"
-                        );
-
+                        $"File: {this.Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
+                        $"Lines: {groupsSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}");
                 }
                 else
                 {
@@ -258,15 +243,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.StateGroupDeclarations.ForEach(g => g.CheckDeclaration());
         }
 
-        #endregion
-
-        #region private methods
-
-
         /// <summary>
         /// Returns the rewritten machine declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenMachineDeclaration(int indentLevel, ref string newLine)
         {
             var indent = GetIndent(indentLevel);
@@ -366,7 +345,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Returns the rewritten state on-entry and on-exit actions.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine)
         {
             string text = string.Empty;
@@ -393,7 +371,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Returns the rewritten with-actions.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenWithActions(int indentLevel, ref string newLine)
         {
             string text = string.Empty;
@@ -451,16 +428,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     tokens.Insert(0, group.Identifier.TextUnit.Text);
                     group = group.Group;
                 }
-                
+
                 // Qualify the name of each state in this group.
                 foreach (var method in state.RewrittenMethods)
                 {
                     method.QualifiedStateName = tokens;
                     this.RewrittenMethods.Add(method);
-                } 
+                }
             }
         }
-
-        #endregion
     }
 }

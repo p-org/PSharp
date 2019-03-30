@@ -24,9 +24,9 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
         public MachineState(MachineState other)
         {
             this.Mid = other.Mid;
-            VC = new VectorClock(other.VC);
+            this.VC = new VectorClock(other.VC);
             this.Epoch = other.Epoch;
-            Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
+            Assert(this.VC.GetComponent(this.Mid) == this.Epoch, "Epoch and VC inconsistent!");
             this.EnableLogging = other.EnableLogging;
             this.Logger = other.Logger;
         }
@@ -38,48 +38,48 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
             this.Logger = logger;
             this.EnableLogging = enableLogging;
             this.IncrementEpochAndVC();  // initialize
-            Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            if (EnableLogging)
+            Assert(this.VC.GetComponent(this.Mid) == this.Epoch, "Epoch and VC inconsistent!");
+            if (this.EnableLogging)
             {
-                Logger.WriteLine($"<VCLog> Created {VC.ToString()} for {Mid}");
+                this.Logger.WriteLine($"<VCLog> Created {this.VC.ToString()} for {this.Mid}");
             }
         }
 
         public void IncrementEpochAndVC()
         {
-            Epoch = VC.Tick(Mid);
-            Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            if (EnableLogging)
+            this.Epoch = this.VC.Tick(this.Mid);
+            Assert(this.VC.GetComponent(this.Mid) == this.Epoch, "Epoch and VC inconsistent!");
+            if (this.EnableLogging)
             {
-                Logger.WriteLine($"<VCLog> Updated {VC.ToString()} for {Mid} [Increment]");
+                this.Logger.WriteLine($"<VCLog> Updated {this.VC.ToString()} for {this.Mid} [Increment]");
             }
         }
 
         public void JoinEpochAndVC(VectorClock other)
         {
-            VC.Max(other);
-            Epoch = this.VC.GetComponent(this.Mid);
-            Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            if (EnableLogging)
+            this.VC.Max(other);
+            this.Epoch = this.VC.GetComponent(this.Mid);
+            Assert(this.VC.GetComponent(this.Mid) == this.Epoch, "Epoch and VC inconsistent!");
+            if (this.EnableLogging)
             {
-                Logger.WriteLine($"<VCLog> Updated {VC.ToString()} for {Mid} [Join {other.ToString()}]");
+                this.Logger.WriteLine($"<VCLog> Updated {this.VC.ToString()} for {this.Mid} [Join {other.ToString()}]");
             }
         }
 
         public void JoinThenIncrement(VectorClock other)
         {
-            JoinEpochAndVC(other);
-            IncrementEpochAndVC();
-            Assert(VC.GetComponent(Mid) == Epoch, "Epoch and VC inconsistent!");
-            if (EnableLogging)
+            this.JoinEpochAndVC(other);
+            this.IncrementEpochAndVC();
+            Assert(this.VC.GetComponent(this.Mid) == this.Epoch, "Epoch and VC inconsistent!");
+            if (this.EnableLogging)
             {
-                Logger.WriteLine($"<VCLog> Updated {VC.ToString()} for {Mid}");
+                this.Logger.WriteLine($"<VCLog> Updated {this.VC.ToString()} for {this.Mid}");
             }
         }
 
         public int GetVCSize()
         {
-            return VC.Size();
+            return this.VC.Size();
         }
     }
 }

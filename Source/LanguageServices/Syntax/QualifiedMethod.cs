@@ -39,11 +39,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         public HashSet<string> MachineQualifiedStateNames;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="QualifiedMethod"/> class.
         /// </summary>
-        /// <param name="name">name</param>
-        /// <param name="machineName">Machine name</param>
-        /// <param name="namespaceName">Namespace name</param>
         public QualifiedMethod(string name, string machineName, string namespaceName)
         {
             this.Name = name;

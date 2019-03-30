@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public SwitchStatementTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestSwitchStatement()
@@ -78,7 +79,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -144,7 +145,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -211,7 +212,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -279,7 +280,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
     }
 }

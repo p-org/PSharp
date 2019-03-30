@@ -64,9 +64,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Creates a schedule step.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="scheduledMachineId">Scheduled machine id</param>
-        /// <returns>ScheduleStep</returns>
         internal static ScheduleStep CreateSchedulingChoice(int index, ulong scheduledMachineId)
         {
             var scheduleStep = new ScheduleStep();
@@ -88,9 +85,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Creates a nondeterministic boolean choice schedule step.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="choice">Choice</param>
-        /// <returns>ScheduleStep</returns>
         internal static ScheduleStep CreateNondeterministicBooleanChoice(int index, bool choice)
         {
             var scheduleStep = new ScheduleStep();
@@ -110,10 +104,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Creates a fair nondeterministic boolean choice schedule step.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="uniqueId">Unique id</param>
-        /// <param name="choice">Choice</param>
-        /// <returns>ScheduleStep</returns>
         internal static ScheduleStep CreateFairNondeterministicBooleanChoice(
             int index, string uniqueId, bool choice)
         {
@@ -135,9 +125,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Creates a nondeterministic integer choice schedule step.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="choice">Choice</param>
-        /// <returns>ScheduleStep</returns>
         internal static ScheduleStep CreateNondeterministicIntegerChoice(int index, int choice)
         {
             var scheduleStep = new ScheduleStep();
@@ -158,31 +145,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is ScheduleStep step)
             {
-                return false;
+                return this.Index == step.Index;
             }
 
-            ScheduleStep step = obj as ScheduleStep;
-            if (step == null)
-            {
-                return false;
-            }
-
-            return Index == step.Index;
+            return false;
         }
 
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>int</returns>
-        public override int GetHashCode()
-        {
-            return Index.GetHashCode();
-        }
+        public override int GetHashCode() => this.Index.GetHashCode();
     }
 }

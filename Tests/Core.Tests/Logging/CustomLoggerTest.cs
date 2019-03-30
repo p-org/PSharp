@@ -20,47 +20,48 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public CustomLoggerTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class CustomLogger : MachineLogger
+        private class CustomLogger : MachineLogger
         {
             private StringBuilder StringBuilder;
 
             public CustomLogger()
             {
-                StringBuilder = new StringBuilder();
+                this.StringBuilder = new StringBuilder();
             }
 
             public override void Write(string value)
             {
-                StringBuilder.Append(value);
+                this.StringBuilder.Append(value);
             }
 
             public override void Write(string format, params object[] args)
             {
-                StringBuilder.AppendFormat(format, args);
+                this.StringBuilder.AppendFormat(format, args);
             }
 
             public override void WriteLine(string value)
             {
-                StringBuilder.AppendLine(value);
+                this.StringBuilder.AppendLine(value);
             }
 
             public override void WriteLine(string format, params object[] args)
             {
-                StringBuilder.AppendFormat(format, args);
-                StringBuilder.AppendLine();
+                this.StringBuilder.AppendFormat(format, args);
+                this.StringBuilder.AppendLine();
             }
 
             public override string ToString()
             {
-                return StringBuilder.ToString();
+                return this.StringBuilder.ToString();
             }
 
             public override void Dispose()
             {
-                StringBuilder.Clear();
-                StringBuilder = null;
+                this.StringBuilder.Clear();
+                this.StringBuilder = null;
             }
         }
 
@@ -84,37 +85,43 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        internal class Unit : Event { }
-
-        class M : Machine
+        internal class Unit : Event
         {
-            TaskCompletionSource<bool> TCS;
+        }
+
+        private class M : Machine
+        {
+            private TaskCompletionSource<bool> TCS;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                TCS = (this.ReceivedEvent as Configure).TCS;
-                var n = CreateMachine(typeof(N));
+            }
+
+            private void InitOnEntry()
+            {
+                this.TCS = (this.ReceivedEvent as Configure).TCS;
+                var n = this.CreateMachine(typeof(N));
                 this.Send(n, new E(this.Id));
             }
 
-            void Act()
+            private void Act()
             {
-                TCS.SetResult(true);
+                this.TCS.SetResult(true);
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Act()
+            private void Act()
             {
                 MachineId m = (this.ReceivedEvent as E).Id;
                 this.Send(m, new E(this.Id));
@@ -148,7 +155,7 @@ namespace Microsoft.PSharp.Core.Tests
 <DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
 <ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' invoked action 'Act'.
 ";
-            string actual = Regex.Replace(logger.ToString(), "[0-9]", "");
+            string actual = Regex.Replace(logger.ToString(), "[0-9]", string.Empty);
 
             HashSet<string> expectedSet = new HashSet<string>(Regex.Split(expected, "\r\n|\r|\n"));
             HashSet<string> actualSet = new HashSet<string>(Regex.Split(actual, "\r\n|\r|\n"));
@@ -170,7 +177,7 @@ namespace Microsoft.PSharp.Core.Tests
             runtime.CreateMachine(typeof(M), new Configure(tcs));
             tcs.Task.Wait();
 
-            Assert.Equal("", logger.ToString());
+            Assert.Equal(string.Empty, logger.ToString());
 
             logger.Dispose();
         }
@@ -178,13 +185,14 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestNullCustomLoggerFail()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => r.SetLogger(null));
                 Assert.Equal("Cannot install a null logger.", ex.Message);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

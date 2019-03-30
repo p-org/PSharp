@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public abstract class TokenParser : BaseParser, IParser
     {
-        #region fields
-
         /// <summary>
         /// List of original tokens.
         /// </summary>
@@ -30,23 +29,18 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         protected TokenStream TokenStream;
 
         /// <summary>
-        /// List of expected token types at end of parsing.
+        /// The expected token types at end of parsing.
         /// </summary>
-        protected List<TokenType> ExpectedTokenTypes;
+        protected TokenType[] ExpectedTokenTypes;
 
         /// <summary>
         /// The error log.
         /// </summary>
         protected StringBuilder ErrorLog;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TokenParser"/> class.
         /// </summary>
-        /// <param name="options">ParsingOptions</param>
         public TokenParser(ParsingOptions options)
             : base(options)
         {
@@ -54,11 +48,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TokenParser"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="options">ParsingOptions</param>
         internal TokenParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
             : base(project, tree, options)
         {
@@ -68,14 +59,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns a P# program.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        /// <returns>P# program</returns>
         public IPSharpProgram ParseTokens(List<Token> tokens)
         {
             this.OriginalTokens = tokens.ToList();
             this.TokenStream = new TokenStream(tokens);
             this.Program = this.CreateNewProgram();
-            this.ExpectedTokenTypes = new List<TokenType>();
+            this.ExpectedTokenTypes = Array.Empty<TokenType>();
 
             try
             {
@@ -87,21 +76,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
                 this.ReportParsingError();
 
-                if (base.Options.ThrowParsingException &&
+                if (this.Options.ThrowParsingException &&
                     this.ErrorLog.Length > 0)
                 {
-                    throw new ParsingException(this.ErrorLog.ToString(), ex.ExpectedTokenTypes, ex);
+                    throw new ParsingException(this.ErrorLog.ToString(), ex, ex.ExpectedTokenTypes);
                 }
             }
-            
+
             return this.Program;
         }
 
         /// <summary>
         /// Returns the expected token types at the end of parsing.
         /// </summary>
-        /// <returns>Expected token types</returns>
-        public List<TokenType> GetExpectedTokenTypes()
+        public TokenType[] GetExpectedTokenTypes()
         {
             return this.ExpectedTokenTypes;
         }
@@ -109,15 +97,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns the parsing error log.
         /// </summary>
-        /// <returns>Parsing error log</returns>
         public string GetParsingErrorLog()
         {
             return this.ErrorLog.ToString();
         }
-
-        #endregion
-
-        #region protected API
 
         /// <summary>
         /// Parses the tokens.
@@ -129,8 +112,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected void ReportParsingError()
         {
-            if ((!base.Options.ExitOnError &&
-                !base.Options.ThrowParsingException) ||
+            if ((!this.Options.ExitOnError &&
+                !this.Options.ThrowParsingException) ||
                 this.ErrorLog.Length == 0)
             {
                 return;
@@ -158,12 +141,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     break;
                 }
             }
-            
+
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
                 this.ErrorLog.Append(string.Format("{0}", errorLine[idx].TextUnit.Text));
             }
-            
+
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
                 if (errorLine[idx].Equals(errorToken) && errorIndex == this.TokenStream.Index)
@@ -182,12 +165,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ErrorLog.Append("^");
             }
 
-            if (base.Options.ExitOnError)
+            if (this.Options.ExitOnError)
             {
                 Error.ReportAndExit(this.ErrorLog.ToString());
             }
         }
-
-        #endregion
     }
 }

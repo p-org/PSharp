@@ -12,8 +12,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class EntryDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The state parent node.
         /// </summary>
@@ -34,16 +32,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal readonly bool IsAsync;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="EntryDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="stateNode">StateDeclaration</param>
-        /// <param name="isAsync">True if the entry action is async</param>
         internal EntryDeclaration(IPSharpProgram program, StateDeclaration stateNode, bool isAsync = false)
             : base(program)
         {
@@ -63,11 +54,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var suffix = this.IsAsync ? "_async()" : "()";
             string text = GetIndent(indentLevel) + $"protected {typeStr} psharp_" + this.State.GetFullyQualifiedName() +
                 $"_on_entry_action{suffix}";
-            text += "\n" + StatementBlock.TextUnit.Text + "\n";
+            text += "\n" + this.StatementBlock.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
         }
-
-        #endregion
     }
 }

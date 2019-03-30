@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
     {
         public ProductionSharedCounterTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public ISharedCounter Counter;
             public TaskCompletionSource<bool> Tcs;
@@ -27,13 +28,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -65,13 +68,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -83,8 +88,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                     do
                     {
                         v = counter.GetValue();
-
-                    } while (v != counter.CompareExchange(v + 5, v));
+                    }
+                    while (v != counter.CompareExchange(v + 5, v));
 
                     counter.Add(15);
                     counter.Add(-10);
@@ -103,7 +108,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);
@@ -126,7 +131,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);

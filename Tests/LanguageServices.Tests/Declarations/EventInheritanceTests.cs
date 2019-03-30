@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class EventInheritanceTests
     {
-        #region correct tests
-
         [Fact]
         public void NoPayloadOnEither()
         {
@@ -57,7 +55,7 @@ namespace Foo
         }
 
         [Fact]
-        public void NoPayload_InMachine()
+        public void TestNoPayloadInMachine()
         {
             var test = @"
 namespace Foo {
@@ -114,7 +112,7 @@ namespace Foo
         }
 
         [Fact]
-        public void NoPayloadOnOtherNamespace()
+        public void TestNoPayloadOnOtherNamespace()
         {
             var test = @"
 namespace Foo {
@@ -154,7 +152,7 @@ namespace Bar
         }
 
         [Fact]
-        public void NoPayloadOnEither_Generic()
+        public void TestNoPayloadOnEitherGeneric()
         {
             var test = @"
 namespace Foo {
@@ -199,7 +197,7 @@ namespace Foo
         }
 
         [Fact]
-        public void NoPayloadOnBase()
+        public void TestNoPayloadOnBase()
         {
             var test = @"
 namespace Foo {
@@ -250,7 +248,7 @@ namespace Foo
         }
 
         [Fact]
-        public void NoPayloadOnDerived()
+        public void TestNoPayloadOnDerived()
         {
             var test = @"
 namespace Foo {
@@ -298,7 +296,7 @@ namespace Foo
         }
 
         [Fact]
-        public void PayloadOnBoth()
+        public void TestPayloadOnBoth()
         {
             var test = @"
 namespace Foo {
@@ -352,7 +350,7 @@ namespace Foo
         }
 
         [Fact]
-        public void MultiPayloadMultiLevel()
+        public void TestMultiPayloadMultiLevel()
         {
             var test = @"
 namespace Foo {
@@ -428,7 +426,7 @@ namespace Foo
         }
 
         [Fact]
-        public void MultiPayloadMultiLevel_Generic()
+        public void TestMultiPayloadMultiLevelGeneric()
         {
             // Some generic type params in derived classes are not specified in the same order
             // as in the base class, to verify correct handling.
@@ -506,7 +504,7 @@ namespace Foo
         }
 
         [Fact]
-        public void AssumeAssertInheritance()
+        public void TestAssumeAssertInheritance()
         {
             var test = @"
 namespace Foo {
@@ -587,12 +585,8 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion correct tests
-
-        #region failure tests
-
         [Fact]
-        public void BaseEventClassNotDeclared()
+        public void TestBaseEventClassNotDeclared()
         {
             var test = @"
 namespace Foo {
@@ -602,7 +596,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void ExternOutsideNamespace()
+        public void TestExternOutsideNamespace()
         {
             var test = @"
 extern event E1;
@@ -613,7 +607,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void ExternAfterDefinition()
+        public void TestExternAfterDefinition()
         {
             var test = @"
 namespace Foo {
@@ -625,7 +619,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void DefinitionAfterExtern()
+        public void TestDefinitionAfterExtern()
         {
             var test = @"
 namespace Foo {
@@ -637,7 +631,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void ExternWithModifiers()
+        public void TestExternWithModifiers()
         {
             var test = @"
 namespace Foo {
@@ -648,7 +642,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void ExternWithAssert()
+        public void TestExternWithAssert()
         {
             var test = @"
 namespace Foo {
@@ -659,7 +653,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void ExternWithAssume()
+        public void TestExternWithAssume()
         {
             var test = @"
 namespace Foo {
@@ -670,7 +664,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void BaseGenericButNotReference()
+        public void TestBaseGenericButNotReference()
         {
             var test = @"
 namespace Foo {
@@ -681,7 +675,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void ReferenceGenericButNotBase()
+        public void TestReferenceGenericButNotBase()
         {
             var test = @"
 namespace Foo {
@@ -692,7 +686,7 @@ namespace Foo {
         }
 
         [Fact]
-        public void GenericTypeCountMismatch()
+        public void TestGenericTypeCountMismatch()
         {
             var test = @"
 namespace Foo {
@@ -701,7 +695,5 @@ namespace Foo {
 }";
             LanguageTestUtilities.AssertFailedTestLog("Mismatch in number of generic type arguments for base event E1.", test);
         }
-
-        #endregion failure tests
     }
 }

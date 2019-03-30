@@ -14,22 +14,14 @@ namespace Microsoft.PSharp
     /// </summary>
     internal sealed class RewritingProcess
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
-
-        #endregion
-
-        #region API
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// Creates a P# rewriting process.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <returns>RewritingProcess</returns>
         public static RewritingProcess Create(CompilationContext context)
         {
             return new RewritingProcess(context);
@@ -46,19 +38,12 @@ namespace Microsoft.PSharp
             RewritingEngine.Create(this.CompilationContext).Run();
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RewritingProcess"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
         private RewritingProcess(CompilationContext context)
         {
             this.CompilationContext = context;
         }
-
-        #endregion
     }
 }

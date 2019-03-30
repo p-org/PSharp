@@ -14,28 +14,18 @@ namespace Microsoft.PSharp.Utilities
     /// </summary>
     public sealed class ErrorReporter
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
-        private Configuration Configuration;
-
-        #endregion
-
-        #region properties
+        private readonly Configuration Configuration;
 
         /// <summary>
         /// The installed logger.
         /// </summary>
         internal ILogger Logger { get; set; }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ErrorReporter"/> class.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="logger">ILogger</param>
@@ -45,10 +35,6 @@ namespace Microsoft.PSharp.Utilities
             this.Logger = logger ?? new ConsoleLogger();
         }
 
-        #endregion
-
-        #region public methods
-
         /// <summary>
         /// Reports an error, followed by the current line terminator.
         /// </summary>
@@ -57,7 +43,7 @@ namespace Microsoft.PSharp.Utilities
         {
             this.Write("Error: ", ConsoleColor.Red);
             this.Write(value, ConsoleColor.Yellow);
-            this.Logger.WriteLine("");
+            this.Logger.WriteLine(string.Empty);
         }
 
         /// <summary>
@@ -70,13 +56,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Write("Warning: ", ConsoleColor.Red);
                 this.Write(value, ConsoleColor.Yellow);
-                this.Logger.WriteLine("");
+                this.Logger.WriteLine(string.Empty);
             }
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Writes the specified string value.
@@ -99,7 +81,5 @@ namespace Microsoft.PSharp.Utilities
                 Console.ForegroundColor = previousForegroundColor;
             }
         }
-
-        #endregion
     }
 }

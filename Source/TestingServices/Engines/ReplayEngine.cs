@@ -28,8 +28,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
@@ -39,9 +37,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
-        /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration, Assembly assembly)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
@@ -51,9 +46,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
@@ -63,10 +55,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        /// <param name="trace">Reproducable trace</param>
-        /// <returns>ReplayEngine</returns>
         public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action, string trace)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
@@ -77,173 +65,160 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Runs the P# testing engine.
         /// </summary>
-        /// <returns>ITestingEngine</returns>
         public override ITestingEngine Run()
         {
             Task task = this.CreateBugReproducingTask();
-            base.Execute(task);
+            this.Execute(task);
             return this;
         }
 
         /// <summary>
         /// Returns a report with the testing results.
         /// </summary>
-        /// <returns>Report</returns>
         public override string Report()
         {
             StringBuilder report = new StringBuilder();
 
-            report.AppendFormat("... Reproduced {0} bug{1}.", base.TestReport.NumOfFoundBugs,
-                base.TestReport.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendFormat("... Reproduced {0} bug{1}.", this.TestReport.NumOfFoundBugs,
+                this.TestReport.NumOfFoundBugs == 1 ? string.Empty : "s");
             report.AppendLine();
 
-            report.Append($"... Elapsed {base.Profiler.Results()} sec.");
+            report.Append($"... Elapsed {this.Profiler.Results()} sec.");
 
             return report.ToString();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private ReplayEngine(Configuration configuration)
             : base(configuration)
         {
-
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
         private ReplayEngine(Configuration configuration, Assembly assembly)
             : base(configuration, assembly)
         {
-
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
         private ReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
             : base(configuration, action)
         {
-
         }
 
-        /// <summary>
-        /// Creates a bug-reproducing task.
-        /// </summary>
-        /// <returns>Task</returns>
         private Task CreateBugReproducingTask()
         {
-            Task task = new Task(() =>
-            {
-                // Runtime used to serialize and test the program.
-                TestingRuntime runtime = null;
-
-                // Logger used to intercept the program output if no custom logger
-                // is installed and if verbosity is turned off.
-                InMemoryLogger runtimeLogger = null;
-
-                // Gets a handle to the standard output and error streams.
-                var stdOut = Console.Out;
-                var stdErr = Console.Error;
-
-                try
+            Task task = new Task(
+                () =>
                 {
-                    if (base.TestInitMethod != null)
+                    // Runtime used to serialize and test the program.
+                    TestingRuntime runtime = null;
+
+                    // Logger used to intercept the program output if no custom logger
+                    // is installed and if verbosity is turned off.
+                    InMemoryLogger runtimeLogger = null;
+
+                    // Gets a handle to the standard output and error streams.
+                    var stdOut = Console.Out;
+                    var stdErr = Console.Error;
+
+                    try
                     {
-                        // Initializes the test state.
-                        base.TestInitMethod.Invoke(null, new object[] { });
-                    }
+                        if (this.TestInitMethod != null)
+                        {
+                            // Initializes the test state.
+                            this.TestInitMethod.Invoke(null, Array.Empty<object>());
+                        }
 
-                    // Creates a new instance of the bug-finding runtime.
-                    if (base.TestRuntimeFactoryMethod != null)
+                        // Creates a new instance of the bug-finding runtime.
+                        if (this.TestRuntimeFactoryMethod != null)
+                        {
+                            runtime = (TestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                                null,
+                                new object[] { this.Configuration, this.Strategy, this.Reporter });
+                        }
+                        else
+                        {
+                            runtime = new TestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                        }
+
+                        // If verbosity is turned off, then intercept the program log, and also redirect
+                        // the standard output and error streams into the runtime logger.
+                        if (this.Configuration.Verbose < 2)
+                        {
+                            runtimeLogger = new InMemoryLogger();
+                            runtime.SetLogger(runtimeLogger);
+
+                            var writer = new LogWriter(new DisposingLogger());
+                            Console.SetOut(writer);
+                            Console.SetError(writer);
+                        }
+
+                        // Runs the test inside the P# test-harness machine.
+                        runtime.RunTestHarness(this.TestMethod, this.TestAction);
+
+                        // Wait for the test to terminate.
+                        runtime.Wait();
+
+                        // Invokes user-provided cleanup for this iteration.
+                        if (this.TestIterationDisposeMethod != null)
+                        {
+                            // Disposes the test state.
+                            this.TestIterationDisposeMethod.Invoke(null, Array.Empty<object>());
+                        }
+
+                        // Invokes user-provided cleanup for all iterations.
+                        if (this.TestDisposeMethod != null)
+                        {
+                            // Disposes the test state.
+                            this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
+                        }
+
+                        this.InternalError = (this.Strategy as ReplayStrategy).ErrorText;
+
+                        // Checks that no monitor is in a hot state at termination. Only
+                        // checked if no safety property violations have been found.
+                        if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
+                        {
+                            runtime.CheckNoMonitorInHotStateAtTermination();
+                        }
+
+                        if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
+                        {
+                            this.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                        }
+
+                        TestReport report = runtime.Scheduler.GetReport();
+                        report.CoverageInfo.Merge(runtime.CoverageInfo);
+                        this.TestReport.Merge(report);
+                    }
+                    catch (TargetInvocationException ex)
                     {
-                        runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
-                            new object[] { base.Configuration, base.Strategy, base.Reporter });
+                        if (!(ex.InnerException is TaskCanceledException))
+                        {
+                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        }
                     }
-                    else
+                    finally
                     {
-                        runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                        if (this.Configuration.Verbose < 2)
+                        {
+                            // Restores the standard output and error streams.
+                            Console.SetOut(stdOut);
+                            Console.SetError(stdErr);
+                        }
+
+                        // Cleans up the runtime.
+                        runtimeLogger?.Dispose();
+                        runtime?.Dispose();
                     }
-
-
-                    // If verbosity is turned off, then intercept the program log, and also redirect
-                    // the standard output and error streams into the runtime logger.
-                    if (base.Configuration.Verbose < 2)
-                    {
-                        runtimeLogger = new InMemoryLogger();
-                        runtime.SetLogger(runtimeLogger);
-
-                        var writer = new LogWriter(new DisposingLogger());
-                        Console.SetOut(writer);
-                        Console.SetError(writer);
-                    }
-
-                    // Runs the test inside the P# test-harness machine.
-                    runtime.RunTestHarness(base.TestMethod, base.TestAction);
-
-                    // Wait for the test to terminate.
-                    runtime.Wait();
-
-                    // Invokes user-provided cleanup for this iteration.
-                    if (base.TestIterationDisposeMethod != null)
-                    {
-                        // Disposes the test state.
-                        base.TestIterationDisposeMethod.Invoke(null, new object[] { });
-                    }
-
-                    // Invokes user-provided cleanup for all iterations.
-                    if (base.TestDisposeMethod != null)
-                    {
-                        // Disposes the test state.
-                        base.TestDisposeMethod.Invoke(null, new object[] { });
-                    }
-
-                    this.InternalError = (base.Strategy as ReplayStrategy).ErrorText;
-
-                    // Checks that no monitor is in a hot state at termination. Only
-                    // checked if no safety property violations have been found.
-                    if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
-                    {
-                        runtime.CheckNoMonitorInHotStateAtTermination();
-                    }
-
-                    if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
-                    {
-                        base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
-                    }
-
-                    TestReport report = runtime.Scheduler.GetReport();
-                    report.CoverageInfo.Merge(runtime.CoverageInfo);
-                    this.TestReport.Merge(report);
-                }
-                catch (TargetInvocationException ex)
-                {
-                    if (!(ex.InnerException is TaskCanceledException))
-                    {
-                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                    }
-                }
-                finally
-                {
-                    if (base.Configuration.Verbose < 2)
-                    {
-                        // Restores the standard output and error streams.
-                        Console.SetOut(stdOut);
-                        Console.SetError(stdErr);
-                    }
-
-                    // Cleans up the runtime.
-                    runtimeLogger?.Dispose();
-                    runtime?.Dispose();
-                }
-            }, base.CancellationTokenSource.Token);
+                }, this.CancellationTokenSource.Token);
 
             return task;
         }

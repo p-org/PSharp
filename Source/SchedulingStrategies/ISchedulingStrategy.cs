@@ -13,53 +13,50 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
     public interface ISchedulingStrategy
     {
         /// <summary>
-        /// Returns the next choice to schedule.
+        /// Returns the next entity to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
+        /// <param name="next">The next entity to schedule.</param>
+        /// <param name="choices">List of entities that can be scheduled.</param>
+        /// <param name="current">The currently scheduled entity.</param>
+        /// <returns>True if there is a next choice, else false.</returns>
         bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current);
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
+        /// <param name="next">The next boolean choice.</param>
+        /// <returns>True if there is a next choice, else false.</returns>
         bool GetNextBooleanChoice(int maxValue, out bool next);
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
+        /// <param name="next">The next integer choice.</param>
+        /// <returns>True if there is a next choice, else false.</returns>
         bool GetNextIntegerChoice(int maxValue, out int next);
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
+        /// <param name="next">The next entity to schedule.</param>
+        /// <param name="choices">List of entities that can be scheduled.</param>
+        /// <param name="current">The currently scheduled entity.</param>
         void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current);
 
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
+        /// <param name="next">The next boolean choice.</param>
         void ForceNextBooleanChoice(int maxValue, bool next);
 
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
         /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
+        /// <param name="next">The next integer choice.</param>
         void ForceNextIntegerChoice(int maxValue, int next);
 
         /// <summary>
@@ -67,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>True to start the next iteration</returns>
+        /// <returns>True to start the next iteration.</returns>
         bool PrepareForNextIteration();
 
         /// <summary>
@@ -79,26 +76,23 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Scheduled steps</returns>
+        /// <returns>The scheduled steps.</returns>
         int GetScheduledSteps();
 
         /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
         bool HasReachedMaxSchedulingSteps();
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
         bool IsFair();
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
         string GetDescription();
     }
 }

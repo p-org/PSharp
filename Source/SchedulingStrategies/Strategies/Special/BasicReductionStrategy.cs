@@ -24,10 +24,12 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             /// No reduction.
             /// </summary>
             None,
+
             /// <summary>
             /// Reduction strategy that omits scheduling points.
             /// </summary>
             OmitSchedulingPoints,
+
             /// <summary>
             /// Reduction strategy that forces scheduling points.
             /// </summary>
@@ -45,100 +47,75 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         private readonly ReductionStrategy Reduction;
 
         private int ScheduledSteps;
-
         private readonly int StepLimit;
-
         private readonly bool ReportActualScheduledSteps;
 
         /// <summary>
-        /// Creates a reduction strategy that reduces the choice-space for a child strategy.
+        /// Initializes a new instance of the <see cref="BasicReductionStrategy"/> class.
         /// </summary>
-        /// <param name="childStrategy">Child strategy.</param>
-        /// <param name="reductionStrategy">The reduction strategy used.</param>
-        /// <param name="stepLimit">The step limit.</param>
         public BasicReductionStrategy(
             ISchedulingStrategy childStrategy,
             ReductionStrategy reductionStrategy,
             int stepLimit = 0)
         {
-            ChildStrategy = childStrategy;
-            Reduction = reductionStrategy;
-            ScheduledSteps = 0;
-            StepLimit = stepLimit;
-            ReportActualScheduledSteps = StepLimit != 0;
+            this.ChildStrategy = childStrategy;
+            this.Reduction = reductionStrategy;
+            this.ScheduledSteps = 0;
+            this.StepLimit = stepLimit;
+            this.ReportActualScheduledSteps = this.StepLimit != 0;
         }
 
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             next = null;
-            return GetNextHelper(ref next, choices, current);
+            return this.GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            ++ScheduledSteps;
-            return ChildStrategy.GetNextBooleanChoice(maxValue, out next);
+            ++this.ScheduledSteps;
+            return this.ChildStrategy.GetNextBooleanChoice(maxValue, out next);
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            ++ScheduledSteps;
-            return ChildStrategy.GetNextIntegerChoice(maxValue, out next);
+            ++this.ScheduledSteps;
+            return this.ChildStrategy.GetNextIntegerChoice(maxValue, out next);
         }
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            GetNextHelper(ref next, choices, current);
+            this.GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
         {
-            ++ScheduledSteps;
-            ChildStrategy.ForceNextBooleanChoice(maxValue, next);
+            ++this.ScheduledSteps;
+            this.ChildStrategy.ForceNextBooleanChoice(maxValue, next);
         }
 
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
-            ++ScheduledSteps;
-            ChildStrategy.ForceNextIntegerChoice(maxValue, next);
+            ++this.ScheduledSteps;
+            this.ChildStrategy.ForceNextIntegerChoice(maxValue, next);
         }
 
         /// <summary>
@@ -146,11 +123,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
-            ScheduledSteps = 0;
-            return ChildStrategy.PrepareForNextIteration();
+            this.ScheduledSteps = 0;
+            return this.ChildStrategy.PrepareForNextIteration();
         }
 
         /// <summary>
@@ -159,62 +135,39 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public void Reset()
         {
-            ScheduledSteps = 0;
-            ChildStrategy.Reset();
+            this.ScheduledSteps = 0;
+            this.ChildStrategy.Reset();
         }
 
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Scheduled steps</returns>
-        public int GetScheduledSteps()
-        {
-            return ReportActualScheduledSteps
-                ? ScheduledSteps
-                : ChildStrategy.GetScheduledSteps();
-        }
+        public int GetScheduledSteps() => this.ReportActualScheduledSteps ? this.ScheduledSteps : this.ChildStrategy.GetScheduledSteps();
 
         /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
-        {
-            return ReportActualScheduledSteps
-                ? (StepLimit > 0 && ScheduledSteps >= StepLimit)
-                : ChildStrategy.HasReachedMaxSchedulingSteps();
-        }
+        public bool HasReachedMaxSchedulingSteps() => this.ReportActualScheduledSteps ?
+            (this.StepLimit > 0 && this.ScheduledSteps >= this.StepLimit) : this.ChildStrategy.HasReachedMaxSchedulingSteps();
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return ChildStrategy.IsFair();
-        }
+        public bool IsFair() => this.ChildStrategy.IsFair();
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return $"{ChildStrategy.GetDescription()}  w/ {Reduction}";
-        }
+        public string GetDescription() => $"{this.ChildStrategy.GetDescription()}  w/ {this.Reduction}";
 
         /// <summary>
         /// Returns or forces the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         private bool GetNextHelper(ref ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            ++ScheduledSteps;
-            switch (Reduction)
+            ++this.ScheduledSteps;
+            switch (this.Reduction)
             {
                 case ReductionStrategy.ForceSchedule:
                     {
@@ -229,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                             if (!partialOrderChoices.Contains(next))
                             {
                                 // Tell child strategy that we were forced (to do a particular send).
-                                ChildStrategy.ForceNext(next, choices, current);
+                                this.ChildStrategy.ForceNext(next, choices, current);
                                 return true;
                             }
 
@@ -246,13 +199,12 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                         }
 
                         // Normal schedule:
-                        return ChildStrategy.GetNext(out next, choices, current);
+                        return this.ChildStrategy.GetNext(out next, choices, current);
                     }
 
                 case ReductionStrategy.OmitSchedulingPoints:
                     {
                         // Otherwise, don't schedule before non-Send.
-
                         bool continueWithCurrent =
                             current.IsEnabled &&
                             IsPartialOrderOperation(current.NextOperationType);
@@ -264,15 +216,15 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                             if (continueWithCurrent && current != next)
                             {
                                 // ...so tell child.
-                                ChildStrategy.ForceNext(next, choices, current);
+                                this.ChildStrategy.ForceNext(next, choices, current);
                                 return true;
                             }
+
                             // Otherwise, don't tell child.
                             return true;
                         }
 
                         // Not being forced:
-
                         if (continueWithCurrent)
                         {
                             next = current;
@@ -280,7 +232,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                         }
 
                         // Normal schedule:
-                        return ChildStrategy.GetNext(out next, choices, current);
+                        return this.ChildStrategy.GetNext(out next, choices, current);
                     }
 
                 case ReductionStrategy.None:
@@ -288,10 +240,11 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                         // Normal schedule:
                         if (next != null)
                         {
-                            ChildStrategy.ForceNext(next, choices, current);
+                            this.ChildStrategy.ForceNext(next, choices, current);
                             return true;
                         }
-                        return ChildStrategy.GetNext(out next, choices, current);
+
+                        return this.ChildStrategy.GetNext(out next, choices, current);
                     }
 
                 default:

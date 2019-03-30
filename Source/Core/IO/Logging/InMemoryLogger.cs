@@ -15,15 +15,15 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Underlying string writer.
         /// </summary>
-        private StringWriter Writer;
+        private readonly StringWriter Writer;
 
         /// <summary>
-        /// Creates a new in-memory logger that logs everything by default.
+        /// Initializes a new instance of the <see cref="InMemoryLogger"/> class.
         /// </summary>
         public InMemoryLogger()
             : base(0)
         {
-            Writer = new StringWriter();
+            this.Writer = new StringWriter();
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="value">Text</param>
         public override void Write(string value)
         {
-            Writer.Write(value);
+            this.Writer.Write(value);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void Write(string format, params object[] args)
         {
-            Writer.Write(format, args);
+            this.Writer.Write(format, args);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="value">Text</param>
         public override void WriteLine(string value)
         {
-            Writer.WriteLine(value);
+            this.Writer.WriteLine(value);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void WriteLine(string format, params object[] args)
         {
-            Writer.WriteLine(format, args);
+            this.Writer.WriteLine(format, args);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override string ToString()
         {
-            return Writer.ToString();
+            return this.Writer.ToString();
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Dispose()
         {
-            Writer.Dispose();
+            this.Writer.Dispose();
         }
     }
 }

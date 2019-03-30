@@ -10,8 +10,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal class AnonymousActionHandler
     {
-        #region fields
-
         /// <summary>
         /// The block containing the handler statements.
         /// </summary>
@@ -22,16 +20,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal readonly bool IsAsync;
 
-        #endregion
-
-        #region internal API
-
         internal AnonymousActionHandler(BlockSyntax blockSyntax, bool isAsync)
         {
             this.BlockSyntax = blockSyntax;
             this.IsAsync = isAsync;
         }
-        
-        #endregion
     }
 }

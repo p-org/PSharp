@@ -22,14 +22,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         public int B;
 
         /// <summary>
-        /// Construct a race.
+        /// Initializes a new instance of the <see cref="Race"/> class.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
+        /// <param name="a">The index of the first racing visible operation.</param>
+        /// <param name="b">The index of the second racing visible operation.</param>
         public Race(int a, int b)
         {
-            A = a;
-            B = b;
+            this.A = a;
+            this.B = b;
         }
     }
 }

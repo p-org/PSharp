@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class MethodDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The machine parent node.
         /// </summary>
@@ -78,15 +76,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal BlockSyntax StatementBlock;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MethodDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
         internal MethodDeclaration(IPSharpProgram program, MachineDeclaration machineNode)
             : base(program)
         {
@@ -111,26 +103,23 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Debug.WriteLine("Exception was thrown during rewriting:");
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                Error.ReportAndExit("Failed to rewrite method '{0}' of machine '{1}'.",
-                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+                Error.ReportAndExit(
+                    "Failed to rewrite method '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text,
+                    this.Machine.Identifier.TextUnit.Text);
             }
 
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the rewritten method declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenMethodDeclaration(int indentLevel)
         {
             var indent = GetIndent(indentLevel);
             string text = indent;
-            
+
             if (this.AccessModifier == AccessModifier.Protected)
             {
                 text += "protected ";
@@ -185,7 +174,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.StatementBlock != null)
             {
                 this.StatementBlock.Rewrite(indentLevel);
-                text += "\n" + StatementBlock.TextUnit.Text;
+                text += "\n" + this.StatementBlock.TextUnit.Text;
             }
             else
             {
@@ -196,7 +185,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
-
-        #endregion
     }
 }

@@ -13,19 +13,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
     /// <summary>
     /// A single-process implementation of the chain replication protocol written
     /// using P# as a C# library.
-    /// 
+    ///
     /// The chain replication protocol is described in the following paper:
     /// http://www.cs.cornell.edu/home/rvr/papers/OSDI04.pdf
-    ///  
+    ///
     /// This test contains a bug that leads to a safety assertion failure.
     /// </summary>
     public class ChainReplicationTest : BaseTest
     {
         public ChainReplicationTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class SentLog
+        private class SentLog
         {
             public int NextSeqId;
             public MachineId Client;
@@ -41,20 +42,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Environment : Machine
+        private class Environment : Machine
         {
-            List<MachineId> Servers;
-            List<MachineId> Clients;
+            private List<MachineId> Servers;
+            private List<MachineId> Clients;
 
-            int NumOfServers;
+            private int NumOfServers;
 
-            MachineId ChainReplicationMaster;
+            private MachineId ChainReplicationMaster;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Servers = new List<MachineId>();
                 this.Clients = new List<MachineId>();
@@ -67,17 +70,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                     if (i == 0)
                     {
-                        server = this.CreateMachine(typeof(ChainReplicationServer),
+                        server = this.CreateMachine(
+                            typeof(ChainReplicationServer),
                             new ChainReplicationServer.Config(i, true, false));
                     }
                     else if (i == this.NumOfServers - 1)
                     {
-                        server = this.CreateMachine(typeof(ChainReplicationServer),
+                        server = this.CreateMachine(
+                            typeof(ChainReplicationServer),
                             new ChainReplicationServer.Config(i, false, true));
                     }
                     else
                     {
-                        server = this.CreateMachine(typeof(ChainReplicationServer),
+                        server = this.CreateMachine(
+                            typeof(ChainReplicationServer),
                             new ChainReplicationServer.Config(i, false, false));
                     }
 
@@ -115,20 +121,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     this.Send(this.Servers[i], new ChainReplicationServer.PredSucc(pred, succ));
                 }
 
-                this.Clients.Add(this.CreateMachine(typeof(Client),
+                this.Clients.Add(this.CreateMachine(
+                    typeof(Client),
                     new Client.Config(0, this.Servers[0], this.Servers[this.NumOfServers - 1], 1)));
 
-                this.Clients.Add(this.CreateMachine(typeof(Client),
+                this.Clients.Add(this.CreateMachine(
+                    typeof(Client),
                     new Client.Config(1, this.Servers[0], this.Servers[this.NumOfServers - 1], 100)));
 
-                this.ChainReplicationMaster = this.CreateMachine(typeof(ChainReplicationMaster),
+                this.ChainReplicationMaster = this.CreateMachine(
+                    typeof(ChainReplicationMaster),
                     new ChainReplicationMaster.Config(this.Servers, this.Clients));
 
                 this.Raise(new Halt());
             }
         }
 
-        class FailureDetector : Machine
+        private class FailureDetector : Machine
         {
             internal class Config : Event
             {
@@ -176,22 +185,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class Pong : Event { }
-            private class InjectFailure : Event { }
-            private class Local : Event { }
+            internal class Pong : Event
+            {
+            }
 
-            MachineId Master;
-            List<MachineId> Servers;
+            private class InjectFailure : Event
+            {
+            }
 
-            int CheckNodeIdx;
-            int Failures;
+            private class Local : Event
+            {
+            }
+
+            private MachineId Master;
+            private List<MachineId> Servers;
+
+            private int CheckNodeIdx;
+            private int Failures;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(StartMonitoring))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Master = (this.ReceivedEvent as Config).Master;
                 this.Servers = (this.ReceivedEvent as Config).Servers;
@@ -205,9 +224,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(StartMonitoringOnEntry))]
             [OnEventGotoState(typeof(Pong), typeof(StartMonitoring), nameof(HandlePong))]
             [OnEventGotoState(typeof(InjectFailure), typeof(HandleFailure))]
-            class StartMonitoring : MachineState { }
+            private class StartMonitoring : MachineState
+            {
+            }
 
-            void StartMonitoringOnEntry()
+            private void StartMonitoringOnEntry()
             {
                 if (this.Failures < 1)
                 {
@@ -237,7 +258,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void HandlePong()
+            private void HandlePong()
             {
                 this.CheckNodeIdx++;
                 if (this.CheckNodeIdx == this.Servers.Count)
@@ -249,21 +270,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(HandleFailureOnEntry))]
             [OnEventGotoState(typeof(FailureCorrected), typeof(StartMonitoring), nameof(ProcessFailureCorrected))]
             [IgnoreEvents(typeof(Pong), typeof(InjectFailure))]
-            class HandleFailure : MachineState { }
+            private class HandleFailure : MachineState
+            {
+            }
 
-            void HandleFailureOnEntry()
+            private void HandleFailureOnEntry()
             {
                 this.Send(this.Master, new FailureDetected(this.Servers[this.CheckNodeIdx]));
             }
 
-            void ProcessFailureCorrected()
+            private void ProcessFailureCorrected()
             {
                 this.CheckNodeIdx = 0;
                 this.Servers = (this.ReceivedEvent as FailureCorrected).Servers;
             }
         }
 
-        class ChainReplicationMaster : Machine
+        private class ChainReplicationMaster : Machine
         {
             internal class Config : Event
             {
@@ -300,40 +323,72 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class Success : Event { }
-            internal class HeadChanged : Event { }
-            internal class TailChanged : Event { }
-            private class HeadFailed : Event { }
-            private class TailFailed : Event { }
-            private class ServerFailed : Event { }
-            private class FixSuccessor : Event { }
-            private class FixPredecessor : Event { }
-            private class Local : Event { }
-            private class Done : Event { }
+            internal class Success : Event
+            {
+            }
 
-            List<MachineId> Servers;
-            List<MachineId> Clients;
+            internal class HeadChanged : Event
+            {
+            }
 
-            MachineId FailureDetector;
+            internal class TailChanged : Event
+            {
+            }
 
-            MachineId Head;
-            MachineId Tail;
+            private class HeadFailed : Event
+            {
+            }
 
-            int FaultyNodeIndex;
-            int LastUpdateReceivedSucc;
-            int LastAckSent;
+            private class TailFailed : Event
+            {
+            }
+
+            private class ServerFailed : Event
+            {
+            }
+
+            private class FixSuccessor : Event
+            {
+            }
+
+            private class FixPredecessor : Event
+            {
+            }
+
+            private class Local : Event
+            {
+            }
+
+            private class Done : Event
+            {
+            }
+
+            private List<MachineId> Servers;
+            private List<MachineId> Clients;
+
+            private MachineId FailureDetector;
+
+            private MachineId Head;
+            private MachineId Tail;
+
+            private int FaultyNodeIndex;
+            private int LastUpdateReceivedSucc;
+            private int LastAckSent;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(WaitForFailure))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Servers = (this.ReceivedEvent as Config).Servers;
                 this.Clients = (this.ReceivedEvent as Config).Clients;
 
-                this.FailureDetector = this.CreateMachine(typeof(FailureDetector),
+                this.FailureDetector = this.CreateMachine(
+                    typeof(FailureDetector),
                     new FailureDetector.Config(this.Id, this.Servers));
 
                 this.Head = this.Servers[0];
@@ -346,9 +401,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventGotoState(typeof(TailFailed), typeof(CorrectTailFailure))]
             [OnEventGotoState(typeof(ServerFailed), typeof(CorrectServerFailure))]
             [OnEventDoAction(typeof(FailureDetector.FailureDetected), nameof(CheckWhichNodeFailed))]
-            class WaitForFailure : MachineState { }
+            private class WaitForFailure : MachineState
+            {
+            }
 
-            void CheckWhichNodeFailed()
+            private void CheckWhichNodeFailed()
             {
                 this.Assert(this.Servers.Count > 1, "All nodes have failed.");
 
@@ -379,9 +436,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(CorrectHeadFailureOnEntry))]
             [OnEventGotoState(typeof(Done), typeof(WaitForFailure), nameof(UpdateFailureDetector))]
             [OnEventDoAction(typeof(HeadChanged), nameof(UpdateClients))]
-            class CorrectHeadFailure : MachineState { }
+            private class CorrectHeadFailure : MachineState
+            {
+            }
 
-            void CorrectHeadFailureOnEntry()
+            private void CorrectHeadFailureOnEntry()
             {
                 this.Servers.RemoveAt(0);
 
@@ -395,7 +454,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Head, new BecomeHead(this.Id));
             }
 
-            void UpdateClients()
+            private void UpdateClients()
             {
                 for (int i = 0; i < this.Clients.Count; i++)
                 {
@@ -405,7 +464,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Done());
             }
 
-            void UpdateFailureDetector()
+            private void UpdateFailureDetector()
             {
                 this.Send(this.FailureDetector, new FailureDetector.FailureCorrected(this.Servers));
             }
@@ -413,9 +472,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(CorrectTailFailureOnEntry))]
             [OnEventGotoState(typeof(Done), typeof(WaitForFailure), nameof(UpdateFailureDetector))]
             [OnEventDoAction(typeof(TailChanged), nameof(UpdateClients))]
-            class CorrectTailFailure : MachineState { }
+            private class CorrectTailFailure : MachineState
+            {
+            }
 
-            void CorrectTailFailureOnEntry()
+            private void CorrectTailFailureOnEntry()
             {
                 this.Servers.RemoveAt(this.Servers.Count - 1);
 
@@ -435,9 +496,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(FixPredecessor), nameof(ProcessFixPredecessor))]
             [OnEventDoAction(typeof(ChainReplicationServer.NewSuccInfo), nameof(SetLastUpdate))]
             [OnEventDoAction(typeof(Success), nameof(ProcessSuccess))]
-            class CorrectServerFailure : MachineState { }
+            private class CorrectServerFailure : MachineState
+            {
+            }
 
-            void CorrectServerFailureOnEntry()
+            private void CorrectServerFailureOnEntry()
             {
                 this.Servers.RemoveAt(this.FaultyNodeIndex);
 
@@ -449,19 +512,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new FixSuccessor());
             }
 
-            void ProcessFixSuccessor()
+            private void ProcessFixSuccessor()
             {
                 this.Send(this.Servers[this.FaultyNodeIndex], new ChainReplicationServer.NewPredecessor(
                     this.Id, this.Servers[this.FaultyNodeIndex - 1]));
             }
 
-            void ProcessFixPredecessor()
+            private void ProcessFixPredecessor()
             {
-                this.Send(this.Servers[this.FaultyNodeIndex - 1], new ChainReplicationServer.NewSuccessor(this.Id,
-                    this.Servers[this.FaultyNodeIndex], this.LastAckSent, this.LastUpdateReceivedSucc));
+                this.Send(this.Servers[this.FaultyNodeIndex - 1], new ChainReplicationServer.NewSuccessor(
+                    this.Id, this.Servers[this.FaultyNodeIndex], this.LastAckSent, this.LastUpdateReceivedSucc));
             }
 
-            void SetLastUpdate()
+            private void SetLastUpdate()
             {
                 this.LastUpdateReceivedSucc = (this.ReceivedEvent as
                     ChainReplicationServer.NewSuccInfo).LastUpdateReceivedSucc;
@@ -470,13 +533,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new FixPredecessor());
             }
 
-            void ProcessSuccess()
+            private void ProcessSuccess()
             {
                 this.Raise(new Done());
             }
         }
 
-        class ChainReplicationServer : Machine
+        private class ChainReplicationServer : Machine
         {
             internal class Config : Event
             {
@@ -591,21 +654,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class ResponseToUpdate : Event { }
-            private class Local : Event { }
+            internal class ResponseToUpdate : Event
+            {
+            }
 
-            int ServerId;
-            bool IsHead;
-            bool IsTail;
+            private class Local : Event
+            {
+            }
 
-            MachineId Predecessor;
-            MachineId Successor;
+            private int ServerId;
+            private bool IsHead;
+            private bool IsTail;
 
-            Dictionary<int, int> KeyValueStore;
-            List<int> History;
-            List<SentLog> SentHistory;
+            private MachineId Predecessor;
+            private MachineId Successor;
 
-            int NextSeqId;
+            private Dictionary<int, int> KeyValueStore;
+            private List<int> History;
+            private List<SentLog> SentHistory;
+
+            private int NextSeqId;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -613,9 +681,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(PredSucc), nameof(SetupPredSucc))]
             [DeferEvents(typeof(Client.Update), typeof(Client.Query),
                 typeof(BackwardAck), typeof(ForwardUpdate))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.ServerId = (this.ReceivedEvent as Config).Id;
                 this.IsHead = (this.ReceivedEvent as Config).IsHead;
@@ -628,7 +698,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.NextSeqId = 0;
             }
 
-            void SetupPredSucc()
+            private void SetupPredSucc()
             {
                 this.Predecessor = (this.ReceivedEvent as PredSucc).Predecessor;
                 this.Successor = (this.ReceivedEvent as PredSucc).Successor;
@@ -644,15 +714,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(ChainReplicationMaster.BecomeHead), nameof(ProcessBecomeHead))]
             [OnEventDoAction(typeof(ChainReplicationMaster.BecomeTail), nameof(ProcessBecomeTail))]
             [OnEventDoAction(typeof(FailureDetector.Ping), nameof(SendPong))]
-            class WaitForRequest : MachineState { }
+            private class WaitForRequest : MachineState
+            {
+            }
 
-            void ProcessUpdateAction()
+            private void ProcessUpdateAction()
             {
                 this.NextSeqId++;
                 this.Assert(this.IsHead, "Server {0} is not head", this.ServerId);
             }
 
-            void ProcessQueryAction()
+            private void ProcessQueryAction()
             {
                 var client = (this.ReceivedEvent as Client.Query).Client;
                 var key = (this.ReceivedEvent as Client.Query).Key;
@@ -672,7 +744,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessBecomeHead()
+            private void ProcessBecomeHead()
             {
                 this.IsHead = true;
                 this.Predecessor = this.Id;
@@ -681,7 +753,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(target, new ChainReplicationMaster.HeadChanged());
             }
 
-            void ProcessBecomeTail()
+            private void ProcessBecomeTail()
             {
                 this.IsTail = true;
                 this.Successor = this.Id;
@@ -699,13 +771,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(target, new ChainReplicationMaster.TailChanged());
             }
 
-            void SendPong()
+            private void SendPong()
             {
                 var target = (this.ReceivedEvent as FailureDetector.Ping).Target;
                 this.Send(target, new FailureDetector.Pong());
             }
 
-            void UpdatePredecessor()
+            private void UpdatePredecessor()
             {
                 var master = (this.ReceivedEvent as NewPredecessor).Master;
                 this.Predecessor = (this.ReceivedEvent as NewPredecessor).Predecessor;
@@ -714,18 +786,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     if (this.SentHistory.Count > 0)
                     {
-                        this.Send(master, new NewSuccInfo(this.History[this.History.Count - 1],
+                        this.Send(master, new NewSuccInfo(
+                            this.History[this.History.Count - 1],
                             this.SentHistory[0].NextSeqId));
                     }
                     else
                     {
-                        this.Send(master, new NewSuccInfo(this.History[this.History.Count - 1],
+                        this.Send(master, new NewSuccInfo(
+                            this.History[this.History.Count - 1],
                             this.History[this.History.Count - 1]));
                     }
                 }
             }
 
-            void UpdateSuccessor()
+            private void UpdateSuccessor()
             {
                 var master = (this.ReceivedEvent as NewSuccessor).Master;
                 this.Successor = (this.ReceivedEvent as NewSuccessor).Successor;
@@ -764,9 +838,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(ProcessUpdateOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
-            class ProcessUpdate : MachineState { }
+            private class ProcessUpdate : MachineState
+            {
+            }
 
-            void ProcessUpdateOnEntry()
+            private void ProcessUpdateOnEntry()
             {
                 var client = (this.ReceivedEvent as Client.Update).Client;
                 var key = (this.ReceivedEvent as Client.Update).Key;
@@ -797,9 +873,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(ProcessFwdUpdateOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
-            class ProcessFwdUpdate : MachineState { }
+            private class ProcessFwdUpdate : MachineState
+            {
+            }
 
-            void ProcessFwdUpdateOnEntry()
+            private void ProcessFwdUpdateOnEntry()
             {
                 var pred = (this.ReceivedEvent as ForwardUpdate).Predecessor;
                 var nextSeqId = (this.ReceivedEvent as ForwardUpdate).NextSeqId;
@@ -853,9 +931,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(ProcessBckAckOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
-            class ProcessBckAck : MachineState { }
+            private class ProcessBckAck : MachineState
+            {
+            }
 
-            void ProcessBckAckOnEntry()
+            private void ProcessBckAckOnEntry()
             {
                 var nextSeqId = (this.ReceivedEvent as BackwardAck).NextSeqId;
 
@@ -869,7 +949,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Local());
             }
 
-            void RemoveItemFromSent(int seqId)
+            private void RemoveItemFromSent(int seqId)
             {
                 int removeIdx = -1;
 
@@ -888,7 +968,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Client : Machine
+        private class Client : Machine
         {
             internal class Config : Event
             {
@@ -948,25 +1028,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class Local : Event { }
-            private class Done : Event { }
+            private class Local : Event
+            {
+            }
 
-            int ClientId;
+            private class Done : Event
+            {
+            }
 
-            MachineId HeadNode;
-            MachineId TailNode;
+            private int ClientId;
 
-            int StartIn;
-            int Next;
+            private MachineId HeadNode;
+            private MachineId TailNode;
 
-            Dictionary<int, int> KeyValueStore;
+            private int StartIn;
+            private int Next;
+
+            private Dictionary<int, int> KeyValueStore;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(PumpUpdateRequests))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.ClientId = (this.ReceivedEvent as Config).Id;
 
@@ -988,11 +1075,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(PumpUpdateRequestsOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(PumpUpdateRequests), nameof(PumpRequestsLocalAction))]
             [OnEventGotoState(typeof(Done), typeof(PumpQueryRequests), nameof(PumpRequestsDoneAction))]
-            [IgnoreEvents(typeof(ChainReplicationServer.ResponseToUpdate),
-                typeof(ChainReplicationServer.ResponseToQuery))]
-            class PumpUpdateRequests : MachineState { }
+            [IgnoreEvents(typeof(ChainReplicationServer.ResponseToUpdate), typeof(ChainReplicationServer.ResponseToQuery))]
+            private class PumpUpdateRequests : MachineState
+            {
+            }
 
-            void PumpUpdateRequestsOnEntry()
+            private void PumpUpdateRequestsOnEntry()
             {
                 this.Send(this.HeadNode, new Update(this.Id, this.Next * this.StartIn,
                     this.KeyValueStore[this.Next * this.StartIn]));
@@ -1009,11 +1097,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(PumpQueryRequestsOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(PumpQueryRequests), nameof(PumpRequestsLocalAction))]
-            [IgnoreEvents(typeof(ChainReplicationServer.ResponseToUpdate),
-                typeof(ChainReplicationServer.ResponseToQuery))]
-            class PumpQueryRequests : MachineState { }
+            [IgnoreEvents(typeof(ChainReplicationServer.ResponseToUpdate), typeof(ChainReplicationServer.ResponseToQuery))]
+            private class PumpQueryRequests : MachineState
+            {
+            }
 
-            void PumpQueryRequestsOnEntry()
+            private void PumpQueryRequestsOnEntry()
             {
                 this.Send(this.TailNode, new Query(this.Id, this.Next * this.StartIn));
 
@@ -1027,18 +1116,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void PumpRequestsLocalAction()
+            private void PumpRequestsLocalAction()
             {
                 this.Next++;
             }
 
-            void PumpRequestsDoneAction()
+            private void PumpRequestsDoneAction()
             {
                 this.Next = 1;
             }
         }
 
-        class InvariantMonitor : Monitor
+        private class InvariantMonitor : Monitor
         {
             internal class Config : Event
             {
@@ -1088,23 +1177,27 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class Local : Event { }
+            private class Local : Event
+            {
+            }
 
-            List<MachineId> Servers;
+            private List<MachineId> Servers;
 
-            Dictionary<MachineId, List<int>> History;
-            Dictionary<MachineId, List<int>> SentHistory;
-            List<int> TempSeq;
+            private Dictionary<MachineId, List<int>> History;
+            private Dictionary<MachineId, List<int>> SentHistory;
+            private List<int> TempSeq;
 
-            MachineId Next;
-            MachineId Prev;
+            private MachineId Next;
+            private MachineId Prev;
 
             [Start]
             [OnEventGotoState(typeof(Local), typeof(WaitForUpdateMessage))]
             [OnEventDoAction(typeof(Config), nameof(Configure))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Servers = (this.ReceivedEvent as Config).Servers;
                 this.History = new Dictionary<MachineId, List<int>>();
@@ -1117,9 +1210,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(HistoryUpdate), nameof(CheckUpdatePropagationInvariant))]
             [OnEventDoAction(typeof(SentUpdate), nameof(CheckInprocessRequestsInvariant))]
             [OnEventDoAction(typeof(UpdateServers), nameof(ProcessUpdateServers))]
-            class WaitForUpdateMessage : MonitorState { }
+            private class WaitForUpdateMessage : MonitorState
+            {
+            }
 
-            void CheckUpdatePropagationInvariant()
+            private void CheckUpdatePropagationInvariant()
             {
                 var server = (this.ReceivedEvent as HistoryUpdate).Server;
                 var history = (this.ReceivedEvent as HistoryUpdate).History;
@@ -1150,7 +1245,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void CheckInprocessRequestsInvariant()
+            private void CheckInprocessRequestsInvariant()
             {
                 this.ClearTempSeq();
 
@@ -1191,7 +1286,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.ClearTempSeq();
             }
 
-            void GetNext(MachineId curr)
+            private void GetNext(MachineId curr)
             {
                 this.Next = null;
 
@@ -1204,7 +1299,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void GetPrev(MachineId curr)
+            private void GetPrev(MachineId curr)
             {
                 this.Prev = null;
 
@@ -1217,7 +1312,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ExtractSeqId(List<SentLog> seq)
+            private void ExtractSeqId(List<SentLog> seq)
             {
                 this.ClearTempSeq();
 
@@ -1236,7 +1331,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.IsSorted(this.TempSeq);
             }
 
-            void MergeSeq(List<int> seq1, List<int> seq2)
+            private void MergeSeq(List<int> seq1, List<int> seq2)
             {
                 this.ClearTempSeq();
                 this.IsSorted(seq1);
@@ -1268,7 +1363,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.IsSorted(this.TempSeq);
             }
 
-            void IsSorted(List<int> seq)
+            private void IsSorted(List<int> seq)
             {
                 for (int i = 0; i < seq.Count - 1; i++)
                 {
@@ -1276,7 +1371,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void CheckLessOrEqualThan(List<int> seq1, List<int> seq2)
+            private void CheckLessOrEqualThan(List<int> seq1, List<int> seq2)
             {
                 this.IsSorted(seq1);
                 this.IsSorted(seq2);
@@ -1292,7 +1387,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void CheckEqual(List<int> seq1, List<int> seq2)
+            private void CheckEqual(List<int> seq1, List<int> seq2)
             {
                 this.IsSorted(seq1);
                 this.IsSorted(seq2);
@@ -1308,20 +1403,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ClearTempSeq()
+            private void ClearTempSeq()
             {
                 this.Assert(this.TempSeq.Count <= 6, "Temp sequence has more than 6 elements.");
                 this.TempSeq.Clear();
                 this.Assert(this.TempSeq.Count == 0, "Temp sequence is not cleared.");
             }
 
-            void ProcessUpdateServers()
+            private void ProcessUpdateServers()
             {
                 this.Servers = (this.ReceivedEvent as UpdateServers).Servers;
             }
         }
 
-        class ServerResponseSeqMonitor : Monitor
+        private class ServerResponseSeqMonitor : Monitor
         {
             internal class Config : Event
             {
@@ -1375,17 +1470,21 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class Local : Event { }
+            private class Local : Event
+            {
+            }
 
-            List<MachineId> Servers;
-            Dictionary<int, int> LastUpdateResponse;
+            private List<MachineId> Servers;
+            private Dictionary<int, int> LastUpdateResponse;
 
             [Start]
             [OnEventGotoState(typeof(Local), typeof(Wait))]
             [OnEventDoAction(typeof(Config), nameof(Configure))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Servers = (this.ReceivedEvent as Config).Servers;
                 this.LastUpdateResponse = new Dictionary<int, int>();
@@ -1395,9 +1494,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(ResponseToUpdate), nameof(ResponseToUpdateAction))]
             [OnEventDoAction(typeof(ResponseToQuery), nameof(ResponseToQueryAction))]
             [OnEventDoAction(typeof(UpdateServers), nameof(ProcessUpdateServers))]
-            class Wait : MonitorState { }
+            private class Wait : MonitorState
+            {
+            }
 
-            void ResponseToUpdateAction()
+            private void ResponseToUpdateAction()
             {
                 var tail = (this.ReceivedEvent as ResponseToUpdate).Tail;
                 var key = (this.ReceivedEvent as ResponseToUpdate).Key;
@@ -1416,7 +1517,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ResponseToQueryAction()
+            private void ResponseToQueryAction()
             {
                 var tail = (this.ReceivedEvent as ResponseToQuery).Tail;
                 var key = (this.ReceivedEvent as ResponseToQuery).Key;
@@ -1436,25 +1537,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Theory]
-        //[ClassData(typeof(SeedGenerator))]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(90)]
         public void TestSequenceNotSortedInChainReplicationProtocol(int seed)
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
             configuration.MaxSchedulingSteps = 100;
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 2;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(InvariantMonitor));
                 r.RegisterMonitor(typeof(ServerResponseSeqMonitor));
                 r.CreateMachine(typeof(Environment));
             });
 
             var bugReport = "Sequence is not sorted.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

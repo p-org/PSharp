@@ -112,8 +112,8 @@ namespace Microsoft.PSharp.IO
         /// Called when an event is received by a machine.
         /// </summary>
         /// <param name="machineId">Id of the machine that received the event.</param>
-        /// <param name="eventName">The name of the event.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
+        /// <param name="eventName">The name of the event.</param>
         /// <param name="wasBlocked">The machine was waiting for one or more specific events,
         ///     and <paramref name="eventName"/> was one of them</param>
         void OnReceive(MachineId machineId, string currStateName, string eventName, bool wasBlocked);
@@ -206,8 +206,8 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine throws an exception
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         void OnMachineExceptionThrown(MachineId machineId, string currStateName, string actionName, Exception ex);
 
@@ -215,8 +215,8 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine's OnException method is used to handle a thrown exception
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         void OnMachineExceptionHandled(MachineId machineId, string currStateName, string actionName, Exception ex);
 
@@ -246,7 +246,7 @@ namespace Microsoft.PSharp.IO
         /// Called when a monitor executes an action.
         /// </summary>
         /// <param name="monitorTypeName">Name of type of the monitor that is executing the action.</param>
-        /// <param name="monitorId">Name of type of the monitor that is executing the action.</param>
+        /// <param name="monitorId">Id of the monitor that is executing the action.</param>
         /// <param name="currStateName">The name of the state in which the action is being executed.</param>
         /// <param name="actionName">The name of the action being executed.</param>
         void OnMonitorAction(string monitorTypeName, MachineId monitorId, string currStateName, string actionName);

@@ -12,8 +12,6 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     public interface ITestingEngine
     {
-        #region properties
-
         /// <summary>
         /// Data structure containing information
         /// gathered during testing.
@@ -24,10 +22,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Interface for registering runtime operations.
         /// </summary>
         IRegisterRuntimeOperation Reporter { get; }
-
-        #endregion
-
-        #region methods
 
         /// <summary>
         /// Runs the P# testing engine.
@@ -61,7 +55,5 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <returns>Report</returns>
         string Report();
-
-        #endregion
     }
 }

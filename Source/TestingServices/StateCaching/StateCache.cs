@@ -26,60 +26,56 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         private readonly HashSet<Fingerprint> Fingerprints;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateCache"/> class.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
         internal StateCache(TestingRuntime runtime)
         {
-            Runtime = runtime;
-            Fingerprints = new HashSet<Fingerprint>();
+            this.Runtime = runtime;
+            this.Fingerprints = new HashSet<Fingerprint>();
         }
 
         /// <summary>
         /// Captures a snapshot of the program state.
         /// </summary>
-        /// <param name="state">Captured state</param>
-        /// <param name="fingerprint">Fingerprint</param>
-        /// <param name="fingerprintIndexMap">Fingerprint to schedule step index map</param>
-        /// <param name="scheduleStep">ScheduleStep</param>
-        /// <param name="monitors">List of monitors</param>
-        /// <returns>True if state already exists</returns>
         internal bool CaptureState(out State state, out Fingerprint fingerprint, Dictionary<Fingerprint, List<int>> fingerprintIndexMap,
             ScheduleStep scheduleStep, List<Monitor> monitors)
         {
-            fingerprint = Runtime.GetProgramState();
-            var enabledMachineIds = Runtime.Scheduler.GetEnabledSchedulableIds();
+            fingerprint = this.Runtime.GetProgramState();
+            var enabledMachineIds = this.Runtime.Scheduler.GetEnabledSchedulableIds();
             state = new State(fingerprint, enabledMachineIds, GetMonitorStatus(monitors));
 
             if (Debug.IsEnabled)
             {
                 if (scheduleStep.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at " +
-                        "scheduling choice.", fingerprint.GetHashCode());
+                    Debug.WriteLine(
+                        "<LivenessDebug> Captured program state '{0}' at scheduling choice.", fingerprint.GetHashCode());
                 }
                 else if (scheduleStep.Type == ScheduleStepType.NondeterministicChoice &&
                     scheduleStep.BooleanChoice != null)
                 {
-                    Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
-                        "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.BooleanChoice.Value);
+                    Debug.WriteLine(
+                        "<LivenessDebug> Captured program state '{0}' at nondeterministic choice '{1}'.",
+                        fingerprint.GetHashCode(), scheduleStep.BooleanChoice.Value);
                 }
                 else if (scheduleStep.Type == ScheduleStepType.FairNondeterministicChoice &&
                     scheduleStep.BooleanChoice != null)
                 {
-                    Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice " +
-                        "'{1}-{2}'.", fingerprint.GetHashCode(), scheduleStep.NondetId, scheduleStep.BooleanChoice.Value);
+                    Debug.WriteLine(
+                        "<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice '{1}-{2}'.",
+                        fingerprint.GetHashCode(), scheduleStep.NondetId, scheduleStep.BooleanChoice.Value);
                 }
                 else if (scheduleStep.Type == ScheduleStepType.NondeterministicChoice &&
                     scheduleStep.IntegerChoice != null)
                 {
-                    Debug.WriteLine("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
-                        "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
+                    Debug.WriteLine(
+                        "<LivenessDebug> Captured program state '{0}' at nondeterministic choice '{1}'.",
+                        fingerprint.GetHashCode(), scheduleStep.IntegerChoice.Value);
                 }
             }
 
-            var stateExists = Fingerprints.Contains(fingerprint);
-            Fingerprints.Add(fingerprint);
+            var stateExists = this.Fingerprints.Contains(fingerprint);
+            this.Fingerprints.Add(fingerprint);
             scheduleStep.State = state;
 
             if (!fingerprintIndexMap.ContainsKey(fingerprint))
@@ -87,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
                 var hs = new List<int> { scheduleStep.Index };
                 fingerprintIndexMap.Add(fingerprint, hs);
             }
-            else 
+            else
             {
                 fingerprintIndexMap[fingerprint].Add(scheduleStep.Index);
             }
@@ -98,9 +94,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Returns the monitor status.
         /// </summary>
-        /// <param name="monitors">List of monitors</param>
-        /// <returns>Monitor status</returns>
-        private Dictionary<Monitor, MonitorStatus> GetMonitorStatus(List<Monitor> monitors)
+        private static Dictionary<Monitor, MonitorStatus> GetMonitorStatus(List<Monitor> monitors)
         {
             var monitorStatus = new Dictionary<Monitor, MonitorStatus>();
             foreach (var monitor in monitors)

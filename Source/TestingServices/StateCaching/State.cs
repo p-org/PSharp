@@ -31,11 +31,8 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal readonly HashSet<ulong> EnabledMachineIds;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="State"/> class.
         /// </summary>
-        /// <param name="fingerprint">Fingerprint</param>
-        /// <param name="enabledMachineIds">Ids of enabled machines</param>
-        /// <param name="monitorStatus">Monitor status</param>
         internal State(Fingerprint fingerprint, HashSet<ulong> enabledMachineIds, Dictionary<Monitor, MonitorStatus> monitorStatus)
         {
             this.Fingerprint = fingerprint;

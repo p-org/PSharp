@@ -14,19 +14,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
     /// <summary>
     /// A single-process implementation of the chord peer-to-peer look up service
     /// written using P# as a C# library.
-    /// 
+    ///
     /// The Chord protocol is described in the following paper:
     /// https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf
-    ///  
+    ///
     /// This test contains a bug that leads to a liveness assertion failure.
     /// </summary>
     public class ChordTest : BaseTest
     {
         public ChordTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Finger
+        private class Finger
         {
             public int Start;
             public int End;
@@ -40,28 +41,38 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class ClusterManager : Machine
+        private class ClusterManager : Machine
         {
-            internal class CreateNewNode : Event { }
-            internal class TerminateNode : Event { }
-            private class Local : Event { }
+            internal class CreateNewNode : Event
+            {
+            }
 
-            int NumOfNodes;
-            int NumOfIds;
+            internal class TerminateNode : Event
+            {
+            }
 
-            List<MachineId> ChordNodes;
+            private class Local : Event
+            {
+            }
 
-            List<int> Keys;
-            List<int> NodeIds;
+            private int NumOfNodes;
+            private int NumOfIds;
 
-            MachineId Client;
+            private List<MachineId> ChordNodes;
+
+            private List<int> Keys;
+            private List<int> NodeIds;
+
+            private MachineId Client;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(Waiting))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.NumOfNodes = 3;
                 this.NumOfIds = (int)Math.Pow(2, this.NumOfNodes);
@@ -83,8 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         new List<MachineId>(this.ChordNodes), new List<int>(this.NodeIds), this.Id));
                 }
 
-                this.Client = this.CreateMachine(typeof(Client),
-                    new Client.Config(this.Id, new List<int>(this.Keys)));
+                this.Client = this.CreateMachine(typeof(Client), new Client.Config(this.Id, new List<int>(this.Keys)));
 
                 this.Raise(new Local());
             }
@@ -93,14 +103,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(CreateNewNode), nameof(ProcessCreateNewNode))]
             [OnEventDoAction(typeof(TerminateNode), nameof(ProcessTerminateNode))]
             [OnEventDoAction(typeof(ChordNode.JoinAck), nameof(QueryStabilize))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
-            void ForwardFindSuccessor()
+            private void ForwardFindSuccessor()
             {
                 this.Send(this.ChordNodes[0], this.ReceivedEvent);
             }
 
-            void ProcessCreateNewNode()
+            private void ProcessCreateNewNode()
             {
                 int newId = -1;
                 while ((newId < 0 || this.NodeIds.Contains(newId)) &&
@@ -127,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     new List<int>(this.NodeIds), this.NumOfIds, this.Id));
             }
 
-            void ProcessTerminateNode()
+            private void ProcessTerminateNode()
             {
                 int endId = -1;
                 while ((endId < 0 || !this.NodeIds.Contains(endId)) &&
@@ -153,7 +165,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(endNode, new ChordNode.Terminate());
             }
 
-            void QueryStabilize()
+            private void QueryStabilize()
             {
                 foreach (var node in this.ChordNodes)
                 {
@@ -161,7 +173,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            Dictionary<int, List<int>> AssignKeysToNodes()
+            private Dictionary<int, List<int>> AssignKeysToNodes()
             {
                 var nodeKeys = new Dictionary<int, List<int>>();
                 for (int i = this.Keys.Count - 1; i >= 0; i--)
@@ -204,7 +216,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class ChordNode : Machine
+        private class ChordNode : Machine
         {
             internal class Config : Event
             {
@@ -351,19 +363,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class JoinAck : Event { }
-            internal class Stabilize : Event { }
-            internal class Terminate : Event { }
-            private class Local : Event { }
+            internal class JoinAck : Event
+            {
+            }
 
-            int NodeId;
-            HashSet<int> Keys;
-            int NumOfIds;
+            internal class Stabilize : Event
+            {
+            }
 
-            Dictionary<int, Finger> FingerTable;
-            MachineId Predecessor;
+            internal class Terminate : Event
+            {
+            }
 
-            MachineId Manager;
+            private class Local : Event
+            {
+            }
+
+            private int NodeId;
+            private HashSet<int> Keys;
+            private int NumOfIds;
+
+            private Dictionary<int, Finger> FingerTable;
+            private MachineId Predecessor;
+
+            private MachineId Manager;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -371,14 +394,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(Config), nameof(Configure))]
             [OnEventDoAction(typeof(Join), nameof(JoinCluster))]
             [DeferEvents(typeof(AskForKeys), typeof(NotifySuccessor), typeof(Stabilize))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.FingerTable = new Dictionary<int, Finger>();
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.NodeId = (this.ReceivedEvent as Config).Id;
                 this.Keys = (this.ReceivedEvent as Config).Keys;
@@ -391,10 +416,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 for (var idx = 1; idx <= nodes.Count; idx++)
                 {
-                    var start = (this.NodeId + (int)Math.Pow(2, (idx - 1))) % this.NumOfIds;
+                    var start = (this.NodeId + (int)Math.Pow(2, idx - 1)) % this.NumOfIds;
                     var end = (this.NodeId + (int)Math.Pow(2, idx)) % this.NumOfIds;
 
-                    var nodeId = this.GetSuccessorNodeId(start, nodeIds);
+                    var nodeId = GetSuccessorNodeId(start, nodeIds);
                     this.FingerTable.Add(start, new Finger(start, end, nodes[nodeId]));
                 }
 
@@ -402,7 +427,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     if (nodeIds[idx] == this.NodeId)
                     {
-                        this.Predecessor = nodes[this.WrapSubtract(idx, 1, nodeIds.Count)];
+                        this.Predecessor = nodes[WrapSubtract(idx, 1, nodeIds.Count)];
                         break;
                     }
                 }
@@ -410,7 +435,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Local());
             }
 
-            void JoinCluster()
+            private void JoinCluster()
             {
                 this.NodeId = (this.ReceivedEvent as Join).Id;
                 this.Manager = (this.ReceivedEvent as Join).Manager;
@@ -421,10 +446,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 for (var idx = 1; idx <= nodes.Count; idx++)
                 {
-                    var start = (this.NodeId + (int)Math.Pow(2, (idx - 1))) % this.NumOfIds;
+                    var start = (this.NodeId + (int)Math.Pow(2, idx - 1)) % this.NumOfIds;
                     var end = (this.NodeId + (int)Math.Pow(2, idx)) % this.NumOfIds;
 
-                    var nodeId = this.GetSuccessorNodeId(start, nodeIds);
+                    var nodeId = GetSuccessorNodeId(start, nodeIds);
                     this.FingerTable.Add(start, new Finger(start, end, nodes[nodeId]));
                 }
 
@@ -444,9 +469,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(NotifySuccessor), nameof(UpdatePredecessor))]
             [OnEventDoAction(typeof(Stabilize), nameof(ProcessStabilize))]
             [OnEventDoAction(typeof(Terminate), nameof(ProcessTerminate))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
-            void ProcessFindSuccessor()
+            private void ProcessFindSuccessor()
             {
                 var sender = (this.ReceivedEvent as FindSuccessor).Sender;
                 var key = (this.ReceivedEvent as FindSuccessor).Key;
@@ -472,7 +499,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         if (((finger.Value.Start > finger.Value.End) &&
                             (finger.Value.Start <= key || key < finger.Value.End)) ||
                             ((finger.Value.Start < finger.Value.End) &&
-                            (finger.Value.Start <= key && key < finger.Value.End)))
+                            finger.Value.Start <= key && key < finger.Value.End))
                         {
                             idToAsk = finger.Key;
                         }
@@ -495,15 +522,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                             }
                         }
 
-                        this.Assert(!this.FingerTable[idToAsk].Node.Equals(this.Id),
-                            "Cannot locate successor of {0}.", key);
+                        this.Assert(!this.FingerTable[idToAsk].Node.Equals(this.Id), "Cannot locate successor of {0}.", key);
                     }
 
                     this.Send(this.FingerTable[idToAsk].Node, new FindSuccessor(sender, key));
                 }
             }
 
-            void ProcessFindPredecessor()
+            private void ProcessFindPredecessor()
             {
                 var sender = (this.ReceivedEvent as FindPredecessor).Sender;
                 if (this.Predecessor != null)
@@ -512,13 +538,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessQueryId()
+            private void ProcessQueryId()
             {
                 var sender = (this.ReceivedEvent as QueryId).Sender;
                 this.Send(sender, new QueryIdResp(this.NodeId));
             }
 
-            void SendKeys()
+            private void SendKeys()
             {
                 var sender = (this.ReceivedEvent as AskForKeys).Node;
                 var senderId = (this.ReceivedEvent as AskForKeys).Id;
@@ -545,7 +571,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessStabilize()
+            private void ProcessStabilize()
             {
                 var successor = this.FingerTable[(this.NodeId + 1) % this.NumOfIds].Node;
                 this.Send(successor, new FindPredecessor(this.Id));
@@ -559,24 +585,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessFindSuccessorResp()
+            private void ProcessFindSuccessorResp()
             {
                 var successor = (this.ReceivedEvent as FindSuccessorResp).Node;
                 var key = (this.ReceivedEvent as FindSuccessorResp).Key;
 
-                this.Assert(this.FingerTable.ContainsKey(key),
-                    "Finger table of {0} does not contain {1}.", this.NodeId, key);
-                this.FingerTable[key] = new Finger(this.FingerTable[key].Start,
-                    this.FingerTable[key].End, successor);
+                this.Assert(this.FingerTable.ContainsKey(key), "Finger table of {0} does not contain {1}.", this.NodeId, key);
+                this.FingerTable[key] = new Finger(this.FingerTable[key].Start, this.FingerTable[key].End, successor);
             }
 
-            void ProcessFindPredecessorResp()
+            private void ProcessFindPredecessorResp()
             {
                 var successor = (this.ReceivedEvent as FindPredecessorResp).Node;
                 if (!successor.Equals(this.Id))
                 {
-                    this.FingerTable[(this.NodeId + 1) % this.NumOfIds] =
-                        new Finger(this.FingerTable[(this.NodeId + 1) % this.NumOfIds].Start,
+                    this.FingerTable[(this.NodeId + 1) % this.NumOfIds] = new Finger(
+                        this.FingerTable[(this.NodeId + 1) % this.NumOfIds].Start,
                         this.FingerTable[(this.NodeId + 1) % this.NumOfIds].End,
                         successor);
 
@@ -585,7 +609,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void UpdatePredecessor()
+            private void UpdatePredecessor()
             {
                 var predecessor = (this.ReceivedEvent as NotifySuccessor).Node;
                 if (!predecessor.Equals(this.Id))
@@ -594,7 +618,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void UpdateKeys()
+            private void UpdateKeys()
             {
                 var keys = (this.ReceivedEvent as AskForKeysResp).Keys;
                 foreach (var key in keys)
@@ -603,12 +627,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessTerminate()
+            private void ProcessTerminate()
             {
                 this.Raise(new Halt());
             }
 
-            int GetSuccessorNodeId(int start, List<int> nodeIds)
+            private static int GetSuccessorNodeId(int start, List<int> nodeIds)
             {
                 var candidate = -1;
                 foreach (var id in nodeIds.Where(v => v >= start))
@@ -642,7 +666,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return candidate;
             }
 
-            int WrapAdd(int left, int right, int ceiling)
+            private int WrapAdd(int left, int right, int ceiling)
             {
                 int result = left + right;
                 if (result > ceiling)
@@ -653,7 +677,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return result;
             }
 
-            int WrapSubtract(int left, int right, int ceiling)
+            private static int WrapSubtract(int left, int right, int ceiling)
             {
                 int result = left - right;
                 if (result < 0)
@@ -664,7 +688,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return result;
             }
 
-            void EmitFingerTableAndKeys()
+            private void EmitFingerTableAndKeys()
             {
                 this.Logger.WriteLine(" ... Printing finger table of node {0}:", this.NodeId);
                 foreach (var finger in this.FingerTable)
@@ -681,7 +705,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Client : Machine
+        private class Client : Machine
         {
             internal class Config : Event
             {
@@ -696,19 +720,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class Local : Event { }
+            private class Local : Event
+            {
+            }
 
-            MachineId ClusterManager;
+            private MachineId ClusterManager;
 
-            List<int> Keys;
-            int QueryCounter;
+            private List<int> Keys;
+            private int QueryCounter;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(Querying))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.ClusterManager = (this.ReceivedEvent as Config).ClusterManager;
                 this.Keys = (this.ReceivedEvent as Config).Keys;
@@ -724,9 +752,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(QueryingOnEntry))]
             [OnEventGotoState(typeof(Local), typeof(Waiting))]
-            class Querying : MachineState { }
+            private class Querying : MachineState
+            {
+            }
 
-            void QueryingOnEntry()
+            private void QueryingOnEntry()
             {
                 if (this.QueryCounter < 5)
                 {
@@ -752,7 +782,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Local());
             }
 
-            int GetNextQueryKey()
+            private int GetNextQueryKey()
             {
                 int keyIndex = -1;
                 while (keyIndex < 0)
@@ -773,9 +803,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventGotoState(typeof(Local), typeof(Querying))]
             [OnEventDoAction(typeof(ChordNode.FindSuccessorResp), nameof(ProcessFindSuccessorResp))]
             [OnEventDoAction(typeof(ChordNode.QueryIdResp), nameof(ProcessQueryIdResp))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
-            void ProcessFindSuccessorResp()
+            private void ProcessFindSuccessorResp()
             {
                 var successor = (this.ReceivedEvent as ChordNode.FindSuccessorResp).Node;
                 var key = (this.ReceivedEvent as ChordNode.FindSuccessorResp).Key;
@@ -783,13 +815,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(successor, new ChordNode.QueryId(this.Id));
             }
 
-            void ProcessQueryIdResp()
+            private void ProcessQueryIdResp()
             {
                 this.Raise(new Local());
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             public class NotifyClientRequest : Event
             {
@@ -815,27 +847,34 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Goto<Responded>();
             }
 
             [Cold]
             [OnEventGotoState(typeof(NotifyClientRequest), typeof(Requested))]
-            class Responded : MonitorState { }
+            private class Responded : MonitorState
+            {
+            }
 
             [Hot]
             [OnEventGotoState(typeof(NotifyClientResponse), typeof(Responded))]
-            class Requested : MonitorState { }
+            private class Requested : MonitorState
+            {
+            }
         }
 
         [Theory]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(0)]
         public void TestLivenessBugInChordProtocol(int seed)
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
@@ -850,26 +889,28 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
                 "'LivenessMonitor.Requested'.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Theory]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(2)]
         public void TestLivenessBugInChordProtocolWithCycleReplay(int seed)
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.MaxSchedulingSteps = 100;
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
-            
-            var test = new Action<PSharpRuntime>((r) => {
+
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(ClusterManager));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

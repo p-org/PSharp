@@ -14,14 +14,17 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public OnEventDroppedTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public MachineId Id;
             public TaskCompletionSource<bool> Tcs;
 
-            public E() { }
+            public E()
+            {
+            }
 
             public E(MachineId id)
             {
@@ -34,10 +37,12 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             protected override void OnHalt()
             {
@@ -48,12 +53,13 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestOnDroppedCalled1()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
 
-                r.OnEventDropped += delegate (Event e, MachineId target)
+                r.OnEventDropped += (e, target) =>
                 {
                     called = true;
                     tcs.SetResult(true);
@@ -66,16 +72,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(called);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send(this.Id, new Halt());
                 this.Send(this.Id, new E());
@@ -85,12 +93,13 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestOnDroppedCalled2()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
 
-                r.OnEventDropped += delegate (Event e, MachineId target)
+                r.OnEventDropped += (e, target) =>
                 {
                     called = true;
                     tcs.SetResult(true);
@@ -102,20 +111,21 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(called);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestOnDroppedParams()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
 
                 var m = r.CreateMachine(typeof(M1));
 
-                r.OnEventDropped += delegate (Event e, MachineId target)
+                r.OnEventDropped += (e, target) =>
                 {
                     Assert.True(e is E);
                     Assert.True(target == m);
@@ -129,21 +139,28 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(called);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class EventProcessed : Event { }
-        class EventDropped : Event { }
-
-        class Monitor3 : Monitor
+        private class EventProcessed : Event
         {
-            TaskCompletionSource<bool> Tcs;
+        }
+
+        private class EventDropped : Event
+        {
+        }
+
+        private class Monitor3 : Monitor
+        {
+            private TaskCompletionSource<bool> Tcs;
 
             [Start]
             [OnEventDoAction(typeof(E), nameof(InitOnEntry))]
-            class S0 : MonitorState { }
+            private class S0 : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Tcs = (this.ReceivedEvent as E).Tcs;
                 this.Goto<S1>();
@@ -151,48 +168,58 @@ namespace Microsoft.PSharp.Core.Tests
 
             [OnEventGotoState(typeof(EventProcessed), typeof(S2))]
             [OnEventGotoState(typeof(EventDropped), typeof(S2))]
-            class S1 : MonitorState { }
+            private class S1 : MonitorState
+            {
+            }
 
             [OnEntry(nameof(Done))]
-            class S2 : MonitorState { }
+            private class S2 : MonitorState
+            {
+            }
 
-            void Done()
+            private void Done()
             {
                 this.Tcs.SetResult(true);
             }
         }
 
-        class M3a : Machine
+        private class M3a : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send((this.ReceivedEvent as E).Id, new Halt());
             }
         }
 
-        class M3b : Machine
+        private class M3b : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send((this.ReceivedEvent as E).Id, new E());
             }
         }
 
-        class M3c : Machine
+        private class M3c : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Processed))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Processed()
+            private void Processed()
             {
                 this.Monitor<Monitor3>(new EventProcessed());
             }
@@ -201,22 +228,23 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestProcessedOrDropped()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration().WithVerbosityEnabled(2);
             config.EnableMonitorsInProduction = true;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
 
                 r.RegisterMonitor(typeof(Monitor3));
                 r.InvokeMonitor(typeof(Monitor3), new E(tcs));
 
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     Assert.True(false);
                     tcs.SetResult(false);
                 };
 
-                r.OnEventDropped += delegate (Event e, MachineId target)
+                r.OnEventDropped += (e, target) =>
                 {
                     r.InvokeMonitor(typeof(Monitor3), new EventDropped());
                 };
@@ -227,7 +255,7 @@ namespace Microsoft.PSharp.Core.Tests
                 tcs.Task.Wait(5000);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

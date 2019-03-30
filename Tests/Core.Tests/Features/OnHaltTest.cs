@@ -14,32 +14,38 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public OnHaltTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public MachineId Id;
-            public TaskCompletionSource<bool> tcs;
+            public TaskCompletionSource<bool> Tcs;
 
-            public E() { }
+            public E()
+            {
+            }
 
             public E(MachineId id)
             {
-                Id = id;
+                this.Id = id;
             }
+
             public E(TaskCompletionSource<bool> tcs)
             {
-                this.tcs = tcs;
+                this.Tcs = tcs;
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new Halt());
             }
@@ -50,13 +56,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class M2a : Machine
+        private class M2a : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new Halt());
             }
@@ -67,13 +75,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class M2b : Machine
+        private class M2b : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new Halt());
             }
@@ -84,13 +94,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class M2c : Machine
+        private class M2c : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new Halt());
             }
@@ -101,29 +113,33 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class Dummy : Machine
+        private class Dummy : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new Halt());
             }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
-            TaskCompletionSource<bool> tcs;
+            private TaskCompletionSource<bool> tcs;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                tcs = (this.ReceivedEvent as E).tcs;
+            }
+
+            private void InitOnEntry()
+            {
+                this.tcs = (this.ReceivedEvent as E).Tcs;
                 this.Raise(new Halt());
             }
 
@@ -135,22 +151,23 @@ namespace Microsoft.PSharp.Core.Tests
                 this.Assert(true);
                 this.CreateMachine(typeof(Dummy));
 
-                tcs.TrySetResult(true);
+                this.tcs.TrySetResult(true);
             }
         }
 
         private void AssertSucceeded(Type machine)
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
 
             var runtime = PSharpRuntime.Create();
             var failed = false;
             var tcs = new TaskCompletionSource<bool>();
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs.TrySetResult(true);
@@ -164,11 +181,12 @@ namespace Microsoft.PSharp.Core.Tests
 
         private void AssertFailed(Type machine)
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(true);
@@ -180,37 +198,37 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestHaltCalled()
         {
-            AssertFailed(typeof(M1));
+            this.AssertFailed(typeof(M1));
         }
 
         [Fact]
         public void TestReceiveOnHalt()
         {
-            AssertFailed(typeof(M2a));
+            this.AssertFailed(typeof(M2a));
         }
 
         [Fact]
         public void TestRaiseOnHalt()
         {
-            AssertFailed(typeof(M2b));
+            this.AssertFailed(typeof(M2b));
         }
 
         [Fact]
         public void TestGotoOnHalt()
         {
-            AssertFailed(typeof(M2c));
+            this.AssertFailed(typeof(M2c));
         }
 
         [Fact]
         public void TestAPIsOnHalt()
         {
-            AssertSucceeded(typeof(M3));
+            this.AssertSucceeded(typeof(M3));
         }
     }
 }

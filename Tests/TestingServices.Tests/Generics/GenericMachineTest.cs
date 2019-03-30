@@ -13,48 +13,52 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public GenericMachineTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class M<T> : Machine
         {
-            T Item;
+        }
+
+        private class M<T> : Machine
+        {
+            private T Item;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Item = default(T);
                 this.Goto<Active>();
             }
 
             [OnEntry(nameof(ActiveInit))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveInit()
+            private void ActiveInit()
             {
                 this.Assert(this.Item is int);
             }
         }
 
-        class N : M<int>
+        private class N : M<int>
         {
-
         }
 
         [Fact]
         public void TestGenericMachine1()
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M<int>)); });
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestGenericMachine2()
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N)); });
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

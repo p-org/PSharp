@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
     {
         public MockSharedRegisterTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        struct S
+        private struct S
         {
             public int Value1;
             public int Value2;
@@ -25,9 +26,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 this.Value1 = value1;
                 this.Value2 = value2;
             }
-        };
+        }
 
-        class E<T> : Event where T : struct
+        private class E<T> : Event
+            where T : struct
         {
             public ISharedRegister<T> Counter;
 
@@ -37,7 +39,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class Setup : Event
+        private class Setup : Event
         {
             public bool Flag;
 
@@ -47,13 +49,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var flag = (this.ReceivedEvent as Setup).Flag;
 
@@ -86,26 +90,30 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N1 : Machine
+        private class N1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E<int>).Counter;
                 counter.SetValue(2);
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var flag = (this.ReceivedEvent as Setup).Flag;
 
@@ -137,13 +145,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N2 : Machine
+        private class N2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E<S>).Counter;
                 counter.SetValue(new S(5, 5));
@@ -154,44 +164,48 @@ namespace Microsoft.PSharp.SharedObjects.Tests
         public void TestMockSharedRegister1()
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1), new Setup(true));
             });
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
 
         [Fact]
         public void TestMockSharedRegister2()
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1), new Setup(false));
             });
 
-            base.AssertFailed(config, test, "Detected an assertion failure.");
+            this.AssertFailed(config, test, "Detected an assertion failure.");
         }
 
         [Fact]
         public void TestMockSharedRegister3()
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M2), new Setup(true));
             });
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
 
         [Fact]
         public void TestMockSharedRegister4()
         {
             var config = Configuration.Create().WithNumberOfIterations(100);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M2), new Setup(false));
             });
 
-            base.AssertFailed(config, test, "Detected an assertion failure.");
+            this.AssertFailed(config, test, "Detected an assertion failure.");
         }
     }
 }

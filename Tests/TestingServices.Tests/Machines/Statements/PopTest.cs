@@ -13,38 +13,45 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public PopTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(Init))]
-            public class S1 : MachineState { }
+            public class S1 : MachineState
+            {
+            }
 
-            void Init()
+            private void Init()
             {
                 this.Pop();
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEntry(nameof(Init))]
             [OnExit(nameof(Exit))]
-            public class S1 : MachineState { }
+            public class S1 : MachineState
+            {
+            }
 
-            void Init()
+            private void Init()
             {
                 this.Goto<S2>();
             }
 
-            void Exit()
+            private void Exit()
             {
                 this.Pop();
             }
 
-            public class S2 : MachineState { }
+            public class S2 : MachineState
+            {
+            }
         }
 
         [Fact]
@@ -52,7 +59,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(M), "M"); });
             var bugReport = "Machine 'M()' popped with no matching push.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
@@ -60,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });
             var bugReport = "Machine 'N()' has called raise, goto, push or pop inside an OnExit method.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
     }
 }

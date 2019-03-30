@@ -13,147 +13,172 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public PushApiTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Push<Done>();
             }
 
             [OnEntry(nameof(EntryDone))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
-            void EntryDone()
+            private void EntryDone()
             {
                 // This assert is reachable.
                 this.Assert(false, "Bug found.");
             }
         }
 
-        class E : Event { }
-
-        class M2 : Machine
+        private class E : Event
         {
-            int cnt = 0;
+        }
+
+        private class M2 : Machine
+        {
+            private int cnt = 0;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(E))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                this.Assert(cnt == 0); // called once
-                cnt++;
+            }
+
+            private void InitOnEntry()
+            {
+                this.Assert(this.cnt == 0); // called once
+                this.cnt++;
 
                 this.Push<Done>();
             }
 
             [OnEntry(nameof(EntryDone))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
-            void EntryDone()
+            private void EntryDone()
             {
                 this.Pop();
             }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnExit(nameof(ExitInit))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Push<Done>();
             }
 
-            void ExitInit()
+            private void ExitInit()
             {
                 // This assert is not reachable.
                 this.Assert(false, "Bug found.");
             }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
-        class M4a : Machine
+        private class M4a : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 // Added a different failure mode here; try to Goto a state from another machine.
                 this.Push<M4b.Done>();
             }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
-        class M4b : Machine
+        private class M4b : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
             }
 
-            internal class Done : MachineState { }
-        }
+            private void InitOnEntry()
+            {
+            }
 
+            internal class Done : MachineState
+            {
+            }
+        }
 
         [Fact]
         public void TestPushSimple()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1));
             });
 
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
 
         [Fact]
         public void TestPushPopSimple()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var m = r.CreateMachine(typeof(M2));
                 r.SendEvent(m, new E());
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestPushStateExit()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M3));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
-
 
         [Fact]
         public void TestPushBadStateFail()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M4a));
             });
 
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
     }
 }

@@ -15,9 +15,10 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public SendAndExecuteTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Config1 : Event
+        private class Config1 : Event
         {
             public TaskCompletionSource<bool> Tcs;
 
@@ -27,7 +28,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class Config2 : Event
+        private class Config2 : Event
         {
             public bool HandleException;
             public TaskCompletionSource<bool> Tcs;
@@ -39,7 +40,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class E1 : Event
+        private class E1 : Event
         {
             public int Value;
 
@@ -49,7 +50,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class E2 : Event
+        private class E2 : Event
         {
             public MachineId Id;
 
@@ -59,19 +60,27 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class E3 : Event { }
+        private class E3 : Event
+        {
+        }
 
-        class M_Halts : Event { }
+        private class M_Halts : Event
+        {
+        }
 
-        class SE_Returns : Event { }
+        private class SE_Returns : Event
+        {
+        }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var e = new E1();
@@ -82,43 +91,45 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N1 : Machine
+        private class N1 : Machine
         {
-            bool LE_Handled = false;
+            private bool LEHandled = false;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E1), nameof(HandleEventE))]
             [OnEventDoAction(typeof(E3), nameof(HandleEventLE))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send(this.Id, new E3());
             }
 
-            void HandleEventLE()
+            private void HandleEventLE()
             {
-                LE_Handled = true;
+                this.LEHandled = true;
             }
 
-            void HandleEventE()
+            private void HandleEventE()
             {
-                this.Assert(LE_Handled);
-                var e = (this.ReceivedEvent as E1);
+                this.Assert(this.LEHandled);
+                var e = this.ReceivedEvent as E1;
                 e.Value = 1;
             }
         }
 
-
         [Fact]
         public void TestSyncSendBlocks()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(true);
@@ -130,17 +141,19 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(E3))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N2), new E2(this.Id));
@@ -150,14 +163,16 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N2 : Machine
+        private class N2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(E3))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var creator = (this.ReceivedEvent as E2).Id;
                 var handled = await this.Id.Runtime.SendEventAndExecute(creator, new E3());
@@ -168,11 +183,12 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestSendCycleDoesNotDeadlock()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -184,16 +200,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N3));
@@ -204,13 +222,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N3 : Machine
+        private class N3 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E3), nameof(HandleE))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void HandleE()
+            private void HandleE()
             {
                 this.Raise(new Halt());
             }
@@ -221,30 +241,34 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class SafetyMonitor : Monitor
+        private class SafetyMonitor : Monitor
         {
-            bool M_halted = false;
-            bool SE_returned = false;
+            private bool MHalted = false;
+            private bool SEReturned = false;
 
             [Start]
             [Hot]
             [OnEventDoAction(typeof(M_Halts), nameof(OnMHalts))]
             [OnEventDoAction(typeof(SE_Returns), nameof(OnSEReturns))]
-            class Init : MonitorState { }
-
-            [Cold]
-            class Done : MonitorState { }
-
-            void OnMHalts()
+            private class Init : MonitorState
             {
-                this.Assert(SE_returned == false);
-                M_halted = true;
             }
 
-            void OnSEReturns()
+            [Cold]
+            private class Done : MonitorState
             {
-                this.Assert(M_halted);
-                SE_returned = true;
+            }
+
+            private void OnMHalts()
+            {
+                this.Assert(this.SEReturned == false);
+                this.MHalted = true;
+            }
+
+            private void OnSEReturns()
+            {
+                this.Assert(this.MHalted);
+                this.SEReturned = true;
                 this.Goto<Done>();
             }
         }
@@ -252,13 +276,14 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestMachineHaltsOnSendExec()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration().WithVerbosityEnabled(2);
             config.EnableMonitorsInProduction = true;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -271,16 +296,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config2).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N4), this.ReceivedEvent);
@@ -296,39 +323,42 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N4 : Machine
+        private class N4 : Machine
         {
-            bool HandleException = false;
+            private bool HandleException = false;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E3), nameof(HandleE))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.HandleException = (this.ReceivedEvent as Config2).HandleException;
             }
 
-            void HandleE()
+            private void HandleE()
             {
                 throw new Exception();
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                return HandleException ? OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException;
+                return this.HandleException ? OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException;
             }
         }
 
         [Fact]
         public void TestHandledExceptionOnSendExec()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -340,19 +370,20 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
                 var message = string.Empty;
 
-                r.OnFailure += delegate (Exception ex)
+                r.OnFailure += (ex) =>
                 {
                     if (!failed)
                     {
@@ -369,16 +400,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.StartsWith("Exception of type 'System.Exception' was thrown", message);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M5 : Machine
+        private class M5 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N5));
@@ -388,22 +421,25 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N5 : Machine
+        private class N5 : Machine
         {
             [Start]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestUnhandledEventOnSendExec()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
                 var message = string.Empty;
 
-                r.OnFailure += delegate (Exception ex)
+                r.OnFailure += (ex) =>
                 {
                     if (!failed)
                     {
@@ -417,11 +453,12 @@ namespace Microsoft.PSharp.Core.Tests
                 tcs.Task.Wait();
 
                 Assert.True(failed);
-                Assert.Equal("Machine 'Microsoft.PSharp.Core.Tests.SendAndExecuteTest+N5(1)' received event " +
+                Assert.Equal(
+                    "Machine 'Microsoft.PSharp.Core.Tests.SendAndExecuteTest+N5(1)' received event " +
                     "'Microsoft.PSharp.Core.Tests.SendAndExecuteTest+E3' that cannot be handled.", message);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

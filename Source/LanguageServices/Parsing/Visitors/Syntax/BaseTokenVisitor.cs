@@ -3,10 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
-using Microsoft.PSharp.LanguageServices.Syntax;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
@@ -20,9 +16,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         protected TokenStream TokenStream;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BaseTokenVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         public BaseTokenVisitor(TokenStream tokenStream)
         {
             this.TokenStream = tokenStream;

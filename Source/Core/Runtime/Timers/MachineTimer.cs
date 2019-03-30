@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.Timers
         private readonly TimerElapsedEvent TimeoutEvent;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="MachineTimer"/> class.
+        /// Initializes a new instance of the <see cref="MachineTimer"/> class.
         /// </summary>
         /// <param name="info">Stores information about this timer.</param>
         /// <param name="owner">The machine that owns this timer.</param>
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Timers
             this.Owner = owner;
 
             this.TimeoutEvent = new TimerElapsedEvent(this.Info);
-            this.InternalTimer = new Timer(HandleTimeout, null, this.Info.DueTime, Timeout.InfiniteTimeSpan);
+            this.InternalTimer = new Timer(this.HandleTimeout, null, this.Info.DueTime, Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>

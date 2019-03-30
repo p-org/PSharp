@@ -16,11 +16,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public DPORTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Ping : Event { }
+        private class Ping : Event
+        {
+        }
 
-        class SenderInitEvent : Event
+        private class SenderInitEvent : Event
         {
             public readonly MachineId WaiterMachineId;
             public readonly bool SendPing;
@@ -28,25 +31,34 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             public SenderInitEvent(MachineId waiter, bool sendPing = false, bool doNonDet = false)
             {
-                WaiterMachineId = waiter;
-                SendPing = sendPing;
-                DoNonDet = doNonDet;
+                this.WaiterMachineId = waiter;
+                this.SendPing = sendPing;
+                this.DoNonDet = doNonDet;
             }
         }
 
-        class InitEvent : Event { }
-        class DummyEvent : Event { }
+        private class InitEvent : Event
+        {
+        }
 
-        class Waiter : Machine
+        private class DummyEvent : Event
+        {
+        }
+
+        private class Waiter : Machine
         {
             [Start]
             [OnEventDoAction(typeof(Ping), nameof(Nothing))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            private void Nothing() { }
+            private void Nothing()
+            {
+            }
         }
 
-        class Sender : Machine
+        private class Sender : Machine
         {
             private SenderInitEvent initEvent;
 
@@ -54,84 +66,92 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(Ping), nameof(SendPing))]
             [OnEventDoAction(typeof(DummyEvent), nameof(Nothing))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void Initialize()
             {
-                initEvent = ((SenderInitEvent)ReceivedEvent);
+                this.initEvent = (SenderInitEvent)this.ReceivedEvent;
             }
 
             private void SendPing()
             {
-                if (initEvent.SendPing)
+                if (this.initEvent.SendPing)
                 {
-                    Send(initEvent.WaiterMachineId, new Ping());
+                    this.Send(this.initEvent.WaiterMachineId, new Ping());
                 }
 
-                if (initEvent.DoNonDet)
+                if (this.initEvent.DoNonDet)
                 {
-                    Random();
-                    Random();
+                    this.Random();
+                    this.Random();
                 }
 
-                Send(Id, new DummyEvent());
+                this.Send(this.Id, new DummyEvent());
             }
 
-            private void Nothing() { }
+            private void Nothing()
+            {
+            }
         }
 
-        class ReceiverAddressEvent : Event
+        private class ReceiverAddressEvent : Event
         {
             public readonly MachineId Receiver;
 
             public ReceiverAddressEvent(MachineId receiver)
             {
-                Receiver = receiver;
+                this.Receiver = receiver;
             }
         }
 
-        class LevelOne : Machine
+        private class LevelOne : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void Initialize()
             {
-                var r = (ReceiverAddressEvent) ReceivedEvent;
-                CreateMachine(typeof(LevelTwo), r);
-                CreateMachine(typeof(LevelTwo), r);
+                var r = (ReceiverAddressEvent)this.ReceivedEvent;
+                this.CreateMachine(typeof(LevelTwo), r);
+                this.CreateMachine(typeof(LevelTwo), r);
             }
         }
 
-        class LevelTwo : Machine
+        private class LevelTwo : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void Initialize()
             {
-                var r = (ReceiverAddressEvent) ReceivedEvent;
-                var a = CreateMachine(typeof(Sender),
-                    new SenderInitEvent(r.Receiver, true));
-                Send(a, new Ping());
-                var b = CreateMachine(typeof(Sender),
-                    new SenderInitEvent(r.Receiver, true));
-                Send(b, new Ping());
+                var r = (ReceiverAddressEvent)this.ReceivedEvent;
+                var a = this.CreateMachine(typeof(Sender), new SenderInitEvent(r.Receiver, true));
+                this.Send(a, new Ping());
+                var b = this.CreateMachine(typeof(Sender), new SenderInitEvent(r.Receiver, true));
+                this.Send(b, new Ping());
             }
         }
 
-        class ReceiveWaiter : Machine
+        private class ReceiveWaiter : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private async Task Initialize()
             {
-                await Receive(typeof(Ping));
-                await Receive(typeof(Ping));
+                await this.Receive(typeof(Ping));
+                await this.Receive(typeof(Ping));
             }
         }
 
@@ -154,12 +174,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             // DPOR: 1 schedule.
             configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            var runtime = AssertSucceeded(configuration, test);
+            var runtime = this.AssertSucceeded(configuration, test);
             Assert.Equal(1, runtime.TestReport.NumOfExploredUnfairSchedules);
 
             // DFS: at least 6 schedules.
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            runtime = AssertSucceeded(configuration, test);
+            runtime = this.AssertSucceeded(configuration, test);
             Assert.True(runtime.TestReport.NumOfExploredUnfairSchedules >= 6);
         }
 
@@ -182,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             // DPOR: 4 schedules because there are 2 nondet choices.
             configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            var runtime = AssertSucceeded(configuration, test);
+            var runtime = this.AssertSucceeded(configuration, test);
             Assert.Equal(4, runtime.TestReport.NumOfExploredUnfairSchedules);
         }
 
@@ -192,17 +212,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var test = new Action<PSharpRuntime>(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
-                r.CreateMachine(typeof(LevelOne),
-                    new ReceiverAddressEvent(waiter));
-                r.CreateMachine(typeof(LevelOne),
-                    new ReceiverAddressEvent(waiter));
+                r.CreateMachine(typeof(LevelOne), new ReceiverAddressEvent(waiter));
+                r.CreateMachine(typeof(LevelOne), new ReceiverAddressEvent(waiter));
             });
 
             var configuration = GetConfiguration();
             configuration.SchedulingIterations = 10;
 
             configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         [Fact]
@@ -212,11 +230,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 MachineId waiter = r.CreateMachine(typeof(ReceiveWaiter));
 
-                var a = r.CreateMachine(typeof(Sender),
-                    new SenderInitEvent(waiter, true));
+                var a = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter, true));
                 r.SendEvent(a, new Ping());
-                var b = r.CreateMachine(typeof(Sender),
-                    new SenderInitEvent(waiter, true));
+                var b = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter, true));
                 r.SendEvent(b, new Ping());
             });
 
@@ -224,7 +240,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingIterations = 1000;
 
             configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

@@ -17,7 +17,6 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="value">Text</param>
         /// <param name="args">Arguments</param>
-        /// <returns></returns>
         internal static string Format(string value, params object[] args)
         {
             return string.Format(CultureInfo.InvariantCulture, value, args);

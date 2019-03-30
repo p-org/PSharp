@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
@@ -17,18 +16,16 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// The prefix strategy.
         /// </summary>
-        private ISchedulingStrategy PrefixStrategy;
+        private readonly ISchedulingStrategy PrefixStrategy;
 
         /// <summary>
         /// The suffix strategy.
         /// </summary>
-        private ISchedulingStrategy SuffixStrategy;
+        private readonly ISchedulingStrategy SuffixStrategy;
 
         /// <summary>
-        /// Creates a combo strategy that uses the two specified strategies.
+        /// Initializes a new instance of the <see cref="ComboStrategy"/> class.
         /// </summary>
-        /// <param name="prefixStrategy">Prefix strategy </param>
-        /// <param name="suffixStrategy">Suffix strategy</param>
         public ComboStrategy(ISchedulingStrategy prefixStrategy, ISchedulingStrategy suffixStrategy)
         {
             this.PrefixStrategy = prefixStrategy;
@@ -38,10 +35,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -57,9 +50,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -75,9 +65,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -91,12 +78,8 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         }
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -112,9 +95,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -130,9 +110,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -150,7 +127,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
             bool doNext = this.PrefixStrategy.PrepareForNextIteration();
@@ -171,7 +147,6 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Scheduled steps</returns>
         public int GetScheduledSteps()
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
@@ -188,28 +163,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
-        {
-            return this.SuffixStrategy.HasReachedMaxSchedulingSteps();
-        }
+        public bool HasReachedMaxSchedulingSteps() => this.SuffixStrategy.HasReachedMaxSchedulingSteps();
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return this.SuffixStrategy.IsFair();
-        }
+        public bool IsFair() => this.SuffixStrategy.IsFair();
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return string.Format("Combo[{0},{1}]", PrefixStrategy.GetDescription(), SuffixStrategy.GetDescription());
-        }
+        public string GetDescription() =>
+            string.Format("Combo[{0},{1}]", this.PrefixStrategy.GetDescription(), this.SuffixStrategy.GetDescription());
     }
 }

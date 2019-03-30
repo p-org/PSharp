@@ -14,27 +14,34 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public CurrentStateTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Unit : Event { }
+        private class Unit : Event
+        {
+        }
 
-        class Server : Machine
+        private class Server : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Assert(this.CurrentState == typeof(Init));
                 this.Raise(new Unit());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Assert(this.CurrentState == typeof(Active));
             }
@@ -46,14 +53,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestCurrentState()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Server));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

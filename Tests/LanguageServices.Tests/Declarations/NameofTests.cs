@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class NameofTests
     {
-        string NameofTest = @"
+        private readonly string NameofTest = @"
 namespace Foo {
     machine M_with_nameof {
         start state Init
@@ -38,7 +38,7 @@ namespace Foo {
         [Fact]
         public void TestAllNameofRewriteWithNameof()
         {
-            var test = NameofTest;
+            var test = this.NameofTest;
             var expected = @"
 using Microsoft.PSharp;
 
@@ -88,7 +88,7 @@ namespace Foo
         [Fact]
         public void TestAllNameofRewriteWithoutNameof()
         {
-            var test = NameofTest;
+            var test = this.NameofTest;
             var expected = @"
 using Microsoft.PSharp;
 

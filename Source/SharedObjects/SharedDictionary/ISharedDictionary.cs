@@ -8,7 +8,7 @@ namespace Microsoft.PSharp.SharedObjects
     /// <summary>
     /// Interface of a shared dictionary.
     /// </summary>
-    public interface ISharedDictionary<TKey, TValue> 
+    public interface ISharedDictionary<TKey, TValue>
     {
         /// <summary>
         /// Adds a new key to the dictionary, if it doesn’t already exist in the dictionary.

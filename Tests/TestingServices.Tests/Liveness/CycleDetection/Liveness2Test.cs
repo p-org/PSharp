@@ -14,31 +14,50 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public Liveness2Test(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Unit : Event { }
-        class UserEvent : Event { }
-        class Done : Event { }
-        class Waiting : Event { }
-        class Computing : Event { }
+        private class Unit : Event
+        {
+        }
 
-        class EventHandler : Machine
+        private class UserEvent : Event
+        {
+        }
+
+        private class Done : Event
+        {
+        }
+
+        private class Waiting : Event
+        {
+        }
+
+        private class Computing : Event
+        {
+        }
+
+        private class EventHandler : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(WaitForUser))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new Unit());
             }
 
             [OnEntry(nameof(WaitForUserOnEntry))]
             [OnEventGotoState(typeof(UserEvent), typeof(HandleEvent))]
-            class WaitForUser : MachineState { }
+            private class WaitForUser : MachineState
+            {
+            }
 
-            void WaitForUserOnEntry()
+            private void WaitForUserOnEntry()
             {
                 this.Monitor<WatchDog>(new Waiting());
                 this.Send(this.Id, new UserEvent());
@@ -46,43 +65,50 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(HandleEventOnEntry))]
             [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
-            class HandleEvent : MachineState { }
+            private class HandleEvent : MachineState
+            {
+            }
 
-            void HandleEventOnEntry()
+            private void HandleEventOnEntry()
             {
                 this.Monitor<WatchDog>(new Computing());
                 this.Send(this.Id, new Done());
             }
         }
 
-        class WatchDog : Monitor
+        private class WatchDog : Monitor
         {
             [Start]
             [Cold]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
             [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
-            class CanGetUserInput : MonitorState { }
+            private class CanGetUserInput : MonitorState
+            {
+            }
 
             [Hot]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
             [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
-            class CannotGetUserInput : MonitorState { }
+            private class CannotGetUserInput : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestLiveness2()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
             });
 
             string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

@@ -10,34 +10,37 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// Defines a goto state transition.
     /// </summary>
-    internal sealed class GotoStateTransition 
+    internal sealed class GotoStateTransition
     {
         /// <summary>
-        /// Target state.
+        /// The target state.
         /// </summary>
         public Type TargetState;
 
         /// <summary>
-        /// An optional lambda function, which can execute after
-        /// the default OnExit function of the exiting state.
+        /// An optional lambda function that executes after the
+        /// on-exit handler of the exiting state.
         /// </summary>
         public string Lambda;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="GotoStateTransition"/> class.
         /// </summary>
-        public GotoStateTransition(Type TargetState, string Lambda)
+        /// <param name="targetState">The target state.</param>
+        /// <param name="lambda">Lambda function that executes after the on-exit handler of the exiting state.</param>
+        public GotoStateTransition(Type targetState, string lambda)
         {
-            this.TargetState = TargetState;
-            this.Lambda = Lambda;
+            this.TargetState = targetState;
+            this.Lambda = lambda;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="GotoStateTransition"/> class.
         /// </summary>
-        public GotoStateTransition(Type TargetState)
+        /// <param name="targetState">The target state.</param>
+        public GotoStateTransition(Type targetState)
         {
-            this.TargetState = TargetState;
+            this.TargetState = targetState;
             this.Lambda = null;
         }
     }

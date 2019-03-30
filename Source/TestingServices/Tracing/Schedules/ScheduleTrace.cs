@@ -18,7 +18,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// The steps of the schedule trace.
         /// </summary>
-        private List<ScheduleStep> Steps;
+        private readonly List<ScheduleStep> Steps;
 
         /// <summary>
         /// The number of steps in the schedule trace.
@@ -31,8 +31,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Index for the schedule trace.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>ScheduleStep</returns>
         internal ScheduleStep this[int index]
         {
             get { return this.Steps[index]; }
@@ -40,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ScheduleTrace"/> class.
         /// </summary>
         internal ScheduleTrace()
         {
@@ -48,9 +46,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ScheduleTrace"/> class.
         /// </summary>
-        /// <param name="traceDump">Trace</param>
         internal ScheduleTrace(string[] traceDump)
         {
             this.Steps = new List<ScheduleStep>();
@@ -85,7 +82,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Adds a scheduling choice.
         /// </summary>
-        /// <param name="scheduledMachineId">Scheduled machine id</param>
         internal void AddSchedulingChoice(ulong scheduledMachineId)
         {
             var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count, scheduledMachineId);
@@ -95,7 +91,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Adds a nondeterministic boolean choice.
         /// </summary>
-        /// <param name="choice">Choice</param>
         internal void AddNondeterministicBooleanChoice(bool choice)
         {
             var scheduleStep = ScheduleStep.CreateNondeterministicBooleanChoice(
@@ -106,8 +101,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Adds a fair nondeterministic boolean choice.
         /// </summary>
-        /// <param name="uniqueId">Unique nondet id</param>
-        /// <param name="choice">Choice</param>
         internal void AddFairNondeterministicBooleanChoice(string uniqueId, bool choice)
         {
             var scheduleStep = ScheduleStep.CreateFairNondeterministicBooleanChoice(
@@ -118,7 +111,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Adds a nondeterministic integer choice.
         /// </summary>
-        /// <param name="choice">Choice</param>
         internal void AddNondeterministicIntegerChoice(int choice)
         {
             var scheduleStep = ScheduleStep.CreateNondeterministicIntegerChoice(
@@ -130,7 +122,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// Returns the latest schedule step and removes
         /// it from the trace.
         /// </summary>
-        /// <returns>ScheduleStep</returns>
         internal ScheduleStep Pop()
         {
             if (this.Count > 0)
@@ -147,7 +138,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Returns the latest schedule step without removing it.
         /// </summary>
-        /// <returns>ScheduleStep</returns>
         internal ScheduleStep Peek()
         {
             ScheduleStep step = null;
@@ -156,14 +146,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             {
                 step = this.Steps[this.Count - 1];
             }
-            
+
             return step;
         }
 
         /// <summary>
         /// Returns an enumerator.
         /// </summary>
-        /// <returns>IEnumerator</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.Steps.GetEnumerator();
@@ -172,7 +161,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Returns an enumerator.
         /// </summary>
-        /// <returns>IEnumerator</returns>
         IEnumerator<ScheduleStep> IEnumerable<ScheduleStep>.GetEnumerator()
         {
             return this.Steps.GetEnumerator();
@@ -181,7 +169,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
         /// <summary>
         /// Pushes a new step to the trace.
         /// </summary>
-        /// <param name="step">ScheduleStep</param>
         private void Push(ScheduleStep step)
         {
             if (this.Count > 0)

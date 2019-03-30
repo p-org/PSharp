@@ -14,18 +14,21 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public BasicTimerTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         private class T1 : Machine
         {
-            int Count;
+            private int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Count = 0;
 
@@ -33,7 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.StartTimer(TimeSpan.FromMilliseconds(10));
             }
 
-            void HandleTimeout()
+            private void HandleTimeout()
             {
                 this.Count++;
                 this.Assert(this.Count == 1);
@@ -46,23 +49,27 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T1));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         private class T2 : Machine
         {
-            TimerInfo Timer;
-            int Count;
+            private TimerInfo Timer;
+            private int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Init : MachineState { }
-            void InitOnEntry()
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
             {
                 this.Count = 0;
 
@@ -70,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Timer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(10));
             }
 
-            void HandleTimeout()
+            private void HandleTimeout()
             {
                 this.Count++;
                 this.Assert(this.Count <= 10);
@@ -86,17 +93,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
         public void TestBasicPeriodicTimerOperation()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T2));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
-        class T3 : Machine
+        private class T3 : Machine
         {
-            TimerInfo PingTimer;
-            TimerInfo PongTimer;
+            private TimerInfo PingTimer;
+            private TimerInfo PongTimer;
 
             /// <summary>
             /// Start the PingTimer and start handling the timeout events from it.
@@ -105,7 +113,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [Start]
             [OnEntry(nameof(DoPing))]
             [IgnoreEvents(typeof(TimerElapsedEvent))]
-            class Ping : MachineState { }
+            private class Ping : MachineState
+            {
+            }
 
             /// <summary>
             /// Start the PongTimer and start handling the timeout events from it.
@@ -113,7 +123,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
             /// </summary>
             [OnEntry(nameof(DoPong))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Pong : MachineState { }
+            private class Pong : MachineState
+            {
+            }
 
             private void DoPing()
             {
@@ -130,7 +142,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void HandleTimeout()
             {
-                var timeout = (this.ReceivedEvent as TimerElapsedEvent);
+                var timeout = this.ReceivedEvent as TimerElapsedEvent;
                 this.Assert(timeout.Info == this.PongTimer);
             }
         }
@@ -141,20 +153,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(100);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T3));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
-        class T4 : Machine
+        private class T4 : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 this.StartTimer(TimeSpan.FromSeconds(-1));
             }
@@ -166,20 +181,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T4));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
-        class T5 : Machine
+        private class T5 : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(-1));
             }
@@ -191,11 +209,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T5));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
         private class TransferTimerEvent : Event
@@ -213,9 +232,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [Start]
             [OnEntry(nameof(Initialize))]
             [IgnoreEvents(typeof(TimerElapsedEvent))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 var timer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(10));
                 this.CreateMachine(typeof(T7), new TransferTimerEvent(timer));
@@ -226,9 +247,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 var timer = (this.ReceivedEvent as TransferTimerEvent).Timer;
                 this.StopTimer(timer);
@@ -241,12 +264,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T6));
             });
 
             string bugReport = "Machine 'T7()' is not allowed to dispose timer '', which is owned by machine 'T6()'.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
 
         private class T8 : Machine
@@ -254,9 +278,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(TimerElapsedEvent))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 // Start a regular timer.
                 this.StartTimer(TimeSpan.FromMilliseconds(10));
@@ -265,9 +291,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(FinalOnEntry))]
             [IgnoreEvents(typeof(TimerElapsedEvent))]
-            class Final : MachineState { }
+            private class Final : MachineState
+            {
+            }
 
-            void FinalOnEntry()
+            private void FinalOnEntry()
             {
                 this.Raise(new Halt());
             }
@@ -279,11 +307,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T8));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

@@ -3,13 +3,10 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Microsoft.PSharp.LanguageServices.Syntax;
 
@@ -20,21 +17,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal abstract class PSharpRewriter
     {
-        #region fields
-
         /// <summary>
         /// The P# program.
         /// </summary>
         protected IPSharpProgram Program;
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         protected PSharpRewriter(IPSharpProgram program)
         {
             this.Program = program;
@@ -43,8 +33,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Returns the next statement.
         /// </summary>
-        /// <param name="node">SyntaxNode</param>
-        /// <returns>SyntaxNode</returns>
         protected SyntaxNode GetNextStatement(SyntaxNode node)
         {
             SyntaxNode next = null;
@@ -65,51 +53,32 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// True if the given syntax node is a machine field.
         /// </summary>
-        /// <param name="node">SyntaxNode</param>
-        /// <returns>Boolean</returns>
         protected bool IsMachineField(SyntaxNode node)
         {
-            var result = false;
-
-            MachineDeclaration machine = null;
-            if (!this.TryGetParentMachine(node, out machine))
+            if (this.TryGetParentMachine(node, out MachineDeclaration machine))
             {
-                return result;
+                return machine.FieldDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
             }
 
-            result = machine.FieldDeclarations.
-                Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-
-            return result;
+            return false;
         }
 
         /// <summary>
         /// True if the given syntax node is a machine method.
         /// </summary>
-        /// <param name="node">SyntaxNode</param>
-        /// <returns>Boolean</returns>
         protected bool IsMachineMethod(SyntaxNode node)
         {
-            var result = false;
-
-            MachineDeclaration machine = null;
-            if (!this.TryGetParentMachine(node, out machine))
+            if (this.TryGetParentMachine(node, out MachineDeclaration machine))
             {
-                return result;
+                return machine.MethodDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
             }
 
-            result = machine.MethodDeclarations.
-                Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-
-            return result;
+            return false;
         }
 
         /// <summary>
         /// Tries to return the parent machine identifier, if any.
         /// </summary>
-        /// <param name="node">SyntaxNode</param>
-        /// <param name="machine">MachineDeclaration</param>
-        /// <returns>Boolean</returns>
         protected bool TryGetParentMachine(SyntaxNode node, out MachineDeclaration machine)
         {
             var result = false;
@@ -136,12 +105,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Updates the syntax tree.
         /// </summary>
-        /// <param name="text">Text</param>
         protected void UpdateSyntaxTree(string text)
         {
             this.Program.UpdateSyntaxTree(text);
         }
-
-        #endregion
     }
 }

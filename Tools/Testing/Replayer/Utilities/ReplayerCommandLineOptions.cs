@@ -10,34 +10,31 @@ namespace Microsoft.PSharp.Utilities
     public sealed class ReplayerCommandLineOptions : BaseCommandLineOptions
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ReplayerCommandLineOptions"/> class.
         /// </summary>
-        /// <param name="args">Array of arguments</param>
         public ReplayerCommandLineOptions(string[] args)
-            : base (args)
+            : base(args)
         {
-
         }
 
         /// <summary>
         /// Parses the given option.
         /// </summary>
-        /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            if (this.IsMatch(option, @"^[\/|-]test:") && option.Length > 6)
+            if (IsMatch(option, @"^[\/|-]test:") && option.Length > 6)
             {
-                base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
+                this.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
-            else if (this.IsMatch(option, @"^[\/|-]runtime:") && option.Length > 9)
+            else if (IsMatch(option, @"^[\/|-]runtime:") && option.Length > 9)
             {
-                base.Configuration.TestingRuntimeAssembly = option.Substring(9);
+                this.Configuration.TestingRuntimeAssembly = option.Substring(9);
             }
-            else if (this.IsMatch(option, @"^[\/|-]method:") && option.Length > 8)
+            else if (IsMatch(option, @"^[\/|-]method:") && option.Length > 8)
             {
-                base.Configuration.TestMethodName = option.Substring(8);
+                this.Configuration.TestMethodName = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
+            else if (IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(8));
                 if (!extension.Equals(".schedule"))
@@ -46,23 +43,23 @@ namespace Microsoft.PSharp.Utilities
                         "'-replay:[x]', where [x] has extension '.schedule'.");
                 }
 
-                base.Configuration.ScheduleFile = option.Substring(8);
+                this.Configuration.ScheduleFile = option.Substring(8);
             }
-            else if (this.IsMatch(option, @"^[\/|-]break$"))
+            else if (IsMatch(option, @"^[\/|-]break$"))
             {
-                base.Configuration.AttachDebugger = true;
+                this.Configuration.AttachDebugger = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]attach-debugger$"))
+            else if (IsMatch(option, @"^[\/|-]attach-debugger$"))
             {
-                base.Configuration.AttachDebugger = true;
+                this.Configuration.AttachDebugger = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]cycle-detection$"))
+            else if (IsMatch(option, @"^[\/|-]cycle-detection$"))
             {
-                base.Configuration.EnableCycleDetection = true;
+                this.Configuration.EnableCycleDetection = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]custom-state-hashing$"))
+            else if (IsMatch(option, @"^[\/|-]custom-state-hashing$"))
             {
-                base.Configuration.EnableUserDefinedStateHashing = true;
+                this.Configuration.EnableUserDefinedStateHashing = true;
             }
             else
             {
@@ -75,13 +72,13 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void CheckForParsingErrors()
         {
-            if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
+            if (string.IsNullOrEmpty(this.Configuration.AssemblyToBeAnalyzed))
             {
                 Error.ReportAndExit("Please give a valid path to a P# " +
                     "program's dll using '-test:[x]'.");
             }
 
-            if (base.Configuration.ScheduleFile.Equals(""))
+            if (string.IsNullOrEmpty(this.Configuration.ScheduleFile))
             {
                 Error.ReportAndExit("Please give a valid path to a P# schedule " +
                     "file using '-replay:[x]', where [x] has extension '.schedule'.");
@@ -89,10 +86,11 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
-        /// Updates the configuration depending on the
-        /// user specified options.
+        /// Updates the configuration depending on the user specified options.
         /// </summary>
-        protected override void UpdateConfiguration() { }
+        protected override void UpdateConfiguration()
+        {
+        }
 
         /// <summary>
         /// Shows help.

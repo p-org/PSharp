@@ -13,24 +13,29 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public OnEventDroppedTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public MachineId Id;
 
-            public E() { }
+            public E()
+            {
+            }
 
             public E(MachineId id)
             {
-                Id = id;
+                this.Id = id;
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             protected override void OnHalt()
             {
@@ -41,8 +46,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOnDroppedCalled1()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.OnEventDropped += delegate (Event e, MachineId target)
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.OnEventDropped += (e, target) =>
                 {
                     r.Assert(false);
                 };
@@ -51,16 +57,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(m, new Halt());
             });
 
-            AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send(this.Id, new Halt());
                 this.Send(this.Id, new E());
@@ -70,8 +78,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOnDroppedCalled2()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.OnEventDropped += delegate (Event e, MachineId target)
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.OnEventDropped += (e, target) =>
                 {
                     r.Assert(false);
                 };
@@ -79,16 +88,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 var m = r.CreateMachine(typeof(M2));
             });
 
-            AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
 
         [Fact]
         public void TestOnDroppedParams()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var m = r.CreateMachine(typeof(M1));
 
-                r.OnEventDropped += delegate (Event e, MachineId target)
+                r.OnEventDropped += (e, target) =>
                 {
                     r.Assert(e is E);
                     r.Assert(target == m);
@@ -97,55 +107,70 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(m, new Halt());
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
-        class EventProcessed : Event { }
-        class EventDropped : Event { }
+        private class EventProcessed : Event
+        {
+        }
 
-        class Monitor3 : Monitor
+        private class EventDropped : Event
+        {
+        }
+
+        private class Monitor3 : Monitor
         {
             [Hot]
             [Start]
             [OnEventGotoState(typeof(EventProcessed), typeof(S2))]
             [OnEventGotoState(typeof(EventDropped), typeof(S2))]
-            class S1 : MonitorState { }
+            private class S1 : MonitorState
+            {
+            }
 
             [Cold]
-            class S2 : MonitorState { }
+            private class S2 : MonitorState
+            {
+            }
         }
 
-        class M3a : Machine
+        private class M3a : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send((this.ReceivedEvent as E).Id, new Halt());
             }
         }
 
-        class M3b : Machine
+        private class M3b : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send((this.ReceivedEvent as E).Id, new E());
             }
         }
 
-        class M3c : Machine
+        private class M3c : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Processed))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Processed()
+            private void Processed()
             {
                 this.Monitor<Monitor3>(new EventProcessed());
             }
@@ -154,9 +179,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestProcessedOrDropped()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Monitor3));
-                r.OnEventDropped += delegate (Event e, MachineId target)
+                r.OnEventDropped += (e, target) =>
                 {
                     r.InvokeMonitor(typeof(Monitor3), new EventDropped());
                 };
@@ -167,7 +193,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var config = Configuration.Create().WithNumberOfIterations(1000);
-            AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
     }
 }

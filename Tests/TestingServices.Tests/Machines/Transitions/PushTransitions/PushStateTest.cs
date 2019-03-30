@@ -13,43 +13,58 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public PushStateTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class A : Machine
+        private class A : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Foo))]
             [OnEventPushState(typeof(E2), typeof(S1))]
-            class S0 : MachineState { }
+            private class S0 : MachineState
+            {
+            }
 
             [OnEventDoAction(typeof(E3), nameof(Bar))]
-            class S1 : MachineState { }
+            private class S1 : MachineState
+            {
+            }
 
-            void Foo() { }
+            private void Foo()
+            {
+            }
 
-            void Bar()
+            private void Bar()
             {
                 this.Pop();
             }
-
         }
 
-        class E1 : Event
-        { }
-        class E2 : Event
-        { }
-        class E3 : Event
-        { }
-        class E4 : Event
-        { }
+        private class E1 : Event
+        {
+        }
 
-        class B : Machine
+        private class E2 : Event
+        {
+        }
+
+        private class E3 : Event
+        {
+        }
+
+        private class E4 : Event
+        {
+        }
+
+        private class B : Machine
         {
             [Start]
             [OnEntry(nameof(Conf))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Conf()
+            private void Conf()
             {
                 var a = this.CreateMachine(typeof(A));
                 this.Send(a, new E2()); // push(S1)
@@ -61,11 +76,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestPushStateEvent()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(B));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

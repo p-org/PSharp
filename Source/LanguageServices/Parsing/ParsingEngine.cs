@@ -14,28 +14,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class ParsingEngine
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// The parsing options.
         /// </summary>
-        private ParsingOptions Options;
-
-        #endregion
-
-        #region public API
+        private readonly ParsingOptions Options;
 
         /// <summary>
         /// Creates a P# parsing engine for the specified compilation
         /// context and using the default parsing options.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <returns>ParsingEngine</returns>
         public static ParsingEngine Create(CompilationContext context)
         {
             return new ParsingEngine(context, ParsingOptions.CreateDefault());
@@ -45,9 +37,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Creates a P# parsing engine for the specified compilation
         /// context and using the specified parsing options.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="options">ParsingOptions</param>
-        /// <returns>ParsingEngine</returns>
         public static ParsingEngine Create(CompilationContext context, ParsingOptions options)
         {
             return new ParsingEngine(context, options);
@@ -56,11 +45,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Runs the P# parsing engine.
         /// </summary>
-        /// <returns>ParsingEngine</returns>
         public ParsingEngine Run()
         {
             // Parse the projects.
-            if (this.CompilationContext.Configuration.ProjectName.Equals(""))
+            if (string.IsNullOrEmpty(this.CompilationContext.Configuration.ProjectName))
             {
                 foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
@@ -94,21 +82,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             return this;
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ParsingEngine"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="options">ParsingOptions</param>
         private ParsingEngine(CompilationContext context, ParsingOptions options)
         {
             this.CompilationContext = context;
             this.Options = options;
         }
-
-        #endregion
     }
 }

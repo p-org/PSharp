@@ -21,28 +21,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The P# testing runtime.
         /// </summary>
-        private TestingRuntime Runtime;
+        private readonly TestingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for bug-finding.
         /// </summary>
-        private ISchedulingStrategy Strategy;
+        private readonly ISchedulingStrategy Strategy;
 
         /// <summary>
         /// Map from unique ids to schedulable infos.
         /// </summary>
-        private Dictionary<ulong, SchedulableInfo> SchedulableInfoMap;
+        private readonly Dictionary<ulong, SchedulableInfo> SchedulableInfoMap;
 
         /// <summary>
         /// The scheduler completion source.
         /// </summary>
         private readonly TaskCompletionSource<bool> CompletionSource;
-        
+
         /// <summary>
         /// Checks if the scheduler is running.
         /// </summary>
         private bool IsSchedulerRunning;
-        
+
         /// <summary>
         /// The currently schedulable info.
         /// </summary>
@@ -69,10 +69,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal string BugReport { get; private set; }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BugFindingScheduler"/> class.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
-        /// <param name="strategy">SchedulingStrategy</param>
         internal BugFindingScheduler(TestingRuntime runtime, ISchedulingStrategy strategy)
         {
             this.Runtime = runtime;
@@ -87,9 +85,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Schedules the next <see cref="ISchedulable"/> operation to execute.
         /// </summary>
-        /// <param name="operationType">Type of the operation.</param>
-        /// <param name="targetType">Type of the target of the operation.</param>
-        /// <param name="targetId">Id of the target.</param>
         internal void Schedule(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
             int? taskId = Task.CurrentId;
@@ -169,9 +164,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
         internal bool GetNextNondeterministicBooleanChoice(int maxValue, string uniqueId = null)
         {
             // Checks if synchronisation not controlled by P# was used.
@@ -202,8 +194,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next nondeterministic integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <returns>Integer</returns>
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {
             // Checks if synchronisation not controlled by P# was used.
@@ -227,7 +217,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Waits for the event handler to start.
         /// </summary>
-        /// <param name="info">SchedulableInfo</param>
         internal void WaitForEventHandlerToStart(SchedulableInfo info)
         {
             lock (info)
@@ -279,7 +268,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that an event handler has been created.
         /// </summary>
-        /// <param name="info">SchedulableInfo</param>
         internal void NotifyEventHandlerCreated(SchedulableInfo info)
         {
             if (!this.SchedulableInfoMap.ContainsKey(info.Id))
@@ -298,18 +286,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that a monitor was registered.
         /// </summary>
-        /// <param name="info">SchedulableInfo</param>
         internal void NotifyMonitorRegistered(SchedulableInfo info)
         {
-            SchedulableInfoMap.Add(info.Id, info);
+            this.SchedulableInfoMap.Add(info.Id, info);
             Debug.WriteLine($"<ScheduleDebug> Created monitor of '{info.Name}'.");
         }
 
         /// <summary>
         /// Notify that the event handler has started.
         /// </summary>
-        /// <param name="info">SchedulableInfo</param>
-        internal void NotifyEventHandlerStarted(SchedulableInfo info)
+        internal static void NotifyEventHandlerStarted(SchedulableInfo info)
         {
             Debug.WriteLine($"<ScheduleDebug> Started event handler of '{info.Name}' with task id '{info.TaskId}'.");
 
@@ -334,8 +320,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that an assertion has failed.
         /// </summary>
-        /// <param name="text">Bug report</param>
-        /// <param name="killTasks">Kill tasks</param>
         internal void NotifyAssertionFailure(string text, bool killTasks = true)
         {
             if (!this.BugFound)
@@ -362,7 +346,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the enabled schedulable ids.
         /// </summary>
-        /// <returns>Enabled machine ids</returns>
         internal HashSet<ulong> GetEnabledSchedulableIds()
         {
             var enabledSchedulableIds = new HashSet<ulong>();
@@ -380,7 +363,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns a test report with the scheduling statistics.
         /// </summary>
-        /// <returns>TestReport</returns>
         internal TestReport GetReport()
         {
             TestReport report = new TestReport(this.Runtime.Configuration);
@@ -433,7 +415,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the number of available machines to schedule.
         /// </summary>
-        /// <returns>Int</returns>
         private int NumberOfAvailableMachinesToSchedule()
         {
             var availableMachines = this.SchedulableInfoMap.Values.Where(choice => choice.IsEnabled).ToList();
@@ -445,7 +426,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// machines, but there is one or more non-enabled machines that are
         /// waiting to receive an event.
         /// </summary>
-        /// <param name="choices">SchedulableInfos</param>
         private void CheckIfProgramHasLivelocked(IEnumerable<SchedulableInfo> choices)
         {
             var blockedChoices = choices.Where(choice => choice.IsWaitingToReceive).ToList();
@@ -502,9 +482,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
-                var msg = IO.Utilities.Format("Scheduling steps bound of {0} reached.",
-                    this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps :
-                    this.Runtime.Configuration.MaxUnfairSchedulingSteps);
+                var msg = IO.Utilities.Format(
+                    "Scheduling steps bound of {0} reached.",
+                    this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps : this.Runtime.Configuration.MaxUnfairSchedulingSteps);
 
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {

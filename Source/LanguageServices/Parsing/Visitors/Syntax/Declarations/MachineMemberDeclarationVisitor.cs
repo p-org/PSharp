@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
 using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
@@ -16,66 +13,53 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class MachineMemberDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineMemberDeclarationVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal MachineMemberDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Node</param>
-        /// <param name="modSet">Modifier set</param>
         internal void Visit(MachineDeclaration parentNode, ModifierSet modSet)
         {
             TextUnit textUnit = null;
-            new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
+            new TypeIdentifierVisitor(this.TokenStream).Visit(ref textUnit);
             var typeIdentifier = new Token(textUnit, TokenType.TypeIdentifier);
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected field or method identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected field or method identifier.", TokenType.Identifier);
             }
 
-            var identifierToken = base.TokenStream.Peek();
+            var identifierToken = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
-                    base.TokenStream.Peek().Type != TokenType.Semicolon))
+            if (this.TokenStream.Done ||
+                    (this.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
+                    this.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"(\" or \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftParenthesis,
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \"(\" or \";\".", TokenType.LeftParenthesis, TokenType.Semicolon);
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
+            if (this.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
-                new MachineMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
+                new MachineMethodDeclarationVisitor(this.TokenStream).Visit(parentNode, typeIdentifier,
                     identifierToken, modSet);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
+            else if (this.TokenStream.Peek().Type == TokenType.Semicolon)
             {
-                this.CheckMachineFieldModifierSet(modSet);
+                CheckMachineFieldModifierSet(modSet);
 
-                var node = new FieldDeclaration(base.TokenStream.Program, parentNode, modSet);
+                var node = new FieldDeclaration(this.TokenStream.Program, parentNode, modSet);
                 node.TypeIdentifier = typeIdentifier;
                 node.Identifier = identifierToken;
-                node.SemicolonToken = base.TokenStream.Peek();
+                node.SemicolonToken = this.TokenStream.Peek();
 
                 parentNode.FieldDeclarations.Add(node);
             }
@@ -84,46 +68,38 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        /// <param name="modSet">ModifierSet</param>
-        private void CheckMachineFieldModifierSet(ModifierSet modSet)
+        private static void CheckMachineFieldModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine field cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be public.");
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine field cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be internal.");
             }
 
             if (modSet.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                throw new ParsingException("A machine field cannot be abstract.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be abstract.");
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
             {
-                throw new ParsingException("A machine field cannot be virtual.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be virtual.");
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Override)
             {
-                throw new ParsingException("A machine field cannot be overriden.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be overriden.");
             }
 
             if (modSet.IsAsync)
             {
-                throw new ParsingException("A machine field cannot be async.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be async.");
             }
 
             if (modSet.IsPartial)
             {
-                throw new ParsingException("A machine field cannot be partial.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine field cannot be partial.");
             }
         }
     }

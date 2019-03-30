@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public IfStatementTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestIfStatement1()
@@ -84,7 +85,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -159,7 +160,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -232,7 +233,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -301,7 +302,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -374,7 +375,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -447,7 +448,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -517,7 +518,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -587,7 +588,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -667,7 +668,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 1, isPSharpProgram: false);
+            this.AssertFailed(test, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -743,7 +744,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
     }
 }

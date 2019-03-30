@@ -22,9 +22,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public FailureDetectorTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Driver : Machine
+        private class Driver : Machine
         {
             internal class Config : Event
             {
@@ -56,15 +57,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            MachineId FailureDetector;
-            HashSet<MachineId> Nodes;
-            int NumOfNodes;
+            private MachineId FailureDetector;
+            private HashSet<MachineId> Nodes;
+            private int NumOfNodes;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.NumOfNodes = (this.ReceivedEvent as Config).NumOfNodes;
 
@@ -85,9 +88,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(InjectFailuresOnEntry))]
             [OnEventDoAction(typeof(FailureDetector.NodeFailed), nameof(NodeFailedAction))]
-            class InjectFailures : MachineState { }
-            
-            void InjectFailuresOnEntry()
+            private class InjectFailures : MachineState
+            {
+            }
+
+            private void InjectFailuresOnEntry()
             {
                 foreach (var node in this.Nodes)
                 {
@@ -95,13 +100,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void NodeFailedAction()
+            private void NodeFailedAction()
             {
                 this.Monitor<LivenessMonitor>(this.ReceivedEvent);
             }
         }
 
-        class FailureDetector : Machine
+        private class FailureDetector : Machine
         {
             internal class Config : Event
             {
@@ -123,25 +128,35 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            class TimerCancelled : Event { }
-            class RoundDone : Event { }
-            class Unit : Event { }
+            private class TimerCancelled : Event
+            {
+            }
 
-            HashSet<MachineId> Nodes;
-            HashSet<MachineId> Clients;
-            int Attempts;
-            HashSet<MachineId> Alive;
-            HashSet<MachineId> Responses;
-            MachineId Timer;
+            private class RoundDone : Event
+            {
+            }
+
+            private class Unit : Event
+            {
+            }
+
+            private HashSet<MachineId> Nodes;
+            private HashSet<MachineId> Clients;
+            private int Attempts;
+            private HashSet<MachineId> Alive;
+            private HashSet<MachineId> Responses;
+            private MachineId Timer;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(Driver.RegisterClient), nameof(RegisterClientAction))]
             [OnEventDoAction(typeof(Driver.UnregisterClient), nameof(UnregisterClientAction))]
             [OnEventPushState(typeof(Unit), typeof(SendPing))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var nodes = (this.ReceivedEvent as Config).Nodes;
 
@@ -159,13 +174,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Unit());
             }
 
-            void RegisterClientAction()
+            private void RegisterClientAction()
             {
                 var client = (this.ReceivedEvent as Driver.RegisterClient).Client;
                 this.Clients.Add(client);
             }
 
-            void UnregisterClientAction()
+            private void UnregisterClientAction()
             {
                 var client = (this.ReceivedEvent as Driver.UnregisterClient).Client;
                 if (this.Clients.Contains(client))
@@ -179,9 +194,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventPushState(typeof(TimerCancelled), typeof(WaitForCancelResponse))]
             [OnEventDoAction(typeof(Node.Pong), nameof(PongAction))]
             [OnEventDoAction(typeof(Timer.Timeout), nameof(TimeoutAction))]
-            class SendPing : MachineState { }
+            private class SendPing : MachineState
+            {
+            }
 
-            void SendPingOnEntry()
+            private void SendPingOnEntry()
             {
                 foreach (var node in this.Nodes)
                 {
@@ -195,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Timer, new Timer.StartTimerEvent(100));
             }
 
-            void PongAction()
+            private void PongAction()
             {
                 var node = (this.ReceivedEvent as Node.Pong).Node;
                 if (this.Alive.Contains(node))
@@ -210,7 +227,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void TimeoutAction()
+            private void TimeoutAction()
             {
                 this.Attempts++;
 
@@ -240,14 +257,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(Timer.CancelSuccess), nameof(CancelSuccessAction))]
             [OnEventDoAction(typeof(Timer.CancelFailure), nameof(CancelFailure))]
             [DeferEvents(typeof(Timer.Timeout), typeof(Node.Pong))]
-            class WaitForCancelResponse : MachineState { }
+            private class WaitForCancelResponse : MachineState
+            {
+            }
 
-            void CancelSuccessAction()
+            private void CancelSuccessAction()
             {
                 this.Raise(new RoundDone());
             }
 
-            void CancelFailure()
+            private void CancelFailure()
             {
                 this.Pop();
             }
@@ -255,9 +274,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(ResetOnEntry))]
             [OnEventGotoState(typeof(Timer.Timeout), typeof(SendPing))]
             [IgnoreEvents(typeof(Node.Pong))]
-            class Reset : MachineState { }
+            private class Reset : MachineState
+            {
+            }
 
-            void ResetOnEntry()
+            private void ResetOnEntry()
             {
                 this.Attempts = 0;
                 this.Responses.Clear();
@@ -266,7 +287,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Node : Machine
+        private class Node : Machine
         {
             internal class Ping : Event
             {
@@ -290,9 +311,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Start]
             [OnEventDoAction(typeof(Ping), nameof(SendPong))]
-            class WaitPing : MachineState { }
+            private class WaitPing : MachineState
+            {
+            }
 
-            void SendPong()
+            private void SendPong()
             {
                 var client = (this.ReceivedEvent as Ping).Client;
                 this.Monitor<Safety>(new Safety.Pong(this.Id));
@@ -300,7 +323,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Timer : Machine
+        private class Timer : Machine
         {
             internal class Config : Event
             {
@@ -322,19 +345,31 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class Timeout : Event { }
+            internal class Timeout : Event
+            {
+            }
 
-            internal class CancelSuccess : Event { }
-            internal class CancelFailure : Event { }
-            internal class CancelTimer : Event { }
+            internal class CancelSuccess : Event
+            {
+            }
 
-            MachineId Target;
+            internal class CancelFailure : Event
+            {
+            }
+
+            internal class CancelTimer : Event
+            {
+            }
+
+            private MachineId Target;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Target = (this.ReceivedEvent as Config).Target;
                 this.Goto<WaitForReq>();
@@ -342,9 +377,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction))]
             [OnEventGotoState(typeof(StartTimerEvent), typeof(WaitForCancel))]
-            class WaitForReq : MachineState { }
+            private class WaitForReq : MachineState
+            {
+            }
 
-            void CancelTimerAction()
+            private void CancelTimerAction()
             {
                 this.Send(this.Target, new CancelFailure());
             }
@@ -352,14 +389,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [IgnoreEvents(typeof(StartTimerEvent))]
             [OnEventGotoState(typeof(CancelTimer), typeof(WaitForReq), nameof(CancelTimerAction2))]
             [OnEventGotoState(typeof(Default), typeof(WaitForReq), nameof(DefaultAction))]
-            class WaitForCancel : MachineState { }
+            private class WaitForCancel : MachineState
+            {
+            }
 
-            void DefaultAction()
+            private void DefaultAction()
             {
                 this.Send(this.Target, new Timeout());
             }
 
-            void CancelTimerAction2()
+            private void CancelTimerAction2()
             {
                 if (this.Random())
                 {
@@ -373,7 +412,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Safety : Monitor
+        private class Safety : Monitor
         {
             internal class Ping : Event
             {
@@ -395,20 +434,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            Dictionary<MachineId, int> Pending;
+            private Dictionary<MachineId, int> Pending;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(Ping), nameof(PingAction))]
             [OnEventDoAction(typeof(Pong), nameof(PongAction))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Pending = new Dictionary<MachineId, int>();
             }
 
-            void PingAction()
+            private void PingAction()
             {
                 var client = (this.ReceivedEvent as Ping).Client;
                 if (!this.Pending.ContainsKey(client))
@@ -420,7 +461,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Assert(this.Pending[client] <= 3, $"'{client}' ping count must be <= 3.");
             }
 
-            void PongAction()
+            private void PongAction()
             {
                 var node = (this.ReceivedEvent as Pong).Node;
                 this.Assert(this.Pending.ContainsKey(node), $"'{node}' is not in pending set.");
@@ -429,7 +470,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             internal class RegisterNodes : Event
             {
@@ -441,13 +482,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            HashSet<MachineId> Nodes;
+            private HashSet<MachineId> Nodes;
 
             [Start]
             [OnEventDoAction(typeof(RegisterNodes), nameof(RegisterNodesAction))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void RegisterNodesAction()
+            private void RegisterNodesAction()
             {
                 var nodes = (this.ReceivedEvent as RegisterNodes).Nodes;
                 this.Nodes = new HashSet<MachineId>(nodes);
@@ -456,9 +499,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [Hot]
             [OnEventDoAction(typeof(FailureDetector.NodeFailed), nameof(NodeDownAction))]
-            class Wait : MonitorState { }
+            private class Wait : MonitorState
+            {
+            }
 
-            void NodeDownAction()
+            private void NodeDownAction()
             {
                 var node = (this.ReceivedEvent as FailureDetector.NodeFailed).Node;
                 this.Nodes.Remove(node);
@@ -468,15 +513,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            class Done : MonitorState { }
+            private class Done : MonitorState
+            {
+            }
         }
 
         [Theory]
-        //[ClassData(typeof(SeedGenerator))]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(100813)]
         public void TestFailureDetectorSafetyBug(int seed)
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
@@ -484,21 +531,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingIterations = 1;
             configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Safety));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
             var bugReport = "'Node()' ping count must be <= 3.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Theory]
-        //[ClassData(typeof(SeedGenerator))]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(4986)]
         public void TestFailureDetectorLivenessBug(int seed)
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
@@ -506,14 +554,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingIterations = 1;
             configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule; // TODO
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
                 "'LivenessMonitor.Wait'.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Fact]
@@ -527,13 +576,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.RandomSchedulingSeed = 270;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
-            AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

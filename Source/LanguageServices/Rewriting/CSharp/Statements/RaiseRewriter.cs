@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -18,16 +16,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
     /// </summary>
     internal sealed class RaiseRewriter : CSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RaiseRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal RaiseRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -35,14 +29,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// </summary>
         public override void Rewrite()
         {
-            var compilation = base.Program.GetProject().GetCompilation();
-            var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
+            var compilation = this.Program.GetProject().GetCompilation();
+            var model = compilation.GetSemanticModel(this.Program.GetSyntaxTree());
 
             var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
                 Where(val => val.Expression is InvocationExpressionSyntax).
-                Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.Raise", model)).
+                Where(val => IsExpectedExpression(val.Expression, "Microsoft.PSharp.Raise", model)).
                 ToList();
-            
+
             if (statements.Count == 0)
             {
                 return;
@@ -52,18 +46,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the raise statement.
         /// </summary>
-        /// <param name="node">ExpressionStatementSyntax</param>
-        /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var text = "{ " + node.ToString() + "return; }";
@@ -72,7 +60,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 
             return rewritten;
         }
-
-        #endregion
     }
 }

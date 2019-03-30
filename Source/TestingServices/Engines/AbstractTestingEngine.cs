@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+#if NET46
+using System.Configuration;
+#endif
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Configuration;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -172,9 +174,8 @@ namespace Microsoft.PSharp.TestingServices
         public abstract string Report();
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="AbstractTestingEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         protected AbstractTestingEngine(Configuration configuration)
         {
             this.Initialize(configuration);
@@ -213,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 #endif
 
-            if (configuration.TestingRuntimeAssembly != "")
+            if (!string.IsNullOrEmpty(configuration.TestingRuntimeAssembly))
             {
                 try
                 {
@@ -228,31 +229,27 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.FindEntryPoint();
-            this.TestInitMethod = FindTestMethod(typeof(TestInit));
-            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
-            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
+            this.TestInitMethod = this.FindTestMethod(typeof(TestInitAttribute));
+            this.TestDisposeMethod = this.FindTestMethod(typeof(TestDisposeAttribute));
+            this.TestIterationDisposeMethod = this.FindTestMethod(typeof(TestIterationDisposeAttribute));
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="AbstractTestingEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
         protected AbstractTestingEngine(Configuration configuration, Assembly assembly)
         {
             this.Initialize(configuration);
             this.Assembly = assembly;
             this.FindEntryPoint();
-            this.TestInitMethod = FindTestMethod(typeof(TestInit));
-            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
-            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
+            this.TestInitMethod = this.FindTestMethod(typeof(TestInitAttribute));
+            this.TestDisposeMethod = this.FindTestMethod(typeof(TestDisposeAttribute));
+            this.TestIterationDisposeMethod = this.FindTestMethod(typeof(TestIterationDisposeAttribute));
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="AbstractTestingEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
         protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
             this.Initialize(configuration);
@@ -299,8 +296,10 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
             {
-                this.Strategy = new ProbabilisticRandomStrategy(this.Configuration.MaxFairSchedulingSteps,
-                    this.Configuration.CoinFlipBound, this.RandomNumberGenerator);
+                this.Strategy = new ProbabilisticRandomStrategy(
+                    this.Configuration.MaxFairSchedulingSteps,
+                    this.Configuration.CoinFlipBound,
+                    this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {
@@ -323,7 +322,8 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.IDDFS)
             {
-                this.Strategy = new IterativeDeepeningDFSStrategy(this.Configuration.MaxUnfairSchedulingSteps,
+                this.Strategy = new IterativeDeepeningDFSStrategy(
+                    this.Configuration.MaxUnfairSchedulingSteps,
                     this.SchedulingStrategyLogger);
                 this.Configuration.PerformFullExploration = false;
             }
@@ -345,13 +345,19 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
             {
-                this.Strategy = new ExhaustiveDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
-                    this.Configuration.DelayBound, this.SchedulingStrategyLogger, this.RandomNumberGenerator);
+                this.Strategy = new ExhaustiveDelayBoundingStrategy(
+                    this.Configuration.MaxUnfairSchedulingSteps,
+                    this.Configuration.DelayBound,
+                    this.SchedulingStrategyLogger,
+                    this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
             {
-                this.Strategy = new RandomDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
-                    this.Configuration.DelayBound, this.SchedulingStrategyLogger, this.RandomNumberGenerator);
+                this.Strategy = new RandomDelayBoundingStrategy(
+                    this.Configuration.MaxUnfairSchedulingSteps,
+                    this.Configuration.DelayBound,
+                    this.SchedulingStrategyLogger,
+                    this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
@@ -405,12 +411,12 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (AggregateException aex)
             {
-                aex.Handle((Func<Exception, bool>)((ex) =>
+                aex.Handle((ex) =>
                 {
-                    Debug.WriteLine((string)ex.Message);
-                    Debug.WriteLine((string)ex.StackTrace);
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
                     return true;
-                }));
+                });
 
                 if (aex.InnerException is FileNotFoundException)
                 {
@@ -425,11 +431,11 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Profiler.StopMeasuringExecutionTime();
 
-                //if (!this.Configuration.KeepTemporaryFiles &&
+                // if (!this.Configuration.KeepTemporaryFiles &&
                 //    this.Assembly != null)
-                //{
+                // {
                 //    this.CleanTemporaryFiles();
-                //}
+                // }
             }
         }
 
@@ -439,9 +445,11 @@ namespace Microsoft.PSharp.TestingServices
         private void FindRuntimeFactoryMethod()
         {
             BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
-            List<MethodInfo> runtimeFactoryMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeCreate), flags, this.RuntimeAssembly);
+            List<MethodInfo> runtimeFactoryMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeCreateAttribute), flags, this.RuntimeAssembly);
             foreach (var x in runtimeFactoryMethods)
+            {
                 Console.WriteLine(x.Name);
+            }
 
             if (runtimeFactoryMethods.Count == 0)
             {
@@ -450,7 +458,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (runtimeFactoryMethods.Count > 1)
             {
                 Error.ReportAndExit("Only one testing runtime factory method can be declared with " +
-                    $"the attribute '{typeof(TestRuntimeCreate).FullName}'. " +
+                    $"the attribute '{typeof(TestRuntimeCreateAttribute).FullName}'. " +
                     $"'{runtimeFactoryMethods.Count}' factory methods were found instead.");
             }
 
@@ -466,7 +474,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeCreate).FullName}] internal static TestingRuntime " +
+                    $"  [{typeof(TestRuntimeCreateAttribute).FullName}] internal static TestingRuntime " +
                     $"{runtimeFactoryMethods[0].Name}(Configuration configuration, ISchedulingStrategy strategy, " +
                     "IRegisterRuntimeOperation reporter) {{ ... }}");
             }
@@ -480,18 +488,18 @@ namespace Microsoft.PSharp.TestingServices
         private void FindEntryPoint()
         {
             BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
-            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test), flags, this.Assembly);
+            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(TestAttribute), flags, this.Assembly);
 
             // Filter by test method name
             var filteredTestMethods = testMethods
                 .FindAll(mi => string.Format("{0}.{1}", mi.DeclaringType.FullName, mi.Name)
-                .EndsWith(Configuration.TestMethodName));
+                .EndsWith(this.Configuration.TestMethodName));
 
             if (filteredTestMethods.Count == 0)
             {
                 if (testMethods.Count > 0)
                 {
-                    var msg = "Cannot detect a P# test method with name " + Configuration.TestMethodName +
+                    var msg = "Cannot detect a P# test method with name " + this.Configuration.TestMethodName +
                         ". Possible options are: " + Environment.NewLine;
                     foreach (var mi in testMethods)
                     {
@@ -503,13 +511,13 @@ namespace Microsoft.PSharp.TestingServices
                 else
                 {
                     Error.ReportAndExit("Cannot detect a P# test method. Use the " +
-                        $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
+                        $"attribute '[{typeof(TestAttribute).FullName}]' to declare a test method.");
                 }
             }
             else if (filteredTestMethods.Count > 1)
             {
                 var msg = "Only one test method to the P# program can " +
-                    $"be declared with the attribute '{typeof(Test).FullName}'. " +
+                    $"be declared with the attribute '{typeof(TestAttribute).FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead. Provide " +
                     $"/method flag to qualify the test method name you wish to use. " +
                     "Possible options are: " + Environment.NewLine;
@@ -534,7 +542,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
-                    $"  [{typeof(Test).FullName}] public static void " +
+                    $"  [{typeof(TestAttribute).FullName}] public static void " +
                     $"{testMethod.Name}(PSharpRuntime runtime) {{ ... }}");
             }
 
@@ -648,7 +656,7 @@ namespace Microsoft.PSharp.TestingServices
                 else if (line.StartsWith("--liveness-temperature-threshold:"))
                 {
                     this.Configuration.LivenessTemperatureThreshold =
-                        Int32.Parse(line.Substring("--liveness-temperature-threshold:".Length));
+                        int.Parse(line.Substring("--liveness-temperature-threshold:".Length));
                 }
                 else if (line.StartsWith("--test-method:"))
                 {
@@ -723,7 +731,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void SetRandomNumberGenerator()
         {
-            int seed = Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            int seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.RandomNumberGenerator = new DefaultRandomNumberGenerator(seed);
         }
     }

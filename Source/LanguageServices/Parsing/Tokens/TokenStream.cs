@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,12 +13,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class TokenStream
     {
-        #region fields
-
         /// <summary>
         /// List of tokens in the stream.
         /// </summary>
-        private List<Token> Tokens;
+        private readonly List<Token> Tokens;
 
         /// <summary>
         /// The current index of the stream.
@@ -31,10 +28,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public int Length
         {
-            get
-            {
-                return this.Tokens.Count;
-            }
+            get => this.Tokens.Count;
         }
 
         /// <summary>
@@ -42,10 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public bool Done
         {
-            get
-            {
-                return this.Index == this.Length;
-            }
+            get => this.Index == this.Length;
         }
 
         /// <summary>
@@ -53,14 +44,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         internal IPSharpProgram Program;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TokenStream"/> class.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
         public TokenStream(List<Token> tokens)
         {
             this.Tokens = tokens.ToList();
@@ -68,10 +54,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Returns the next token in the stream and progresses by one token.
-        /// Returns null if the stream is empty.
+        /// Returns the next token in the stream and progresses by one token,
+        /// or null if the stream is empty.
         /// </summary>
-        /// <returns>Token</returns>
         public Token Next()
         {
             if (this.Index == this.Tokens.Count)
@@ -86,23 +71,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Returns the next token in the stream without progressing to the next token.
-        /// Returns null if the stream is empty.
+        /// Returns the next token in the stream without progressing to the next token,
+        /// or null if the stream is empty.
         /// </summary>
-        /// <returns>Token</returns>
         public Token Peek()
         {
             if (this.Index == this.Tokens.Count)
             {
                 return null;
             }
-            
+
             return this.Tokens[this.Index];
         }
 
         /// <summary>
-        /// Swaps the current token with the new token. Does nothing if the stream is
-        /// empty.
+        /// Swaps the current token with the new token, or does nothing if the stream is empty.
         /// </summary>
         public void Swap(Token token)
         {
@@ -115,24 +98,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Returns the token in the given index of the stream. Returns
-        /// null if the index is out of bounds.
+        /// Returns the token in the given index of the stream, or null if the index is out of bounds.
         /// </summary>
-        /// <returns>Token</returns>
         public Token GetAt(int index)
         {
             if (index >= this.Tokens.Count || index < 0)
             {
                 return null;
             }
-            
+
             return this.Tokens[index];
         }
 
         /// <summary>
         /// Skips whitespace and comment tokens.
         /// </summary>
-        /// <returns>Skipped tokens</returns>
         public List<Token> SkipWhiteSpaceAndCommentTokens()
         {
             var skipped = new List<Token>();
@@ -168,13 +148,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Consumes the next token in the stream. Does nothing 
-        /// if the stream is empty.
+        /// Consumes the next token in the stream, or does nothing if the stream is empty.
         /// </summary>
         private void Consume()
         {
@@ -189,8 +164,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Skips whitespace tokens.
         /// </summary>
-        /// <param name="skipped">Skipped tokens</param>
-        /// <returns>Boolean</returns>
         private bool SkipWhiteSpaceTokens(List<Token> skipped)
         {
             if ((this.Peek().Type != TokenType.WhiteSpace) &&
@@ -212,7 +185,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Comments out a line-wide comment, if any.
         /// </summary>
-        /// <returns>Boolean</returns>
         private bool CommentOutLineComment()
         {
             if ((this.Peek().Type != TokenType.CommentLine) &&
@@ -233,7 +205,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Comments out a multi-line comment, if any.
         /// </summary>
-        /// <returns>Boolean</returns>
         private bool CommentOutMultiLineComment()
         {
             if (this.Peek().Type != TokenType.CommentStart)
@@ -251,7 +222,5 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             return true;
         }
-
-        #endregion
     }
 }

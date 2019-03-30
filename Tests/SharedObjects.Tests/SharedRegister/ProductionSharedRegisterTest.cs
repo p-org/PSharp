@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
     {
         public ProductionSharedRegisterTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public ISharedRegister<int> Counter;
             public TaskCompletionSource<bool> Tcs;
@@ -27,13 +28,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -66,7 +69,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);

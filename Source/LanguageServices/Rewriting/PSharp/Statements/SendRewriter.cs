@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,16 +17,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class SendRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="SendRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal SendRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -35,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
                 Where(val => val.Expression is IdentifierNameSyntax).
                 Where(val => (val.Expression as IdentifierNameSyntax).Identifier.ValueText.Equals("send")).
                 ToList();
@@ -45,23 +40,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the statement with a send statement.
         /// </summary>
-        /// <param name="node">LocalDeclarationStatementSyntax</param>
-        /// <returns>StatementSyntax</returns>
-        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private static SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(node.ArgumentList.Arguments[0]);
@@ -90,7 +79,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return rewritten;
         }
-
-        #endregion
     }
 }

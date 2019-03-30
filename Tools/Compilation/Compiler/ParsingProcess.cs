@@ -14,22 +14,14 @@ namespace Microsoft.PSharp
     /// </summary>
     internal sealed class ParsingProcess
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
-
-        #endregion
-
-        #region API
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// Creates a P# parsing process.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <returns>ParsingProcess</returns>
         public static ParsingProcess Create(CompilationContext context)
         {
             return new ParsingProcess(context);
@@ -50,19 +42,12 @@ namespace Microsoft.PSharp
             ParsingEngine.Create(this.CompilationContext, options).Run();
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ParsingProcess"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
         private ParsingProcess(CompilationContext context)
         {
             this.CompilationContext = context;
         }
-
-        #endregion
     }
 }

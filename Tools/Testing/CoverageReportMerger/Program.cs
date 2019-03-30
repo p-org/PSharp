@@ -5,8 +5,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Xml;
 
 using Microsoft.PSharp.IO;
@@ -17,23 +17,19 @@ namespace Microsoft.PSharp
     /// <summary>
     /// P# coverage report merger.
     /// </summary>
-    class Program
+    internal class Program
     {
-        #region fields
-
         /// <summary>
         /// Input coverage info.
         /// </summary>
-        static List<CoverageInfo> InputFiles;
+        private static List<CoverageInfo> InputFiles;
 
         /// <summary>
         /// Output file prefix.
         /// </summary>
-        static string OutputFilePrefix;
+        private static string OutputFilePrefix;
 
-        #endregion
-
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (!ParseArgs(args))
             {
@@ -45,7 +41,7 @@ namespace Microsoft.PSharp
                 Console.WriteLine("Error: No input files provided");
                 return;
             }
-            
+
             var cinfo = new CoverageInfo();
             foreach (var other in InputFiles)
             {
@@ -71,12 +67,10 @@ namespace Microsoft.PSharp
             activityCoverageReporter.EmitCoverageReport(coverageFilePath);
         }
 
-
         /// <summary>
         /// Parses the arguments.
         /// </summary>
-        /// <param name="args"></param>
-        static bool ParseArgs(string[] args)
+        private static bool ParseArgs(string[] args)
         {
             InputFiles = new List<CoverageInfo>();
             OutputFilePrefix = "merged";
@@ -86,6 +80,7 @@ namespace Microsoft.PSharp
                 Console.WriteLine("Usage: PSharpMergeCoverageReports.exe file1.sci file2.sci ... [/output:prefix]");
                 return false;
             }
+
             foreach (var arg in args)
             {
                 if (arg.StartsWith("/output:"))
@@ -100,15 +95,15 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    // suffix
+                    // Check the suffix.
                     if (!arg.EndsWith(".sci"))
                     {
                         Console.WriteLine("Error: Only sci files accepted as input, got {0}", arg);
                         return false;
                     }
 
-                    // file exists?
-                    if (!System.IO.File.Exists(arg))
+                    // Check if the file exists?
+                    if (!File.Exists(arg))
                     {
                         Console.WriteLine("Error: File {0} not found", arg);
                         return false;
@@ -136,6 +131,5 @@ namespace Microsoft.PSharp
 
             return true;
         }
-
     }
 }

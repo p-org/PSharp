@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class NamespaceTests
     {
-        #region correct tests
-
         [Fact]
         public void TestNamespaceDeclaration()
         {
@@ -58,10 +56,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestUnexpectedTokenWithoutNamespace()
         {
@@ -75,7 +69,5 @@ namespace Foo
             var test = "namespace { }";
             LanguageTestUtilities.AssertFailedTestLog("Expected namespace identifier.", test);
         }
-
-        #endregion
     }
 }

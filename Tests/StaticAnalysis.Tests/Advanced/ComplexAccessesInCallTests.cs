@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public ComplexAccessesInCallTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestComplexAccessesInCall1Fail()
@@ -99,10 +100,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 4, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 4, isPSharpProgram: false);
         }
 
         [Fact]
@@ -182,10 +183,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -261,10 +262,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -340,10 +341,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
 
         [Fact]
@@ -415,10 +416,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 6, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 6, isPSharpProgram: false);
         }
 
         [Fact]
@@ -485,10 +486,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 5, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 5, isPSharpProgram: false);
         }
 
         [Fact]
@@ -549,13 +550,13 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns 'letter' " +
                 "to field 'Foo.OtherClass.Letter' after giving up its ownership.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -615,13 +616,13 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns 'letter' " +
                 "to field 'Foo.OtherClass.Letter' after giving up its ownership.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -682,13 +683,13 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', which contains data from field 'letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -750,13 +751,13 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', which contains data from field 'letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -833,10 +834,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
         }
     }
 }

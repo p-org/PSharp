@@ -8,9 +8,10 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+
+using Microsoft.PSharp.DataFlowAnalysis;
 using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -20,18 +21,15 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal abstract class OwnershipAnalysisPass : StateMachineAnalysisPass
     {
-        #region internal API
-
         /// <summary>
         /// Runs the analysis on the specified machines.
         /// </summary>
-        /// <param name="machines">StateMachines</param>
         internal override void Run(ISet<StateMachine> machines)
         {
             // Starts profiling the ownership analysis.
-            if (base.Configuration.EnableProfiling)
+            if (this.Configuration.EnableProfiling)
             {
-                base.Profiler.StartMeasuringExecutionTime();
+                this.Profiler.StartMeasuringExecutionTime();
             }
 
             foreach (var machine in machines)
@@ -40,54 +38,34 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             // Stops profiling the ownership analysis.
-            if (base.Configuration.EnableProfiling)
+            if (this.Configuration.EnableProfiling)
             {
-                base.Profiler.StopMeasuringExecutionTime();
+                this.Profiler.StopMeasuringExecutionTime();
                 this.PrintProfilingResults();
             }
         }
 
-        #endregion
-
-        #region protected methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="OwnershipAnalysisPass"/> class.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
-        /// <param name="errorReporter">ErrorReporter</param>
-        protected OwnershipAnalysisPass(AnalysisContext context, Configuration configuration,
-            ILogger logger, ErrorReporter errorReporter)
+        protected OwnershipAnalysisPass(AnalysisContext context, Configuration configuration, ILogger logger, ErrorReporter errorReporter)
             : base(context, configuration, logger, errorReporter)
         {
-
         }
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
         /// in the control-flow graph.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInControlFlowGraph(GivenUpOwnershipSymbol givenUpSymbol,
-            StateMachine machine, SemanticModel model, TraceInfo trace);
+        protected abstract void AnalyzeOwnershipInControlFlowGraph(GivenUpOwnershipSymbol givenUpSymbol, StateMachine machine,
+            SemanticModel model, TraceInfo trace);
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
         /// in the control-flow graph node.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="statement">Statement</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected void AnalyzeOwnershipInStatement(GivenUpOwnershipSymbol givenUpSymbol,
-            Statement statement, StateMachine machine, SemanticModel model,
-            TraceInfo trace)
+        protected void AnalyzeOwnershipInStatement(GivenUpOwnershipSymbol givenUpSymbol, Statement statement, StateMachine machine,
+            SemanticModel model, TraceInfo trace)
         {
             var localDecl = statement.SyntaxNode.DescendantNodesAndSelf().
                 OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
@@ -119,53 +97,28 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the variable declaration.
+        /// Analyzes the ownership of the given-up symbol in the variable declaration.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="varDecl">VariableDeclarationSyntax</param>
-        /// <param name="statement">Statement</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInLocalDeclaration(GivenUpOwnershipSymbol givenUpSymbol,
-            VariableDeclarationSyntax varDecl, Statement statement, StateMachine machine,
-            SemanticModel model, TraceInfo trace);
+        protected abstract void AnalyzeOwnershipInLocalDeclaration(GivenUpOwnershipSymbol givenUpSymbol, VariableDeclarationSyntax varDecl,
+            Statement statement, StateMachine machine, SemanticModel model, TraceInfo trace);
 
         /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the assignment expression.
+        /// Analyzes the ownership of the given-up symbol in the assignment expression.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="assignment">AssignmentExpressionSyntax</param>
-        /// <param name="statement">Statement</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInAssignment(GivenUpOwnershipSymbol givenUpSymbol,
-            AssignmentExpressionSyntax assignment, Statement statement, StateMachine machine,
-            SemanticModel model, TraceInfo trace);
+        protected abstract void AnalyzeOwnershipInAssignment(GivenUpOwnershipSymbol givenUpSymbol, AssignmentExpressionSyntax assignment,
+            Statement statement, StateMachine machine, SemanticModel model, TraceInfo trace);
 
         /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the call.
+        /// Analyzes the ownership of the given-up symbol in the call.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="call">ExpressionSyntax</param>
-        /// <param name="statement">Statement</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        /// <returns>Set of return symbols</returns>
-        protected HashSet<ISymbol> AnalyzeOwnershipInCall(GivenUpOwnershipSymbol givenUpSymbol,
-            ExpressionSyntax call, Statement statement, StateMachine machine,
-            SemanticModel model, TraceInfo trace)
+        protected HashSet<ISymbol> AnalyzeOwnershipInCall(GivenUpOwnershipSymbol givenUpSymbol, ExpressionSyntax call,
+            Statement statement, StateMachine machine, SemanticModel model, TraceInfo trace)
         {
             var potentialReturnSymbols = new HashSet<ISymbol>();
 
             var invocation = call as InvocationExpressionSyntax;
             var objCreation = call as ObjectCreationExpressionSyntax;
-            if ((invocation == null && objCreation == null))
+            if (invocation == null && objCreation == null)
             {
                 return potentialReturnSymbols;
             }
@@ -177,7 +130,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
             {
-                base.ErrorReporter.ReportExternalInvocation(callTrace);
+                this.ErrorReporter.ReportExternalInvocation(callTrace);
                 return potentialReturnSymbols;
             }
 
@@ -188,10 +141,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return potentialReturnSymbols;
             }
 
-            if (SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                this.AnalysisContext.Solution).Result == null)
+            if (SymbolFinder.FindSourceDefinitionAsync(callSymbol, this.AnalysisContext.Solution).Result == null)
             {
-                base.ErrorReporter.ReportExternalInvocation(callTrace);
+                this.ErrorReporter.ReportExternalInvocation(callTrace);
                 return potentialReturnSymbols;
             }
 
@@ -215,43 +167,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the candidate callee.
+        /// Analyzes the ownership of the given-up symbol in the candidate callee.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="calleeSummary">MethodSummary</param>
-        /// <param name="call">ExpressionSyntax</param>
-        /// <param name="statement">Statement</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInCandidateCallee(GivenUpOwnershipSymbol givenUpSymbol,
-            MethodSummary calleeSummary, ExpressionSyntax call, Statement statement,
-            StateMachine machine, SemanticModel model, TraceInfo trace);
+        protected abstract void AnalyzeOwnershipInCandidateCallee(GivenUpOwnershipSymbol givenUpSymbol, MethodSummary calleeSummary,
+            ExpressionSyntax call, Statement statement, StateMachine machine, SemanticModel model, TraceInfo trace);
 
         /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the gives-up operation.
+        /// Analyzes the ownership of the given-up symbol in the gives-up operation.
         /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="call">Gives-up call</param>
-        /// <param name="statement">Statement</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInGivesUpCall(GivenUpOwnershipSymbol givenUpSymbol,
-            InvocationExpressionSyntax call, Statement statement, StateMachine machine,
-            SemanticModel model, TraceInfo trace);
-
-        #endregion
-
-        #region private methods
+        protected abstract void AnalyzeOwnershipInGivesUpCall(GivenUpOwnershipSymbol givenUpSymbol, InvocationExpressionSyntax call,
+            Statement statement, StateMachine machine, SemanticModel model, TraceInfo trace);
 
         /// <summary>
         /// Analyzes the method summaries of the machine to check if
         /// each summary respects given-up ownerships.
         /// </summary>
-        /// <param name="machine">StateMachine</param>
         private void AnalyzeMethodSummariesInMachine(StateMachine machine)
         {
             foreach (var summary in machine.MethodSummaries.Values)
@@ -268,22 +198,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
         }
 
-        #endregion
-
-        #region helper methods
-
         /// <summary>
-        /// Returns true if the field symbol is being accessed
-        /// in a successor summary.
+        /// Returns true if the field symbol is being accessed in a successor summary.
         /// </summary>
-        /// <param name="fieldSymbol">IFieldSymbol</param>
-        /// <param name="summary">MethodSummary</param>
-        /// <param name="machine">StateMachine</param>
-        /// <returns>Boolean</returns>
         protected bool IsFieldAccessedInSuccessor(IFieldSymbol fieldSymbol, MethodSummary summary,
             StateMachine machine)
         {
-            if (!base.Configuration.DoStateTransitionAnalysis)
+            if (!this.Configuration.DoStateTransitionAnalysis)
             {
                 return true;
             }
@@ -297,15 +218,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                     return true;
                 }
             }
-            
+
             return false;
         }
 
         /// <summary>
         /// Extracts arguments from the list of arguments.
         /// </summary>
-        /// <param name="arguments">List of arguments</param>
-        /// <returns>List of arguments</returns>
         protected List<ExpressionSyntax> ExtractArguments(List<ExpressionSyntax> arguments)
         {
             var args = new List<ExpressionSyntax>();
@@ -350,7 +269,5 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             return args;
         }
-
-        #endregion
     }
 }

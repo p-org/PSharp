@@ -23,13 +23,13 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        protected void AssertSucceeded(string test, bool isPSharpProgram = true)
+        protected static void AssertSucceeded(string test, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
             AssertSucceeded(configuration, test, isPSharpProgram);
         }
 
-        protected void AssertSucceeded(Configuration configuration, string test, bool isPSharpProgram = true)
+        protected static void AssertSucceeded(Configuration configuration, string test, bool isPSharpProgram = true)
         {
             InMemoryLogger logger = new InMemoryLogger();
 
@@ -51,18 +51,18 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         protected void AssertFailed(string test, int numExpectedErrors, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, isPSharpProgram);
+            this.AssertFailed(configuration, test, numExpectedErrors, isPSharpProgram);
         }
 
         protected void AssertFailed(string test, int numExpectedErrors, string expectedOutput, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, expectedOutput, isPSharpProgram);
+            this.AssertFailed(configuration, test, numExpectedErrors, expectedOutput, isPSharpProgram);
         }
 
         protected void AssertFailed(Configuration configuration, string test, int numExpectedErrors, bool isPSharpProgram = true)
         {
-            AssertFailed(configuration, test, numExpectedErrors, string.Empty, isPSharpProgram);
+            this.AssertFailed(configuration, test, numExpectedErrors, string.Empty, isPSharpProgram);
         }
 
         protected void AssertFailed(Configuration configuration, string test, int numExpectedErrors, string expectedOutput, bool isPSharpProgram = true)
@@ -81,8 +81,9 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
                 {
                     var actual = logger.ToString();
                     this.TestOutput.WriteLine("actual: " + actual);
-                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, string.Empty),
-                       actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+                    Assert.Equal(
+                        expectedOutput.Replace(Environment.NewLine, string.Empty),
+                        actual.Substring(0, actual.IndexOf(Environment.NewLine)));
                 }
             }
             finally
@@ -94,40 +95,40 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         protected void AssertWarning(string test, int numExpectedWarnings, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
-            AssertWarning(configuration, test, numExpectedWarnings, isPSharpProgram);
+            this.AssertWarning(configuration, test, numExpectedWarnings, isPSharpProgram);
         }
 
         protected void AssertWarning(string test, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
-            AssertWarning(configuration, test, numExpectedWarnings, expectedOutput, isPSharpProgram);
+            this.AssertWarning(configuration, test, numExpectedWarnings, expectedOutput, isPSharpProgram);
         }
 
         protected void AssertWarning(Configuration configuration, string test, int numExpectedWarnings, bool isPSharpProgram = true)
         {
-            AssertWarning(configuration, test, numExpectedWarnings, string.Empty, isPSharpProgram);
+            this.AssertWarning(configuration, test, numExpectedWarnings, string.Empty, isPSharpProgram);
         }
 
         protected void AssertWarning(Configuration configuration, string test, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
         {
-            AssertFailedAndWarning(configuration, test, 0, numExpectedWarnings, expectedOutput, isPSharpProgram);
+            this.AssertFailedAndWarning(configuration, test, 0, numExpectedWarnings, expectedOutput, isPSharpProgram);
         }
 
         protected void AssertFailedAndWarning(string test, int numExpectedErrors, int numExpectedWarnings, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
-            AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, isPSharpProgram);
+            this.AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, isPSharpProgram);
         }
 
         protected void AssertFailedAndWarning(string test, int numExpectedErrors, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
         {
             var configuration = GetConfiguration();
-            AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, expectedOutput, isPSharpProgram);
+            this.AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, expectedOutput, isPSharpProgram);
         }
 
         protected void AssertFailedAndWarning(Configuration configuration, string test, int numExpectedErrors, int numExpectedWarnings, bool isPSharpProgram = true)
         {
-            AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, string.Empty, isPSharpProgram);
+            this.AssertFailedAndWarning(configuration, test, numExpectedErrors, numExpectedWarnings, string.Empty, isPSharpProgram);
         }
 
         protected void AssertFailedAndWarning(Configuration configuration, string test, int numExpectedErrors, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
@@ -149,8 +150,9 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
                 {
                     var actual = logger.ToString();
                     this.TestOutput.WriteLine("actual: " + actual);
-                    Assert.Equal(expectedOutput.Replace(Environment.NewLine, string.Empty),
-                       actual.Replace(Environment.NewLine, string.Empty));
+                    Assert.Equal(
+                        expectedOutput.Replace(Environment.NewLine, string.Empty),
+                        actual.Replace(Environment.NewLine, string.Empty));
                 }
             }
             finally
@@ -159,7 +161,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
             }
         }
 
-        protected Configuration GetConfiguration()
+        protected static Configuration GetConfiguration()
         {
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
@@ -170,7 +172,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
             return configuration;
         }
 
-        private CompilationContext CompileTest(Configuration configuration, string test, bool isPSharpProgram)
+        private static CompilationContext CompileTest(Configuration configuration, string test, bool isPSharpProgram)
         {
             var context = CompilationContext.Create(configuration).LoadSolution(test, isPSharpProgram ? "psharp" : "cs");
             ParsingEngine.Create(context).Run();

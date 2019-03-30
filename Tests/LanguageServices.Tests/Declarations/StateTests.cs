@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class StateTests
     {
-        #region correct tests
-
         [Fact]
         public void TestStateDeclaration()
         {
@@ -1186,10 +1184,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestStateDeclarationWithMoreThanOneEntry()
         {
@@ -1686,7 +1680,5 @@ on e<<int> goto S2;
 }";
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token inside a generic name.", test);
         }
-
-        #endregion
     }
 }

@@ -13,21 +13,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public EntryPointMachineExecutionTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class M : Machine
         {
-            [Start]
-            class Init : MachineState { }
         }
 
-        class N : Machine
+        private class M : Machine
+        {
+            [Start]
+            private class Init : MachineState
+            {
+            }
+        }
+
+        private class N : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Assert(false, "Reached test assertion.");
             }
@@ -36,13 +41,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestEntryPointMachineExecution()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 MachineId m = r.CreateMachine(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));
             });
 
             var bugReport = "Reached test assertion.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
     }
 }

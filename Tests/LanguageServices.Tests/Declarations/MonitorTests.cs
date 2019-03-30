@@ -12,8 +12,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MonitorTests
     {
-        #region failure tests
-
         [Fact]
         public void TestPrivateMonitorDeclaration()
         {
@@ -24,14 +22,12 @@ private monitor M { }
 
             ParsingOptions options = ParsingOptions.CreateDefault()
                 .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.Equal("A monitor cannot be declared as private.",
-                parser.GetParsingErrorLog());
+            Assert.Equal("A monitor cannot be declared as private.", parser.GetParsingErrorLog());
         }
 
         [Fact]
@@ -44,16 +40,12 @@ protected monitor M { }
 
             ParsingOptions options = ParsingOptions.CreateDefault()
                 .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.Equal("A monitor cannot be declared as protected.",
-                parser.GetParsingErrorLog());
+            Assert.Equal("A monitor cannot be declared as protected.", parser.GetParsingErrorLog());
         }
-
-        #endregion
     }
 }

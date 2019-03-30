@@ -13,15 +13,14 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Value.
         /// </summary>
-        public T Value;
+        internal T Value;
 
         /// <summary>
-        /// Creates a new response event.
+        /// Initializes a new instance of the <see cref="SharedDictionaryResponseEvent{T}"/> class.
         /// </summary>
-        /// <param name="value">Value</param>
-        public SharedDictionaryResponseEvent(T value)
+        internal SharedDictionaryResponseEvent(T value)
         {
-            Value = value;
+            this.Value = value;
         }
     }
 }

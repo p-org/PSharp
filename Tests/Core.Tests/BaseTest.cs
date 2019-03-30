@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        protected Configuration GetConfiguration()
+        protected static Configuration GetConfiguration()
         {
             return Configuration.Create();
         }

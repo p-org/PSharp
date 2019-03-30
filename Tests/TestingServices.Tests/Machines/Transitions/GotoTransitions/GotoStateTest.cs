@@ -13,113 +13,74 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public GotoStateTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Program1 : Machine
+        private class Program : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Goto<Done>();
             }
 
-            class Done : MachineState { }
-        }
-
-        class Program2 : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Done : MachineState
             {
-#pragma warning disable 618
-                this.Goto(typeof(Done));
-#pragma warning restore 618
             }
-
-            class Done : MachineState { }
         }
 
         internal static int MonitorValue;
 
-        class M1 : Monitor
+        private class M : Monitor
         {
             [Start]
             [OnEntry(nameof(Init))]
-            class S1 : MonitorState { }
-
-            [OnEntry(nameof(IncrementValue))]
-            class S2 : MonitorState { }
-
-            void Init() { this.Goto<S2>(); }
-
-            void IncrementValue() { MonitorValue = 101; }
-        }
-
-        class M2 : Monitor
-        {
-            [Start]
-            [OnEntry(nameof(Init))]
-            class S1 : MonitorState { }
-
-            [OnEntry(nameof(IncrementValue))]
-            class S2 : MonitorState { }
-
-            void Init()
+            private class S1 : MonitorState
             {
-#pragma warning disable 618
-                this.Goto(typeof(S2));
-#pragma warning restore 618
             }
 
-            void IncrementValue() { MonitorValue = 202; }
+            [OnEntry(nameof(IncrementValue))]
+            private class S2 : MonitorState
+            {
+            }
+
+            private void Init()
+            {
+                this.Goto<S2>();
+            }
+
+            private void IncrementValue()
+            {
+                MonitorValue = 101;
+            }
         }
 
         [Fact]
-        public void TestGotoStateGenericMethod()
+        public void TestGotoMachineState()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program1));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(Program));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
-        public void TestGotoStateTypeof()
+        public void TestGotoMonitorState()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program2));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.RegisterMonitor(typeof(M));
             });
 
-            base.AssertSucceeded(test);
-        }
-
-        [Fact]
-        public void TestGotoStateMonitorGenericMethod()
-        {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.RegisterMonitor(typeof(M1));
-            });
-
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
             Assert.Equal(101, MonitorValue);
-        }
-
-        [Fact]
-        public void TestGotoStateMonitorTypeof()
-        {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.RegisterMonitor(typeof(M2));
-            });
-
-            base.AssertSucceeded(test);
-            Assert.Equal(202, MonitorValue);
         }
     }
 }

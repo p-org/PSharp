@@ -10,19 +10,20 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// Defines a push state transition.
     /// </summary>
-    internal sealed class PushStateTransition 
+    internal sealed class PushStateTransition
     {
         /// <summary>
-        /// Target state.
+        /// The target state.
         /// </summary>
         public Type TargetState;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PushStateTransition"/> class.
         /// </summary>
-        public PushStateTransition(Type TargetState)
+        /// <param name="targetState">The target state.</param>
+        public PushStateTransition(Type targetState)
         {
-            this.TargetState = TargetState;
+            this.TargetState = targetState;
         }
     }
 }

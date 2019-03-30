@@ -13,30 +13,19 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
     /// </summary>
     public abstract class CSharpRewriter
     {
-        #region fields
-
         /// <summary>
         /// The P# program.
         /// </summary>
         protected IPSharpProgram Program;
-
-        #endregion
-
-        #region internal methods
 
         /// <summary>
         /// Rewrites the program.
         /// </summary>
         public abstract void Rewrite();
 
-        #endregion
-
-        #region protected methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CSharpRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         protected CSharpRewriter(IPSharpProgram program)
         {
             this.Program = program;
@@ -45,7 +34,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Updates the syntax tree.
         /// </summary>
-        /// <param name="text">Text</param>
         protected void UpdateSyntaxTree(string text)
         {
             this.Program.UpdateSyntaxTree(text);
@@ -54,15 +42,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Returns true if the given expression is the expected one.
         /// </summary>
-        /// <param name="expression">ExpressionSyntax</param>
-        /// <param name="expectedName">Text</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean</returns>
-        protected bool IsExpectedExpression(ExpressionSyntax expression,
-            string expectedName, SemanticModel model)
+        protected static bool IsExpectedExpression(ExpressionSyntax expression, string expectedName, SemanticModel model)
         {
             var symbol = model.GetSymbolInfo(expression).Symbol;
-            if (this.IsExpectedSymbol(symbol, expectedName))
+            if (IsExpectedSymbol(symbol, expectedName))
             {
                 return true;
             }
@@ -70,26 +53,19 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
             var candidateSymbols = model.GetSymbolInfo(expression).CandidateSymbols;
             foreach (var candidate in candidateSymbols)
             {
-                if (this.IsExpectedSymbol(candidate, expectedName))
+                if (IsExpectedSymbol(candidate, expectedName))
                 {
                     return true;
                 }
             }
-            
+
             return false;
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns true if the given symbol is the expected one.
         /// </summary>
-        /// <param name="symbol">ISymbol</param>
-        /// <param name="expectedName">Text</param>
-        /// <returns>Boolean</returns>
-        private bool IsExpectedSymbol(ISymbol symbol, string expectedName)
+        private static bool IsExpectedSymbol(ISymbol symbol, string expectedName)
         {
             if (symbol != null)
             {
@@ -102,7 +78,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 
             return false;
         }
-
-        #endregion
     }
 }

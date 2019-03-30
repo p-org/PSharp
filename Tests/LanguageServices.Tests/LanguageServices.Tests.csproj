@@ -5,6 +5,7 @@
     <Description>Tests for the P# language services library.</Description>
     <AssemblyName>Microsoft.PSharp.LanguageServices.Tests</AssemblyName>
     <RootNamespace>Microsoft.PSharp.LanguageServices.Tests</RootNamespace>
+    <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
@@ -23,6 +24,13 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include=".\Properties\stylecop.json" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

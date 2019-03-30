@@ -16,11 +16,11 @@ namespace Microsoft.PSharp.Runtime
         public string Name;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ActionBinding"/> class.
         /// </summary>
-        public ActionBinding(string ActionName)
+        public ActionBinding(string actionName)
         {
-            Name = ActionName;
+            this.Name = actionName;
         }
     }
 }

@@ -16,16 +16,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class HaltEventRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="HaltEventRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal HaltEventRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -33,7 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var types = base.Program.GetSyntaxTree().GetRoot().
+            var types = this.Program.GetSyntaxTree().GetRoot().
                 DescendantNodes().OfType<IdentifierNameSyntax>().
                 Where(val => val.Identifier.ValueText.Equals("halt")).
                 ToList();
@@ -43,23 +39,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: types,
-                computeReplacementNode: (node, rewritten) => this.RewriteType(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteType(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the type with a halt event type.
         /// </summary>
-        /// <param name="node">IdentifierNameSyntax</param>
-        /// <returns>ExpressionSyntax</returns>
-        private ExpressionSyntax RewriteType(IdentifierNameSyntax node)
+        private static ExpressionSyntax RewriteType(IdentifierNameSyntax node)
         {
             var text = typeof(Halt).FullName;
 
@@ -68,7 +58,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return rewritten;
         }
-
-        #endregion
     }
 }

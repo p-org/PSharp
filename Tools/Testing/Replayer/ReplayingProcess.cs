@@ -5,7 +5,6 @@
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -14,22 +13,14 @@ namespace Microsoft.PSharp
     /// </summary>
     internal sealed class ReplayingProcess
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
-        private Configuration Configuration;
-
-        #endregion
-
-        #region public methods
+        private readonly Configuration Configuration;
 
         /// <summary>
         /// Creates a P# replaying process.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>ReplayingProcess</returns>
         public static ReplayingProcess Create(Configuration configuration)
         {
             return new ReplayingProcess(configuration);
@@ -49,21 +40,14 @@ namespace Microsoft.PSharp
             Output.WriteLine(engine.Report());
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ReplayingProcess"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private ReplayingProcess(Configuration configuration)
         {
             configuration.EnableColoredConsoleOutput = true;
             configuration.DisableEnvironmentExit = false;
             this.Configuration = configuration;
         }
-
-        #endregion
     }
 }

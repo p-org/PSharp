@@ -19,12 +19,18 @@ namespace Microsoft.PSharp.IO
         private readonly StringWriter Writer;
 
         /// <summary>
-        /// Creates a new in-memory logger that logs everything by default.
+        /// Serializes access to the string writer.
+        /// </summary>
+        private readonly object Lock;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ThreadSafeInMemoryLogger"/> class.
         /// </summary>
         public ThreadSafeInMemoryLogger()
             : base(0)
         {
             this.Writer = new StringWriter();
+            this.Lock = new object();
         }
 
         /// <summary>
@@ -35,7 +41,7 @@ namespace Microsoft.PSharp.IO
         {
             try
             {
-                lock (this.Writer)
+                lock (this.Lock)
                 {
                     this.Writer.Write(value);
                 }
@@ -55,7 +61,7 @@ namespace Microsoft.PSharp.IO
         {
             try
             {
-                lock (this.Writer)
+                lock (this.Lock)
                 {
                     this.Writer.Write(format, args);
                 }
@@ -75,7 +81,7 @@ namespace Microsoft.PSharp.IO
         {
             try
             {
-                lock (this.Writer)
+                lock (this.Lock)
                 {
                     this.Writer.WriteLine(value);
                 }
@@ -96,7 +102,7 @@ namespace Microsoft.PSharp.IO
         {
             try
             {
-                lock (this.Writer)
+                lock (this.Lock)
                 {
                     this.Writer.WriteLine(format, args);
                 }
@@ -112,7 +118,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override string ToString()
         {
-            lock (this.Writer)
+            lock (this.Lock)
             {
                 return this.Writer.ToString();
             }

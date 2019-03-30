@@ -23,8 +23,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
     /// </summary>
     public sealed class CompilationContext
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
@@ -38,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// List of P# projects in the solution.
         /// </summary>
-        private List<PSharpProject> PSharpProjects;
+        private readonly List<PSharpProject> PSharpProjects;
 
         /// <summary>
         /// Set of custom compiler pass assemblies.
@@ -50,15 +48,10 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// </summary>
         private bool HasInitialized = false;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
         /// Create a new P# compilation context using the default
         /// configuration.
         /// </summary>
-        /// <returns>CompilationContext</returns>
         public static CompilationContext Create()
         {
             var configuration = Configuration.Create();
@@ -68,8 +61,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Create a new P# compilation context.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>CompilationContext</returns>
         public static CompilationContext Create(Configuration configuration)
         {
             return new CompilationContext(configuration);
@@ -78,7 +69,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Loads the user-specified solution.
         /// </summary>
-        /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution()
         {
             // Create a new workspace.
@@ -88,8 +78,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             try
             {
                 // Populate the workspace with the user defined solution.
-                solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
-                    @"" + this.Configuration.SolutionFilePath + "").Result;
+                solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(this.Configuration.SolutionFilePath).Result;
             }
             catch (AggregateException ex)
             {
@@ -102,7 +91,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             this.Solution = solution;
 
-            if (!this.Configuration.ProjectName.Equals(""))
+            if (!string.IsNullOrEmpty(this.Configuration.ProjectName))
             {
                 // Find the project specified by the user.
                 var project = this.GetProjectWithName(this.Configuration.ProjectName);
@@ -111,7 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     Error.ReportAndExit("Please give a valid project name.");
                 }
             }
-            
+
             this.HasInitialized = true;
 
             return this;
@@ -120,7 +109,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Loads the specified solution.
         /// </summary>
-        /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution(Solution solution)
         {
             this.Solution = solution;
@@ -131,9 +119,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Loads a solution from the specified text.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="extension">Extension</param>
-        /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution(string text, string extension = "psharp")
         {
             // Create a new solution from the specified text.
@@ -146,10 +131,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Loads a solution from the specified text.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="references">MetadataReferences</param>
-        /// <param name="extension">Extension</param>
-        /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution(string text, ISet<MetadataReference> references,
             string extension = "psharp")
         {
@@ -163,7 +144,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Returns the P# solution.
         /// </summary>
-        /// <returns>Solution</returns>
         public Solution GetSolution()
         {
             return this.Solution;
@@ -172,9 +152,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Returns a P# solution from the specified text.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="extension">Extension</param>
-        /// <returns>Solution</returns>
         public Solution GetSolution(string text, string extension = "psharp")
         {
             var references = new HashSet<MetadataReference>
@@ -195,10 +172,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Returns a P# solution from the specified text.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="references">MetadataReferences</param>
-        /// <param name="extension">Extension</param>
-        /// <returns>Solution</returns>
         public Solution GetSolution(string text, ISet<MetadataReference> references,
             string extension = "psharp")
         {
@@ -217,7 +190,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Returns the P# projects.
         /// </summary>
-        /// <returns>List of P# projects</returns>
         public List<PSharpProject> GetProjects()
         {
             return this.PSharpProjects;
@@ -226,8 +198,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Returns the project with the specified name.
         /// </summary>
-        /// <param name="name">Project name</param>
-        /// <returns>Project</returns>
         public Project GetProjectWithName(string name)
         {
             var project = this.Solution.Projects.Where(
@@ -238,17 +208,13 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Replaces the syntax tree with the specified text in the project.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="text">Text</param>
-        /// <param name="project">Project</param>
-        /// <returns>SyntaxTree</returns>
         public SyntaxTree ReplaceSyntaxTree(SyntaxTree tree, string text, Project project)
         {
             if (!this.HasInitialized)
             {
                 throw new Exception("ProgramInfo has not been initialized.");
             }
-            
+
             var doc = project.Documents.First(val => val.FilePath.Equals(tree.FilePath));
             var source = SourceText.From(text);
 
@@ -264,8 +230,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Prints the syntax tree.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        public void PrintSyntaxTree(SyntaxTree tree)
+        public static void PrintSyntaxTree(SyntaxTree tree)
         {
             var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
@@ -278,9 +243,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// True if the syntax tree belongs to a P# program, else false.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean</returns>
-        public bool IsPSharpFile(SyntaxTree tree)
+        public static bool IsPSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".psharp") ? true : false;
@@ -289,22 +252,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// True if the syntax tree belongs to a C# program, else false.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean</returns>
-        public bool IsCSharpFile(SyntaxTree tree)
+        public static bool IsCSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".cs") ? true : false;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CompilationContext"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private CompilationContext(Configuration configuration)
         {
             this.Configuration = configuration;
@@ -316,8 +272,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Creates a new P# project using the specified references.
         /// </summary>
-        /// <param name="references">MetadataReferences</param>
-        /// <returns>Project</returns>
         private Project CreateProject(ISet<MetadataReference> references)
         {
             var workspace = new AdhocWorkspace();
@@ -360,7 +314,5 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 }
             }
         }
-
-        #endregion
     }
 }

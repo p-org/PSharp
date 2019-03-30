@@ -41,7 +41,9 @@ namespace Microsoft.PSharp.TestingServices.Timers
         [Start]
         [OnEntry(nameof(Setup))]
         [OnEventDoAction(typeof(Default), nameof(HandleTimeout))]
-        private class Active : MachineState { }
+        private class Active : MachineState
+        {
+        }
 
         /// <summary>
         /// Initializes the timer with the specified configuration.
@@ -77,7 +79,9 @@ namespace Microsoft.PSharp.TestingServices.Timers
             }
         }
 
-        private class Inactive : MachineState { }
+        private class Inactive : MachineState
+        {
+        }
 
         /// <summary>
         /// Determines whether the specified System.Object is equal
@@ -87,7 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Timers
         {
             if (obj is MockMachineTimer timer)
             {
-                return base.Id == timer.Id;
+                return this.Id == timer.Id;
             }
 
             return false;

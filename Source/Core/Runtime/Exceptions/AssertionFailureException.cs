@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.Runtime
     internal sealed class AssertionFailureException : RuntimeException
     {
         /// <summary>
-        /// Initializes a new instance of the exception.
+        /// Initializes a new instance of the <see cref="AssertionFailureException"/> class.
         /// </summary>
         /// <param name="message">Message</param>
         internal AssertionFailureException(string message)
@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the exception.
+        /// Initializes a new instance of the <see cref="AssertionFailureException"/> class.
         /// </summary>
         /// <param name="message">Message</param>
         /// <param name="innerException">Inner exception</param>

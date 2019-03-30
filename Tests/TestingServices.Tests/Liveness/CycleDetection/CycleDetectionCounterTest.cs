@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public CycleDetectionCounterTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Configure : Event
+        private class Configure : Event
         {
             public bool CacheCounter;
             public bool ResetCounter;
@@ -27,20 +28,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Message : Event { }
-
-        class EventHandler : Machine
+        private class Message : Event
         {
-            int Counter;
-            bool CacheCounter;
-            bool ResetCounter;
+        }
+
+        private class EventHandler : Machine
+        {
+            private int Counter;
+            private bool CacheCounter;
+            private bool ResetCounter;
 
             [Start]
             [OnEntry(nameof(OnInitEntry))]
             [OnEventDoAction(typeof(Message), nameof(OnMessage))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void OnInitEntry()
+            private void OnInitEntry()
             {
                 this.Counter = 0;
                 this.CacheCounter = (this.ReceivedEvent as Configure).CacheCounter;
@@ -48,7 +53,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Id, new Message());
             }
 
-            void OnMessage()
+            private void OnMessage()
             {
                 this.Send(this.Id, new Message());
                 this.Counter++;
@@ -76,62 +81,67 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class WatchDog : Monitor
+        private class WatchDog : Monitor
         {
             [Start]
             [Hot]
-            class HotState : MonitorState { }
+            private class HotState : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestCycleDetectionCounterNoBug()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.EnableUserDefinedStateHashing = true;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(true, false));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         [Fact]
         public void TestCycleDetectionCounterBug()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.EnableUserDefinedStateHashing = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(false, false));
             });
 
             string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Fact]
         public void TestCycleDetectionCounterResetBug()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.EnableUserDefinedStateHashing = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(true, true));
             });
 
             string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

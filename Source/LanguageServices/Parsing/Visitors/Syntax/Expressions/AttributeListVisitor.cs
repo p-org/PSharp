@@ -3,11 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
-using Microsoft.PSharp.LanguageServices.Syntax;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
@@ -16,28 +11,26 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class AttributeListVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="AttributeListVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         public AttributeListVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
-        /// Visits.
+        /// Visits the syntax node.
         /// </summary>
         public void Visit()
         {
             int counter = 1;
-            while (!base.TokenStream.Done)
+            while (!this.TokenStream.Done)
             {
-                if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
+                if (this.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
                 {
                     counter++;
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.RightSquareBracket)
+                else if (this.TokenStream.Peek().Type == TokenType.RightSquareBracket)
                 {
                     counter--;
                 }
@@ -47,20 +40,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     break;
                 }
 
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit));
+                this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit));
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.RightSquareBracket)
             {
-                throw new ParsingException("Expected \"]\".",
-                    new List<TokenType>
-                {
-                    TokenType.RightSquareBracket
-                });
+                throw new ParsingException("Expected \"]\".", TokenType.RightSquareBracket);
             }
         }
     }

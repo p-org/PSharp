@@ -14,7 +14,8 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public NoMemoryLeakInEventSendingTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         internal class Configure : Event
         {
@@ -29,7 +30,7 @@ namespace Microsoft.PSharp.Core.Tests
         internal class E : Event
         {
             public MachineId Id;
-            int[] LargeArray;
+            private int[] LargeArray;
 
             public E(MachineId id)
                 : base()
@@ -39,22 +40,26 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        internal class Unit : Event { }
+        internal class Unit : Event
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Configure).TCS;
 
                 try
                 {
                     int counter = 0;
-                    var n = CreateMachine(typeof(N));
+                    var n = this.CreateMachine(typeof(N));
 
                     while (counter < 1000)
                     {
@@ -72,13 +77,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Act()
+            private void Act()
             {
                 var sender = (this.ReceivedEvent as E).Id;
                 this.Send(sender, new E(this.Id));
@@ -88,15 +95,16 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestNoMemoryLeakInEventSending()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M), new Configure(tcs));
                 tcs.Task.Wait();
                 r.Stop();
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

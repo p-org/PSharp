@@ -5,11 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
-using System.Linq;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -18,8 +18,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class EventDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The machine parent node.
         /// </summary>
@@ -100,16 +98,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal bool IsExtern;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="EventDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="modSet">Modifier set</param>
         internal EventDeclaration(IPSharpProgram program, MachineDeclaration machineNode, ModifierSet modSet)
             : base(program)
         {
@@ -137,21 +128,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Debug.WriteLine("Exception was thrown during rewriting:");
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                Error.ReportAndExit("Failed to rewrite event '{0}'.",
-                    this.Identifier.TextUnit.Text);
+                Error.ReportAndExit("Failed to rewrite event '{0}'.", this.Identifier.TextUnit.Text);
             }
 
-            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the rewritten event declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenEventDeclaration(int indentLevel)
         {
             var indent0 = GetIndent(indentLevel);
@@ -191,7 +176,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 // The GenericTypes contains the leading < and > as well as the type identifier(s and comma(s)).
                 foreach (var token in decl.GenericType)
                 {
-                    text += token.TextUnit.Text + (token.Type == TokenType.Comma ? " " : "");
+                    text += token.TextUnit.Text + (token.Type == TokenType.Comma ? " " : string.Empty);
                 }
             }
 
@@ -294,7 +279,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
-
-        #endregion
     }
 }

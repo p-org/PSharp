@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
+using Microsoft.PSharp.DataFlowAnalysis;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
@@ -17,8 +17,6 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal abstract class StateMachineAnalysisPass
     {
-        #region fields
-
         /// <summary>
         /// The analysis context.
         /// </summary>
@@ -44,29 +42,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         protected Profiler Profiler;
 
-        #endregion
-
-        #region internal methods
-
         /// <summary>
         /// Runs the analysis on the specified machines.
         /// </summary>
-        /// <param name="machines">StateMachines</param>
         internal abstract void Run(ISet<StateMachine> machines);
 
-        #endregion
-
-        #region protected methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateMachineAnalysisPass"/> class.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
-        /// <param name="errorReporter">ErrorReporter</param>
-        protected StateMachineAnalysisPass(AnalysisContext context, Configuration configuration,
-            ILogger logger, ErrorReporter errorReporter)
+        protected StateMachineAnalysisPass(AnalysisContext context, Configuration configuration, ILogger logger, ErrorReporter errorReporter)
         {
             this.Logger = logger;
             this.Profiler = new Profiler();
@@ -75,15 +59,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ErrorReporter = errorReporter;
         }
 
-        #endregion
-
-        #region profiling
-
         /// <summary>
         /// Prints profiling results.
         /// </summary>
         protected abstract void PrintProfilingResults();
-
-        #endregion
     }
 }

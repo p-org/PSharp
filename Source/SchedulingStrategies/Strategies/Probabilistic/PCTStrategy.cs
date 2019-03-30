@@ -11,7 +11,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
     /// A priority-based probabilistic scheduling strategy.
-    /// 
+    ///
     /// This strategy is described in the following paper:
     /// https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/asplos277-pct.pdf
     /// </summary>
@@ -20,17 +20,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Logger used by the strategy.
         /// </summary>
-        private ILogger Logger;
+        private readonly ILogger Logger;
 
         /// <summary>
         /// Random number generator.
         /// </summary>
-        private IRandomNumberGenerator RandomNumberGenerator;
+        private readonly IRandomNumberGenerator RandomNumberGenerator;
 
         /// <summary>
         /// The maximum number of steps to schedule.
         /// </summary>
-        private int MaxScheduledSteps;
+        private readonly int MaxScheduledSteps;
 
         /// <summary>
         /// The number of scheduled steps.
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Max number of priority switch points.
         /// </summary>
-        private int MaxPrioritySwitchPoints;
+        private readonly int MaxPrioritySwitchPoints;
 
         /// <summary>
         /// Approximate length of the schedule across all iterations.
@@ -50,71 +50,59 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// List of prioritized schedulable choices.
         /// </summary>
-        private List<ISchedulable> PrioritizedSchedulableChoices;
+        private readonly List<ISchedulable> PrioritizedSchedulableChoices;
 
         /// <summary>
         /// Set of priority change points.
         /// </summary>
-        private SortedSet<int> PriorityChangePoints;
+        private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
-        /// Creates a PCT strategy that uses the default random
-        /// number generator (seed is based on current time).
+        /// Initializes a new instance of the <see cref="PCTStrategy"/> class. It uses
+        /// the default random number generator (seed is based on current time).
         /// </summary>
-        /// <param name="maxSteps">Max scheduling steps</param>
-        /// <param name="maxPrioritySwitchPoints">Max number of priority switch points</param>
-        /// <param name="logger">ILogger</param>
         public PCTStrategy(int maxSteps, int maxPrioritySwitchPoints, ILogger logger)
             : this(maxSteps, maxPrioritySwitchPoints, logger, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
-        { }
+        {
+        }
 
         /// <summary>
-        /// Creates a PCT strategy that uses the specified random number generator.
+        /// Initializes a new instance of the <see cref="PCTStrategy"/> class.
+        /// It uses the specified random number generator.
         /// </summary>
-        /// <param name="maxSteps">Max scheduling steps</param>
-        /// <param name="maxPrioritySwitchPoints">Max number of priority switch points</param>
-        /// <param name="logger">ILogger</param>
-        /// <param name="random">IRandomNumberGenerator</param>
         public PCTStrategy(int maxSteps, int maxPrioritySwitchPoints, ILogger logger, IRandomNumberGenerator random)
         {
-            Logger = logger;
-            RandomNumberGenerator = random;
-            MaxScheduledSteps = maxSteps;
-            ScheduledSteps = 0;
-            ScheduleLength = 0;
-            MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
-            PrioritizedSchedulableChoices = new List<ISchedulable>();
-            PriorityChangePoints = new SortedSet<int>();
+            this.Logger = logger;
+            this.RandomNumberGenerator = random;
+            this.MaxScheduledSteps = maxSteps;
+            this.ScheduledSteps = 0;
+            this.ScheduleLength = 0;
+            this.MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
+            this.PrioritizedSchedulableChoices = new List<ISchedulable>();
+            this.PriorityChangePoints = new SortedSet<int>();
         }
 
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             next = null;
-            return GetNextHelper(ref next, choices, current);
+            return this.GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
-            if (RandomNumberGenerator.Next(maxValue) == 0)
+            if (this.RandomNumberGenerator.Next(maxValue) == 0)
             {
                 next = true;
             }
 
-            ScheduledSteps++;
+            this.ScheduledSteps++;
 
             return true;
         }
@@ -122,35 +110,24 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            next = RandomNumberGenerator.Next(maxValue);
-            ScheduledSteps++;
+            next = this.RandomNumberGenerator.Next(maxValue);
+            this.ScheduledSteps++;
             return true;
         }
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            GetNextHelper(ref next, choices, current);
+            this.GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
         /// Returns or forces the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         private bool GetNextHelper(ref ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
@@ -159,13 +136,13 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 return false;
             }
 
-            ISchedulable highestEnabled = GetPrioritizedChoice(enabledChoices, current);
+            ISchedulable highestEnabled = this.GetPrioritizedChoice(enabledChoices, current);
             if (next == null)
             {
                 next = highestEnabled;
             }
 
-            ScheduledSteps++;
+            this.ScheduledSteps++;
 
             return true;
         }
@@ -173,23 +150,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
         {
-            ScheduledSteps++;
+            this.ScheduledSteps++;
         }
 
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
-            ScheduledSteps++;
+            this.ScheduledSteps++;
         }
 
         /// <summary>
@@ -197,24 +168,23 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
-            ScheduleLength = Math.Max(ScheduleLength, ScheduledSteps);
-            ScheduledSteps = 0;
+            this.ScheduleLength = Math.Max(this.ScheduleLength, this.ScheduledSteps);
+            this.ScheduledSteps = 0;
 
-            PrioritizedSchedulableChoices.Clear();
-            PriorityChangePoints.Clear();
+            this.PrioritizedSchedulableChoices.Clear();
+            this.PriorityChangePoints.Clear();
 
             var range = new List<int>();
-            for (int idx = 0; idx < ScheduleLength; idx++)
+            for (int idx = 0; idx < this.ScheduleLength; idx++)
             {
                 range.Add(idx);
             }
 
-            foreach (int point in Shuffle(range).Take(MaxPrioritySwitchPoints))
+            foreach (int point in this.Shuffle(range).Take(this.MaxPrioritySwitchPoints))
             {
-                PriorityChangePoints.Add(point);
+                this.PriorityChangePoints.Add(point);
             }
 
             return true;
@@ -226,58 +196,48 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public void Reset()
         {
-            ScheduleLength = 0;
-            ScheduledSteps = 0;
-            PrioritizedSchedulableChoices.Clear();
-            PriorityChangePoints.Clear();
+            this.ScheduleLength = 0;
+            this.ScheduledSteps = 0;
+            this.PrioritizedSchedulableChoices.Clear();
+            this.PriorityChangePoints.Clear();
         }
 
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Scheduled steps</returns>
-        public int GetScheduledSteps()
-        {
-            return ScheduledSteps;
-        }
+        public int GetScheduledSteps() => this.ScheduledSteps;
 
         /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            if (MaxScheduledSteps == 0)
+            if (this.MaxScheduledSteps == 0)
             {
                 return false;
             }
 
-            return ScheduledSteps >= MaxScheduledSteps;
+            return this.ScheduledSteps >= this.MaxScheduledSteps;
         }
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return false;
-        }
+        public bool IsFair() => false;
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
         public string GetDescription()
         {
-            var text = $"PCT[priority change points '{MaxPrioritySwitchPoints}' [";
+            var text = $"PCT[priority change points '{this.MaxPrioritySwitchPoints}' [";
 
             int idx = 0;
-            foreach (var points in PriorityChangePoints)
+            foreach (var points in this.PriorityChangePoints)
             {
                 text += points;
-                if (idx < PriorityChangePoints.Count - 1)
+                if (idx < this.PriorityChangePoints.Count - 1)
                 {
                     text += ", ";
                 }
@@ -285,57 +245,54 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 idx++;
             }
 
-            text += "], seed '" + RandomNumberGenerator.Seed + "']";
+            text += "], seed '" + this.RandomNumberGenerator.Seed + "']";
             return text;
         }
 
         /// <summary>
         /// Returns the prioritized choice.
         /// </summary>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>ISchedulable</returns>
         private ISchedulable GetPrioritizedChoice(List<ISchedulable> choices, ISchedulable current)
         {
-            if (PrioritizedSchedulableChoices.Count == 0)
+            if (this.PrioritizedSchedulableChoices.Count == 0)
             {
-                PrioritizedSchedulableChoices.Add(current);
+                this.PrioritizedSchedulableChoices.Add(current);
             }
 
-            foreach (var choice in choices.Where(choice => !PrioritizedSchedulableChoices.Contains(choice)))
+            foreach (var choice in choices.Where(choice => !this.PrioritizedSchedulableChoices.Contains(choice)))
             {
-                var mIndex = RandomNumberGenerator.Next(PrioritizedSchedulableChoices.Count) + 1;
-                PrioritizedSchedulableChoices.Insert(mIndex, choice);
-                Logger.WriteLine($"<PCTLog> Detected new schedulable choice '{choice.Name}' at index '{mIndex}'.");
+                var mIndex = this.RandomNumberGenerator.Next(this.PrioritizedSchedulableChoices.Count) + 1;
+                this.PrioritizedSchedulableChoices.Insert(mIndex, choice);
+                this.Logger.WriteLine($"<PCTLog> Detected new schedulable choice '{choice.Name}' at index '{mIndex}'.");
             }
 
-            if (PriorityChangePoints.Contains(ScheduledSteps))
+            if (this.PriorityChangePoints.Contains(this.ScheduledSteps))
             {
                 if (choices.Count == 1)
                 {
-                    MovePriorityChangePointForward();
+                    this.MovePriorityChangePointForward();
                 }
                 else
                 {
-                    var priority = GetHighestPriorityEnabledChoice(choices);
-                    PrioritizedSchedulableChoices.Remove(priority);
-                    PrioritizedSchedulableChoices.Add(priority);
-                    Logger.WriteLine($"<PCTLog> Schedulable '{priority}' changes to lowest priority.");
+                    var priority = this.GetHighestPriorityEnabledChoice(choices);
+                    this.PrioritizedSchedulableChoices.Remove(priority);
+                    this.PrioritizedSchedulableChoices.Add(priority);
+                    this.Logger.WriteLine($"<PCTLog> Schedulable '{priority}' changes to lowest priority.");
                 }
             }
 
-            var prioritizedSchedulable = GetHighestPriorityEnabledChoice(choices);
-            Logger.WriteLine($"<PCTLog> Prioritized schedulable '{prioritizedSchedulable}'.");
-            Logger.Write("<PCTLog> Priority list: ");
-            for (int idx = 0; idx < PrioritizedSchedulableChoices.Count; idx++)
+            var prioritizedSchedulable = this.GetHighestPriorityEnabledChoice(choices);
+            this.Logger.WriteLine($"<PCTLog> Prioritized schedulable '{prioritizedSchedulable}'.");
+            this.Logger.Write("<PCTLog> Priority list: ");
+            for (int idx = 0; idx < this.PrioritizedSchedulableChoices.Count; idx++)
             {
-                if (idx < PrioritizedSchedulableChoices.Count - 1)
+                if (idx < this.PrioritizedSchedulableChoices.Count - 1)
                 {
-                    Logger.Write($"'{PrioritizedSchedulableChoices[idx]}', ");
+                    this.Logger.Write($"'{this.PrioritizedSchedulableChoices[idx]}', ");
                 }
                 else
                 {
-                    Logger.WriteLine($"'{PrioritizedSchedulableChoices[idx]}({1})'.");
+                    this.Logger.WriteLine($"'{this.PrioritizedSchedulableChoices[idx]}({1})'.");
                 }
             }
 
@@ -345,12 +302,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the highest-priority enabled choice.
         /// </summary>
-        /// <param name="choices">Choices</param>
-        /// <returns>ISchedulable</returns>
         private ISchedulable GetHighestPriorityEnabledChoice(IEnumerable<ISchedulable> choices)
         {
             ISchedulable prioritizedChoice = null;
-            foreach (var entity in PrioritizedSchedulableChoices)
+            foreach (var entity in this.PrioritizedSchedulableChoices)
             {
                 if (choices.Any(m => m == entity))
                 {
@@ -365,14 +320,12 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Shuffles the specified list using the Fisher-Yates algorithm.
         /// </summary>
-        /// <param name="list">IList</param>
-        /// <returns>IList</returns>
         private IList<int> Shuffle(IList<int> list)
         {
             var result = new List<int>(list);
             for (int idx = result.Count - 1; idx >= 1; idx--)
             {
-                int point = RandomNumberGenerator.Next(ScheduleLength);
+                int point = this.RandomNumberGenerator.Next(this.ScheduleLength);
                 int temp = result[idx];
                 result[idx] = result[point];
                 result[point] = temp;
@@ -388,15 +341,15 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         private void MovePriorityChangePointForward()
         {
-            PriorityChangePoints.Remove(ScheduledSteps);
-            var newPriorityChangePoint = ScheduledSteps + 1;
-            while (PriorityChangePoints.Contains(newPriorityChangePoint))
+            this.PriorityChangePoints.Remove(this.ScheduledSteps);
+            var newPriorityChangePoint = this.ScheduledSteps + 1;
+            while (this.PriorityChangePoints.Contains(newPriorityChangePoint))
             {
                 newPriorityChangePoint++;
             }
 
-            PriorityChangePoints.Add(newPriorityChangePoint);
-            Logger.WriteLine($"<PCTLog> Moving priority change to '{newPriorityChangePoint}'.");
+            this.PriorityChangePoints.Add(newPriorityChangePoint);
+            this.Logger.WriteLine($"<PCTLog> Moving priority change to '{newPriorityChangePoint}'.");
         }
     }
 }

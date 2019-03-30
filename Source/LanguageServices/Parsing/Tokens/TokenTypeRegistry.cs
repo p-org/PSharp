@@ -10,8 +10,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public static class TokenTypeRegistry
     {
-        #region public API
-
         /// <summary>
         /// Returns the text representing the given token type.
         /// </summary>
@@ -477,7 +475,5 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             return text;
         }
-
-        #endregion
     }
 }

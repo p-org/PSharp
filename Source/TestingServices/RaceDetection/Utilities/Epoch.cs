@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
     /// The epochs used by the FastTrack algorithm.
     /// Adapted from https://github.com/stephenfreund/RoadRunner/blob/master/src/tools/util/Epoch.java
     /// </summary>
-    public class Epoch
+    public static class Epoch
     {
         private const int TidBits = 8;
 
@@ -38,10 +38,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
         /// Returns the MId for an epoch.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long MId(long epoch)
-        {
-            return (long)(epoch >> ClockBits);
-        }
+        public static long MId(long epoch) => epoch >> ClockBits;
 
         /// <summary>
         /// Returns the Clock for an epoch.
@@ -109,7 +106,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
         /// Following the FastTrack convention, represent an epoch as
         /// m:c where m is the machine Id and c is its clock.
         /// </summary>
-        public static String ToString(long epoch)
+        public static string ToString(long epoch)
         {
             if (epoch == ReadShared)
             {
@@ -117,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
             }
             else
             {
-                return String.Format("{0}:{1}", MId(epoch), Clock(epoch));
+                return string.Format("{0}:{1}", MId(epoch), Clock(epoch));
             }
         }
     }

@@ -25,8 +25,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         WhiteSpace,
 
-        #region comments
-
         /// <summary>
         /// Comment token.
         /// </summary>
@@ -51,8 +49,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Region token.
         /// </summary>
         Region,
-
-        #endregion
 
         /// <summary>
         /// Identifier token.
@@ -228,8 +224,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Logical or token.
         /// </summary>
         LogOrOp,
-
-        #region C#-specific tokens
 
         /// <summary>
         /// Private token.
@@ -496,10 +490,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         Double,
 
-        #endregion
-
-        #region P#-specific tokens
-
         /// <summary>
         /// Machine token.
         /// </summary>
@@ -679,6 +669,5 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// "extern" declaration token
         /// </summary>
         ExternDecl
-        #endregion
     }
 }

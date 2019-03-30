@@ -14,18 +14,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SendAndExecuteTest8(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E1 : Event { }
-        class E2 : Event { }
+        private class E1 : Event
+        {
+        }
 
-        class Harness : Machine
+        private class E2 : Event
+        {
+        }
+
+        private class Harness : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
                 var handled = await this.Runtime.SendEventAndExecute(m, new E1());
@@ -33,14 +41,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Handle))]
             [IgnoreEvents(typeof(E2))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Handle()
+            private void Handle()
             {
                 this.Raise(new E2());
             }
@@ -49,11 +59,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestUnhandledEventOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Harness));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

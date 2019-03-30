@@ -17,15 +17,8 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Cache storing machine constructors.
         /// </summary>
-        private static Dictionary<Type, Func<Machine>> MachineConstructorCache;
-
-        /// <summary>
-        /// Static constructor.
-        /// </summary>
-        static MachineFactory()
-        {
-            MachineConstructorCache = new Dictionary<Type, Func<Machine>>();
-        }
+        private static Dictionary<Type, Func<Machine>> MachineConstructorCache =
+            new Dictionary<Type, Func<Machine>>();
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified type.

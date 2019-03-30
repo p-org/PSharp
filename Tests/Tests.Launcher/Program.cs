@@ -6,15 +6,15 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Tests;
 using Microsoft.PSharp.Tests.Common;
 using Microsoft.PSharp.Timers;
 using Xunit.Abstractions;
 
-using BaseCoreTest = Microsoft.PSharp.Core.Tests.BaseTest;
 using BaseBugFindingTest = Microsoft.PSharp.TestingServices.Tests.BaseTest;
+using BaseCoreTest = Microsoft.PSharp.Core.Tests.BaseTest;
 
 namespace Microsoft.PSharp.Tests.Launcher
 {
@@ -22,24 +22,30 @@ namespace Microsoft.PSharp.Tests.Launcher
     {
         public CoreTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
+#pragma warning disable CA1822 // Mark members as static
         public async Task Run()
         {
             await Task.CompletedTask;
         }
+#pragma warning restore CA1822 // Mark members as static
     }
 
     public class BugFindingTest : BaseBugFindingTest
     {
         public BugFindingTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
+#pragma warning disable CA1801 // Parameter not used
         [Test]
         public static void Execute(PSharpRuntime r)
         {
         }
+#pragma warning restore CA1801 // Parameter not used
     }
 
     public static class Assert
@@ -52,13 +58,14 @@ namespace Microsoft.PSharp.Tests.Launcher
             }
         }
 
-        public static void Equal<T>(T expected, T actual) where T : IEquatable<T>
+        public static void Equal<T>(T expected, T actual)
+            where T : IEquatable<T>
         {
             True(expected.Equals(actual), $"actual '{actual}' != expected '{expected}'");
         }
     }
 
-    public static class Launcher
+    public static class Program
     {
         private static async Task Main()
         {

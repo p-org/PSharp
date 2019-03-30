@@ -12,8 +12,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal abstract class PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The program this node belongs to.
         /// </summary>
@@ -22,7 +20,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// The text unit.
         /// </summary>
-        internal protected TextUnit TextUnit
+        protected internal TextUnit TextUnit
         {
             get; protected set;
         }
@@ -30,14 +28,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected const int SpacesPerIndent = 4;
         protected static string OneIndent = new string(' ', SpacesPerIndent);
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpSyntaxNode"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
         protected PSharpSyntaxNode(IPSharpProgram program)
         {
             this.Program = program;
@@ -46,23 +39,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Creates a string to be used for the specified level of indentation.
         /// </summary>
-        protected string GetIndent(int indentLevel)
-        {
-            return indentLevel == 0
-                ? string.Empty
-                : new System.Text.StringBuilder().Insert(0, OneIndent, indentLevel).ToString();
-        }
-
-        #endregion
-
-        #region internal API
+        protected static string GetIndent(int indentLevel) => indentLevel == 0 ?
+            string.Empty : new System.Text.StringBuilder().Insert(0, OneIndent, indentLevel).ToString();
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
         internal abstract void Rewrite(int indentLevel);
-
-        #endregion
     }
 }

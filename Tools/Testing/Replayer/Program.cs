@@ -13,9 +13,9 @@ namespace Microsoft.PSharp
     /// <summary>
     /// The P# trace replayer.
     /// </summary>
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
@@ -32,9 +32,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handler for unhandled exceptions.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
             Error.Report("[PSharpReplayer] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);

@@ -16,12 +16,13 @@ namespace Microsoft.PSharp
     /// <summary>
     /// The P# language compiler.
     /// </summary>
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
-            //currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+
+            // currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             // Parses the command line options to get the configuration.
             var configuration = new CompilerCommandLineOptions(args).Parse();
@@ -65,7 +66,7 @@ namespace Microsoft.PSharp
                 if (ex.Warnings.Count > 0)
                 {
                     logger.WriteLine("Found {0} parsing warning{1}.", ex.Warnings.Count,
-                        ex.Warnings.Count == 1 ? "" : "s");
+                        ex.Warnings.Count == 1 ? string.Empty : "s");
                 }
 
                 foreach (var error in ex.Errors)
@@ -76,7 +77,7 @@ namespace Microsoft.PSharp
                 if (ex.Errors.Count > 0)
                 {
                     logger.WriteLine("Found {0} parsing error{1}.", ex.Errors.Count,
-                        ex.Errors.Count == 1 ? "" : "s");
+                        ex.Errors.Count == 1 ? string.Empty : "s");
                 }
             }
             catch (RewritingException ex)
@@ -103,9 +104,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handler for unhandled exceptions.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
             Error.Report("[PSharpCompiler] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);

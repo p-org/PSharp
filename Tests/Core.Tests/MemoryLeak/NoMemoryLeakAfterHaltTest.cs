@@ -14,7 +14,8 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public NoMemoryLeakAfterHaltTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         internal class Configure : Event
         {
@@ -37,15 +38,19 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        internal class Unit : Event { }
+        internal class Unit : Event
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Configure).TCS;
 
@@ -54,7 +59,7 @@ namespace Microsoft.PSharp.Core.Tests
                     int counter = 0;
                     while (counter < 100)
                     {
-                        var n = CreateMachine(typeof(N));
+                        var n = this.CreateMachine(typeof(N));
                         this.Send(n, new E(this.Id));
                         await this.Receive(typeof(E));
                         counter++;
@@ -69,41 +74,44 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
-            int[] LargeArray;
+            private int[] LargeArray;
 
             [Start]
             [OnEntry(nameof(Configure))]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.LargeArray = new int[10000000];
                 this.LargeArray[this.LargeArray.Length - 1] = 1;
             }
 
-            void Act()
+            private void Act()
             {
                 var sender = (this.ReceivedEvent as E).Id;
                 this.Send(sender, new E(this.Id));
-                Raise(new Halt());
+                this.Raise(new Halt());
             }
         }
 
         [Fact]
         public void TestNoMemoryLeakAfterHalt()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M), new Configure(tcs));
                 tcs.Task.Wait();
                 r.Stop();
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

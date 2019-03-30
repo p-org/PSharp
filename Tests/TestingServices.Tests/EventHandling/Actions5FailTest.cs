@@ -17,63 +17,88 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public Actions5FailTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Config : Event
+        private class Config : Event
         {
             public MachineId Id;
-            public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+
+            public Config(MachineId id)
+                : base(-1, -1)
+            {
+                this.Id = id;
+            }
         }
 
-        class E1 : Event
+        private class E1 : Event
         {
-            public E1() : base(1, -1) { }
+            public E1()
+                : base(1, -1)
+            {
+            }
         }
 
-        class E2 : Event
+        private class E2 : Event
         {
-            public E2() : base(1, -1) { }
+            public E2()
+                : base(1, -1)
+            {
+            }
         }
 
-        class E3 : Event
+        private class E3 : Event
         {
-            public E3() : base(1, -1) { }
+            public E3()
+                : base(1, -1)
+            {
+            }
         }
 
-        class E4 : Event
+        private class E4 : Event
         {
-            public E4() : base(1, -1) { }
+            public E4()
+                : base(1, -1)
+            {
+            }
         }
 
-        class Unit : Event
+        private class Unit : Event
         {
-            public Unit() : base(1, -1) { }
+            public Unit()
+                : base(1, -1)
+            {
+            }
         }
 
-        class Real : Machine
+        private class Real : Machine
         {
-            MachineId GhostMachine;
+            private MachineId GhostMachine;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(E4), typeof(S2))]
             [OnEventPushState(typeof(Unit), typeof(S1))]
             [OnEventDoAction(typeof(E2), nameof(Action1))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                GhostMachine = this.CreateMachine(typeof(Ghost));
-                this.Send(GhostMachine, new Config(this.Id));
+            }
+
+            private void InitOnEntry()
+            {
+                this.GhostMachine = this.CreateMachine(typeof(Ghost));
+                this.Send(this.GhostMachine, new Config(this.Id));
                 this.Raise(new Unit());
             }
 
             [OnEntry(nameof(EntryS1))]
-            class S1 : MachineState { }
-
-            void EntryS1()
+            private class S1 : MachineState
             {
-                this.Send(GhostMachine, new E1());
+            }
+
+            private void EntryS1()
+            {
+                this.Send(this.GhostMachine, new E1());
 
                 // we wait in this state until E2 comes from Ghost,
                 // then handle E2 using the inherited handler Action1
@@ -85,59 +110,67 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
 
             [OnEntry(nameof(EntryS2))]
-            class S2 : MachineState { }
+            private class S2 : MachineState
+            {
+            }
 
-            void EntryS2()
+            private void EntryS2()
             {
                 // this assert is reachable
                 this.Assert(false);
             }
 
-            void Action1()
+            private void Action1()
             {
-                this.Send(GhostMachine, new E3());
+                this.Send(this.GhostMachine, new E3());
             }
         }
 
-        class Ghost : Machine
+        private class Ghost : Machine
         {
-            MachineId RealMachine;
+            private MachineId RealMachine;
 
             [Start]
             [OnEventDoAction(typeof(Config), nameof(Configure))]
             [OnEventGotoState(typeof(E1), typeof(S1))]
-            class Init : MachineState { }
-
-            void Configure()
+            private class Init : MachineState
             {
-                RealMachine = (this.ReceivedEvent as Config).Id;
+            }
+
+            private void Configure()
+            {
+                this.RealMachine = (this.ReceivedEvent as Config).Id;
             }
 
             [OnEntry(nameof(EntryS1))]
             [OnEventGotoState(typeof(E3), typeof(S2))]
-            class S1 : MachineState { }
-
-            void EntryS1()
+            private class S1 : MachineState
             {
-                this.Send(RealMachine, new E2());
+            }
+
+            private void EntryS1()
+            {
+                this.Send(this.RealMachine, new E2());
             }
 
             [OnEntry(nameof(EntryS2))]
-            class S2 : MachineState { }
-
-            void EntryS2()
+            private class S2 : MachineState
             {
-                this.Send(RealMachine, new E4());
+            }
+
+            private void EntryS2()
+            {
+                this.Send(this.RealMachine, new E4());
             }
         }
 
         [Fact]
         public void TestActions5Fail()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Real)); });
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
     }
 }

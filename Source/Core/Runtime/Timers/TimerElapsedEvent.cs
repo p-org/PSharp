@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.Timers
         public readonly TimerInfo Info;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="TimerElapsedEvent"/> class.
+        /// Initializes a new instance of the <see cref="TimerElapsedEvent"/> class.
         /// </summary>
         /// <param name="info">Stores information about the timer.</param>
         internal TimerElapsedEvent(TimerInfo info)

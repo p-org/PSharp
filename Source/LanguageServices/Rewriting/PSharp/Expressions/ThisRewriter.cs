@@ -3,15 +3,11 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
@@ -20,16 +16,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class ThisRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ThisRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal ThisRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -37,7 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var expressions = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().
+            var expressions = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().
                 OfType<ThisExpressionSyntax>().ToList();
 
             if (expressions.Count == 0)
@@ -45,23 +37,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
-                computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteExpression(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the expression with a this expression.
         /// </summary>
-        /// <param name="node">ThisExpressionSyntax</param>
-        /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteExpression(ThisExpressionSyntax node)
+        private static SyntaxNode RewriteExpression(ThisExpressionSyntax node)
         {
             SyntaxNode rewritten = node;
 
@@ -77,7 +63,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return rewritten;
         }
-
-        #endregion
     }
 }

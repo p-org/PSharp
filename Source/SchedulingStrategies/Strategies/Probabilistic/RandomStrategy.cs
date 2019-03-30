@@ -30,33 +30,28 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         protected int ScheduledSteps;
 
         /// <summary>
-        /// Creates a random strategy that uses the default random
-        /// number generator (seed is based on current time).
+        /// Initializes a new instance of the <see cref="RandomStrategy"/> class.
+        /// It uses the default random number generator (seed is based on current time).
         /// </summary>
-        /// <param name="maxSteps">Max scheduling steps</param>
         public RandomStrategy(int maxSteps)
             : this(maxSteps, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
-        { }
+        {
+        }
 
         /// <summary>
-        /// Creates a random strategy that uses the specified random number generator.
+        /// Initializes a new instance of the <see cref="RandomStrategy"/> class.
+        /// It uses the specified random number generator.
         /// </summary>
-        /// <param name="maxSteps">Max scheduling steps</param>
-        /// <param name="random">IRandomNumberGenerator</param>
         public RandomStrategy(int maxSteps, IRandomNumberGenerator random)
         {
-            RandomNumberGenerator = random;
-            MaxScheduledSteps = maxSteps;
-            ScheduledSteps = 0;
+            this.RandomNumberGenerator = random;
+            this.MaxScheduledSteps = maxSteps;
+            this.ScheduledSteps = 0;
         }
 
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public virtual bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
@@ -66,10 +61,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 return false;
             }
 
-            int idx = RandomNumberGenerator.Next(enabledChoices.Count);
+            int idx = this.RandomNumberGenerator.Next(enabledChoices.Count);
             next = enabledChoices[idx];
 
-            ScheduledSteps++;
+            this.ScheduledSteps++;
 
             return true;
         }
@@ -77,18 +72,15 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public virtual bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
-            if (RandomNumberGenerator.Next(maxValue) == 0)
+            if (this.RandomNumberGenerator.Next(maxValue) == 0)
             {
                 next = true;
             }
 
-            ScheduledSteps++;
+            this.ScheduledSteps++;
 
             return true;
         }
@@ -96,48 +88,35 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public virtual bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            next = RandomNumberGenerator.Next(maxValue);
-            ScheduledSteps++;
+            next = this.RandomNumberGenerator.Next(maxValue);
+            this.ScheduledSteps++;
             return true;
         }
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            ScheduledSteps++;
+            this.ScheduledSteps++;
         }
 
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
         {
-            ScheduledSteps++;
+            this.ScheduledSteps++;
         }
 
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
-            ScheduledSteps++;
+            this.ScheduledSteps++;
         }
 
         /// <summary>
@@ -145,10 +124,9 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>True to start the next iteration</returns>
         public virtual bool PrepareForNextIteration()
         {
-            ScheduledSteps = 0;
+            this.ScheduledSteps = 0;
             return true;
         }
 
@@ -158,49 +136,36 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public virtual void Reset()
         {
-            ScheduledSteps = 0;
+            this.ScheduledSteps = 0;
         }
 
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Scheduled steps</returns>
-        public int GetScheduledSteps()
-        {
-            return ScheduledSteps;
-        }
-        
+        public int GetScheduledSteps() => this.ScheduledSteps;
+
         /// <summary>
         /// True if the scheduling strategy has reached the depth
         /// bound for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            if (MaxScheduledSteps == 0)
+            if (this.MaxScheduledSteps == 0)
             {
                 return false;
             }
 
-            return ScheduledSteps >= MaxScheduledSteps;
+            return this.ScheduledSteps >= this.MaxScheduledSteps;
         }
 
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return true;
-        }
+        public bool IsFair() => true;
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
-        public virtual string GetDescription()
-        {
-            return $"Random[seed '{RandomNumberGenerator.Seed}']";
-        }
+        public virtual string GetDescription() => $"Random[seed '{this.RandomNumberGenerator.Seed}']";
     }
 }

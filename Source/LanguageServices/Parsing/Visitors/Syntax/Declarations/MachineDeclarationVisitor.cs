@@ -3,10 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
@@ -17,9 +13,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class MachineDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineDeclarationVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal MachineDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
@@ -28,91 +23,72 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="parentNode">Node</param>
-        /// <param name="isMonitor">Is a monitor</param>
-        /// <param name="modSet">Modifier set</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor, ModifierSet modSet)
+        internal void Visit(NamespaceDeclaration parentNode, bool isMonitor, ModifierSet modSet)
         {
             if (isMonitor)
             {
-                this.CheckMonitorModifierSet(modSet);
+                CheckMonitorModifierSet(modSet);
             }
             else
             {
-                this.CheckMachineModifierSet(modSet);
+                CheckMachineModifierSet(modSet);
             }
 
-            var node = new MachineDeclaration(base.TokenStream.Program, parentNode, isMonitor, modSet);
-            node.MachineKeyword = base.TokenStream.Peek();
+            var node = new MachineDeclaration(this.TokenStream.Program, parentNode, isMonitor, modSet);
+            node.MachineKeyword = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected machine identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected machine identifier.", TokenType.Identifier);
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                TokenType.MachineIdentifier));
+            this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.MachineIdentifier));
 
-            node.Identifier = base.TokenStream.Peek();
+            node.Identifier = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var nameVisitor = new NameVisitor(base.TokenStream);
+            var nameVisitor = new NameVisitor(this.TokenStream);
             node.TemplateParameters = nameVisitor.ConsumeTemplateParams();
 
-            if (base.TokenStream.Program is PSharpProgram)
+            if (this.TokenStream.Program is PSharpProgram)
             {
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.Colon &&
-                    base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
+                if (this.TokenStream.Done ||
+                    (this.TokenStream.Peek().Type != TokenType.Colon &&
+                    this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
                 {
-                    throw new ParsingException("Expected \":\" or \"{\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Colon,
-                            TokenType.LeftCurlyBracket
-                    });
+                    throw new ParsingException("Expected \":\" or \"{\".", TokenType.Colon, TokenType.LeftCurlyBracket);
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.Colon)
+                if (this.TokenStream.Peek().Type == TokenType.Colon)
                 {
-                    node.ColonToken = base.TokenStream.Peek();
+                    node.ColonToken = this.TokenStream.Peek();
 
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                    var baseNameTokensVisitor = new NameVisitor(base.TokenStream);
+                    var baseNameTokensVisitor = new NameVisitor(this.TokenStream);
                     node.BaseNameTokens = baseNameTokensVisitor.ConsumeGenericName(TokenType.MachineIdentifier);
                 }
             }
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", TokenType.LeftCurlyBracket);
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                TokenType.MachineLeftCurlyBracket));
+            this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.MachineLeftCurlyBracket));
 
-            node.LeftCurlyBracketToken = base.TokenStream.Peek();
+            node.LeftCurlyBracketToken = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             this.VisitNextPSharpIntraMachineDeclaration(node);
             parentNode.MachineDeclarations.Add(node);
@@ -120,53 +96,49 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             var stateDeclarations = node.GetAllStateDeclarations();
             if (stateDeclarations.Count == 0 && node.BaseNameTokens.Count == 0)
             {
-                throw new ParsingException("A machine must declare at least one state.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine must declare at least one state.");
             }
 
             var startStates = stateDeclarations.FindAll(s => s.IsStart);
             if (startStates.Count == 0 && node.BaseNameTokens.Count == 0)
             {
-                throw new ParsingException("A machine must declare a start state.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine must declare a start state.");
             }
             else if (startStates.Count > 1)
             {
-                throw new ParsingException("A machine can declare only a single start state.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine can declare only a single start state.");
             }
         }
 
         /// <summary>
         /// Visits the next intra-machine declaration.
         /// </summary>
-        /// <param name="node">Node</param>
         private void VisitNextPSharpIntraMachineDeclaration(MachineDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
             {
-                var token = base.TokenStream.Peek();
+                var token = this.TokenStream.Peek();
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
                     case TokenType.Comment:
                     case TokenType.NewLine:
-                        base.TokenStream.Index++;
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.CommentLine:
                     case TokenType.Region:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
                     case TokenType.CommentStart:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
                     case TokenType.ExternDecl:
-                        new EventDeclarationVisitor(base.TokenStream).VisitExternDeclaration(node.Namespace, node);
-                        base.TokenStream.Index++;
+                        new EventDeclarationVisitor(this.TokenStream).VisitExternDeclaration(node.Namespace, node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.Abstract:
@@ -201,43 +173,39 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.Async:
                     case TokenType.Partial:
                         this.VisitMachineLevelDeclaration(node);
-                        base.TokenStream.Index++;
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.LeftSquareBracket:
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        new AttributeListVisitor(base.TokenStream).Visit();
-                        base.TokenStream.Index++;
+                        this.TokenStream.Index++;
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        new AttributeListVisitor(this.TokenStream).Visit();
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.MachineRightCurlyBracket));
-                        node.RightCurlyBracketToken = base.TokenStream.Peek();
+                        this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.MachineRightCurlyBracket));
+                        node.RightCurlyBracketToken = this.TokenStream.Peek();
                         fixpoint = true;
                         break;
 
                     default:
-                        throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected token '" + this.TokenStream.Peek().TextUnit.Text + "'.");
                 }
 
-                if (base.TokenStream.Done)
+                if (this.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Private,
-                            TokenType.Protected,
-                            TokenType.StartState,
-                            TokenType.HotState,
-                            TokenType.ColdState,
-                            TokenType.StateDecl,
-                            TokenType.StateGroupDecl,
-                            TokenType.LeftSquareBracket,
-                            TokenType.RightCurlyBracket
-                    });
+                    throw new ParsingException(
+                        "Expected \"}\".",
+                        TokenType.Private,
+                        TokenType.Protected,
+                        TokenType.StartState,
+                        TokenType.HotState,
+                        TokenType.ColdState,
+                        TokenType.StateDecl,
+                        TokenType.StateGroupDecl,
+                        TokenType.LeftSquareBracket,
+                        TokenType.RightCurlyBracket);
                 }
             }
         }
@@ -245,66 +213,64 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits a machine level declaration.
         /// </summary>
-        /// <param name="parentNode">Node</param>
         private void VisitMachineLevelDeclaration(MachineDeclaration parentNode)
         {
             ModifierSet modSet = ModifierSet.CreateDefault();
 
-            while (!base.TokenStream.Done &&
-                base.TokenStream.Peek().Type != TokenType.EventDecl &&
-                base.TokenStream.Peek().Type != TokenType.StateDecl &&
-                base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Void &&
-                base.TokenStream.Peek().Type != TokenType.Object &&
-                base.TokenStream.Peek().Type != TokenType.String &&
-                base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                base.TokenStream.Peek().Type != TokenType.Byte &&
-                base.TokenStream.Peek().Type != TokenType.Short &&
-                base.TokenStream.Peek().Type != TokenType.Ushort &&
-                base.TokenStream.Peek().Type != TokenType.Int &&
-                base.TokenStream.Peek().Type != TokenType.Uint &&
-                base.TokenStream.Peek().Type != TokenType.Long &&
-                base.TokenStream.Peek().Type != TokenType.Ulong &&
-                base.TokenStream.Peek().Type != TokenType.Char &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
-                base.TokenStream.Peek().Type != TokenType.Decimal &&
-                base.TokenStream.Peek().Type != TokenType.Float &&
-                base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+            while (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type != TokenType.EventDecl &&
+                this.TokenStream.Peek().Type != TokenType.StateDecl &&
+                this.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
+                this.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                this.TokenStream.Peek().Type != TokenType.Void &&
+                this.TokenStream.Peek().Type != TokenType.Object &&
+                this.TokenStream.Peek().Type != TokenType.String &&
+                this.TokenStream.Peek().Type != TokenType.Sbyte &&
+                this.TokenStream.Peek().Type != TokenType.Byte &&
+                this.TokenStream.Peek().Type != TokenType.Short &&
+                this.TokenStream.Peek().Type != TokenType.Ushort &&
+                this.TokenStream.Peek().Type != TokenType.Int &&
+                this.TokenStream.Peek().Type != TokenType.Uint &&
+                this.TokenStream.Peek().Type != TokenType.Long &&
+                this.TokenStream.Peek().Type != TokenType.Ulong &&
+                this.TokenStream.Peek().Type != TokenType.Char &&
+                this.TokenStream.Peek().Type != TokenType.Bool &&
+                this.TokenStream.Peek().Type != TokenType.Decimal &&
+                this.TokenStream.Peek().Type != TokenType.Float &&
+                this.TokenStream.Peek().Type != TokenType.Double &&
+                this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                new ModifierVisitor(base.TokenStream).Visit(modSet);
+                new ModifierVisitor(this.TokenStream).Visit(modSet);
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.EventDecl &&
-                base.TokenStream.Peek().Type != TokenType.StateDecl &&
-                base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Void &&
-                base.TokenStream.Peek().Type != TokenType.Object &&
-                base.TokenStream.Peek().Type != TokenType.String &&
-                base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                base.TokenStream.Peek().Type != TokenType.Byte &&
-                base.TokenStream.Peek().Type != TokenType.Short &&
-                base.TokenStream.Peek().Type != TokenType.Ushort &&
-                base.TokenStream.Peek().Type != TokenType.Int &&
-                base.TokenStream.Peek().Type != TokenType.Uint &&
-                base.TokenStream.Peek().Type != TokenType.Long &&
-                base.TokenStream.Peek().Type != TokenType.Ulong &&
-                base.TokenStream.Peek().Type != TokenType.Char &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
-                base.TokenStream.Peek().Type != TokenType.Decimal &&
-                base.TokenStream.Peek().Type != TokenType.Float &&
-                base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Identifier))
+            if (this.TokenStream.Done ||
+                (this.TokenStream.Peek().Type != TokenType.EventDecl &&
+                this.TokenStream.Peek().Type != TokenType.StateDecl &&
+                this.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
+                this.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                this.TokenStream.Peek().Type != TokenType.Void &&
+                this.TokenStream.Peek().Type != TokenType.Object &&
+                this.TokenStream.Peek().Type != TokenType.String &&
+                this.TokenStream.Peek().Type != TokenType.Sbyte &&
+                this.TokenStream.Peek().Type != TokenType.Byte &&
+                this.TokenStream.Peek().Type != TokenType.Short &&
+                this.TokenStream.Peek().Type != TokenType.Ushort &&
+                this.TokenStream.Peek().Type != TokenType.Int &&
+                this.TokenStream.Peek().Type != TokenType.Uint &&
+                this.TokenStream.Peek().Type != TokenType.Long &&
+                this.TokenStream.Peek().Type != TokenType.Ulong &&
+                this.TokenStream.Peek().Type != TokenType.Char &&
+                this.TokenStream.Peek().Type != TokenType.Bool &&
+                this.TokenStream.Peek().Type != TokenType.Decimal &&
+                this.TokenStream.Peek().Type != TokenType.Float &&
+                this.TokenStream.Peek().Type != TokenType.Double &&
+                this.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected event, state, group or method declaration.",
-                    new List<TokenType>
-                {
+                throw new ParsingException(
+                    "Expected event, state, group or method declaration.",
                     TokenType.EventDecl,
                     TokenType.StateDecl,
                     TokenType.StateGroupDecl,
@@ -325,61 +291,54 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     TokenType.Decimal,
                     TokenType.Float,
                     TokenType.Double,
-                    TokenType.Identifier
-                });
+                    TokenType.Identifier);
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.EventDecl)
+            if (this.TokenStream.Peek().Type == TokenType.EventDecl)
             {
-                new EventDeclarationVisitor(base.TokenStream).Visit(parentNode.Namespace, parentNode, modSet);
+                new EventDeclarationVisitor(this.TokenStream).Visit(parentNode.Namespace, parentNode, modSet);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.StateDecl)
+            else if (this.TokenStream.Peek().Type == TokenType.StateDecl)
             {
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
+                new StateDeclarationVisitor(this.TokenStream).Visit(parentNode, null, modSet);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
+            else if (this.TokenStream.Peek().Type == TokenType.StateGroupDecl)
             {
-                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, modSet);
+                new StateGroupDeclarationVisitor(this.TokenStream).Visit(parentNode, null, modSet);
             }
             else
             {
-                new MachineMemberDeclarationVisitor(base.TokenStream).Visit(parentNode, modSet);
+                new MachineMemberDeclarationVisitor(this.TokenStream).Visit(parentNode, modSet);
             }
         }
 
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        /// <param name="modSet">ModifierSet</param>
-        private void CheckMachineModifierSet(ModifierSet modSet)
+        private static void CheckMachineModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("A machine cannot be declared as private.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine cannot be declared as private.");
             }
             else if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("A machine cannot be declared as protected.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine cannot be declared as protected.");
             }
         }
 
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        /// <param name="modSet">ModifierSet</param>
-        private void CheckMonitorModifierSet(ModifierSet modSet)
+        private static void CheckMonitorModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier == AccessModifier.Private)
             {
-                throw new ParsingException("A monitor cannot be declared as private.",
-                    new List<TokenType>());
+                throw new ParsingException("A monitor cannot be declared as private.");
             }
             else if (modSet.AccessModifier == AccessModifier.Protected)
             {
-                throw new ParsingException("A monitor cannot be declared as protected.",
-                    new List<TokenType>());
+                throw new ParsingException("A monitor cannot be declared as protected.");
             }
         }
     }

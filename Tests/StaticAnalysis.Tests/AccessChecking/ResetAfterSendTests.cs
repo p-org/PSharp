@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public ResetAfterSendTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestResetGivenUpReferenceAfterSend1()
@@ -61,12 +62,12 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.ProjectName = "Test";
             configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
             configuration.AnalyzeDataRaces = true;
-            base.AssertSucceeded(configuration, test, isPSharpProgram: false);
+            AssertSucceeded(configuration, test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -120,7 +121,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -170,7 +171,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -220,7 +221,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -270,7 +271,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);            
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -320,7 +321,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -370,7 +371,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
     }
 }

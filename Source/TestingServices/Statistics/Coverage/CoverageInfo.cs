@@ -11,7 +11,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
     /// Class for storing coverage-specific data
-    /// across multiple testing iterations. 
+    /// across multiple testing iterations.
     /// </summary>
     [DataContract]
     public class CoverageInfo
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         public HashSet<Transition> Transitions { get; private set; }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CoverageInfo"/> class.
         /// </summary>
         public CoverageInfo()
         {

@@ -32,11 +32,8 @@ namespace Microsoft.PSharp.Runtime
         internal string SenderStateName { get; private set; }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="EventOriginInfo"/> class.
         /// </summary>
-        /// <param name="senderMachineId">Sender machine id</param>
-        /// <param name="senderMachineName">Sender machine name</param>
-        /// <param name="senderStateName">Sender state name</param>
         internal EventOriginInfo(MachineId senderMachineId, string senderMachineName, string senderStateName)
         {
             this.SenderMachineId = senderMachineId;

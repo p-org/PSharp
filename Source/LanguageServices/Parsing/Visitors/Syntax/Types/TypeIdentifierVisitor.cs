@@ -3,11 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
-using Microsoft.PSharp.LanguageServices.Syntax;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
@@ -16,219 +11,202 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class TypeIdentifierVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TypeIdentifierVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         public TypeIdentifierVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the text unit.
         /// </summary>
-        /// <param name="textUnit">TextUnit</param>
         public void Visit(ref TextUnit textUnit)
         {
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Void &&
-                base.TokenStream.Peek().Type != TokenType.Object &&
-                base.TokenStream.Peek().Type != TokenType.String &&
-                base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                base.TokenStream.Peek().Type != TokenType.Byte &&
-                base.TokenStream.Peek().Type != TokenType.Short &&
-                base.TokenStream.Peek().Type != TokenType.Ushort &&
-                base.TokenStream.Peek().Type != TokenType.Int &&
-                base.TokenStream.Peek().Type != TokenType.Uint &&
-                base.TokenStream.Peek().Type != TokenType.Long &&
-                base.TokenStream.Peek().Type != TokenType.Ulong &&
-                base.TokenStream.Peek().Type != TokenType.Char &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
-                base.TokenStream.Peek().Type != TokenType.Decimal &&
-                base.TokenStream.Peek().Type != TokenType.Float &&
-                base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Identifier))
+            if (this.TokenStream.Done ||
+                (this.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                this.TokenStream.Peek().Type != TokenType.Void &&
+                this.TokenStream.Peek().Type != TokenType.Object &&
+                this.TokenStream.Peek().Type != TokenType.String &&
+                this.TokenStream.Peek().Type != TokenType.Sbyte &&
+                this.TokenStream.Peek().Type != TokenType.Byte &&
+                this.TokenStream.Peek().Type != TokenType.Short &&
+                this.TokenStream.Peek().Type != TokenType.Ushort &&
+                this.TokenStream.Peek().Type != TokenType.Int &&
+                this.TokenStream.Peek().Type != TokenType.Uint &&
+                this.TokenStream.Peek().Type != TokenType.Long &&
+                this.TokenStream.Peek().Type != TokenType.Ulong &&
+                this.TokenStream.Peek().Type != TokenType.Char &&
+                this.TokenStream.Peek().Type != TokenType.Bool &&
+                this.TokenStream.Peek().Type != TokenType.Decimal &&
+                this.TokenStream.Peek().Type != TokenType.Float &&
+                this.TokenStream.Peek().Type != TokenType.Double &&
+                this.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected type identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected type identifier.", TokenType.Identifier);
             }
-            
-            var line = base.TokenStream.Peek().TextUnit.Line;
+
+            var line = this.TokenStream.Peek().TextUnit.Line;
 
             bool expectsDot = false;
-            while (!base.TokenStream.Done)
+            while (!this.TokenStream.Done)
             {
-                if (!expectsDot &&
-                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                    base.TokenStream.Peek().Type != TokenType.Void &&
-                    base.TokenStream.Peek().Type != TokenType.Object &&
-                    base.TokenStream.Peek().Type != TokenType.String &&
-                    base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                    base.TokenStream.Peek().Type != TokenType.Byte &&
-                    base.TokenStream.Peek().Type != TokenType.Short &&
-                    base.TokenStream.Peek().Type != TokenType.Ushort &&
-                    base.TokenStream.Peek().Type != TokenType.Int &&
-                    base.TokenStream.Peek().Type != TokenType.Uint &&
-                    base.TokenStream.Peek().Type != TokenType.Long &&
-                    base.TokenStream.Peek().Type != TokenType.Ulong &&
-                    base.TokenStream.Peek().Type != TokenType.Char &&
-                    base.TokenStream.Peek().Type != TokenType.Bool &&
-                    base.TokenStream.Peek().Type != TokenType.Decimal &&
-                    base.TokenStream.Peek().Type != TokenType.Float &&
-                    base.TokenStream.Peek().Type != TokenType.Double &&
-                    base.TokenStream.Peek().Type != TokenType.Identifier) ||
-                    (expectsDot && base.TokenStream.Peek().Type != TokenType.Dot))
+                if ((!expectsDot &&
+                    this.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                    this.TokenStream.Peek().Type != TokenType.Void &&
+                    this.TokenStream.Peek().Type != TokenType.Object &&
+                    this.TokenStream.Peek().Type != TokenType.String &&
+                    this.TokenStream.Peek().Type != TokenType.Sbyte &&
+                    this.TokenStream.Peek().Type != TokenType.Byte &&
+                    this.TokenStream.Peek().Type != TokenType.Short &&
+                    this.TokenStream.Peek().Type != TokenType.Ushort &&
+                    this.TokenStream.Peek().Type != TokenType.Int &&
+                    this.TokenStream.Peek().Type != TokenType.Uint &&
+                    this.TokenStream.Peek().Type != TokenType.Long &&
+                    this.TokenStream.Peek().Type != TokenType.Ulong &&
+                    this.TokenStream.Peek().Type != TokenType.Char &&
+                    this.TokenStream.Peek().Type != TokenType.Bool &&
+                    this.TokenStream.Peek().Type != TokenType.Decimal &&
+                    this.TokenStream.Peek().Type != TokenType.Float &&
+                    this.TokenStream.Peek().Type != TokenType.Double &&
+                    this.TokenStream.Peek().Type != TokenType.Identifier) ||
+                    (expectsDot && this.TokenStream.Peek().Type != TokenType.Dot))
                 {
                     break;
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
-                    base.TokenStream.Peek().Type == TokenType.Void ||
-                    base.TokenStream.Peek().Type == TokenType.Object ||
-                    base.TokenStream.Peek().Type == TokenType.String ||
-                    base.TokenStream.Peek().Type == TokenType.Sbyte ||
-                    base.TokenStream.Peek().Type == TokenType.Byte ||
-                    base.TokenStream.Peek().Type == TokenType.Short ||
-                    base.TokenStream.Peek().Type == TokenType.Ushort ||
-                    base.TokenStream.Peek().Type == TokenType.Int ||
-                    base.TokenStream.Peek().Type == TokenType.Uint ||
-                    base.TokenStream.Peek().Type == TokenType.Long ||
-                    base.TokenStream.Peek().Type == TokenType.Ulong ||
-                    base.TokenStream.Peek().Type == TokenType.Char ||
-                    base.TokenStream.Peek().Type == TokenType.Bool ||
-                    base.TokenStream.Peek().Type == TokenType.Decimal ||
-                    base.TokenStream.Peek().Type == TokenType.Float ||
-                    base.TokenStream.Peek().Type == TokenType.Double ||
-                    base.TokenStream.Peek().Type == TokenType.Identifier)
+                if (this.TokenStream.Peek().Type == TokenType.MachineDecl ||
+                    this.TokenStream.Peek().Type == TokenType.Void ||
+                    this.TokenStream.Peek().Type == TokenType.Object ||
+                    this.TokenStream.Peek().Type == TokenType.String ||
+                    this.TokenStream.Peek().Type == TokenType.Sbyte ||
+                    this.TokenStream.Peek().Type == TokenType.Byte ||
+                    this.TokenStream.Peek().Type == TokenType.Short ||
+                    this.TokenStream.Peek().Type == TokenType.Ushort ||
+                    this.TokenStream.Peek().Type == TokenType.Int ||
+                    this.TokenStream.Peek().Type == TokenType.Uint ||
+                    this.TokenStream.Peek().Type == TokenType.Long ||
+                    this.TokenStream.Peek().Type == TokenType.Ulong ||
+                    this.TokenStream.Peek().Type == TokenType.Char ||
+                    this.TokenStream.Peek().Type == TokenType.Bool ||
+                    this.TokenStream.Peek().Type == TokenType.Decimal ||
+                    this.TokenStream.Peek().Type == TokenType.Float ||
+                    this.TokenStream.Peek().Type == TokenType.Double ||
+                    this.TokenStream.Peek().Type == TokenType.Identifier)
                 {
                     expectsDot = true;
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.Dot)
+                else if (this.TokenStream.Peek().Type == TokenType.Dot)
                 {
                     expectsDot = false;
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
+                if (this.TokenStream.Peek().Type == TokenType.MachineDecl)
                 {
-                    base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
-                        Peek().TextUnit.Line), TokenType.MachineDecl));
+                    this.TokenStream.Swap(new Token(new TextUnit("MachineId", this.TokenStream.Peek().TextUnit.Line), TokenType.MachineDecl));
                 }
 
                 if (textUnit == null)
                 {
-                    textUnit = new TextUnit(base.TokenStream.Peek().TextUnit.Text, line);
+                    textUnit = new TextUnit(this.TokenStream.Peek().TextUnit.Text, line);
                 }
                 else
                 {
-                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                    textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
                 }
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
+            if (this.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 int counter = 1;
-                while (!base.TokenStream.Done)
+                while (!this.TokenStream.Done)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
+                    if (this.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
                     {
                         counter++;
                     }
-                    else if (base.TokenStream.Peek().Type == TokenType.RightAngleBracket)
+                    else if (this.TokenStream.Peek().Type == TokenType.RightAngleBracket)
                     {
                         counter--;
                     }
 
                     if (counter == 0 ||
-                        (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                        base.TokenStream.Peek().Type != TokenType.Void &&
-                        base.TokenStream.Peek().Type != TokenType.Object &&
-                        base.TokenStream.Peek().Type != TokenType.String &&
-                        base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                        base.TokenStream.Peek().Type != TokenType.Byte &&
-                        base.TokenStream.Peek().Type != TokenType.Short &&
-                        base.TokenStream.Peek().Type != TokenType.Ushort &&
-                        base.TokenStream.Peek().Type != TokenType.Int &&
-                        base.TokenStream.Peek().Type != TokenType.Uint &&
-                        base.TokenStream.Peek().Type != TokenType.Long &&
-                        base.TokenStream.Peek().Type != TokenType.Ulong &&
-                        base.TokenStream.Peek().Type != TokenType.Char &&
-                        base.TokenStream.Peek().Type != TokenType.Bool &&
-                        base.TokenStream.Peek().Type != TokenType.Decimal &&
-                        base.TokenStream.Peek().Type != TokenType.Float &&
-                        base.TokenStream.Peek().Type != TokenType.Double &&
-                        base.TokenStream.Peek().Type != TokenType.Identifier &&
-                        base.TokenStream.Peek().Type != TokenType.Dot &&
-                        base.TokenStream.Peek().Type != TokenType.Comma &&
-                        base.TokenStream.Peek().Type != TokenType.LeftSquareBracket &&
-                        base.TokenStream.Peek().Type != TokenType.RightSquareBracket &&
-                        base.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
-                        base.TokenStream.Peek().Type != TokenType.RightAngleBracket))
+                        (this.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                        this.TokenStream.Peek().Type != TokenType.Void &&
+                        this.TokenStream.Peek().Type != TokenType.Object &&
+                        this.TokenStream.Peek().Type != TokenType.String &&
+                        this.TokenStream.Peek().Type != TokenType.Sbyte &&
+                        this.TokenStream.Peek().Type != TokenType.Byte &&
+                        this.TokenStream.Peek().Type != TokenType.Short &&
+                        this.TokenStream.Peek().Type != TokenType.Ushort &&
+                        this.TokenStream.Peek().Type != TokenType.Int &&
+                        this.TokenStream.Peek().Type != TokenType.Uint &&
+                        this.TokenStream.Peek().Type != TokenType.Long &&
+                        this.TokenStream.Peek().Type != TokenType.Ulong &&
+                        this.TokenStream.Peek().Type != TokenType.Char &&
+                        this.TokenStream.Peek().Type != TokenType.Bool &&
+                        this.TokenStream.Peek().Type != TokenType.Decimal &&
+                        this.TokenStream.Peek().Type != TokenType.Float &&
+                        this.TokenStream.Peek().Type != TokenType.Double &&
+                        this.TokenStream.Peek().Type != TokenType.Identifier &&
+                        this.TokenStream.Peek().Type != TokenType.Dot &&
+                        this.TokenStream.Peek().Type != TokenType.Comma &&
+                        this.TokenStream.Peek().Type != TokenType.LeftSquareBracket &&
+                        this.TokenStream.Peek().Type != TokenType.RightSquareBracket &&
+                        this.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
+                        this.TokenStream.Peek().Type != TokenType.RightAngleBracket))
                     {
                         break;
                     }
 
-                    if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
+                    if (this.TokenStream.Peek().Type == TokenType.MachineDecl)
                     {
-                        base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
-                            Peek().TextUnit.Line), TokenType.MachineDecl));
+                        this.TokenStream.Swap(new Token(new TextUnit("MachineId", this.TokenStream.Peek().TextUnit.Line), TokenType.MachineDecl));
                     }
 
-                    textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                    textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
 
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    this.TokenStream.Index++;
+                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                 }
 
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.RightAngleBracket)
+                if (this.TokenStream.Done ||
+                    this.TokenStream.Peek().Type != TokenType.RightAngleBracket)
                 {
-                    throw new ParsingException("Expected \">\".",
-                        new List<TokenType>
-                    {
-                        TokenType.RightAngleBracket
-                    });
+                    throw new ParsingException("Expected \">\".", TokenType.RightAngleBracket);
                 }
 
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
+            if (this.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
+                if (this.TokenStream.Done ||
+                    this.TokenStream.Peek().Type != TokenType.RightSquareBracket)
                 {
-                    throw new ParsingException("Expected \"]\".",
-                        new List<TokenType>
-                        {
-                            TokenType.RightSquareBracket
-                        });
+                    throw new ParsingException("Expected \"]\".", TokenType.RightSquareBracket);
                 }
 
-                textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text, line);
+                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
         }
     }

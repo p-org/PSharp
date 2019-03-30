@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.Runtime
     public sealed class ExecutionCanceledException : RuntimeException
     {
         /// <summary>
-        /// Initializes a new instance of the exception.
+        /// Initializes a new instance of the <see cref="ExecutionCanceledException"/> class.
         /// </summary>
         internal ExecutionCanceledException()
         {

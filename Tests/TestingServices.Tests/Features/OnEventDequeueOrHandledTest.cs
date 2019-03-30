@@ -14,93 +14,116 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public OnEventDequeueOrHandledTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event { }
+        private class E : Event
+        {
+        }
 
-        class E1 : Event { }
-        class E2 : Event { }
-        class E3: Event { }
+        private class E1 : Event
+        {
+        }
 
-        class Begin : Event
+        private class E2 : Event
+        {
+        }
+
+        private class E3 : Event
+        {
+        }
+
+        private class Begin : Event
         {
             public Event Ev;
+
             public Begin(Event ev)
             {
                 this.Ev = ev;
             }
         }
 
-        class End : Event
+        private class End : Event
         {
             public Event Ev;
+
             public End(Event ev)
             {
                 this.Ev = ev;
             }
         }
 
-        class Done : Event { }
+        private class Done : Event
+        {
+        }
 
         // Ensures that machine M1 sees the following calls:
         // OnEventDequeueAsync(E1), OnEventHandledAsync(E1), OnEventDequeueAsync(E2), OnEventHandledAsync(E2)
-        class Spec1 : Monitor
+        private class Spec1 : Monitor
         {
-            int counter = 0;
+            private int counter = 0;
 
             [Start]
             [Hot]
             [OnEventDoAction(typeof(Begin), nameof(Process))]
             [OnEventDoAction(typeof(End), nameof(Process))]
-            class S1 : MonitorState { }
+            private class S1 : MonitorState
+            {
+            }
 
             [Cold]
-            class S2 : MonitorState { }
-
-            void Process()
+            private class S2 : MonitorState
             {
-                if (counter == 0 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E1)
+            }
+
+            private void Process()
+            {
+                if (this.counter == 0 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E1)
                 {
-                    counter++;
+                    this.counter++;
                 }
-                else if (counter == 1 && this.ReceivedEvent is End && (this.ReceivedEvent as End).Ev is E1)
+                else if (this.counter == 1 && this.ReceivedEvent is End && (this.ReceivedEvent as End).Ev is E1)
                 {
-                    counter ++;
+                    this.counter++;
                 }
-                else if (counter == 2 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E2)
+                else if (this.counter == 2 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E2)
                 {
-                    counter++;
+                    this.counter++;
                 }
-                else if (counter == 3 && this.ReceivedEvent is End && (this.ReceivedEvent as End).Ev is E2)
+                else if (this.counter == 3 && this.ReceivedEvent is End && (this.ReceivedEvent as End).Ev is E2)
                 {
-                    counter++;
+                    this.counter++;
                 }
                 else
                 {
                     this.Assert(false);
                 }
 
-                if (counter == 4)
+                if (this.counter == 4)
                 {
                     this.Goto<S2>();
                 }
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Process))]
             [OnEventDoAction(typeof(E2), nameof(Process))]
             [OnEventDoAction(typeof(E3), nameof(ProcessE3))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Process()
+            private void Process()
             {
                 this.Raise(new E3());
             }
 
-            void ProcessE3() { }
+            private void ProcessE3()
+            {
+            }
 
             protected override Task OnEventDequeueAsync(Event ev)
             {
@@ -118,55 +141,62 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOnProcessingCalled()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec1));
                 var m = r.CreateMachine(typeof(M1), new E());
                 r.SendEvent(m, new E1());
                 r.SendEvent(m, new E2());
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         // Ensures that machine M2 sees the following calls:
         // OnEventDequeueAsync(E1)
-        class Spec2 : Monitor
+        private class Spec2 : Monitor
         {
-            int counter = 0;
+            private int counter = 0;
 
             [Start]
             [Hot]
             [OnEventDoAction(typeof(Begin), nameof(Process))]
-            class S1 : MonitorState { }
+            private class S1 : MonitorState
+            {
+            }
 
             [Cold]
-            class S2 : MonitorState { }
-
-            void Process()
+            private class S2 : MonitorState
             {
-                if (counter == 0 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E1)
+            }
+
+            private void Process()
+            {
+                if (this.counter == 0 && this.ReceivedEvent is Begin && (this.ReceivedEvent as Begin).Ev is E1)
                 {
-                    counter++;
+                    this.counter++;
                 }
                 else
                 {
                     this.Assert(false);
                 }
 
-                if (counter == 1)
+                if (this.counter == 1)
                 {
                     this.Goto<S2>();
                 }
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Process))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Process()
+            private void Process()
             {
                 this.Raise(new Halt());
             }
@@ -187,43 +217,54 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOnProcessingNotCalledOnHalt()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec2));
                 var m = r.CreateMachine(typeof(M2));
                 r.SendEvent(m, new E1());
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
-        class Spec3 : Monitor
+        private class Spec3 : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(Done), typeof(S2))]
-            class S1 : MonitorState { }
+            private class S1 : MonitorState
+            {
+            }
 
             [Cold]
-            class S2 : MonitorState { }
+            private class S2 : MonitorState
+            {
+            }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Process))]
-            class S1 : MachineState { }
+            private class S1 : MachineState
+            {
+            }
 
-            class S2 : MachineState { }
+            private class S2 : MachineState
+            {
+            }
 
             [OnEntry(nameof(Finish))]
-            class S3 : MachineState { }
+            private class S3 : MachineState
+            {
+            }
 
-            void Process()
+            private void Process()
             {
                 this.Goto<S2>();
             }
 
-            void Finish()
+            private void Finish()
             {
                 this.Monitor<Spec3>(new Done());
             }
@@ -240,39 +281,49 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOnProcessingCanGoto()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec3));
                 var m = r.CreateMachine(typeof(M3));
                 r.SendEvent(m, new E1());
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
-        class Spec4 : Monitor
+        private class Spec4 : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(Done), typeof(S2))]
-            class S1 : MonitorState { }
+            private class S1 : MonitorState
+            {
+            }
 
             [Cold]
-            class S2 : MonitorState { }
+            private class S2 : MonitorState
+            {
+            }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(Process))]
-            class S1 : MachineState { }
+            private class S1 : MachineState
+            {
+            }
 
-            void Process() { }
+            private void Process()
+            {
+            }
 
             protected override Task OnEventHandledAsync(Event ev)
             {
                 this.Raise(new Halt());
                 return Task.CompletedTask;
             }
+
             protected override void OnHalt()
             {
                 this.Monitor<Spec4>(new Done());
@@ -282,14 +333,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestOnProcessingCanHalt()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec4));
                 var m = r.CreateMachine(typeof(M4));
                 r.SendEvent(m, new E1());
                 r.SendEvent(m, new E2()); // dropped silently
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

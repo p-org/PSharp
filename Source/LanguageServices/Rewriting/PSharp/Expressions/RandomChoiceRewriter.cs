@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -18,16 +16,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class RandomChoiceRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RandomChoiceRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal RandomChoiceRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -35,7 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var expressions = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().
+            var expressions = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().
                 OfType<PrefixUnaryExpressionSyntax>().
                 Where(val => val.Kind() == SyntaxKind.PointerIndirectionExpression).
                 Where(val => val.Parent is IfStatementSyntax).
@@ -46,29 +40,21 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
-                computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteExpression());
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the expression with a random choice expression.
         /// </summary>
-        /// <param name="node">PrefixUnaryExpressionSyntax</param>
-        /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteExpression(PrefixUnaryExpressionSyntax node)
+        private static SyntaxNode RewriteExpression()
         {
             var text = "this.Random()";
             var rewritten = SyntaxFactory.ParseExpression(text);
             return rewritten;
         }
-
-        #endregion
     }
 }

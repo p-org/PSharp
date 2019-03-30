@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MethodTests
     {
-        #region correct tests
-
         [Fact]
         public void TestVoidMethodDeclaration()
         {
@@ -66,10 +64,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestPublicMethodDeclaration()
         {
@@ -108,7 +102,5 @@ void Foo()
 }";
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\" or \";\".", test);
         }
-
-        #endregion
     }
 }

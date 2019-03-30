@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Timers
         public readonly object Payload;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="TimerInfo"/> class.
+        /// Initializes a new instance of the <see cref="TimerInfo"/> class.
         /// </summary>
         /// <param name="ownerId">The id of the machine that owns this timer.</param>
         /// <param name="dueTime">The amount of time to wait before sending the first timeout event.</param>

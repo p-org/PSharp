@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public EntryPointEventSendingTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Transfer : Event
+        private class Transfer : Event
         {
             public int Value;
 
@@ -25,13 +26,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEventDoAction(typeof(Transfer), nameof(HandleTransfer))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void HandleTransfer()
+            private void HandleTransfer()
             {
                 int value = (this.ReceivedEvent as Transfer).Value;
                 this.Assert(value > 0, "Value is 0.");
@@ -41,13 +44,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestEntryPointEventSending()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 MachineId m = r.CreateMachine(typeof(M));
                 r.SendEvent(m, new Transfer(0));
             });
 
             var bugReport = "Value is 0.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
     }
 }

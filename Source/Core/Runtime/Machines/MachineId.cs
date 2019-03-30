@@ -59,10 +59,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// True if <see cref="NameValue"/> is used as the unique id, else false.
         /// </summary>
-        public bool IsNameUsedForHashing => NameValue.Length > 0;
+        public bool IsNameUsedForHashing => this.NameValue.Length > 0;
 
         /// <summary>
-        /// Creates a new machine id.
+        /// Initializes a new instance of the <see cref="MachineId"/> class.
         /// </summary>
         /// <param name="type">Machine type</param>
         /// <param name="friendlyName">Friendly machine name</param>
@@ -70,35 +70,35 @@ namespace Microsoft.PSharp
         /// <param name="useNameForHashing">Use friendly name as the id</param>
         internal MachineId(Type type, string friendlyName, PSharpRuntime runtime, bool useNameForHashing = false)
         {
-            Runtime = runtime;
-            Endpoint = Runtime.NetworkProvider.GetLocalEndpoint();
+            this.Runtime = runtime;
+            this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
 
             if (useNameForHashing)
             {
-                Value = 0;
-                NameValue = friendlyName;
-                Runtime.Assert(!string.IsNullOrEmpty(NameValue), "Input friendlyName cannot be null when used as Id");
+                this.Value = 0;
+                this.NameValue = friendlyName;
+                this.Runtime.Assert(!string.IsNullOrEmpty(this.NameValue), "Input friendlyName cannot be null when used as Id");
             }
             else
             {
                 // Atomically increments and safely wraps into an unsigned long.
-                Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
-                NameValue = string.Empty;
+                this.Value = (ulong)Interlocked.Increment(ref runtime.MachineIdCounter) - 1;
+                this.NameValue = string.Empty;
 
                 // Checks for overflow.
-                Runtime.Assert(Value != ulong.MaxValue, "Detected MachineId overflow.");
+                this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
             }
 
-            Generation = runtime.Configuration.RuntimeGeneration;
+            this.Generation = runtime.Configuration.RuntimeGeneration;
 
-            Type = type.FullName;
-            if (IsNameUsedForHashing)
+            this.Type = type.FullName;
+            if (this.IsNameUsedForHashing)
             {
-                Name = NameValue;
+                this.Name = this.NameValue;
             }
-            else 
+            else
             {
-                Name = string.Format("{0}({1})", string.IsNullOrEmpty(friendlyName) ? Type : friendlyName, Value);
+                this.Name = string.Format("{0}({1})", string.IsNullOrEmpty(friendlyName) ? this.Type : friendlyName, this.Value);
             }
         }
 
@@ -108,9 +108,9 @@ namespace Microsoft.PSharp
         /// <param name="runtime">PSharpRuntime</param>
         internal void Bind(PSharpRuntime runtime)
         {
-            Runtime = runtime;
+            this.Runtime = runtime;
         }
-        
+
         /// <summary>
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
@@ -122,14 +122,14 @@ namespace Microsoft.PSharp
             if (obj is MachineId mid)
             {
                 // Use same machanism for hashing.
-                if (IsNameUsedForHashing != mid.IsNameUsedForHashing)
+                if (this.IsNameUsedForHashing != mid.IsNameUsedForHashing)
                 {
                     return false;
                 }
 
-                return IsNameUsedForHashing ?
-                    NameValue.Equals(mid.NameValue) && Generation == mid.Generation :
-                    Value == mid.Value && Generation == mid.Generation;
+                return this.IsNameUsedForHashing ?
+                    this.NameValue.Equals(mid.NameValue) && this.Generation == mid.Generation :
+                    this.Value == mid.Value && this.Generation == mid.Generation;
             }
 
             return false;
@@ -142,8 +142,8 @@ namespace Microsoft.PSharp
         public override int GetHashCode()
         {
             int hash = 17;
-            hash = hash * 23 + (IsNameUsedForHashing ? NameValue.GetHashCode() : Value.GetHashCode());
-            hash = hash * 23 + Generation.GetHashCode();
+            hash = (hash * 23) + (this.IsNameUsedForHashing ? this.NameValue.GetHashCode() : this.Value.GetHashCode());
+            hash = (hash * 23) + this.Generation.GetHashCode();
             return hash;
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return Name;
+            return this.Name;
         }
 
         /// <summary>

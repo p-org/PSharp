@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 
 using Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR;
@@ -44,14 +43,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         private readonly IContract Contract;
 
-        // TODO: implement the step limit.
         /// <summary>
         /// The step limit.
+        /// TODO: implement the step limit.
         /// </summary>
         private readonly int StepLimit;
 
         /// <summary>
-        /// When doing random DPOR, we do an initial execution 
+        /// When doing random DPOR, we do an initial execution
         /// and then try to reverse races.
         /// This int specifies how many iterations of race reversing to perform
         /// before performing a new initial iteration.
@@ -69,38 +68,36 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         private int NumIterations;
 
         /// <summary>
-        /// Creates the DPOR strategy.
+        /// Initializes a new instance of the <see cref="DPORStrategy"/> class.
         /// </summary>
         public DPORStrategy(
-            IContract contract, 
-            IRandomNumberGenerator rand = null, 
-            int raceReversalIterationsLimit = -1, 
-            int stepLimit = -1, 
-            bool useSleepSets = true, 
+            IContract contract,
+            IRandomNumberGenerator rand = null,
+            int raceReversalIterationsLimit = -1,
+            int stepLimit = -1,
+            bool useSleepSets = true,
             bool dpor = true)
         {
-            Contract = contract;
-            Rand = rand;
-            StepLimit = stepLimit;
-            Stack = new Stack(rand, Contract);
-            Dpor = dpor ? new DPORAlgorithm(Contract) : null;
-            UseSleepSets = rand == null && useSleepSets;
-            RaceReversalIterationsLimit = raceReversalIterationsLimit;
-            Reset();
+            this.Contract = contract;
+            this.Rand = rand;
+            this.StepLimit = stepLimit;
+            this.Stack = new Stack(rand, this.Contract);
+            this.Dpor = dpor ? new DPORAlgorithm(this.Contract) : null;
+            this.UseSleepSets = rand == null && useSleepSets;
+            this.RaceReversalIterationsLimit = raceReversalIterationsLimit;
+            this.Reset();
         }
 
         /// <summary>
         /// Returns or forces the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
         private bool GetNextHelper(
             ref ISchedulable next,
             List<ISchedulable> choices,
             ISchedulable current)
         {
             int currentSchedulableId = (int)current.Id;
+
             // "Yield" and "Waiting for quiescence" hack.
             if (choices.TrueForAll(info => !info.IsEnabled))
             {
@@ -130,37 +127,39 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             // Forced choice.
             if (next != null)
             {
-                AbdandonReplay(false);
+                this.AbdandonReplay(false);
             }
 
-            bool added = Stack.Push(choices, currentSchedulableId);
-            TidEntryList top = Stack.GetTop();
+            bool added = this.Stack.Push(choices);
+            ThreadEntryList top = this.Stack.GetTop();
 
-            Contract.Assert(next == null || added, "DPOR: Forced choice implies we should have added to stack.");
+            this.Contract.Assert(next == null || added, "DPOR: Forced choice implies we should have added to stack.");
 
             if (added)
             {
-                if (UseSleepSets)
+                if (this.UseSleepSets)
                 {
-                    SleepSets.UpdateSleepSets(Stack, Contract);
+                    SleepSets.UpdateSleepSets(this.Stack, this.Contract);
                 }
 
-                if (Dpor == null)
+                if (this.Dpor == null)
                 {
-                    top.SetAllEnabledToBeBacktracked(Contract);
+                    top.SetAllEnabledToBeBacktracked(this.Contract);
                 }
-                else if (Dpor.RaceReplaySuffix.Count > 0 && Dpor.ReplayRaceIndex < Dpor.RaceReplaySuffix.Count)
+                else if (this.Dpor.RaceReplaySuffix.Count > 0 && this.Dpor.ReplayRaceIndex < this.Dpor.RaceReplaySuffix.Count)
                 {
                     // Replaying a race:
-                    var tidReplay = Dpor.RaceReplaySuffix[Dpor.ReplayRaceIndex];
+                    var tidReplay = this.Dpor.RaceReplaySuffix[this.Dpor.ReplayRaceIndex];
+
                     // Restore the nondet choices on the top of stack.
                     top.NondetChoices = tidReplay.NondetChoices;
+
                     // Add the replay tid to the backtrack set.
                     top.List[tidReplay.Id].Backtrack = true;
-                    Contract.Assert(
+                    this.Contract.Assert(
                         top.List[tidReplay.Id].Enabled
                         || top.List[tidReplay.Id].OpType == OperationType.Yield);
-                    ++Dpor.ReplayRaceIndex;
+                    ++this.Dpor.ReplayRaceIndex;
                 }
                 else
                 {
@@ -170,89 +169,85 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                     // If our choice is forced by parent scheduler:
                     if (next != null)
                     {
-                        top.AddToBacktrack((int) next.Id, Contract);
+                        top.AddToBacktrack((int)next.Id, this.Contract);
                     }
-                    else if (Rand == null)
+                    else if (this.Rand == null)
                     {
-                        top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, Contract);
+                        top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, this.Contract);
                     }
                     else
                     {
-                        top.AddRandomEnabledNotSleptToBacktrack(Rand);
+                        top.AddRandomEnabledNotSleptToBacktrack(this.Rand);
                     }
                 }
             }
-            else if (Rand != null)
+            else if (this.Rand != null)
             {
                 // When doing random DPOR: we are replaying a schedule prefix so rewind the nondet choices now.
                 top.RewindNondetChoicesForReplay();
             }
 
-            int nextTid = Stack.GetSelectedOrFirstBacktrackNotSlept(currentSchedulableId);
+            int nextTid = this.Stack.GetSelectedOrFirstBacktrackNotSlept(currentSchedulableId);
 
             if (nextTid < 0)
             {
                 next = null;
+
                 // TODO: if nextTidIndex == DPORAlgorithm.SLEEP_SET_BLOCKED then let caller know that this is the case.
                 // I.e. this is not deadlock.
                 return false;
             }
 
-            if (top.TryGetSelected(Contract) != nextTid)
+            if (top.TryGetSelected() != nextTid)
             {
-                top.SetSelected(nextTid, Contract);
+                top.SetSelected(nextTid, this.Contract);
             }
 
-            Contract.Assert(nextTid < choices.Count);
+            this.Contract.Assert(nextTid < choices.Count);
             next = choices[nextTid];
 
             // TODO: Part of yield hack.
             if (!next.IsEnabled &&
                 next.NextOperationType == OperationType.Yield)
             {
-                //                // Uncomment to avoid waking a yielding thread.
-                //                next = null;
-                //                // TODO: let caller know that this is not deadlock.
-                //                return false;
+                // Uncomment to avoid waking a yielding thread.
+                // next = null;
+                // TODO: let caller know that this is not deadlock.
+                // return false;
                 next.IsEnabled = true;
             }
 
-            Contract.Assert(next.IsEnabled);
+            this.Contract.Assert(next.IsEnabled);
             return true;
         }
 
         /// <summary>
         /// Returns or forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
-        private bool GetNextBooleanChoiceHelper(int maxValue, ref bool? next)
+        private bool GetNextBooleanChoiceHelper(ref bool? next)
         {
             if (next != null)
             {
-                AbdandonReplay(true);
+                this.AbdandonReplay(true);
                 return true;
             }
 
-            next = Stack.GetTop().MakeOrReplayNondetChoice(true, Rand, Contract) == 1;
+            next = this.Stack.GetTop().MakeOrReplayNondetChoice(true, this.Rand, this.Contract) == 1;
             return true;
         }
 
         /// <summary>
         /// Returns or forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
-        private bool GetNextIntegerChoiceHelper(int maxValue, ref int? next)
+        private bool GetNextIntegerChoiceHelper(ref int? next)
         {
             if (next != null)
             {
-                AbdandonReplay(true);
+                this.AbdandonReplay(true);
                 return true;
             }
-            next = Stack.GetTop().MakeOrReplayNondetChoice(false, Rand, Contract);
+
+            next = this.Stack.GetTop().MakeOrReplayNondetChoice(false, this.Rand, this.Contract);
             return true;
         }
 
@@ -261,40 +256,35 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         private void AbdandonReplay(bool clearNonDet)
         {
-            Contract.Assert(Rand != null, "DPOR: Forced choices are only supported with random DPOR.");
+            this.Contract.Assert(this.Rand != null, "DPOR: Forced choices are only supported with random DPOR.");
+
             // Abandon remaining stack entries and race replay.
             if (clearNonDet)
             {
-                Stack.GetTop().ClearNondetChoicesFromNext();
+                this.Stack.GetTop().ClearNondetChoicesFromNext();
             }
-            Stack.ClearAboveTop();
-            Dpor.ReplayRaceIndex = Int32.MaxValue;
+
+            this.Stack.ClearAboveTop();
+            this.Dpor.ReplayRaceIndex = int.MaxValue;
         }
 
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             next = null;
-            return GetNextHelper(ref next, choices, current);
+            return this.GetNextHelper(ref next, choices, current);
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             bool? nextTemp = null;
-            GetNextBooleanChoiceHelper(maxValue, ref nextTemp);
-            Contract.Assert(nextTemp != null);
+            this.GetNextBooleanChoiceHelper(ref nextTemp);
+            this.Contract.Assert(nextTemp != null);
             next = nextTemp.Value;
             return true;
         }
@@ -302,61 +292,48 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
             int? nextTemp = null;
-            GetNextIntegerChoiceHelper(maxValue, ref nextTemp);
-            Contract.Assert(nextTemp != null);
+            this.GetNextIntegerChoiceHelper(ref nextTemp);
+            this.Contract.Assert(nextTemp != null);
             next = nextTemp.Value;
             return true;
         }
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             ISchedulable temp = next;
-            bool res = GetNextHelper(ref temp, choices, current);
-            Contract.Assert(res, "DPOR scheduler refused to schedule a forced choice.");
-            Contract.Assert(temp == next, "DPOR scheduler changed forced next choice.");
+            bool res = this.GetNextHelper(ref temp, choices, current);
+            this.Contract.Assert(res, "DPOR scheduler refused to schedule a forced choice.");
+            this.Contract.Assert(temp == next, "DPOR scheduler changed forced next choice.");
         }
 
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
         {
             bool? nextTemp = next;
-            bool res = GetNextBooleanChoiceHelper(maxValue, ref nextTemp);
-            Contract.Assert(res, "DPOR scheduler refused to schedule a forced boolean choice.");
-            Contract.Assert(
-                nextTemp.HasValue && nextTemp.Value == next, 
+            bool res = this.GetNextBooleanChoiceHelper(ref nextTemp);
+            this.Contract.Assert(res, "DPOR scheduler refused to schedule a forced boolean choice.");
+            this.Contract.Assert(
+                nextTemp.HasValue && nextTemp.Value == next,
                 "DPOR scheduler changed forced next boolean choice.");
         }
 
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
             int? nextTemp = next;
-            bool res = GetNextIntegerChoiceHelper(maxValue, ref nextTemp);
-            Contract.Assert(res, "DPOR scheduler refused to schedule a forced integer choice.");
-            Contract.Assert(
+            bool res = this.GetNextIntegerChoiceHelper(ref nextTemp);
+            this.Contract.Assert(res, "DPOR scheduler refused to schedule a forced integer choice.");
+            this.Contract.Assert(
                 nextTemp.HasValue && nextTemp.Value == next,
                 "DPOR scheduler changed forced next integer choice.");
         }
@@ -364,53 +341,40 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Returns the explored steps.
         /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetScheduledSteps()
-        {
-            return Stack.GetNumSteps();
-        }
+        public int GetScheduledSteps() => this.Stack.GetNumSteps();
 
         /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool HasReachedMaxSchedulingSteps()
-        {
-            return StepLimit > 0 && Stack.GetNumSteps() >= StepLimit;
-        }
+        public bool HasReachedMaxSchedulingSteps() => this.StepLimit > 0 && this.Stack.GetNumSteps() >= this.StepLimit;
 
         /// <summary>
         /// Checks if this a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return false;
-        }
+        public bool IsFair() => false;
 
         /// <summary>
         /// Prepares the next scheduling iteration.
         /// </summary>
-        /// <returns>False if all schedules have been explored</returns>
         public bool PrepareForNextIteration()
         {
-            ++NumIterations;
-            Dpor?.DoDPOR(Stack, Rand);
+            ++this.NumIterations;
+            this.Dpor?.DoDPOR(this.Stack, this.Rand);
 
-            Stack.PrepareForNextSchedule();
+            this.Stack.PrepareForNextSchedule();
 
-            if (Rand != null && RaceReversalIterationsLimit >= 0)
+            if (this.Rand != null && this.RaceReversalIterationsLimit >= 0)
             {
-                ++NumRaceReversalIterationsCounter;
-                if (NumRaceReversalIterationsCounter >= RaceReversalIterationsLimit)
+                ++this.NumRaceReversalIterationsCounter;
+                if (this.NumRaceReversalIterationsCounter >= this.RaceReversalIterationsLimit)
                 {
-                    NumRaceReversalIterationsCounter = 0;
-                    AbdandonReplay(false);
+                    this.NumRaceReversalIterationsCounter = 0;
+                    this.AbdandonReplay(false);
                 }
             }
 
-            return Rand != null || Stack.GetInternalSize() != 0;
+            return this.Rand != null || this.Stack.GetInternalSize() != 0;
         }
 
         /// <summary>
@@ -418,18 +382,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public void Reset()
         {
-            Stack.Clear();
-            NumIterations = 0;
-            NumRaceReversalIterationsCounter = 0;
+            this.Stack.Clear();
+            this.NumIterations = 0;
+            this.NumRaceReversalIterationsCounter = 0;
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return "DPOR";
-        }
+        public string GetDescription() => "DPOR";
     }
 }

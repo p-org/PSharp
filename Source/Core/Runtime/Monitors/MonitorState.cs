@@ -57,9 +57,11 @@ namespace Microsoft.PSharp
         internal bool IsCold { get; private set; }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MonitorState"/> class.
         /// </summary>
-        protected MonitorState() { }
+        protected MonitorState()
+        {
+        }
 
         /// <summary>
         /// Initializes the state.
@@ -75,8 +77,8 @@ namespace Microsoft.PSharp
 
             this.IgnoredEvents = new HashSet<Type>();
 
-            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntry), false) as OnEntry;
-            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExit), false) as OnExit;
+            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), false) as OnEntryAttribute;
+            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), false) as OnExitAttribute;
 
             if (entryAttribute != null)
             {
@@ -88,10 +90,10 @@ namespace Microsoft.PSharp
                 this.ExitAction = exitAttribute.Action;
             }
 
-            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
-                as OnEventGotoState[];
-            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoAction), false)
-                as OnEventDoAction[];
+            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
+                as OnEventGotoStateAttribute[];
+            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
+                as OnEventDoActionAttribute[];
 
             foreach (var attr in gotoAttributes)
             {
@@ -110,24 +112,24 @@ namespace Microsoft.PSharp
                 this.ActionBindings.Add(attr.Event, new ActionBinding(attr.Action));
             }
 
-            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
+            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
 
             if (ignoreEventsAttribute != null)
             {
                 this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
             }
 
-            if (this.GetType().IsDefined(typeof(Start), false))
+            if (this.GetType().IsDefined(typeof(StartAttribute), false))
             {
                 this.IsStart = true;
             }
 
-            if (this.GetType().IsDefined(typeof(Hot), false))
+            if (this.GetType().IsDefined(typeof(HotAttribute), false))
             {
                 this.IsHot = true;
             }
 
-            if (this.GetType().IsDefined(typeof(Cold), false))
+            if (this.GetType().IsDefined(typeof(ColdAttribute), false))
             {
                 this.IsCold = true;
             }

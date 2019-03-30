@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class UsingTests
     {
-        #region correct tests
-
         [Fact]
         public void TestUsingDeclaration()
         {
@@ -22,10 +20,6 @@ using System.Text;
 ";
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
-
-        #endregion
-
-        #region failure tests
 
         [Fact]
         public void TestIncorrectUsingDeclaration()
@@ -40,7 +34,5 @@ using System.Text;
             var test = "using;";
             LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
-
-        #endregion
     }
 }

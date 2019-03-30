@@ -3,24 +3,21 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Diagnostics;
-
-using Microsoft.Build.Framework;
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// The P# syntax rewriter.
     /// </summary>
-    public class SyntaxRewriterProcess
+    public sealed class SyntaxRewriterProcess
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            // number of args must be even
+            // Number of args must be even.
             if (args.Length % 2 != 0)
             {
                 Output.WriteLine("Usage: PSharpSyntaxRewriterProcess.exe file1.psharp, outfile1.cs, file2.pshap, outfile2.cs, ...");
@@ -34,7 +31,8 @@ namespace Microsoft.PSharp
                 count++;
                 string outputFileName = args[count];
                 count++;
-                // Get input file as string
+
+                // Get input file as string.
                 var inputString = string.Empty;
                 try
                 {
@@ -46,15 +44,17 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                // Translate and write to output file
+                // Translate and write to output file.
                 string errors = string.Empty;
                 var outputString = Translate(inputString, out errors);
                 if (outputString == null)
                 {
-                    // replace Program.psharp with the actual file name
+                    // Replace Program.psharp with the actual file name.
                     errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(inputFileName));
-                    // print a compiler error with log
-                    System.IO.File.WriteAllText(outputFileName,
+
+                    // Print a compiler error with log.
+                    System.IO.File.WriteAllText(
+                        outputFileName,
                         string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
                 }
                 else
@@ -70,8 +70,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Translates the specified text from P# to C#.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <returns>Text</returns>
         public static string Translate(string text, out string errors)
         {
             var configuration = Configuration.Create();
@@ -99,41 +97,6 @@ namespace Microsoft.PSharp
                 errors = ex.Message;
                 return null;
             }
-        }
-    }
-
-    public class RewriterAsSeparateProcess : ITask
-    {
-        public IBuildEngine BuildEngine { get; set; }
-        public ITaskHost HostObject { get; set; }
-
-        public ITaskItem[] InputFiles { get; set; }
-
-        [Output]
-        public ITaskItem[] OutputFiles { get; set; }
-
-        public bool Execute()
-        {
-            string processInputString = string.Empty;
-            for (int i = 0; i < InputFiles.Length; i++)
-            {
-                processInputString += InputFiles[i].ItemSpec;
-                processInputString += " ";
-                processInputString += OutputFiles[i].ItemSpec;
-                if (i + 1 < InputFiles.Length)
-                {
-                    processInputString += " ";
-                }
-            }
-            var process = new Process();
-            var processStartInfo = new ProcessStartInfo(this.GetType().Assembly.Location, processInputString);
-            processStartInfo.CreateNoWindow = true;
-            processStartInfo.UseShellExecute = false;
-            processStartInfo.RedirectStandardOutput = true;
-            process.StartInfo = processStartInfo;
-            process.Start();
-            process.WaitForExit();
-            return true;
         }
     }
 }

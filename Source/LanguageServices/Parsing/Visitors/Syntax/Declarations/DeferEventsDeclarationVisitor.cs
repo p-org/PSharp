@@ -16,36 +16,31 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class DeferEventsDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="DeferEventsDeclarationVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal DeferEventsDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Node</param>
         internal void Visit(StateDeclaration parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {
-                throw new ParsingException("Monitors cannot \"defer\".",
-                    new List<TokenType>());
+                throw new ParsingException("Monitors cannot \"defer\".");
             }
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var nameVisitor = new NameVisitor(base.TokenStream);
+            var nameVisitor = new NameVisitor(this.TokenStream);
 
             // Consumes multiple generic event names.
             var eventIdentifiers =
-                nameVisitor.ConsumeMultipleNames(TokenType.EventIdentifier,
-                tt => nameVisitor.ConsumeGenericEventName(tt));
+                nameVisitor.ConsumeMultipleNames(TokenType.EventIdentifier, tt => nameVisitor.ConsumeGenericEventName(tt));
 
             var resolvedEventIdentifiers = new Dictionary<Token, List<Token>>();
             foreach (var eventIdentifier in eventIdentifiers)
@@ -64,10 +59,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         identifierBuilder.Append(token.TextUnit.Text);
                     }
 
-                    TextUnit textUnit = new TextUnit(identifierBuilder.ToString(),
-                        eventIdentifier[0].TextUnit.Line);
-                    resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier),
-                        eventIdentifier);
+                    TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifier[0].TextUnit.Line);
+                    resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier), eventIdentifier);
                 }
             }
 
@@ -75,39 +68,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             {
                 if (!parentNode.AddDeferredEvent(kvp.Key, kvp.Value))
                 {
-                    throw new ParsingException("Unexpected defer declaration.",
-                        new List<TokenType>());
+                    throw new ParsingException("Unexpected defer declaration.");
                 }
             }
 
-            if (!base.TokenStream.Done &&
-                base.TokenStream.Peek().Type == TokenType.Identifier)
+            if (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type == TokenType.Identifier)
             {
-                throw new ParsingException("Expected \",\".",
-                    new List<TokenType>
-                {
-                    TokenType.Comma
-                });
+                throw new ParsingException("Expected \",\".", TokenType.Comma);
             }
 
-
-            if (!base.TokenStream.Done &&
-                (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket ||
-                base.TokenStream.Peek().Type == TokenType.RightAngleBracket))
+            if (!this.TokenStream.Done &&
+                (this.TokenStream.Peek().Type == TokenType.LeftAngleBracket ||
+                this.TokenStream.Peek().Type == TokenType.RightAngleBracket))
             {
-                throw new ParsingException("Invalid generic expression.",
-                    new List<TokenType> { });
+                throw new ParsingException("Invalid generic expression.");
             }
 
-
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Semicolon)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \";\".", TokenType.Semicolon);
             }
         }
     }

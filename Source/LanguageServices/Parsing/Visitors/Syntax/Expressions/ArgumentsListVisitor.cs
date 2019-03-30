@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
 using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
@@ -16,32 +13,29 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class ArgumentsListVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ArgumentsListVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal ArgumentsListVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="node">Node</param>
         internal void Visit(ExpressionNode node)
         {
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             int counter = 1;
-            while (!base.TokenStream.Done)
+            while (!this.TokenStream.Done)
             {
-                if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
+                if (this.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
                     counter++;
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
+                else if (this.TokenStream.Peek().Type == TokenType.RightParenthesis)
                 {
                     counter--;
                 }
@@ -51,26 +45,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     break;
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.NonDeterministic)
+                if (this.TokenStream.Peek().Type == TokenType.NonDeterministic)
                 {
-                    throw new ParsingException("Can only use the nondeterministic \"$\" " +
-                        "keyword as the guard of an if statement.", new List<TokenType>());
+                    throw new ParsingException("Can only use the nondeterministic \"$\" keyword as the guard of an if statement.");
                 }
 
-                node.StmtTokens.Add(base.TokenStream.Peek());
+                node.StmtTokens.Add(this.TokenStream.Peek());
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.RightParenthesis)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                throw new ParsingException("Expected \")\".",
-                    new List<TokenType>
-                {
-                    TokenType.RightParenthesis
-                });
+                throw new ParsingException("Expected \")\".", TokenType.RightParenthesis);
             }
         }
     }

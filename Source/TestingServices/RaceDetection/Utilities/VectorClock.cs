@@ -25,38 +25,40 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
     {
         private long[] Values;
 
-        // Use for all VCs that start with an empty array.
-        private long[] Empty = new long[0];
+        /// <summary>
+        /// Use for all VCs that start with an empty array.
+        /// </summary>
+        private readonly long[] Empty = Array.Empty<long>();
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="VectorClock"/> class.
         /// </summary>
         protected VectorClock()
         {
-            Values = Empty;
+            this.Values = this.Empty;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="VectorClock"/> class.
         /// </summary>
-        public VectorClock(VectorClock other) : this(other.Size())
+        public VectorClock(VectorClock other)
+            : this(other.Size())
         {
-            Copy(other);
+            this.Copy(other);
         }
 
         /// <summary>
-        /// size >= 0
-        /// Requires exclusive access to this.
+        /// Initializes a new instance of the <see cref="VectorClock"/> class.
         /// </summary>
         public VectorClock(long size)
         {
             if (size > 0)
             {
-                MakeVC(size);
+                this.MakeVC(size);
             }
             else
             {
-                Values = Empty;
+                this.Values = this.Empty;
             }
         }
 
@@ -66,18 +68,18 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
         /// </summary>
         public void MakeVC(long size)
         {
-            Values = new long[size];
-            ClearFrom(Values, 0);
+            this.Values = new long[size];
+            ClearFrom(this.Values, 0);
         }
 
-        ///<summary>
+        /// <summary>
         /// Copies the other vector clock into this.
         /// Requires: exclusive access to this and other.
-        ///</summary>
+        /// </summary>
         public void Copy(VectorClock other)
         {
             long[] otherValues = other.Values;
-            EnsureCapacity(otherValues.Length);
+            this.EnsureCapacity(otherValues.Length);
             long[] thisValues = this.Values;
 
             // n = this.values.Length, m = other.values.Length
@@ -94,14 +96,14 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
             }
         }
 
-        ///<summary>
+        /// <summary>
         /// this = this ⨆ other.
         /// Requires: exclusive access to this and other.
-        ///</summary>
+        /// </summary>
         public void Max(VectorClock other)
         {
             long[] otherValues = other.Values;
-            EnsureCapacity(otherValues.Length);
+            this.EnsureCapacity(otherValues.Length);
             long[] thisValues = this.Values;
 
             for (int i = 0; i < otherValues.Length; i++)
@@ -113,18 +115,18 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
             }
         }
 
-        ///<summary>
+        /// <summary>
         /// Returns true if this ≤ other. Requires: exclusive access to this and other.
         /// </summary>
         public bool Leq(VectorClock other)
         {
-            return !AnyGt(other);
+            return !this.AnyGt(other);
         }
 
-        ///<summary>
+        /// <summary>
         /// Returns true if any clock in this.Values is greater than in other.Values.
         /// Requires: exclusive access to this and other.
-        ///</summary>
+        /// </summary>
         public bool AnyGt(VectorClock other)
         {
             long[] thisValues = this.Values;
@@ -156,11 +158,11 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
             return false;
         }
 
-        ///<summary>
+        /// <summary>
         /// Returns the first index i >= start such that this.Values[i] > other.Values[i],
         /// -1 is no such index exists.
         /// Requires: exclusive access to this and other.
-        ///</summary>
+        /// </summary>
         public int NextGT(VectorClock other, int start)
         {
             long[] thisValues = this.Values;
@@ -202,66 +204,66 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
             return -1;
         }
 
-        ///<summary>
+        /// <summary>
         /// Increments the clock component for mId.
         /// Requires: exclusive access to this.
-        ///</summary>
+        /// </summary>
         public long Tick(long mID)
         {
-            EnsureCapacity((int)mID + 1);
-            long incremented = Epoch.Tick(Values[mID]);
-            Values[mID] = incremented;
+            this.EnsureCapacity((int)mID + 1);
+            long incremented = Epoch.Tick(this.Values[mID]);
+            this.Values[mID] = incremented;
             return incremented;
         }
 
-        ///<summary>
+        /// <summary>
         /// Sets the clock component for mId to v.
         /// Here, v is an epoch, not a simple long.
         /// Requires: exclusive access to this.
-        ///</summary>
+        /// </summary>
         public void SetComponent(long mID, long v)
         {
-            Debug.Assert(mID == Epoch.MId(v));
-            EnsureCapacity(mID + 1);
-            Values[mID] = v;
+            Debug.Assert(mID == Epoch.MId(v), $"{mID} != {Epoch.MId(v)}");
+            this.EnsureCapacity(mID + 1);
+            this.Values[mID] = v;
         }
 
-        ///<summary>
-        /// Sets the clock component for mId to v. 
+        /// <summary>
+        /// Sets the clock component for mId to v.
         /// Here, v is an epoch, not a simple long.
         /// Requires: exclusive access to this.
-        ///</summary>
+        /// </summary>
         public void SetComponent(ulong mID, long v)
         {
-            Debug.Assert((long)mID == Epoch.MId(v));
-            EnsureCapacity((long)mID + 1);
-            Values[mID] = v;
+            Debug.Assert((long)mID == Epoch.MId(v), $"{mID} != {Epoch.MId(v)}");
+            this.EnsureCapacity((long)mID + 1);
+            this.Values[mID] = v;
         }
 
-        ///<summary>
+        /// <summary>
         /// Requires: exclusive access to this.
-        ///</summary>
-        public override String ToString()
+        /// </summary>
+        public override string ToString()
         {
             StringBuilder r = new StringBuilder();
             r.Append("[");
 
-            for (int i = 0; i < Values.Length; i++)
+            for (int i = 0; i < this.Values.Length; i++)
             {
-                r.Append((i > 0 ? " " : "") + Epoch.ToString(Values[i]));
+                r.Append((i > 0 ? " " : string.Empty) + Epoch.ToString(this.Values[i]));
             }
 
             return r.Append("]").ToString();
         }
 
-        ///<summary>
+        /// <summary>
         /// Gets the clock component for mId, as an epoch. Requires: exclusive access to this.
-        ///</summary>
+        /// </summary>
         public long GetComponent(long mID)
         {
-            if ((int)mID < Values.Length)
+            if ((int)mID < this.Values.Length)
             {
-                return Values[mID];
+                return this.Values[mID];
             }
             else
             {
@@ -269,12 +271,12 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
             }
         }
 
-        ///<summary>
+        /// <summary>
         /// Gets the size of our VC. Requires: exclusive access to this.
-        ///</summary>
+        /// </summary>
         public int Size()
         {
-            return Values.Length;
+            return this.Values.Length;
         }
 
         /// <summary>
@@ -294,17 +296,17 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.Util
         /// </summary>
         private void EnsureCapacity(long len)
         {
-            int curLength = Values.Length;
+            int curLength = this.Values.Length;
             if (curLength < len)
             {
                 long[] b = new long[len];
                 for (int i = 0; i < curLength; i++)
                 {
-                    b[i] = Values[i];
+                    b[i] = this.Values[i];
                 }
 
                 ClearFrom(b, curLength);
-                Values = b;
+                this.Values = b;
             }
         }
     }

@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -18,16 +16,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class AssertRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="AssertRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal AssertRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -35,7 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
                 Where(val => val.Expression is IdentifierNameSyntax).
                 Where(val => (val.Expression as IdentifierNameSyntax).Identifier.ValueText.Equals("assert")).
                 ToList();
@@ -45,29 +39,21 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the statement with a assert statement.
         /// </summary>
-        /// <param name="node">InvocationExpressionSyntax</param>
-        /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private static SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var rewritten = node.WithExpression(SyntaxFactory.IdentifierName("this.Assert"));
             rewritten = rewritten.WithTriviaFrom(node);
             return rewritten;
         }
-
-        #endregion
     }
 }

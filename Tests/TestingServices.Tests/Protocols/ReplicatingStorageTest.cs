@@ -14,18 +14,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
     /// <summary>
     /// This is a (much) simplified version of the replicating storage system described
     /// in the following paper:
-    /// 
+    ///
     /// https://www.usenix.org/system/files/conference/fast16/fast16-papers-deligiannis.pdf
-    /// 
+    ///
     /// This test contains the liveness bug discussed in the above paper.
     /// </summary>
     public class ReplicatingStorageTest : BaseTest
     {
         public ReplicatingStorageTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Environment : Machine
+        private class Environment : Machine
         {
             public class NotifyNode : Event
             {
@@ -38,10 +39,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            public class FaultInject : Event { }
+            public class FaultInject : Event
+            {
+            }
 
-            private class CreateFailure : Event { }
-            private class LocalEvent : Event { }
+            private class CreateFailure : Event
+            {
+            }
+
+            private class LocalEvent : Event
+            {
+            }
 
             private MachineId NodeManager;
             private int NumberOfReplicas;
@@ -56,9 +64,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [Start]
             [OnEntry(nameof(EntryOnInit))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void EntryOnInit()
+            private void EntryOnInit()
             {
                 this.NumberOfReplicas = 3;
                 this.NumberOfFaults = 1;
@@ -75,9 +85,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(ConfiguringOnInit))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
             [DeferEvents(typeof(FailureTimer.Timeout))]
-            class Configuring : MachineState { }
+            private class Configuring : MachineState
+            {
+            }
 
-            void ConfiguringOnInit()
+            private void ConfiguringOnInit()
             {
                 this.Send(this.NodeManager, new NodeManager.ConfigureEvent(this.Id, this.NumberOfReplicas));
                 this.Send(this.Client, new Client.ConfigureEvent(this.NodeManager));
@@ -86,9 +98,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventDoAction(typeof(NotifyNode), nameof(UpdateAliveNodes))]
             [OnEventDoAction(typeof(FailureTimer.Timeout), nameof(InjectFault))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void UpdateAliveNodes()
+            private void UpdateAliveNodes()
             {
                 var node = (this.ReceivedEvent as NotifyNode).Node;
                 this.AliveNodes.Add(node);
@@ -101,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void InjectFault()
+            private void InjectFault()
             {
                 if (this.NumberOfFaults == 0 ||
                     this.AliveNodes.Count == 0)
@@ -124,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class NodeManager : Machine
+        private class NodeManager : Machine
         {
             public class ConfigureEvent : Event
             {
@@ -150,8 +164,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class ShutDown : Event { }
-            private class LocalEvent : Event { }
+            internal class ShutDown : Event
+            {
+            }
+
+            private class LocalEvent : Event
+            {
+            }
 
             private MachineId Environment;
             private List<MachineId> StorageNodes;
@@ -166,9 +185,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
             [DeferEvents(typeof(Client.Request), typeof(RepairTimer.Timeout))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void EntryOnInit()
+            private void EntryOnInit()
             {
                 this.StorageNodes = new List<MachineId>();
                 this.StorageNodeMap = new Dictionary<int, bool>();
@@ -178,7 +199,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.Environment = (this.ReceivedEvent as ConfigureEvent).Environment;
                 this.NumberOfReplicas = (this.ReceivedEvent as ConfigureEvent).NumberOfReplicas;
@@ -191,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new LocalEvent());
             }
 
-            void CreateNewNode()
+            private void CreateNewNode()
             {
                 var idx = this.StorageNodes.Count;
                 var node = this.CreateMachine(typeof(StorageNode));
@@ -204,9 +225,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(RepairTimer.Timeout), nameof(RepairNodes))]
             [OnEventDoAction(typeof(StorageNode.SyncReport), nameof(ProcessSyncReport))]
             [OnEventDoAction(typeof(NotifyFailure), nameof(ProcessFailure))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ProcessClientRequest()
+            private void ProcessClientRequest()
             {
                 this.Client = (this.ReceivedEvent as Client.Request).Client;
                 var command = (this.ReceivedEvent as Client.Request).Command;
@@ -218,7 +241,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void RepairNodes()
+            private void RepairNodes()
             {
                 if (this.DataMap.Count == 0)
                 {
@@ -247,17 +270,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessSyncReport()
+            private void ProcessSyncReport()
             {
                 var nodeId = (this.ReceivedEvent as StorageNode.SyncReport).NodeId;
                 var data = (this.ReceivedEvent as StorageNode.SyncReport).Data;
 
                 // LIVENESS BUG: can fail to ever repair again as it thinks there
                 // are enough replicas. Enable to introduce a bug fix.
-                //if (!this.StorageNodeMap.ContainsKey(nodeId))
-                //{
+                // if (!this.StorageNodeMap.ContainsKey(nodeId))
+                // {
                 //    return;
-                //}
+                // }
 
                 if (!this.DataMap.ContainsKey(nodeId))
                 {
@@ -267,7 +290,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.DataMap[nodeId] = data;
             }
 
-            void ProcessFailure()
+            private void ProcessFailure()
             {
                 var node = (this.ReceivedEvent as NotifyFailure).Node;
                 var nodeId = this.StorageNodes.IndexOf(node);
@@ -277,7 +300,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class StorageNode : Machine
+        private class StorageNode : Machine
         {
             public class ConfigureEvent : Event
             {
@@ -329,9 +352,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class ShutDown : Event { }
-            private class LocalEvent : Event { }
-            
+            internal class ShutDown : Event
+            {
+            }
+
+            private class LocalEvent : Event
+            {
+            }
+
             private MachineId Environment;
             private MachineId NodeManager;
             private int NodeId;
@@ -343,16 +371,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
             [DeferEvents(typeof(SyncTimer.Timeout))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void EntryOnInit()
+            private void EntryOnInit()
             {
                 this.Data = 0;
                 this.SyncTimer = this.CreateMachine(typeof(SyncTimer));
                 this.Send(this.SyncTimer, new SyncTimer.ConfigureEvent(this.Id));
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.Environment = (this.ReceivedEvent as ConfigureEvent).Environment;
                 this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
@@ -368,28 +398,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(SyncRequest), nameof(Sync))]
             [OnEventDoAction(typeof(SyncTimer.Timeout), nameof(GenerateSyncReport))]
             [OnEventDoAction(typeof(Environment.FaultInject), nameof(Terminate))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void Store()
+            private void Store()
             {
                 var cmd = (this.ReceivedEvent as StoreRequest).Command;
                 this.Data += cmd;
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
             }
 
-            void Sync()
+            private void Sync()
             {
                 var data = (this.ReceivedEvent as SyncRequest).Data;
                 this.Data = data;
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
             }
 
-            void GenerateSyncReport()
+            private void GenerateSyncReport()
             {
                 this.Send(this.NodeManager, new SyncReport(this.NodeId, this.Data));
             }
 
-            void Terminate()
+            private void Terminate()
             {
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeFail(this.NodeId));
                 this.Send(this.SyncTimer, new Halt());
@@ -397,7 +429,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class FailureTimer : Machine
+        private class FailureTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -410,20 +442,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimerEvent : Event { }
-            internal class CancelTimer : Event { }
-            internal class Timeout : Event { }
+            internal class StartTimerEvent : Event
+            {
+            }
 
-            private class TickEvent : Event { }
+            internal class CancelTimer : Event
+            {
+            }
 
-            MachineId Target;
+            internal class Timeout : Event
+            {
+            }
+
+            private class TickEvent : Event
+            {
+            }
+
+            private MachineId Target;
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
                 this.Raise(new StartTimerEvent());
@@ -433,14 +477,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
             [IgnoreEvents(typeof(StartTimerEvent))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send(this.Id, new TickEvent());
             }
 
-            void Tick()
+            private void Tick()
             {
                 if (this.Random())
                 {
@@ -452,10 +498,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
-            class Inactive : MachineState { }
+            private class Inactive : MachineState
+            {
+            }
         }
 
-        class RepairTimer : Machine
+        private class RepairTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -468,20 +516,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimerEvent : Event { }
-            internal class CancelTimer : Event { }
-            internal class Timeout : Event { }
+            internal class StartTimerEvent : Event
+            {
+            }
 
-            private class TickEvent : Event { }
+            internal class CancelTimer : Event
+            {
+            }
 
-            MachineId Target;
+            internal class Timeout : Event
+            {
+            }
+
+            private class TickEvent : Event
+            {
+            }
+
+            private MachineId Target;
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
                 this.Raise(new StartTimerEvent());
@@ -491,14 +551,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
             [IgnoreEvents(typeof(StartTimerEvent))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send(this.Id, new TickEvent());
             }
 
-            void Tick()
+            private void Tick()
             {
                 if (this.Random())
                 {
@@ -510,10 +572,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
-            class Inactive : MachineState { }
+            private class Inactive : MachineState
+            {
+            }
         }
 
-        class SyncTimer : Machine
+        private class SyncTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -526,20 +590,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimerEvent : Event { }
-            internal class CancelTimer : Event { }
-            internal class Timeout : Event { }
+            internal class StartTimerEvent : Event
+            {
+            }
 
-            private class TickEvent : Event { }
+            internal class CancelTimer : Event
+            {
+            }
 
-            MachineId Target;
+            internal class Timeout : Event
+            {
+            }
+
+            private class TickEvent : Event
+            {
+            }
+
+            private MachineId Target;
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
                 this.Raise(new StartTimerEvent());
@@ -549,14 +625,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
             [IgnoreEvents(typeof(StartTimerEvent))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send(this.Id, new TickEvent());
             }
 
-            void Tick()
+            private void Tick()
             {
                 if (this.Random())
                 {
@@ -568,10 +646,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
-            class Inactive : MachineState { }
+            private class Inactive : MachineState
+            {
+            }
         }
 
-        class Client : Machine
+        private class Client : Machine
         {
             public class ConfigureEvent : Event
             {
@@ -597,7 +677,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class LocalEvent : Event { }
+            private class LocalEvent : Event
+            {
+            }
 
             private MachineId NodeManager;
 
@@ -607,14 +689,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Counter = 0;
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
                 this.Raise(new LocalEvent());
@@ -622,9 +706,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(PumpRequestOnEntry))]
             [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
-            class PumpRequest : MachineState { }
+            private class PumpRequest : MachineState
+            {
+            }
 
-            void PumpRequestOnEntry()
+            private void PumpRequestOnEntry()
             {
                 int command = this.RandomInteger(100) + 1;
                 this.Counter++;
@@ -642,7 +728,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             public class ConfigureEvent : Event
             {
@@ -690,7 +776,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class LocalEvent : Event { }
+            private class LocalEvent : Event
+            {
+            }
 
             private Dictionary<int, int> DataMap;
             private int NumberOfReplicas;
@@ -699,14 +787,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Repaired))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.DataMap = new Dictionary<int, int>();
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.NumberOfReplicas = (this.ReceivedEvent as ConfigureEvent).NumberOfReplicas;
                 this.Raise(new LocalEvent());
@@ -717,21 +807,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(NotifyNodeFail), nameof(FailAndCheckRepair))]
             [OnEventDoAction(typeof(NotifyNodeUpdate), nameof(ProcessNodeUpdate))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Repairing))]
-            class Repaired : MonitorState { }
+            private class Repaired : MonitorState
+            {
+            }
 
-            void ProcessNodeCreated()
+            private void ProcessNodeCreated()
             {
                 var nodeId = (this.ReceivedEvent as NotifyNodeCreated).NodeId;
                 this.DataMap.Add(nodeId, 0);
             }
 
-            void FailAndCheckRepair()
+            private void FailAndCheckRepair()
             {
                 this.ProcessNodeFail();
                 this.Raise(new LocalEvent());
             }
 
-            void ProcessNodeUpdate()
+            private void ProcessNodeUpdate()
             {
                 var nodeId = (this.ReceivedEvent as NotifyNodeUpdate).NodeId;
                 var data = (this.ReceivedEvent as NotifyNodeUpdate).Data;
@@ -743,15 +835,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(NotifyNodeFail), nameof(ProcessNodeFail))]
             [OnEventDoAction(typeof(NotifyNodeUpdate), nameof(CheckIfRepaired))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Repaired))]
-            class Repairing : MonitorState { }
+            private class Repairing : MonitorState
+            {
+            }
 
-            void ProcessNodeFail()
+            private void ProcessNodeFail()
             {
                 var nodeId = (this.ReceivedEvent as NotifyNodeFail).NodeId;
                 this.DataMap.Remove(nodeId);
             }
 
-            void CheckIfRepaired()
+            private void CheckIfRepaired()
             {
                 this.ProcessNodeUpdate();
                 var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
@@ -768,21 +862,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestReplicatingStorageLivenessBug()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
             configuration.RandomSchedulingSeed = 315;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
                 "'LivenessMonitor.Repairing'.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
 
         [Fact]
@@ -796,13 +891,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.RandomSchedulingSeed = 2;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
-            AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

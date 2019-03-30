@@ -15,9 +15,10 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public ExceptionPropagationTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Configure : Event
+        private class Configure : Event
         {
             public TaskCompletionSource<bool> TCS;
 
@@ -27,13 +28,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Configure).TCS;
                 try
@@ -47,13 +50,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class N: Machine
+        private class N : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as Configure).TCS;
                 try
@@ -79,12 +84,13 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestAssertFailureEventHandler()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcsFail = new TaskCompletionSource<bool>();
                 int count = 0;
 
-                r.OnFailure += delegate (Exception exception)
+                r.OnFailure += (exception) =>
                 {
                     if (!(exception is MachineActionExceptionFilterException))
                     {
@@ -103,19 +109,20 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.Equal(1, count);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestUnhandledExceptionEventHandler()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcsFail = new TaskCompletionSource<bool>();
                 int count = 0;
                 bool sawFilterException = false;
 
-                r.OnFailure += delegate (Exception exception)
+                r.OnFailure += (exception) =>
                 {
                     // This test throws an exception that we should receive a filter call for
                     if (exception is MachineActionExceptionFilterException)
@@ -139,7 +146,7 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(sawFilterException);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

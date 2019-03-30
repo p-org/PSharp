@@ -14,9 +14,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public MachineMonitorIntegrationTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class CheckE : Event
+        private class CheckE : Event
         {
             public bool Value;
 
@@ -27,66 +28,76 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M1<T> : Machine
+        private class M1<T> : Machine
         {
             private readonly bool Test = false;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Monitor<T>(new CheckE(this.Test));
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             private readonly bool Test = false;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Monitor<Spec2>(new CheckE(true));
                 this.Monitor<Spec2>(new CheckE(this.Test));
             }
         }
 
-        class Spec1 : Monitor
+        private class Spec1 : Monitor
         {
             [Start]
             [OnEventDoAction(typeof(CheckE), nameof(Check))]
-            class Checking : MonitorState { }
+            private class Checking : MonitorState
+            {
+            }
 
-            void Check()
+            private void Check()
             {
                 this.Assert((this.ReceivedEvent as CheckE).Value == true);
             }
         }
 
-        class Spec2 : Monitor
+        private class Spec2 : Monitor
         {
             [Start]
             [OnEventDoAction(typeof(CheckE), nameof(Check))]
-            class Checking : MonitorState { }
-
-            void Check()
+            private class Checking : MonitorState
             {
-                //this.Assert((this.ReceivedEvent as CheckE).Value == true); // passes
+            }
+
+            private void Check()
+            {
+                // this.Assert((this.ReceivedEvent as CheckE).Value == true); // passes
             }
         }
 
-        class Spec3 : Monitor
+        private class Spec3 : Monitor
         {
             [Start]
             [OnEventDoAction(typeof(CheckE), nameof(Check))]
-            class Checking : MonitorState { }
+            private class Checking : MonitorState
+            {
+            }
 
-            void Check()
+            private void Check()
             {
                 this.Assert((this.ReceivedEvent as CheckE).Value == false);
             }
@@ -95,43 +106,46 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineMonitorIntegration1()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec1));
                 r.CreateMachine(typeof(M1<Spec1>));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
         [Fact]
         public void TestMachineMonitorIntegration2()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec2));
                 r.CreateMachine(typeof(M2));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         [Fact]
         public void TestMachineMonitorIntegration3()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Spec3));
                 r.CreateMachine(typeof(M1<Spec3>));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

@@ -11,7 +11,8 @@ namespace Microsoft.PSharp.SharedObjects
     /// Interface of a shared register.
     /// </summary>
     /// <typeparam name="T">Value type of the shared register</typeparam>
-    public interface ISharedRegister<T> where T: struct
+    public interface ISharedRegister<T>
+        where T : struct
     {
         /// <summary>
         /// Reads and updates the register.

@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
@@ -12,8 +10,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class PSharpLexer : BaseLexer
     {
-        #region protected API
-
         /// <summary>
         /// Tokenizes the next text unit.
         /// </summary>
@@ -309,7 +305,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case "false":
                     this.Tokens.Add(new Token(unit, TokenType.False));
                     break;
-                    
+
                 case "in":
                     this.Tokens.Add(new Token(unit, TokenType.In));
                     break;
@@ -465,7 +461,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case "ulong":
                     this.Tokens.Add(new Token(unit, TokenType.Ulong));
                     break;
-                    
+
                 case "char":
                     this.Tokens.Add(new Token(unit, TokenType.Char));
                     break;
@@ -487,7 +483,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     break;
 
                 default:
-                    if (String.IsNullOrWhiteSpace(unit.Text))
+                    if (string.IsNullOrWhiteSpace(unit.Text))
                     {
                         this.Tokens.Add(new Token(unit, TokenType.WhiteSpace));
                     }
@@ -498,39 +494,33 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                     break;
             }
-            
+
             this.Index++;
         }
 
         /// <summary>
         /// Returns the regex pattern.
         /// </summary>
-        /// <returns></returns>
-        protected override string GetPattern()
-        {
-            var pattern = @"(//|/\*|\*/|#|" +
-                @"\.|:|,|;|" +
-                @"=>|==|=|\+=|-=|!=|<=|>=|<|>|" +
-                @"\+|-|\*|/|" +
-                @"!|&&|\|\||" +
-                @"%|\$|" +
-                @"{|}|\(|\)|\[|\]|" +
-                @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
-                @"\bmachine\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
-                @"\bstart\b|\bhot\b|\bcold\b|" +
-                @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
-                @"\bcreate\b|\braise\b|\bsend\b|\bto\b|" +
-                @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
-                @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
-                @"\bpartial\b|\babstract\b|\bvirtual\b|\boverride\b|" +
-                @"\block\b|\btry\b|\bcatch\b|" +
-                @"\basync\b|bawait\b|" +
-                @"\bvar\b|" +
-                @"\bnew\b|\bin\b|\bas\b" +
-                @"|\s+)";
-            return pattern;
-        }
-
-        #endregion
+        protected override string GetPattern() =>
+            @"(//|/\*|\*/|#|" +
+            @"\.|:|,|;|" +
+            @"=>|==|=|\+=|-=|!=|<=|>=|<|>|" +
+            @"\+|-|\*|/|" +
+            @"!|&&|\|\||" +
+            @"%|\$|" +
+            @"{|}|\(|\)|\[|\]|" +
+            @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
+            @"\bmachine\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
+            @"\bstart\b|\bhot\b|\bcold\b|" +
+            @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
+            @"\bcreate\b|\braise\b|\bsend\b|\bto\b|" +
+            @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
+            @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
+            @"\bpartial\b|\babstract\b|\bvirtual\b|\boverride\b|" +
+            @"\block\b|\btry\b|\bcatch\b|" +
+            @"\basync\b|bawait\b|" +
+            @"\bvar\b|" +
+            @"\bnew\b|\bin\b|\bas\b" +
+            @"|\s+)";
     }
 }

@@ -19,8 +19,6 @@ namespace Microsoft.PSharp.LanguageServices
     /// </summary>
     public sealed class PSharpProject
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
@@ -46,12 +44,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         internal Dictionary<IPSharpProgram, SyntaxTree> ProgramMap;
 
-        #endregion
-
-        #region API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpProject"/> class.
         /// </summary>
         public PSharpProject()
         {
@@ -62,9 +56,8 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpProject"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
         public PSharpProject(CompilationContext context)
         {
             this.CompilationContext = context;
@@ -74,10 +67,8 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpProject"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="projectName">Project name</param>
         public PSharpProject(CompilationContext context, string projectName)
         {
             this.CompilationContext = context;
@@ -90,7 +81,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Parses the project.
         /// </summary>
-        /// <param name="options">ParsingOptions</param>
         public void Parse(ParsingOptions options)
         {
             var project = this.CompilationContext.GetProjectWithName(this.Name);
@@ -98,11 +88,11 @@ namespace Microsoft.PSharp.LanguageServices
 
             foreach (var tree in compilation.SyntaxTrees.ToList())
             {
-                if (this.CompilationContext.IsPSharpFile(tree))
+                if (CompilationContext.IsPSharpFile(tree))
                 {
                     this.ParsePSharpSyntaxTree(tree, options);
                 }
-                else if (this.CompilationContext.IsCSharpFile(tree))
+                else if (CompilationContext.IsCSharpFile(tree))
                 {
                     this.ParseCSharpSyntaxTree(tree, options);
                 }
@@ -114,16 +104,15 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public void Rewrite()
         {
-            foreach (var kvp in this.ProgramMap)
+            foreach (var program in this.ProgramMap.Keys)
             {
-                this.RewriteProgram(kvp.Key, kvp.Value);
+                program.Rewrite();
             }
         }
 
         /// <summary>
         /// Returns the compilation of the project.
         /// </summary>
-        /// <returns>Compilation</returns>
         public CodeAnalysis.Compilation GetCompilation()
         {
             var project = this.CompilationContext.GetProjectWithName(this.Name);
@@ -138,8 +127,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Is the identifier a machine type.
         /// </summary>
-        /// <param name="identifier">IdentifierNameSyntax</param>
-        /// <returns>Boolean</returns>
         internal bool IsMachineType(SyntaxToken identifier)
         {
             var result = this.PSharpPrograms.Any(p => p.NamespaceDeclarations.Any(n => n.MachineDeclarations.Any(
@@ -148,16 +135,10 @@ namespace Microsoft.PSharp.LanguageServices
             return result;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Parses a P# syntax tree to C#.
         /// th
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="options">ParsingOptions</param>
         private void ParsePSharpSyntaxTree(SyntaxTree tree, ParsingOptions options)
         {
             var root = (CompilationUnitSyntax)tree.GetRoot();
@@ -173,8 +154,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// Parses a C# syntax tree to C#.
         /// th
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="options">ParsingOptions</param>
         private void ParseCSharpSyntaxTree(SyntaxTree tree, ParsingOptions options)
         {
             var root = (CompilationUnitSyntax)tree.GetRoot();
@@ -184,17 +163,5 @@ namespace Microsoft.PSharp.LanguageServices
             this.CSharpPrograms.Add(program as CSharpProgram);
             this.ProgramMap.Add(program, tree);
         }
-
-        /// <summary>
-        /// Rewrites a P# program to C#.
-        /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="tree">SyntaxTree</param>
-        private void RewriteProgram(IPSharpProgram program, SyntaxTree tree)
-        {
-            program.Rewrite();
-        }
-
-        #endregion
     }
 }

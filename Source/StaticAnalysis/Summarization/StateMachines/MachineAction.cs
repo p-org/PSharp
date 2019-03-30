@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.PSharp.DataFlowAnalysis;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -13,17 +13,10 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal abstract class MachineAction
     {
-        #region fields
-
-        /// <summary>
-        /// The analysis context.
-        /// </summary>
-        private AnalysisContext AnalysisContext;
-
         /// <summary>
         /// The parent state.
         /// </summary>
-        private MachineState State;
+        private readonly MachineState State;
 
         /// <summary>
         /// Name of the machine action.
@@ -35,25 +28,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal MethodDeclarationSyntax MethodDeclaration;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineAction"/> class.
         /// </summary>
-        /// <param name="methodDecl">MethodDeclarationSyntax</param>
-        /// <param name="state">MachineState</param>
-        /// <param name="context">AnalysisContext</param>
-        internal MachineAction(MethodDeclarationSyntax methodDecl, MachineState state,
-            AnalysisContext context)
+        internal MachineAction(MethodDeclarationSyntax methodDecl, MachineState state)
         {
-            this.AnalysisContext = context;
             this.State = state;
-            this.Name = this.AnalysisContext.GetFullMethodName(methodDecl);
+            this.Name = AnalysisContext.GetFullMethodName(methodDecl);
             this.MethodDeclaration = methodDecl;
         }
-
-        #endregion
     }
 }

@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
     {
         public ProductionSharedDictionaryTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public ISharedDictionary<int, string> Counter;
             public TaskCompletionSource<bool> Tcs;
@@ -27,33 +28,40 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
                 var n = this.CreateMachine(typeof(N1), this.ReceivedEvent);
 
                 string v;
-                while (counter.TryRemove(1, out v) == false) { }
+                while (counter.TryRemove(1, out v) == false)
+                {
+                }
+
                 this.Assert(v == "N");
 
                 tcs.SetResult(true);
             }
         }
 
-        class N1 : Machine
+        private class N1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
 
@@ -62,25 +70,29 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.CreateMachine(typeof(N2), this.ReceivedEvent);
             }
         }
 
-        class N2 : Machine
+        private class N2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -93,13 +105,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -116,13 +130,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N3 : Machine
+        private class N3 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -137,25 +153,29 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.CreateMachine(typeof(N4), this.ReceivedEvent);
             }
         }
 
-        class N4 : Machine
+        private class N4 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
@@ -174,13 +194,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M5 : Machine
+        private class M5 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var n = this.CreateMachine(typeof(N5), this.ReceivedEvent);
@@ -192,19 +214,23 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N5 : Machine
+        private class N5 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 var tcs = (this.ReceivedEvent as E).Tcs;
                 string v;
 
-                while (!counter.TryGetValue(100000, out v)) { }
+                while (!counter.TryGetValue(100000, out v))
+                {
+                }
 
                 for (int i = 100000; i >= 0; i--)
                 {
@@ -224,7 +250,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs1 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);
@@ -244,7 +270,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs1 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);
@@ -265,7 +291,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);
@@ -287,7 +313,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs1 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);
@@ -307,7 +333,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs1 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.SetResult(true);

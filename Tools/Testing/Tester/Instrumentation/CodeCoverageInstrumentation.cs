@@ -3,15 +3,18 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
+#if NET46
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+#endif
 using System.IO;
-using System.Linq;
 #if NET46
-using Tester.Utilities;
+using System.Linq;
+
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Utilities;
 #endif
 
 namespace Microsoft.PSharp.TestingServices
@@ -39,6 +42,7 @@ namespace Microsoft.PSharp.TestingServices
                     Restore();
                     Environment.Exit(1);
                 }
+
                 InstrumentedAssemblyNames.Add(assemblyName);
             }
         }
@@ -65,6 +69,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         Error.ReportAndExit($"Cannot find specified file for code-coverage instrumentation: '{fullName}'.");
                     }
+
                     yield return fullName;
                 }
             }
@@ -77,6 +82,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         yield return file;
                     }
+
                     yield break;
                 }
 
@@ -87,6 +93,7 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     Error.ReportAndExit($"Cannot find specified list file for code-coverage instrumentation: '{kvp.Key}'.");
                 }
+
                 foreach (var spec in File.ReadAllLines(listFile).Where(line => line.Length > 0).Select(line => line.Trim())
                                                                 .Where(line => !line.StartsWith("//")))
                 {
@@ -132,6 +139,7 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Debug.WriteLine(error);
                 return false;
             }
+
             return true;
         }
 
@@ -163,6 +171,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 origDir = ".";
             }
+
             origDir += Path.DirectorySeparatorChar;
             var instrExe = $"{OutputDirectory}{Path.GetFileName(assemblyName)}";
             var instrPdb = $"{Path.GetFileNameWithoutExtension(assemblyName)}.instr.pdb";
@@ -181,6 +190,7 @@ namespace Microsoft.PSharp.TestingServices
                         File.Move(assemblyName, instrExe);
                         File.Move($"{origDir}{instrPdb}", $"{OutputDirectory}{instrPdb}");
                     }
+
                     File.Move(origExe, assemblyName);
                 }
             }
@@ -194,9 +204,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the tool path to the code coverage instrumentor.
         /// </summary>
-        /// <param name="settingName">The name of the setting; also used to query the environment variables</param>
-        /// <param name="toolName">The name of the tool; used in messages only</param>
-        /// <returns>Tool path</returns>
+        /// <param name="settingName">The name of the setting; also used to query the environment variables.</param>
+        /// <param name="toolName">The name of the tool; used in messages only.</param>
         internal static string GetToolPath(string settingName, string toolName)
         {
             string toolPath = string.Empty;
@@ -221,12 +230,13 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit($"[PSharpTester] '{toolName}' tool '{toolPath}' not found.");
             }
+
             return toolPath;
         }
 #endif
 
         /// <summary>
-        /// Set the <see cref="OutputDirectory"/> to either the user-specified <see cref="Configuration.OutputFilePath"/> 
+        /// Set the <see cref="OutputDirectory"/> to either the user-specified <see cref="Configuration.OutputFilePath"/>
         /// or to a unique output directory name in the same directory as <see cref="Configuration.AssemblyToBeAnalyzed"/>
         /// and starting with its name.
         /// </summary>
@@ -239,7 +249,7 @@ namespace Microsoft.PSharp.TestingServices
 
             // Do not create the output directory yet if we have to scroll back the history first.
             OutputDirectory = Reporter.GetOutputDirectory(configuration.OutputFilePath, configuration.AssemblyToBeAnalyzed,
-                                                         "PSharpTesterOutput", createDir:!makeHistory);
+                "PSharpTesterOutput", createDir: !makeHistory);
             if (!makeHistory)
             {
                 return;
@@ -254,6 +264,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Directory.Delete(older, true);
             }
+
             for (var history = MaxHistory - 2; history >= 0; --history)
             {
                 var newer = makeHistoryDirName(history);
@@ -261,8 +272,10 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     Directory.Move(newer, older);
                 }
+
                 older = newer;
             }
+
             if (Directory.Exists(OutputDirectory))
             {
                 Directory.Move(OutputDirectory, older);

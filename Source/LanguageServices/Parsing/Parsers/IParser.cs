@@ -15,14 +15,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns a P# program.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        /// <returns>P# program</returns>
+        /// <param name="tokens">List of tokens.</param>
         IPSharpProgram ParseTokens(List<Token> tokens);
 
         /// <summary>
         /// Returns the expected token types at the end of parsing.
         /// </summary>
-        /// <returns>Expected token types</returns>
-        List<TokenType> GetExpectedTokenTypes();
+        /// <returns>The expected token types.</returns>
+        TokenType[] GetExpectedTokenTypes();
     }
 }

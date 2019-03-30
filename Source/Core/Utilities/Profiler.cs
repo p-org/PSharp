@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.Utilities
     public sealed class Profiler
     {
         private Stopwatch StopWatch = null;
-        
+
         /// <summary>
         /// Starts measuring execution time.
         /// </summary>

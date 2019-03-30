@@ -87,17 +87,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Creates a bug trace step.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="type">BugTraceStepType</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="machineState">MachineState</param>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="action">MethodInfo</param>
-        /// <param name="targetMachine">Target machine</param>
-        /// <param name="boolChoice">Boolean choice</param>
-        /// <param name="intChoice">Integer choice</param>
-        /// <param name="extraInfo">Extra info</param>
-        /// <returns>BugTraceStep</returns>
         internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
             string machineState, EventInfo eventInfo, MethodInfo action, MachineId targetMachine,
             bool? boolChoice, int? intChoice, string extraInfo)
@@ -129,34 +118,21 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         }
 
         /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
+        /// Determines whether the specified object is equal to the current object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is BugTraceStep traceStep)
             {
-                return false;
+                return this.Index == traceStep.Index;
             }
 
-            BugTraceStep traceStep = obj as BugTraceStep;
-            if (traceStep == null)
-            {
-                return false;
-            }
-
-            return this.Index == traceStep.Index;
+            return false;
         }
 
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>int</returns>
-        public override int GetHashCode()
-        {
-            return this.Index.GetHashCode();
-        }
+        public override int GetHashCode() => this.Index.GetHashCode();
     }
 }

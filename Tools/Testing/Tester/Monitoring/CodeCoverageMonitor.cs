@@ -1,14 +1,15 @@
-﻿#if NET46
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.IO;
+#if NET46
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+
+using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -98,8 +99,10 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     error = "<no error message returned>";
                 }
+
                 Output.WriteLine($"Warning: 'VSPerfCmd {arguments}' exit code {exitCode}: {error}");
             }
+
             if (!isStarting)
             {
                 if (timedOut)
@@ -122,7 +125,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the output name.
         /// </summary>
-        /// <returns>Name</returns>
         private static string GetOutputName()
         {
             string file = Path.GetFileNameWithoutExtension(Configuration.AssemblyToBeAnalyzed);

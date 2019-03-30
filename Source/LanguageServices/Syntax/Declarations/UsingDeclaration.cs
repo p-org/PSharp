@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
 
@@ -16,8 +14,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class UsingDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The using keyword.
         /// </summary>
@@ -33,14 +29,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token SemicolonToken;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="UsingDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
         internal UsingDeclaration(IPSharpProgram program)
             : base(program)
         {
@@ -54,12 +45,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite(int indentLevel)
         {
             var text = GetIndent(indentLevel) + this.GetRewrittenUsingDeclaration();
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the rewritten using declaration.
@@ -79,7 +66,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
-
-        #endregion
     }
 }

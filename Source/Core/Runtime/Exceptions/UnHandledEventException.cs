@@ -21,17 +21,16 @@ namespace Microsoft.PSharp.Runtime
         public Event UnhandledEvent;
 
         /// <summary>
-        /// Initializes a new instance of the exception.
+        /// Initializes a new instance of the <see cref="UnhandledEventException"/> class.
         /// </summary>
-        /// <param name="CurrentStateName">Current state name.</param>
-        /// <param name="UnhandledEvent">The event that was unhandled.</param>
+        /// <param name="currentStateName">Current state name.</param>
+        /// <param name="unhandledEvent">The event that was unhandled.</param>
         /// <param name="message">The exception message.</param>
-        internal UnhandledEventException(string CurrentStateName, Event UnhandledEvent, string message)
+        internal UnhandledEventException(string currentStateName, Event unhandledEvent, string message)
             : base(message)
         {
-            this.CurrentStateName = CurrentStateName;
-            this.UnhandledEvent = UnhandledEvent;
+            this.CurrentStateName = currentStateName;
+            this.UnhandledEvent = unhandledEvent;
         }
     }
 }
-

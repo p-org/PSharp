@@ -14,17 +14,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public ReceiveTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event { }
+        private class E : Event
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 this.Send(this.Id, new E());
                 await this.Receive(typeof(E));
@@ -35,12 +40,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestAsyncReceiveEvent()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M));
             });
 
             var bugReport = "Detected an assertion failure.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
     }
 }

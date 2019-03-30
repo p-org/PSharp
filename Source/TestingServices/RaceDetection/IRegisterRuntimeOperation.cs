@@ -83,14 +83,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Set the runtime an implementer should forward TryGetCurrentMachineId calls to.
         /// </summary>
-        /// <param name="runtime"></param>
         void RegisterRuntime(PSharpRuntime runtime);
 
         /// <summary>
         /// Return true if the runtime is currently executing a machine's action.
-        /// If it is, write its Id to the out parameter as a ulong.
+        /// If it is, write its id to the out parameter as a ulong.
         /// </summary>
-        /// <param name="machineId"></param>
         bool TryGetCurrentMachineId(out ulong machineId);
 
         /// <summary>

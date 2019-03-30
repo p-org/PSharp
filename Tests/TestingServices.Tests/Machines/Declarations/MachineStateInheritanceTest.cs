@@ -13,414 +13,529 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public MachineStateInheritanceTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event { }
+        private class E : Event
+        {
+        }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventDoAction(typeof(E), nameof(Check))]
-            abstract class BaseState : MachineState { }
-
-            void InitOnEntry()
+            private abstract class BaseState : MachineState
             {
-                Send(Id, new E());
             }
 
-            void Check()
+            private void InitOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Send(this.Id, new E());
+            }
+
+            private void Check()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [Start]
-            class BaseState : MachineState { }
+            private class BaseState : MachineState
+            {
+            }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEntry(nameof(BaseOnEntry))]
-            class BaseState : MachineState { }
-
-            void BaseOnEntry()
+            private class BaseState : MachineState
             {
-                Assert(false, "Error reached.");
+            }
+
+            private void BaseOnEntry()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEntry(nameof(BaseOnEntry))]
-            class BaseState : MachineState { }
-
-            void InitOnEntry() { }
-
-            void BaseOnEntry()
+            private class BaseState : MachineState
             {
-                Assert(false, "Error reached.");
+            }
+
+            private void InitOnEntry()
+            {
+            }
+
+            private void BaseOnEntry()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M5 : Machine
+        private class M5 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
-
-            [OnEventDoAction(typeof(E), nameof(Check))]
-            class BaseState : MachineState { }
-
-            void InitOnEntry()
+            private class Init : BaseState
             {
-                Send(Id, new E());
             }
 
-            void Check()
+            [OnEventDoAction(typeof(E), nameof(Check))]
+            private class BaseState : MachineState
             {
-                Assert(false, "Error reached.");
+            }
+
+            private void InitOnEntry()
+            {
+                this.Send(this.Id, new E());
+            }
+
+            private void Check()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M6 : Machine
+        private class M6 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Check))]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventDoAction(typeof(E), nameof(BaseCheck))]
-            class BaseState : MachineState { }
-
-            void InitOnEntry()
+            private class BaseState : MachineState
             {
-                Send(Id, new E());
             }
 
-            void Check() { }
-
-            void BaseCheck()
+            private void InitOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Send(this.Id, new E());
+            }
+
+            private void Check()
+            {
+            }
+
+            private void BaseCheck()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M7 : Machine
+        private class M7 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Check))]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventDoAction(typeof(E), nameof(BaseCheck))]
-            class BaseState : BaseBaseState { }
+            private class BaseState : BaseBaseState
+            {
+            }
 
             [OnEventDoAction(typeof(E), nameof(BaseBaseCheck))]
-            class BaseBaseState : MachineState { }
-
-            void InitOnEntry()
+            private class BaseBaseState : MachineState
             {
-                Send(Id, new E());
             }
 
-            void Check() { }
-
-            void BaseCheck()
+            private void InitOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Send(this.Id, new E());
             }
 
-            void BaseBaseCheck()
+            private void Check()
             {
-                Assert(false, "Error reached.");
+            }
+
+            private void BaseCheck()
+            {
+                this.Assert(false, "Error reached.");
+            }
+
+            private void BaseBaseCheck()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M8 : Machine
+        private class M8 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventDoAction(typeof(E), nameof(BaseCheck))]
-            class BaseState : BaseBaseState { }
+            private class BaseState : BaseBaseState
+            {
+            }
 
             [OnEventDoAction(typeof(E), nameof(BaseBaseCheck))]
-            class BaseBaseState : MachineState { }
-
-            void InitOnEntry()
+            private class BaseBaseState : MachineState
             {
-                Send(Id, new E());
             }
 
-            void BaseCheck() { }
-
-            void BaseBaseCheck()
+            private void InitOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Send(this.Id, new E());
+            }
+
+            private void BaseCheck()
+            {
+            }
+
+            private void BaseBaseCheck()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M9 : Machine
+        private class M9 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
-
-            [OnEventGotoState(typeof(E), typeof(Done))]
-            class BaseState : MachineState { }
-
-            [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
-
-            void InitOnEntry()
+            private class Init : BaseState
             {
-                Send(Id, new E());
             }
 
-            void DoneOnEntry()
+            [OnEventGotoState(typeof(E), typeof(Done))]
+            private class BaseState : MachineState
             {
-                Assert(false, "Done reached.");
+            }
+
+            [OnEntry(nameof(DoneOnEntry))]
+            private class Done : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Send(this.Id, new E());
+            }
+
+            private void DoneOnEntry()
+            {
+                this.Assert(false, "Done reached.");
             }
         }
 
-        class M10 : Machine
-        {
-            [Start]
-            [OnEventGotoState(typeof(E), typeof(Done))]
-            [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
-
-            [OnEventGotoState(typeof(E), typeof(Error))]
-            class BaseState : MachineState { }
-
-            [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
-
-            [OnEntry(nameof(ErrorOnEntry))]
-            class Error : MachineState { }
-
-            void InitOnEntry()
-            {
-                Send(Id, new E());
-            }
-
-            void DoneOnEntry()
-            {
-                Assert(false, "Done reached.");
-            }
-
-            void ErrorOnEntry()
-            {
-                Assert(false, "Error reached.");
-            }
-        }
-
-        class M11 : Machine
+        private class M10 : Machine
         {
             [Start]
             [OnEventGotoState(typeof(E), typeof(Done))]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventGotoState(typeof(E), typeof(Error))]
-            class BaseState : BaseBaseState { }
-
-            [OnEventGotoState(typeof(E), typeof(Error))]
-            class BaseBaseState : MachineState { }
+            private class BaseState : MachineState
+            {
+            }
 
             [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
             [OnEntry(nameof(ErrorOnEntry))]
-            class Error : MachineState { }
-
-            void InitOnEntry()
+            private class Error : MachineState
             {
-                Send(Id, new E());
             }
 
-            void DoneOnEntry()
+            private void InitOnEntry()
             {
-                Assert(false, "Done reached.");
+                this.Send(this.Id, new E());
             }
 
-            void ErrorOnEntry()
+            private void DoneOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Assert(false, "Done reached.");
+            }
+
+            private void ErrorOnEntry()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M12 : Machine
+        private class M11 : Machine
+        {
+            [Start]
+            [OnEventGotoState(typeof(E), typeof(Done))]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : BaseState
+            {
+            }
+
+            [OnEventGotoState(typeof(E), typeof(Error))]
+            private class BaseState : BaseBaseState
+            {
+            }
+
+            [OnEventGotoState(typeof(E), typeof(Error))]
+            private class BaseBaseState : MachineState
+            {
+            }
+
+            [OnEntry(nameof(DoneOnEntry))]
+            private class Done : MachineState
+            {
+            }
+
+            [OnEntry(nameof(ErrorOnEntry))]
+            private class Error : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Send(this.Id, new E());
+            }
+
+            private void DoneOnEntry()
+            {
+                this.Assert(false, "Done reached.");
+            }
+
+            private void ErrorOnEntry()
+            {
+                this.Assert(false, "Error reached.");
+            }
+        }
+
+        private class M12 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventGotoState(typeof(E), typeof(Done))]
-            class BaseState : BaseBaseState { }
+            private class BaseState : BaseBaseState
+            {
+            }
 
             [OnEventGotoState(typeof(E), typeof(Error))]
-            class BaseBaseState : MachineState { }
+            private class BaseBaseState : MachineState
+            {
+            }
 
             [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
             [OnEntry(nameof(ErrorOnEntry))]
-            class Error : MachineState { }
-
-            void InitOnEntry()
+            private class Error : MachineState
             {
-                Send(Id, new E());
             }
 
-            void DoneOnEntry()
+            private void InitOnEntry()
             {
-                Assert(false, "Done reached.");
+                this.Send(this.Id, new E());
             }
 
-            void ErrorOnEntry()
+            private void DoneOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Assert(false, "Done reached.");
+            }
+
+            private void ErrorOnEntry()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M13 : Machine
+        private class M13 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
-
-            [OnEventPushState(typeof(E), typeof(Done))]
-            class BaseState : MachineState { }
-
-            [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
-
-            void InitOnEntry()
+            private class Init : BaseState
             {
-                Send(Id, new E());
             }
 
-            void DoneOnEntry()
+            [OnEventPushState(typeof(E), typeof(Done))]
+            private class BaseState : MachineState
             {
-                Assert(false, "Done reached.");
+            }
+
+            [OnEntry(nameof(DoneOnEntry))]
+            private class Done : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Send(this.Id, new E());
+            }
+
+            private void DoneOnEntry()
+            {
+                this.Assert(false, "Done reached.");
             }
         }
 
-        class M14 : Machine
-        {
-            [Start]
-            [OnEventPushState(typeof(E), typeof(Done))]
-            [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
-
-            [OnEventPushState(typeof(E), typeof(Error))]
-            class BaseState : MachineState { }
-
-            [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
-
-            [OnEntry(nameof(ErrorOnEntry))]
-            class Error : MachineState { }
-
-            void InitOnEntry()
-            {
-                Send(Id, new E());
-            }
-
-            void DoneOnEntry()
-            {
-                Assert(false, "Done reached.");
-            }
-
-            void ErrorOnEntry()
-            {
-                Assert(false, "Error reached.");
-            }
-        }
-
-        class M15 : Machine
+        private class M14 : Machine
         {
             [Start]
             [OnEventPushState(typeof(E), typeof(Done))]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventPushState(typeof(E), typeof(Error))]
-            class BaseState : BaseBaseState { }
-
-            [OnEventPushState(typeof(E), typeof(Error))]
-            class BaseBaseState : MachineState { }
+            private class BaseState : MachineState
+            {
+            }
 
             [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
             [OnEntry(nameof(ErrorOnEntry))]
-            class Error : MachineState { }
-
-            void InitOnEntry()
+            private class Error : MachineState
             {
-                Send(Id, new E());
             }
 
-            void DoneOnEntry()
+            private void InitOnEntry()
             {
-                Assert(false, "Done reached.");
+                this.Send(this.Id, new E());
             }
 
-            void ErrorOnEntry()
+            private void DoneOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Assert(false, "Done reached.");
+            }
+
+            private void ErrorOnEntry()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
-        class M16 : Machine
+        private class M15 : Machine
+        {
+            [Start]
+            [OnEventPushState(typeof(E), typeof(Done))]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : BaseState
+            {
+            }
+
+            [OnEventPushState(typeof(E), typeof(Error))]
+            private class BaseState : BaseBaseState
+            {
+            }
+
+            [OnEventPushState(typeof(E), typeof(Error))]
+            private class BaseBaseState : MachineState
+            {
+            }
+
+            [OnEntry(nameof(DoneOnEntry))]
+            private class Done : MachineState
+            {
+            }
+
+            [OnEntry(nameof(ErrorOnEntry))]
+            private class Error : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Send(this.Id, new E());
+            }
+
+            private void DoneOnEntry()
+            {
+                this.Assert(false, "Done reached.");
+            }
+
+            private void ErrorOnEntry()
+            {
+                this.Assert(false, "Error reached.");
+            }
+        }
+
+        private class M16 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : BaseState { }
+            private class Init : BaseState
+            {
+            }
 
             [OnEventPushState(typeof(E), typeof(Done))]
-            class BaseState : BaseBaseState { }
+            private class BaseState : BaseBaseState
+            {
+            }
 
             [OnEventPushState(typeof(E), typeof(Error))]
-            class BaseBaseState : MachineState { }
+            private class BaseBaseState : MachineState
+            {
+            }
 
             [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
             [OnEntry(nameof(ErrorOnEntry))]
-            class Error : MachineState { }
-
-            void InitOnEntry()
+            private class Error : MachineState
             {
-                Send(Id, new E());
             }
 
-            void DoneOnEntry()
+            private void InitOnEntry()
             {
-                Assert(false, "Done reached.");
+                this.Send(this.Id, new E());
             }
 
-            void ErrorOnEntry()
+            private void DoneOnEntry()
             {
-                Assert(false, "Error reached.");
+                this.Assert(false, "Done reached.");
+            }
+
+            private void ErrorOnEntry()
+            {
+                this.Assert(false, "Error reached.");
             }
         }
 
@@ -433,7 +548,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Error reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -445,7 +560,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Machine 'M2()' can not declare more than one start states.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -457,17 +572,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Error reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
         public void TestMachineStateOverridingStateOnEntry()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M4));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
@@ -479,7 +595,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Error reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -490,7 +606,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(M6));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
@@ -501,7 +617,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(M7));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
@@ -512,7 +628,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(M8));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
@@ -524,7 +640,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -536,7 +652,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -548,7 +664,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -560,7 +676,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -572,7 +688,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -584,7 +700,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -596,7 +712,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
 
         [Fact]
@@ -608,7 +724,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             var bugReport = "Done reached.";
-            AssertFailed(test, bugReport, false);
+            this.AssertFailed(test, bugReport, false);
         }
     }
 }

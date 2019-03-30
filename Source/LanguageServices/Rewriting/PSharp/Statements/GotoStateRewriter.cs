@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -18,16 +16,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class GotoStateRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
+        /// Initializes a new instance of the <see cref="GotoStateRewriter"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal GotoStateRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -35,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
                 Where(val => val.Expression is InvocationExpressionSyntax).
                 Where(val => (val.Expression as InvocationExpressionSyntax).Expression is IdentifierNameSyntax).
                 Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as IdentifierNameSyntax).
@@ -47,23 +42,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the jump(StateType) statement with a goto&lt;StateType&gt;() statement.
         /// </summary>
-        /// <param name="node">ExpressionStatementSyntax</param>
-        /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
+        private static SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var invocation = node.Expression as InvocationExpressionSyntax;
 
@@ -73,7 +62,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
-
-#endregion
     }
 }

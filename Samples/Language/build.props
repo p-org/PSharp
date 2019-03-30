@@ -5,10 +5,11 @@
     <TargetFrameworks>net46</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
+    <RestoreSources>$(RestoreSources);../../../bin/nuget</RestoreSources>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Source\Core\Core.csproj" />
+    <PackageReference Include="Microsoft.PSharp" Version="1.5.1" />
   </ItemGroup>
 </Project>

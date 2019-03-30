@@ -32,12 +32,12 @@ namespace Microsoft.PSharp.IO
         /// Convenience method to indicate whether <see cref="Configuration.Verbose"/> is at or
         /// above <see cref="LoggingVerbosity"/>.
         /// </summary>
-        public bool IsVerbose => this.Configuration.Verbose >= LoggingVerbosity;
+        public bool IsVerbose => this.Configuration.Verbose >= this.LoggingVerbosity;
 
         /// <summary>
-        /// Constructs the logger. The logger will be assigned the runtime
-        /// <see cref="PSharp.Configuration"/> object when it is passed to
-        /// <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
+        /// Initializes a new instance of the <see cref="MachineLogger"/> class. The logger
+        /// will be assigned the runtime <see cref="PSharp.Configuration"/> object when it
+        /// is passed to <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public MachineLogger(int loggingVerbosity = 2)
@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnEnqueueString(machineId, eventName));
+                this.WriteLine(this.FormatOnEnqueueString(machineId, eventName));
             }
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnDequeueString(machineId, currStateName, eventName));
+                this.WriteLine(this.FormatOnDequeueString(machineId, currStateName, eventName));
             }
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnDefaultString(machineId, currStateName));
+                this.WriteLine(this.FormatOnDefaultString(machineId, currStateName));
             }
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnGotoString(machineId, currStateName, newStateName));
+                this.WriteLine(this.FormatOnGotoString(machineId, currStateName, newStateName));
             }
         }
 
@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnPushString(machineId, currStateName, newStateName));
+                this.WriteLine(this.FormatOnPushString(machineId, currStateName, newStateName));
             }
         }
 
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnPopString(machineId, currStateName, restoredStateName));
+                this.WriteLine(this.FormatOnPopString(machineId, currStateName, restoredStateName));
             }
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnPopUnhandledEventString(machineId, currStateName, eventName));
+                this.WriteLine(this.FormatOnPopUnhandledEventString(machineId, currStateName, eventName));
             }
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnReceiveString(machineId, currStateName, eventName, wasBlocked));
+                this.WriteLine(this.FormatOnReceiveString(machineId, currStateName, eventName, wasBlocked));
             }
         }
 
@@ -290,7 +290,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnWaitString(machineId, currStateName, ref eventNames));
+                this.WriteLine(this.FormatOnWaitString(machineId, currStateName, ref eventNames));
             }
         }
 
@@ -306,6 +306,7 @@ namespace Microsoft.PSharp.IO
             {
                 eventNames = "[any]";
             }
+
             return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' is waiting to dequeue one of the events: '{eventNames}'.";
         }
 
@@ -323,7 +324,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnSendString(targetMachineId, senderId, senderStateName, eventName, operationGroupId, isTargetHalted));
+                this.WriteLine(this.FormatOnSendString(targetMachineId, senderId, senderStateName, eventName, operationGroupId, isTargetHalted));
             }
         }
 
@@ -359,7 +360,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnCreateMachineString(machineId, creator));
+                this.WriteLine(this.FormatOnCreateMachineString(machineId, creator));
             }
         }
 
@@ -383,7 +384,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnCreateMonitorString(monitorTypeName, monitorId));
+                this.WriteLine(this.FormatOnCreateMonitorString(monitorTypeName, monitorId));
             }
         }
 
@@ -405,7 +406,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnCreateTimerString(info));
+                this.WriteLine(this.FormatOnCreateTimerString(info));
             }
         }
 
@@ -435,7 +436,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnStopTimerString(info));
+                this.WriteLine(this.FormatOnStopTimerString(info));
             }
         }
 
@@ -458,7 +459,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnHaltString(machineId, inboxSize));
+                this.WriteLine(this.FormatOnHaltString(machineId, inboxSize));
             }
         }
 
@@ -481,7 +482,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnRandomString(machineId, result));
+                this.WriteLine(this.FormatOnRandomString(machineId, result));
             }
         }
 
@@ -506,7 +507,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineStateString(machineId, stateName, isEntry));
+                this.WriteLine(this.FormatOnMachineStateString(machineId, stateName, isEntry));
             }
         }
 
@@ -532,7 +533,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineEventString(machineId, currStateName, eventName));
+                this.WriteLine(this.FormatOnMachineEventString(machineId, currStateName, eventName));
             }
         }
 
@@ -557,7 +558,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineActionString(machineId, currStateName, actionName));
+                this.WriteLine(this.FormatOnMachineActionString(machineId, currStateName, actionName));
             }
         }
 
@@ -576,14 +577,14 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine throws an exception
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         public virtual void OnMachineExceptionThrown(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineExceptionThrownString(machineId, currStateName, actionName, ex));
+                this.WriteLine(this.FormatOnMachineExceptionThrownString(machineId, currStateName, actionName, ex));
             }
         }
 
@@ -591,8 +592,8 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnMachineExceptionThrown"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         public virtual string FormatOnMachineExceptionThrownString(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
@@ -603,14 +604,14 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine's OnException method is used to handle a thrown exception
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         public virtual void OnMachineExceptionHandled(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMachineExceptionHandledString(machineId, currStateName, actionName, ex));
+                this.WriteLine(this.FormatOnMachineExceptionHandledString(machineId, currStateName, actionName, ex));
             }
         }
 
@@ -618,8 +619,8 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnMachineExceptionHandled"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">The id of the machine that threw the exception.</param>
-        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
         /// <param name="ex">The exception.</param>
         public virtual string FormatOnMachineExceptionHandledString(MachineId machineId, string currStateName, string actionName, Exception ex)
         {
@@ -641,7 +642,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMonitorStateString(monitorTypeName, monitorId, stateName, isEntry, isInHotState));
+                this.WriteLine(this.FormatOnMonitorStateString(monitorTypeName, monitorId, stateName, isEntry, isInHotState));
             }
         }
 
@@ -675,7 +676,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMonitorEventString(monitorTypeName, monitorId, currStateName, eventName, isProcessing));
+                this.WriteLine(this.FormatOnMonitorEventString(monitorTypeName, monitorId, currStateName, eventName, isProcessing));
             }
         }
 
@@ -704,7 +705,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnMonitorActionString(monitorTypeName, monitorId, currStateName, actionName));
+                this.WriteLine(this.FormatOnMonitorActionString(monitorTypeName, monitorId, currStateName, actionName));
             }
         }
 
@@ -728,7 +729,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnErrorString(text));
+                this.WriteLine(this.FormatOnErrorString(text));
             }
         }
 
@@ -751,7 +752,7 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(FormatOnStrategyErrorString(strategy, strategyDescription));
+                this.WriteLine(this.FormatOnStrategyErrorString(strategy, strategyDescription));
             }
         }
 

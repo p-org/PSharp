@@ -124,7 +124,7 @@ this.Raise(new e1());
 }
 }
 }";
-            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram:false);
+            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram: false);
         }
     }
 }

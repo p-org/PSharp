@@ -10,27 +10,25 @@ namespace Microsoft.PSharp.SharedObjects
     /// <summary>
     /// Implements a shared register to be used in production.
     /// </summary>
-    internal sealed class ProductionSharedRegister<T> : ISharedRegister<T> where T : struct
+    internal sealed class ProductionSharedRegister<T> : ISharedRegister<T>
+        where T : struct
     {
         /// <summary>
         /// Current value of the register.
         /// </summary>
-        T Value;
+        private T Value;
 
         /// <summary>
-        /// Initializes the shared register.
+        /// Initializes a new instance of the <see cref="ProductionSharedRegister{T}"/> class.
         /// </summary>
-        /// <param name="value">Initial value</param>
         public ProductionSharedRegister(T value)
         {
-            Value = value;
+            this.Value = value;
         }
 
         /// <summary>
         /// Reads and updates the register.
         /// </summary>
-        /// <param name="func">Update function</param>
-        /// <returns>Resulting value of the register</returns>
         public T Update(Func<T, T> func)
         {
             T oldValue, newValue;
@@ -38,18 +36,19 @@ namespace Microsoft.PSharp.SharedObjects
 
             do
             {
-                oldValue = Value;
+                oldValue = this.Value;
                 newValue = func(oldValue);
 
                 lock (this)
                 {
-                    if (oldValue.Equals(Value))
+                    if (oldValue.Equals(this.Value))
                     {
-                        Value = newValue;
+                        this.Value = newValue;
                         done = true;
                     }
                 }
-            } while (!done);
+            }
+            while (!done);
 
             return newValue;
         }
@@ -57,13 +56,12 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Gets current value of the register.
         /// </summary>
-        /// <returns>Current value</returns>
         public T GetValue()
         {
             T currentValue;
             lock (this)
             {
-                currentValue = Value;
+                currentValue = this.Value;
             }
 
             return currentValue;
@@ -72,10 +70,9 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Sets current value of the register.
         /// </summary>
-        /// <param name="value">Value</param>
         public void SetValue(T value)
         {
-            lock(this)
+            lock (this)
             {
                 this.Value = value;
             }

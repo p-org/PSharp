@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
 using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
@@ -16,27 +13,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class MachineMethodDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineMethodDeclarationVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal MachineMethodDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Node</param>
-        /// <param name="typeIdentifier">Type identifier</param>
-        /// <param name="identifier">Identifier</param>
-        /// <param name="modSet">Modifier set</param>
         internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier, ModifierSet modSet)
         {
-            this.CheckMachineMethodModifierSet(modSet);
+            CheckMachineMethodModifierSet(modSet);
 
-            var node = new MethodDeclaration(base.TokenStream.Program, parentNode);
+            var node = new MethodDeclaration(this.TokenStream.Program, parentNode);
             node.AccessModifier = modSet.AccessModifier;
             node.InheritanceModifier = modSet.InheritanceModifier;
             node.TypeIdentifier = typeIdentifier;
@@ -44,48 +35,43 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             node.IsAsync = modSet.IsAsync;
             node.IsPartial = modSet.IsPartial;
 
-            node.LeftParenthesisToken = base.TokenStream.Peek();
+            node.LeftParenthesisToken = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            while (!base.TokenStream.Done &&
-                base.TokenStream.Peek().Type != TokenType.RightParenthesis)
+            while (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit));
+                this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit));
 
-                node.Parameters.Add(base.TokenStream.Peek());
+                node.Parameters.Add(this.TokenStream.Peek());
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            node.RightParenthesisToken = base.TokenStream.Peek();
+            node.RightParenthesisToken = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket &&
-                base.TokenStream.Peek().Type != TokenType.Semicolon))
+            if (this.TokenStream.Done ||
+                (this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket &&
+                this.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"{\" or \";\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket,
-                    TokenType.Semicolon
-                });
+                throw new ParsingException("Expected \"{\" or \";\".", TokenType.LeftCurlyBracket, TokenType.Semicolon);
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
+            if (this.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
             {
-                var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode, null);
-                new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
+                var blockNode = new BlockSyntax(this.TokenStream.Program, parentNode, null);
+                new BlockSyntaxVisitor(this.TokenStream).Visit(blockNode);
                 node.StatementBlock = blockNode;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
+            else if (this.TokenStream.Peek().Type == TokenType.Semicolon)
             {
-                node.SemicolonToken = base.TokenStream.Peek();
+                node.SemicolonToken = this.TokenStream.Peek();
             }
 
             parentNode.MethodDeclarations.Add(node);
@@ -94,18 +80,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        /// <param name="modSet">ModifierSet</param>
-        private void CheckMachineMethodModifierSet(ModifierSet modSet)
+        private static void CheckMachineMethodModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine method cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine method cannot be public.");
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine method cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine method cannot be internal.");
             }
         }
     }

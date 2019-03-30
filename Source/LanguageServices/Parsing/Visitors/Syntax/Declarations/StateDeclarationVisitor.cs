@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
 using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
@@ -16,86 +13,69 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class StateDeclarationVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateDeclarationVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal StateDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Containing machine</param>
-        /// <param name="groupNode">Containing group</param>
-        /// <param name="modSet">Modifier set</param>
         internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, ModifierSet modSet)
         {
-            this.CheckMachineStateModifierSet(modSet);
+            CheckMachineStateModifierSet(modSet);
 
-            var node = new StateDeclaration(base.TokenStream.Program, parentNode, groupNode, modSet);
-            node.StateKeyword = base.TokenStream.Peek();
+            var node = new StateDeclaration(this.TokenStream.Program, parentNode, groupNode, modSet);
+            node.StateKeyword = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected state identifier.",
-                    new List<TokenType>
-                {
-                    TokenType.Identifier
-                });
+                throw new ParsingException("Expected state identifier.", TokenType.Identifier);
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                TokenType.StateIdentifier));
+            this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.StateIdentifier));
 
-            node.Identifier = base.TokenStream.Peek();
+            node.Identifier = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             // Check for inherited state.
-            if (!base.TokenStream.Done && base.TokenStream.Peek().Type == TokenType.Colon)
+            if (!this.TokenStream.Done && this.TokenStream.Peek().Type == TokenType.Colon)
             {
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                if (base.TokenStream.Done || base.TokenStream.Peek().Type != TokenType.Identifier)
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                if (this.TokenStream.Done || this.TokenStream.Peek().Type != TokenType.Identifier)
                 {
-                    throw new ParsingException("Expected state identifier.",
-                        new List<TokenType> { TokenType.Identifier });
+                    throw new ParsingException("Expected state identifier.", TokenType.Identifier);
                 }
 
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.StateIdentifier));
-                node.BaseStateToken = base.TokenStream.Peek();
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.StateIdentifier));
+                node.BaseStateToken = this.TokenStream.Peek();
+                this.TokenStream.Index++;
+                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
+            if (this.TokenStream.Done ||
+                this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".",
-                    new List<TokenType>
-                {
-                    TokenType.LeftCurlyBracket
-                });
+                throw new ParsingException("Expected \"{\".", TokenType.LeftCurlyBracket);
             }
 
-            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                TokenType.StateLeftCurlyBracket));
+            this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.StateLeftCurlyBracket));
 
-            node.LeftCurlyBracketToken = base.TokenStream.Peek();
+            node.LeftCurlyBracketToken = this.TokenStream.Peek();
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.Index++;
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Program is PSharpProgram)
+            if (this.TokenStream.Program is PSharpProgram)
             {
                 this.VisitNextPSharpIntraStateDeclaration(node);
             }
@@ -118,87 +98,85 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the next intra-state declration.
         /// </summary>
-        /// <param name="node">Node</param>
         private void VisitNextPSharpIntraStateDeclaration(StateDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
             {
-                var token = base.TokenStream.Peek();
+                var token = this.TokenStream.Peek();
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
                     case TokenType.Comment:
                     case TokenType.NewLine:
-                        base.TokenStream.Index++;
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.Async:
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        token = base.TokenStream.Peek();
+                        this.TokenStream.Index++;
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        token = this.TokenStream.Peek();
                         switch (token.Type)
                         {
                             case TokenType.Entry:
-                                new StateEntryDeclarationVisitor(base.TokenStream).Visit(node, isAsync:true);
-                                base.TokenStream.Index++;
+                                new StateEntryDeclarationVisitor(this.TokenStream).Visit(node, isAsync: true);
+                                this.TokenStream.Index++;
                                 break;
 
                             case TokenType.Exit:
-                                new StateExitDeclarationVisitor(base.TokenStream).Visit(node, isAsync:true);
-                                base.TokenStream.Index++;
+                                new StateExitDeclarationVisitor(this.TokenStream).Visit(node, isAsync: true);
+                                this.TokenStream.Index++;
                                 break;
                             default:
-                                throw new ParsingException("'async' was used in an incorrect context.",
-                                    new List<TokenType>());
+                                throw new ParsingException("'async' was used in an incorrect context.");
                         }
+
                         break;
 
                     case TokenType.CommentLine:
                     case TokenType.Region:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
                     case TokenType.CommentStart:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
                     case TokenType.Entry:
-                        new StateEntryDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new StateEntryDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.Exit:
-                        new StateExitDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new StateExitDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.OnAction:
-                        new StateActionDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new StateActionDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.DeferEvent:
-                        new DeferEventsDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new DeferEventsDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.IgnoreEvent:
-                        new IgnoreEventsDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new IgnoreEventsDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.LeftSquareBracket:
-                        base.TokenStream.Index++;
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        new AttributeListVisitor(base.TokenStream).Visit();
-                        base.TokenStream.Index++;
+                        this.TokenStream.Index++;
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        new AttributeListVisitor(this.TokenStream).Visit();
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.StateRightCurlyBracket));
-                        node.RightCurlyBracketToken = base.TokenStream.Peek();
+                        this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.StateRightCurlyBracket));
+                        node.RightCurlyBracketToken = this.TokenStream.Peek();
                         fixpoint = true;
                         break;
 
@@ -206,32 +184,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.Protected:
                     case TokenType.Internal:
                     case TokenType.Public:
-                        throw new ParsingException("State actions cannot have modifiers.",
-                            new List<TokenType>());
+                        throw new ParsingException("State actions cannot have modifiers.");
 
                     case TokenType.Abstract:
                     case TokenType.Virtual:
-                        throw new ParsingException("State actions cannot be abstract or virtual.",
-                            new List<TokenType>());
+                        throw new ParsingException("State actions cannot be abstract or virtual.");
 
                     default:
-                        throw new ParsingException("Unexpected token.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected token.");
                 }
 
-                if (base.TokenStream.Done)
+                if (this.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                            TokenType.Entry,
-                            TokenType.Exit,
-                            TokenType.OnAction,
-                            TokenType.DeferEvent,
-                            TokenType.IgnoreEvent,
-                            TokenType.LeftSquareBracket,
-                            TokenType.RightCurlyBracket
-                    });
+                    throw new ParsingException(
+                        "Expected \"}\".",
+                        TokenType.Entry,
+                        TokenType.Exit,
+                        TokenType.OnAction,
+                        TokenType.DeferEvent,
+                        TokenType.IgnoreEvent,
+                        TokenType.LeftSquareBracket,
+                        TokenType.RightCurlyBracket);
                 }
             }
         }
@@ -239,78 +212,73 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the next intra-state declration.
         /// </summary>
-        /// <param name="node">Node</param>
         private void VisitNextPIntraStateDeclaration(StateDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
             {
-                var token = base.TokenStream.Peek();
+                var token = this.TokenStream.Peek();
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
                     case TokenType.Comment:
                     case TokenType.NewLine:
-                        base.TokenStream.Index++;
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.CommentLine:
                     case TokenType.Region:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
                     case TokenType.CommentStart:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
                         break;
 
                     case TokenType.Entry:
-                        new StateEntryDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new StateEntryDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.Exit:
-                        new StateExitDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new StateExitDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.OnAction:
-                        new StateActionDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new StateActionDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.DeferEvent:
-                        new DeferEventsDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new DeferEventsDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.IgnoreEvent:
-                        new IgnoreEventsDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
+                        new IgnoreEventsDeclarationVisitor(this.TokenStream).Visit(node);
+                        this.TokenStream.Index++;
                         break;
 
                     case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.StateRightCurlyBracket));
-                        node.RightCurlyBracketToken = base.TokenStream.Peek();
+                        this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, TokenType.StateRightCurlyBracket));
+                        node.RightCurlyBracketToken = this.TokenStream.Peek();
                         fixpoint = true;
                         break;
 
                     default:
-                        throw new ParsingException("Unexpected token.",
-                            new List<TokenType>());
+                        throw new ParsingException("Unexpected token.");
                 }
 
-                if (base.TokenStream.Done)
+                if (this.TokenStream.Done)
                 {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
+                    throw new ParsingException(
+                        "Expected \"}\".",
                         TokenType.Entry,
                         TokenType.Exit,
                         TokenType.OnAction,
                         TokenType.DeferEvent,
-                        TokenType.IgnoreEvent
-                    });
+                        TokenType.IgnoreEvent);
                 }
             }
         }
@@ -318,41 +286,34 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        /// <param name="modSet">ModifierSet</param>
-        private void CheckMachineStateModifierSet(ModifierSet modSet)
+        private static void CheckMachineStateModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine state cannot be public.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be public.");
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine state cannot be internal.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be internal.");
             }
 
             if (modSet.InheritanceModifier == InheritanceModifier.Virtual)
             {
-                throw new ParsingException("A machine state cannot be virtual.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be virtual.");
             }
             else if (modSet.InheritanceModifier == InheritanceModifier.Override)
             {
-                throw new ParsingException("A machine state cannot be overriden.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be overriden.");
             }
 
             if (modSet.IsAsync)
             {
-                throw new ParsingException("A machine state cannot be async.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be async.");
             }
 
             if (modSet.IsPartial)
             {
-                throw new ParsingException("A machine state cannot be partial.",
-                    new List<TokenType>());
+                throw new ParsingException("A machine state cannot be partial.");
             }
         }
     }

@@ -44,9 +44,17 @@ namespace Microsoft.PSharp.Benchmarking
             }
         }
 
-        private class StartExperiment : Event { }
-        private class Message : Event { }
-        private class Ack : Event { }
+        private class StartExperiment : Event
+        {
+        }
+
+        private class Message : Event
+        {
+        }
+
+        private class Ack : Event
+        {
+        }
 
         private class Producer : Machine
         {
@@ -63,7 +71,9 @@ namespace Microsoft.PSharp.Benchmarking
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(Ack), nameof(HandleCreationAck))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void InitOnEntry()
             {
@@ -78,7 +88,8 @@ namespace Microsoft.PSharp.Benchmarking
 
                 for (int i = 0; i < this.NumConsumers; i++)
                 {
-                    this.Consumers[i] = this.CreateMachine(typeof(Consumer),
+                    this.Consumers[i] = this.CreateMachine(
+                        typeof(Consumer),
                         new SetupConsumerEvent(this.Id, this.NumMessages / this.NumConsumers));
                 }
             }
@@ -95,7 +106,9 @@ namespace Microsoft.PSharp.Benchmarking
 
             [OnEventDoAction(typeof(StartExperiment), nameof(Run))]
             [OnEventDoAction(typeof(Ack), nameof(HandleMessageAck))]
-            private class Experiment : MachineState { }
+            private class Experiment : MachineState
+            {
+            }
 
             private void Run()
             {
@@ -125,7 +138,9 @@ namespace Microsoft.PSharp.Benchmarking
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(Message), nameof(HandleMessage))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void InitOnEntry()
             {
@@ -147,7 +162,7 @@ namespace Microsoft.PSharp.Benchmarking
         [Params(1, 10, 100, 1000)]
         public int NumConsumers { get; set; }
 
-        private int NumMessages => 100000;
+        private static int NumMessages => 100000;
 
         private ProductionRuntime Runtime;
         private MachineId ProducerMachine;
@@ -156,12 +171,13 @@ namespace Microsoft.PSharp.Benchmarking
         [IterationSetup]
         public void IterationSetup()
         {
-            this.Runtime = new ProductionRuntime();
+            var configuration = Configuration.Create();
+            this.Runtime = new ProductionRuntime(configuration);
             this.ExperimentAwaiter = new TaskCompletionSource<bool>();
 
             var tcs = new TaskCompletionSource<bool>();
             this.ProducerMachine = this.Runtime.CreateMachine(typeof(Producer), null,
-                new SetupProducerEvent(tcs, this.ExperimentAwaiter, this.NumConsumers, this.NumMessages),
+                new SetupProducerEvent(tcs, this.ExperimentAwaiter, this.NumConsumers, NumMessages),
                 null);
 
             tcs.Task.Wait();

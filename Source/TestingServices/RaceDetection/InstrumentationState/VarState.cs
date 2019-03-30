@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 using System.Collections.Generic;
+using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 
 namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
 {
@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
 
         internal VectorClock VC;
 
-        internal string lastWriteLocation;
+        internal string LastWriteLocation;
 
         internal Dictionary<long, string> LastReadLocation;
 
@@ -28,21 +28,22 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState
         {
             if (isWrite)
             {
-                ReadEpoch = Epoch.Zero;
-                WriteEpoch = epoch;
-                InMonitorWrite = inMonitor;
+                this.ReadEpoch = Epoch.Zero;
+                this.WriteEpoch = epoch;
+                this.InMonitorWrite = inMonitor;
             }
             else
             {
-                WriteEpoch = Epoch.Zero;
-                ReadEpoch = epoch;
+                this.WriteEpoch = Epoch.Zero;
+                this.ReadEpoch = epoch;
             }
 
             if (shouldCreateInstrumentationState)
             {
-                LastReadLocation = new Dictionary<long, string>();
+                this.LastReadLocation = new Dictionary<long, string>();
             }
-            InMonitorRead = new Dictionary<long, long>();
+
+            this.InMonitorRead = new Dictionary<long, long>();
         }
     }
 }

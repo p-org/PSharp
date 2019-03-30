@@ -18,8 +18,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
     /// </summary>
     internal abstract class BaseMachineVisitor : BaseVisitor
     {
-        #region fields
-
         /// <summary>
         /// Map from machines to a list of actions.
         /// </summary>
@@ -35,18 +33,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         protected Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>> ActionsThaPop;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BaseMachineVisitor"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="errorLog">Error log</param>
-        /// <param name="warningLog">Warning log</param>
-        internal BaseMachineVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog,
-            List<Tuple<SyntaxToken, string>> warningLog)
+        internal BaseMachineVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog, List<Tuple<SyntaxToken, string>> warningLog)
             : base(project, errorLog, warningLog)
         {
             this.Actions = new Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>>();
@@ -57,10 +47,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Parses the syntax tree for errors.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
         internal void Parse(SyntaxTree tree)
         {
-            var project = base.Project.CompilationContext.GetProjectWithName(base.Project.Name);
+            var project = this.Project.CompilationContext.GetProjectWithName(this.Project.Name);
             var compilation = project.GetCompilationAsync().Result;
 
             var machines = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
@@ -70,11 +59,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             foreach (var machine in machines)
             {
                 this.DiscoverMachineActions(machine, compilation);
-                this.DiscoverMachineActionsThatRaise(machine, compilation);
+                this.DiscoverMachineActionsThatRaise(machine);
 
                 if (!this.GetTypeOfMachine().Equals("Monitor"))
                 {
-                    this.DiscoverMachineActionsThatPop(machine, compilation);
+                    this.DiscoverMachineActionsThatPop(machine);
                 }
             }
 
@@ -97,52 +86,29 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             }
         }
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
         /// Returns true if the given class declaration is a machine.
         /// </summary>
-        /// <param name="compilation">The compilation.</param>
-        /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean</returns>
-        protected abstract bool IsMachine(CodeAnalysis.Compilation compilation,
-            ClassDeclarationSyntax classDecl);
+        protected abstract bool IsMachine(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl);
 
         /// <summary>
         /// Returns true if the given class declaration is a state.
         /// </summary>
-        /// <param name="compilation">The compilation.</param>
-        /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean</returns>
-        protected abstract bool IsState(CodeAnalysis.Compilation compilation,
-            ClassDeclarationSyntax classDecl);
+        protected abstract bool IsState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl);
 
         /// <summary>
         /// Returns true if the given class declaration is a stategroup.
         /// </summary>
-        /// <param name="compilation">The compilation.</param>
-        /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean</returns>
-        protected abstract bool IsStateGroup(CodeAnalysis.Compilation compilation,
-            ClassDeclarationSyntax classDecl);
+        protected abstract bool IsStateGroup(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl);
 
         /// <summary>
         /// Returns the type of the machine.
         /// </summary>
-        /// <returns>Text</returns>
         protected abstract string GetTypeOfMachine();
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Discovers the available actions of the given machine.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
         private void DiscoverMachineActions(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var model = compilation.GetSemanticModel(machine.SyntaxTree);
@@ -278,9 +244,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Discovers the actions of the given machine that raise.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
-        private void DiscoverMachineActionsThatRaise(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        private void DiscoverMachineActionsThatRaise(ClassDeclarationSyntax machine)
         {
             this.ActionsThatRaise.Add(machine, new List<MethodDeclarationSyntax>());
 
@@ -310,10 +274,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Discovers the actions of the given machine that pop.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
-        private void DiscoverMachineActionsThatPop(ClassDeclarationSyntax machine,
-            CodeAnalysis.Compilation compilation)
+        private void DiscoverMachineActionsThatPop(ClassDeclarationSyntax machine)
         {
             this.ActionsThaPop.Add(machine, new List<MethodDeclarationSyntax>());
 
@@ -343,10 +304,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that at least one state is declared inside the machine.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
-        private void CheckForAtLeastOneState(ClassDeclarationSyntax machine,
-            CodeAnalysis.Compilation compilation)
+        private void CheckForAtLeastOneState(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var states = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => this.IsState(compilation, val)).
@@ -354,7 +312,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (states.Count == 0)
             {
-                base.WarningLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
+                this.WarningLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
                     $"'{machine.Identifier.ValueText}' must declare at least one state (unless the machine " +
                     "inherits at least one state from a base machine, or is partial, and one state has " +
                     "been already declared in another part of the declaration)."));
@@ -364,10 +322,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that at least one state or group is declared inside a group.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
-        private void CheckForAtLeastOneStateOrGroup(ClassDeclarationSyntax machine,
-            CodeAnalysis.Compilation compilation)
+        private void CheckForAtLeastOneStateOrGroup(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var stateGroups = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => Querying.IsMachineStateGroup(compilation, val)).
@@ -382,7 +337,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (contents.Count == 0)
                 {
-                    base.WarningLog.Add(Tuple.Create(stateGroup.Identifier, "State group " +
+                    this.WarningLog.Add(Tuple.Create(stateGroup.Identifier, "State group " +
                         $"'{stateGroup.Identifier.ValueText}' must declare at least one state or group."));
                 }
             }
@@ -392,10 +347,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// Checks that no non-state or non-state-group or non-event
         /// classes are declared inside the machine.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
-        private void CheckForIllegalClasses(ClassDeclarationSyntax machine,
-            CodeAnalysis.Compilation compilation)
+        private void CheckForIllegalClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => !this.IsState(compilation, val) &&
@@ -406,7 +358,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var identifier in classIdentifiers)
             {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state class " +
+                this.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state class " +
                     $"'{identifier.ValueText}' inside {this.GetTypeOfMachine().ToLower()} " +
                     $"'{machine.Identifier.ValueText}'."));
             }
@@ -415,7 +367,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that no structs are declared inside the machine.
         /// </summary>
-        /// <param name="machine">The machine.</param>
         private void CheckForStructs(ClassDeclarationSyntax machine)
         {
             var structIdentifiers = machine.DescendantNodes().OfType<StructDeclarationSyntax>().
@@ -424,7 +375,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var identifier in structIdentifiers)
             {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare struct " +
+                this.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare struct " +
                     $"'{identifier.ValueText}' inside {this.GetTypeOfMachine().ToLower()} " +
                     $"'{machine.Identifier.ValueText}'."));
             }
@@ -433,8 +384,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a machine has an start state.
         /// </summary>
-        /// <param name="machine">The machine.</param>
-        /// <param name="compilation">The compilation.</param>
         private void CheckForStartState(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var model = compilation.GetSemanticModel(machine.SyntaxTree);
@@ -448,14 +397,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (stateAttributes.Count == 0)
             {
-                base.WarningLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
+                this.WarningLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
                     $"'{machine.Identifier.ValueText}' must declare a start state (unless the machine " +
                     "inherits a start state from a base machine, or is partial, and one state has been " +
                     "already declared in another part of the declaration)."));
             }
             else if (stateAttributes.Count > 1)
             {
-                base.ErrorLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
+                this.ErrorLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
                     $"'{machine.Identifier.ValueText}' must declare only one start state."));
             }
         }
@@ -463,7 +412,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a nested raise statement is not used in a machine action.
         /// </summary>
-        /// <param name="machine">The machine.</param>
         private void CheckForNestedRaiseStatementsInActions(ClassDeclarationSyntax machine)
         {
             var actions = this.Actions[machine];
@@ -486,7 +434,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedRaise)
                 {
-                    base.WarningLog.Add(Tuple.Create(action.Identifier, $"Method '{action.Identifier.ValueText}' " +
+                    this.WarningLog.Add(Tuple.Create(action.Identifier, $"Method '{action.Identifier.ValueText}' " +
                         $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
                         "must not call a method that raises an event."));
                 }
@@ -496,7 +444,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a nested pop statement is not used in a machine action.
         /// </summary>
-        /// <param name="machine">The machine.</param>
         private void CheckForNestedPopStatementsInActions(ClassDeclarationSyntax machine)
         {
             var actions = this.Actions[machine];
@@ -519,7 +466,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedPop)
                 {
-                    base.WarningLog.Add(Tuple.Create(action.Identifier, $"Method '{action.Identifier.ValueText}' " +
+                    this.WarningLog.Add(Tuple.Create(action.Identifier, $"Method '{action.Identifier.ValueText}' " +
                         $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
                         "must not call a method that pops a state."));
                 }
@@ -529,7 +476,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a raise statement is not used in a machine method.
         /// </summary>
-        /// <param name="machine">The machine.</param>
         private void CheckForRaiseStatementsInMethods(ClassDeclarationSyntax machine)
         {
             var methods = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
@@ -553,7 +499,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasRaise)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                    this.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
                         $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
                         "must not raise an event."));
                 }
@@ -575,7 +521,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedRaise)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                    this.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
                         $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
                         "must not call a method that raises an event."));
                 }
@@ -585,7 +531,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a pop statement is not used in a machine method.
         /// </summary>
-        /// <param name="machine">The machine.</param>
         private void CheckForPopStatementsInMethods(ClassDeclarationSyntax machine)
         {
             var methods = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
@@ -609,7 +554,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasPop)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                    this.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
                         $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
                         "must not pop a state."));
                 }
@@ -631,13 +576,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedPop)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                    this.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
                         $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
                         "must not call a method that pops a state."));
                 }
             }
         }
-
-        #endregion
     }
 }

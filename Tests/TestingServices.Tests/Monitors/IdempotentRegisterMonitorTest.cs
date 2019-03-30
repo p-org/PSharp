@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public IdempotentRegisterMonitorTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Counter
+        private class Counter
         {
             public int Value;
 
@@ -25,7 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class E : Event
+        private class E : Event
         {
             public Counter Counter;
 
@@ -35,26 +36,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Monitor
+        private class M : Monitor
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(Check))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void Check()
+            private void Check()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 counter.Value++;
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 Counter counter = new Counter();
                 this.Monitor(typeof(M), new E(counter));
@@ -65,13 +70,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestIdempotentRegisterMonitorInvocation()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(M));
                 r.RegisterMonitor(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

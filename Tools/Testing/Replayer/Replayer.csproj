@@ -6,6 +6,7 @@
     <AssemblyName>PSharpReplayer</AssemblyName>
     <RootNamespace>PSharpReplayer</RootNamespace>
     <PackageTags>bug;trace;replay;psharp</PackageTags>
+    <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputType>Exe</OutputType>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
@@ -17,5 +18,12 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\TestingServices\TestingServices.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include=".\Properties\stylecop.json" />
   </ItemGroup>
 </Project>

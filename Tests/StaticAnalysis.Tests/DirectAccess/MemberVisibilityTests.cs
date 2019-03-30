@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public MemberVisibilityTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestMemberVisibility()
@@ -33,7 +34,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -59,7 +60,7 @@ class M : Machine
 }";
             var error = "Warning: Field 'int Num' of machine 'Foo.M' is declared as " +
                 "'public'.   at 'public int Num;' in Program.cs:line 7";
-            base.AssertWarning(test, 1, error, isPSharpProgram: false);
+            this.AssertWarning(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -85,7 +86,7 @@ class M : Machine
 }";
             var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' is " +
                 "declared as 'public'.   at 'FirstOnEntryAction' in Program.cs:line 13";
-            base.AssertWarning(test, 1, error, isPSharpProgram: false);
+            this.AssertWarning(test, 1, error, isPSharpProgram: false);
         }
     }
 }
