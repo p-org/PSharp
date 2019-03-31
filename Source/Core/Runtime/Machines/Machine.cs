@@ -2015,7 +2015,7 @@ namespace Microsoft.PSharp
         private void HaltMachine()
         {
             // Dispose any active timers.
-            foreach (var timer in this.Timers.Keys)
+            foreach (var timer in this.Timers.Keys.ToList())
             {
                 this.UnregisterTimer(timer);
             }

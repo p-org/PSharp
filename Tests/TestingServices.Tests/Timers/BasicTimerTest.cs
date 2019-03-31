@@ -248,5 +248,42 @@ namespace Microsoft.PSharp.TestingServices.Tests
             string bugReport = "Machine 'T7()' is not allowed to dispose timer '', which is owned by machine 'T6()'.";
             base.AssertFailed(configuration, test, bugReport, true);
         }
+
+        private class T8 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [IgnoreEvents(typeof(TimerElapsedEvent))]
+            class Init : MachineState { }
+
+            void InitOnEntry()
+            {
+                // Start a regular timer.
+                this.StartTimer(TimeSpan.FromMilliseconds(10));
+                this.Goto<Final>();
+            }
+
+            [OnEntry(nameof(FinalOnEntry))]
+            [IgnoreEvents(typeof(TimerElapsedEvent))]
+            class Final : MachineState { }
+
+            void FinalOnEntry()
+            {
+                this.Raise(new Halt());
+            }
+        }
+
+        [Fact]
+        public void TestExplicitHaltWithTimer()
+        {
+            var configuration = Configuration.Create().WithNumberOfIterations(1000);
+            configuration.MaxSchedulingSteps = 200;
+
+            var test = new Action<PSharpRuntime>((r) => {
+                r.CreateMachine(typeof(T8));
+            });
+
+            base.AssertSucceeded(configuration, test);
+        }
     }
 }
