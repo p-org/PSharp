@@ -14,12 +14,11 @@ namespace Microsoft.PSharp
     public sealed class Default : Event
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Default"/> class.
         /// </summary>
         public Default()
             : base()
         {
-
         }
     }
 }

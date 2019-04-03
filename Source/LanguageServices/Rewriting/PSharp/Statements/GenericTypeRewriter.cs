@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,51 +19,39 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class GenericTypeRewriter : PSharpRewriter
     {
-        #region fields
-
-        private TypeNameQualifier typeNameQualifier = new TypeNameQualifier();
-
-        #endregion
-
-        #region public API
+        private readonly TypeNameQualifier typeNameQualifier = new TypeNameQualifier();
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="GenericTypeRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal GenericTypeRewriter(IPSharpProgram program)
-            : base(program) { }
+            : base(program)
+        {
+        }
 
         /// <summary>
         /// Rewrites the typeof statements in the program.
         /// </summary>
-        /// <param name="rewrittenQualifiedMethods">QualifiedMethods</param>
         internal void Rewrite(HashSet<QualifiedMethod> rewrittenQualifiedMethods)
         {
             this.typeNameQualifier.RewrittenQualifiedMethods = rewrittenQualifiedMethods;
 
-            var typeofnodes = base.Program.GetSyntaxTree().GetRoot().DescendantNodes()
+            var typeofnodes = this.Program.GetSyntaxTree().GetRoot().DescendantNodes()
                 .OfType<TypeArgumentListSyntax>().ToList();
 
             if (typeofnodes.Count > 0)
             {
-                var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+                var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                     nodes: typeofnodes,
                     computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
-                base.UpdateSyntaxTree(root.ToString());
+                this.UpdateSyntaxTree(root.ToString());
             }
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the type(s) to qualified names inside a list of generic type arguments.
         /// Primarily intended for the generic method Goto&lt;StateType&gt;().
         /// </summary>
-        /// <param name="node">TypeArgumentListSyntax</param>
-        /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(TypeArgumentListSyntax node)
         {
             this.typeNameQualifier.InitializeForNode(node);
@@ -76,7 +63,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var rewritten = node.WithArguments(fakeGenericExpression.TypeArgumentList.Arguments);
             return rewritten;
         }
-
-        #endregion
     }
 }

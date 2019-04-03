@@ -20,13 +20,11 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The testing runtime hosting this shared counter.
         /// </summary>
-        private TestingRuntime Runtime;
+        private readonly TestingRuntime Runtime;
 
         /// <summary>
-        /// Initializes the shared counter.
+        /// Initializes a new instance of the <see cref="MockSharedCounter"/> class.
         /// </summary>
-        /// <param name="value">Initial value</param>
-        /// <param name="runtime">TestingRuntime</param>
         public MockSharedCounter(int value, TestingRuntime runtime)
         {
             this.Runtime = runtime;
@@ -41,7 +39,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Increment()
         {
-            Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.IncrementEvent());
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.IncrementEvent());
         }
 
         /// <summary>
@@ -49,13 +47,12 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Decrement()
         {
-            Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.DecrementEvent());
+            this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.DecrementEvent());
         }
 
         /// <summary>
         /// Gets the current value of the shared counter.
         /// </summary>
-        /// <returns>Current value</returns>
         public int GetValue()
         {
             var currentMachine = this.Runtime.GetCurrentMachine();
@@ -67,8 +64,6 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Adds a value to the counter atomically.
         /// </summary>
-        /// <param name="value">Value to add</param>
-        /// <returns>The new value of the counter</returns>
         public int Add(int value)
         {
             var currentMachine = this.Runtime.GetCurrentMachine();
@@ -80,8 +75,6 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Sets the counter to a value atomically.
         /// </summary>
-        /// <param name="value">Value to set</param>
-        /// <returns>The original value of the counter</returns>
         public int Exchange(int value)
         {
             var currentMachine = this.Runtime.GetCurrentMachine();
@@ -93,9 +86,6 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Sets the counter to a value atomically if it is equal to a given value.
         /// </summary>
-        /// <param name="value">Value to set</param>
-        /// <param name="comparand">Value to compare against</param>
-        /// <returns>The original value of the counter</returns>
         public int CompareExchange(int value, int comparand)
         {
             var currentMachine = this.Runtime.GetCurrentMachine();

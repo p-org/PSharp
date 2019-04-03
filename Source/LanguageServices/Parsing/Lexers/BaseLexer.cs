@@ -14,8 +14,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public abstract class BaseLexer : ILexer
     {
-        #region fields
-
         /// <summary>
         /// List of tokens.
         /// </summary>
@@ -31,15 +29,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected int Index;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
         /// Tokenizes the given text.
         /// </summary>
-        /// <param name="text">Text to tokenize</param>
-        /// <returns>List of tokens</returns>
         public List<Token> Tokenize(string text)
         {
             if (text.Length == 0)
@@ -59,15 +51,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 while ((lineText = sr.ReadLine()) != null)
                 {
                     var split = this.SplitText(lineText);
-                    foreach (var tok in split)
+                    foreach (var token in split)
                     {
-                        if (tok.Equals(""))
+                        if (string.IsNullOrEmpty(token))
                         {
                             continue;
                         }
 
-                        this.TextUnits.Add(new TextUnit(tok, line));
-                        position += tok.Length;
+                        this.TextUnits.Add(new TextUnit(token, line));
+                        position += token.Length;
                     }
 
                     this.TextUnits.Add(new TextUnit("\n", line));
@@ -75,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     line++;
                 }
             }
-            
+
             while (this.Index < this.TextUnits.Count)
             {
                 this.TokenizeNext();
@@ -84,19 +76,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             return this.Tokens;
         }
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
         /// Splits the given text using a regex pattern and returns the split text.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <returns>Tokenized text</returns>
-        protected string[] SplitText(string text)
-        {
-            return Regex.Split(text, this.GetPattern());
-        }
+        protected string[] SplitText(string text) => Regex.Split(text, this.GetPattern());
 
         /// <summary>
         /// Tokenizes the next text unit.
@@ -106,9 +89,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns the regex pattern.
         /// </summary>
-        /// <returns></returns>
         protected abstract string GetPattern();
-
-        #endregion
     }
 }

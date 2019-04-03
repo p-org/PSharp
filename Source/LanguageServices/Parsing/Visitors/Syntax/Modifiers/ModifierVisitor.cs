@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
 using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
@@ -16,66 +13,63 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     internal sealed class ModifierVisitor : BaseTokenVisitor
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ModifierVisitor"/> class.
         /// </summary>
-        /// <param name="tokenStream">TokenStream</param>
         internal ModifierVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
-
         }
 
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="modSet">Modifier set</param>
         internal void Visit(ModifierSet modSet)
         {
-            if (base.TokenStream.Peek().Type == TokenType.Public)
+            if (this.TokenStream.Peek().Type == TokenType.Public)
             {
                 modSet.AccessModifier = AccessModifier.Public;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Private)
+            else if (this.TokenStream.Peek().Type == TokenType.Private)
             {
                 modSet.AccessModifier = AccessModifier.Private;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Protected)
+            else if (this.TokenStream.Peek().Type == TokenType.Protected)
             {
                 modSet.AccessModifier = AccessModifier.Protected;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Internal)
+            else if (this.TokenStream.Peek().Type == TokenType.Internal)
             {
                 modSet.AccessModifier = AccessModifier.Internal;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Abstract)
+            else if (this.TokenStream.Peek().Type == TokenType.Abstract)
             {
                 modSet.InheritanceModifier = InheritanceModifier.Abstract;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Virtual)
+            else if (this.TokenStream.Peek().Type == TokenType.Virtual)
             {
                 modSet.InheritanceModifier = InheritanceModifier.Virtual;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Override)
+            else if (this.TokenStream.Peek().Type == TokenType.Override)
             {
                 modSet.InheritanceModifier = InheritanceModifier.Override;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.StartState)
+            else if (this.TokenStream.Peek().Type == TokenType.StartState)
             {
                 modSet.IsStart = true;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.HotState)
+            else if (this.TokenStream.Peek().Type == TokenType.HotState)
             {
                 modSet.IsHot = true;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.ColdState)
+            else if (this.TokenStream.Peek().Type == TokenType.ColdState)
             {
                 modSet.IsCold = true;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Async)
+            else if (this.TokenStream.Peek().Type == TokenType.Async)
             {
                 modSet.IsAsync = true;
             }
-            else if (base.TokenStream.Peek().Type == TokenType.Partial)
+            else if (this.TokenStream.Peek().Type == TokenType.Partial)
             {
                 modSet.IsPartial = true;
             }
@@ -84,54 +78,45 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        /// <param name="modSet">ModifierSet</param>
         private void CheckModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier != AccessModifier.None &&
-                    (base.TokenStream.Peek().Type == TokenType.Public ||
-                    base.TokenStream.Peek().Type == TokenType.Private ||
-                    base.TokenStream.Peek().Type == TokenType.Protected ||
-                    base.TokenStream.Peek().Type == TokenType.Internal))
+                    (this.TokenStream.Peek().Type == TokenType.Public ||
+                    this.TokenStream.Peek().Type == TokenType.Private ||
+                    this.TokenStream.Peek().Type == TokenType.Protected ||
+                    this.TokenStream.Peek().Type == TokenType.Internal))
             {
-                throw new ParsingException("More than one protection modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("More than one protection modifier.");
             }
             else if (modSet.InheritanceModifier != InheritanceModifier.None &&
-                base.TokenStream.Peek().Type == TokenType.Abstract)
+                this.TokenStream.Peek().Type == TokenType.Abstract)
             {
-                throw new ParsingException("Duplicate abstract modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate abstract modifier.");
             }
-            else if (modSet.IsStart && base.TokenStream.Peek().Type == TokenType.StartState)
+            else if (modSet.IsStart && this.TokenStream.Peek().Type == TokenType.StartState)
             {
-                throw new ParsingException("Duplicate start state modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate start state modifier.");
             }
-            else if (modSet.IsHot && base.TokenStream.Peek().Type == TokenType.HotState)
+            else if (modSet.IsHot && this.TokenStream.Peek().Type == TokenType.HotState)
             {
-                throw new ParsingException("Duplicate hot state liveness modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate hot state liveness modifier.");
             }
-            else if (modSet.IsCold && base.TokenStream.Peek().Type == TokenType.ColdState)
+            else if (modSet.IsCold && this.TokenStream.Peek().Type == TokenType.ColdState)
             {
-                throw new ParsingException("Duplicate cold state liveness modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate cold state liveness modifier.");
             }
-            else if ((modSet.IsCold && base.TokenStream.Peek().Type == TokenType.HotState) ||
-                (modSet.IsHot && base.TokenStream.Peek().Type == TokenType.ColdState))
+            else if ((modSet.IsCold && this.TokenStream.Peek().Type == TokenType.HotState) ||
+                (modSet.IsHot && this.TokenStream.Peek().Type == TokenType.ColdState))
             {
-                throw new ParsingException("More than one state liveness modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("More than one state liveness modifier.");
             }
-            else if (modSet.IsAsync && base.TokenStream.Peek().Type == TokenType.Async)
+            else if (modSet.IsAsync && this.TokenStream.Peek().Type == TokenType.Async)
             {
-                throw new ParsingException("Duplicate async modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate async modifier.");
             }
-            else if (modSet.IsPartial && base.TokenStream.Peek().Type == TokenType.Partial)
+            else if (modSet.IsPartial && this.TokenStream.Peek().Type == TokenType.Partial)
             {
-                throw new ParsingException("Duplicate partial modifier.",
-                    new List<TokenType>());
+                throw new ParsingException("Duplicate partial modifier.");
             }
         }
     }

@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Runtime
         internal readonly Func<Event, bool> Predicate;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="EventWaitHandler"/> class.
         /// </summary>
         /// <param name="eventType">Event type</param>
         internal EventWaitHandler(Type eventType)
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="EventWaitHandler"/> class.
         /// </summary>
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>

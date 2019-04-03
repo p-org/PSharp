@@ -62,15 +62,13 @@ namespace Microsoft.PSharp
         /// </summary>
         public event OnEventDroppedHandler OnEventDropped;
 
-        #region factory methods
-
         /// <summary>
         /// Creates a new state-machine runtime.
         /// </summary>
         /// <returns>Runtime</returns>
         public static PSharpRuntime Create()
         {
-            return new ProductionRuntime();
+            return new ProductionRuntime(Configuration.Create());
         }
 
         /// <summary>
@@ -84,34 +82,13 @@ namespace Microsoft.PSharp
             return new ProductionRuntime(configuration);
         }
 
-        #endregion
-
-        #region initialization
-
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        protected PSharpRuntime()
-        {
-            this.Configuration = Configuration.Create();
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpRuntime"/> class.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         protected PSharpRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Initializes various components of the runtime.
-        /// </summary>
-        private void Initialize()
-        {
             this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
             this.MachineIdCounter = 0;
             this.NetworkProvider = new LocalNetworkProvider(this);
@@ -119,18 +96,12 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
         }
 
-        #endregion
-
-        #region runtime interface
-
-
         /// <summary>
         /// Creates a fresh machine id that has not yet been bound to any machine.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <returns>MachineId</returns>
-
         public MachineId CreateMachineId(Type type, string friendlyName = null) => new MachineId(type, friendlyName, this);
 
         /// <summary>
@@ -173,8 +144,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
         public abstract MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
@@ -211,8 +182,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
         public abstract Task<MachineId> CreateMachineAndExecute(Type type, string friendlyName, Event e = null, Guid? operationGroupId = null);
 
@@ -223,8 +194,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
         public abstract MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null, Guid? operationGroupId = null);
 
@@ -236,8 +207,8 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
-        /// <param name="operationGroupId">Optional operation group id</param>
         /// <param name="e">Event</param>
+        /// <param name="operationGroupId">Optional operation group id</param>
         /// <returns>MachineId</returns>
         public abstract MachineId RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null, Guid? operationGroupId = null);
@@ -312,7 +283,8 @@ namespace Microsoft.PSharp
             [CallerFilePath] string callerFilePath = "",
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            var havocId = string.Format("Runtime_{0}_{1}_{2}", 
+            var havocId = string.Format(
+                "Runtime_{0}_{1}_{2}",
                 callerMemberName, callerFilePath, callerLineNumber);
             return this.GetFairNondeterministicBooleanChoice(null, havocId);
         }
@@ -356,10 +328,6 @@ namespace Microsoft.PSharp
         /// </summary>
         public abstract void Stop();
 
-        #endregion
-
-        #region protected methods
-
         /// <summary>
         /// Gets the target machine for an event; if not found, logs a halted-machine entry.
         /// </summary>
@@ -382,19 +350,15 @@ namespace Microsoft.PSharp
             return true;
         }
 
-        #endregion
-
-        #region state-machine execution
-
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         /// <param name="mid">Unbound machine id</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <returns>MachineId</returns>
         internal abstract MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
 
@@ -407,8 +371,8 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event passed during machine construction</param>
-        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="creator">Creator machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <returns>MachineId</returns>
         internal abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId);
 
@@ -418,9 +382,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
-        /// <param name="operationGroupId">Operation group id</param>
         /// <param name="e">Event passed during machine construction</param>
         /// <param name="creator">Creator machine</param>
+        /// <param name="operationGroupId">Operation group id</param>
         /// <returns>MachineId</returns>
         internal abstract MachineId CreateRemoteMachine(Type type, string friendlyName, string endpoint,
             Event e, Machine creator, Guid? operationGroupId);
@@ -459,17 +423,12 @@ namespace Microsoft.PSharp
         /// Checks that a machine can start its event handler. Returns false if the event
         /// handler should not be started.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <returns>Boolean</returns>
+        /// <param name="machine">The caller machine.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual bool CheckStartEventHandler(Machine machine)
         {
             return true;
         }
-
-        #endregion
-
-        #region timers
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
@@ -484,10 +443,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal abstract Type GetTimerMachineType();
 
-        #endregion
-
-        #region specifications and error checking
-
         /// <summary>
         /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
         /// </summary>
@@ -497,8 +452,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="type">Type of the monitor</param>
+        /// <param name="sender">Sender machine</param>
         /// <param name="e">Event</param>
         internal abstract void Monitor(Type type, BaseMachine sender, Event e);
 
@@ -530,15 +485,11 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
-
-        #region nondeterministic choices
-
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Boolean</returns>
         internal abstract bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
@@ -547,7 +498,7 @@ namespace Microsoft.PSharp
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The caller machine.</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         internal abstract bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId);
@@ -556,19 +507,15 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The caller machine.</param>
         /// <param name="maxValue">The max value.</param>
         /// <returns>Integer</returns>
         internal abstract int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
 
-        #endregion
-
-        #region notifications
-
         /// <summary>
         /// Notifies that a machine entered a state.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyEnteredState(Machine machine)
         {
@@ -578,7 +525,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a monitor entered a state.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyEnteredState(Monitor monitor)
         {
@@ -588,7 +535,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine exited a state.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyExitedState(Machine machine)
         {
@@ -598,7 +545,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a monitor exited a state.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyExitedState(Monitor monitor)
         {
@@ -608,7 +555,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -620,7 +567,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine completed invoking an action.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -632,7 +579,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a monitor invoked an action.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor that triggered the notification.</param>
         /// <param name="action">Action</param>
         /// <param name="receivedEvent">Event</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -644,7 +591,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine raised an <see cref="Event"/>.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
@@ -655,7 +602,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a monitor raised an <see cref="Event"/>.
         /// </summary>
-        /// <param name="monitor">Monitor</param>
+        /// <param name="monitor">The monitor that triggered the notification.</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyRaisedEvent(Monitor monitor, EventInfo eventInfo)
@@ -666,7 +613,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine dequeued an <see cref="Event"/>.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
@@ -677,7 +624,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine invoked pop.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyPop(Machine machine)
         {
@@ -687,7 +634,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine called Receive.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyReceiveCalled(Machine machine)
         {
@@ -697,7 +644,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is handling a raised <see cref="Event"/>.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
@@ -708,7 +655,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is waiting to receive one or more events.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="eventInfoInInbox">The event info if it is in the inbox, else null</param>
         internal virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
@@ -718,7 +665,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="eventInfo">EventInfo</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
@@ -729,7 +676,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine has halted.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         /// <param name="inbox">Machine inbox.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
@@ -741,6 +688,7 @@ namespace Microsoft.PSharp
         /// Notifies that the inbox of the specified machine is about to be
         /// checked to see if the default event handler should fire.
         /// </summary>
+        /// <param name="machine">The machine that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDefaultEventHandlerCheck(Machine machine)
         {
@@ -750,16 +698,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that the default handler of the specified machine has been fired.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">The machine that triggered the notification.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDefaultHandlerFired(Machine machine)
         {
             // Override to implement the notification.
         }
-
-        #endregion
-
-        #region logging
 
         /// <summary>
         /// Logs the specified text.
@@ -792,10 +736,6 @@ namespace Microsoft.PSharp
         {
             this.Logger = new ConsoleLogger();
         }
-
-        #endregion
-
-        #region operation group id
 
         /// <summary>
         /// Gets the new operation group id to propagate.
@@ -841,10 +781,6 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
-
-        #region networking
-
         /// <summary>
         /// Installs the specified <see cref="INetworkProvider"/>.
         /// </summary>
@@ -869,10 +805,6 @@ namespace Microsoft.PSharp
             this.NetworkProvider.Dispose();
             this.NetworkProvider = new LocalNetworkProvider(this);
         }
-
-        #endregion
-
-        #region exceptions
 
         /// <summary>
         /// Raises the <see cref="OnFailure"/> event with the specified <see cref="Exception"/>.
@@ -920,19 +852,25 @@ namespace Microsoft.PSharp
                 : new AssertionFailureException(IO.Utilities.Format(s, args), exception);
         }
 
-        #endregion
-
-        #region cleanup
+        /// <summary>
+        /// Disposes runtime resources.
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.MachineIdCounter = 0;
+                this.NetworkProvider.Dispose();
+            }
+        }
 
         /// <summary>
         /// Disposes runtime resources.
         /// </summary>
         public virtual void Dispose()
         {
-            this.MachineIdCounter = 0;
-            this.NetworkProvider.Dispose();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
-
-        #endregion
     }
 }

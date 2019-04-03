@@ -13,38 +13,43 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public MethodCallTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E : Event { }
-
-        class Program : Machine
         {
-            int x;
+        }
+
+        private class E : Event
+        {
+        }
+
+        private class Program : Machine
+        {
+            private int x;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                x = 2;
-                this.Foo(1, 3, x);
             }
 
-            int Foo(int x, int y, int z)
+            private void InitOnEntry()
             {
-                return 0;
+                this.x = 2;
+                Foo(1, 3, this.x);
             }
+
+#pragma warning disable CA1801 // Parameter not used
+            private static int Foo(int x, int y, int z) => 0;
+#pragma warning restore CA1801 // Parameter not used
         }
 
         [Fact]
         public void TestMethodCall()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Program));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

@@ -13,43 +13,54 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public WildCardEventTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class A : Machine
         {
-            [Start]
-            [OnEventDoAction(typeof(E1), nameof(foo))]
-            [OnEventGotoState(typeof(E2), typeof(S1))]
-            [DeferEvents(typeof(WildCardEvent))]
-            class S0 : MachineState { }
-
-            [OnEventDoAction(typeof(E3), nameof(bar))]
-            class S1 : MachineState { }
-
-            void foo()
-            {
-            }
-
-            void bar()
-            {
-            }
-
         }
 
-        class E1 : Event
-        { }
-        class E2 : Event
-        { }
-        class E3 : Event
-        { }
+        private class A : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Foo))]
+            [OnEventGotoState(typeof(E2), typeof(S1))]
+            [DeferEvents(typeof(WildCardEvent))]
+            private class S0 : MachineState
+            {
+            }
 
-        class B : Machine
+            [OnEventDoAction(typeof(E3), nameof(Bar))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Foo()
+            {
+            }
+
+            private void Bar()
+            {
+            }
+        }
+
+        private class E1 : Event
+        {
+        }
+
+        private class E2 : Event
+        {
+        }
+
+        private class E3 : Event
+        {
+        }
+
+        private class B : Machine
         {
             [Start]
             [OnEntry(nameof(Conf))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Conf()
+            private void Conf()
             {
                 var a = this.CreateMachine(typeof(A));
                 this.Send(a, new E3());
@@ -62,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         public void TestWildCardEvent()
         {
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(B)); });
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

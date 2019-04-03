@@ -8,7 +8,8 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
+
+using Microsoft.PSharp.DataFlowAnalysis;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
 
@@ -20,18 +21,11 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal sealed class MachineSummarizationPass : StateMachineAnalysisPass
     {
-        #region internal API
-
         /// <summary>
         /// Creates a new machine summarization pass.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
-        /// <param name="errorReporter">ErrorReporter</param>
-        /// <returns>MachineSummarizationPass</returns>
-        internal static MachineSummarizationPass Create(AnalysisContext context,
-            Configuration configuration, ILogger logger, ErrorReporter errorReporter)
+        internal static MachineSummarizationPass Create(AnalysisContext context, Configuration configuration,
+            ILogger logger, ErrorReporter errorReporter)
         {
             return new MachineSummarizationPass(context, configuration, logger, errorReporter);
         }
@@ -39,11 +33,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the analysis on the specified machines.
         /// </summary>
-        /// <param name="machines">StateMachines</param>
         internal override void Run(ISet<StateMachine> machines)
         {
             // Starts profiling the summarization.
-            if (base.Configuration.EnableProfiling)
+            if (this.Configuration.EnableProfiling)
             {
                 this.Profiler.StartMeasuringExecutionTime();
             }
@@ -52,7 +45,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ComputeStateMachineInheritanceInformation(machines);
 
             // Stops profiling the summarization.
-            if (base.Configuration.EnableProfiling)
+            if (this.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
                 this.PrintProfilingResults();
@@ -61,39 +54,24 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.PrintSummarizationInformation(machines);
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineSummarizationPass"/> class.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
-        /// <param name="errorReporter">ErrorReporter</param>
-        private MachineSummarizationPass(AnalysisContext context, Configuration configuration,
-            ILogger logger, ErrorReporter errorReporter)
+        private MachineSummarizationPass(AnalysisContext context, Configuration configuration, ILogger logger, ErrorReporter errorReporter)
             : base(context, configuration, logger, errorReporter)
         {
-
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Summarizes the state-machines in the project.
         /// </summary>
-        /// <param name="machines">StateMachines</param>
         private void SummarizeStateMachines(ISet<StateMachine> machines)
         {
             // Iterate the syntax trees for each project file.
-            foreach (var tree in base.AnalysisContext.Compilation.SyntaxTrees)
+            foreach (var tree in this.AnalysisContext.Compilation.SyntaxTrees)
             {
                 // Get the tree's semantic model.
-                var model = base.AnalysisContext.Compilation.GetSemanticModel(tree);
+                var model = this.AnalysisContext.Compilation.GetSemanticModel(tree);
 
                 // Get the tree's root node compilation unit.
                 var root = (CompilationUnitSyntax)tree.GetRoot();
@@ -101,9 +79,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 // Iterate the class declerations only if they are machines.
                 foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
-                    if (Querying.IsMachine(base.AnalysisContext.Compilation, classDecl))
+                    if (Querying.IsMachine(this.AnalysisContext.Compilation, classDecl))
                     {
-                        StateMachine stateMachine = new StateMachine(classDecl, base.AnalysisContext);
+                        StateMachine stateMachine = new StateMachine(classDecl, this.AnalysisContext);
                         if (this.Configuration.AnalyzeDataFlow)
                         {
                             stateMachine.Summarize();
@@ -119,7 +97,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Computes the state-machine inheritance information for all
         /// state-machines in the project.
         /// </summary>
-        /// <param name="machines">StateMachines</param>
         private void ComputeStateMachineInheritanceInformation(ISet<StateMachine> machines)
         {
             foreach (var machine in machines)
@@ -133,8 +110,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
 
                     var availableMachines = new List<StateMachine>(machines);
-                    var inheritedMachine = availableMachines.FirstOrDefault(m
-                        => base.AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
+                    var inheritedMachine = availableMachines.FirstOrDefault(
+                        m => AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
                     if (inheritedMachine == null)
                     {
                         break;
@@ -148,23 +125,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints summarization information.
         /// </summary>
-        /// <param name="machines">StateMachines</param>
         private void PrintSummarizationInformation(ISet<StateMachine> machines)
         {
             foreach (var machine in machines)
             {
                 foreach (var summary in machine.MethodSummaries.Values)
                 {
-                    if (base.Configuration.ShowControlFlowInformation)
+                    if (this.Configuration.ShowControlFlowInformation)
                     {
                         summary.PrintControlFlowGraph();
                     }
 
-                    if (base.Configuration.ShowFullDataFlowInformation)
+                    if (this.Configuration.ShowFullDataFlowInformation)
                     {
                         summary.PrintDataFlowInformation(true);
                     }
-                    else if (base.Configuration.ShowDataFlowInformation)
+                    else if (this.Configuration.ShowDataFlowInformation)
                     {
                         summary.PrintDataFlowInformation();
                     }
@@ -172,19 +148,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
         }
 
-        #endregion
-
-        #region profiling methods
-
         /// <summary>
         /// Prints profiling results.
         /// </summary>
         protected override void PrintProfilingResults()
         {
-            base.Logger.WriteLine("... Data-flow analysis runtime: '" +
-                base.Profiler.Results() + "' seconds.");
+            this.Logger.WriteLine($"... Data-flow analysis runtime: '{this.Profiler.Results()}' seconds.");
         }
-
-        #endregion
     }
 }

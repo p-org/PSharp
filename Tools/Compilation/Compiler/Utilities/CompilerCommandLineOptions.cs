@@ -10,37 +10,35 @@ namespace Microsoft.PSharp.Utilities
     public sealed class CompilerCommandLineOptions : BaseCommandLineOptions
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CompilerCommandLineOptions"/> class.
         /// </summary>
-        /// <param name="args">Array of arguments</param>
         public CompilerCommandLineOptions(string[] args)
-            : base (args)
+            : base(args)
         {
         }
 
         /// <summary>
         /// Parses the given option.
         /// </summary>
-        /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            if (this.IsMatch(option, @"^[\/|-]t:") && option.Length > 3)
+            if (IsMatch(option, @"^[\/|-]t:") && option.Length > 3)
             {
-                if (this.IsMatch(option.Substring(14), @"^exe$"))
+                if (IsMatch(option.Substring(14), @"^exe$"))
                 {
-                    base.Configuration.CompilationTarget = CompilationTarget.Execution;
+                    this.Configuration.CompilationTarget = CompilationTarget.Execution;
                 }
-                else if (this.IsMatch(option.Substring(14), @"^lib$"))
+                else if (IsMatch(option.Substring(14), @"^lib$"))
                 {
-                    base.Configuration.CompilationTarget = CompilationTarget.Library;
+                    this.Configuration.CompilationTarget = CompilationTarget.Library;
                 }
-                else if (this.IsMatch(option.Substring(14), @"^test$"))
+                else if (IsMatch(option.Substring(14), @"^test$"))
                 {
-                    base.Configuration.CompilationTarget = CompilationTarget.Testing;
+                    this.Configuration.CompilationTarget = CompilationTarget.Testing;
                 }
-                else if (this.IsMatch(option.Substring(14), @"^remote$"))
+                else if (IsMatch(option.Substring(14), @"^remote$"))
                 {
-                    base.Configuration.CompilationTarget = CompilationTarget.Remote;
+                    this.Configuration.CompilationTarget = CompilationTarget.Remote;
                 }
                 else
                 {
@@ -48,15 +46,15 @@ namespace Microsoft.PSharp.Utilities
                         "'/t:[x]', where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
-            else if (this.IsMatch(option, @"^[\/|-]optimization:") && option.Length > 14)
+            else if (IsMatch(option, @"^[\/|-]optimization:") && option.Length > 14)
             {
-                if (this.IsMatch(option.Substring(14), @"^debug$"))
+                if (IsMatch(option.Substring(14), @"^debug$"))
                 {
-                    base.Configuration.OptimizationTarget = OptimizationTarget.Debug;
+                    this.Configuration.OptimizationTarget = OptimizationTarget.Debug;
                 }
-                else if (this.IsMatch(option.Substring(14), @"^release$"))
+                else if (IsMatch(option.Substring(14), @"^release$"))
                 {
-                    base.Configuration.OptimizationTarget = OptimizationTarget.Release;
+                    this.Configuration.OptimizationTarget = OptimizationTarget.Release;
                 }
                 else
                 {
@@ -64,7 +62,7 @@ namespace Microsoft.PSharp.Utilities
                         "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
-            else if (this.IsMatch(option, @"^[\/|-]pass:") && option.Length > 6)
+            else if (IsMatch(option, @"^[\/|-]pass:") && option.Length > 6)
             {
                 if (!option.ToLower().Substring(6).EndsWith(".dll"))
                 {
@@ -72,33 +70,33 @@ namespace Microsoft.PSharp.Utilities
                         "'/pass:[x]', where [x] is a 'dll'.");
                 }
 
-                base.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
+                this.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
             }
-            else if (this.IsMatch(option, @"^[\/|-]dfa$"))
+            else if (IsMatch(option, @"^[\/|-]dfa$"))
             {
-                base.Configuration.AnalyzeDataFlow = true;
+                this.Configuration.AnalyzeDataFlow = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]check-races$"))
+            else if (IsMatch(option, @"^[\/|-]check-races$"))
             {
-                base.Configuration.AnalyzeDataRaces = true;
+                this.Configuration.AnalyzeDataRaces = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]emit-control-flow$"))
+            else if (IsMatch(option, @"^[\/|-]emit-control-flow$"))
             {
-                base.Configuration.ShowControlFlowInformation = true;
+                this.Configuration.ShowControlFlowInformation = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]emit-data-flow$"))
+            else if (IsMatch(option, @"^[\/|-]emit-data-flow$"))
             {
-                base.Configuration.ShowDataFlowInformation = true;
+                this.Configuration.ShowDataFlowInformation = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]emit-control-flow:") && option.Length > 16)
+            else if (IsMatch(option, @"^[\/|-]emit-control-flow:") && option.Length > 16)
             {
-                if (this.IsMatch(option.Substring(16), @"^default$"))
+                if (IsMatch(option.Substring(16), @"^default$"))
                 {
-                    base.Configuration.ShowDataFlowInformation = true;
+                    this.Configuration.ShowDataFlowInformation = true;
                 }
-                else if (this.IsMatch(option.Substring(16), @"^full$"))
+                else if (IsMatch(option.Substring(16), @"^full$"))
                 {
-                    base.Configuration.ShowFullDataFlowInformation = true;
+                    this.Configuration.ShowFullDataFlowInformation = true;
                 }
                 else
                 {
@@ -106,13 +104,13 @@ namespace Microsoft.PSharp.Utilities
                         "level '/emit-data-flow:[x]', where [x] is 'default' or 'full'.");
                 }
             }
-            else if (this.IsMatch(option, @"^[\/|-]time$"))
+            else if (IsMatch(option, @"^[\/|-]time$"))
             {
-                base.Configuration.EnableProfiling = true;
+                this.Configuration.EnableProfiling = true;
             }
-            else if (this.IsMatch(option, @"^[\/|-]xsa$"))
+            else if (IsMatch(option, @"^[\/|-]xsa$"))
             {
-                base.Configuration.DoStateTransitionAnalysis = true;
+                this.Configuration.DoStateTransitionAnalysis = true;
             }
             else
             {
@@ -125,7 +123,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void CheckForParsingErrors()
         {
-            if (base.Configuration.SolutionFilePath.Equals(""))
+            if (string.IsNullOrEmpty(this.Configuration.SolutionFilePath))
             {
                 Error.ReportAndExit("Please give a valid solution path.");
             }
@@ -137,9 +135,9 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         protected override void UpdateConfiguration()
         {
-            if (base.Configuration.AnalyzeDataRaces)
+            if (this.Configuration.AnalyzeDataRaces)
             {
-                base.Configuration.AnalyzeDataFlow = true;
+                this.Configuration.AnalyzeDataFlow = true;
             }
         }
 

@@ -15,9 +15,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public ReceiveEventTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Config : Event
+        private class Config : Event
         {
             public MachineId Id;
 
@@ -28,20 +29,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Unit : Event { }
-        class Ping : Event { }
-        class Pong : Event { }
-
-        class Server : Machine
+        private class Unit : Event
         {
-            MachineId Client;
+        }
+
+        private class Ping : Event
+        {
+        }
+
+        private class Pong : Event
+        {
+        }
+
+        private class Server : Machine
+        {
+            private MachineId Client;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Client = this.CreateMachine(typeof(Client));
                 this.Send(this.Client, new Config(this.Id));
@@ -50,20 +61,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(Pong), nameof(SendPing))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.SendPing();
             }
 
-            void SendPing()
+            private void SendPing()
             {
                 this.Send(this.Client, new Ping());
             }
         }
 
-        class Client : Machine
+        private class Client : Machine
         {
             private MachineId Server;
             private int Counter;
@@ -71,9 +84,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [Start]
             [OnEventDoAction(typeof(Config), nameof(Configure))]
             [OnEventGotoState(typeof(Unit), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Server = (this.ReceivedEvent as Config).Id;
                 this.Counter = 0;
@@ -81,9 +96,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            async Task ActiveOnEntry()
+            private async Task ActiveOnEntry()
             {
                 while (this.Counter < 5)
                 {
@@ -107,10 +124,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestReceiveEvent()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Server)); });
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

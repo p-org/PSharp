@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.PSharp.TestingServices.Coverage
 {
     /// <summary>
-    /// A P# program transition.
+    /// Specifies a program transition.
     /// </summary>
     [DataContract]
     public struct Transition
@@ -44,13 +44,8 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         public readonly string StateTarget;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Transition"/> struct.
         /// </summary>
-        /// <param name="machineOrigin">Origin machine</param>
-        /// <param name="stateOrigin">Origin state</param>
-        /// <param name="edgeLabel">Edge label</param>
-        /// <param name="machineTarget">Target machine</param>
-        /// <param name="stateTarget">Target state</param>
         public Transition(string machineOrigin, string stateOrigin, string edgeLabel,
             string machineTarget, string stateTarget)
         {
@@ -66,12 +61,12 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// </summary>
         public override string ToString()
         {
-            if (MachineOrigin == MachineTarget)
+            if (this.MachineOrigin == this.MachineTarget)
             {
-                return string.Format("{0}: {1} --{2}--> {3}", MachineOrigin, StateOrigin, EdgeLabel, StateTarget);
+                return string.Format("{0}: {1} --{2}--> {3}", this.MachineOrigin, this.StateOrigin, this.EdgeLabel, this.StateTarget);
             }
 
-            return string.Format("({0}, {1}) --{2}--> ({3}, {4})", MachineOrigin, StateOrigin, EdgeLabel, MachineTarget, StateTarget);
+            return string.Format("({0}, {1}) --{2}--> ({3}, {4})", this.MachineOrigin, this.StateOrigin, this.EdgeLabel, this.MachineTarget, this.StateTarget);
         }
     }
 }

@@ -24,14 +24,14 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         public readonly List<NonDetChoice> NondetChoices;
 
         /// <summary>
-        /// Construct a thread id for replay.
+        /// Initializes a new instance of the <see cref="TidForRaceReplay"/> class.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="nondetChoices"></param>
+        /// <param name="id">The thread id for replay.</param>
+        /// <param name="nondetChoices">The list of nondet choices for replay.</param>
         public TidForRaceReplay(int id, List<NonDetChoice> nondetChoices)
         {
-            Id = id;
-            NondetChoices = nondetChoices;
+            this.Id = id;
+            this.NondetChoices = nondetChoices;
         }
     }
 }

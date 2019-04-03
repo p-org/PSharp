@@ -12,8 +12,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MachineTests
     {
-        #region correct tests
-
         [Fact]
         public void TestMachineDeclaration()
         {
@@ -139,10 +137,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestMachineDeclarationWithoutState()
         {
@@ -193,7 +187,7 @@ state S { }
         [Fact]
         public void TestMachineDeclarationWithoutStartState2()
         {
-            var test = "" +
+            var test =
                 "namespace Foo {" +
                 "machine M {" +
                 "state S1 { }" +
@@ -243,14 +237,12 @@ private machine M { }
 
             ParsingOptions options = ParsingOptions.CreateDefault()
                 .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.Equal("A machine cannot be declared as private.",
-                parser.GetParsingErrorLog());
+            Assert.Equal("A machine cannot be declared as private.", parser.GetParsingErrorLog());
         }
 
         [Fact]
@@ -263,16 +255,12 @@ protected machine M { }
 
             ParsingOptions options = ParsingOptions.CreateDefault()
                 .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.Equal("A machine cannot be declared as protected.",
-                parser.GetParsingErrorLog());
+            Assert.Equal("A machine cannot be declared as protected.", parser.GetParsingErrorLog());
         }
-
-        #endregion
     }
 }

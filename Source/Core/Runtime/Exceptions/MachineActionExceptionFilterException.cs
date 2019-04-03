@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.Runtime
     internal sealed class MachineActionExceptionFilterException : RuntimeException
     {
         /// <summary>
-        /// Initializes a new instance of the exception.
+        /// Initializes a new instance of the <see cref="MachineActionExceptionFilterException"/> class.
         /// </summary>
         /// <param name="message">Message</param>
         internal MachineActionExceptionFilterException(string message)
@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Initializes a new instance of the exception.
+        /// Initializes a new instance of the <see cref="MachineActionExceptionFilterException"/> class.
         /// </summary>
         /// <param name="message">Message</param>
         /// <param name="innerException">Inner exception</param>

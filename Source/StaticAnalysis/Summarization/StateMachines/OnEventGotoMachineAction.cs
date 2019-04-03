@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.PSharp.DataFlowAnalysis;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -13,21 +13,12 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal sealed class OnEventGotoMachineAction : MachineAction
     {
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="OnEventGotoMachineAction"/> class.
         /// </summary>
-        /// <param name="methodDecl">MethodDeclarationSyntax</param>
-        /// <param name="state">MachineState</param>
-        /// <param name="context">AnalysisContext</param>
-        internal OnEventGotoMachineAction(MethodDeclarationSyntax methodDecl, MachineState state,
-            AnalysisContext context)
-            : base(methodDecl, state, context)
+        internal OnEventGotoMachineAction(MethodDeclarationSyntax methodDecl, MachineState state)
+            : base(methodDecl, state)
         {
-
         }
-
-        #endregion
     }
 }

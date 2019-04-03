@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Microsoft.PSharp.DataFlowAnalysis;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -19,17 +19,15 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal sealed class MachineState
     {
-        #region fields
-
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private AnalysisContext AnalysisContext;
+        private readonly AnalysisContext AnalysisContext;
 
         /// <summary>
         /// The parent state-machine.
         /// </summary>
-        private StateMachine Machine;
+        private readonly StateMachine Machine;
 
         /// <summary>
         /// Name of the state.
@@ -56,31 +54,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal bool IsStart;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineState"/> class.
         /// </summary>
-        /// <param name="classDecl">ClassDeclarationSyntax</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="context">AnalysisContext</param>
-        internal MachineState(ClassDeclarationSyntax classDecl, StateMachine machine,
-            AnalysisContext context)
+        internal MachineState(ClassDeclarationSyntax classDecl, StateMachine machine, AnalysisContext context)
         {
             this.AnalysisContext = context;
             this.Machine = machine;
-            this.Name = this.AnalysisContext.GetFullClassName(classDecl);
+            this.Name = AnalysisContext.GetFullClassName(classDecl);
             this.Declaration = classDecl;
             this.StateTransitions = new List<StateTransition>();
             this.MachineActions = new List<MachineAction>();
             this.IsStart = this.IsStartState();
         }
-
-        #endregion
-
-        #region internal methods
 
         /// <summary>
         /// Analyzes the state.
@@ -94,7 +80,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Returns the successor states.
         /// </summary>
-        /// <returns>MachineStates</returns>
         internal HashSet<MachineState> GetSuccessorStates()
         {
             var successors = new HashSet<MachineState>();
@@ -117,14 +102,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             return successors;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Checks if this is the start state.
         /// </summary>
-        /// <returns>Boolean</returns>
         private bool IsStartState()
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Machine.Declaration.SyntaxTree);
@@ -133,7 +113,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var attribute in attributes)
             {
                 var type = model.GetTypeInfo(attribute.Name).Type;
-                if (type.ToString().Equals(typeof(Microsoft.PSharp.Start).FullName))
+                if (type.ToString().Equals(typeof(StartAttribute).FullName))
                 {
                     return true;
                 }
@@ -153,19 +133,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var attribute in attributes)
             {
                 var type = model.GetTypeInfo(attribute.Name).Type;
-                if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEntry).FullName) &&
-                    attribute.ArgumentList.Arguments.Count == 1)
-                {
-                    var arg = attribute.ArgumentList.Arguments[0];
-                    var action = this.GetActionFromExpression(arg.Expression);
-                    if (action == null)
-                    {
-                        continue;
-                    }
-                    
-                    this.MachineActions.Add(new OnEntryMachineAction(action, this, this.AnalysisContext));
-                }
-                else if (type.ToString().Equals(typeof(Microsoft.PSharp.OnExit).FullName) &&
+                if (type.ToString().Equals(typeof(OnEntryAttribute).FullName) &&
                     attribute.ArgumentList.Arguments.Count == 1)
                 {
                     var arg = attribute.ArgumentList.Arguments[0];
@@ -175,9 +143,21 @@ namespace Microsoft.PSharp.StaticAnalysis
                         continue;
                     }
 
-                    this.MachineActions.Add(new OnExitMachineAction(action, this, this.AnalysisContext));
+                    this.MachineActions.Add(new OnEntryMachineAction(action, this));
                 }
-                else if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventDoAction).FullName) &&
+                else if (type.ToString().Equals(typeof(OnExitAttribute).FullName) &&
+                    attribute.ArgumentList.Arguments.Count == 1)
+                {
+                    var arg = attribute.ArgumentList.Arguments[0];
+                    var action = this.GetActionFromExpression(arg.Expression);
+                    if (action == null)
+                    {
+                        continue;
+                    }
+
+                    this.MachineActions.Add(new OnExitMachineAction(action, this));
+                }
+                else if (type.ToString().Equals(typeof(OnEventDoActionAttribute).FullName) &&
                     attribute.ArgumentList.Arguments.Count == 2)
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
@@ -187,9 +167,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                         continue;
                     }
 
-                    this.MachineActions.Add(new OnEventDoMachineAction(action, this, this.AnalysisContext));
+                    this.MachineActions.Add(new OnEventDoMachineAction(action, this));
                 }
-                else if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventGotoState).FullName) &&
+                else if (type.ToString().Equals(typeof(OnEventGotoStateAttribute).FullName) &&
                     attribute.ArgumentList.Arguments.Count == 3)
                 {
                     var arg = attribute.ArgumentList.Arguments[2];
@@ -199,9 +179,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                         continue;
                     }
 
-                    this.MachineActions.Add(new OnEventGotoMachineAction(action, this, this.AnalysisContext));
+                    this.MachineActions.Add(new OnEventGotoMachineAction(action, this));
                 }
-                else if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventPushState).FullName) &&
+                else if (type.ToString().Equals(typeof(OnEventPushStateAttribute).FullName) &&
                     attribute.ArgumentList.Arguments.Count == 3)
                 {
                     var arg = attribute.ArgumentList.Arguments[2];
@@ -211,7 +191,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         continue;
                     }
 
-                    this.MachineActions.Add(new OnEventPushMachineAction(action, this, this.AnalysisContext));
+                    this.MachineActions.Add(new OnEventPushMachineAction(action, this));
                 }
             }
         }
@@ -227,7 +207,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var attribute in attributes)
             {
                 var type = model.GetTypeInfo(attribute.Name).Type;
-                if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventGotoState).FullName) &&
+                if (type.ToString().Equals(typeof(OnEventGotoStateAttribute).FullName) &&
                     attribute.ArgumentList.Arguments.Count == 2)
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
@@ -239,7 +219,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                     this.StateTransitions.Add(new StateTransition(state, this, this.AnalysisContext));
                 }
-                else if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventPushState).FullName) &&
+                else if (type.ToString().Equals(typeof(OnEventPushStateAttribute).FullName) &&
                     attribute.ArgumentList.Arguments.Count == 2)
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
@@ -284,8 +264,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Returns the action from the given expression.
         /// </summary>
-        /// <param name="expr">ExpressionSyntax</param>
-        /// <returns>MethodDeclarationSyntax</returns>
         private MethodDeclarationSyntax GetActionFromExpression(ExpressionSyntax expr)
         {
             MethodDeclarationSyntax action = null;
@@ -302,7 +280,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var param = invocation.ArgumentList.Arguments[0];
-                var identifier = this.AnalysisContext.GetIdentifier(param.Expression);
+                var identifier = AnalysisContext.GetIdentifier(param.Expression);
                 actionName = identifier.Identifier.ValueText;
             }
             else if (expr is LiteralExpressionSyntax)
@@ -320,9 +298,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Returns the state from the given expression.
         /// </summary>
-        /// <param name="expr">ExpressionSyntax</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>MachineState</returns>
         private MachineState GetStateFromExpression(ExpressionSyntax expr, SemanticModel model)
         {
             MachineState state = null;
@@ -335,7 +310,5 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             return state;
         }
-
-        #endregion
     }
 }

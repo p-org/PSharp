@@ -17,39 +17,31 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// <summary>
         /// Number of coin flips.
         /// </summary>
-        private int NumberOfCoinFlips;
+        private readonly int NumberOfCoinFlips;
 
         /// <summary>
-        /// Creates a random strategy that uses the default random
-        /// number generator (seed is based on current time).
+        /// Initializes a new instance of the <see cref="ProbabilisticRandomStrategy"/> class.
+        /// It uses the default random number generator (seed is based on current time).
         /// </summary>
-        /// <param name="maxSteps">Max scheduling steps</param>
-        /// <param name="numberOfCoinFlips">Number of coin flips</param>
         public ProbabilisticRandomStrategy(int maxSteps, int numberOfCoinFlips)
             : base(maxSteps)
         {
-            NumberOfCoinFlips = numberOfCoinFlips;
+            this.NumberOfCoinFlips = numberOfCoinFlips;
         }
 
         /// <summary>
-        /// Creates a random strategy that uses the specified random number generator.
+        /// Initializes a new instance of the <see cref="ProbabilisticRandomStrategy"/> class.
+        /// It uses the specified random number generator.
         /// </summary>
-        /// <param name="maxSteps">Max scheduling steps</param>
-        /// <param name="numberOfCoinFlips">Number of coin flips</param>
-        /// <param name="random">IRandomNumberGenerator</param>
         public ProbabilisticRandomStrategy(int maxSteps, int numberOfCoinFlips, IRandomNumberGenerator random)
             : base(maxSteps, random)
         {
-            NumberOfCoinFlips = numberOfCoinFlips;
+            this.NumberOfCoinFlips = numberOfCoinFlips;
         }
 
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             var enabledChoices = choices.Where(choice => choice.IsEnabled).ToList();
@@ -59,41 +51,37 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                 return false;
             }
 
-            ScheduledSteps++;
+            this.ScheduledSteps++;
 
             if (enabledChoices.Count > 1)
             {
-                if (!ShouldCurrentMachineChange() && current.IsEnabled)
+                if (!this.ShouldCurrentMachineChange() && current.IsEnabled)
                 {
                     next = current;
                     return true;
                 }
             }
 
-            int idx = RandomNumberGenerator.Next(enabledChoices.Count);
+            int idx = this.RandomNumberGenerator.Next(enabledChoices.Count);
             next = enabledChoices[idx];
-            
+
             return true;
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
-        public override string GetDescription()
-        {
-            return $"ProbabilisticRandom[seed '{RandomNumberGenerator.Seed}', coin flips '{NumberOfCoinFlips}']";
-        }
+        public override string GetDescription() =>
+            $"ProbabilisticRandom[seed '{this.RandomNumberGenerator.Seed}', coin flips '{this.NumberOfCoinFlips}']";
 
         /// <summary>
         /// Flip the coin a specified number of times.
         /// </summary>
-        /// <returns>Boolean</returns>
         private bool ShouldCurrentMachineChange()
         {
-            for (int idx = 0; idx < NumberOfCoinFlips; idx++)
+            for (int idx = 0; idx < this.NumberOfCoinFlips; idx++)
             {
-                if (RandomNumberGenerator.Next(2) == 1)
+                if (this.RandomNumberGenerator.Next(2) == 1)
                 {
                     return false;
                 }

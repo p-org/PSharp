@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
+using Microsoft.PSharp.DataFlowAnalysis;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Utilities;
@@ -20,41 +20,29 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     public sealed class StaticAnalysisEngine
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// The installed logger.
         /// </summary>
-        private ILogger Logger;
+        private readonly ILogger Logger;
 
         /// <summary>
         /// The overall runtime profiler.
         /// </summary>
-        private Profiler Profiler;
-
-        #endregion
-
-        #region properties
+        private readonly Profiler Profiler;
 
         /// <summary>
         /// The error reporter.
         /// </summary>
         internal ErrorReporter ErrorReporter { get; private set; }
 
-        #endregion
-
-        #region public API
-
         /// <summary>
         /// Creates a P# static analysis engine.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <returns>StaticAnalysisEngine</returns>
         public static StaticAnalysisEngine Create(CompilationContext context)
         {
             return new StaticAnalysisEngine(context, new ConsoleLogger());
@@ -63,9 +51,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Creates a P# static analysis engine.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="logger">ILogger</param>
-        /// <returns>StaticAnalysisEngine</returns>
         public static StaticAnalysisEngine Create(CompilationContext context, ILogger logger)
         {
             return new StaticAnalysisEngine(context, logger);
@@ -74,11 +59,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the P# static analysis engine.
         /// </summary>
-        /// <returns>StaticAnalysisEngine</returns>
         public StaticAnalysisEngine Run()
         {
             // Parse the projects.
-            if (this.CompilationContext.Configuration.ProjectName.Equals(""))
+            if (this.CompilationContext.Configuration.ProjectName.Length == 0)
             {
                 foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
@@ -100,7 +84,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         continue;
                     }
-                    
+
                     this.AnalyzeProject(project);
                 }
             }
@@ -108,15 +92,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             return this;
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StaticAnalysisEngine"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="logger">ILogger</param>
         private StaticAnalysisEngine(CompilationContext context, ILogger logger)
         {
             this.ErrorReporter = new ErrorReporter(context.Configuration, logger);
@@ -125,14 +103,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.CompilationContext = context;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Analyzes the given P# project.
         /// </summary>
-        /// <param name="project">Project</param>
         private void AnalyzeProject(Project project)
         {
             // Starts profiling the analysis.
@@ -145,8 +118,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             var context = AnalysisContext.Create(project);
             this.PerformErrorChecking(context);
 
-            this.RegisterImmutableTypes(context);
-            this.RegisterGivesUpOwnershipOperations(context);
+            RegisterImmutableTypes(context);
+            RegisterGivesUpOwnershipOperations(context);
 
             // Creates and runs an analysis pass that computes the
             // summaries for every P# machine.
@@ -186,7 +159,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (this.CompilationContext.Configuration.ThrowInternalExceptions)
                 {
+#pragma warning disable CA2200 // Rethrow to preserve stack details.
                     throw ex;
+#pragma warning restore CA2200 // Rethrow to preserve stack details.
                 }
 
                 this.Logger.WriteLine($"... Failed to analyze project '{project.Name}'");
@@ -211,8 +186,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Performs error checking on the P# compilation. It
         /// reports any found diagnostics and exits.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <returns>GivesUpOwnershipAnalysisPass</returns>
         private void PerformErrorChecking(AnalysisContext context)
         {
             List<Diagnostic> diagnostics = new List<Diagnostic>();
@@ -237,24 +210,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Registers immutable types.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        private void RegisterImmutableTypes(AnalysisContext context)
+        private static void RegisterImmutableTypes(AnalysisContext context)
         {
-            context.RegisterImmutableType(typeof(Microsoft.PSharp.MachineId));
+            context.RegisterImmutableType(typeof(MachineId));
         }
 
         /// <summary>
         /// Registers gives-up ownership operations.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        private void RegisterGivesUpOwnershipOperations(AnalysisContext context)
+        private static void RegisterGivesUpOwnershipOperations(AnalysisContext context)
         {
-            context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.Send",
-                new HashSet<int> { 1 });
-            context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.CreateMachine",
-                new HashSet<int> { 1 });
+            context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.Send", new HashSet<int> { 1 });
+            context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.CreateMachine", new HashSet<int> { 1 });
         }
-
-        #endregion
     }
 }

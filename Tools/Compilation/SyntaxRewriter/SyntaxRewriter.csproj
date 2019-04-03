@@ -7,6 +7,7 @@
     <RootNamespace>PSharpSyntaxRewriter</RootNamespace>
     <TargetFrameworks>net46</TargetFrameworks>
     <PackageTags>syntax;rewriter;psharp</PackageTags>
+    <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
@@ -33,5 +34,12 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include=".\Properties\stylecop.json" />
   </ItemGroup>
 </Project>

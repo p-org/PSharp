@@ -15,19 +15,23 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
     {
         public DeprecatedIllegalPeriodTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         private class T4 : TimedMachine
         {
-            object payload = new object();
+            private readonly object payload = new object();
 
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
-            async Task Initialize()
+            private class Init : MachineState
+            {
+            }
+
+            private async Task Initialize()
             {
                 // Incorrect period, will throw assertion violation
-                TimerId tid = this.StartTimer(payload, -1, true);
+                TimerId tid = this.StartTimer(this.payload, -1, true);
                 await this.StopTimer(tid, flush: true);
             }
         }
@@ -38,10 +42,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
             var config = Configuration.Create().WithNumberOfIterations(1000);
             config.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T4));
             });
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
     }
 }

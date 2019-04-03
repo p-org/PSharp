@@ -14,19 +14,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SendAndExecuteTest5(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E : Event
         {
         }
 
-        class Harness : Machine
+        private class E : Event
+        {
+        }
+
+        private class Harness : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(M));
                 var handled = await this.Runtime.SendEventAndExecute(m, new E());
@@ -35,13 +38,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E), nameof(HandleE))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void HandleE()
+            private void HandleE()
             {
                 this.Raise(new Halt());
             }
@@ -52,33 +57,42 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M_Halts : Event { }
-        class SE_Returns : Event { }
-
-        class SafetyMonitor: Monitor
+        private class M_Halts : Event
         {
-            bool M_halted = false;
-            bool SE_returned = false;
+        }
+
+        private class SE_Returns : Event
+        {
+        }
+
+        private class SafetyMonitor : Monitor
+        {
+            private bool MHalted = false;
+            private bool SEReturned = false;
 
             [Start]
             [Hot]
             [OnEventDoAction(typeof(M_Halts), nameof(OnMHalts))]
             [OnEventDoAction(typeof(SE_Returns), nameof(OnSEReturns))]
-            class Init : MonitorState { }
-
-            [Cold]
-            class Done : MonitorState { }
-
-            void OnMHalts()
+            private class Init : MonitorState
             {
-                this.Assert(SE_returned == false);
-                M_halted = true;
             }
 
-            void OnSEReturns()
+            [Cold]
+            private class Done : MonitorState
             {
-                this.Assert(M_halted);
-                SE_returned = true;
+            }
+
+            private void OnMHalts()
+            {
+                this.Assert(this.SEReturned == false);
+                this.MHalted = true;
+            }
+
+            private void OnSEReturns()
+            {
+                this.Assert(this.MHalted);
+                this.SEReturned = true;
                 this.Goto<Done>();
             }
         }
@@ -86,14 +100,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineHaltsOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness));
             });
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
-
     }
 }

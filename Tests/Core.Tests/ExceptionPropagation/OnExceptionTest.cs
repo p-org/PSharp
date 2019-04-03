@@ -15,58 +15,65 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public OnExceptionTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E : Event
         {
-            public int x;
-            public TaskCompletionSource<bool> tcs;
+        }
+
+        private class E : Event
+        {
+            public int X;
+            public TaskCompletionSource<bool> Tcs;
 
             public E(TaskCompletionSource<bool> tcs)
             {
-                x = 0;
-                this.tcs = tcs;
+                this.X = 0;
+                this.Tcs = tcs;
             }
         }
 
-        class F : Event { }
-
-        class M1a : Machine
+        private class F : Event
         {
-            E e;
+        }
+
+        private class M1a : Machine
+        {
+            private E e;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(F), nameof(OnF))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
             }
 
-            void OnF()
+            private void OnF()
             {
-                e.tcs.SetResult(true);
+                this.e.Tcs.SetResult(true);
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                e.x++;
+                this.e.X++;
                 return OnExceptionOutcome.HandledException;
             }
         }
 
-        class M1b : Machine
+        private class M1b : Machine
         {
-            E e;
+            private E e;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
@@ -74,72 +81,76 @@ namespace Microsoft.PSharp.Core.Tests
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                e.x++;
+                this.e.X++;
                 return OnExceptionOutcome.ThrowException;
             }
-
         }
 
-        class M2a : Machine
+        private class M2a : Machine
         {
-            E e;
+            private E e;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(F), nameof(OnF))]
-            class Init : MachineState { }
-
-            async Task InitOnEntry()
+            private class Init : MachineState
             {
-                await Task.CompletedTask;
-                this.e = this.ReceivedEvent as E;
-                throw new NotImplementedException();                
             }
 
-            void OnF()
-            {
-                e.tcs.SetResult(true);
-            }
-
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
-            {
-                e.x++;
-                return OnExceptionOutcome.HandledException;
-            }
-        }
-
-        class M2b : Machine
-        {
-            E e;
-
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 await Task.CompletedTask;
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            private void OnF()
             {
-                e.x++;
-                return OnExceptionOutcome.ThrowException;
+                this.e.Tcs.SetResult(true);
             }
 
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                this.e.X++;
+                return OnExceptionOutcome.HandledException;
+            }
         }
 
-        class M3 : Machine
+        private class M2b : Machine
         {
-            E e;
+            private E e;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private async Task InitOnEntry()
+            {
+                await Task.CompletedTask;
+                this.e = this.ReceivedEvent as E;
+                throw new NotImplementedException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                this.e.X++;
+                return OnExceptionOutcome.ThrowException;
+            }
+        }
+
+        private class M3 : Machine
+        {
+            private E e;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
             {
                 this.e = this.ReceivedEvent as E;
                 throw new NotImplementedException();
@@ -152,19 +163,21 @@ namespace Microsoft.PSharp.Core.Tests
 
             protected override void OnHalt()
             {
-                e.tcs.TrySetResult(true);
+                this.e.Tcs.TrySetResult(true);
             }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
-            E e;
+            private E e;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.e = this.ReceivedEvent as E;
             }
@@ -175,24 +188,25 @@ namespace Microsoft.PSharp.Core.Tests
                 {
                     return OnExceptionOutcome.HaltMachine;
                 }
+
                 return OnExceptionOutcome.ThrowException;
             }
 
             protected override void OnHalt()
             {
-                e.tcs.TrySetResult(true);
+                this.e.Tcs.TrySetResult(true);
             }
         }
-
 
         [Fact]
         public void TestOnExceptionCalledOnce1()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     Assert.True(false);
                     failed = true;
@@ -205,20 +219,21 @@ namespace Microsoft.PSharp.Core.Tests
 
                 tcs.Task.Wait();
                 Assert.False(failed);
-                Assert.True(e.x == 1);
+                Assert.True(e.X == 1);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestOnExceptionCalledOnce2()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(true);
@@ -229,20 +244,21 @@ namespace Microsoft.PSharp.Core.Tests
 
                 tcs.Task.Wait(5000); // timeout so the test doesn't deadlock on failure
                 Assert.True(failed);
-                Assert.True(e.x == 1);
+                Assert.True(e.X == 1);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestOnExceptionCalledOnceAsync1()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     Assert.True(false);
                     failed = true;
@@ -255,20 +271,21 @@ namespace Microsoft.PSharp.Core.Tests
 
                 tcs.Task.Wait();
                 Assert.False(failed);
-                Assert.True(e.x == 1);
+                Assert.True(e.X == 1);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestOnExceptionCalledOnceAsync2()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(true);
@@ -279,20 +296,21 @@ namespace Microsoft.PSharp.Core.Tests
 
                 tcs.Task.Wait(5000); // timeout so the test doesn't deadlock on failure
                 Assert.True(failed);
-                Assert.True(e.x == 1);
+                Assert.True(e.X == 1);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestOnExceptionCanHalt()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.TrySetResult(false);
@@ -306,17 +324,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestUnHandledEventCanHalt()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.TrySetResult(false);
@@ -331,8 +350,7 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
-
     }
 }

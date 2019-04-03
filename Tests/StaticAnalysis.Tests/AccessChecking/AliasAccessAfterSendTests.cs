@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public AliasAccessAfterSendTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestAliasAccessAfterSendFail()
@@ -63,7 +64,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
     }
 }

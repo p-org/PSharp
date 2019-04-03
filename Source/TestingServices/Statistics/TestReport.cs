@@ -17,8 +17,6 @@ namespace Microsoft.PSharp.TestingServices
     [DataContract]
     public class TestReport
     {
-        #region properties
-
         /// <summary>
         /// Configuration of the program-under-test.
         /// </summary>
@@ -109,14 +107,9 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private readonly object Lock;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TestReport"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         public TestReport(Configuration configuration)
         {
             this.Configuration = configuration;
@@ -140,16 +133,10 @@ namespace Microsoft.PSharp.TestingServices
             this.Lock = new object();
         }
 
-        #endregion
-
-        #region public methods
-
         /// <summary>
-        /// Merges the information from the specified
-        /// test report.
+        /// Merges the information from the specified test report.
         /// </summary>
-        /// <param name="testReport">TestReport</param>
-        /// <returns>True if merged successfully</returns>
+        /// <returns>True if merged successfully.</returns>
         public bool Merge(TestReport testReport)
         {
             if (!this.Configuration.AssemblyToBeAnalyzed.Equals(testReport.Configuration.AssemblyToBeAnalyzed))
@@ -196,9 +183,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the testing report as a string, given a configuration and an optional prefix.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="prefix">Prefix</param>
-        /// <returns>Textrt</returns>
         public string GetText(Configuration configuration, string prefix = "")
         {
             StringBuilder report = new StringBuilder();
@@ -206,9 +190,11 @@ namespace Microsoft.PSharp.TestingServices
             report.AppendFormat("{0} Testing statistics:", prefix);
 
             report.AppendLine();
-            report.AppendFormat("{0} Found {1} bug{2}.",
-                prefix.Equals("...") ? "....." : prefix, this.NumOfFoundBugs,
-                this.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendFormat(
+                "{0} Found {1} bug{2}.",
+                prefix.Equals("...") ? "....." : prefix,
+                this.NumOfFoundBugs,
+                this.NumOfFoundBugs == 1 ? string.Empty : "s");
 
             report.AppendLine();
             report.AppendFormat("{0} Scheduling statistics:", prefix);
@@ -217,9 +203,11 @@ namespace Microsoft.PSharp.TestingServices
                 this.NumOfExploredUnfairSchedules;
 
             report.AppendLine();
-            report.AppendFormat("{0} Explored {1} schedule{2}: {3} fair and {4} unfair.",
+            report.AppendFormat(
+                "{0} Explored {1} schedule{2}: {3} fair and {4} unfair.",
                 prefix.Equals("...") ? "....." : prefix,
-                totalExploredSchedules, totalExploredSchedules == 1 ? "" : "s",
+                totalExploredSchedules,
+                totalExploredSchedules == 1 ? string.Empty : "s",
                 this.NumOfExploredFairSchedules,
                 this.NumOfExploredUnfairSchedules);
 
@@ -227,7 +215,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.NumOfFoundBugs > 0)
             {
                 report.AppendLine();
-                report.AppendFormat("{0} Found {1:F2}% buggy schedules.",
+                report.AppendFormat(
+                    "{0} Found {1:F2}% buggy schedules.",
                     prefix.Equals("...") ? "....." : prefix,
                     ((double)this.NumOfFoundBugs / totalExploredSchedules) * 100);
             }
@@ -238,8 +227,8 @@ namespace Microsoft.PSharp.TestingServices
                     this.NumOfExploredFairSchedules;
 
                 report.AppendLine();
-                report.AppendFormat("{0} Number of scheduling points in fair terminating schedules: " +
-                    "{1} (min), {2} (avg), {3} (max).",
+                report.AppendFormat(
+                    "{0} Number of scheduling points in fair terminating schedules: {1} (min), {2} (avg), {3} (max).",
                     prefix.Equals("...") ? "....." : prefix,
                     this.MinExploredFairSteps < 0 ? 0 : this.MinExploredFairSteps,
                     averageExploredFairSteps,
@@ -249,11 +238,11 @@ namespace Microsoft.PSharp.TestingServices
                     this.MaxUnfairStepsHitInFairTests > 0)
                 {
                     report.AppendLine();
-                    report.AppendFormat("{0} Exceeded the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                    report.AppendFormat(
+                        "{0} Exceeded the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
                         prefix.Equals("...") ? "....." : prefix,
                         configuration.MaxUnfairSchedulingSteps,
-                        ((double)this.MaxUnfairStepsHitInFairTests /
-                        (double)this.NumOfExploredFairSchedules) * 100);
+                        ((double)this.MaxUnfairStepsHitInFairTests / this.NumOfExploredFairSchedules) * 100);
                 }
 
                 if (configuration.UserExplicitlySetMaxFairSchedulingSteps &&
@@ -261,11 +250,11 @@ namespace Microsoft.PSharp.TestingServices
                     this.MaxFairStepsHitInFairTests > 0)
                 {
                     report.AppendLine();
-                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
+                    report.AppendFormat(
+                        "{0} Hit the max-steps bound of '{1}' in {2:F2}% of the fair schedules.",
                         prefix.Equals("...") ? "....." : prefix,
                         configuration.MaxFairSchedulingSteps,
-                        ((double)this.MaxFairStepsHitInFairTests /
-                        (double)this.NumOfExploredFairSchedules) * 100);
+                        ((double)this.MaxFairStepsHitInFairTests / this.NumOfExploredFairSchedules) * 100);
                 }
             }
 
@@ -275,11 +264,11 @@ namespace Microsoft.PSharp.TestingServices
                     this.MaxUnfairStepsHitInUnfairTests > 0)
                 {
                     report.AppendLine();
-                    report.AppendFormat("{0} Hit the max-steps bound of '{1}' in {2:F2}% of the unfair schedules.",
+                    report.AppendFormat(
+                        "{0} Hit the max-steps bound of '{1}' in {2:F2}% of the unfair schedules.",
                         prefix.Equals("...") ? "....." : prefix,
                         configuration.MaxUnfairSchedulingSteps,
-                        ((double)this.MaxUnfairStepsHitInUnfairTests /
-                        (double)this.NumOfExploredUnfairSchedules) * 100);
+                        ((double)this.MaxUnfairStepsHitInUnfairTests / this.NumOfExploredUnfairSchedules) * 100);
                 }
             }
 
@@ -289,7 +278,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Clones the test report.
         /// </summary>
-        /// <returns>TestReport</returns>
         public TestReport Clone()
         {
             var serializerSettings = new DataContractSerializerSettings();
@@ -305,7 +293,5 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
         }
-
-        #endregion
     }
 }

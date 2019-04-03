@@ -26,19 +26,22 @@ namespace Microsoft.PSharp
         /// Map from monitor types to a set of all
         /// possible states types.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap;
+        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
+            new ConcurrentDictionary<Type, HashSet<Type>>();
 
         /// <summary>
         /// Map from monitor types to a set of all
         /// available states.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap;
+        private static ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap =
+            new ConcurrentDictionary<Type, HashSet<MonitorState>>();
 
         /// <summary>
         /// Map from monitor types to a set of all
         /// available actions.
         /// </summary>
-        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap;
+        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap =
+            new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
 
         /// <summary>
         /// The runtime that executes this monitor.
@@ -63,7 +66,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private Dictionary<string, MethodInfo> ActionMap;
+        private readonly Dictionary<string, MethodInfo> ActionMap;
 
         /// <summary>
         /// Set of currently ignored event types.
@@ -138,10 +141,10 @@ namespace Microsoft.PSharp
         {
             get
             {
-                return CurrentStateName +
-                    (IsInHotState() ? "[hot]" :
-                    IsInColdState() ? "[cold]" :
-                    "");
+                return this.CurrentStateName +
+                    (this.IsInHotState() ? "[hot]" :
+                    this.IsInColdState() ? "[cold]" :
+                    string.Empty);
             }
         }
 
@@ -162,17 +165,7 @@ namespace Microsoft.PSharp
         protected internal Event ReceivedEvent { get; private set; }
 
         /// <summary>
-        /// Static constructor.
-        /// </summary>
-        static Monitor()
-        {
-            StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
-            StateMap = new ConcurrentDictionary<Type, HashSet<MonitorState>>();
-            MonitorActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
-        }
-
-        /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Monitor"/> class.
         /// </summary>
         protected Monitor()
             : base()
@@ -193,14 +186,13 @@ namespace Microsoft.PSharp
             this.CurrentActionCalledTransitionStatement = false;
         }
 
-        #region user interface
-
         /// <summary>
         /// Returns from the execution context, and transitions
         /// the monitor to the given <see cref="MonitorState"/>.
         /// </summary>
         /// <typeparam name="S">Type of the state</typeparam>
-        protected void Goto<S>() where S : MonitorState
+        protected void Goto<S>()
+            where S : MonitorState
         {
 #pragma warning disable 618
             this.Goto(typeof(S));
@@ -210,17 +202,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns from the execution context, and transitions
         /// the monitor to the given <see cref="MonitorState"/>.
-        /// Deprecated in favor of Goto&lt;T&gt;().
         /// </summary>
         /// <param name="s">Type of the state</param>
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
             // If the state is not a state of the monitor, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Any(val
+            this.Assert(
+                StateTypeMap[this.GetType()].Any(val
                 => val.DeclaringType.Equals(s.DeclaringType) &&
-                val.Name.Equals(s.Name)), $"Monitor '{this.Id}' " +
-                $"is trying to transition to non-existing state '{s.Name}'.");
+                val.Name.Equals(s.Name)), $"Monitor '{this.Id}' is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
 
@@ -232,8 +223,9 @@ namespace Microsoft.PSharp
         {
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
-            EventInfo raisedEvent = new EventInfo(e, new EventOriginInfo(
-                this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState)));
+
+            var eventOrigin = new EventOriginInfo(this.Id, this.GetType().Name, StateGroup.GetQualifiedStateName(this.CurrentState));
+            EventInfo raisedEvent = new EventInfo(e, eventOrigin);
             this.Runtime.NotifyRaisedEvent(this, raisedEvent);
             this.HandleEvent(e);
         }
@@ -260,10 +252,6 @@ namespace Microsoft.PSharp
             this.Runtime.Assert(predicate, s, args);
         }
 
-        #endregion
-
-        #region monitoring
-
         /// <summary>
         /// Notifies the monitor to handle the received event.
         /// </summary>
@@ -274,10 +262,6 @@ namespace Microsoft.PSharp
                 e.GetType().FullName, isProcessing: true);
             this.HandleEvent(e);
         }
-
-        #endregion
-
-        #region event handling
 
         /// <summary>
         /// Handles the given event.
@@ -301,8 +285,7 @@ namespace Microsoft.PSharp
                 if (this.State == null)
                 {
                     // If the event cannot be handled, then report an error and exit.
-                    this.Assert(false, $"Monitor '{this.GetType().Name}' received event " +
-                        $"'{e.GetType().FullName}' that cannot be handled.");
+                    this.Assert(false, $"Monitor '{this.GetType().Name}' received event '{e.GetType().FullName}' that cannot be handled.");
                 }
 
                 // If current state cannot handle the event then null the state.
@@ -313,21 +296,21 @@ namespace Microsoft.PSharp
                     continue;
                 }
 
-                // Checks if the event is a goto state event.
                 if (e.GetType() == typeof(GotoStateEvent))
                 {
+                    // Checks if the event is a goto state event.
                     Type targetState = (e as GotoStateEvent).State;
                     this.GotoState(targetState, null);
                 }
-                // Checks if the event can trigger a goto state transition.
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
+                    // Checks if the event can trigger a goto state transition.
                     var transition = this.GotoTransitions[e.GetType()];
                     this.GotoState(transition.TargetState, transition.Lambda);
                 }
-                // Checks if the event can trigger an action.
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
+                    // Checks if the event can trigger an action.
                     var handler = this.ActionBindings[e.GetType()];
                     this.Do(handler.Name);
                 }
@@ -344,7 +327,7 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-            this.Runtime.NotifyInvokedAction(this, action, ReceivedEvent);
+            this.Runtime.NotifyInvokedAction(this, action, this.ReceivedEvent);
             this.ExecuteAction(action);
         }
 
@@ -418,11 +401,15 @@ namespace Microsoft.PSharp
             }
             catch (ExecutionCanceledException ex)
             {
+#pragma warning disable CA2200 // Rethrow to preserve stack details.
                 throw ex;
+#pragma warning restore CA2200 // Rethrow to preserve stack details.
             }
             catch (TaskSchedulerException ex)
             {
+#pragma warning disable CA2200 // Rethrow to preserve stack details.
                 throw ex;
+#pragma warning restore CA2200 // Rethrow to preserve stack details.
             }
             catch (Exception ex)
             {
@@ -478,7 +465,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if the state has a default handler.
         /// </summary>
-        /// <returns></returns>
         private bool HasDefaultHandler()
         {
             if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
@@ -489,10 +475,6 @@ namespace Microsoft.PSharp
 
             return false;
         }
-
-        #endregion
-
-        #region liveness checking
 
         /// <summary>
         /// Checks the liveness temperature of the monitor and report
@@ -505,10 +487,10 @@ namespace Microsoft.PSharp
                 this.Runtime.Configuration.LivenessTemperatureThreshold > 0)
             {
                 this.LivenessTemperature++;
-                this.Runtime.Assert(this.LivenessTemperature <= this.Runtime.
+                this.Runtime.Assert(
+                    this.LivenessTemperature <= this.Runtime.
                     Configuration.LivenessTemperatureThreshold,
-                    $"Monitor '{this.GetType().Name}' detected potential liveness " +
-                    $"bug in hot state '{this.CurrentStateName}'.");
+                    $"Monitor '{this.GetType().Name}' detected potential liveness bug in hot state '{this.CurrentStateName}'.");
             }
         }
 
@@ -517,11 +499,13 @@ namespace Microsoft.PSharp
         /// a potential liveness bug if the temperature passes the
         /// specified threshold. Only works in a liveness monitor.
         /// </summary>
+        /// <param name="livenessTemperature">The liveness temperature.</param>
         internal void CheckLivenessTemperature(int livenessTemperature)
         {
             if (livenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
             {
-                this.Runtime.Assert(livenessTemperature <= this.Runtime.Configuration.LivenessTemperatureThreshold,
+                this.Runtime.Assert(
+                    livenessTemperature <= this.Runtime.Configuration.LivenessTemperatureThreshold,
                     $"Monitor '{this.GetType().Name}' detected infinite execution that violates a liveness property.");
             }
         }
@@ -568,14 +552,9 @@ namespace Microsoft.PSharp
             return this.State.IsCold;
         }
 
-        #endregion
-
-        #region generic public and override methods
-
         /// <summary>
         /// Returns the hashed state of this monitor.
         /// </summary>
-        /// <returns></returns>
         protected virtual int GetHashedState()
         {
             return 0;
@@ -591,11 +570,11 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash * 31 + this.GetType().GetHashCode();
-                hash = hash * 31 + this.CurrentState.GetHashCode();
+                hash = (hash * 31) + this.GetType().GetHashCode();
+                hash = (hash * 31) + this.CurrentState.GetHashCode();
 
                 // Adds the user-defined hashed state.
-                hash = hash * 31 + this.GetHashedState();
+                hash = (hash * 31) + this.GetHashedState();
 
                 return hash;
             }
@@ -609,10 +588,6 @@ namespace Microsoft.PSharp
         {
             return this.GetType().Name;
         }
-
-        #endregion
-
-        #region initialization
 
         /// <summary>
         /// Transitions to the start state, and executes the
@@ -686,11 +661,11 @@ namespace Microsoft.PSharp
 
                     state.InitializeState();
 
-                    this.Assert((state.IsCold && !state.IsHot) ||
+                    this.Assert(
+                        (state.IsCold && !state.IsHot) ||
                         (!state.IsCold && state.IsHot) ||
                         (!state.IsCold && !state.IsHot),
-                        $"State '{type.FullName}' of monitor '{this.Id}' " +
-                        "cannot be both cold and hot.");
+                        $"State '{type.FullName}' of monitor '{this.Id}' cannot be both cold and hot.");
 
                     StateMap[monitorType].Add(state);
                 }
@@ -704,14 +679,16 @@ namespace Microsoft.PSharp
                     if (state.EntryAction != null &&
                         !MonitorActionMap[monitorType].ContainsKey(state.EntryAction))
                     {
-                        MonitorActionMap[monitorType].Add(state.EntryAction,
+                        MonitorActionMap[monitorType].Add(
+                            state.EntryAction,
                             this.GetActionWithName(state.EntryAction));
                     }
 
                     if (state.ExitAction != null &&
                         !MonitorActionMap[monitorType].ContainsKey(state.ExitAction))
                     {
-                        MonitorActionMap[monitorType].Add(state.ExitAction,
+                        MonitorActionMap[monitorType].Add(
+                            state.ExitAction,
                             this.GetActionWithName(state.ExitAction));
                     }
 
@@ -720,7 +697,8 @@ namespace Microsoft.PSharp
                         if (transition.Value.Lambda != null &&
                             !MonitorActionMap[monitorType].ContainsKey(transition.Value.Lambda))
                         {
-                            MonitorActionMap[monitorType].Add(transition.Value.Lambda,
+                            MonitorActionMap[monitorType].Add(
+                                transition.Value.Lambda,
                                 this.GetActionWithName(transition.Value.Lambda));
                         }
                     }
@@ -729,7 +707,8 @@ namespace Microsoft.PSharp
                     {
                         if (!MonitorActionMap[monitorType].ContainsKey(action.Value.Name))
                         {
-                            MonitorActionMap[monitorType].Add(action.Value.Name,
+                            MonitorActionMap[monitorType].Add(
+                                action.Value.Name,
                                 this.GetActionWithName(action.Value.Name));
                         }
                     }
@@ -744,8 +723,7 @@ namespace Microsoft.PSharp
 
             var initialStates = StateMap[monitorType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Monitor '{this.Id}' must declare a start state.");
-            this.Assert(initialStates.Count == 1, $"Monitor '{this.Id}' " +
-                "can not declare more than one start states.");
+            this.Assert(initialStates.Count == 1, $"Monitor '{this.Id}' can not declare more than one start states.");
 
             this.ConfigureStateTransitions(initialStates.Single());
             this.State = initialStates.Single();
@@ -777,9 +755,9 @@ namespace Microsoft.PSharp
                         BindingFlags.NonPublic | BindingFlags.Public |
                         BindingFlags.DeclaredOnly))
                     {
-                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
-                            t.IsSubclassOf(typeof(MonitorState)), $"'{t.Name}' " +
-                            $"is neither a group of states nor a state.");
+                        this.Assert(
+                            t.IsSubclassOf(typeof(StateGroup)) ||
+                            t.IsSubclassOf(typeof(MonitorState)), $"'{t.Name}' is neither a group of states nor a state.");
                         stack.Push(t);
                     }
                 }
@@ -797,10 +775,6 @@ namespace Microsoft.PSharp
             this.IgnoredEvents = state.IgnoredEvents;
         }
 
-        #endregion
-
-        #region utilities
-
         /// <summary>
         /// Returns the action with the specified name.
         /// </summary>
@@ -813,37 +787,30 @@ namespace Microsoft.PSharp
 
             do
             {
-                method = monitorType.GetMethod(actionName,
-                    BindingFlags.Public | BindingFlags.NonPublic |
-                    BindingFlags.Instance | BindingFlags.FlattenHierarchy,
-                    Type.DefaultBinder, new Type[0], null);
+                method = monitorType.GetMethod(
+                    actionName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy,
+                    Type.DefaultBinder, Array.Empty<Type>(), null);
                 monitorType = monitorType.BaseType;
             }
             while (method == null && monitorType != typeof(Monitor));
 
-            this.Assert(method != null, "Cannot detect action declaration '{0}' " +
-                "in monitor '{1}'.", actionName, this.GetType().Name);
-            this.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor " +
-                "'{1}' must have 0 formal parameters.", method.Name, this.GetType().Name);
-            this.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor " +
-                "'{1}' must have 'void' return type.", method.Name, this.GetType().Name);
+            this.Assert(method != null, "Cannot detect action declaration '{0}' in monitor '{1}'.", actionName, this.GetType().Name);
+            this.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor '{1}' must have 0 formal parameters.",
+                method.Name, this.GetType().Name);
+            this.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor '{1}' must have 'void' return type.",
+                method.Name, this.GetType().Name);
 
             return method;
         }
-
-        #endregion
-
-        #region error checking
 
         /// <summary>
         /// Check monitor for state related errors.
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Monitor '{this.GetType().Name}' " +
-                "must have one or more states.\n");
-            this.Assert(this.State != null, $"Monitor '{this.GetType().Name}' " +
-                "must not have a null current state.\n");
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Monitor '{this.GetType().Name}' must have one or more states.\n");
+            this.Assert(this.State != null, $"Monitor '{this.GetType().Name}' must not have a null current state.\n");
         }
 
         /// <summary>
@@ -862,10 +829,6 @@ namespace Microsoft.PSharp
                 $"The stack trace is:\n{ex.StackTrace}");
         }
 
-        #endregion
-
-        #region code coverage methods
-
         /// <summary>
         /// Returns the set of all states in the monitor
         /// (for code coverage).
@@ -873,7 +836,8 @@ namespace Microsoft.PSharp
         /// <returns>Set of all states in the monitor</returns>
         internal HashSet<string> GetAllStates()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()),
+            this.Assert(
+                StateMap.ContainsKey(this.GetType()),
                 $"Monitor '{this.Id}' hasn't populated its states yet.");
 
             var allStates = new HashSet<string>();
@@ -892,7 +856,8 @@ namespace Microsoft.PSharp
         /// <returns>Set of all (states, registered event) pairs in the monitor</returns>
         internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()),
+            this.Assert(
+                StateMap.ContainsKey(this.GetType()),
                 $"Monitor '{this.Id}' hasn't populated its states yet.");
 
             var pairs = new HashSet<Tuple<string, string>>();
@@ -912,10 +877,6 @@ namespace Microsoft.PSharp
             return pairs;
         }
 
-        #endregion
-
-        #region cleanup methods
-
         /// <summary>
         /// Resets the static caches.
         /// </summary>
@@ -925,7 +886,5 @@ namespace Microsoft.PSharp
             StateMap.Clear();
             MonitorActionMap.Clear();
         }
-
-        #endregion
     }
 }

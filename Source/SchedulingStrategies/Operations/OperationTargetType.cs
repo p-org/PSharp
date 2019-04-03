@@ -16,6 +16,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// act upon an <see cref="ISchedulable"/>.
         /// </summary>
         Schedulable = 0,
+
         /// <summary>
         /// The target of the operation is the inbox of an <see cref="ISchedulable"/>.
         /// For example, 'Send' and 'Receive' are operations that act upon the

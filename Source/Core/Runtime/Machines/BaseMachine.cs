@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Runtime
         /// <param name="info">MachineInfo</param>
         internal void Initialize(PSharpRuntime runtime, MachineId mid, MachineInfo info)
         {
-            this.Runtime = mid.Runtime;
+            this.Runtime = runtime;
             this.Id = mid;
             this.Info = info;
         }

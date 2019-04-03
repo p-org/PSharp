@@ -13,15 +13,14 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// Value.
         /// </summary>
-        public int Value;
+        internal int Value;
 
         /// <summary>
-        /// Creates a new response event.
+        /// Initializes a new instance of the <see cref="SharedCounterResponseEvent"/> class.
         /// </summary>
-        /// <param name="value">Value</param>
-        public SharedCounterResponseEvent(int value)
+        internal SharedCounterResponseEvent(int value)
         {
-            Value = value;
+            this.Value = value;
         }
     }
 }

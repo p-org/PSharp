@@ -13,18 +13,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public GotoStateTopLevelActionFailTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         public enum ErrorType
         {
-            CALL_GOTO,
-            CALL_PUSH,
-            CALL_RAISE,
-            CALL_SEND,
-            ON_EXIT
-        };
+            CallGoto,
+            CallPush,
+            CallRaise,
+            CallSend,
+            OnExit
+        }
 
-        class Configure : Event
+        private class Configure : Event
         {
             public ErrorType ErrorTypeVal;
 
@@ -34,104 +35,117 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class E : Event { }
+        private class E : Event
+        {
+        }
 
-        class Program : Machine
+        private class Program : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnExit(nameof(ExitMethod))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var errorType = (this.ReceivedEvent as Configure).ErrorTypeVal;
                 this.Foo();
-                switch(errorType)
+                switch (errorType)
                 {
-                    case ErrorType.CALL_GOTO:
+                    case ErrorType.CallGoto:
                         this.Goto<Done>();
                         break;
-                    case ErrorType.CALL_PUSH:
+                    case ErrorType.CallPush:
                         this.Push<Done>();
                         break;
-                    case ErrorType.CALL_RAISE:
+                    case ErrorType.CallRaise:
                         this.Raise(new E());
                         break;
-                    case ErrorType.CALL_SEND:
-                        this.Send(Id, new E());
+                    case ErrorType.CallSend:
+                        this.Send(this.Id, new E());
                         break;
-                    case ErrorType.ON_EXIT:
+                    case ErrorType.OnExit:
+                        break;
+                    default:
                         break;
                 }
             }
 
-            void ExitMethod()
+            private void ExitMethod()
             {
                 this.Pop();
             }
 
-            void Foo()
+            private void Foo()
             {
                 this.Goto<Done>();
             }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestGotoStateTopLevelActionFail1()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_GOTO));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(Program), new Configure(ErrorType.CallGoto));
             });
 
             var bugReport = "Machine 'Program()' has called multiple raise, goto, push or pop in the same action.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
         public void TestGotoStateTopLevelActionFail2()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_RAISE));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(Program), new Configure(ErrorType.CallRaise));
             });
 
             var bugReport = "Machine 'Program()' has called multiple raise, goto, push or pop in the same action.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
         public void TestGotoStateTopLevelActionFail3()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_SEND));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(Program), new Configure(ErrorType.CallSend));
             });
 
             var bugReport = "Machine 'Program()' cannot call 'Send' after calling raise, goto, push or pop in the same action.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
         public void TestGotoStateTopLevelActionFail4()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program), new Configure(ErrorType.ON_EXIT));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(Program), new Configure(ErrorType.OnExit));
             });
 
             var bugReport = "Machine 'Program()' has called raise, goto, push or pop inside an OnExit method.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
 
         [Fact]
         public void TestGotoStateTopLevelActionFail5()
         {
-            var test = new Action<PSharpRuntime>((r) => {
-                r.CreateMachine(typeof(Program), new Configure(ErrorType.CALL_PUSH));
+            var test = new Action<PSharpRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(Program), new Configure(ErrorType.CallPush));
             });
 
             var bugReport = "Machine 'Program()' has called multiple raise, goto, push or pop in the same action.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
     }
 }

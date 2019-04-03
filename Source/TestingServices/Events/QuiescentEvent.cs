@@ -16,16 +16,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The id of the machine that has reached quiescence.
         /// </summary>
-        public MachineId mid;
+        public MachineId MachineId;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="QuiescentEvent"/> class.
+        /// Initializes a new instance of the <see cref="QuiescentEvent"/> class.
         /// </summary>
         /// <param name="mid">The id of the machine that has reached quiescence.</param>
         public QuiescentEvent(MachineId mid)
             : base()
         {
-            this.mid = mid;
+            this.MachineId = mid;
         }
     }
 }

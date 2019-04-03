@@ -14,17 +14,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SendAndExecuteTest2(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E1 : Event { }
+        private class E1 : Event
+        {
+        }
 
-        class A : Machine
+        private class A : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var b = this.CreateMachine(typeof(B));
                 var handled = await this.Runtime.SendEventAndExecute(b, new E1());
@@ -32,26 +37,29 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class B : Machine
+        private class B : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 await this.Receive(typeof(E1));
             }
-
         }
 
-        class C : Machine
+        private class C : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var d = this.CreateMachine(typeof(D));
                 var handled = await this.Runtime.SendEventAndExecute(d, new E1());
@@ -59,21 +67,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class D : Machine
+        private class D : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E1), nameof(Handle))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send(this.Id, new E1());
             }
 
-            void Handle()
+            private void Handle()
             {
-
             }
         }
 
@@ -81,22 +90,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
         public void TestSyncSendToReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(A));
             });
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
 
         [Fact]
         public void TestSyncSendSometimesDoesNotHandle()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(C));
             });
 
-            base.AssertFailed(config, test, 1, true);
+            this.AssertFailed(config, test, 1, true);
         }
     }
 }

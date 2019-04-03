@@ -12,31 +12,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class RewritingEngine
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
-
-        #endregion
-
-        #region public API
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// Creates a P# rewriting engine.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <returns>RewritingEngine</returns>
-        public static RewritingEngine Create(CompilationContext context)
-        {
-            return new RewritingEngine(context);
-        }
+        public static RewritingEngine Create(CompilationContext context) => new RewritingEngine(context);
 
         /// <summary>
         /// Runs the P# rewriting engine.
         /// </summary>
-        /// <returns>RewritingEngine</returns>
         public RewritingEngine Run()
         {
             // Rewrite the projects for the active compilation target.
@@ -48,19 +36,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             return this;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RewritingEngine"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
         private RewritingEngine(CompilationContext context)
         {
             this.CompilationContext = context;
         }
-
-        #endregion
     }
 }

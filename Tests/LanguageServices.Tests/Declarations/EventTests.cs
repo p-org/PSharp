@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class EventTests
     {
-        #region correct tests
-
         [Fact]
         public void TestEventDeclaration()
         {
@@ -310,10 +308,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestProtectedEventDeclaration()
         {
@@ -388,7 +382,5 @@ protected event e;
 }";
             LanguageTestUtilities.AssertFailedTestLog("An event cannot be declared as protected.", test);
         }
-
-        #endregion
     }
 }

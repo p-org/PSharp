@@ -12,28 +12,10 @@ namespace Microsoft.PSharp.IO
     /// </summary>
     public static class Debug
     {
-        #region fields
-
         /// <summary>
         /// Checks if debugging is enabled.
         /// </summary>
-        internal static bool IsEnabled;
-
-        #endregion
-
-        #region constructors
-
-        /// <summary>
-        /// Static constructor.
-        /// </summary>
-        static Debug()
-        {
-            IsEnabled = false;
-        }
-
-        #endregion
-
-        #region methods
+        internal static bool IsEnabled = false;
 
         /// <summary>
         /// Writes the debugging information to the output stream. The
@@ -65,7 +47,5 @@ namespace Microsoft.PSharp.IO
                 Console.WriteLine(message);
             }
         }
-
-        #endregion
     }
 }

@@ -16,10 +16,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// <summary>
     /// Utility class to qualify type names, for typeof(Type) or Goto&lt;Type&gt;().
     /// </summary>
-    class TypeNameQualifier
+    internal class TypeNameQualifier
     {
-        #region fields
-
         /// <summary>
         /// Set of all qualified state names in the current machine.
         /// </summary>
@@ -35,10 +33,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// Set of rewritten qualified methods.
         /// </summary>
         internal HashSet<QualifiedMethod> RewrittenQualifiedMethods = new HashSet<QualifiedMethod>();
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Returns a fully-qualified name for the type inside the syntax node.
@@ -85,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 val.MachineName.Equals(classdecl.Identifier.ValueText) &&
                 val.NamespaceName.Equals(namespacedecl.Name.ToString())).ToList();
 
-            // Must be unique. 
+            // Must be unique.
             if (rewrittenMethods.Count == 0)
             {
                 return false;
@@ -94,11 +88,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             if (rewrittenMethods.Count > 1)
             {
                 throw new RewritingException(
-                    string.Format("Multiple definitions of the same method {0} in namespace {1}, machine {2}",
+                    string.Format(
+                        "Multiple definitions of the same method {0} in namespace {1}, machine {2}",
                       methoddecl.Identifier.ValueText,
                       namespacedecl.Name.ToString(),
-                      classdecl.Identifier.ValueText)
-                      );
+                      classdecl.Identifier.ValueText));
             }
 
             var rewrittenMethod = rewrittenMethods.First();
@@ -107,10 +101,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.CurrentQualifiedStateName.AddRange(rewrittenMethod.QualifiedStateName);
             return true;
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Given a partially-qualified state name, return the
@@ -121,7 +111,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private string GetFullyQualifiedStateName(string state)
         {
             if (this.CurrentQualifiedStateName.Count < 1 ||
-                CurrentAllQualifiedStateNames.Count == 0)
+                this.CurrentAllQualifiedStateNames.Count == 0)
             {
                 return state;
             }
@@ -160,9 +150,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>Qualified name</returns>
         private string FromTokens(List<string> state)
         {
-            return state.Aggregate("", (acc, name) => acc == "" ? name : acc + "." + name);
+            return state.Aggregate(string.Empty, (acc, name) => string.IsNullOrEmpty(acc) ? name : acc + "." + name);
         }
-
-        #endregion
     }
 }

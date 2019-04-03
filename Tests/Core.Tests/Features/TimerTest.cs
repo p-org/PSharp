@@ -16,9 +16,10 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public TimerTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class SetupEvent : Event
+        private class SetupEvent : Event
         {
             public TaskCompletionSource<bool> Tcs;
 
@@ -28,31 +29,33 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class TransferTimerEvent : Event
+        private class TransferTimerEvent : Event
         {
             public TaskCompletionSource<bool> Tcs;
             public TimerInfo Timer;
 
-            public TransferTimerEvent(TaskCompletionSource<bool> Tcs, TimerInfo timer)
+            public TransferTimerEvent(TaskCompletionSource<bool> tcs, TimerInfo timer)
             {
-                this.Tcs = Tcs;
+                this.Tcs = tcs;
                 this.Timer = timer;
             }
         }
 
-        class T1 : Machine
+        private class T1 : Machine
         {
-            TaskCompletionSource<bool> Tcs;
+            private TaskCompletionSource<bool> Tcs;
 
-            TimerInfo Timer;
-            int Count;
+            private TimerInfo Timer;
+            private int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 this.Count = 0;
@@ -61,7 +64,7 @@ namespace Microsoft.PSharp.Core.Tests
                 this.Timer = this.StartTimer(TimeSpan.FromMilliseconds(10));
             }
 
-            void HandleTimeout()
+            private void HandleTimeout()
             {
                 this.Count++;
                 if (this.Count == 1)
@@ -76,19 +79,21 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class T2 : Machine
+        private class T2 : Machine
         {
-            TaskCompletionSource<bool> Tcs;
+            private TaskCompletionSource<bool> Tcs;
 
-            TimerInfo Timer;
-            int Count;
+            private TimerInfo Timer;
+            private int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 this.Count = 0;
@@ -97,7 +102,7 @@ namespace Microsoft.PSharp.Core.Tests
                 this.Timer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(10));
             }
 
-            void HandleTimeout()
+            private void HandleTimeout()
             {
                 this.Count++;
                 if (this.Count == 10)
@@ -109,12 +114,12 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class T3 : Machine
+        private class T3 : Machine
         {
-            TaskCompletionSource<bool> Tcs;
+            private TaskCompletionSource<bool> Tcs;
 
-            TimerInfo PingTimer;
-            TimerInfo PongTimer;
+            private TimerInfo PingTimer;
+            private TimerInfo PongTimer;
 
             /// <summary>
             /// Start the PingTimer and start handling the timeout events from it.
@@ -123,7 +128,9 @@ namespace Microsoft.PSharp.Core.Tests
             [Start]
             [OnEntry(nameof(DoPing))]
             [IgnoreEvents(typeof(TimerElapsedEvent))]
-            class Ping : MachineState { }
+            private class Ping : MachineState
+            {
+            }
 
             /// <summary>
             /// Start the PongTimer and start handling the timeout events from it.
@@ -131,7 +138,9 @@ namespace Microsoft.PSharp.Core.Tests
             /// </summary>
             [OnEntry(nameof(DoPong))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Pong : MachineState { }
+            private class Pong : MachineState
+            {
+            }
 
             private async Task DoPing()
             {
@@ -151,7 +160,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void HandleTimeout()
             {
-                var timeout = (this.ReceivedEvent as TimerElapsedEvent);
+                var timeout = this.ReceivedEvent as TimerElapsedEvent;
                 if (timeout.Info == this.PongTimer)
                 {
                     this.Tcs.SetResult(true);
@@ -165,13 +174,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class T4 : Machine
+        private class T4 : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
 
@@ -192,13 +203,15 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        class T5 : Machine
+        private class T5 : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
 
@@ -222,66 +235,71 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestBasicTimerOperation()
         {
-            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T1), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(configuration, test);
+            this.Run(configuration, test);
         }
 
         [Fact]
         public void TestBasicPeriodicTimerOperation()
         {
-            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T2), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(configuration, test);
+            this.Run(configuration, test);
         }
 
         [Fact]
         public void TestDropTimeoutsAfterTimerDisposal()
         {
-            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T3), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(configuration, test);
+            this.Run(configuration, test);
         }
 
         [Fact]
         public void TestIllegalDueTimeSpecification()
         {
-            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T4), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(configuration, test);
+            this.Run(configuration, test);
         }
 
         [Fact]
         public void TestIllegalPeriodSpecification()
         {
-            var configuration = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T5), new SetupEvent(tcs));
                 Assert.True(tcs.Task.Result);
             });
 
-            base.Run(configuration, test);
+            this.Run(configuration, test);
         }
     }
 }

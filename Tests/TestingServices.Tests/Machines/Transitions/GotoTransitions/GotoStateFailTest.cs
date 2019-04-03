@@ -13,48 +13,58 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public GotoStateFailTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Program : Machine
+        private class Program : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 // This line no longer builds after converting from Goto(typeof(T)) to Goto<T>()
                 // due to the "where T: MachineState" constraint on Goto<T>().
-                //this.Goto<object>();
+                // this.Goto<object>();
 
                 // Added a different failure mode here; try to Goto a state from another machine.
                 this.Goto<Program2.Done>();
             }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
-        class Program2 : Machine
+        private class Program2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
             }
 
-            internal class Done : MachineState { }
+            private void InitOnEntry()
+            {
+            }
+
+            internal class Done : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestGotoStateFail()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Program));
             });
 
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
     }
 }

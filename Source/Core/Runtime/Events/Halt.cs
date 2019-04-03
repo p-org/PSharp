@@ -14,12 +14,11 @@ namespace Microsoft.PSharp
     public sealed class Halt : Event
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Halt"/> class.
         /// </summary>
         public Halt()
             : base()
         {
-            
         }
     }
 }

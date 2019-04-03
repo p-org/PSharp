@@ -3,16 +3,17 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.LanguageServices.Syntax;
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
+using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -21,8 +22,6 @@ namespace Microsoft.PSharp.LanguageServices
     /// </summary>
     public sealed class PSharpProgram : AbstractPSharpProgram
     {
-        #region fields
-        
         /// <summary>
         /// List of using declarations.
         /// </summary>
@@ -33,15 +32,9 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         internal List<NamespaceDeclaration> NamespaceDeclarations;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PSharpProgram"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="tree">SyntaxTree</param>
         public PSharpProgram(PSharpProject project, SyntaxTree tree)
             : base(project, tree)
         {
@@ -55,7 +48,7 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             // Perform sanity checking on the P# program.
-            BasicTypeChecking();
+            this.BasicTypeChecking();
 
             var text = string.Empty;
             const int indentLevel = 0;
@@ -75,7 +68,7 @@ namespace Microsoft.PSharp.LanguageServices
                 newLine = "\n";
             }
 
-            base.UpdateSyntaxTree(text);
+            this.UpdateSyntaxTree(text);
 
             this.RewriteTypes();
             this.RewriteStatements();
@@ -85,13 +78,9 @@ namespace Microsoft.PSharp.LanguageServices
 
             if (Debug.IsEnabled)
             {
-                base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
+                CompilationContext.PrintSyntaxTree(this.GetSyntaxTree());
             }
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the P# types to C#.
@@ -139,28 +128,27 @@ namespace Microsoft.PSharp.LanguageServices
         private void InsertLibraries()
         {
             var list = new List<UsingDirectiveSyntax>();
-            var otherUsings = base.GetSyntaxTree().GetCompilationUnitRoot().Usings;
-            var psharpLib = base.CreateLibrary("Microsoft.PSharp");
-            
+            var otherUsings = this.GetSyntaxTree().GetCompilationUnitRoot().Usings;
+            var psharpLib = CreateLibrary("Microsoft.PSharp");
+
             list.Add(psharpLib);
             list.AddRange(otherUsings);
 
             // Add an additional newline to the last 'using' to separate from the namespace.
             list[list.Count - 1] = list.Last().WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n\n")));
 
-            var root = base.GetSyntaxTree().GetCompilationUnitRoot()
+            var root = this.GetSyntaxTree().GetCompilationUnitRoot()
                 .WithUsings(SyntaxFactory.List(list));
-            base.UpdateSyntaxTree(root.SyntaxTree.ToString());
+            this.UpdateSyntaxTree(root.SyntaxTree.ToString());
         }
 
         /// <summary>
         /// Resolves and returns the rewritten qualified methods of this program.
         /// </summary>
-        /// <returns>QualifiedMethods</returns>
         private HashSet<QualifiedMethod> GetResolvedRewrittenQualifiedMethods()
         {
             var qualifiedMethods = new HashSet<QualifiedMethod>();
-            foreach (var ns in NamespaceDeclarations)
+            foreach (var ns in this.NamespaceDeclarations)
             {
                 foreach (var machine in ns.MachineDeclarations)
                 {
@@ -184,10 +172,9 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Perform basic type checking of the P# program.
         /// </summary>
-        /// <returns>QualifiedMethods</returns>
         private void BasicTypeChecking()
         {
-            foreach (var nspace in NamespaceDeclarations)
+            foreach (var nspace in this.NamespaceDeclarations)
             {
                 foreach (var machine in nspace.MachineDeclarations)
                 {
@@ -195,6 +182,5 @@ namespace Microsoft.PSharp.LanguageServices
                 }
             }
         }
-        #endregion
     }
 }

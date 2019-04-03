@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public AccessInVirtualMethodTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestAccessInVirtualMethod()
@@ -78,7 +79,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -147,7 +148,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -224,7 +225,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -297,7 +298,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -379,7 +380,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -466,7 +467,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -554,7 +555,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -647,7 +648,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -743,7 +744,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -839,9 +840,9 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
     }
 }

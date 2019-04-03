@@ -43,32 +43,26 @@ namespace Microsoft.PSharp.TestingServices
 #endif
 
         /// <summary>
-        /// Returns (and creates if it does not exist) the output
-        /// directory with an optional suffix.
+        /// Returns (and creates if it does not exist) the output directory with an optional suffix.
         /// </summary>
-        /// <param name="assemblyPath">Path of input assembly</param>
-        /// <param name="userOutputDir">User-provided output path</param>
-        /// <param name="suffix">Optional suffix</param>
-        /// <param name="createDir">if true, create the directory</param>
-        /// <returns>Path</returns>
         internal static string GetOutputDirectory(string userOutputDir, string assemblyPath, string suffix = "", bool createDir = true)
         {
             string directoryPath;
 
-            if (userOutputDir != "")
+            if (!string.IsNullOrEmpty(userOutputDir))
             {
                 directoryPath = userOutputDir + Path.DirectorySeparatorChar;
             }
             else
             {
                 var subpath = Path.GetDirectoryName(assemblyPath);
-                if (subpath == "")
+                if (subpath.Length == 0)
                 {
                     subpath = ".";
                 }
 
                 directoryPath = subpath +
-                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar + 
+                    Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar +
                     Path.GetFileName(assemblyPath) + Path.DirectorySeparatorChar;
             }
 
@@ -81,6 +75,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Directory.CreateDirectory(directoryPath);
             }
+
             return directoryPath;
         }
 

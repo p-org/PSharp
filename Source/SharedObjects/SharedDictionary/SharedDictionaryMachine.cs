@@ -11,12 +11,12 @@ namespace Microsoft.PSharp.SharedObjects
     /// <summary>
     /// A shared dictionary modeled using a state-machine for testing.
     /// </summary>
-    internal sealed class SharedDictionaryMachine<TKey, TValue> : Machine 
+    internal sealed class SharedDictionaryMachine<TKey, TValue> : Machine
     {
         /// <summary>
         /// The internal shared dictionary.
         /// </summary>
-        Dictionary<TKey, TValue> Dictionary;
+        private Dictionary<TKey, TValue> Dictionary;
 
         /// <summary>
         /// The start state of this machine.
@@ -24,106 +24,108 @@ namespace Microsoft.PSharp.SharedObjects
         [Start]
         [OnEntry(nameof(Initialize))]
         [OnEventDoAction(typeof(SharedDictionaryEvent), nameof(ProcessEvent))]
-        class Init : MachineState { }
+        private class Init : MachineState
+        {
+        }
 
         /// <summary>
         /// Initializes the machine.
         /// </summary>
-        void Initialize()
+        private void Initialize()
         {
-            var e = (ReceivedEvent as SharedDictionaryEvent);
-
-            if (e == null)
+            if (this.ReceivedEvent is SharedDictionaryEvent e)
             {
-                Dictionary = new Dictionary<TKey, TValue>();
-                return;
-            }
-
-            if (e.Operation == SharedDictionaryEvent.SharedDictionaryOperation.INIT && e.Comparer != null)
-            {
-                Dictionary = new Dictionary<TKey, TValue>(e.Comparer as IEqualityComparer<TKey>);
+                if (e.Operation == SharedDictionaryEvent.SharedDictionaryOperation.INIT && e.Comparer != null)
+                {
+                    this.Dictionary = new Dictionary<TKey, TValue>(e.Comparer as IEqualityComparer<TKey>);
+                }
+                else
+                {
+                    throw new ArgumentException("Incorrect arguments provided to SharedDictionary.");
+                }
             }
             else
             {
-                throw new ArgumentException("Incorrect arguments provided to SharedDictionary.");
+                this.Dictionary = new Dictionary<TKey, TValue>();
             }
         }
 
         /// <summary>
         /// Processes the next dequeued event.
         /// </summary>
-        void ProcessEvent()
+        private void ProcessEvent()
         {
-            var e = ReceivedEvent as SharedDictionaryEvent;
+            var e = this.ReceivedEvent as SharedDictionaryEvent;
             switch (e.Operation)
             {
                 case SharedDictionaryEvent.SharedDictionaryOperation.TRYADD:
-                    if (Dictionary.ContainsKey((TKey)e.Key))
+                    if (this.Dictionary.ContainsKey((TKey)e.Key))
                     {
-                        Send(e.Sender, new SharedDictionaryResponseEvent<bool>(false));
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<bool>(false));
                     }
                     else
                     {
-                        Dictionary[(TKey)e.Key] = (TValue)e.Value;
-                        Send(e.Sender, new SharedDictionaryResponseEvent<bool>(true));
+                        this.Dictionary[(TKey)e.Key] = (TValue)e.Value;
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<bool>(true));
                     }
 
                     break;
 
                 case SharedDictionaryEvent.SharedDictionaryOperation.TRYUPDATE:
-                    if (!Dictionary.ContainsKey((TKey)e.Key))
+                    if (!this.Dictionary.ContainsKey((TKey)e.Key))
                     {
-                        Send(e.Sender, new SharedDictionaryResponseEvent<bool>(false));
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<bool>(false));
                     }
                     else
                     {
-                        var currentValue = Dictionary[(TKey)e.Key];
+                        var currentValue = this.Dictionary[(TKey)e.Key];
                         if (currentValue.Equals((TValue)e.ComparisonValue))
                         {
-                            Dictionary[(TKey)e.Key] = (TValue)e.Value;
-                            Send(e.Sender, new SharedDictionaryResponseEvent<bool>(true));
+                            this.Dictionary[(TKey)e.Key] = (TValue)e.Value;
+                            this.Send(e.Sender, new SharedDictionaryResponseEvent<bool>(true));
                         }
                         else
                         {
-                            Send(e.Sender, new SharedDictionaryResponseEvent<bool>(false));
+                            this.Send(e.Sender, new SharedDictionaryResponseEvent<bool>(false));
                         }
                     }
 
                     break;
 
                 case SharedDictionaryEvent.SharedDictionaryOperation.TRYGET:
-                    if (!Dictionary.ContainsKey((TKey)e.Key))
+                    if (!this.Dictionary.ContainsKey((TKey)e.Key))
                     {
-                        Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(false, default(TValue))));
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(false, default(TValue))));
                     }
                     else
                     {
-                        Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(true, Dictionary[(TKey)e.Key])));
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(true, this.Dictionary[(TKey)e.Key])));
                     }
+
                     break;
 
                 case SharedDictionaryEvent.SharedDictionaryOperation.GET:
-                    Send(e.Sender, new SharedDictionaryResponseEvent<TValue>(Dictionary[(TKey)e.Key]));
+                    this.Send(e.Sender, new SharedDictionaryResponseEvent<TValue>(this.Dictionary[(TKey)e.Key]));
                     break;
 
                 case SharedDictionaryEvent.SharedDictionaryOperation.SET:
-                    Dictionary[(TKey)e.Key] = (TValue)e.Value;
+                    this.Dictionary[(TKey)e.Key] = (TValue)e.Value;
                     break;
 
                 case SharedDictionaryEvent.SharedDictionaryOperation.COUNT:
-                    Send(e.Sender, new SharedDictionaryResponseEvent<int>(Dictionary.Count));
+                    this.Send(e.Sender, new SharedDictionaryResponseEvent<int>(this.Dictionary.Count));
                     break;
 
                 case SharedDictionaryEvent.SharedDictionaryOperation.TRYREMOVE:
-                    if (Dictionary.ContainsKey((TKey)e.Key))
+                    if (this.Dictionary.ContainsKey((TKey)e.Key))
                     {
-                        var Value = Dictionary[(TKey)e.Key];
-                        Dictionary.Remove((TKey)e.Key);
-                        Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(true, Value)));
+                        var value = this.Dictionary[(TKey)e.Key];
+                        this.Dictionary.Remove((TKey)e.Key);
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(true, value)));
                     }
                     else
                     {
-                        Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(false, default(TValue))));
+                        this.Send(e.Sender, new SharedDictionaryResponseEvent<Tuple<bool, TValue>>(Tuple.Create(false, default(TValue))));
                     }
 
                     break;

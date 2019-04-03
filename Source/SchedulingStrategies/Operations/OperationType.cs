@@ -15,47 +15,54 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// starts executing.
         /// </summary>
         Start = 0,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
         /// creates another <see cref="ISchedulable"/>.
         /// </summary>
         Create,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
         /// sends an event to a target <see cref="ISchedulable"/>.
         /// </summary>
         Send,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
         /// receives an event.
         /// </summary>
         Receive,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/>
         /// stops executing.
         /// </summary>
         Stop,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/> yields. This denotes
         /// that the current <see cref="ISchedulable"/> is not making progress. An
         /// unfair scheduler could disable these <see cref="ISchedulable"/> until
         /// quiescence, and then re-enable them.
-        /// 
+        ///
         /// This operation is not currently supported in P#.
         /// </summary>
         Yield,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/> wants to wait for
         /// quiescence. A scheduler could disable the <see cref="ISchedulable"/>
         /// until quiescence, and then re-enable it.
-        /// 
+        ///
         /// This operation is not currently supported in P#.
         /// </summary>
         WaitForQuiescence,
+
         /// <summary>
         /// Operation used when an <see cref="ISchedulable"/> wants to wait for
         /// another <see cref="ISchedulable"/> to <see cref="Stop"/>.
-        /// 
+        ///
         /// This operation is not currently supported in P#.
         /// </summary>
         Join

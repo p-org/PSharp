@@ -13,33 +13,38 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public EntryPointThrowExceptionTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestEntryPointThrowException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 MachineId m = r.CreateMachine(typeof(M));
                 throw new InvalidOperationException();
             });
 
-            base.AssertFailedWithException(test, typeof(InvalidOperationException), true);
+            this.AssertFailedWithException(test, typeof(InvalidOperationException), true);
         }
 
         [Fact]
         public void TestEntryPointNoMachinesThrowException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 throw new InvalidOperationException();
             });
 
-            base.AssertFailedWithException(test, typeof(InvalidOperationException), true);
+            this.AssertFailedWithException(test, typeof(InvalidOperationException), true);
         }
     }
 }

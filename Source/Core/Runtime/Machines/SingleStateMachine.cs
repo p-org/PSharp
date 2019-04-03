@@ -13,20 +13,24 @@ namespace Microsoft.PSharp
     public abstract class SingleStateMachine : Machine
     {
         [Start]
-        [OnEntry(nameof(_InitOnEntry))]
+        [OnEntry(nameof(HandleInitOnEntry))]
         [OnEventGotoState(typeof(Halt), typeof(Terminating))]
-        [OnEventDoAction(typeof(WildCardEvent), nameof(_ProcessEvent))]
-        sealed class Init : MachineState { }
+        [OnEventDoAction(typeof(WildCardEvent), nameof(HandleProcessEvent))]
+        private sealed class Init : MachineState
+        {
+        }
 
         [OnEntry(nameof(TerminatingOnEntry))]
-        sealed class Terminating : MachineState { }
+        private sealed class Terminating : MachineState
+        {
+        }
 
         /// <summary>
         /// Initilizes the state machine on creation.
         /// </summary>
-        private async Task _InitOnEntry()
+        private async Task HandleInitOnEntry()
         {
-            await InitOnEntry(this.ReceivedEvent);
+            await this.InitOnEntry(this.ReceivedEvent);
         }
 
         /// <summary>
@@ -38,9 +42,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Process incoming event.
         /// </summary>
-        private async Task _ProcessEvent()
+        private async Task HandleProcessEvent()
         {
-            await ProcessEvent(this.ReceivedEvent);
+            await this.ProcessEvent(this.ReceivedEvent);
         }
 
         /// <summary>

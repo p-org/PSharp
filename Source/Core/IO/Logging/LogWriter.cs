@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.IO
         private readonly ILogger Logger;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="LogWriter"/> class.
         /// </summary>
         /// <param name="logger">ILogger</param>
         internal LogWriter(ILogger logger)
@@ -169,7 +169,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine()
         {
-            this.Logger.WriteLine("");
+            this.Logger.WriteLine(string.Empty);
         }
 
         /// <summary>

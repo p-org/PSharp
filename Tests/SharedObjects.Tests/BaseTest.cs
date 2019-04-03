@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
         protected void AssertSucceeded(Action<PSharpRuntime> test)
         {
             var configuration = GetConfiguration();
-            AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         protected void AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
@@ -56,29 +56,29 @@ namespace Microsoft.PSharp.SharedObjects.Tests
         protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors);
+            this.AssertFailed(configuration, test, numExpectedErrors);
         }
 
         protected void AssertFailed(Action<PSharpRuntime> test, string expectedOutput)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
+            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
         }
 
         protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, expectedOutputs);
+            this.AssertFailed(configuration, test, numExpectedErrors, expectedOutputs);
         }
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors)
         {
-            AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>());
+            this.AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>());
         }
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, string expectedOutput)
         {
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
+            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput });
         }
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs)
@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        private void CheckErrors(ITestingEngine engine, int numExpectedErrors, ISet<string> expectedOutputs)
+        private static void CheckErrors(ITestingEngine engine, int numExpectedErrors, ISet<string> expectedOutputs)
         {
             var numErrors = engine.TestReport.NumOfFoundBugs;
             Assert.Equal(numExpectedErrors, numErrors);
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 var bugReports = new HashSet<string>();
                 foreach (var bugReport in engine.TestReport.BugReports)
                 {
-                    var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
+                    var actual = RemoveNonDeterministicValuesFromReport(bugReport);
                     bugReports.Add(actual);
                 }
 
@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
         protected void AssertFailedWithException(Action<PSharpRuntime> test, Type exceptionType)
         {
             var configuration = GetConfiguration();
-            AssertFailedWithException(configuration, test, exceptionType);
+            this.AssertFailedWithException(configuration, test, exceptionType);
         }
 
         protected void AssertFailedWithException(Configuration configuration, Action<PSharpRuntime> test, Type exceptionType)
@@ -175,22 +175,22 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        private void CheckErrors(ITestingEngine engine, Type exceptionType)
+        private static void CheckErrors(ITestingEngine engine, Type exceptionType)
         {
             var numErrors = engine.TestReport.NumOfFoundBugs;
             Assert.Equal(1, numErrors);
 
-            var exception = this.RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
+            var exception = RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
                 Split(new[] { '\r', '\n' }).FirstOrDefault();
             Assert.Contains("'" + exceptionType.ToString() + "'", exception);
         }
 
-        protected Configuration GetConfiguration()
+        protected static Configuration GetConfiguration()
         {
             return Configuration.Create();
         }
 
-        private string GetBugReport(ITestingEngine engine)
+        private static string GetBugReport(ITestingEngine engine)
         {
             string report = string.Empty;
             foreach (var bug in engine.TestReport.BugReports)
@@ -201,7 +201,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             return report;
         }
 
-        private string RemoveNonDeterministicValuesFromReport(string report)
+        private static string RemoveNonDeterministicValuesFromReport(string report)
         {
             var result = Regex.Replace(report, @"\'[0-9]+\'", "''");
             result = Regex.Replace(result, @"\([0-9]+\)", "()");

@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The value of the shared counter.
         /// </summary>
-        int Counter;
+        private int Counter;
 
         /// <summary>
         /// The start state of this machine.
@@ -21,48 +21,57 @@ namespace Microsoft.PSharp.SharedObjects
         [Start]
         [OnEntry(nameof(Initialize))]
         [OnEventDoAction(typeof(SharedCounterEvent), nameof(ProcessEvent))]
-        class Init : MachineState { }
+        private class Init : MachineState
+        {
+        }
 
         /// <summary>
         /// Initializes the machine.
         /// </summary>
-        void Initialize()
+        private void Initialize()
         {
-            Counter = 0;
+            this.Counter = 0;
         }
 
         /// <summary>
         /// Processes the next dequeued event.
         /// </summary>
-        void ProcessEvent()
+        private void ProcessEvent()
         {
             var e = this.ReceivedEvent as SharedCounterEvent;
             switch (e.Operation)
             {
-                case SharedCounterEvent.SharedCounterOperation.SET:                    
-                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
-                    Counter = e.Value;
+                case SharedCounterEvent.SharedCounterOperation.SET:
+                    this.Send(e.Sender, new SharedCounterResponseEvent(this.Counter));
+                    this.Counter = e.Value;
                     break;
+
                 case SharedCounterEvent.SharedCounterOperation.GET:
-                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
+                    this.Send(e.Sender, new SharedCounterResponseEvent(this.Counter));
                     break;
+
                 case SharedCounterEvent.SharedCounterOperation.INC:
-                    Counter++;
+                    this.Counter++;
                     break;
+
                 case SharedCounterEvent.SharedCounterOperation.DEC:
-                    Counter--;
+                    this.Counter--;
                     break;
+
                 case SharedCounterEvent.SharedCounterOperation.ADD:
-                    Counter += e.Value;
-                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
+                    this.Counter += e.Value;
+                    this.Send(e.Sender, new SharedCounterResponseEvent(this.Counter));
                     break;
+
                 case SharedCounterEvent.SharedCounterOperation.CAS:
-                    Send(e.Sender, new SharedCounterResponseEvent(Counter));
-                    if (Counter == e.Comparand)
+                    this.Send(e.Sender, new SharedCounterResponseEvent(this.Counter));
+                    if (this.Counter == e.Comparand)
                     {
-                        Counter = e.Value;
-                    }                    
+                        this.Counter = e.Value;
+                    }
+
                     break;
+
                 default:
                     throw new System.ArgumentOutOfRangeException("Unsupported SharedCounter operation: " + e.Operation);
             }

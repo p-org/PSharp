@@ -23,12 +23,12 @@ namespace Microsoft.PSharp
         public bool MustHandle;
 
         /// <summary>
-        /// Default options.
+        /// Initializes a new instance of the <see cref="SendOptions"/> class.
         /// </summary>
         public SendOptions()
         {
-            OperationGroupId = null;
-            MustHandle = false;
+            this.OperationGroupId = null;
+            this.MustHandle = false;
         }
 
         /// <summary>
@@ -36,15 +36,23 @@ namespace Microsoft.PSharp
         /// </summary>
         public override string ToString()
         {
-            return $"SendOptions[Guid='{OperationGroupId}', MustHandle='{MustHandle}']";
+            return $"SendOptions[Guid='{this.OperationGroupId}', MustHandle='{this.MustHandle}']";
         }
 
         /// <summary>
-        /// Implicit conversion from a Guid.
+        /// Implicit conversion from a <see cref="Guid"/>.
         /// </summary>
         public static implicit operator SendOptions(Guid operationGroupId)
         {
             return new SendOptions { OperationGroupId = operationGroupId };
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="SendOptions"/> from the specified <see cref="Guid"/>.
+        /// </summary>
+        public static SendOptions FromGuid(Guid operationGroupId)
+        {
+            return operationGroupId;
         }
     }
 }

@@ -3,15 +3,12 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
@@ -20,16 +17,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class MonitorRewriter : PSharpRewriter
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MonitorRewriter"/> class.
         /// </summary>
-        /// <param name="program">IPSharpProgram</param>
         internal MonitorRewriter(IPSharpProgram program)
             : base(program)
         {
-
         }
 
         /// <summary>
@@ -37,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
                 Where(val => val.Expression is GenericNameSyntax).
                 Where(val => (val.Expression as GenericNameSyntax).Identifier.ValueText.Equals("monitor")).
                 ToList();
@@ -47,23 +40,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return;
             }
 
-            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
 
-            base.UpdateSyntaxTree(root.ToString());
+            this.UpdateSyntaxTree(root.ToString());
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the statement with a monitor statement.
         /// </summary>
-        /// <param name="node">LocalDeclarationStatementSyntax</param>
-        /// <returns>StatementSyntax</returns>
-        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private static SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(node.ArgumentList.Arguments[0]);
@@ -92,7 +79,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return rewritten;
         }
-
-        #endregion
     }
 }

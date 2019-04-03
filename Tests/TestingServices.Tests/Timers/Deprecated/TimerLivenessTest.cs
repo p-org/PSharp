@@ -14,23 +14,28 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
     {
         public DeprecatedTimerLivenessTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class TimeoutReceivedEvent : Event { }
-
-        class Client : TimedMachine
         {
-            TimerId tid;
-            object payload = new object();
+        }
+
+        private class TimeoutReceivedEvent : Event
+        {
+        }
+
+        private class Client : TimedMachine
+        {
+            private TimerId tid;
+            private readonly object payload = new object();
 
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void Initialize()
             {
-                tid = StartTimer(payload, 10, false);
+                this.tid = this.StartTimer(this.payload, 10, false);
             }
 
             private void HandleTimeout()
@@ -39,31 +44,36 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(TimeoutReceivedEvent), typeof(TimeoutReceived))]
-            class NoTimeoutReceived : MonitorState { }
+            private class NoTimeoutReceived : MonitorState
+            {
+            }
 
             [Cold]
-            class TimeoutReceived : MonitorState { }
+            private class TimeoutReceived : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void PeriodicLivenessTest()
         {
-            var config = base.GetConfiguration();
+            var config = GetConfiguration();
             config.LivenessTemperatureThreshold = 150;
             config.MaxSchedulingSteps = 300;
             config.SchedulingIterations = 1000;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));
             });
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
     }
 }

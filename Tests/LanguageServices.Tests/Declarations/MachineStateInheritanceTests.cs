@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MachineStateInheritanceTests
     {
-        #region correct tests
-
         [Fact]
         public void TestAbstractBaseStateWithOnEventDeclaration()
         {
@@ -61,7 +59,7 @@ namespace Foo
         }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -124,7 +122,7 @@ namespace Foo
         }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -194,7 +192,7 @@ namespace Foo
         }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -267,7 +265,7 @@ namespace Foo
         }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -322,7 +320,7 @@ namespace Foo
         { this.Send(this.Id,new E3()); }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -389,7 +387,7 @@ namespace Foo
         }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -432,7 +430,7 @@ namespace Foo
         { await Task.Delay(42); }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -475,7 +473,7 @@ namespace Foo
         { this.Send(this.Id,new E1()); }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -518,7 +516,7 @@ namespace Foo
         { await Task.Delay(43); }
     }
 }";
-            AssertWithEntryExitReplacement(expected, test);
+            this.AssertWithEntryExitReplacement(expected, test);
         }
 
         [Fact]
@@ -559,11 +557,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestOnlyOneStartState()
         {
@@ -580,15 +573,12 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("A machine can declare only a single start state.", test);
         }
 
-        #endregion
-
-        #region utility methods
-        private string ReplaceEntryWithExitInTest(string test)
+        private static string ReplaceEntryWithExitInTest(string test)
         {
             return test.Replace("entry {", "exit {").Replace("entry{", "exit{");
         }
 
-        private string ReplaceEntryWithExitInExpected(string expected)
+        private static string ReplaceEntryWithExitInExpected(string expected)
         {
             return expected.Replace("OnEntry(", "OnExit(").Replace("_entry_", "_exit_");
         }
@@ -599,6 +589,5 @@ namespace Foo {
             LanguageTestUtilities.AssertRewritten(expected, test);
             LanguageTestUtilities.AssertRewritten(ReplaceEntryWithExitInExpected(expected), ReplaceEntryWithExitInTest(test));
         }
-        #endregion
     }
 }

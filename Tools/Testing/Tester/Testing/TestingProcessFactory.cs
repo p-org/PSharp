@@ -19,9 +19,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# testing process.
         /// </summary>
-        /// <param name="id">Unique process id</param>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>Process</returns>
         public static Process Create(uint id, Configuration configuration)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo(
@@ -38,9 +35,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates arguments from the specified configuration.
         /// </summary>
-        /// <param name="id">Unique process id</param>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>Arguments</returns>
         private static string CreateArgumentsFromConfiguration(uint id, Configuration configuration)
         {
             StringBuilder arguments = new StringBuilder();
@@ -52,12 +46,12 @@ namespace Microsoft.PSharp.TestingServices
 
             arguments.Append($"/test:{configuration.AssemblyToBeAnalyzed} ");
 
-            if (configuration.TestingRuntimeAssembly != "")
+            if (!string.IsNullOrEmpty(configuration.TestingRuntimeAssembly))
             {
                 arguments.Append($"/runtime:{configuration.TestingRuntimeAssembly} ");
             }
 
-            if (configuration.TestMethodName != "")
+            if (!string.IsNullOrEmpty(configuration.TestMethodName))
             {
                 arguments.Append($"/method:{configuration.TestMethodName} ");
             }
@@ -115,12 +109,12 @@ namespace Microsoft.PSharp.TestingServices
             {
                 arguments.Append($"/coverage:activity ");
             }
-            
+
             if (configuration.EnableCycleDetection)
             {
                 arguments.Append($"/cycle-detection ");
             }
-            
+
             if (configuration.OutputFilePath.Length > 0)
             {
                 arguments.Append($"/o:{configuration.OutputFilePath} ");

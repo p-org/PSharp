@@ -21,17 +21,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
     /// </summary>
     public sealed class CompilationEngine
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// The installed logger.
         /// </summary>
-        private ILogger Logger;
+        private readonly ILogger Logger;
 
         /// <summary>
         /// Map from project assembly names to assembly paths.
@@ -43,15 +41,9 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// </summary>
         private Dictionary<string, string> OutputDirectoryMap;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
         /// Creates a P# compilation engine.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <returns></returns>
         public static CompilationEngine Create(CompilationContext context)
         {
             return new CompilationEngine(context, new ConsoleLogger());
@@ -60,9 +52,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Creates a P# compilation engine.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="logger">ILogger</param>
-        /// <returns></returns>
         public static CompilationEngine Create(CompilationContext context, ILogger logger)
         {
             return new CompilationEngine(context, logger);
@@ -78,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             var graph = this.CompilationContext.GetSolution().GetProjectDependencyGraph();
 
-            if (this.CompilationContext.Configuration.ProjectName.Equals(""))
+            if (string.IsNullOrEmpty(this.CompilationContext.Configuration.ProjectName))
             {
                 foreach (var projectId in graph.GetTopologicallySortedProjects())
                 {
@@ -113,34 +102,18 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             this.LinkAssemblyToAllProjects(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
         }
 
-        #endregion
-
-        #region constructor methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CompilationEngine"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="logger">ILogger</param>
         private CompilationEngine(CompilationContext context, ILogger logger)
         {
             this.CompilationContext = context;
             this.Logger = logger;
         }
 
-        #endregion
-
-        #region compilation methods
-
         /// <summary>
         /// Compiles the given compilation to a file.
         /// </summary>
-        /// <param name="compilation">Compilation</param>
-        /// <param name="outputKind">OutputKind</param>
-        /// <param name="outputPath">OutputPath</param>
-        /// <param name="printResults">Prints the compilation results</param>
-        /// <param name="buildDebugFile">Builds the debug file</param>
-        /// <returns>Output</returns>
         public string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind,
             string outputPath, bool printResults, bool buildDebugFile)
         {
@@ -155,7 +128,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
 
             string outputDirectory;
-            if (!this.CompilationContext.Configuration.OutputFilePath.Equals(""))
+            if (!string.IsNullOrEmpty(this.CompilationContext.Configuration.OutputFilePath))
             {
                 outputDirectory = this.CompilationContext.Configuration.OutputFilePath;
             }
@@ -169,7 +142,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             this.OutputDirectoryMap?.Add(compilation.AssemblyName, outputDirectory);
             this.ProjectAssemblyPathMap?.Add(compilation.AssemblyName, fileName);
-            
+
             EmitResult emitResult = null;
             using (FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write),
                 outputPdbFile = new FileStream(pdbFileName, FileMode.Create, FileAccess.Write))
@@ -206,9 +179,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Compiles the given compilation and returns the assembly.
         /// </summary>
-        /// <param name="compilation">Compilation</param>
-        /// <param name="outputKind">OutputKind</param>
-        /// <returns>Assembly</returns>
         public Assembly ToAssembly(CodeAnalysis.Compilation compilation, OutputKind outputKind)
         {
             string assemblyFileName = null;
@@ -246,7 +216,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Compiles the given P# project.
         /// </summary>
-        /// <param name="project">Project</param>
         private void CompileProject(Project project)
         {
             CompilationOptions options = null;
@@ -262,7 +231,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             project = project.WithCompilationOptions(options);
 
             var compilation = project.GetCompilationAsync().Result;
-            
+
             try
             {
                 if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Library ||
@@ -284,15 +253,9 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
         }
 
-        #endregion
-
-        #region linking methods
-
         /// <summary>
         /// Links the solution project assemblies to the given P# project.
         /// </summary>
-        /// <param name="project">Project</param>
-        /// <param name="graph">ProjectDependencyGraph</param>
         private void LinkSolutionAssembliesToProject(Project project, ProjectDependencyGraph graph)
         {
             var projectPath = this.OutputDirectoryMap[project.AssemblyName];
@@ -303,15 +266,13 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 var assemblyPath = this.ProjectAssemblyPathMap[requiredProject.AssemblyName];
                 var fileName = projectPath + Path.DirectorySeparatorChar + requiredProject.AssemblyName + ".dll";
 
-                this.CopyAssembly(assemblyPath, fileName);
+                CopyAssembly(assemblyPath, fileName);
             }
         }
 
         /// <summary>
         /// Links the external references to the given P# compilation.
         /// </summary>
-        /// <param name="project">Project</param>
-        /// <param name="graph">ProjectDependencyGraph</param>
         private void LinkExternalAssembliesToProject(Project project, ProjectDependencyGraph graph)
         {
             var projectPath = this.OutputDirectoryMap[project.AssemblyName];
@@ -321,13 +282,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 var requiredProject = this.CompilationContext.GetSolution().GetProject(projectId);
                 foreach (var reference in requiredProject.MetadataReferences)
                 {
-                    //if (!(reference is PortableExecutableReference))
-                    //{
+                    // if (!(reference is PortableExecutableReference))
+                    // {
                     //    continue;
-                    //}
-
+                    // }
                     var fileName = Path.Combine(projectPath, Path.GetFileName(reference.Display));
-                    this.CopyAssembly(reference.Display, fileName);
+                    CopyAssembly(reference.Display, fileName);
                 }
             }
         }
@@ -335,27 +295,23 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Links the given P# assembly.
         /// </summary>
-        /// <param name="assembly">Assembly</param>
-        /// <param name="dll">Name of dll</param>
         private void LinkAssemblyToAllProjects(Assembly assembly, string dll)
         {
             this.Logger.WriteLine("... Linking {0}", dll);
 
             foreach (var outputDir in this.OutputDirectoryMap.Values)
             {
-                var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
+                var localFileName = new System.Uri(assembly.CodeBase).LocalPath;
                 var fileName = outputDir + Path.DirectorySeparatorChar + dll;
 
-                this.CopyAssembly(localFileName, fileName);
+                CopyAssembly(localFileName, fileName);
             }
         }
 
         /// <summary>
         /// Copies the assembly from the source to the destination.
         /// </summary>
-        /// <param name="src">Source</param>
-        /// <param name="dest">Destination</param>
-        private void CopyAssembly(string src, string dest)
+        private static void CopyAssembly(string src, string dest)
         {
             try
             {
@@ -387,7 +343,5 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 Debug.WriteLine("... Unable to copy {0}", src);
             }
         }
-
-        #endregion
     }
 }

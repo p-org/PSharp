@@ -17,52 +17,38 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     internal sealed class TemperatureCheckingStrategy : LivenessCheckingStrategy
     {
         /// <summary>
-        /// Creates a liveness strategy that checks the specific monitors
-        /// for liveness property violations, and uses the specified
-        /// strategy for scheduling decisions.
+        /// Initializes a new instance of the <see cref="TemperatureCheckingStrategy"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="monitors">List of monitors</param>
-        /// <param name="strategy">ISchedulingStrategy</param>
         internal TemperatureCheckingStrategy(Configuration configuration, List<Monitor> monitors, ISchedulingStrategy strategy)
             : base(configuration, monitors, strategy)
-        { }
+        {
+        }
 
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public override bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            CheckLivenessTemperature();
-            return SchedulingStrategy.GetNext(out next, choices, current);
+            this.CheckLivenessTemperature();
+            return this.SchedulingStrategy.GetNext(out next, choices, current);
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
-            CheckLivenessTemperature();
-            return SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+            this.CheckLivenessTemperature();
+            return this.SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public override bool GetNextIntegerChoice(int maxValue, out int next)
         {
-            CheckLivenessTemperature();
-            return SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+            this.CheckLivenessTemperature();
+            return this.SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
         }
 
         /// <summary>
@@ -72,9 +58,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private void CheckLivenessTemperature()
         {
-            if (IsFair())
+            if (this.IsFair())
             {
-                foreach (var monitor in Monitors)
+                foreach (var monitor in this.Monitors)
                 {
                     monitor.CheckLivenessTemperature();
                 }

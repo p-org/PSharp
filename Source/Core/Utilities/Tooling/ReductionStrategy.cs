@@ -14,10 +14,12 @@ namespace Microsoft.PSharp.Utilities
         /// No reduction.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// Reduction strategy that omits scheduling points.
         /// </summary>
         OmitSchedulingPoints,
+
         /// <summary>
         /// Reduction strategy that forces scheduling points.
         /// </summary>

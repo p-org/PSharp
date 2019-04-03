@@ -13,25 +13,29 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public EntryPointRandomChoiceTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestEntryPointRandomChoice()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 if (r.Random())
                 {
                     r.CreateMachine(typeof(M));
                 }
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

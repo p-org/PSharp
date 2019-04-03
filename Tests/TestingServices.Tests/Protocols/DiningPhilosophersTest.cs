@@ -17,35 +17,38 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public DiningPhilosophersTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class Environment : Machine
         {
-            Dictionary<int, MachineId> LockMachines;
+        }
+
+        private class Environment : Machine
+        {
+            private Dictionary<int, MachineId> LockMachines;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                LockMachines = new Dictionary<int, MachineId>();
+            }
+
+            private void InitOnEntry()
+            {
+                this.LockMachines = new Dictionary<int, MachineId>();
 
                 int n = 3;
                 for (int i = 0; i < n; i++)
                 {
-                    var lck = CreateMachine(typeof(Lock));
-                    LockMachines.Add(i, lck);
+                    var lck = this.CreateMachine(typeof(Lock));
+                    this.LockMachines.Add(i, lck);
                 }
 
                 for (int i = 0; i < n; i++)
                 {
-                    CreateMachine(typeof(Philosopher), new Philosopher.Config(LockMachines[i], LockMachines[(i + 1) % n]));
+                    this.CreateMachine(typeof(Philosopher), new Philosopher.Config(this.LockMachines[i], this.LockMachines[(i + 1) % n]));
                 }
             }
         }
 
-        class Lock : Machine
+        private class Lock : Machine
         {
             public class TryLock : Event
             {
@@ -53,11 +56,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public TryLock(MachineId target)
                 {
-                    Target = target;
+                    this.Target = target;
                 }
             }
 
-            public class Release : Event { }
+            public class Release : Event
+            {
+            }
 
             public class LockResp : Event
             {
@@ -65,47 +70,51 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public LockResp(bool res)
                 {
-                    LockResult = res;
+                    this.LockResult = res;
                 }
             }
 
-            bool LockVar;
+            private bool LockVar;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             [OnEventDoAction(typeof(TryLock), nameof(OnTryLock))]
             [OnEventDoAction(typeof(Release), nameof(OnRelease))]
-            class Waiting : MachineState { }
-
-            void InitOnEntry()
+            private class Waiting : MachineState
             {
-                LockVar = false;
+            }
+
+            private void InitOnEntry()
+            {
+                this.LockVar = false;
                 this.Goto<Waiting>();
             }
 
-            void OnTryLock()
+            private void OnTryLock()
             {
-                var target = (ReceivedEvent as TryLock).Target;
-                if (LockVar)
+                var target = (this.ReceivedEvent as TryLock).Target;
+                if (this.LockVar)
                 {
-                    Send(target, new LockResp(false));
+                    this.Send(target, new LockResp(false));
                 }
                 else
                 {
-                    LockVar = true;
-                    Send(target, new LockResp(true));
+                    this.LockVar = true;
+                    this.Send(target, new LockResp(true));
                 }
             }
 
-            void OnRelease()
+            private void OnRelease()
             {
-                LockVar = false;
+                this.LockVar = false;
             }
         }
 
-        class Philosopher : Machine
+        private class Philosopher : Machine
         {
             public class Config : Event
             {
@@ -114,43 +123,51 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public Config(MachineId left, MachineId right)
                 {
-                    Left = left;
-                    Right = right;
+                    this.Left = left;
+                    this.Right = right;
                 }
             }
 
-            class TryAgain : Event { }
+            private class TryAgain : Event
+            {
+            }
 
-            MachineId left;
-            MachineId right;
+            private MachineId left;
+            private MachineId right;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             [OnEntry(nameof(TryAccess))]
             [OnEventDoAction(typeof(TryAgain), nameof(TryAccess))]
-            class Trying : MachineState { }
+            private class Trying : MachineState
+            {
+            }
 
             [OnEntry(nameof(OnDone))]
-            class Done : MachineState { }
-
-            void InitOnEntry()
+            private class Done : MachineState
             {
-                var e = ReceivedEvent as Config;
-                left = e.Left;
-                right = e.Right;
+            }
+
+            private void InitOnEntry()
+            {
+                var e = this.ReceivedEvent as Config;
+                this.left = e.Left;
+                this.right = e.Right;
                 this.Goto<Trying>();
             }
 
-            void TryAccess()
+            private void TryAccess()
             {
-                Send(left, new Lock.TryLock(Id));
-                var ev = Receive(typeof(Lock.LockResp)).Result;
+                this.Send(this.left, new Lock.TryLock(this.Id));
+                var ev = this.Receive(typeof(Lock.LockResp)).Result;
                 if ((ev as Lock.LockResp).LockResult)
                 {
-                    Send(right, new Lock.TryLock(Id));
-                    var evr = Receive(typeof(Lock.LockResp)).Result;
+                    this.Send(this.right, new Lock.TryLock(this.Id));
+                    var evr = this.Receive(typeof(Lock.LockResp)).Result;
                     if ((evr as Lock.LockResp).LockResult)
                     {
                         this.Goto<Done>();
@@ -158,37 +175,44 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     }
                     else
                     {
-                        Send(left, new Lock.Release());
+                        this.Send(this.left, new Lock.Release());
                     }
                 }
 
-                Send(Id, new TryAgain());
+                this.Send(this.Id, new TryAgain());
             }
 
-            void OnDone()
+            private void OnDone()
             {
-                Send(left, new Lock.Release());
-                Send(right, new Lock.Release());
-                Monitor<LivenessMonitor>(new LivenessMonitor.NotifyDone());
-                Raise(new Halt());
+                this.Send(this.left, new Lock.Release());
+                this.Send(this.right, new Lock.Release());
+                this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyDone());
+                this.Raise(new Halt());
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
-            public class NotifyDone : Event { }
+            public class NotifyDone : Event
+            {
+            }
 
             [Start]
             [Hot]
             [OnEventGotoState(typeof(NotifyDone), typeof(Done))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
             [Cold]
             [OnEventGotoState(typeof(NotifyDone), typeof(Done))]
-            class Done : MonitorState { }
+            private class Done : MonitorState
+            {
+            }
         }
 
         [Theory]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(52)]
         public void TestDiningPhilosophersLivenessBugWithCycleReplay(int seed)
         {
@@ -200,13 +224,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
-            AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

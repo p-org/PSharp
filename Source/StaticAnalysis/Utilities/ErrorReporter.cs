@@ -16,21 +16,15 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal class ErrorReporter
     {
-        #region fields
-
         /// <summary>
         /// Configuration.
         /// </summary>
-        private Configuration Configuration;
+        private readonly Configuration Configuration;
 
         /// <summary>
         /// Enables colored console output.
         /// </summary>
         internal bool EnableColoredConsoleOutput;
-
-        #endregion
-
-        #region properties
 
         /// <summary>
         /// The installed logger.
@@ -52,15 +46,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal int WarningCount { get; private set; }
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ErrorReporter"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
         internal ErrorReporter(Configuration configuration, ILogger logger)
         {
             this.Configuration = configuration;
@@ -103,50 +91,41 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
         }
 
-        #endregion
-
-        #region error reporting methods
-
         /// <summary>
         /// Reports an error to the user.
         /// </summary>
-        /// <param name="value">Text</param>
         internal void Report(string value)
         {
             this.Report("Error: ", ConsoleColor.Red);
             this.Report(value, ConsoleColor.Yellow);
-            this.Logger.WriteLine("");
+            this.Logger.WriteLine(string.Empty);
             this.ErrorCount++;
         }
 
         /// <summary>
         /// Reports an error to the user.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Parameters</param>
         internal void Report(string format, params object[] args)
         {
             string message = IO.Utilities.Format(format, args);
             this.Report("Error: ", ConsoleColor.Red);
             this.Report(message, ConsoleColor.Yellow);
-            this.Logger.WriteLine("");
+            this.Logger.WriteLine(string.Empty);
             this.ErrorCount++;
         }
 
         /// <summary>
         /// Reports a generic error to the user using the specified color.
         /// </summary>
-        /// <param name="value">Text</param>
-        /// <param name="color">ConsoleColor</param>
         private void Report(string value, ConsoleColor color)
         {
-            ConsoleColor previousForegroundColor = default(ConsoleColor);
+            ConsoleColor previousForegroundColor = default;
             if (this.EnableColoredConsoleOutput)
             {
                 previousForegroundColor = Console.ForegroundColor;
                 Console.ForegroundColor = color;
             }
-            
+
             this.Logger.Write(value);
 
             if (this.EnableColoredConsoleOutput)
@@ -158,8 +137,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports an error to the user.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="s">String</param>
         internal void Report(TraceInfo trace, string s)
         {
             this.Report(s);
@@ -174,14 +151,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports a warning to the user.
         /// </summary>
-        /// <param name="value">Text</param>
         internal void ReportWarning(string value)
         {
             if (this.Configuration.ShowWarnings)
             {
                 this.Report("Warning: ", ConsoleColor.Red);
                 this.Report(value, ConsoleColor.Yellow);
-                this.Logger.WriteLine("");
+                this.Logger.WriteLine(string.Empty);
             }
 
             this.WarningCount++;
@@ -190,8 +166,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports a warning to the user.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Parameters</param>
         internal void ReportWarning(string format, params object[] args)
         {
             if (this.Configuration.ShowWarnings)
@@ -199,7 +173,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 string message = IO.Utilities.Format(format, args);
                 this.Report("Warning: ", ConsoleColor.Red);
                 this.Report(message, ConsoleColor.Yellow);
-                this.Logger.WriteLine("");
+                this.Logger.WriteLine(string.Empty);
             }
 
             this.WarningCount++;
@@ -208,8 +182,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports a warning to the user.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="s">String</param>
         internal void ReportWarning(TraceInfo trace, string s)
         {
             this.ReportWarning(s);
@@ -224,9 +196,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports a warning to the user.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
         internal void ReportWarning(TraceInfo trace, string s, params object[] args)
         {
             this.ReportWarning(s, args);
@@ -241,20 +210,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports an access of an object with given-up ownership.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
         internal void ReportGivenUpOwnershipAccess(TraceInfo trace)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' " +
-                    "accesses '{2}' after giving up its ownership.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' accesses '{2}' after giving up its ownership.",
                     trace.Method, trace.Machine, trace.Payload);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine " +
-                    "'{2}' accesses '{3}' after giving up its ownership.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' accesses '{3}' after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
 
@@ -262,26 +230,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Reports an access of a field that is alias of
-        /// an object with given-up ownership.
+        /// Reports an access of a field that is alias of an object with given-up ownership.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="fieldSymbol">ISymbol</param>
         internal void ReportGivenUpOwnershipFieldAccess(TraceInfo trace, IFieldSymbol fieldSymbol)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' accesses " +
-                    "'{2}', via field '{3}', after giving up its ownership.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' accesses '{2}', via field '{3}', after giving up its ownership.",
                     trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine '{2}' " +
-                    "accesses '{3}', via field '{4}', after giving up its ownership.",
-                    trace.Method, trace.State, trace.Machine, trace.Payload,
-                    fieldSymbol);
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' accesses '{3}', via field '{4}', after giving up its ownership.",
+                    trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
 
             this.ReportErrorTrace(trace, message, true);
@@ -290,22 +254,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports a given up field ownership error.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="fieldSymbol">ISymbol</param>
         internal void ReportGivenUpFieldOwnershipError(TraceInfo trace, ISymbol fieldSymbol)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' sends '{2}', " +
-                    "which contains data from field '{3}'.", trace.Method,
-                    trace.Machine, trace.Payload, fieldSymbol);
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' sends '{2}', which contains data from field '{3}'.",
+                    trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine '{2}' " +
-                    "sends '{3}', which contains data from field '{4}'.", trace.Method,
-                    trace.State, trace.Machine, trace.Payload, fieldSymbol);
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' sends '{3}', which contains data from field '{4}'.",
+                    trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
 
             this.ReportErrorTrace(trace, message);
@@ -314,21 +276,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports assignment of given up ownership to a machine field.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="fieldSymbol">ISymbol</param>
         internal void ReportGivenUpOwnershipFieldAssignment(TraceInfo trace, ISymbol fieldSymbol)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' assigns '{2}' " +
-                    "to field '{3}' after giving up its ownership.", trace.Method,
-                    trace.Machine, trace.Payload, fieldSymbol);
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' assigns '{2}' to field '{3}' after giving up its ownership.",
+                    trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine '{2}' " +
-                    "assigns '{3}' to field '{4}' after giving up its ownership.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' assigns '{3}' to field '{4}' after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
 
@@ -338,21 +298,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports sending data with a given up ownership.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="argSymbol">ISymbol</param>
         internal void ReportGivenUpOwnershipSending(TraceInfo trace, ISymbol argSymbol)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' sends '{2}', " +
-                    "the ownership of which has already been given up.", trace.Method,
-                    trace.Machine, argSymbol);
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' sends '{2}', the ownership of which has already been given up.",
+                    trace.Method, trace.Machine, argSymbol);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine '{2}' " +
-                    "sends '{3}', the ownership of which has already been given up.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' sends '{3}', the ownership of which has already been given up.",
                     trace.Method, trace.State, trace.Machine, argSymbol);
             }
 
@@ -363,22 +321,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Reports calling a method with unavailable source code,
         /// thus cannot be further analyzed.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
         internal void ReportExternalInvocation(TraceInfo trace)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' calls " +
-                    "a method with unavailable source code, which might " +
-                    "be a source of errors.", trace.Method, trace.Machine);
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' calls a method with unavailable source code, which might be a source of errors.",
+                    trace.Method, trace.Machine);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine " +
-                    "'{2}' calls a method with unavailable source code, which " +
-                    "might be a source of errors.", trace.Method, trace.State,
-                    trace.Machine);
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' calls a method with unavailable source code, which might be a source of errors.",
+                    trace.Method, trace.State, trace.Machine);
             }
 
             this.ReportWarningTrace(trace, message);
@@ -388,43 +344,35 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Reports calling a virtual method with unknown overrider,
         /// thus cannot be further analyzed.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
         internal void ReportUnknownVirtualCall(TraceInfo trace)
         {
             string message;
             if (trace.State == null)
             {
-                message = IO.Utilities.Format("Method '{0}' of machine '{1}' calls " +
-                    "a virtual method that cannot be further analyzed.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' of machine '{1}' calls a virtual method that cannot be further analyzed.",
                     trace.Method, trace.Machine);
             }
             else
             {
-                message = IO.Utilities.Format("Method '{0}' in state '{1}' of machine '{2}' " +
-                    "calls a virtual method that cannot be further analyzed.",
+                message = IO.Utilities.Format(
+                    "Method '{0}' in state '{1}' of machine '{2}' calls a virtual method that cannot be further analyzed.",
                     trace.Method, trace.State, trace.Machine);
             }
 
             this.ReportWarningTrace(trace, message);
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Reports an error to the user.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="message">Message</param>
-        /// <param name="allowMultiple">Allow multiple messages</param>
         private void ReportErrorTrace(TraceInfo trace, string message, bool allowMultiple = false)
         {
             if (!allowMultiple && this.ReportedMessages.Contains(message))
             {
                 return;
             }
-            
+
             this.Report(message);
             this.PrintTrace(trace);
             this.ReportedMessages.Add(message);
@@ -433,8 +381,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Reports a warning to the user.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="message">Message</param>
         private void ReportWarningTrace(TraceInfo trace, string message)
         {
             if (this.ReportedMessages.Contains(message))
@@ -450,7 +396,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the trace.
         /// </summary>
-        /// <param name="trace">TraceInfo</param>
         private void PrintTrace(TraceInfo trace)
         {
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
@@ -470,7 +415,5 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
         }
-
-        #endregion
     }
 }

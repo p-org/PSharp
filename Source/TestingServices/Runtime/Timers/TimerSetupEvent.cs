@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Timers
         internal readonly uint Delay;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="TimerElapsedEvent"/> class.
+        /// Initializes a new instance of the <see cref="TimerSetupEvent"/> class.
         /// </summary>
         /// <param name="info">Stores information about the timer.</param>
         /// <param name="owner">The machine that owns the timer.</param>

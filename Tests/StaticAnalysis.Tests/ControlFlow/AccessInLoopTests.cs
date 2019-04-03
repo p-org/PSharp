@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public AccessInLoopTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestWriteAccessAfterSendInLoop1()
@@ -65,7 +66,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -119,7 +120,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -172,7 +173,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -226,7 +227,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -280,7 +281,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -333,7 +334,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -388,7 +389,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -442,7 +443,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -498,7 +499,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -553,7 +554,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
 
         [Fact]
@@ -608,7 +609,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailedAndWarning(test, 2, 1, isPSharpProgram: false);
+            this.AssertFailedAndWarning(test, 2, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -662,7 +663,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailedAndWarning(test, 2, 1, isPSharpProgram: false);
+            this.AssertFailedAndWarning(test, 2, 1, isPSharpProgram: false);
         }
 
         [Fact]
@@ -717,7 +718,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            base.AssertFailed(test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -771,7 +772,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertFailed(test, 2, isPSharpProgram: false);
+            this.AssertFailed(test, 2, isPSharpProgram: false);
         }
     }
 }

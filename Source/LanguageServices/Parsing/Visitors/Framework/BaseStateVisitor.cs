@@ -18,28 +18,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
     /// </summary>
     internal abstract class BaseStateVisitor : BaseVisitor
     {
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BaseStateVisitor"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="errorLog">Error log</param>
-        /// <param name="warningLog">Warning log</param>
         internal BaseStateVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog,
             List<Tuple<SyntaxToken, string>> warningLog)
             : base(project, errorLog, warningLog)
         {
-
         }
 
         /// <summary>
         /// Parses the syntax tree for errors.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
         internal void Parse(SyntaxTree tree)
         {
-            var project = base.Project.CompilationContext.GetProjectWithName(base.Project.Name);
+            var project = this.Project.CompilationContext.GetProjectWithName(this.Project.Name);
             var compilation = project.GetCompilationAsync().Result;
 
             var states = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
@@ -62,41 +55,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             }
         }
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
         /// Returns true if the given class declaration is a state.
         /// </summary>
-        /// <param name="compilation">Compilation</param>
-        /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean</returns>
-        protected abstract bool IsState(CodeAnalysis.Compilation compilation,
-            ClassDeclarationSyntax classDecl);
+        protected abstract bool IsState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl);
 
         /// <summary>
         /// Returns the type of the state.
         /// </summary>
-        /// <returns>Text</returns>
         protected abstract string GetTypeOfState();
 
         /// <summary>
         /// Checks for special properties.
         /// </summary>
-        /// <param name="state">State</param>
-        /// <param name="compilation">Compilation</param>
-        protected abstract void CheckForSpecialProperties(ClassDeclarationSyntax state,
-            CodeAnalysis.Compilation compilation);
-
-        #endregion
-
-        #region private methods
+        protected abstract void CheckForSpecialProperties(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation);
 
         /// <summary>
         /// Checks that no fields are declared inside the state.
         /// </summary>
-        /// <param name="state">State</param>
         private void CheckForFields(ClassDeclarationSyntax state)
         {
             var fields = state.DescendantNodes().OfType<FieldDeclarationSyntax>().
@@ -104,7 +80,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (fields.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
                     state.Identifier.ValueText + "' cannot declare fields."));
             }
         }
@@ -112,7 +88,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that no methods are declared inside the machine (beside the P# API ones).
         /// </summary>
-        /// <param name="state">State</param>
         private void CheckForMethods(ClassDeclarationSyntax state)
         {
             var methods = state.DescendantNodes().OfType<MethodDeclarationSyntax>().
@@ -121,7 +96,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (methods.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
                     state.Identifier.ValueText + "' cannot declare methods."));
             }
         }
@@ -129,7 +104,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that no classes are declared inside the state.
         /// </summary>
-        /// <param name="state">State</param>
         private void CheckForClasses(ClassDeclarationSyntax state)
         {
             var classes = state.DescendantNodes().OfType<ClassDeclarationSyntax>().
@@ -137,7 +111,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (classes.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
                     state.Identifier.ValueText + "' cannot declare classes."));
             }
         }
@@ -145,7 +119,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that no structs are declared inside the state.
         /// </summary>
-        /// <param name="state">State</param>
         private void CheckForStructs(ClassDeclarationSyntax state)
         {
             var structs = state.DescendantNodes().OfType<StructDeclarationSyntax>().
@@ -153,7 +126,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (structs.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
                     state.Identifier.ValueText + "' cannot declare structs."));
             }
         }
@@ -161,8 +134,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a state does not have a duplicate entry action.
         /// </summary>
-        /// <param name="state">State</param>
-        /// <param name="compilation">Compilation</param>
         private void CheckForDuplicateOnEntry(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
         {
             var model = compilation.GetSemanticModel(state.SyntaxTree);
@@ -179,7 +150,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (onEntryAttribute != null && onEntryMethod != null)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
                     state.Identifier.ValueText + "' cannot have two entry actions."));
             }
         }
@@ -187,8 +158,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that a state does not have a duplicate exit action.
         /// </summary>
-        /// <param name="state">State</param>
-        /// <param name="compilation">Compilation</param>
         private void CheckForDuplicateOnExit(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
         {
             var model = compilation.GetSemanticModel(state.SyntaxTree);
@@ -205,7 +174,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (onExitAttribute != null && onExitMethod != null)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
                     state.Identifier.ValueText + "' cannot have two exit actions."));
             }
         }
@@ -213,8 +182,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks for multiple handlers for the same event.
         /// </summary>
-        /// <param name="state">State</param>
-        /// <param name="compilation">Compilation</param>
         private void CheckForMultipleSameEventHandlers(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
         {
             var model = compilation.GetSemanticModel(state.SyntaxTree);
@@ -258,7 +225,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var e in eventOccurrences.Where(val => val.Count() > 1))
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                     "' cannot declare more than one handler for event '" + e.Key + "'."));
             }
         }
@@ -272,8 +239,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// If "On * goto" or "On * push" then:
         ///    no other transition, action or ignore should be defined.
         /// </summary>
-        /// <param name="state">State</param>
-        /// <param name="compilation">Compilation</param>
         private void CheckForCorrectWildcardUse(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
         {
             var model = compilation.GetSemanticModel(state.SyntaxTree);
@@ -334,14 +299,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var transitionEvents = convertToStringSet(transitionTypes);
 
             var isWildCard = new Func<string, bool>(s => s == "WildCardEvent" || s == "Microsoft.PSharp.WildCardEvent");
-            var hasWildCard = new Func<HashSet<string>, bool>(set => set.Contains("WildCardEvent") || 
+            var hasWildCard = new Func<HashSet<string>, bool>(set => set.Contains("WildCardEvent") ||
               set.Contains("Microsoft.PSharp.WildCardEvent"));
 
             if (hasWildCard(deferredEvents))
             {
                 foreach (var e in deferredEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot defer other event '" + e + "' when deferring the wildcard event."));
                 }
             }
@@ -350,13 +315,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 foreach (var e in ignoredEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot ignore other event '" + e + "' when ignoring the wildcard event."));
                 }
 
                 foreach (var e in actionEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot define action on '" + e + "' when ignoring the wildcard event."));
                 }
             }
@@ -365,13 +330,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 foreach (var e in ignoredEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot ignore other event '" + e + "' when defining an action on the wildcard event."));
                 }
 
                 foreach (var e in actionEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot define action on '" + e + "' when defining an action on the wildcard event."));
                 }
             }
@@ -380,25 +345,22 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 foreach (var e in ignoredEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot ignore other event '" + e + "' when defining a transition on the wildcard event."));
                 }
 
                 foreach (var e in actionEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot define action on '" + e + "' when defining a transition on the wildcard event."));
                 }
 
                 foreach (var e in transitionEvents.Where(s => !isWildCard(s)))
                 {
-                    base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    this.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
                         "' cannot define a transition on '" + e + "' when defining a transition on the wildcard event."));
                 }
-
             }
         }
-
-        #endregion
     }
 }

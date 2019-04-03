@@ -13,8 +13,6 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
     public static class TestingEngineFactory
     {
-        #region factory methods
-
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
@@ -76,12 +74,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static ITestingEngine CreateReplayEngine(Configuration configuration,
-            Action<PSharpRuntime> action)
+        public static ITestingEngine CreateReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
             return ReplayEngine.Create(configuration, action);
         }
-
-        #endregion
     }
 }

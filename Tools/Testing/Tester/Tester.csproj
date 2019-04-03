@@ -5,6 +5,7 @@
     <AssemblyName>PSharpTester</AssemblyName>
     <RootNamespace>PSharpTester</RootNamespace>
     <PackageTags>systematic;tester;psharp</PackageTags>
+    <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputType>Exe</OutputType>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
@@ -14,6 +15,9 @@
   <PropertyGroup Condition="'$(OS)'=='UNIX'">
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.1|AnyCPU'">
+    <DefineConstants></DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\SharedObjects\SharedObjects.csproj" />
     <ProjectReference Include="..\..\..\Source\TestingServices\TestingServices.csproj" />
@@ -21,5 +25,12 @@
   <ItemGroup Condition="'$(TargetFramework)'=='net46'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include=".\Properties\stylecop.json" />
   </ItemGroup>
 </Project>

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         protected void AssertSucceeded(Action<PSharpRuntime> test)
         {
             var configuration = GetConfiguration();
-            AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
 
         protected ITestingEngine AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
@@ -57,35 +57,35 @@ namespace Microsoft.PSharp.TestingServices.Tests
         protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, replay);
+            this.AssertFailed(configuration, test, numExpectedErrors, replay);
         }
 
         protected void AssertFailed(Action<PSharpRuntime> test, string expectedOutput, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
+            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
         protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
+            this.AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
         }
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, bool replay)
         {
-            AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
+            this.AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
         }
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, string expectedOutput, bool replay)
         {
-            AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
+            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
         protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors,
             ISet<string> expectedOutputs, bool replay)
         {
-            AssertFailed(configuration, test, numExpectedErrors, bugReports =>
+            this.AssertFailed(configuration, test, numExpectedErrors, bugReports =>
             {
                 foreach (var expected in expectedOutputs)
                 {
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 bfEngine.SetLogger(logger);
                 bfEngine.Run();
 
-                CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
+                this.CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
 
                 if (replay && !configuration.EnableCycleDetection)
                 {
@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     rEngine.Run();
 
                     Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
+                    this.CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
                 }
             }
             catch (Exception ex)
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         protected void AssertFailedWithException(Action<PSharpRuntime> test, Type exceptionType, bool replay)
         {
             var configuration = GetConfiguration();
-            AssertFailedWithException(configuration, test, exceptionType, replay);
+            this.AssertFailedWithException(configuration, test, exceptionType, replay);
         }
 
         protected void AssertFailedWithException(Configuration configuration, Action<PSharpRuntime> test, Type exceptionType, bool replay)
@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var bugReports = new HashSet<string>();
             foreach (var bugReport in engine.TestReport.BugReports)
             {
-                var actual = this.RemoveNonDeterministicValuesFromReport(bugReport);
+                var actual = RemoveNonDeterministicValuesFromReport(bugReport);
                 this.TestOutput.WriteLine("actual: " + actual);
                 bugReports.Add(actual);
             }
@@ -189,22 +189,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
             Assert.True(expectedOutputFunc(bugReports));
         }
 
-        private void CheckErrors(ITestingEngine engine, Type exceptionType)
+        private static void CheckErrors(ITestingEngine engine, Type exceptionType)
         {
             var numErrors = engine.TestReport.NumOfFoundBugs;
             Assert.Equal(1, numErrors);
 
-            var exception = this.RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
+            var exception = RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
                 Split(new[] { '\r', '\n' }).FirstOrDefault();
             Assert.Contains("'" + exceptionType.ToString() + "'", exception);
         }
 
-        protected Configuration GetConfiguration()
+        protected static Configuration GetConfiguration()
         {
             return Configuration.Create();
         }
 
-        private string GetBugReport(ITestingEngine engine)
+        private static string GetBugReport(ITestingEngine engine)
         {
             string report = string.Empty;
             foreach (var bug in engine.TestReport.BugReports)
@@ -215,15 +215,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
             return report;
         }
 
-        private string RemoveNonDeterministicValuesFromReport(string report)
+        private static string RemoveNonDeterministicValuesFromReport(string report)
         {
             string result;
+
             // Match a GUID or other ids (since they can be nondeterministic).
             result = Regex.Replace(report, @"\'[0-9|a-z|A-Z|-]{36}\'|\'[0-9]+\'", "''");
             result = Regex.Replace(result, @"\([^)]*\)", "()");
             result = Regex.Replace(result, @"\[[^)]*\]", "[]");
+
             // Match a namespace.
-            result = Regex.Replace(result, @"Microsoft\.[^+]*\+", "");
+            result = Regex.Replace(result, @"Microsoft\.[^+]*\+", string.Empty);
             return result;
         }
     }

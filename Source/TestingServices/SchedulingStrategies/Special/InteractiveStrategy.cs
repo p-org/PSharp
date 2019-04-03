@@ -17,37 +17,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     /// </summary>
     internal sealed class InteractiveStrategy : ISchedulingStrategy
     {
-        #region fields
-
         /// <summary>
         /// The configuration.
         /// </summary>
-        private Configuration Configuration;
+        private readonly Configuration Configuration;
 
         /// <summary>
         /// The installed logger.
         /// </summary>
-        private IO.ILogger Logger;
+        private readonly IO.ILogger Logger;
 
         /// <summary>
         /// The input cache.
         /// </summary>
-        private List<string> InputCache;
+        private readonly List<string> InputCache;
 
         /// <summary>
         /// The number of explored steps.
         /// </summary>
         private int ExploredSteps;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="InteractiveStrategy"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
         public InteractiveStrategy(Configuration configuration, IO.ILogger logger)
         {
             this.Logger = logger ?? new ConsoleLogger();
@@ -59,10 +51,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next choice to schedule.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public bool GetNext(out ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
             next = null;
@@ -74,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.Logger.WriteLine(">> No available machines to schedule ...");
                 return false;
             }
-            
+
             this.ExploredSteps++;
 
             var parsed = false;
@@ -169,9 +157,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             next = false;
@@ -191,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     {
                         this.InputCache[this.ExploredSteps - 1] = "false";
                     }
-                    
+
                     parsed = true;
                     break;
                 }
@@ -244,9 +229,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public bool GetNextIntegerChoice(int maxValue, out int next)
         {
             next = 0;
@@ -322,37 +304,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Forces the next choice to schedule.
+        /// Forces the next entity to be scheduled.
         /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
         public void ForceNext(ISchedulable next, List<ISchedulable> choices, ISchedulable current)
         {
-            
         }
 
         /// <summary>
         /// Forces the next boolean choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextBooleanChoice(int maxValue, bool next)
         {
-            
         }
 
         /// <summary>
         /// Forces the next integer choice.
         /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">Next</param>
-        /// <returns>Boolean</returns>
         public void ForceNextIntegerChoice(int maxValue, int next)
         {
-            
         }
 
         /// <summary>
@@ -360,7 +329,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// at the end of a scheduling iteration. It must return false
         /// if the scheduling strategy should stop exploring.
         /// </summary>
-        /// <returns>True to start the next iteration</returns>
         public bool PrepareForNextIteration()
         {
             this.ExploredSteps = 0;
@@ -380,7 +348,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns the scheduled steps.
         /// </summary>
-        /// <returns>Scheduled steps</returns>
         public int GetScheduledSteps()
         {
             return this.ExploredSteps;
@@ -390,11 +357,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            var bound = (this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
-                this.Configuration.MaxUnfairSchedulingSteps);
+            var bound = this.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
+                this.Configuration.MaxUnfairSchedulingSteps;
 
             if (bound == 0)
             {
@@ -407,29 +373,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Checks if this is a fair scheduling strategy.
         /// </summary>
-        /// <returns>Boolean</returns>
-        public bool IsFair()
-        {
-            return false;
-        }
+        public bool IsFair() => false;
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return "";
-        }
-
-        #endregion
-
-        #region private methods
+        public string GetDescription() => string.Empty;
 
         /// <summary>
         /// Replays an earlier point of the execution.
         /// </summary>
-        /// <returns>Boolean</returns>
         private bool Replay()
         {
             var result = true;
@@ -459,7 +412,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Jumps to a later point in the execution.
         /// </summary>
-        /// <returns>Boolean</returns>
         private bool Jump()
         {
             var result = true;
@@ -490,19 +442,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Adds in the input cache.
         /// </summary>
-        /// <param name="steps">Number of steps</param>
         private void AddInInputCache(int steps)
         {
             if (steps > this.InputCache.Count)
             {
-                this.InputCache.AddRange(Enumerable.Repeat("", steps - this.InputCache.Count));
+                this.InputCache.AddRange(Enumerable.Repeat(string.Empty, steps - this.InputCache.Count));
             }
         }
 
         /// <summary>
         /// Removes from the input cache.
         /// </summary>
-        /// <param name="steps">Number of steps</param>
         private void RemoveFromInputCache(int steps)
         {
             if (steps > 0 && steps < this.InputCache.Count)
@@ -514,7 +464,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.InputCache.Clear();
             }
         }
-
-        #endregion
     }
 }

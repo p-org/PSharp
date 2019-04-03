@@ -14,28 +14,33 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SendAndExecuteTest4(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class LE : Event { }
-
-        class E : Event
         {
-            public MachineId mid;
+        }
+
+        private class LE : Event
+        {
+        }
+
+        private class E : Event
+        {
+            public MachineId Mid;
 
             public E(MachineId mid)
             {
-                this.mid = mid;
+                this.Mid = mid;
             }
         }
 
-        class Harness : Machine
+        private class Harness : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(LE))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
                 var handled = await this.Runtime.SendEventAndExecute(m, new LE());
@@ -43,33 +48,33 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(LE))]
-            class Init : MachineState { }
-
-            async Task InitOnEntry()
+            private class Init : MachineState
             {
-                var creator = (this.ReceivedEvent as E).mid;
+            }
+
+            private async Task InitOnEntry()
+            {
+                var creator = (this.ReceivedEvent as E).Mid;
                 var handled = await this.Id.Runtime.SendEventAndExecute(creator, new LE());
                 this.Assert(!handled);
             }
-
         }
-
 
         [Fact]
         public void TestSendCycleDoesNotDeadlock()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Harness));
             });
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
-
     }
 }

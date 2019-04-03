@@ -13,24 +13,19 @@ namespace Microsoft.PSharp.LanguageServices
     public class RewritingException : Exception
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RewritingException"/> class.
         /// </summary>
-        /// <param name="message">Message</param>
         public RewritingException(string message)
             : base(message)
         {
-
         }
-        
+
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RewritingException"/> class.
         /// </summary>
-        /// <param name="message">Message</param>
-        /// <param name="innerException">Exception</param>
         public RewritingException(string message, Exception innerException)
             : base(message, innerException)
         {
-
         }
     }
 }

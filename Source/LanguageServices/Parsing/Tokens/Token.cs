@@ -10,8 +10,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class Token
     {
-        #region fields
-
         /// <summary>
         /// The text unit that this token represents.
         /// </summary>
@@ -27,14 +25,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public readonly TokenType Type;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor. By default the type of the token is None.
+        /// Initializes a new instance of the <see cref="Token"/> class.
+        /// By default, the token is <see cref="TokenType.None"/>.
         /// </summary>
-        /// <param name="text">String</param>
         public Token(string text)
         {
             this.Text = text;
@@ -42,9 +36,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Constructor. By default the type of the token is None.
+        /// Initializes a new instance of the <see cref="Token"/> class.
+        /// By default, the token is <see cref="TokenType.None"/>.
         /// </summary>
-        /// <param name="unit">TextUnit</param>
         public Token(TextUnit unit)
         {
             this.TextUnit = unit;
@@ -53,10 +47,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Token"/> class.
         /// </summary>
-        /// <param name="text">String</param>
-        /// <param name="type">TokenType</param>
         public Token(string text, TokenType type)
         {
             this.Text = text;
@@ -64,17 +56,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Token"/> class.
         /// </summary>
-        /// <param name="unit">TextUnit</param>
-        /// <param name="type">TokenType</param>
         public Token(TextUnit unit, TokenType type)
         {
             this.TextUnit = unit;
             this.Text = unit.Text;
             this.Type = type;
         }
-
-        #endregion
     }
 }

@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
     {
         public MockSharedCounterTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Config : Event
+        private class Config : Event
         {
             public int Flag;
 
@@ -25,7 +26,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class E : Event
+        private class E : Event
         {
             public ISharedCounter Counter;
 
@@ -35,15 +36,19 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class Done : Event { }
+        private class Done : Event
+        {
+        }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = SharedCounter.Create(this.Id.Runtime, 0);
                 this.CreateMachine(typeof(N1), new E(counter));
@@ -54,13 +59,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N1 : Machine
+        private class N1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = (this.ReceivedEvent as E).Counter;
                 counter.Decrement();
@@ -72,20 +79,23 @@ namespace Microsoft.PSharp.SharedObjects.Tests
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1));
             });
 
-            base.AssertFailed(config, test, "Detected an assertion failure.");
+            this.AssertFailed(config, test, "Detected an assertion failure.");
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var flag = (this.ReceivedEvent as Config).Flag;
 
@@ -119,35 +129,39 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N2 : Machine
+        private class N2 : Machine
         {
-            ISharedCounter Counter;
+            private ISharedCounter Counter;
 
             [Start]
             [OnEventDoAction(typeof(Done), nameof(Check))]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Counter = (this.ReceivedEvent as E).Counter;
                 this.Counter.Add(5);
             }
 
-            void Check()
+            private void Check()
             {
                 var v = this.Counter.GetValue();
                 this.Assert(v == 0);
             }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var counter = SharedCounter.Create(this.Id.Runtime, 0);
                 var n = this.CreateMachine(typeof(N3), new E(counter));
@@ -160,16 +174,18 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N3 : Machine
+        private class N3 : Machine
         {
-            ISharedCounter Counter;
+            private ISharedCounter Counter;
 
             [Start]
             [OnEventDoAction(typeof(Done), nameof(Check))]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Counter = (this.ReceivedEvent as E).Counter;
                 this.Counter.Add(-4);
@@ -180,7 +196,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 this.Counter.Add(v - 100);
             }
 
-            void Check()
+            private void Check()
             {
                 var v = this.Counter.GetValue();
                 this.Assert(v == 0);
@@ -196,7 +212,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 r.CreateMachine(typeof(M2), new Config(0));
             });
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
 
         [Fact]
@@ -208,7 +224,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 r.CreateMachine(typeof(M2), new Config(1));
             });
 
-            base.AssertFailed(config, test, "Detected an assertion failure.");
+            this.AssertFailed(config, test, "Detected an assertion failure.");
         }
 
         [Fact]
@@ -220,9 +236,8 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 r.CreateMachine(typeof(M2), new Config(2));
             });
 
-            base.AssertFailed(config, test, "Detected an assertion failure.");
+            this.AssertFailed(config, test, "Detected an assertion failure.");
         }
-
 
         [Fact]
         public void TestMockSharedCounter5()
@@ -233,7 +248,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
                 r.CreateMachine(typeof(M2), new Config(3));
             });
 
-            base.AssertFailed(config, test, "Detected an assertion failure.");
+            this.AssertFailed(config, test, "Detected an assertion failure.");
         }
 
         [Fact]
@@ -241,11 +256,12 @@ namespace Microsoft.PSharp.SharedObjects.Tests
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M3));
             });
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
     }
 }

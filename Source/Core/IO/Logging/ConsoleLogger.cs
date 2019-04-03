@@ -55,6 +55,8 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Disposes the logger.
         /// </summary>
-        public override void Dispose() { }
+        public override void Dispose()
+        {
+        }
     }
 }

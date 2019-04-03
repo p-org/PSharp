@@ -14,28 +14,19 @@ namespace Microsoft.PSharp
     /// </summary>
     internal sealed class CompilationProcess
     {
-        #region fields
-
         /// <summary>
         /// The compilation context.
         /// </summary>
-        private CompilationContext CompilationContext;
+        private readonly CompilationContext CompilationContext;
 
         /// <summary>
         /// The installed logger.
         /// </summary>
-        private ILogger Logger;
-
-        #endregion
-
-        #region API
+        private readonly ILogger Logger;
 
         /// <summary>
         /// Creates a P# compilation process.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="logger">ILogger</param>
-        /// <returns>CompilationProcess</returns>
         public static CompilationProcess Create(CompilationContext context, ILogger logger)
         {
             return new CompilationProcess(context, logger);
@@ -60,21 +51,13 @@ namespace Microsoft.PSharp
             CompilationEngine.Create(this.CompilationContext, this.Logger).Run();
         }
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CompilationProcess"/> class.
         /// </summary>
-        /// <param name="context">CompilationContext</param>
-        /// <param name="logger">ILogger</param>
         private CompilationProcess(CompilationContext context, ILogger logger)
         {
             this.CompilationContext = context;
             this.Logger = logger;
         }
-
-        #endregion
     }
 }

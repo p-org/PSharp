@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal class TraceInfo
     {
-        #region fields
-
         /// <summary>
         /// Error trace.
         /// </summary>
@@ -48,11 +46,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal string Payload;
 
-        #endregion
-
-        #region methods
-
         /// <summary>
+        /// Initializes a new instance of the <see cref="TraceInfo"/> class.
         /// Constructor.
         /// </summary>
         internal TraceInfo()
@@ -62,12 +57,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TraceInfo"/> class.
         /// </summary>
-        /// <param name="method">BaseMethodDeclarationSyntax</param>
-        /// <param name="machine">StateMachine</param>
-        /// <param name="state">MachineState</param>
-        /// <param name="payload">ISymbol</param>
         internal TraceInfo(BaseMethodDeclarationSyntax method, StateMachine machine,
             MachineState state, ISymbol payload)
         {
@@ -119,12 +110,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Adds new error trace to the trace for
         /// the specified syntax node.
         /// </summary>
-        /// <param name="syntaxNode">SyntaxNode</param>
         internal void AddErrorTrace(SyntaxNode syntaxNode)
         {
-            var errorTraceStep = new ErrorTraceStep(syntaxNode.ToString(),
-                syntaxNode.SyntaxTree.FilePath, syntaxNode.SyntaxTree.GetLineSpan(
-                    syntaxNode.Span).StartLinePosition.Line + 1);
+            var errorTraceStep = new ErrorTraceStep(syntaxNode.ToString(), syntaxNode.SyntaxTree.FilePath,
+                syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span).StartLinePosition.Line + 1);
             this.ErrorTrace.Add(errorTraceStep);
         }
 
@@ -132,20 +121,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Adds new error trace to the trace for
         /// the specified syntax token.
         /// </summary>
-        /// <param name="syntaxToken">SyntaxToken</param>
         internal void AddErrorTrace(SyntaxToken syntaxToken)
         {
-            var errorTraceStep = new ErrorTraceStep(syntaxToken.ToString(),
-                syntaxToken.SyntaxTree.FilePath, syntaxToken.SyntaxTree.GetLineSpan(
-                    syntaxToken.Span).StartLinePosition.Line + 1);
+            var errorTraceStep = new ErrorTraceStep(syntaxToken.ToString(), syntaxToken.SyntaxTree.FilePath,
+                syntaxToken.SyntaxTree.GetLineSpan(syntaxToken.Span).StartLinePosition.Line + 1);
             this.ErrorTrace.Add(errorTraceStep);
         }
 
         /// <summary>
         /// Inserts a new call to the trace.
         /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="call">Call</param>
         internal void InsertCall(BaseMethodDeclarationSyntax method, ExpressionSyntax call)
         {
             if (call is InvocationExpressionSyntax ||
@@ -158,7 +143,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Merges the given trace to the current trace.
         /// </summary>
-        /// <param name="traceInfo">TraceInfo</param>
         internal void Merge(TraceInfo traceInfo)
         {
             this.ErrorTrace.AddRange(traceInfo.ErrorTrace);
@@ -168,7 +152,5 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.State = traceInfo.State;
             this.Payload = traceInfo.Payload;
         }
-
-        #endregion
     }
 }

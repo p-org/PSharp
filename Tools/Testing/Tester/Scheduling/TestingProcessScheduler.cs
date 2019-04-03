@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Configuration.
         /// </summary>
-        private Configuration Configuration;
+        private readonly Configuration Configuration;
 
 #if NET46
         /// <summary>
@@ -42,34 +42,34 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Map from testing process ids to testing processes.
         /// </summary>
-        private Dictionary<uint, Process> TestingProcesses;
+        private readonly Dictionary<uint, Process> TestingProcesses;
 #endif
 
         /// <summary>
         /// Map from testing process ids to testing process channels.
         /// </summary>
-        private Dictionary<uint, ITestingProcess> TestingProcessChannels;
+        private readonly Dictionary<uint, ITestingProcess> TestingProcessChannels;
 
         /// <summary>
         /// The test reports per process.
         /// </summary>
-        private ConcurrentDictionary<uint, TestReport> TestReports;
+        private readonly ConcurrentDictionary<uint, TestReport> TestReports;
 
         /// <summary>
         /// The global test report, which contains merged information
         /// from the test report of each testing process.
         /// </summary>
-        private TestReport GlobalTestReport;
+        private readonly TestReport GlobalTestReport;
 
         /// <summary>
         /// The testing profiler.
         /// </summary>
-        private Profiler Profiler;
+        private readonly Profiler Profiler;
 
         /// <summary>
         /// The scheduler lock.
         /// </summary>
-        private object SchedulerLock;
+        private readonly object SchedulerLock;
 
 #if NET46
         /// <summary>
@@ -88,13 +88,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Set true if we have multiple parallel processes or are running code coverage.
         /// </summary>
-        private bool runOutOfProcess;
+        private readonly bool RunOutOfProcess;
 #endif
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TestingProcessScheduler"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private TestingProcessScheduler(Configuration configuration)
         {
 #if NET46
@@ -110,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices
 
             // Code coverage should be run out-of-process; otherwise VSPerfMon won't shutdown correctly
             // because an instrumented process (this one) is still running.
-            this.runOutOfProcess = configuration.ParallelBugFindingTasks > 1 || configuration.ReportCodeCoverage;
+            this.RunOutOfProcess = configuration.ParallelBugFindingTasks > 1 || configuration.ReportCodeCoverage;
 
             if (configuration.ParallelBugFindingTasks > 1)
             {
@@ -126,11 +125,8 @@ namespace Microsoft.PSharp.TestingServices
 
 #if NET46
         /// <summary>
-        /// Notifies the testing process scheduler
-        /// that a bug was found.
+        /// Notifies the testing process scheduler that a bug was found.
         /// </summary>
-        /// <param name="processId">Unique process id</param>
-        /// <returns>Boolean value</returns>
         void ITestingProcessScheduler.NotifyBugFound(uint processId)
         {
             lock (this.SchedulerLock)
@@ -171,8 +167,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Sets the test report from the specified process.
         /// </summary>
-        /// <param name="testReport">TestReport</param>
-        /// <param name="processId">Unique process id</param>
         void ITestingProcessScheduler.SetTestReport(TestReport testReport, uint processId)
         {
             lock (this.SchedulerLock)
@@ -185,8 +179,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# testing process scheduler.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>The testing process scheduler.</returns>
         internal static TestingProcessScheduler Create(Configuration configuration)
         {
             return new TestingProcessScheduler(configuration);
@@ -205,7 +197,7 @@ namespace Microsoft.PSharp.TestingServices
             this.Profiler.StartMeasuringExecutionTime();
 
 #if NET46
-            if (runOutOfProcess)
+            if (this.RunOutOfProcess)
             {
                 this.CreateParallelTestingProcesses();
                 this.RunParallelTestingProcesses();
@@ -304,7 +296,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void OpenNotificationListener()
         {
-            if (!this.runOutOfProcess)
+            if (!this.RunOutOfProcess)
             {
                 return;
             }
@@ -313,7 +305,7 @@ namespace Microsoft.PSharp.TestingServices
                 $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
-            binding.MaxReceivedMessageSize = Int32.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcessScheduler), binding, address);
@@ -340,7 +332,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void CloseNotificationListener()
         {
-            if (this.runOutOfProcess && this.NotificationService.State == CommunicationState.Opened)
+            if (this.RunOutOfProcess && this.NotificationService.State == CommunicationState.Opened)
             {
                 try
                 {
@@ -367,15 +359,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates and returns a new testing process communication channel.
         /// </summary>
-        /// <param name="processId">Unique process id</param>
-        /// <returns>ITestingProcess</returns>
         private ITestingProcess CreateTestingProcessChannel(uint processId)
         {
             Uri address = new Uri("net.pipe://localhost/psharp/testing/process/" +
                 $"{processId}/{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
-            binding.MaxReceivedMessageSize = Int32.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
 
@@ -385,7 +375,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Stops the testing process.
         /// </summary>
-        /// <param name="processId">Unique process id</param>
         private void StopTestingProcess(uint processId)
         {
             try
@@ -404,8 +393,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Gets the test report from the specified testing process.
         /// </summary>
-        /// <param name="processId">Unique process id</param>
-        /// <returns>TestReport</returns>
         private TestReport GetTestReport(uint processId)
         {
             TestReport testReport = null;
@@ -431,8 +418,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Merges the test report from the specified process.
         /// </summary>
-        /// <param name="testReport">TestReport</param>
-        /// <param name="processId">Unique process id</param>
         private void MergeTestReport(TestReport testReport, uint processId)
         {
             if (this.TestReports.TryAdd(processId, testReport))

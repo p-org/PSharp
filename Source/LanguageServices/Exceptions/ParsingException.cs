@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
 
@@ -28,43 +29,36 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// The expected tokens.
         /// </summary>
-        internal List<TokenType> ExpectedTokenTypes;
+        internal TokenType[] ExpectedTokenTypes;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ParsingException"/> class.
         /// </summary>
-        /// <param name="errors">List of errors</param>
-        /// <param name="warnings">List of warnings</param>
         public ParsingException(List<string> errors, List<string> warnings)
-            : base("")
+            : base(string.Empty)
         {
             this.Errors = errors;
             this.Warnings = warnings;
-            this.ExpectedTokenTypes = new List<TokenType>();
+            this.ExpectedTokenTypes = Array.Empty<TokenType>();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ParsingException"/> class.
         /// </summary>
-        /// <param name="message">Message</param>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(string message, List<TokenType> expectedTokensTypes = null)
-            : this(message, expectedTokensTypes ?? new List<TokenType> {}, null)
+        public ParsingException(string message, params TokenType[] expectedTokensTypes)
+            : this(message, null, expectedTokensTypes)
         {
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ParsingException"/> class.
         /// </summary>
-        /// <param name="message">Message</param>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        /// <param name="innerEx">Inner Exception, if any</param>
-        public ParsingException(string message, List<TokenType> expectedTokensTypes, Exception innerEx)
+        public ParsingException(string message, Exception innerEx, params TokenType[] expectedTokensTypes)
             : base(message, innerEx)
         {
             this.Errors = new List<string>();
             this.Warnings = new List<string>();
-            this.ExpectedTokenTypes = expectedTokensTypes;
+            this.ExpectedTokenTypes = expectedTokensTypes.ToArray();
         }
     }
 }

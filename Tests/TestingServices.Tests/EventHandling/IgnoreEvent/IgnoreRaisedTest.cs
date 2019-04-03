@@ -14,53 +14,65 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public IgnoreRaisedTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E1 : Event { }
-        class E2 : Event
         {
-            public MachineId mid;
+        }
+
+        private class E1 : Event
+        {
+        }
+
+        private class E2 : Event
+        {
+            public MachineId Mid;
+
             public E2(MachineId mid)
             {
-                this.mid = mid;
+                this.Mid = mid;
             }
         }
-        class Unit : Event { }
 
-        class A : Machine
+        private class Unit : Event
+        {
+        }
+
+        private class A : Machine
         {
             [Start]
-            [OnEventDoAction(typeof(E1), nameof(foo))]
+            [OnEventDoAction(typeof(E1), nameof(Foo))]
             [IgnoreEvents(typeof(Unit))]
-            [OnEventDoAction(typeof(E2), nameof(bar))]
-            class Init : MachineState { }
+            [OnEventDoAction(typeof(E2), nameof(Bar))]
+            private class Init : MachineState
+            {
+            }
 
-            void foo()
+            private void Foo()
             {
                 this.Raise(new Unit());
             }
 
-            void bar()
+            private void Bar()
             {
                 var e = this.ReceivedEvent as E2;
-                this.Send(e.mid, new E2(this.Id));
+                this.Send(e.Mid, new E2(this.Id));
             }
         }
 
-
-        class Harness : Machine
+        private class Harness : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var m = this.CreateMachine(typeof(A));
                 this.Send(m, new E1());
                 this.Send(m, new E2(this.Id));
                 var e = await this.Receive(typeof(E2)) as E2;
-                //Console.WriteLine("Got Response from {0}", e.mid);
+
+                // Console.WriteLine("Got Response from {0}", e.mid);
             }
         }
 
@@ -70,10 +82,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestIgnoreRaisedEventHandled()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingIterations = 5;
             var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Harness)); });
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

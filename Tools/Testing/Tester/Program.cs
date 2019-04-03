@@ -14,11 +14,11 @@ namespace Microsoft.PSharp
     /// <summary>
     /// The P# tester.
     /// </summary>
-    class Program
+    internal class Program
     {
         private static Configuration configuration;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
@@ -39,20 +39,21 @@ namespace Microsoft.PSharp
             if (configuration.ReportCodeCoverage || configuration.ReportActivityCoverage)
             {
                 // This has to be here because both forms of coverage require it.
-                CodeCoverageInstrumentation.SetOutputDirectory(configuration, makeHistory:true);
+                CodeCoverageInstrumentation.SetOutputDirectory(configuration, makeHistory: true);
             }
 
             if (configuration.ReportCodeCoverage)
             {
                 // Instruments the program under test for code coverage.
                 CodeCoverageInstrumentation.Instrument(configuration);
+
                 // Starts monitoring for code coverage.
                 CodeCoverageMonitor.Start(configuration);
             }
 #endif
 
             Output.WriteLine(". Testing " + configuration.AssemblyToBeAnalyzed);
-            if (configuration.TestMethodName != "")
+            if (!string.IsNullOrEmpty(configuration.TestMethodName))
             {
                 Output.WriteLine("... Method {0}", configuration.TestMethodName);
             }
@@ -67,7 +68,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Shutdowns any active monitors.
         /// </summary>
-        static void Shutdown()
+        private static void Shutdown()
         {
 #if NET46
             if (configuration != null && configuration.ReportCodeCoverage && CodeCoverageMonitor.IsRunning)
@@ -82,7 +83,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Cancels the testing process.
         /// </summary>
-        static void CancelProcess()
+        private static void CancelProcess()
         {
             if (TestingProcessScheduler.ProcessCanceled)
             {
@@ -103,9 +104,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handler for unhandled exceptions.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
             Error.Report("[PSharpTester] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);

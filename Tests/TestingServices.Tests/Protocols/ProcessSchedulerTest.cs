@@ -17,7 +17,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public ProcessSchedulerTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         public enum MType
         {
@@ -25,24 +26,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
             Run
         }
 
-        class Environment : Machine
+        private class Environment : Machine
         {
             [Start]
             [OnEntry(nameof(OnInitEntry))]
-            class Init : MachineState { }
-
-            void OnInitEntry()
+            private class Init : MachineState
             {
-                var lkMachine = CreateMachine(typeof(LkMachine));
-                var rLockMachine = CreateMachine(typeof(RLockMachine));
-                var rWantMachine = CreateMachine(typeof(RWantMachine));
-                var nodeMachine = CreateMachine(typeof(Node));
-                CreateMachine(typeof(Client), new Client.Configure(lkMachine, rLockMachine, rWantMachine, nodeMachine));
-                CreateMachine(typeof(Server), new Server.Configure(lkMachine, rLockMachine, rWantMachine, nodeMachine));
+            }
+
+            private void OnInitEntry()
+            {
+                var lkMachine = this.CreateMachine(typeof(LkMachine));
+                var rLockMachine = this.CreateMachine(typeof(RLockMachine));
+                var rWantMachine = this.CreateMachine(typeof(RWantMachine));
+                var nodeMachine = this.CreateMachine(typeof(Node));
+                this.CreateMachine(typeof(Client), new Client.Configure(lkMachine, rLockMachine, rWantMachine, nodeMachine));
+                this.CreateMachine(typeof(Server), new Server.Configure(lkMachine, rLockMachine, rWantMachine, nodeMachine));
             }
         }
 
-        class Server : Machine
+        private class Server : Machine
         {
             public class Configure : Event
             {
@@ -54,14 +57,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 public Configure(MachineId lkMachineId, MachineId rLockMachineId,
                     MachineId rWantMachineId, MachineId nodeMachineId)
                 {
-                    LKMachineId = lkMachineId;
-                    RLockMachineId = rLockMachineId;
-                    RWantMachineId = rWantMachineId;
-                    NodeMachineId = nodeMachineId;
+                    this.LKMachineId = lkMachineId;
+                    this.RLockMachineId = rLockMachineId;
+                    this.RWantMachineId = rWantMachineId;
+                    this.NodeMachineId = nodeMachineId;
                 }
             }
 
-            public class Wakeup : Event { }
+            public class Wakeup : Event
+            {
+            }
 
             private MachineId LKMachineId;
             private MachineId RLockMachineId;
@@ -71,46 +76,48 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [Start]
             [OnEntry(nameof(OnInitialize))]
             [OnEventDoAction(typeof(Wakeup), nameof(OnWakeup))]
-            class Init : MachineState { }
-
-            void OnInitialize()
+            private class Init : MachineState
             {
-                var e = ReceivedEvent as Configure;
-                LKMachineId = e.LKMachineId;
-                RLockMachineId = e.RLockMachineId;
-                RWantMachineId = e.RWantMachineId;
-                NodeMachineId = e.NodeMachineId;
-                Raise(new Wakeup());
             }
 
-            void OnWakeup()
+            private void OnInitialize()
             {
-                Send(RLockMachineId, new RLockMachine.SetReq(Id, false));
-                Receive(typeof(RLockMachine.SetResp)).Wait();
-                Send(LKMachineId, new LkMachine.Waiting(Id, false));
-                Receive(typeof(LkMachine.WaitResp)).Wait();
-                Send(RWantMachineId, new RWantMachine.ValueReq(Id));
-                var receivedEvent = Receive(typeof(RWantMachine.ValueResp)).Result;
+                var e = this.ReceivedEvent as Configure;
+                this.LKMachineId = e.LKMachineId;
+                this.RLockMachineId = e.RLockMachineId;
+                this.RWantMachineId = e.RWantMachineId;
+                this.NodeMachineId = e.NodeMachineId;
+                this.Raise(new Wakeup());
+            }
+
+            private void OnWakeup()
+            {
+                this.Send(this.RLockMachineId, new RLockMachine.SetReq(this.Id, false));
+                this.Receive(typeof(RLockMachine.SetResp)).Wait();
+                this.Send(this.LKMachineId, new LkMachine.Waiting(this.Id, false));
+                this.Receive(typeof(LkMachine.WaitResp)).Wait();
+                this.Send(this.RWantMachineId, new RWantMachine.ValueReq(this.Id));
+                var receivedEvent = this.Receive(typeof(RWantMachine.ValueResp)).Result;
 
                 if ((receivedEvent as RWantMachine.ValueResp).Value == true)
                 {
-                    Send(RWantMachineId, new RWantMachine.SetReq(Id, false));
-                    Receive(typeof(RWantMachine.SetResp)).Wait();
+                    this.Send(this.RWantMachineId, new RWantMachine.SetReq(this.Id, false));
+                    this.Receive(typeof(RWantMachine.SetResp)).Wait();
 
-                    Send(NodeMachineId, new Node.ValueReq(Id));
-                    var receivedEvent1 = Receive(typeof(Node.ValueResp)).Result;
+                    this.Send(this.NodeMachineId, new Node.ValueReq(this.Id));
+                    var receivedEvent1 = this.Receive(typeof(Node.ValueResp)).Result;
                     if ((receivedEvent1 as Node.ValueResp).Value == MType.WakeUp)
                     {
-                        Send(NodeMachineId, new Node.SetReq(Id, MType.Run));
-                        Receive(typeof(Node.SetResp)).Wait();
+                        this.Send(this.NodeMachineId, new Node.SetReq(this.Id, MType.Run));
+                        this.Receive(typeof(Node.SetResp)).Wait();
                     }
                 }
 
-                Send(Id, new Wakeup());
+                this.Send(this.Id, new Wakeup());
             }
         }
 
-        class Client : Machine
+        private class Client : Machine
         {
             public class Configure : Event
             {
@@ -122,15 +129,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 public Configure(MachineId lkMachineId, MachineId rLockMachineId,
                     MachineId rWantMachineId, MachineId nodeMachineId)
                 {
-                    LKMachineId = lkMachineId;
-                    RLockMachineId = rLockMachineId;
-                    RWantMachineId = rWantMachineId;
-                    NodeMachineId = nodeMachineId;
+                    this.LKMachineId = lkMachineId;
+                    this.RLockMachineId = rLockMachineId;
+                    this.RWantMachineId = rWantMachineId;
+                    this.NodeMachineId = nodeMachineId;
                 }
             }
 
-            public class Sleep : Event { }
-            public class Progress : Event { }
+            public class Sleep : Event
+            {
+            }
+
+            public class Progress : Event
+            {
+            }
 
             private MachineId LKMachineId;
             private MachineId RLockMachineId;
@@ -141,39 +153,41 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(OnInitialize))]
             [OnEventDoAction(typeof(Sleep), nameof(OnSleep))]
             [OnEventDoAction(typeof(Progress), nameof(OnProgress))]
-            class Init : MachineState { }
-
-            void OnInitialize()
+            private class Init : MachineState
             {
-                var e = ReceivedEvent as Configure;
-                LKMachineId = e.LKMachineId;
-                RLockMachineId = e.RLockMachineId;
-                RWantMachineId = e.RWantMachineId;
-                NodeMachineId = e.NodeMachineId;
-                Raise(new Progress());
             }
 
-            void OnSleep()
+            private void OnInitialize()
             {
-                Send(LKMachineId, new LkMachine.AtomicTestSet(this.Id));
-                Receive(typeof(LkMachine.AtomicTestSet_Resp)).Wait();
+                var e = this.ReceivedEvent as Configure;
+                this.LKMachineId = e.LKMachineId;
+                this.RLockMachineId = e.RLockMachineId;
+                this.RWantMachineId = e.RWantMachineId;
+                this.NodeMachineId = e.NodeMachineId;
+                this.Raise(new Progress());
+            }
+
+            private void OnSleep()
+            {
+                this.Send(this.LKMachineId, new LkMachine.AtomicTestSet(this.Id));
+                this.Receive(typeof(LkMachine.AtomicTestSet_Resp)).Wait();
                 while (true)
                 {
-                    Send(RLockMachineId, new RLockMachine.ValueReq(this.Id));
-                    var receivedEvent = Receive(typeof(RLockMachine.ValueResp)).Result;
+                    this.Send(this.RLockMachineId, new RLockMachine.ValueReq(this.Id));
+                    var receivedEvent = this.Receive(typeof(RLockMachine.ValueResp)).Result;
                     if ((receivedEvent as RLockMachine.ValueResp).Value == true)
                     {
-                        Send(RWantMachineId, new RWantMachine.SetReq(this.Id, true));
-                        Receive(typeof(RWantMachine.SetResp)).Wait();
-                        Send(NodeMachineId, new Node.SetReq(this.Id, MType.WakeUp));
-                        Receive(typeof(Node.SetResp)).Wait();
-                        Send(LKMachineId, new LkMachine.SetReq(this.Id, false));
-                        Receive(typeof(LkMachine.SetResp)).Wait();
+                        this.Send(this.RWantMachineId, new RWantMachine.SetReq(this.Id, true));
+                        this.Receive(typeof(RWantMachine.SetResp)).Wait();
+                        this.Send(this.NodeMachineId, new Node.SetReq(this.Id, MType.WakeUp));
+                        this.Receive(typeof(Node.SetResp)).Wait();
+                        this.Send(this.LKMachineId, new LkMachine.SetReq(this.Id, false));
+                        this.Receive(typeof(LkMachine.SetResp)).Wait();
 
                         this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientSleep());
 
-                        Send(NodeMachineId, new Node.Waiting(this.Id, MType.Run));
-                        Receive(typeof(Node.WaitResp)).Wait();
+                        this.Send(this.NodeMachineId, new Node.Waiting(this.Id, MType.Run));
+                        this.Receive(typeof(Node.WaitResp)).Wait();
 
                         this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientProgress());
                     }
@@ -183,23 +197,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     }
                 }
 
-                Send(Id, new Progress());
+                this.Send(this.Id, new Progress());
             }
 
-            void OnProgress()
+            private void OnProgress()
             {
-                Send(RLockMachineId, new RLockMachine.ValueReq(Id));
-                var receivedEvent = Receive(typeof(RLockMachine.ValueResp)).Result;
+                this.Send(this.RLockMachineId, new RLockMachine.ValueReq(this.Id));
+                var receivedEvent = this.Receive(typeof(RLockMachine.ValueResp)).Result;
                 this.Assert((receivedEvent as RLockMachine.ValueResp).Value == false);
-                Send(RLockMachineId, new RLockMachine.SetReq(this.Id, true));
-                Receive(typeof(RLockMachine.SetResp)).Wait();
-                Send(LKMachineId, new LkMachine.SetReq(this.Id, false));
-                Receive(typeof(LkMachine.SetResp)).Wait();
-                Send(Id, new Sleep());
+                this.Send(this.RLockMachineId, new RLockMachine.SetReq(this.Id, true));
+                this.Receive(typeof(RLockMachine.SetResp)).Wait();
+                this.Send(this.LKMachineId, new LkMachine.SetReq(this.Id, false));
+                this.Receive(typeof(LkMachine.SetResp)).Wait();
+                this.Send(this.Id, new Sleep());
             }
         }
 
-        class Node : Machine
+        private class Node : Machine
         {
             public class ValueReq : Event
             {
@@ -207,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public ValueReq(MachineId target)
                 {
-                    Target = target;
+                    this.Target = target;
                 }
             }
 
@@ -217,7 +231,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public ValueResp(MType value)
                 {
-                    Value = value;
+                    this.Value = value;
                 }
             }
 
@@ -228,12 +242,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public SetReq(MachineId target, MType value)
                 {
-                    Target = target;
-                    Value = value;
+                    this.Target = target;
+                    this.Value = value;
                 }
             }
 
-            public class SetResp : Event { }
+            public class SetResp : Event
+            {
+            }
 
             public class Waiting : Event
             {
@@ -242,12 +258,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public Waiting(MachineId target, MType waitingOn)
                 {
-                    Target = target;
-                    WaitingOn = waitingOn;
+                    this.Target = target;
+                    this.WaitingOn = waitingOn;
                 }
             }
 
-            public class WaitResp : Event { }
+            public class WaitResp : Event
+            {
+            }
 
             private MType State;
             private Dictionary<MachineId, MType> blockedMachines;
@@ -257,61 +275,63 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(SetReq), nameof(OnSetReq))]
             [OnEventDoAction(typeof(ValueReq), nameof(OnValueReq))]
             [OnEventDoAction(typeof(Waiting), nameof(OnWaiting))]
-            class Init : MachineState { }
-
-            void OnInitialize()
+            private class Init : MachineState
             {
-                State = MType.Run;
-                blockedMachines = new Dictionary<MachineId, MType>();
             }
 
-            void OnSetReq()
+            private void OnInitialize()
             {
-                var e = ReceivedEvent as SetReq;
-                State = e.Value;
-                Unblock();
-                Send(e.Target, new SetResp());
+                this.State = MType.Run;
+                this.blockedMachines = new Dictionary<MachineId, MType>();
             }
 
-            void OnValueReq()
+            private void OnSetReq()
             {
-                var e = ReceivedEvent as ValueReq;
-                Send(e.Target, new ValueResp(State));
+                var e = this.ReceivedEvent as SetReq;
+                this.State = e.Value;
+                this.Unblock();
+                this.Send(e.Target, new SetResp());
             }
 
-            void OnWaiting()
+            private void OnValueReq()
             {
-                var e = ReceivedEvent as Waiting;
-                if (State == e.WaitingOn)
+                var e = this.ReceivedEvent as ValueReq;
+                this.Send(e.Target, new ValueResp(this.State));
+            }
+
+            private void OnWaiting()
+            {
+                var e = this.ReceivedEvent as Waiting;
+                if (this.State == e.WaitingOn)
                 {
-                    Send(e.Target, new WaitResp());
+                    this.Send(e.Target, new WaitResp());
                 }
                 else
                 {
-                    blockedMachines.Add(e.Target, e.WaitingOn);
+                    this.blockedMachines.Add(e.Target, e.WaitingOn);
                 }
             }
 
-            void Unblock()
+            private void Unblock()
             {
                 List<MachineId> remove = new List<MachineId>();
-                foreach (var target in blockedMachines.Keys)
+                foreach (var target in this.blockedMachines.Keys)
                 {
-                    if (blockedMachines[target] == State)
+                    if (this.blockedMachines[target] == this.State)
                     {
-                        Send(target, new WaitResp());
+                        this.Send(target, new WaitResp());
                         remove.Add(target);
                     }
                 }
 
                 foreach (var key in remove)
                 {
-                    blockedMachines.Remove(key);
+                    this.blockedMachines.Remove(key);
                 }
             }
         }
 
-        class LkMachine : Machine
+        private class LkMachine : Machine
         {
             public class AtomicTestSet : Event
             {
@@ -319,11 +339,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public AtomicTestSet(MachineId target)
                 {
-                    Target = target;
+                    this.Target = target;
                 }
             }
 
-            public class AtomicTestSet_Resp : Event { }
+            public class AtomicTestSet_Resp : Event
+            {
+            }
 
             public class SetReq : Event
             {
@@ -332,12 +354,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public SetReq(MachineId target, bool value)
                 {
-                    Target = target;
-                    Value = value;
+                    this.Target = target;
+                    this.Value = value;
                 }
             }
 
-            public class SetResp : Event { }
+            public class SetResp : Event
+            {
+            }
 
             public class Waiting : Event
             {
@@ -346,12 +370,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public Waiting(MachineId target, bool waitingOn)
                 {
-                    Target = target;
-                    WaitingOn = waitingOn;
+                    this.Target = target;
+                    this.WaitingOn = waitingOn;
                 }
             }
 
-            public class WaitResp : Event { }
+            public class WaitResp : Event
+            {
+            }
 
             private bool LK;
             private Dictionary<MachineId, bool> BlockedMachines;
@@ -361,66 +387,69 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(AtomicTestSet), nameof(OnAtomicTestSet))]
             [OnEventDoAction(typeof(SetReq), nameof(OnSetReq))]
             [OnEventDoAction(typeof(Waiting), nameof(OnWaiting))]
-            class Init : MachineState { }
-
-            void OnInitialize()
+            private class Init : MachineState
             {
-                LK = false;
-                BlockedMachines = new Dictionary<MachineId, bool>();
             }
 
-            void OnAtomicTestSet()
+            private void OnInitialize()
             {
-                var e = ReceivedEvent as AtomicTestSet;
-                if (LK == false)
+                this.LK = false;
+                this.BlockedMachines = new Dictionary<MachineId, bool>();
+            }
+
+            private void OnAtomicTestSet()
+            {
+                var e = this.ReceivedEvent as AtomicTestSet;
+                if (this.LK == false)
                 {
-                    LK = true;
-                    Unblock();
+                    this.LK = true;
+                    this.Unblock();
                 }
-                Send(e.Target, new AtomicTestSet_Resp());
+
+                this.Send(e.Target, new AtomicTestSet_Resp());
             }
 
-            void OnSetReq()
+            private void OnSetReq()
             {
-                var e = ReceivedEvent as SetReq;
-                LK = e.Value;
-                Unblock();
-                Send(e.Target, new SetResp());
+                var e = this.ReceivedEvent as SetReq;
+                this.LK = e.Value;
+                this.Unblock();
+                this.Send(e.Target, new SetResp());
             }
 
-            void OnWaiting()
+            private void OnWaiting()
             {
-                var e = ReceivedEvent as Waiting;
-                if (LK == e.WaitingOn)
+                var e = this.ReceivedEvent as Waiting;
+                if (this.LK == e.WaitingOn)
                 {
-                    Send(e.Target, new WaitResp());
+                    this.Send(e.Target, new WaitResp());
                 }
                 else
                 {
-                    BlockedMachines.Add(e.Target, e.WaitingOn);
+                    this.BlockedMachines.Add(e.Target, e.WaitingOn);
                 }
             }
 
-            void Unblock()
+            private void Unblock()
             {
                 List<MachineId> remove = new List<MachineId>();
-                foreach (var target in BlockedMachines.Keys)
+                foreach (var target in this.BlockedMachines.Keys)
                 {
-                    if (BlockedMachines[target] == LK)
+                    if (this.BlockedMachines[target] == this.LK)
                     {
-                        Send(target, new WaitResp());
+                        this.Send(target, new WaitResp());
                         remove.Add(target);
                     }
                 }
 
                 foreach (var key in remove)
                 {
-                    BlockedMachines.Remove(key);
+                    this.BlockedMachines.Remove(key);
                 }
             }
         }
 
-        class RLockMachine : Machine
+        private class RLockMachine : Machine
         {
             public class ValueReq : Event
             {
@@ -428,7 +457,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public ValueReq(MachineId target)
                 {
-                    Target = target;
+                    this.Target = target;
                 }
             }
 
@@ -438,7 +467,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public ValueResp(bool value)
                 {
-                    Value = value;
+                    this.Value = value;
                 }
             }
 
@@ -449,12 +478,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public SetReq(MachineId target, bool value)
                 {
-                    Target = target;
-                    Value = value;
+                    this.Target = target;
+                    this.Value = value;
                 }
             }
 
-            public class SetResp : Event { }
+            public class SetResp : Event
+            {
+            }
 
             private bool RLock;
 
@@ -462,28 +493,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(OnInitialize))]
             [OnEventDoAction(typeof(SetReq), nameof(OnSetReq))]
             [OnEventDoAction(typeof(ValueReq), nameof(OnValueReq))]
-            class Init : MachineState { }
-
-            void OnInitialize()
+            private class Init : MachineState
             {
-                RLock = false;
             }
 
-            void OnSetReq()
+            private void OnInitialize()
             {
-                var e = ReceivedEvent as SetReq;
-                RLock = e.Value;
-                Send(e.Target, new SetResp());
+                this.RLock = false;
             }
 
-            void OnValueReq()
+            private void OnSetReq()
             {
-                var e = ReceivedEvent as ValueReq;
-                Send(e.Target, new ValueResp(RLock));
+                var e = this.ReceivedEvent as SetReq;
+                this.RLock = e.Value;
+                this.Send(e.Target, new SetResp());
+            }
+
+            private void OnValueReq()
+            {
+                var e = this.ReceivedEvent as ValueReq;
+                this.Send(e.Target, new ValueResp(this.RLock));
             }
         }
 
-        class RWantMachine : Machine
+        private class RWantMachine : Machine
         {
             public class ValueReq : Event
             {
@@ -491,7 +524,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public ValueReq(MachineId target)
                 {
-                    Target = target;
+                    this.Target = target;
                 }
             }
 
@@ -501,7 +534,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public ValueResp(bool value)
                 {
-                    Value = value;
+                    this.Value = value;
                 }
             }
 
@@ -512,12 +545,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 public SetReq(MachineId target, bool value)
                 {
-                    Target = target;
-                    Value = value;
+                    this.Target = target;
+                    this.Value = value;
                 }
             }
 
-            public class SetResp : Event { }
+            public class SetResp : Event
+            {
+            }
 
             private bool RWant;
 
@@ -525,53 +560,66 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(OnInitialize))]
             [OnEventDoAction(typeof(SetReq), nameof(OnSetReq))]
             [OnEventDoAction(typeof(ValueReq), nameof(OnValueReq))]
-            class Init : MachineState { }
-
-            void OnInitialize()
+            private class Init : MachineState
             {
-                RWant = false;
             }
 
-            void OnSetReq()
+            private void OnInitialize()
             {
-                var e = ReceivedEvent as SetReq;
-                RWant = e.Value;
-                Send(e.Target, new SetResp());
+                this.RWant = false;
             }
 
-            void OnValueReq()
+            private void OnSetReq()
             {
-                var e = ReceivedEvent as ValueReq;
-                Send(e.Target, new ValueResp(RWant));
+                var e = this.ReceivedEvent as SetReq;
+                this.RWant = e.Value;
+                this.Send(e.Target, new SetResp());
+            }
+
+            private void OnValueReq()
+            {
+                var e = this.ReceivedEvent as ValueReq;
+                this.Send(e.Target, new ValueResp(this.RWant));
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
-            public class NotifyClientSleep : Event { }
-            public class NotifyClientProgress : Event { }
+            public class NotifyClientSleep : Event
+            {
+            }
+
+            public class NotifyClientProgress : Event
+            {
+            }
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
 
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
             [Hot]
             [OnEventGotoState(typeof(NotifyClientProgress), typeof(Progressing))]
-            class Suspended : MonitorState { }
+            private class Suspended : MonitorState
+            {
+            }
 
             [Cold]
             [OnEventGotoState(typeof(NotifyClientSleep), typeof(Suspended))]
-            class Progressing : MonitorState { }
+            private class Progressing : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Goto<Progressing>();
             }
         }
 
         [Theory]
-        //[ClassData(typeof(SeedGenerator))]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(3163)]
         public void TestProcessSchedulerLivenessBugWithCycleReplay(int seed)
         {
@@ -584,13 +632,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Environment));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected infinite execution that violates a liveness property.";
-            AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

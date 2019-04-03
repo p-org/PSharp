@@ -13,12 +13,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public FairRandomTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E1 : Event { }
-        class E2 : Event { }
+        private class E1 : Event
+        {
+        }
 
-        class Engine
+        private class E2 : Event
+        {
+        }
+
+        private class Engine
         {
             public static bool FairRandom(PSharpRuntime runtime)
             {
@@ -26,42 +32,48 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class UntilDone : Monitor
+        private class UntilDone : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(E2), typeof(End))]
-            class Waiting : MonitorState { }
+            private class Waiting : MonitorState
+            {
+            }
 
             [Cold]
-            class End : MonitorState { }
+            private class End : MonitorState
+            {
+            }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(HandleEvent1))]
             [OnEventDoAction(typeof(E2), nameof(HandleEvent2))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send(this.Id, new E1());
             }
 
-            void HandleEvent1()
+            private void HandleEvent1()
             {
-                if(Engine.FairRandom(this.Id.Runtime))
+                if (Engine.FairRandom(this.Id.Runtime))
                 {
                     this.Send(this.Id, new E2());
                 }
                 else
                 {
                     this.Send(this.Id, new E1());
-                }   
+                }
             }
 
-            void HandleEvent2()
+            private void HandleEvent2()
             {
                 this.Monitor<UntilDone>(new E2());
                 this.Raise(new Halt());
@@ -71,13 +83,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestFairRandom()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(UntilDone));
                 var m = r.CreateMachine(typeof(M));
                 r.SendEvent(m, new E1());
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

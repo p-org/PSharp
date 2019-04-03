@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Tests.Common
         private readonly ITestOutputHelper TestOutput;
 
         /// <summary>
-        /// Creates a new test output logger that logs everything by default.
+        /// Initializes a new instance of the <see cref="TestOutputLogger"/> class.
         /// </summary>
         /// <param name="output">The test output helper.</param>
         public TestOutputLogger(ITestOutputHelper output)
@@ -79,6 +79,8 @@ namespace Microsoft.PSharp.Tests.Common
         /// <summary>
         /// Disposes the logger.
         /// </summary>
-        public override void Dispose() { }
+        public override void Dispose()
+        {
+        }
     }
 }

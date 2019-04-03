@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,8 +15,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class NamespaceDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The namespace keyword.
         /// </summary>
@@ -56,18 +53,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             get
             {
                 return this.IdentifierTokens.Select(t => t.TextUnit.Text).
-                    Aggregate("", (acc, name) => acc + name);
+                    Aggregate(string.Empty, (acc, name) => acc + name);
             }
         }
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="NamespaceDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
         internal NamespaceDeclaration(IPSharpProgram program)
             : base(program)
         {
@@ -87,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 node.Rewrite(indentLevel + 1);
             }
-            
+
             foreach (var node in this.MachineDeclarations)
             {
                 node.Rewrite(indentLevel + 1);
@@ -113,17 +105,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the rewritten namespace declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenNamespaceDeclaration(ref string newLine)
         {
             var text = this.NamespaceKeyword.TextUnit.Text;
@@ -142,9 +129,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += newLine + node.TextUnit.Text;
                 newLine = "\n";
             }
+
             return text;
         }
-
-        #endregion
     }
 }

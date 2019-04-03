@@ -19,18 +19,16 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The test method.
         /// </summary>
-        private MethodInfo TestMethod;
+        private readonly MethodInfo TestMethod;
 
         /// <summary>
         /// The test action.
         /// </summary>
-        private Action<PSharpRuntime> TestAction;
+        private readonly Action<PSharpRuntime> TestAction;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
         /// </summary>
-        /// <param name="testMethod">MethodInfo</param>
-        /// <param name="testAction">Action</param>
         internal TestHarnessMachine(MethodInfo testMethod, Action<PSharpRuntime> testAction)
         {
             this.TestMethod = testMethod;
@@ -47,14 +45,14 @@ namespace Microsoft.PSharp.TestingServices
                 // Starts the test.
                 if (this.TestAction != null)
                 {
-                    base.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
-                    this.TestAction(base.Id.Runtime);
+                    this.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
+                    this.TestAction(this.Id.Runtime);
                 }
                 else
                 {
-                    base.Runtime.Log("<TestHarnessLog> Running test method " +
+                    this.Runtime.Log("<TestHarnessLog> Running test method " +
                         $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
-                    this.TestMethod.Invoke(null, new object[] { base.Id.Runtime });
+                    this.TestMethod.Invoke(null, new object[] { this.Id.Runtime });
                 }
             }
             catch (TargetInvocationException ex)
@@ -67,12 +65,11 @@ namespace Microsoft.PSharp.TestingServices
         /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
         /// exception, and throws it to the user.
         /// </summary>
-        /// <param name="ex">Exception</param>
         internal void ReportUnhandledException(Exception ex)
         {
             if (this.TestAction != null)
             {
-                base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                     $"in anonymous test method, " +
                     $"'{ex.Source}':\n" +
                     $"   {ex.Message}\n" +
@@ -80,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else
             {
-                base.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
                     $"in test method '{this.TestMethod.DeclaringType}.{this.TestMethod.Name}', " +
                     $"'{ex.Source}':\n" +
                     $"   {ex.Message}\n" +

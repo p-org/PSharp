@@ -14,9 +14,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public TwoMachineIntegrationTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E1 : Event
+        private class E1 : Event
         {
             public E1()
                 : base(1, -1)
@@ -24,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class E2 : Event
+        private class E2 : Event
         {
             public E2()
                 : base(1, -1)
@@ -32,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class E3 : Event
+        private class E3 : Event
         {
             public bool Value;
 
@@ -43,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class E4 : Event
+        private class E4 : Event
         {
             public MachineId Id;
 
@@ -54,184 +55,220 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class SuccessE : Event { }
-
-        class IgnoredE : Event { }
-
-        class M1 : Machine
+        private class SuccessE : Event
         {
-            bool Test = false;
-            MachineId TargetId;
+        }
+
+        private class IgnoredE : Event
+        {
+        }
+
+        private class M1 : Machine
+        {
+            private bool Test = false;
+            private MachineId TargetId;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnExit(nameof(InitOnExit))]
             [OnEventGotoState(typeof(Default), typeof(S1))]
             [OnEventDoAction(typeof(E1), nameof(Action1))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.TargetId = this.CreateMachine(typeof(M2));
                 this.Raise(new E1());
             }
 
-            void InitOnExit()
+            private void InitOnExit()
             {
                 this.Send(this.TargetId, new E3(this.Test));
             }
 
-            class S1 : MachineState { }
+            private class S1 : MachineState
+            {
+            }
 
-            void Action1()
+            private void Action1()
             {
                 this.Test = true;
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E3), nameof(EntryAction))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry() { }
+            private void InitOnEntry()
+            {
+            }
 
-            void EntryAction()
+            private void EntryAction()
             {
                 if (this.ReceivedEvent.GetType() == typeof(E3))
                 {
-                    Action2();
+                    this.Action2();
                 }
             }
 
-            void Action2()
+            private void Action2()
             {
                 this.Assert((this.ReceivedEvent as E3).Value == false);
             }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
-            MachineId TargetId;
-            int Count;
+            private MachineId TargetId;
+            private int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Active))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                TargetId = this.CreateMachine(typeof(M4));
+            }
+
+            private void InitOnEntry()
+            {
+                this.TargetId = this.CreateMachine(typeof(M4));
                 this.Raise(new SuccessE());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(WaitEvent))]
-            class Active : MachineState { }
-
-            void ActiveOnEntry()
+            private class Active : MachineState
             {
-                Count = Count + 1;
-                if (Count == 1)
+            }
+
+            private void ActiveOnEntry()
+            {
+                this.Count = this.Count + 1;
+                if (this.Count == 1)
                 {
-                    this.Send(TargetId, new E4(this.Id));
+                    this.Send(this.TargetId, new E4(this.Id));
                 }
 
-                if (Count == 2)
+                if (this.Count == 2)
                 {
-                    this.Send(TargetId, new IgnoredE());
+                    this.Send(this.TargetId, new IgnoredE());
                 }
 
                 this.Raise(new SuccessE());
             }
 
             [OnEventGotoState(typeof(E1), typeof(Active))]
-            class WaitEvent : MachineState { }
+            private class WaitEvent : MachineState
+            {
+            }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEventGotoState(typeof(E4), typeof(Active))]
             [OnEventDoAction(typeof(IgnoredE), nameof(Action1))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
-            void Action1()
+            private void Action1()
             {
                 this.Assert(false);
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Waiting))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send((this.ReceivedEvent as E4).Id, new E1());
                 this.Raise(new SuccessE());
             }
         }
 
-        class M5 : Machine
+        private class M5 : Machine
         {
-            MachineId TargetId;
-            int Count;
+            private MachineId TargetId;
+            private int Count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Active))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                TargetId = this.CreateMachine(typeof(M6));
+            }
+
+            private void InitOnEntry()
+            {
+                this.TargetId = this.CreateMachine(typeof(M6));
                 this.Raise(new SuccessE());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(WaitEvent))]
-            class Active : MachineState { }
-
-            void ActiveOnEntry()
+            private class Active : MachineState
             {
-                Count = Count + 1;
-                if (Count == 1)
+            }
+
+            private void ActiveOnEntry()
+            {
+                this.Count = this.Count + 1;
+                if (this.Count == 1)
                 {
-                    this.Send(TargetId, new E4(this.Id));
+                    this.Send(this.TargetId, new E4(this.Id));
                 }
 
-                if (Count == 2)
+                if (this.Count == 2)
                 {
-                    this.Send(TargetId, new Halt());
-                    this.Send(TargetId, new IgnoredE());
+                    this.Send(this.TargetId, new Halt());
+                    this.Send(this.TargetId, new IgnoredE());
                 }
 
                 this.Raise(new SuccessE());
             }
 
             [OnEventGotoState(typeof(E1), typeof(Active))]
-            class WaitEvent : MachineState { }
+            private class WaitEvent : MachineState
+            {
+            }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
-        class M6 : Machine
+        private class M6 : Machine
         {
             [Start]
             [OnEventGotoState(typeof(E4), typeof(Active))]
             [OnEventGotoState(typeof(Halt), typeof(Inactive))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Waiting))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send((this.ReceivedEvent as E4).Id, new E1());
                 this.Raise(new SuccessE());
@@ -239,71 +276,87 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventDoAction(typeof(IgnoredE), nameof(Action1))]
             [IgnoreEvents(typeof(E4))]
-            class Inactive : MachineState { }
+            private class Inactive : MachineState
+            {
+            }
 
-            void Action1()
+            private void Action1()
             {
                 this.Assert(false);
             }
         }
 
-        class M7 : Machine
+        private class M7 : Machine
         {
-            MachineId TargetId;
+            private MachineId TargetId;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Active))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                TargetId = this.CreateMachine(typeof(M8));
+            }
+
+            private void InitOnEntry()
+            {
+                this.TargetId = this.CreateMachine(typeof(M8));
                 this.Raise(new SuccessE());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Waiting))]
-            class Active : MachineState { }
-
-            void ActiveOnEntry()
+            private class Active : MachineState
             {
-                this.Send(TargetId, new E4(this.Id));
+            }
+
+            private void ActiveOnEntry()
+            {
+                this.Send(this.TargetId, new E4(this.Id));
                 this.Raise(new SuccessE());
             }
 
             [OnEventGotoState(typeof(E1), typeof(Active))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
-        class M8 : Machine
+        private class M8 : Machine
         {
-            int Count2 = 0;
+            private int Count2 = 0;
 
             [Start]
             [OnEntry(nameof(EntryWaitPing))]
             [OnEventGotoState(typeof(E4), typeof(Active))]
-            class Waiting : MachineState { }
+            private class Waiting : MachineState
+            {
+            }
 
-            void EntryWaitPing() { }
+            private void EntryWaitPing()
+            {
+            }
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventGotoState(typeof(SuccessE), typeof(Waiting))]
             [OnEventDoAction(typeof(Halt), nameof(Action1))]
-            class Active : MachineState { }
-
-            void ActiveOnEntry()
+            private class Active : MachineState
             {
-                Count2 = Count2 + 1;
+            }
 
-                if (Count2 == 1)
+            private void ActiveOnEntry()
+            {
+                this.Count2 = this.Count2 + 1;
+
+                if (this.Count2 == 1)
                 {
                     this.Send((this.ReceivedEvent as E4).Id, new E1());
                 }
 
-                if (Count2 == 2)
+                if (this.Count2 == 2)
                 {
                     this.Send((this.ReceivedEvent as E4).Id, new E1());
                     this.Raise(new Halt());
@@ -313,54 +366,60 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new SuccessE());
             }
 
-            void Action1()
+            private void Action1()
             {
                 this.Assert(false);
             }
         }
 
-        class M9 : Machine
+        private class M9 : Machine
         {
-            MachineId TargetId;
+            private MachineId TargetId;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnExit(nameof(InitOnExit))]
             [OnEventGotoState(typeof(E1), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new E1());
             }
 
-            void InitOnExit()
+            private void InitOnExit()
             {
                 this.TargetId = this.CreateMachine(typeof(M10));
                 this.Send(this.TargetId, new E1());
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send(this.TargetId, new E2());
             }
         }
 
-        class M10 : Machine
+        private class M10 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(E1), nameof(HandleE1))]
             [OnEventDoAction(typeof(E2), nameof(HandleE2))]
-            class Init : MachineState { }
-
-            void HandleE1()
+            private class Init : MachineState
             {
             }
 
-            void HandleE2()
+            private void HandleE1()
+            {
+            }
+
+            private void HandleE2()
             {
                 this.Assert(false);
             }
@@ -369,63 +428,68 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestTwoMachineIntegration1()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
         [Fact]
         public void TestTwoMachineIntegration2()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M3));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
         [Fact]
         public void TestTwoMachineIntegration3()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M5));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
         [Fact]
         public void TestTwoMachineIntegration4()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M7));
             });
 
-            base.AssertFailed(configuration, test, 1, true);
+            this.AssertFailed(configuration, test, 1, true);
         }
 
         [Fact]
         public void TestTwoMachineIntegration5()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M9));
             });
 
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
     }
 }

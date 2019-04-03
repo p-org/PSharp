@@ -18,8 +18,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class BlockSyntax : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The machine parent node.
         /// </summary>
@@ -45,16 +43,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token CloseBraceToken;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BlockSyntax"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="stateNode">StateDeclarationNode</param>
         internal BlockSyntax(IPSharpProgram program, MachineDeclaration machineNode,
             StateDeclaration stateNode)
             : base(program)
@@ -72,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             // Adjust the indent of lines in the block to match the surrounding indentation, according to
             // the line in the block with the minimum indentation.
             var lines = this.Block.ToString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            var splitLines = SplitAndNormalizeLeadingWhitespace(lines).ToArray();
+            var splitLines = this.SplitAndNormalizeLeadingWhitespace(lines).ToArray();
 
             // Ignore the open and close braces as they are indented one level higher and the parsing leaves
             // the first one with no indent. 'indentLevel' is the level of the block's open/close braces.
@@ -89,27 +80,26 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 : midLines.Where(s => s.Item2.Length > 0).Select(s => s.Item1.Length).DefaultIfEmpty(0).Min();
 
             // Adjust line indents to the proper level.
-            var numIndentSpaces = (indentLevel + 1) * SpacesPerIndent - minLeadingWsLen;
+            var numIndentSpaces = ((indentLevel + 1) * SpacesPerIndent) - minLeadingWsLen;
             var indent = GetIndent(indentLevel);
             var sb = new StringBuilder();
             if (skipFirst > 0)
             {
                 sb.Append(indent).Append(splitLines.First().Item2);
             }
+
             if (midLines.Length > 0)
             {
-                sb.Append("\n").Append(string.Join("\n", ComposeLines(numIndentSpaces, midLines)));
+                sb.Append("\n").Append(string.Join("\n", this.ComposeLines(numIndentSpaces, midLines)));
             }
+
             if (skipLast > 0)
             {
                 sb.Append("\n").Append(indent).Append(splitLines.Last().Item2);
             }
-            base.TextUnit = new TextUnit(sb.ToString(), this.OpenBraceToken.TextUnit.Line);
+
+            this.TextUnit = new TextUnit(sb.ToString(), this.OpenBraceToken.TextUnit.Line);
         }
-
-        #endregion
-
-        #region private methods
 
         private IEnumerable<Tuple<string, string>> SplitAndNormalizeLeadingWhitespace(IEnumerable<string> lines)
         {
@@ -141,9 +131,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var indent = new string(' ', numIndentSpaces);
                 adjustIndent = ws => indent + ws;
             }
+
             return splitLines.Select(line => line.Item2.Length == 0 ? string.Empty : adjustIndent(line.Item1) + line.Item2);
         }
-
-        #endregion
     }
 }

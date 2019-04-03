@@ -14,51 +14,53 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SingleStateMachineTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E : Event
         {
-            public int counter;
+        }
+
+        private class E : Event
+        {
+            public int Counter;
             public MachineId Id;
 
             public E(MachineId id)
             {
-                counter = 0;
-                Id = id;
+                this.Counter = 0;
+                this.Id = id;
             }
+
             public E(int c, MachineId id)
             {
-                counter = c;
-                Id = id;
+                this.Counter = c;
+                this.Id = id;
             }
         }
 
-        class M : SingleStateMachine
+        private class M : SingleStateMachine
         {
-            int count;
-            MachineId sender;
+            private int count;
+            private MachineId sender;
 
             protected override Task InitOnEntry(Event e)
             {
-                count = 1;
-                sender = (e as E).Id;
+                this.count = 1;
+                this.sender = (e as E).Id;
                 return Task.CompletedTask;
             }
 
             protected override Task ProcessEvent(Event e)
             {
-                count++;
+                this.count++;
                 return Task.CompletedTask;
             }
 
             protected override void OnHalt()
             {
-                count++;
-                this.Runtime.SendEvent(sender, new E(count, this.Id));
+                this.count++;
+                this.Runtime.SendEvent(this.sender, new E(this.count, this.Id));
             }
         }
 
-        class Harness : SingleStateMachine
+        private class Harness : SingleStateMachine
         {
             protected override async Task InitOnEntry(Event e)
             {
@@ -66,8 +68,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(m, new E(this.Id));
                 this.Send(m, new Halt());
                 var r = await this.Receive(typeof(E));
-                this.Assert((r as E).counter == 3);
+                this.Assert((r as E).Counter == 3);
             }
+
             protected override Task ProcessEvent(Event e)
             {
                 throw new NotImplementedException();
@@ -77,14 +80,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestSingleStateMachine()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Harness));
             });
             var configuration = Configuration.Create();
             configuration.SchedulingIterations = 100;
 
-            AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
-
     }
 }

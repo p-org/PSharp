@@ -15,32 +15,36 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
     {
         public DeprecatedIllegalTimerStoppageTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         private class TransferTimer : Event
         {
-            public TimerId tid;
+            public TimerId Tid;
 
             public TransferTimer(TimerId tid)
             {
-                this.tid = tid;
+                this.Tid = tid;
             }
         }
+
         private class T2 : TimedMachine
         {
-            TimerId tid;
-            object payload = new object();
-            MachineId m;
+            private TimerId tid;
+            private readonly object payload = new object();
+            private MachineId m;
 
             [Start]
             [OnEntry(nameof(Initialize))]
             [IgnoreEvents(typeof(TimerElapsedEvent))]
-            class Init : MachineState { }
-
-            void Initialize()
+            private class Init : MachineState
             {
-                tid = this.StartTimer(this.payload, 100, true);
-                m = CreateMachine(typeof(T3), new TransferTimer(tid));
+            }
+
+            private void Initialize()
+            {
+                this.tid = this.StartTimer(this.payload, 100, true);
+                this.m = this.CreateMachine(typeof(T3), new TransferTimer(this.tid));
                 this.Raise(new Halt());
             }
         }
@@ -49,13 +53,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
         {
             [Start]
             [OnEntry(nameof(Initialize))]
-            class Init : MachineState { }
-
-            async Task Initialize()
+            private class Init : MachineState
             {
-                TimerId tid = (this.ReceivedEvent as TransferTimer).tid;
+            }
 
-                // trying to stop a timer created by a different machine. 
+            private async Task Initialize()
+            {
+                TimerId tid = (this.ReceivedEvent as TransferTimer).Tid;
+
+                // trying to stop a timer created by a different machine.
                 // should throw an assertion violation
                 await this.StopTimer(tid, true);
                 this.Raise(new Halt());
@@ -68,10 +74,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
             var config = Configuration.Create().WithNumberOfIterations(1000);
             config.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T2));
             });
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
     }
 }

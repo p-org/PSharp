@@ -13,22 +13,39 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public Liveness2LoopMachineTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Unit : Event { }
-        class UserEvent : Event { }
-        class Done : Event { }
-        class Waiting : Event { }
-        class Computing : Event { }
+        private class Unit : Event
+        {
+        }
 
-        class EventHandler : Machine
+        private class UserEvent : Event
+        {
+        }
+
+        private class Done : Event
+        {
+        }
+
+        private class Waiting : Event
+        {
+        }
+
+        private class Computing : Event
+        {
+        }
+
+        private class EventHandler : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(WaitForUser))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.CreateMachine(typeof(Loop));
                 this.Raise(new Unit());
@@ -36,65 +53,76 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(WaitForUserOnEntry))]
             [OnEventGotoState(typeof(UserEvent), typeof(HandleEvent))]
-            class WaitForUser : MachineState { }
+            private class WaitForUser : MachineState
+            {
+            }
 
-            void WaitForUserOnEntry()
+            private void WaitForUserOnEntry()
             {
                 this.Monitor<LivenessMonitor>(new Waiting());
                 this.Send(this.Id, new UserEvent());
             }
 
             [OnEntry(nameof(HandleEventOnEntry))]
-            class HandleEvent : MachineState { }
+            private class HandleEvent : MachineState
+            {
+            }
 
-            void HandleEventOnEntry()
+            private void HandleEventOnEntry()
             {
                 this.Monitor<LivenessMonitor>(new Computing());
             }
         }
 
-        class Loop : Machine
+        private class Loop : Machine
         {
             [Start]
             [OnEntry(nameof(LoopingOnEntry))]
             [OnEventGotoState(typeof(Done), typeof(Looping))]
-            class Looping : MachineState { }
+            private class Looping : MachineState
+            {
+            }
 
-            void LoopingOnEntry()
+            private void LoopingOnEntry()
             {
                 this.Send(this.Id, new Done());
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             [Start]
             [Cold]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
             [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
-            class CanGetUserInput : MonitorState { }
+            private class CanGetUserInput : MonitorState
+            {
+            }
 
             [Hot]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
             [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
-            class CannotGetUserInput : MonitorState { }
+            private class CannotGetUserInput : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestLiveness2LoopMachine()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.LivenessTemperatureThreshold = 200;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(EventHandler));
             });
 
             var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
                 "'LivenessMonitor.CannotGetUserInput'.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

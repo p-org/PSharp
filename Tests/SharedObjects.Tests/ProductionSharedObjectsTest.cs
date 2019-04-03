@@ -13,9 +13,10 @@ namespace Microsoft.PSharp.SharedObjects.Tests
     {
         public ProductionSharedObjectsTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public ISharedDictionary<int, string> Dictionary;
             public ISharedCounter Counter;
@@ -29,13 +30,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var dictionary = (this.ReceivedEvent as E).Dictionary;
                 var counter = (this.ReceivedEvent as E).Counter;
@@ -63,13 +66,15 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var dictionary = (this.ReceivedEvent as E).Dictionary;
                 var counter = (this.ReceivedEvent as E).Counter;
@@ -100,7 +105,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             var tcs2 = new TaskCompletionSource<bool>();
             var failed = false;
 
-            runtime.OnFailure += delegate
+            runtime.OnFailure += (ex) =>
             {
                 failed = true;
                 tcs1.TrySetResult(true);

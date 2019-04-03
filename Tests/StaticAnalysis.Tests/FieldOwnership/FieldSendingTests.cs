@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public FieldSendingTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestFieldSending()
@@ -47,7 +48,7 @@ class M : Machine
  }
 }
 }";
-            base.AssertSucceeded(test, isPSharpProgram: false);
+            AssertSucceeded(test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -95,12 +96,12 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -149,12 +150,12 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -205,12 +206,12 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -258,12 +259,12 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -313,12 +314,12 @@ class M : Machine
 }
 }";
 
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
     }
 }

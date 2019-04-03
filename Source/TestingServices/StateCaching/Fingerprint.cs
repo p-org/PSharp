@@ -16,42 +16,31 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         private readonly int HashValue;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="Fingerprint"/> class.
         /// </summary>
-        /// <param name="hash">HashValue</param>
         internal Fingerprint(int hash)
         {
-            HashValue = hash;
+            this.HashValue = hash;
         }
 
         /// <summary>
         /// Returns true if the fingerprint is equal to
         /// the given object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
             var fingerprint = obj as Fingerprint;
-            return fingerprint != null && HashValue == fingerprint.HashValue;
+            return fingerprint != null && this.HashValue == fingerprint.HashValue;
         }
 
         /// <summary>
         /// Returns the hashcode of the fingerprint.
         /// </summary>
-        /// <returns>HashCode</returns>
-        public override int GetHashCode()
-        {
-            return HashValue;
-        }
+        public override int GetHashCode() => this.HashValue;
 
         /// <summary>
         /// Returns a string representation of the fingerprint.
         /// </summary>
-        /// <returns>Text</returns>
-        public override string ToString()
-        {
-            return $"fingerprint['{HashValue}']";
-        }
+        public override string ToString() => $"fingerprint['{this.HashValue}']";
     }
 }

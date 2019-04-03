@@ -17,8 +17,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class StateDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The machine parent node.
         /// </summary>
@@ -138,19 +136,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Whether to use nameof or a quoted string (based on C# version).
         /// </summary>
-        private bool isNameofSupported;
-
-        #endregion
-
-        #region internal API
+        private readonly bool isNameofSupported;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="groupNode">StateGroupDeclaration</param>
-        /// <param name="modSet">Modifier set</param>
         internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
             StateGroupDeclaration groupNode, ModifierSet modSet)
             : base(program)
@@ -171,17 +161,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IgnoredEvents = new HashSet<Token>();
             this.ResolvedEventIdentifierTokens = new Dictionary<Token, Tuple<List<Token>, int>>();
             this.RewrittenMethods = new HashSet<QualifiedMethod>();
-            this.isNameofSupported = base.Program.GetProject().CompilationContext.Configuration.IsRewriteCSharpVersion(6, 0);
+            this.isNameofSupported = this.Program.GetProject().CompilationContext.Configuration.IsRewriteCSharpVersion(6, 0);
         }
 
         /// <summary>
         /// Adds a goto state transition.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <param name="stateIdentifiers">Token list</param>
-        /// <param name="actionHandler">AnonymousActionHandler</param>
-        /// <returns>Boolean</returns>
         internal bool AddGotoStateTransition(Token eventIdentifier, List<Token> eventIdentifierTokens,
             List<Token> stateIdentifiers, AnonymousActionHandler actionHandler = null)
         {
@@ -207,10 +192,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Adds a push state transition.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <param name="stateIdentifiers">Token list</param>
-        /// <returns>Boolean</returns>
         internal bool AddPushStateTransition(Token eventIdentifier, List<Token> eventIdentifierTokens,
             List<Token> stateIdentifiers)
         {
@@ -236,10 +217,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Adds an action binding.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <param name="actionHandler">AnonymousActionHandler</param>
-        /// <returns>Boolean</returns>
         internal bool AddActionBinding(Token eventIdentifier, List<Token> eventIdentifierTokens,
             AnonymousActionHandler actionHandler)
         {
@@ -261,10 +238,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Adds an action binding.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <param name="actionIdentifier">Token</param>
-        /// <returns>Boolean</returns>
         internal bool AddActionBinding(Token eventIdentifier, List<Token> eventIdentifierTokens,
             Token actionIdentifier)
         {
@@ -285,9 +258,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Adds a deferred event.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <returns>Boolean</returns>
         internal bool AddDeferredEvent(Token eventIdentifier, List<Token> eventIdentifierTokens)
         {
             if (this.Machine.IsMonitor)
@@ -311,9 +281,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Adds an ignored event.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <param name="eventIdentifierTokens">Tokens</param>
-        /// <returns>Boolean</returns>
         internal bool AddIgnoredEvent(Token eventIdentifier, List<Token> eventIdentifierTokens)
         {
             if (this.DeferredEvents.Contains(eventIdentifier) ||
@@ -346,18 +313,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Debug.WriteLine("Exception was thrown during rewriting:");
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                Error.ReportAndExit("Failed to rewrite state '{0}' of machine '{1}'.",
-                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+                Error.ReportAndExit(
+                    "Failed to rewrite state '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text,
+                    this.Machine.Identifier.TextUnit.Text);
             }
-            
-            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
+
+            this.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
 
         /// <summary>
         /// Returns the fully qualified state name.
-        /// <param name="delimiter">Delimiter</param>
         /// </summary>
-        /// <returns>Text</returns>
         internal string GetFullyQualifiedName(char delimiter = '_')
         {
             var qualifiedName = this.Identifier.TextUnit.Text;
@@ -375,8 +342,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Returns the resolved event handler name that corresponds to the
         /// specified event identifier.
         /// </summary>
-        /// <param name="eventIdentifier">Token</param>
-        /// <returns>Name</returns>
         internal string GetResolvedEventHandlerName(Token eventIdentifier)
         {
             var resolvedEvent = this.ResolvedEventIdentifierTokens[eventIdentifier];
@@ -397,14 +362,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             return qualifiedEventIdentifier + typeId;
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Returns the rewritten state declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenStateDeclaration(int indentLevel)
         {
             var indent = GetIndent(indentLevel);
@@ -462,11 +422,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 // TODO: Ensure base derives (transitively) from MachineState? What if base is a state in a machine in another dll?
                 return this.BaseStateToken.Text;
             }
-            var baseTokenName = getBaseTokenName((this.Machine.IsMonitor ? "MonitorState" : "MachineState"));
+
+            var baseTokenName = getBaseTokenName(this.Machine.IsMonitor ? "MonitorState" : "MachineState");
             if (this.IsAbstract)
             {
                 text += "abstract ";
             }
+
             text += "class " + this.Identifier.TextUnit.Text + " : " + baseTokenName;
 
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
@@ -475,73 +437,69 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             return text;
         }
 
-        private string Nameof(string item)
-        {
-            return this.isNameofSupported ? $"nameof({item})" : $"\"{item}\"";
-        }
+        private string Nameof(string item) => this.isNameofSupported ? $"nameof({item})" : $"\"{item}\"";
 
         /// <summary>
         /// Instruments the on entry action.
         /// </summary>
-        /// <returns>Text</returns>
         private string InstrumentOnEntryAction(string indent)
         {
             if (this.EntryDeclaration == null)
             {
-                return "";
+                return string.Empty;
             }
 
             var suffix = this.EntryDeclaration.IsAsync ? "_async" : string.Empty;
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + $"_on_entry_action{suffix}";
-            this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
+            this.RewrittenMethods.Add(new QualifiedMethod(
+                generatedProcName,
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
 
-            return indent + $"[OnEntry({Nameof(generatedProcName)})]\n";
+            return indent + $"[OnEntry({this.Nameof(generatedProcName)})]\n";
         }
 
         /// <summary>
         /// Instruments the on exit action.
         /// </summary>
-        /// <returns>Text</returns>
         private string InstrumentOnExitAction(string indent)
         {
             if (this.ExitDeclaration == null)
             {
-                return "";
+                return string.Empty;
             }
 
             var suffix = this.ExitDeclaration.IsAsync ? "_async" : string.Empty;
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + $"_on_exit_action{suffix}";
-            this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
+            this.RewrittenMethods.Add(new QualifiedMethod(
+                generatedProcName,
                 this.Machine.Identifier.TextUnit.Text,
                 this.Machine.Namespace.QualifiedName));
 
-            return indent + $"[OnExit({Nameof(generatedProcName)})]\n";
+            return indent + $"[OnExit({this.Nameof(generatedProcName)})]\n";
         }
 
         /// <summary>
         /// Instruments the goto state transitions.
         /// </summary>
-        /// <returns>Text</returns>
         private string InstrumentGotoStateTransitions(string indent)
         {
             if (this.GotoStateTransitions.Count == 0)
             {
-                return "";
+                return string.Empty;
             }
 
             string text = string.Empty;
             foreach (var transition in this.GotoStateTransitions)
             {
                 var onExitName = string.Empty;
-                AnonymousActionHandler handler;
-                if (this.TransitionsOnExitActions.TryGetValue(transition.Key, out handler))
+                if (this.TransitionsOnExitActions.TryGetValue(transition.Key, out AnonymousActionHandler handler))
                 {
                     var suffix = handler.IsAsync ? "_async" : string.Empty;
                     onExitName = "psharp_" + this.GetFullyQualifiedName() +
                         this.GetResolvedEventHandlerName(transition.Key) + $"_action{suffix}";
-                    this.RewrittenMethods.Add(new QualifiedMethod(onExitName,
+                    this.RewrittenMethods.Add(new QualifiedMethod(
+                        onExitName,
                         this.Machine.Identifier.TextUnit.Text,
                         this.Machine.Namespace.QualifiedName));
                 }
@@ -567,13 +525,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 var stateIdentifier = transition.Value.
                     Select(token => token.TextUnit.Text).
-                    Aggregate("", (acc, id) => (acc == "") ? id : acc + "." + id);
-                    
+                    Aggregate(string.Empty, (acc, id) => string.IsNullOrEmpty(acc) ? id : acc + "." + id);
+
                 text += ", typeof(" + stateIdentifier + ")";
 
                 if (onExitName.Length > 0)
                 {
-                    text += $", {Nameof(onExitName)}";
+                    text += $", {this.Nameof(onExitName)}";
                 }
 
                 text += ")]\n";
@@ -590,7 +548,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             if (this.PushStateTransitions.Count == 0)
             {
-                return "";
+                return string.Empty;
             }
 
             string text = string.Empty;
@@ -617,7 +575,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 var stateIdentifier = transition.Value.
                     Select(token => token.TextUnit.Text).
-                    Aggregate("", (acc, id) => (acc == "") ? id : acc + "." + id);
+                    Aggregate(string.Empty, (acc, id) => string.IsNullOrEmpty(acc) ? id : acc + "." + id);
 
                 text += ", typeof(" + stateIdentifier + ")";
 
@@ -635,20 +593,20 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             if (this.ActionBindings.Count == 0)
             {
-                return "";
+                return string.Empty;
             }
 
             string text = string.Empty;
             foreach (var binding in this.ActionBindings)
             {
                 var actionName = string.Empty;
-                AnonymousActionHandler handler;
-                if (this.ActionHandlers.TryGetValue(binding.Key, out handler))
+                if (this.ActionHandlers.TryGetValue(binding.Key, out AnonymousActionHandler handler))
                 {
                     var suffix = handler.IsAsync ? "_async" : string.Empty;
                     actionName = "psharp_" + this.GetFullyQualifiedName() +
                         this.GetResolvedEventHandlerName(binding.Key) + $"_action{suffix}";
-                    this.RewrittenMethods.Add(new QualifiedMethod(actionName,
+                    this.RewrittenMethods.Add(new QualifiedMethod(
+                        actionName,
                         this.Machine.Identifier.TextUnit.Text,
                         this.Machine.Namespace.QualifiedName));
                 }
@@ -674,11 +632,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 if (actionName.Length > 0)
                 {
-                    text += $", {Nameof(actionName)}";
+                    text += $", {this.Nameof(actionName)}";
                 }
                 else
                 {
-                    text += $", {Nameof(binding.Value.TextUnit.Text)}";
+                    text += $", {this.Nameof(binding.Value.TextUnit.Text)}";
                 }
 
                 text += ")]\n";
@@ -695,7 +653,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             if (this.IgnoredEvents.Count == 0)
             {
-                return "";
+                return string.Empty;
             }
 
             string text = indent + "[IgnoreEvents(";
@@ -739,7 +697,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             if (this.Machine.IsMonitor || this.DeferredEvents.Count == 0)
             {
-                return "";
+                return string.Empty;
             }
 
             string text = indent + "[DeferEvents(";
@@ -774,8 +732,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
-
-
-        #endregion
     }
 }

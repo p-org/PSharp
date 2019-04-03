@@ -15,15 +15,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public BubbleSortAlgorithmTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class BubbleSortMachine : Machine
+        private class BubbleSortMachine : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var rev = new List<int>();
                 var sorted = new List<int>();
@@ -39,17 +42,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 // Assert that simply reversing the list produces a sorted list.
                 sorted = Reverse(rev);
                 this.Assert(sorted.Count == 10);
-                this.Assert(this.IsSorted(sorted));
-                this.Assert(!this.IsSorted(rev));
+                this.Assert(IsSorted(sorted));
+                this.Assert(!IsSorted(rev));
 
                 // Assert that the algorithm returns the sorted list.
-                sorted = this.Sort(rev);
+                sorted = Sort(rev);
                 this.Assert(sorted.Count == 10);
-                this.Assert(this.IsSorted(sorted));
-                this.Assert(!this.IsSorted(rev));
+                this.Assert(IsSorted(sorted));
+                this.Assert(!IsSorted(rev));
             }
 
-            List<int> Reverse(List<int> l)
+            private static List<int> Reverse(List<int> l)
             {
                 var result = l.ToList();
 
@@ -66,7 +69,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return result;
             }
 
-            List<int> Sort(List<int> l)
+            private static List<int> Sort(List<int> l)
             {
                 var result = l.ToList();
 
@@ -92,7 +95,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return result;
             }
 
-            bool IsSorted(List<int> l)
+            private static bool IsSorted(List<int> l)
             {
                 int i = 0;
                 while (i < l.Count - 1)
@@ -112,11 +115,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestBubbleSortAlgorithm()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(BubbleSortMachine));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

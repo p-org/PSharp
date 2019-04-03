@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class FieldTests
     {
-        #region correct tests
-
         [Fact]
         public void TestIntFieldDeclaration()
         {
@@ -128,10 +126,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestPublicFieldDeclaration()
         {
@@ -196,7 +190,5 @@ start state S { }
 }";
             LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
         }
-
-        #endregion
     }
 }

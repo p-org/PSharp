@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
-
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing.Framework;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
@@ -18,26 +16,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public sealed class CSharpParser : BaseParser
     {
-        #region fields
-
         /// <summary>
         /// The error log.
         /// </summary>
-        private List<Tuple<SyntaxToken, string>> ErrorLog;
+        private readonly List<Tuple<SyntaxToken, string>> ErrorLog;
 
         /// <summary>
         /// The warning log.
         /// </summary>
-        private List<Tuple<SyntaxToken, string>> WarningLog;
-
-        #endregion
-
-        #region public API
+        private readonly List<Tuple<SyntaxToken, string>> WarningLog;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CSharpParser"/> class.
         /// </summary>
-        /// <param name="options">ParsingOptions</param>
         public CSharpParser(ParsingOptions options)
             : base(options)
         {
@@ -46,11 +37,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CSharpParser"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="options">ParsingOptions</param>
         internal CSharpParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
             : base(project, tree, options)
         {
@@ -61,12 +49,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns a P# program.
         /// </summary>
-        /// <returns>P# program</returns>
         public IPSharpProgram Parse()
         {
             this.Program = this.CreateNewProgram();
 
-            if (!base.Options.SkipErrorChecking)
+            if (!this.Options.SkipErrorChecking)
             {
                 this.ParseSyntaxTree();
             }
@@ -79,7 +66,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns the parsing warning log.
         /// </summary>
-        /// <returns>Parsing warning log</returns>
         public List<Tuple<SyntaxToken, string>> GetParsingWarningLog()
         {
             return this.WarningLog;
@@ -88,42 +74,32 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns the parsing error log.
         /// </summary>
-        /// <returns>Parsing error log</returns>
         public List<Tuple<SyntaxToken, string>> GetParsingErrorLog()
         {
             return this.ErrorLog;
         }
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
         /// Returns a new C# program.
         /// </summary>
-        /// <returns>P# program</returns>
         protected override IPSharpProgram CreateNewProgram()
         {
-            return new CSharpProgram(base.Project, base.SyntaxTree);
+            return new CSharpProgram(this.Project, this.SyntaxTree);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Parses the syntax tree for errors.
         /// </summary>
         private void ParseSyntaxTree()
         {
-            new MachineDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
-                Parse(base.SyntaxTree);
-            new MonitorDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
-                Parse(base.SyntaxTree);
-            new MachineStateDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
-                Parse(base.SyntaxTree);
-            new MonitorStateDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
-                Parse(base.SyntaxTree);
+            new MachineDeclarationParser(this.Project, this.ErrorLog, this.WarningLog).
+                Parse(this.SyntaxTree);
+            new MonitorDeclarationParser(this.Project, this.ErrorLog, this.WarningLog).
+                Parse(this.SyntaxTree);
+            new MachineStateDeclarationParser(this.Project, this.ErrorLog, this.WarningLog).
+                Parse(this.SyntaxTree);
+            new MonitorStateDeclarationParser(this.Project, this.ErrorLog, this.WarningLog).
+                Parse(this.SyntaxTree);
         }
 
         /// <summary>
@@ -156,10 +132,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Reports the parsing warnings. Only works if the
         /// parser is running internally.
         /// </summary>
-        /// <param name="reports">Reports</param>
         private void ReportParsingWarnings(List<string> reports)
         {
-            if (!base.Options.ExitOnError || !base.Options.ShowWarnings)
+            if (!this.Options.ExitOnError || !this.Options.ShowWarnings)
             {
                 return;
             }
@@ -167,9 +142,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             foreach (var warning in this.WarningLog)
             {
                 var report = warning.Item2;
-                var warningLine = base.SyntaxTree.GetLineSpan(warning.Item1.Span).StartLinePosition.Line + 1;
+                var warningLine = this.SyntaxTree.GetLineSpan(warning.Item1.Span).StartLinePosition.Line + 1;
 
-                var root = base.SyntaxTree.GetRoot();
+                var root = this.SyntaxTree.GetRoot();
                 var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
 
                 report += "\nIn " + this.SyntaxTree.FilePath + " (line " + warningLine + "):\n";
@@ -183,10 +158,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Reports the parsing errors and exits. Only works if the
         /// parser is running internally.
         /// </summary>
-        /// <param name="reports">Reports</param>
         private void ReportParsingErrors(List<string> reports)
         {
-            if (!base.Options.ExitOnError)
+            if (!this.Options.ExitOnError)
             {
                 return;
             }
@@ -194,9 +168,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             foreach (var error in this.ErrorLog)
             {
                 var report = error.Item2;
-                var errorLine = base.SyntaxTree.GetLineSpan(error.Item1.Span).StartLinePosition.Line + 1;
-                
-                var root = base.SyntaxTree.GetRoot();
+                var errorLine = this.SyntaxTree.GetLineSpan(error.Item1.Span).StartLinePosition.Line + 1;
+
+                var root = this.SyntaxTree.GetRoot();
                 var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
 
                 report += "\nIn " + this.SyntaxTree.FilePath + " (line " + errorLine + "):\n";
@@ -205,7 +179,5 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 reports.Add(report);
             }
         }
-
-        #endregion
     }
 }

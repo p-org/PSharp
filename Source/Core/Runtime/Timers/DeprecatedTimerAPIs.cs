@@ -10,12 +10,13 @@ using System.Timers;
 
 namespace Microsoft.PSharp.Deprecated.Timers
 {
+#pragma warning disable SA1402 // FileMayOnlyContainASingleType
     internal class InitTimerEvent : Event
     {
         /// <summary>
         /// Id of the machine creating the timer.
         /// </summary>
-        public MachineId client;
+        public MachineId Client;
 
         /// <summary>
         /// True if periodic timeout events are desired.
@@ -25,19 +26,19 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// <summary>
         /// Period
         /// </summary>
-		public int Period;
+        public int Period;
 
         /// <summary>
         /// TimerId
         /// </summary>
-        public TimerId tid;
+        public TimerId Tid;
 
-        public InitTimerEvent(MachineId client, TimerId tid, bool IsPeriodic, int period)
+        public InitTimerEvent(MachineId client, TimerId tid, bool isPeriodic, int period)
         {
-            this.client = client;
-            this.IsPeriodic = IsPeriodic;
+            this.Client = client;
+            this.IsPeriodic = isPeriodic;
             this.Period = period;
-            this.tid = tid;
+            this.Tid = tid;
         }
     }
 
@@ -45,7 +46,9 @@ namespace Microsoft.PSharp.Deprecated.Timers
     /// Event used to flush the queue of a machine of eTimeout events.
     /// A single TimeoutFlushEvent event is dispatched to the queue. Then all eTimeout events are removed until we see the TimeoutFlushEvent event.
     /// </summary>
-    internal class TimeoutFlushEvent : Event { }
+    internal class TimeoutFlushEvent : Event
+    {
+    }
 
     /// <summary>
     /// Event requesting stoppage of timer.
@@ -55,22 +58,22 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// <summary>
         /// Id of machine invoking the request to stop the timer.
         /// </summary>
-        public MachineId client;
+        public MachineId Client;
 
         /// <summary>
         /// True if the user wants to flush the client's inbox of the relevant timeout messages.
         /// </summary>
-        public bool flush;
+        public bool Flush;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="HaltTimerEvent"/> class.
         /// </summary>
         /// <param name="client">Id of machine invoking the request to stop the timer. </param>
         /// <param name="flush">True if the user wants to flush the inbox of relevant timeout messages.</param>
         public HaltTimerEvent(MachineId client, bool flush)
         {
-            this.client = client;
-            this.flush = flush;
+            this.Client = client;
+            this.Flush = flush;
         }
     }
 
@@ -86,7 +89,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
         public readonly TimerId Tid;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TimerElapsedEvent"/> class.
         /// </summary>
         /// <param name="tid">Tid</param>
         public TimerElapsedEvent(TimerId tid)
@@ -96,7 +99,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
     }
 
     /// <summary>
-    /// Unique identifier for a timer 
+    /// Unique identifier for a timer
     /// </summary>
     [Obsolete("The TimerId is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
     public class TimerId
@@ -104,7 +107,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// <summary>
         /// The timer machine id
         /// </summary>
-        internal readonly MachineId mid;
+        internal readonly MachineId Mid;
 
         /// <summary>
         /// Payload
@@ -112,36 +115,27 @@ namespace Microsoft.PSharp.Deprecated.Timers
         public readonly object Payload;
 
         /// <summary>
-        /// Initializes a timer id
+        /// Initializes a new instance of the <see cref="TimerId"/> class.
         /// </summary>
         /// <param name="mid">MachineId</param>
-        /// <param name="Payload">Payload</param>
-        internal TimerId(MachineId mid, object Payload)
+        /// <param name="payload">Payload</param>
+        internal TimerId(MachineId mid, object payload)
         {
-            this.mid = mid;
-            this.Payload = Payload;
+            this.Mid = mid;
+            this.Payload = payload;
         }
 
         /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
+        /// Determines whether the specified object is equal to the current object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is TimerId tid)
             {
-                return false;
+                return this.Mid == tid.Mid;
             }
 
-            var tid = obj as TimerId;
-            if (tid == null)
-            {
-                return false;
-            }
-
-            return mid == tid.mid;
+            return false;
         }
 
         /// <summary>
@@ -150,7 +144,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return mid.GetHashCode();
+            return this.Mid.GetHashCode();
         }
 
         /// <summary>
@@ -159,7 +153,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// <returns>string</returns>
         public override string ToString()
         {
-            return string.Format("Timer[{0},{1}]", mid, Payload != null ? Payload.ToString() : "null");
+            return string.Format("Timer[{0},{1}]", this.Mid, this.Payload != null ? this.Payload.ToString() : "null");
         }
     }
 
@@ -178,10 +172,10 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// Start a timer.
         /// </summary>
         /// <param name="payload">Payload of the timeout event.</param>
-        /// <param name="IsPeriodic">Specifies whether a periodic timer is desired.</param>
         /// <param name="period">Periodicity of the timeout events in ms.</param>
+        /// <param name="isPeriodic">Specifies whether a periodic timer is desired.</param>
         /// <returns>The id of the created timer.</returns>
-        protected TimerId StartTimer(object payload, int period, bool IsPeriodic)
+        protected TimerId StartTimer(object payload, int period, bool isPeriodic)
         {
             // The specified period must be valid
             this.Assert(period >= 0, "Timer period must be non-negative");
@@ -189,7 +183,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
             var mid = this.Runtime.CreateMachineId(this.Runtime.GetTimerMachineType());
             var tid = new TimerId(mid, payload);
 
-            this.Runtime.CreateMachine(mid, this.Runtime.GetTimerMachineType(), new InitTimerEvent(this.Id, tid, IsPeriodic, period));
+            this.Runtime.CreateMachine(mid, this.Runtime.GetTimerMachineType(), new InitTimerEvent(this.Id, tid, isPeriodic, period));
 
             this.TimerIds.Add(tid);
             return tid;
@@ -206,7 +200,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
             this.Assert(this.TimerIds.Contains(timer), "Illegal timer-id given to StopTimer");
             this.TimerIds.Remove(timer);
 
-            this.Send(timer.mid, new HaltTimerEvent(this.Id, flush));
+            this.Send(timer.Mid, new HaltTimerEvent(this.Id, flush));
 
             // Flush the buffer: the timer being stopped sends a markup event to the inbox of this machine.
             // Keep dequeuing eTimeout events (with payload being the timer being stopped), until we see the markup event.
@@ -214,7 +208,8 @@ namespace Microsoft.PSharp.Deprecated.Timers
             {
                 while (true)
                 {
-                    var ev = await this.Receive(Tuple.Create(typeof(TimeoutFlushEvent), new Func<Event, bool>(e => true)),
+                    var ev = await this.Receive(
+                        Tuple.Create(typeof(TimeoutFlushEvent), new Func<Event, bool>(e => true)),
                         Tuple.Create(typeof(TimerElapsedEvent), new Func<Event, bool>(e => (e as TimerElapsedEvent).Tid == timer)));
 
                     if (ev is TimeoutFlushEvent)
@@ -265,7 +260,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
         /// <summary>
         /// Used to synchronize the Elapsed event handler with timer stoppage.
         /// </summary>
-        private readonly Object tlock = new object();
+        private readonly object tlock = new object();
 
         [Start]
         [OnEntry(nameof(InitializeTimer))]
@@ -276,46 +271,44 @@ namespace Microsoft.PSharp.Deprecated.Timers
 
         private void InitializeTimer()
         {
-            var e = (this.ReceivedEvent as InitTimerEvent);
-            this.Client = e.client;
+            var e = this.ReceivedEvent as InitTimerEvent;
+            this.Client = e.Client;
             this.IsPeriodic = e.IsPeriodic;
             this.Period = e.Period;
-            this.tid = e.tid;
+            this.tid = e.Tid;
 
             this.IsTimerEnabled = true;
-            this.timer = new System.Timers.Timer(Period);
+            this.timer = new System.Timers.Timer(this.Period);
 
-            if (!IsPeriodic)
+            if (!this.IsPeriodic)
             {
                 this.timer.AutoReset = false;
             }
 
-            this.timer.Elapsed += ElapsedEventHandler;
+            this.timer.Elapsed += this.ElapsedEventHandler;
             this.timer.Start();
         }
 
         /// <summary>
         /// Handler for the Elapsed event generated by the system timer.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="e"></param>
-        private void ElapsedEventHandler(Object source, ElapsedEventArgs e)
+        private void ElapsedEventHandler(object source, ElapsedEventArgs e)
         {
             lock (this.tlock)
             {
                 if (this.IsTimerEnabled)
                 {
-                    Runtime.SendEvent(this.Client, new TimerElapsedEvent(tid));
+                    this.Runtime.SendEvent(this.Client, new TimerElapsedEvent(this.tid));
                 }
             }
         }
 
         private void DisposeTimer()
         {
-            HaltTimerEvent e = (this.ReceivedEvent as HaltTimerEvent);
+            HaltTimerEvent e = this.ReceivedEvent as HaltTimerEvent;
 
             // The client attempting to stop this timer must be the one who created it.
-            this.Assert(e.client == this.Client);
+            this.Assert(e.Client == this.Client);
 
             lock (this.tlock)
             {
@@ -326,7 +319,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
 
             // If the client wants to flush the inbox, send a markup event.
             // This marks the endpoint of all timeout events sent by this machine.
-            if (e.flush)
+            if (e.Flush)
             {
                 this.Send(this.Client, new TimeoutFlushEvent());
             }
@@ -335,4 +328,5 @@ namespace Microsoft.PSharp.Deprecated.Timers
             this.Raise(new Halt());
         }
     }
+#pragma warning restore SA1402 // FileMayOnlyContainASingleType
 }

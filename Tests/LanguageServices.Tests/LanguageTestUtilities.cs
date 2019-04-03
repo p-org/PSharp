@@ -39,7 +39,8 @@ namespace Microsoft.PSharp.LanguageServices.Tests
                 if (expected != actual)
                 {
                     // Use same number of characters for as close alignment as possible for non-fixed fonts.
-                    var message = string.Format("Line {0}:{1}expect: {2}{3}actual: {4}",
+                    var message = string.Format(
+                        "Line {0}:{1}expect: {2}{3}actual: {4}",
                         ii + 1, Environment.NewLine, expected, Environment.NewLine, actual);
                     Assert.True(false, message);
                 }
@@ -48,10 +49,11 @@ namespace Microsoft.PSharp.LanguageServices.Tests
             if (expectedLines.Length != actualLines.Length)
             {
                 // Ignore one extra trailing crlf from actual (some of the tests may have forgotten to add it to expected).
-                if ((actualLines.Length != expectedLines.Length + 1) || (actualLines[actualLines.Length - 1] != string.Empty))
+                if ((actualLines.Length != expectedLines.Length + 1) || (actualLines[actualLines.Length - 1].Length != 0))
                 {
                     var line = expectedLines.Length > actualLines.Length ? expectedLines[numLines] : actualLines[numLines];
-                    var message = string.Format("{0} has more lines, starting at line {1}:{2}",
+                    var message = string.Format(
+                        "{0} has more lines, starting at line {1}:{2}",
                         expectedLines.Length > actualLines.Length ? "expected" : "actual", numLines + 1,
                         line.Length > 0 ? line : "<empty>");
                     Assert.True(false, message);
@@ -80,8 +82,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
         {
             ParsingOptions options = ParsingOptions.CreateDefault()
                 .DisableThrowParsingException();
-            var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), options);
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);

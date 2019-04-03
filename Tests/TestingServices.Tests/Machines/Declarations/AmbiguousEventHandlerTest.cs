@@ -13,60 +13,83 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public AmbiguousEventHandlerTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event { }
+        private class E : Event
+        {
+        }
 
-        class Program : Machine
+        private class Program : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(HandleE))]
-            public class Init : MachineState { }
+            public class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Send(this.Id, new E());
             }
 
-            void HandleE() { }
-            void HandleE(int k) { }
+            private void HandleE()
+            {
+            }
+
+#pragma warning disable CA1801 // Parameter not used
+            private void HandleE(int k)
+            {
+            }
+#pragma warning restore CA1801 // Parameter not used
         }
 
-        class Safety : Monitor
+        private class Safety : Monitor
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(HandleE))]
-            public class Init : MonitorState { }
+            public class Init : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new E());
             }
 
-            void HandleE() { }
-            void HandleE(int k) { }
+            private void HandleE()
+            {
+            }
+
+#pragma warning disable CA1801 // Parameter not used
+            private void HandleE(int k)
+            {
+            }
+#pragma warning restore CA1801 // Parameter not used
         }
 
         [Fact]
         public void TestAmbiguousMachineEventHandler()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Program));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestAmbiguousMonitorEventHandler()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(Safety));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

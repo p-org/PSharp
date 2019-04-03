@@ -44,9 +44,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        /// <returns>BugFindingEngine</returns>
         public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
@@ -55,8 +52,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>BugFindingEngine</returns>
         internal static BugFindingEngine Create(Configuration configuration)
         {
             return new BugFindingEngine(configuration);
@@ -65,9 +60,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
-        /// <returns>BugFindingEngine</returns>
         internal static BugFindingEngine Create(Configuration configuration, Assembly assembly)
         {
             return new BugFindingEngine(configuration, assembly);
@@ -76,7 +68,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Runs the P# testing engine.
         /// </summary>
-        /// <returns>ITestingEngine</returns>
         public override ITestingEngine Run()
         {
             try
@@ -86,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (Exception ex)
             {
-                base.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
+                this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
                 this.TestReport.InternalErrors.Add(ex.ToString());
             }
 
@@ -96,18 +87,16 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
         public override void TryEmitTraces(string directory, string file)
         {
             // Emits the human readable trace, if it exists.
-            if (!this.ReadableTrace.Equals(""))
+            if (!string.IsNullOrEmpty(this.ReadableTrace))
             {
                 string[] readableTraces = Directory.GetFiles(directory, file + "_*.txt").
                     Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
                 string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
 
-                base.Logger.WriteLine($"..... Writing {readableTracePath}");
+                this.Logger.WriteLine($"..... Writing {readableTracePath}");
                 File.WriteAllText(readableTracePath, this.ReadableTrace);
             }
 
@@ -120,76 +109,70 @@ namespace Microsoft.PSharp.TestingServices
                 using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    base.Logger.WriteLine($"..... Writing {bugTracePath}");
+                    this.Logger.WriteLine($"..... Writing {bugTracePath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }
 
             // Emits the reproducable trace, if it exists.
-            if (!this.ReproducableTrace.Equals(""))
+            if (!string.IsNullOrEmpty(this.ReproducableTrace))
             {
                 string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
                 string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
 
-                base.Logger.WriteLine($"..... Writing {reproTracePath}");
+                this.Logger.WriteLine($"..... Writing {reproTracePath}");
                 File.WriteAllText(reproTracePath, this.ReproducableTrace);
             }
 
-            base.Logger.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
+            this.Logger.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         /// <summary>
         /// Returns a report with the testing results.
         /// </summary>
-        /// <returns>Report</returns>
         public override string Report()
         {
-            return this.TestReport.GetText(base.Configuration, "...");
+            return this.TestReport.GetText(this.Configuration, "...");
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private BugFindingEngine(Configuration configuration)
             : base(configuration)
         {
-            if (base.Configuration.EnableDataRaceDetection)
+            if (this.Configuration.EnableDataRaceDetection)
             {
                 // Create a reporter to monitor operations for race detection.
-                this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
+                this.Reporter = new RaceDetectionEngine(configuration, this.Logger, this.TestReport);
             }
 
             this.Initialize();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="assembly">Assembly</param>
         private BugFindingEngine(Configuration configuration, Assembly assembly)
             : base(configuration, assembly)
         {
-            if (base.Configuration.EnableDataRaceDetection)
+            if (this.Configuration.EnableDataRaceDetection)
             {
-                this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
+                this.Reporter = new RaceDetectionEngine(configuration, this.Logger, this.TestReport);
             }
 
             this.Initialize();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
         private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
             : base(configuration, action)
         {
-            if (base.Configuration.EnableDataRaceDetection)
+            if (this.Configuration.EnableDataRaceDetection)
             {
-                this.Reporter = new RaceDetectionEngine(configuration, base.Logger, this.TestReport);
+                this.Reporter = new RaceDetectionEngine(configuration, this.Logger, this.TestReport);
             }
 
             this.Initialize();
@@ -203,7 +186,7 @@ namespace Microsoft.PSharp.TestingServices
             this.ReadableTrace = string.Empty;
             this.ReproducableTrace = string.Empty;
 
-            if (base.Configuration.EnableDataRaceDetection)
+            if (this.Configuration.EnableDataRaceDetection)
             {
                 this.RegisterPerIterationCallBack((arg) => { this.Reporter.ClearAll(); });
             }
@@ -212,84 +195,83 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new bug-finding task.
         /// </summary>
-        /// <returns>Task</returns>
-
         private Task CreateBugFindingTask()
         {
             string options = string.Empty;
-            if (base.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
-                base.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
+            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
+                this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
+                this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
+                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
+                this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
             {
-                options = $" (seed:{base.Configuration.RandomSchedulingSeed})";
+                options = $" (seed:{this.Configuration.RandomSchedulingSeed})";
             }
 
-            base.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
-                $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
+            this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
+                $"using '{this.Configuration.SchedulingStrategy}' strategy{options}.");
 
-            Task task = new Task(() =>
-            {
-                try
+            Task task = new Task(
+                () =>
                 {
-                    if (base.TestInitMethod != null)
+                    try
                     {
-                        // Initializes the test state.
-                        base.TestInitMethod.Invoke(null, new object[] { });
-                    }
+                        if (this.TestInitMethod != null)
+                        {
+                            // Initializes the test state.
+                            this.TestInitMethod.Invoke(null, Array.Empty<object>());
+                        }
 
-                    int maxIterations = base.Configuration.SchedulingIterations;
-                    for (int i = 0; i < maxIterations; i++)
+                        int maxIterations = this.Configuration.SchedulingIterations;
+                        for (int i = 0; i < maxIterations; i++)
+                        {
+                            if (this.CancellationTokenSource.IsCancellationRequested)
+                            {
+                                break;
+                            }
+
+                            // Runs a new testing iteration.
+                            this.RunNextIteration(i);
+
+                            if (!this.Configuration.PerformFullExploration && this.TestReport.NumOfFoundBugs > 0)
+                            {
+                                break;
+                            }
+
+                            if (!this.Strategy.PrepareForNextIteration())
+                            {
+                                break;
+                            }
+
+                            if (this.RandomNumberGenerator != null && this.Configuration.IncrementalSchedulingSeed)
+                            {
+                                // Increments the seed in the random number generator (if one is used), to
+                                // capture the seed used by the scheduling strategy in the next iteration.
+                                this.RandomNumberGenerator.Seed = this.RandomNumberGenerator.Seed + 1;
+                            }
+
+                            // Increases iterations if there is a specified timeout
+                            // and the default iteration given.
+                            if (this.Configuration.SchedulingIterations == 1 &&
+                                this.Configuration.Timeout > 0)
+                            {
+                                maxIterations++;
+                            }
+                        }
+
+                        if (this.TestDisposeMethod != null)
+                        {
+                            // Disposes the test state.
+                            this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
+                        }
+                    }
+                    catch (TargetInvocationException ex)
                     {
-                        if (this.CancellationTokenSource.IsCancellationRequested)
+                        if (!(ex.InnerException is TaskCanceledException))
                         {
-                            break;
-                        }
-
-                        // Runs a new testing iteration.
-                        this.RunNextIteration(i);
-
-                        if (!base.Configuration.PerformFullExploration && base.TestReport.NumOfFoundBugs > 0)
-                        {
-                            break;
-                        }
-
-                        if (!base.Strategy.PrepareForNextIteration())
-                        {
-                            break;
-                        }
-
-                        if (this.RandomNumberGenerator != null && Configuration.IncrementalSchedulingSeed)
-                        {
-                            // Increments the seed in the random number generator (if one is used), to
-                            // capture the seed used by the scheduling strategy in the next iteration.
-                            this.RandomNumberGenerator.Seed = this.RandomNumberGenerator.Seed + 1;
-                        }
-
-                        // Increases iterations if there is a specified timeout
-                        // and the default iteration given.
-                        if (base.Configuration.SchedulingIterations == 1 &&
-                            base.Configuration.Timeout > 0)
-                        {
-                            maxIterations++;
+                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                         }
                     }
-
-                    if (base.TestDisposeMethod != null)
-                    {
-                        // Disposes the test state.
-                        base.TestDisposeMethod.Invoke(null, new object[] { });
-                    }
-                }
-                catch (TargetInvocationException ex)
-                {
-                    if (!(ex.InnerException is TaskCanceledException))
-                    {
-                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                    }
-                }
-            }, base.CancellationTokenSource.Token);
+                }, this.CancellationTokenSource.Token);
 
             return task;
         }
@@ -297,14 +279,14 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Runs the next testing iteration.
         /// </summary>
-        /// <param name="iteration">Iteration</param>
         private void RunNextIteration(int iteration)
         {
             if (this.ShouldPrintIteration(iteration + 1))
             {
-                base.Logger.WriteLine($"..... Iteration #{iteration + 1}");
-                // Flush when logging to console
-                if (base.Logger is ConsoleLogger)
+                this.Logger.WriteLine($"..... Iteration #{iteration + 1}");
+
+                // Flush when logging to console.
+                if (this.Logger is ConsoleLogger)
                 {
                     Console.Out.Flush();
                 }
@@ -324,30 +306,31 @@ namespace Microsoft.PSharp.TestingServices
             try
             {
                 // Creates a new instance of the bug-finding runtime.
-                if (base.TestRuntimeFactoryMethod != null)
+                if (this.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (TestingRuntime)base.TestRuntimeFactoryMethod.Invoke(null,
-                        new object[] { base.Configuration, base.Strategy, base.Reporter });
+                    runtime = (TestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                        null,
+                        new object[] { this.Configuration, this.Strategy, this.Reporter });
                 }
                 else
                 {
-                    runtime = new TestingRuntime(base.Configuration, base.Strategy, base.Reporter);
+                    runtime = new TestingRuntime(this.Configuration, this.Strategy, this.Reporter);
                 }
 
-                if (base.Configuration.EnableDataRaceDetection)
+                if (this.Configuration.EnableDataRaceDetection)
                 {
                     this.Reporter.RegisterRuntime(runtime);
                 }
 
                 // If verbosity is turned off, then intercept the program log, and also dispose
                 // the standard output and error streams.
-                if (base.Configuration.Verbose < 2)
+                if (this.Configuration.Verbose < 2)
                 {
                     runtimeLogger = new InMemoryLogger();
                     runtime.SetLogger(runtimeLogger);
 
                     // Sets the scheduling strategy logger to the in-memory logger.
-                    base.SchedulingStrategyLogger.SetLogger(runtimeLogger);
+                    this.SchedulingStrategyLogger.SetLogger(runtimeLogger);
 
                     var writer = new LogWriter(new DisposingLogger());
                     Console.SetOut(writer);
@@ -355,25 +338,25 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 // Runs the test inside the P# test-harness machine.
-                runtime.RunTestHarness(base.TestMethod, base.TestAction);
+                runtime.RunTestHarness(this.TestMethod, this.TestAction);
 
                 // Wait for the test to terminate.
                 runtime.Wait();
 
                 // Invokes user-provided cleanup for this iteration.
-                if (base.TestIterationDisposeMethod != null)
+                if (this.TestIterationDisposeMethod != null)
                 {
                     // Disposes the test state.
-                    base.TestIterationDisposeMethod.Invoke(null, null);
+                    this.TestIterationDisposeMethod.Invoke(null, null);
                 }
 
                 // Invoke the per iteration callbacks, if any.
-                foreach (var callback in base.PerIterationCallbacks)
+                foreach (var callback in this.PerIterationCallbacks)
                 {
                     callback(iteration);
                 }
 
-                if (base.Configuration.RaceFound)
+                if (this.Configuration.RaceFound)
                 {
                     string message = IO.Utilities.Format("Found a race");
                     runtime.Scheduler.NotifyAssertionFailure(message, false);
@@ -392,17 +375,17 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (runtime.Scheduler.BugFound)
                 {
-                    base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                    this.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
                 this.GatherIterationStatistics(runtime);
 
-                if (base.TestReport.NumOfFoundBugs > 0)
+                if (this.TestReport.NumOfFoundBugs > 0)
                 {
                     if (runtimeLogger != null)
                     {
                         this.ReadableTrace = runtimeLogger.ToString();
-                        this.ReadableTrace += this.TestReport.GetText(base.Configuration, "<StrategyLog>");
+                        this.ReadableTrace += this.TestReport.GetText(this.Configuration, "<StrategyLog>");
                     }
 
                     this.BugTrace = runtime.BugTrace;
@@ -411,22 +394,22 @@ namespace Microsoft.PSharp.TestingServices
             }
             finally
             {
-                if (base.Configuration.Verbose < 2)
+                if (this.Configuration.Verbose < 2)
                 {
                     // Restores the standard output and error streams.
                     Console.SetOut(stdOut);
                     Console.SetError(stdErr);
                 }
 
-                if (base.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
+                if (this.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
                 {
-                    base.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
-                        $"triggered bug #{base.TestReport.NumOfFoundBugs} " +
+                    this.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
+                        $"triggered bug #{this.TestReport.NumOfFoundBugs} " +
                         $"[task-{this.Configuration.TestingProcessId}]");
                 }
 
                 // Resets the scheduling strategy logger to the default logger.
-                base.SchedulingStrategyLogger.ResetToDefaultLogger();
+                this.SchedulingStrategyLogger.ResetToDefaultLogger();
 
                 // Cleans up the runtime before the next iteration starts.
                 runtimeLogger?.Dispose();
@@ -438,7 +421,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Gathers the exploration strategy statistics for
         /// the latest testing iteration.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
         private void GatherIterationStatistics(TestingRuntime runtime)
         {
             TestReport report = runtime.Scheduler.GetReport();
@@ -449,7 +431,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        /// <param name="runtime">TestingRuntime</param>
         private void ConstructReproducableTrace(TestingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -459,24 +440,24 @@ namespace Microsoft.PSharp.TestingServices
                 stringBuilder.Append("--fair-scheduling").Append(Environment.NewLine);
             }
 
-            if (base.Configuration.EnableCycleDetection)
+            if (this.Configuration.EnableCycleDetection)
             {
                 stringBuilder.Append("--cycle-detection").Append(Environment.NewLine);
                 stringBuilder.Append("--liveness-temperature-threshold:" +
-                    base.Configuration.LivenessTemperatureThreshold).
+                    this.Configuration.LivenessTemperatureThreshold).
                     Append(Environment.NewLine);
             }
             else
             {
                 stringBuilder.Append("--liveness-temperature-threshold:" +
-                    base.Configuration.LivenessTemperatureThreshold).
+                    this.Configuration.LivenessTemperatureThreshold).
                     Append(Environment.NewLine);
             }
 
-            if (!base.Configuration.TestMethodName.Equals(""))
+            if (!string.IsNullOrEmpty(this.Configuration.TestMethodName))
             {
                 stringBuilder.Append("--test-method:" +
-                    base.Configuration.TestMethodName).
+                    this.Configuration.TestMethodName).
                     Append(Environment.NewLine);
             }
 
@@ -508,14 +489,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns true if the engine should print the current iteration.
         /// </summary>
-        /// <param name="iteration">Iteration</param>
-        /// <returns>Boolean</returns>
         private bool ShouldPrintIteration(int iteration)
         {
             if (iteration > this.PrintGuard * 10)
             {
-                var count = (iteration.ToString().Length - 1);
-                var guard = "1" + (count > 0 ? String.Concat(Enumerable.Repeat("0", count)) : "");
+                var count = iteration.ToString().Length - 1;
+                var guard = "1" + (count > 0 ? string.Concat(Enumerable.Repeat("0", count)) : string.Empty);
                 this.PrintGuard = int.Parse(guard);
             }
 

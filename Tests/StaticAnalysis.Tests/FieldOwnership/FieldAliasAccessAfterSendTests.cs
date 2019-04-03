@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public FieldAliasAccessAfterSendTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestFieldAliasAccessAfterSend1Fail()
@@ -64,10 +65,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
 
         [Fact]
@@ -126,10 +127,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
         }
     }
 }

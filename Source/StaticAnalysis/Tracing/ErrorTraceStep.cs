@@ -10,8 +10,6 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal class ErrorTraceStep
     {
-        #region fields
-
         /// <summary>
         /// The expression.
         /// </summary>
@@ -27,23 +25,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal readonly int Line;
 
-        #endregion
-
-        #region methods
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ErrorTraceStep"/> class.
         /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <param name="file">File</param>
-        /// <param name="line">Line</param>
         internal ErrorTraceStep(string expr, string file, int line)
         {
             this.Expression = expr;
             this.File = file;
             this.Line = line;
         }
-
-        #endregion
     }
 }

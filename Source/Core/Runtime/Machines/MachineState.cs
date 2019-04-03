@@ -57,9 +57,11 @@ namespace Microsoft.PSharp
         internal bool IsStart { get; private set; }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineState"/> class.
         /// </summary>
-        protected MachineState() { }
+        protected MachineState()
+        {
+        }
 
         /// <summary>
         /// Initializes the state.
@@ -75,8 +77,8 @@ namespace Microsoft.PSharp
             this.IgnoredEvents = new HashSet<Type>();
             this.DeferredEvents = new HashSet<Type>();
 
-            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntry), true) as OnEntry;
-            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExit), true) as OnExit;
+            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) as OnEntryAttribute;
+            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) as OnExitAttribute;
 
             if (entryAttribute != null)
             {
@@ -98,7 +100,7 @@ namespace Microsoft.PSharp
             this.InstallIgnoreHandlers(handledEvents);
             this.InstallDeferHandlers(handledEvents);
 
-            if (this.GetType().IsDefined(typeof(Start), false))
+            if (this.GetType().IsDefined(typeof(StartAttribute), false))
             {
                 this.IsStart = true;
             }
@@ -110,8 +112,8 @@ namespace Microsoft.PSharp
         /// <param name="handledEvents">Set of handled events.</param>
         private void InstallGotoTransitions(HashSet<Type> handledEvents)
         {
-            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
-                as OnEventGotoState[];
+            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
+                as OnEventGotoStateAttribute[];
 
             foreach (var attr in gotoAttributes)
             {
@@ -144,8 +146,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var gotoAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventGotoState), false)
-                as OnEventGotoState[];
+            var gotoAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
+                as OnEventGotoStateAttribute[];
 
             var gotoTransitionsInherited = new Dictionary<Type, GotoStateTransition>();
             foreach (var attr in gotoAttributesInherited)
@@ -183,8 +185,8 @@ namespace Microsoft.PSharp
         /// <param name="handledEvents">Set of handled events.</param>
         private void InstallPushTransitions(HashSet<Type> handledEvents)
         {
-            var pushAttributes = this.GetType().GetCustomAttributes(typeof(OnEventPushState), false)
-                as OnEventPushState[];
+            var pushAttributes = this.GetType().GetCustomAttributes(typeof(OnEventPushStateAttribute), false)
+                as OnEventPushStateAttribute[];
 
             foreach (var attr in pushAttributes)
             {
@@ -209,8 +211,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var pushAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventPushState), false)
-                as OnEventPushState[];
+            var pushAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventPushStateAttribute), false)
+                as OnEventPushStateAttribute[];
 
             var pushTransitionsInherited = new Dictionary<Type, PushStateTransition>();
             foreach (var attr in pushAttributesInherited)
@@ -240,8 +242,8 @@ namespace Microsoft.PSharp
         /// <param name="handledEvents">Set of handled events.</param>
         private void InstallActionHandlers(HashSet<Type> handledEvents)
         {
-            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoAction), false)
-                as OnEventDoAction[];
+            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
+                as OnEventDoActionAttribute[];
 
             foreach (var attr in doAttributes)
             {
@@ -266,8 +268,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var doAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventDoAction), false)
-                as OnEventDoAction[];
+            var doAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
+                as OnEventDoActionAttribute[];
 
             var actionBindingsInherited = new Dictionary<Type, ActionBinding>();
             foreach (var attr in doAttributesInherited)
@@ -297,7 +299,7 @@ namespace Microsoft.PSharp
         /// <param name="handledEvents">Set of handled events.</param>
         private void InstallIgnoreHandlers(HashSet<Type> handledEvents)
         {
-            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
+            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
 
             if (ignoreEventsAttribute != null)
             {
@@ -325,7 +327,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var ignoreEventsAttribute = baseState.GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
+            var ignoreEventsAttribute = baseState.GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
 
             if (ignoreEventsAttribute != null)
             {
@@ -352,7 +354,7 @@ namespace Microsoft.PSharp
         /// <param name="handledEvents">Set of handled events.</param>
         private void InstallDeferHandlers(HashSet<Type> handledEvents)
         {
-            var deferEventsAttribute = this.GetType().GetCustomAttribute(typeof(DeferEvents), false) as DeferEvents;
+            var deferEventsAttribute = this.GetType().GetCustomAttribute(typeof(DeferEventsAttribute), false) as DeferEventsAttribute;
             if (deferEventsAttribute != null)
             {
                 foreach (var e in deferEventsAttribute.Events)
@@ -379,7 +381,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var deferEventsAttribute = baseState.GetCustomAttribute(typeof(DeferEvents), false) as DeferEvents;
+            var deferEventsAttribute = baseState.GetCustomAttribute(typeof(DeferEventsAttribute), false) as DeferEventsAttribute;
             if (deferEventsAttribute != null)
             {
                 foreach (var e in deferEventsAttribute.Events)
@@ -404,7 +406,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">Event.</param>
         /// <param name="handledEvents">Set of handled events.</param>
-        private void CheckEventHandlerAlreadyDeclared(Type e, HashSet<Type> handledEvents)
+        private static void CheckEventHandlerAlreadyDeclared(Type e, HashSet<Type> handledEvents)
         {
             if (handledEvents.Contains(e))
             {
@@ -418,7 +420,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event.</param>
         /// <param name="baseState">Base state.</param>
         /// <param name="handledEvents">Set of handled events.</param>
-        private void CheckEventHandlerAlreadyInherited(Type e, Type baseState, HashSet<Type> handledEvents)
+        private static void CheckEventHandlerAlreadyInherited(Type e, Type baseState, HashSet<Type> handledEvents)
         {
             if (handledEvents.Contains(e))
             {

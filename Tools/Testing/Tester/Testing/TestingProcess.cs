@@ -36,13 +36,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Configuration.
         /// </summary>
-        private Configuration Configuration;
+        private readonly Configuration Configuration;
 
         /// <summary>
         /// The testing engine associated with
         /// this testing process.
         /// </summary>
-        private ITestingEngine TestingEngine;
+        private readonly ITestingEngine TestingEngine;
 
 #if NET46
         /// <summary>
@@ -54,7 +54,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the test report.
         /// </summary>
-        /// <returns>TestReport</returns>
         TestReport ITestingProcess.GetTestReport()
         {
             return this.TestingEngine.TestReport.Clone();
@@ -71,8 +70,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a P# testing process.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <returns>TestingProcess</returns>
         internal static TestingProcess Create(Configuration configuration)
         {
             return new TestingProcess(configuration);
@@ -140,9 +137,8 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="TestingProcess"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private TestingProcess(Configuration configuration)
         {
             if (configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
@@ -180,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices
                 $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
-            binding.MaxReceivedMessageSize = Int32.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
 
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcess), binding, address);
@@ -242,7 +238,7 @@ namespace Microsoft.PSharp.TestingServices
                 $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
-            binding.MaxReceivedMessageSize = Int32.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
 
@@ -264,7 +260,7 @@ namespace Microsoft.PSharp.TestingServices
                 $"{this.Configuration.TestingSchedulerEndPoint}");
 
             NetNamedPipeBinding binding = new NetNamedPipeBinding();
-            binding.MaxReceivedMessageSize = Int32.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
 
             EndpointAddress endpoint = new EndpointAddress(address);
 
@@ -274,8 +270,7 @@ namespace Microsoft.PSharp.TestingServices
                     CreateChannel(binding, endpoint);
             }
 
-            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport.Clone(),
-                this.Configuration.TestingProcessId);
+            this.TestingScheduler.SetTestReport(this.TestingEngine.TestReport.Clone(), this.Configuration.TestingProcessId);
         }
 #endif
 
@@ -298,11 +293,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a timer that monitors the status of the parent process.
         /// </summary>
-        /// <returns>Timer</returns>
         private Timer CreateParentStatusMonitorTimer()
         {
             Timer timer = new Timer(5000);
-            timer.Elapsed += CheckParentStatus;
+            timer.Elapsed += this.CheckParentStatus;
             timer.AutoReset = true;
             return timer;
         }
@@ -311,8 +305,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Checks the status of the parent process. If the parent
         /// process exits, then this process should also exit.
         /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">ElapsedEventArgs</param>
         private void CheckParentStatus(object sender, ElapsedEventArgs e)
         {
             Process parent = Process.GetProcesses().FirstOrDefault(val

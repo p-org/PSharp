@@ -12,8 +12,6 @@ namespace Microsoft.PSharp.IO
     /// </summary>
     public static class Error
     {
-        #region public methods
-
         /// <summary>
         /// Reports a generic error to the user.
         /// </summary>
@@ -22,9 +20,9 @@ namespace Microsoft.PSharp.IO
         public static void Report(string format, params object[] args)
         {
             string message = Utilities.Format(format, args);
-            Error.Write(ConsoleColor.Red, "Error: ");
-            Error.Write(ConsoleColor.Yellow, message);
-            Console.Error.WriteLine("");
+            Write(ConsoleColor.Red, "Error: ");
+            Write(ConsoleColor.Yellow, message);
+            Console.Error.WriteLine(string.Empty);
         }
 
         /// <summary>
@@ -33,9 +31,9 @@ namespace Microsoft.PSharp.IO
         /// <param name="value">Text</param>
         public static void ReportAndExit(string value)
         {
-            Error.Write(ConsoleColor.Red, "Error: ");
-            Error.Write(ConsoleColor.Yellow, value);
-            Console.Error.WriteLine("");
+            Write(ConsoleColor.Red, "Error: ");
+            Write(ConsoleColor.Yellow, value);
+            Console.Error.WriteLine(string.Empty);
             Environment.Exit(1);
         }
 
@@ -47,15 +45,11 @@ namespace Microsoft.PSharp.IO
         public static void ReportAndExit(string format, params object[] args)
         {
             string message = Utilities.Format(format, args);
-            Error.Write(ConsoleColor.Red, "Error: ");
-            Error.Write(ConsoleColor.Yellow, message);
-            Console.Error.WriteLine("");
+            Write(ConsoleColor.Red, "Error: ");
+            Write(ConsoleColor.Yellow, message);
+            Console.Error.WriteLine(string.Empty);
             Environment.Exit(1);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         ///  Writes the specified string value to the output stream.
@@ -69,7 +63,5 @@ namespace Microsoft.PSharp.IO
             Console.Error.Write(value);
             Console.ForegroundColor = previousForegroundColor;
         }
-
-        #endregion
     }
 }

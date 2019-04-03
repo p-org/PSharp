@@ -12,7 +12,8 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
     {
         public FieldGivenUpOwnershipTests(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         [Fact]
         public void TestFieldGivenUpOwnership1Fail()
@@ -60,13 +61,13 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns " +
                 "'letter' to field 'Foo.M.Letter' after giving up its ownership.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -126,13 +127,13 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            base.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
         [Fact]
@@ -183,10 +184,10 @@ class M : Machine
  }
 }
 }";
-            
-            var configuration = base.GetConfiguration();
+
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
 
         [Fact]
@@ -239,9 +240,9 @@ class M : Machine
  }
 }
 }";
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            base.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
         }
     }
 }

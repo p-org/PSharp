@@ -15,56 +15,66 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public StartStopTimerTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class TimeoutReceivedEvent : Event { }
+        private class TimeoutReceivedEvent : Event
+        {
+        }
 
-        class Client : Machine
+        private class Client : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Initialize()
+            private void Initialize()
             {
                 // Start a timer, and then stop it immediately.
                 var timer = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(10));
                 this.StopTimer(timer);
             }
 
-            void HandleTimeout()
+            private void HandleTimeout()
             {
                 // Timeout in the interval between starting and disposing the timer.
                 this.Monitor<LivenessMonitor>(new TimeoutReceivedEvent());
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(TimeoutReceivedEvent), typeof(TimeoutReceived))]
-            class NoTimeoutReceived : MonitorState { }
+            private class NoTimeoutReceived : MonitorState
+            {
+            }
 
             [Cold]
-            class TimeoutReceived : MonitorState { }
+            private class TimeoutReceived : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestStartStopTimer()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.LivenessTemperatureThreshold = 150;
             configuration.MaxSchedulingSteps = 300;
             configuration.SchedulingIterations = 1000;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));
             });
 
-            base.AssertFailed(configuration, test,
+            this.AssertFailed(configuration, test,
                 "Monitor 'LivenessMonitor' detected liveness bug in hot state " +
                 "'LivenessMonitor.NoTimeoutReceived' at the end of program execution.",
                 true);

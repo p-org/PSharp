@@ -20,9 +20,9 @@ namespace Microsoft.PSharp
         public Type State;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="PushStateEvent"/> class.
         /// </summary>
-        /// <param name="s">Type of the state</param>
+        /// <param name="s">Type of the state.</param>
         public PushStateEvent(Type s)
             : base()
         {

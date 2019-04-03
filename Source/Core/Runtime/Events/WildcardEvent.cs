@@ -14,12 +14,11 @@ namespace Microsoft.PSharp
     public sealed class WildCardEvent : Event
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="WildCardEvent"/> class.
         /// </summary>
         public WildCardEvent()
             : base()
         {
-
         }
     }
 }

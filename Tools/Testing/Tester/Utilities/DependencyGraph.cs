@@ -1,23 +1,22 @@
-﻿#if NET46
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.PSharp;
+#if NET46
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Tester.Utilities
+namespace Microsoft.PSharp.TestingServices.Utilities
 {
     internal static class DependencyGraph
     {
         private class DependencyNode
         {
             internal string Name { get; private set; }
+
             internal DependencyNode Next { get; private set; }
 
             internal DependencyNode(string name)
@@ -48,7 +47,7 @@ namespace Tester.Utilities
                 // We need to do this in a separate AppDomain so we can unload the assemblies to allow instrumentation.
                 var loader = (DependentAssemblyLoader)domain.CreateInstanceAndUnwrap(
                         Assembly.GetExecutingAssembly().FullName, typeof(DependentAssemblyLoader).FullName);
-                return loader.GetDependenciesToPSharp(configuration.AssemblyToBeAnalyzed);
+                return DependentAssemblyLoader.GetDependenciesToPSharp(configuration.AssemblyToBeAnalyzed);
             }
             finally
             {
@@ -56,8 +55,8 @@ namespace Tester.Utilities
             }
         }
 
-        internal static string[] GetDependenciesToTarget(string source, HashSet<string> allNames, Func<string, string[]> dependenciesFunc,
-                                                  Func<string, bool> isTargetFunc)
+        internal static string[] GetDependenciesToTarget(string source, HashSet<string> allNames,
+            Func<string, string[]> dependenciesFunc, Func<string, bool> isTargetFunc)
         {
             var known = new Dictionary<string, bool>();
             var queue = new Queue<DependencyNode>();
@@ -75,6 +74,7 @@ namespace Tester.Utilities
                 {
                     node.Process(n => known[n] = true);
                 }
+
                 foreach (var name in dependencies.Where(n => allNames.Contains(n) && !known.ContainsKey(n)))
                 {
                     queue.Enqueue(isTarget ? new DependencyNode(name) : node.Append(name));
@@ -85,6 +85,7 @@ namespace Tester.Utilities
             {
                 evaluate();
             }
+
             known[source] = true;   // Always return the source
             return known.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray();
         }
@@ -158,34 +159,6 @@ namespace Tester.Utilities
             compare("0".Split(), deps);
         }
 #endif
-    }
-
-    public sealed class DependentAssemblyLoader : MarshalByRefObject
-    {
-        public string[] GetDependenciesToPSharp(string assemblyUnderTest)
-        {
-            // Get the case-normalized directory name
-            var fullTestAssemblyName = Path.GetFullPath(assemblyUnderTest);
-            var dir = Path.GetDirectoryName(Assembly.ReflectionOnlyLoadFrom(fullTestAssemblyName).Location);
-            var allNames = new HashSet<string>(Directory.GetFiles(dir, "*.dll"));
-
-            // Because Assembly.GetReferencedAssemblies does not yet have the path (assembly resolution is complex), we will assume that
-            // any assembly that matches a name in the executing directory is the referenced assembly.
-            var assemblyNameToFullPathMap = allNames.ToDictionary(name => Path.GetFileNameWithoutExtension(name), name => name);
-
-            string getAssemblyFullPath(AssemblyName assemblyName) =>
-                assemblyNameToFullPathMap.ContainsKey(assemblyName.Name) ? assemblyNameToFullPathMap[assemblyName.Name] : string.Empty;
-
-            string[] getDependencies(string fullPath)
-            {
-                var assembly = Assembly.ReflectionOnlyLoadFrom(fullPath);
-                return assembly.GetReferencedAssemblies().Select(getAssemblyFullPath).Where(x => x.Length > 0).ToArray();
-            }
-
-            bool isTarget(string fullPath) => Path.GetFileName(fullPath).StartsWith("Microsoft.PSharp.");
-
-            return DependencyGraph.GetDependenciesToTarget(fullTestAssemblyName, allNames, name => getDependencies(name), name => isTarget(name));
-        }
     }
 }
 #endif

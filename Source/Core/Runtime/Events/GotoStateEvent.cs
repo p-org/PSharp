@@ -17,12 +17,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Type of the state to transition to.
         /// </summary>
-        public Type State;
+        public readonly Type State;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="GotoStateEvent"/> class.
         /// </summary>
-        /// <param name="s">Type of the state</param>
+        /// <param name="s">Type of the state.</param>
         public GotoStateEvent(Type s)
             : base()
         {

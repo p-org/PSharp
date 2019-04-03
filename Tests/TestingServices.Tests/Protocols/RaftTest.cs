@@ -13,9 +13,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
     /// <summary>
     /// This is a simple implementation of the Raft consensus protocol
     /// described in the following paper:
-    /// 
+    ///
     /// https://raft.github.io/raft.pdf
-    /// 
+    ///
     /// This test contains a bug that leads to duplicate leader election
     /// in the same term.
     /// </summary>
@@ -23,9 +23,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public RaftTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Log
+        private class Log
         {
             public readonly int Term;
             public readonly int Command;
@@ -37,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class ClusterManager : Machine
+        private class ClusterManager : Machine
         {
             internal class NotifyLeaderUpdate : Event
             {
@@ -63,23 +64,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class ShutDown : Event { }
-            private class LocalEvent : Event { }
+            internal class ShutDown : Event
+            {
+            }
 
-            MachineId[] Servers;
-            int NumberOfServers;
+            private class LocalEvent : Event
+            {
+            }
 
-            MachineId Leader;
-            int LeaderTerm;
+            private MachineId[] Servers;
+            private int NumberOfServers;
 
-            MachineId Client;
+            private MachineId Leader;
+            private int LeaderTerm;
+
+            private MachineId Client;
 
             [Start]
             [OnEntry(nameof(EntryOnInit))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void EntryOnInit()
+            private void EntryOnInit()
             {
                 this.NumberOfServers = 5;
                 this.LeaderTerm = 0;
@@ -98,9 +106,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(ConfiguringOnInit))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Availability.Unavailable))]
-            class Configuring : MachineState { }
+            private class Configuring : MachineState
+            {
+            }
 
-            void ConfiguringOnInit()
+            private void ConfiguringOnInit()
             {
                 for (int idx = 0; idx < this.NumberOfServers; idx++)
                 {
@@ -112,51 +122,52 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new LocalEvent());
             }
 
-            class Availability : StateGroup
+            private class Availability : StateGroup
             {
                 [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(BecomeAvailable))]
                 [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
                 [OnEventGotoState(typeof(LocalEvent), typeof(Available))]
                 [DeferEvents(typeof(Client.Request))]
-                public class Unavailable : MachineState { }
-
+                public class Unavailable : MachineState
+                {
+                }
 
                 [OnEventDoAction(typeof(Client.Request), nameof(SendClientRequestToLeader))]
                 [OnEventDoAction(typeof(RedirectRequest), nameof(RedirectClientRequest))]
                 [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(RefreshLeader))]
                 [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
                 [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
-                public class Available : MachineState { }
+                public class Available : MachineState
+                {
+                }
             }
 
-            void BecomeAvailable()
+            private void BecomeAvailable()
             {
                 this.UpdateLeader(this.ReceivedEvent as NotifyLeaderUpdate);
                 this.Raise(new LocalEvent());
             }
 
-
-            void SendClientRequestToLeader()
+            private void SendClientRequestToLeader()
             {
                 this.Send(this.Leader, this.ReceivedEvent);
             }
 
-            void RedirectClientRequest()
+            private void RedirectClientRequest()
             {
                 this.Send(this.Id, (this.ReceivedEvent as RedirectRequest).Request);
             }
 
-            void RefreshLeader()
+            private void RefreshLeader()
             {
                 this.UpdateLeader(this.ReceivedEvent as NotifyLeaderUpdate);
             }
 
-            void BecomeUnavailable()
+            private void BecomeUnavailable()
             {
-
             }
 
-            void ShuttingDown()
+            private void ShuttingDown()
             {
                 for (int idx = 0; idx < this.NumberOfServers; idx++)
                 {
@@ -166,7 +177,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Halt());
             }
 
-            void UpdateLeader(NotifyLeaderUpdate request)
+            private void UpdateLeader(NotifyLeaderUpdate request)
             {
                 if (this.LeaderTerm < request.Term)
                 {
@@ -180,7 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         /// A server in Raft can be one of the following three roles:
         /// follower, candidate or leader.
         /// </summary>
-        class Server : Machine
+        private class Server : Machine
         {
             /// <summary>
             /// Used to configure the server.
@@ -244,9 +255,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 public int Term; // leader's term
                 public MachineId LeaderId; // so follower can redirect clients
-                public int PrevLogIndex; // index of log entry immediately preceding new ones 
+                public int PrevLogIndex; // index of log entry immediately preceding new ones
                 public int PrevLogTerm; // term of PrevLogIndex entry
-                public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
+                public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency)
                 public int LeaderCommit; // leader’s CommitIndex
 
                 public MachineId ReceiverEndpoint; // client
@@ -270,8 +281,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             /// </summary>
             public class AppendEntriesResponse : Event
             {
-                public int Term; // current Term, for leader to update itself 
-                public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm 
+                public int Term; // current Term, for leader to update itself
+                public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm
 
                 public MachineId Server;
                 public MachineId ReceiverEndpoint; // client
@@ -287,100 +298,112 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
 
             // Events for transitioning a server between roles.
-            private class BecomeFollower : Event { }
-            private class BecomeCandidate : Event { }
-            private class BecomeLeader : Event { }
+            private class BecomeFollower : Event
+            {
+            }
 
-            internal class ShutDown : Event { }
+            private class BecomeCandidate : Event
+            {
+            }
+
+            private class BecomeLeader : Event
+            {
+            }
+
+            internal class ShutDown : Event
+            {
+            }
 
             /// <summary>
             /// The id of this server.
             /// </summary>
-            int ServerId;
+            private int ServerId;
 
             /// <summary>
             /// The cluster manager machine.
             /// </summary>
-            MachineId ClusterManager;
+            private MachineId ClusterManager;
 
             /// <summary>
             /// The servers.
             /// </summary>
-            MachineId[] Servers;
+            private MachineId[] Servers;
 
             /// <summary>
             /// Leader id.
             /// </summary>
-            MachineId LeaderId;
+            private MachineId LeaderId;
 
             /// <summary>
             /// The election timer of this server.
             /// </summary>
-            MachineId ElectionTimer;
+            private MachineId ElectionTimer;
 
             /// <summary>
             /// The periodic timer of this server.
             /// </summary>
-            MachineId PeriodicTimer;
+            private MachineId PeriodicTimer;
 
             /// <summary>
             /// Latest term server has seen (initialized to 0 on
             /// first boot, increases monotonically).
             /// </summary>
-            int CurrentTerm;
+            private int CurrentTerm;
 
             /// <summary>
             /// Candidate id that received vote in current term (or null if none).
             /// </summary>
-            MachineId VotedFor;
+            private MachineId VotedFor;
 
             /// <summary>
             /// Log entries.
             /// </summary>
-            List<Log> Logs;
+            private List<Log> Logs;
 
             /// <summary>
             /// Index of highest log entry known to be committed (initialized
-            /// to 0, increases monotonically). 
+            /// to 0, increases monotonically).
             /// </summary>
-            int CommitIndex;
+            private int CommitIndex;
 
             /// <summary>
             /// Index of highest log entry applied to state machine (initialized
             /// to 0, increases monotonically).
             /// </summary>
-            int LastApplied;
+            private int LastApplied;
 
             /// <summary>
             /// For each server, index of the next log entry to send to that
-            /// server (initialized to leader last log index + 1). 
+            /// server (initialized to leader last log index + 1).
             /// </summary>
-            Dictionary<MachineId, int> NextIndex;
+            private Dictionary<MachineId, int> NextIndex;
 
             /// <summary>
             /// For each server, index of highest log entry known to be replicated
             /// on server (initialized to 0, increases monotonically).
             /// </summary>
-            Dictionary<MachineId, int> MatchIndex;
+            private Dictionary<MachineId, int> MatchIndex;
 
             /// <summary>
             /// Number of received votes.
             /// </summary>
-            int VotesReceived;
+            private int VotesReceived;
 
             /// <summary>
             /// The latest client request.
             /// </summary>
-            Client.Request LastClientRequest;
+            private Client.Request LastClientRequest;
 
             [Start]
             [OnEntry(nameof(EntryOnInit))]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
             [DeferEvents(typeof(VoteRequest), typeof(AppendEntriesRequest))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void EntryOnInit()
+            private void EntryOnInit()
             {
                 this.CurrentTerm = 0;
 
@@ -396,7 +419,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.MatchIndex = new Dictionary<MachineId, int>();
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.ServerId = (this.ReceivedEvent as ConfigureEvent).Id;
                 this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
@@ -422,9 +445,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
             [OnEventGotoState(typeof(BecomeCandidate), typeof(Candidate))]
             [IgnoreEvents(typeof(PeriodicTimer.Timeout))]
-            class Follower : MachineState { }
+            private class Follower : MachineState
+            {
+            }
 
-            void FollowerOnInit()
+            private void FollowerOnInit()
             {
                 this.LeaderId = null;
                 this.VotesReceived = 0;
@@ -432,7 +457,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.ElectionTimer, new ElectionTimer.StartTimerEvent());
             }
 
-            void RedirectClientRequest()
+            private void RedirectClientRequest()
             {
                 if (this.LeaderId != null)
                 {
@@ -444,12 +469,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void StartLeaderElection()
+            private void StartLeaderElection()
             {
                 this.Raise(new BecomeCandidate());
             }
 
-            void VoteAsFollower()
+            private void VoteAsFollower()
             {
                 var request = this.ReceivedEvent as VoteRequest;
                 if (request.Term > this.CurrentTerm)
@@ -461,7 +486,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Vote(this.ReceivedEvent as VoteRequest);
             }
 
-            void RespondVoteAsFollower()
+            private void RespondVoteAsFollower()
             {
                 var request = this.ReceivedEvent as VoteResponse;
                 if (request.Term > this.CurrentTerm)
@@ -471,7 +496,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void AppendEntriesAsFollower()
+            private void AppendEntriesAsFollower()
             {
                 var request = this.ReceivedEvent as AppendEntriesRequest;
                 if (request.Term > this.CurrentTerm)
@@ -483,7 +508,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
             }
 
-            void RespondAppendEntriesAsFollower()
+            private void RespondAppendEntriesAsFollower()
             {
                 var request = this.ReceivedEvent as AppendEntriesResponse;
                 if (request.Term > this.CurrentTerm)
@@ -505,9 +530,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventGotoState(typeof(BecomeLeader), typeof(Leader))]
             [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
             [OnEventGotoState(typeof(BecomeCandidate), typeof(Candidate))]
-            class Candidate : MachineState { }
+            private class Candidate : MachineState
+            {
+            }
 
-            void CandidateOnInit()
+            private void CandidateOnInit()
             {
                 this.CurrentTerm++;
                 this.VotedFor = this.Id;
@@ -518,7 +545,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.BroadcastVoteRequests();
             }
 
-            void BroadcastVoteRequests()
+            private void BroadcastVoteRequests()
             {
                 // BUG: duplicate votes from same follower
                 this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimerEvent());
@@ -526,7 +553,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 for (int idx = 0; idx < this.Servers.Length; idx++)
                 {
                     if (idx == this.ServerId)
+                    {
                         continue;
+                    }
 
                     var lastLogIndex = this.Logs.Count;
                     var lastLogTerm = this.GetLogTermForIndex(lastLogIndex);
@@ -536,7 +565,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void VoteAsCandidate()
+            private void VoteAsCandidate()
             {
                 var request = this.ReceivedEvent as VoteRequest;
                 if (request.Term > this.CurrentTerm)
@@ -552,7 +581,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void RespondVoteAsCandidate()
+            private void RespondVoteAsCandidate()
             {
                 var request = this.ReceivedEvent as VoteResponse;
                 if (request.Term > this.CurrentTerm)
@@ -578,7 +607,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void AppendEntriesAsCandidate()
+            private void AppendEntriesAsCandidate()
             {
                 var request = this.ReceivedEvent as AppendEntriesRequest;
                 if (request.Term > this.CurrentTerm)
@@ -594,7 +623,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void RespondAppendEntriesAsCandidate()
+            private void RespondAppendEntriesAsCandidate()
             {
                 var request = this.ReceivedEvent as AppendEntriesResponse;
                 if (request.Term > this.CurrentTerm)
@@ -614,9 +643,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
             [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
             [IgnoreEvents(typeof(ElectionTimer.Timeout), typeof(PeriodicTimer.Timeout))]
-            class Leader : MachineState { }
+            private class Leader : MachineState
+            {
+            }
 
-            void LeaderOnInit()
+            private void LeaderOnInit()
             {
                 this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.CurrentTerm));
                 this.Send(this.ClusterManager, new ClusterManager.NotifyLeaderUpdate(this.Id, this.CurrentTerm));
@@ -629,7 +660,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 for (int idx = 0; idx < this.Servers.Length; idx++)
                 {
                     if (idx == this.ServerId)
+                    {
                         continue;
+                    }
+
                     this.NextIndex.Add(this.Servers[idx], logIndex + 1);
                     this.MatchIndex.Add(this.Servers[idx], 0);
                 }
@@ -637,13 +671,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 for (int idx = 0; idx < this.Servers.Length; idx++)
                 {
                     if (idx == this.ServerId)
+                    {
                         continue;
+                    }
+
                     this.Send(this.Servers[idx], new AppendEntriesRequest(this.CurrentTerm, this.Id,
                         logIndex, logTerm, new List<Log>(), this.CommitIndex, null));
                 }
             }
 
-            void ProcessClientRequest()
+            private void ProcessClientRequest()
             {
                 this.LastClientRequest = this.ReceivedEvent as Client.Request;
 
@@ -653,7 +690,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.BroadcastLastClientRequest();
             }
 
-            void BroadcastLastClientRequest()
+            private void BroadcastLastClientRequest()
             {
                 var lastLogIndex = this.Logs.Count;
 
@@ -661,14 +698,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 for (int idx = 0; idx < this.Servers.Length; idx++)
                 {
                     if (idx == this.ServerId)
+                    {
                         continue;
+                    }
 
                     var server = this.Servers[idx];
                     if (lastLogIndex < this.NextIndex[server])
+                    {
                         continue;
+                    }
 
-                    var logs = this.Logs.GetRange(this.NextIndex[server] - 1,
-                        this.Logs.Count - (this.NextIndex[server] - 1));
+                    var logs = this.Logs.GetRange(this.NextIndex[server] - 1, this.Logs.Count - (this.NextIndex[server] - 1));
 
                     var prevLogIndex = this.NextIndex[server] - 1;
                     var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
@@ -678,7 +718,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void VoteAsLeader()
+            private void VoteAsLeader()
             {
                 var request = this.ReceivedEvent as VoteRequest;
 
@@ -698,7 +738,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void RespondVoteAsLeader()
+            private void RespondVoteAsLeader()
             {
                 var request = this.ReceivedEvent as VoteResponse;
                 if (request.Term > this.CurrentTerm)
@@ -711,7 +751,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void AppendEntriesAsLeader()
+            private void AppendEntriesAsLeader()
             {
                 var request = this.ReceivedEvent as AppendEntriesRequest;
                 if (request.Term > this.CurrentTerm)
@@ -726,7 +766,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void RespondAppendEntriesAsLeader()
+            private void RespondAppendEntriesAsLeader()
             {
                 var request = this.ReceivedEvent as AppendEntriesResponse;
                 if (request.Term > this.CurrentTerm)
@@ -772,8 +812,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         this.NextIndex[request.Server] = this.NextIndex[request.Server] - 1;
                     }
 
-                    var logs = this.Logs.GetRange(this.NextIndex[request.Server] - 1,
-                        this.Logs.Count - (this.NextIndex[request.Server] - 1));
+                    var logs = this.Logs.GetRange(this.NextIndex[request.Server] - 1, this.Logs.Count - (this.NextIndex[request.Server] - 1));
 
                     var prevLogIndex = this.NextIndex[request.Server] - 1;
                     var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
@@ -787,7 +826,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             /// Processes the given vote request.
             /// </summary>
             /// <param name="request">VoteRequest</param>
-            void Vote(VoteRequest request)
+            private void Vote(VoteRequest request)
             {
                 var lastLogIndex = this.Logs.Count;
                 var lastLogTerm = this.GetLogTermForIndex(lastLogIndex);
@@ -812,7 +851,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             /// Processes the given append entries request.
             /// </summary>
             /// <param name="request">AppendEntriesRequest</param>
-            void AppendEntries(AppendEntriesRequest request)
+            private void AppendEntries(AppendEntriesRequest request)
             {
                 if (request.Term < this.CurrentTerm)
                 {
@@ -825,8 +864,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         (this.Logs.Count < request.PrevLogIndex ||
                         this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
                     {
-                        this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
-                            false, this.Id, request.ReceiverEndpoint));
+                        this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false, this.Id, request.ReceiverEndpoint));
                     }
                     else
                     {
@@ -865,13 +903,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         }
 
                         this.LeaderId = request.LeaderId;
-                        this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
-                            true, this.Id, request.ReceiverEndpoint));
+                        this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, true, this.Id, request.ReceiverEndpoint));
                     }
                 }
             }
 
-            void RedirectLastClientRequestToClusterManager()
+            private void RedirectLastClientRequestToClusterManager()
             {
                 if (this.LastClientRequest != null)
                 {
@@ -884,7 +921,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             /// </summary>
             /// <param name="logIndex">Index</param>
             /// <returns>Term</returns>
-            int GetLogTermForIndex(int logIndex)
+            private int GetLogTermForIndex(int logIndex)
             {
                 var logTerm = 0;
                 if (logIndex > 0)
@@ -895,7 +932,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return logTerm;
             }
 
-            void ShuttingDown()
+            private void ShuttingDown()
             {
                 this.Send(this.ElectionTimer, new Halt());
                 this.Send(this.PeriodicTimer, new Halt());
@@ -904,7 +941,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Client : Machine
+        private class Client : Machine
         {
             /// <summary>
             /// Used to configure the client.
@@ -936,28 +973,34 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class Response : Event { }
+            internal class Response : Event
+            {
+            }
 
-            private class LocalEvent : Event { }
+            private class LocalEvent : Event
+            {
+            }
 
-            MachineId Cluster;
+            private MachineId Cluster;
 
-            int LatestCommand;
-            int Counter;
+            private int LatestCommand;
+            private int Counter;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.LatestCommand = -1;
                 this.Counter = 0;
             }
 
-            void Configure()
+            private void Configure()
             {
                 this.Cluster = (this.ReceivedEvent as ConfigureEvent).Cluster;
                 this.Raise(new LocalEvent());
@@ -966,16 +1009,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEntry(nameof(PumpRequestOnEntry))]
             [OnEventDoAction(typeof(Response), nameof(ProcessResponse))]
             [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
-            class PumpRequest : MachineState { }
-
-            void PumpRequestOnEntry()
+            private class PumpRequest : MachineState
             {
-                this.LatestCommand = this.RandomInteger(100); //new Random().Next(100);
+            }
+
+            private void PumpRequestOnEntry()
+            {
+                this.LatestCommand = this.RandomInteger(100);
                 this.Counter++;
                 this.Send(this.Cluster, new Request(this.Id, this.LatestCommand));
             }
 
-            void ProcessResponse()
+            private void ProcessResponse()
             {
                 if (this.Counter == 3)
                 {
@@ -989,7 +1034,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class ElectionTimer : Machine
+        private class ElectionTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -1002,20 +1047,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimerEvent : Event { }
-            internal class CancelTimer : Event { }
-            internal class Timeout : Event { }
+            internal class StartTimerEvent : Event
+            {
+            }
 
-            private class TickEvent : Event { }
+            internal class CancelTimer : Event
+            {
+            }
 
-            MachineId Target;
+            internal class Timeout : Event
+            {
+            }
+
+            private class TickEvent : Event
+            {
+            }
+
+            private MachineId Target;
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
             }
@@ -1024,14 +1081,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
             [IgnoreEvents(typeof(StartTimerEvent))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send(this.Id, new TickEvent());
             }
 
-            void Tick()
+            private void Tick()
             {
                 if (this.Random())
                 {
@@ -1043,10 +1102,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
-            class Inactive : MachineState { }
+            private class Inactive : MachineState
+            {
+            }
         }
 
-        class PeriodicTimer : Machine
+        private class PeriodicTimer : Machine
         {
             internal class ConfigureEvent : Event
             {
@@ -1059,20 +1120,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            internal class StartTimerEvent : Event { }
-            internal class CancelTimer : Event { }
-            internal class Timeout : Event { }
+            internal class StartTimerEvent : Event
+            {
+            }
 
-            private class TickEvent : Event { }
+            internal class CancelTimer : Event
+            {
+            }
 
-            MachineId Target;
+            internal class Timeout : Event
+            {
+            }
+
+            private class TickEvent : Event
+            {
+            }
+
+            private MachineId Target;
 
             [Start]
             [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
             }
@@ -1081,14 +1154,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
             [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
             [IgnoreEvents(typeof(StartTimerEvent))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 this.Send(this.Id, new TickEvent());
             }
 
-            void Tick()
+            private void Tick()
             {
                 if (this.Random())
                 {
@@ -1100,10 +1175,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
             [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
-            class Inactive : MachineState { }
+            private class Inactive : MachineState
+            {
+            }
         }
 
-        class SafetyMonitor : Monitor
+        private class SafetyMonitor : Monitor
         {
             internal class NotifyLeaderElected : Event
             {
@@ -1116,25 +1193,31 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            private class LocalEvent : Event { }
+            private class LocalEvent : Event
+            {
+            }
 
             private HashSet<int> TermsWithLeader;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(LocalEvent), typeof(Monitoring))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.TermsWithLeader = new HashSet<int>();
                 this.Raise(new LocalEvent());
             }
 
             [OnEventDoAction(typeof(NotifyLeaderElected), nameof(ProcessLeaderElected))]
-            class Monitoring : MonitorState { }
+            private class Monitoring : MonitorState
+            {
+            }
 
-            void ProcessLeaderElected()
+            private void ProcessLeaderElected()
             {
                 var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
 
@@ -1144,24 +1227,25 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Theory]
-        //[ClassData(typeof(SeedGenerator))]
+        // [ClassData(typeof(SeedGenerator))]
         [InlineData(79)]
         public void TestMultipleLeadersInRaftProtocol(int seed)
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
             configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(ClusterManager));
             });
 
             var bugReport = "Detected more than one leader.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

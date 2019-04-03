@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,8 +15,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal class ExpressionNode : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The block node.
         /// </summary>
@@ -38,15 +35,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         private int Index;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ExpressionNode"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="node">BlockSyntax</param>
         internal ExpressionNode(IPSharpProgram program, BlockSyntax node)
             : base(program)
         {
@@ -56,21 +47,20 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation.
+        /// Rewrites the syntax node declaration to the intermediate C# representation.
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
             if (this.StmtTokens.Count == 0)
             {
-                base.TextUnit = new TextUnit("", 0);
+                this.TextUnit = new TextUnit(string.Empty, 0);
                 return;
             }
 
             this.Index = 0;
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
             this.RewriteNextToken();
-            
+
             var text = GetIndent(indentLevel);
 
             foreach (var token in this.RewrittenStmtTokens)
@@ -78,12 +68,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += token.TextUnit.Text;
             }
 
-            base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);
         }
-
-        #endregion
-
-        #region protected API
 
         /// <summary>
         /// Rewrites the machine type.
@@ -103,10 +89,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var text = "this.Random()";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the next token.
@@ -222,7 +204,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return;
         }
-
-        #endregion
     }
 }

@@ -16,8 +16,17 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// Assert a condition that should be true.
         /// </summary>
         /// <param name="condition">The condition.</param>
+        public void Assert(bool condition)
+        {
+            Debug.Assert(condition, string.Empty);
+        }
+
+        /// <summary>
+        /// Assert a condition that should be true.
+        /// </summary>
+        /// <param name="condition">The condition.</param>
         /// <param name="msg">An error message if the condition is false.</param>
-        public void Assert(bool condition, string msg = "")
+        public void Assert(bool condition, string msg)
         {
             Debug.Assert(condition, msg);
         }

@@ -36,7 +36,9 @@ namespace Microsoft.PSharp.Benchmarking
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void InitOnEntry()
             {
@@ -66,12 +68,13 @@ namespace Microsoft.PSharp.Benchmarking
         [Benchmark]
         public void MeasureMachineCreation()
         {
-            var runtime = new ProductionRuntime();
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
 
             var tcs = new TaskCompletionSource<bool>();
-            var e = new SetupEvent(tcs, NumMachines, DoHalt);
+            var e = new SetupEvent(tcs, this.NumMachines, this.DoHalt);
 
-            for (int idx = 0; idx < NumMachines; idx++)
+            for (int idx = 0; idx < this.NumMachines; idx++)
             {
                 runtime.CreateMachine(typeof(M), null, e, null);
             }

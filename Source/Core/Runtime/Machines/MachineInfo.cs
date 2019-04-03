@@ -53,26 +53,26 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Unique id of the machine.
         /// </summary>
-        public ulong Id => MachineId.Value;
+        public ulong Id => this.MachineId.Value;
 
         /// <summary>
         /// Name of the machine.
         /// </summary>
-        public string Name => MachineId.Name;
+        public string Name => this.MachineId.Name;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="MachineInfo"/> class.
         /// </summary>
         /// <param name="mid">The machine id.</param>
         internal MachineInfo(MachineId mid)
         {
-            MachineId = mid;
-            IsHalted = false;
-            IsWaitingToReceive = false;
-            IsInsideOnExit = false;
-            CurrentActionCalledTransitionStatement = false;
-            OperationGroupId = Guid.Empty;
-            ProgramCounter = 0;
+            this.MachineId = mid;
+            this.IsHalted = false;
+            this.IsWaitingToReceive = false;
+            this.IsInsideOnExit = false;
+            this.CurrentActionCalledTransitionStatement = false;
+            this.OperationGroupId = Guid.Empty;
+            this.ProgramCounter = 0;
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Runtime
                 return false;
             }
 
-            return MachineId == mid.MachineId;
+            return this.MachineId == mid.MachineId;
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return MachineId.GetHashCode();
+            return this.MachineId.GetHashCode();
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>string</returns>
         public override string ToString()
         {
-            return MachineId.Name;
+            return this.MachineId.Name;
         }
     }
 }

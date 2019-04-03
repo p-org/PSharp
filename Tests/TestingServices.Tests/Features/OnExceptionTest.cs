@@ -15,78 +15,100 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public OnExceptionTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event
+        private class E : Event
         {
             public MachineId Id;
 
-            public E() { }
+            public E()
+            {
+            }
 
             public E(MachineId id)
             {
-                Id = id;
+                this.Id = id;
             }
         }
 
-        class Ex1 : Exception { }
-        class Ex2 : Exception { }
+        private class Ex1 : Exception
+        {
+        }
 
-        class M1a : Machine
+        private class Ex2 : Exception
+        {
+        }
+
+        private class M1a : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 throw new Ex1();
             }
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                if (ex is Ex1)
+                {
+                    return OnExceptionOutcome.HandledException;
+                }
+
                 return OnExceptionOutcome.ThrowException;
             }
         }
 
-        class M1b : Machine
+        private class M1b : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new E(this.Id));
             }
 
-            void Act()
+            private void Act()
             {
                 throw new Ex1();
             }
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                if (ex is Ex1)
+                {
+                    return OnExceptionOutcome.HandledException;
+                }
+
                 return OnExceptionOutcome.ThrowException;
             }
         }
 
-        class M1c : Machine
+        private class M1c : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new E(this.Id));
             }
 
-            async Task Act()
+            private async Task Act()
             {
                 await Task.Delay(10);
                 throw new Ex1();
@@ -94,69 +116,89 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                if (ex is Ex1)
+                {
+                    return OnExceptionOutcome.HandledException;
+                }
+
                 return OnExceptionOutcome.ThrowException;
             }
         }
 
-        class M1d : Machine
+        private class M1d : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(E), typeof(Done))]
             [OnExit(nameof(InitOnExit))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Raise(new E(this.Id));
             }
 
-            void InitOnExit()
+            private void InitOnExit()
             {
                 throw new Ex1();
             }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                if (ex is Ex1)
+                {
+                    return OnExceptionOutcome.HandledException;
+                }
+
                 return OnExceptionOutcome.ThrowException;
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 throw new Ex2();
             }
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
-                if (ex is Ex1) { return OnExceptionOutcome.HandledException; }
+                if (ex is Ex1)
+                {
+                    return OnExceptionOutcome.HandledException;
+                }
+
                 return OnExceptionOutcome.ThrowException;
             }
         }
 
-        class M3a : Machine
+        private class M3a : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 throw new Ex1();
             }
 
-            void Act()
+            private void Act()
             {
                 this.Assert(false);
             }
@@ -168,23 +210,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     this.Raise(new E(this.Id));
                     return OnExceptionOutcome.HandledException;
                 }
+
                 return OnExceptionOutcome.HandledException;
             }
         }
 
-        class M3b : Machine
+        private class M3b : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(Act))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 throw new Ex1();
             }
 
-            void Act()
+            private void Act()
             {
                 this.Assert(false);
             }
@@ -196,30 +241,39 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     this.Send(this.Id, new E(this.Id));
                     return OnExceptionOutcome.HandledException;
                 }
+
                 return OnExceptionOutcome.ThrowException;
             }
         }
 
-        class Done : Event { }
+        private class Done : Event
+        {
+        }
 
-        class GetsDone : Monitor
+        private class GetsDone : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(Done), typeof(Ok))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
             [Cold]
-            class Ok : MonitorState { }
+            private class Ok : MonitorState
+            {
+            }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 throw new NotImplementedException();
             }
@@ -235,13 +289,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M5 : Machine
+        private class M5 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
             }
 
@@ -251,6 +307,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     return OnExceptionOutcome.HaltMachine;
                 }
+
                 return OnExceptionOutcome.ThrowException;
             }
 
@@ -260,10 +317,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M6 : Machine
+        private class M6 : Machine
         {
             [Start]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             protected override OnExceptionOutcome OnException(string method, Exception ex)
             {
@@ -277,6 +336,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     this.Assert(false);
                 }
+
                 return OnExceptionOutcome.HandledException;
             }
         }
@@ -284,105 +344,115 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestExceptionSuppressed1()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1a));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestExceptionSuppressed2()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1b));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestExceptionSuppressed3()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1c));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestExceptionSuppressed4()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M1c));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestExceptionNotSuppressed()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M2));
             });
 
-            AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
 
         [Fact]
         public void TestRaiseOnException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M3a));
             });
 
-            AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
 
         [Fact]
         public void TestSendOnException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M3b));
             });
 
-            AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
 
         [Fact]
         public void TestMachineHalt1()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(GetsDone));
                 r.CreateMachine(typeof(M4));
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestMachineHalt2()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(GetsDone));
                 var m = r.CreateMachine(typeof(M5));
                 r.SendEvent(m, new E());
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestSendOnUnhandledEventException()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var m = r.CreateMachine(typeof(M6));
                 r.SendEvent(m, new E());
             });
 
-            AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

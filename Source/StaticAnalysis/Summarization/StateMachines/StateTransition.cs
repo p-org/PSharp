@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
+using Microsoft.PSharp.DataFlowAnalysis;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -12,41 +12,29 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// </summary>
     internal sealed class StateTransition
     {
-        #region fields
-
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private AnalysisContext AnalysisContext;
+        private readonly AnalysisContext AnalysisContext;
 
         /// <summary>
         /// The parent state.
         /// </summary>
-        private MachineState State;
+        private readonly MachineState State;
 
         /// <summary>
         /// The target state.
         /// </summary>
         internal MachineState TargetState;
 
-        #endregion
-
-        #region constructors
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateTransition"/> class.
         /// </summary>
-        /// <param name="targetState">MachineState</param>
-        /// <param name="state">MachineState</param>
-        /// <param name="context">AnalysisContext</param>
-        internal StateTransition(MachineState targetState, MachineState state,
-            AnalysisContext context)
+        internal StateTransition(MachineState targetState, MachineState state, AnalysisContext context)
         {
             this.AnalysisContext = context;
             this.State = state;
             this.TargetState = targetState;
         }
-
-        #endregion
     }
 }

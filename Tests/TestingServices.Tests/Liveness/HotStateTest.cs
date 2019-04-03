@@ -15,35 +15,59 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public HotStateTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Config : Event
+        private class Config : Event
         {
             public MachineId Id;
-            public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+
+            public Config(MachineId id)
+                : base(-1, -1)
+            {
+                this.Id = id;
+            }
         }
 
-        class MConfig : Event
+        private class MConfig : Event
         {
             public List<MachineId> Ids;
-            public MConfig(List<MachineId> ids) : base(-1, -1) { this.Ids = ids; }
+
+            public MConfig(List<MachineId> ids)
+                : base(-1, -1)
+            {
+                this.Ids = ids;
+            }
         }
 
-        class Unit : Event { }
-        class DoProcessing : Event { }
-        class FinishedProcessing : Event { }
-        class NotifyWorkerIsDone : Event { }
-
-        class Master : Machine
+        private class Unit : Event
         {
-            List<MachineId> Workers;
+        }
+
+        private class DoProcessing : Event
+        {
+        }
+
+        private class FinishedProcessing : Event
+        {
+        }
+
+        private class NotifyWorkerIsDone : Event
+        {
+        }
+
+        private class Master : Machine
+        {
+            private List<MachineId> Workers;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(Active))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Workers = new List<MachineId>();
 
@@ -61,9 +85,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             [OnEntry(nameof(ActiveOnEntry))]
             [OnEventDoAction(typeof(FinishedProcessing), nameof(ProcessWorkerIsDone))]
-            class Active : MachineState { }
+            private class Active : MachineState
+            {
+            }
 
-            void ActiveOnEntry()
+            private void ActiveOnEntry()
             {
                 foreach (var worker in this.Workers)
                 {
@@ -71,34 +97,40 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            void ProcessWorkerIsDone()
+            private void ProcessWorkerIsDone()
             {
                 this.Monitor<M>(new NotifyWorkerIsDone());
             }
         }
 
-        class Worker : Machine
+        private class Worker : Machine
         {
-            MachineId Master;
+            private MachineId Master;
 
             [Start]
             [OnEventDoAction(typeof(Config), nameof(Configure))]
             [OnEventGotoState(typeof(Unit), typeof(Processing))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Master = (this.ReceivedEvent as Config).Id;
                 this.Raise(new Unit());
             }
 
             [OnEventGotoState(typeof(DoProcessing), typeof(Done))]
-            class Processing : MachineState { }
+            private class Processing : MachineState
+            {
+            }
 
             [OnEntry(nameof(DoneOnEntry))]
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
 
-            void DoneOnEntry()
+            private void DoneOnEntry()
             {
                 if (this.Random())
                 {
@@ -109,23 +141,25 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Monitor
+        private class M : Monitor
         {
-            List<MachineId> Workers;
+            private List<MachineId> Workers;
 
             [Start]
             [Hot]
             [OnEventDoAction(typeof(MConfig), nameof(Configure))]
             [OnEventGotoState(typeof(Unit), typeof(Done))]
             [OnEventDoAction(typeof(NotifyWorkerIsDone), nameof(ProcessNotification))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
-            void Configure()
+            private void Configure()
             {
                 this.Workers = (this.ReceivedEvent as MConfig).Ids;
             }
 
-            void ProcessNotification()
+            private void ProcessNotification()
             {
                 this.Workers.RemoveAt(0);
 
@@ -135,24 +169,27 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
             }
 
-            class Done : MonitorState { }
+            private class Done : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestHotStateMonitor()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(M));
                 r.CreateMachine(typeof(Master));
             });
 
             string bugReport = "Monitor 'M' detected liveness bug in hot state 'M.Init' " +
                 "at the end of program execution.";
-            base.AssertFailed(configuration, test, bugReport, true);
+            this.AssertFailed(configuration, test, bugReport, true);
         }
     }
 }

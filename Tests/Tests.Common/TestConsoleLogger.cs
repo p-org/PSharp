@@ -57,6 +57,8 @@ namespace Microsoft.PSharp.Tests.Common
         /// <summary>
         /// Disposes the logger.
         /// </summary>
-        public override void Dispose() { }
+        public override void Dispose()
+        {
+        }
     }
 }

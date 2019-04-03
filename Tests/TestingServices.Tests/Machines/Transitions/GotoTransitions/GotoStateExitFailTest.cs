@@ -13,37 +13,43 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public GotoStateExitFailTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class Program : Machine
+        private class Program : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnExit(nameof(ExitInit))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.Goto<Done>();
             }
 
-            void ExitInit()
+            private void ExitInit()
             {
                 // This assert is reachable.
                 this.Assert(false, "Bug found.");
             }
 
-            class Done : MachineState { }
+            private class Done : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestGotoStateExitFail()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(Program));
             });
 
-            base.AssertFailed(test, 1, true);
+            this.AssertFailed(test, 1, true);
         }
     }
 }

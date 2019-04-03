@@ -16,35 +16,38 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
     {
         public DeprecatedBasicPeriodicTimeoutTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
         private class T1 : TimedMachine
         {
-            TimerId tid;
-            object payload = new object();
-            int count;
+            private TimerId tid;
+            private readonly object payload = new object();
+            private int count;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            class Init : MachineState { }
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                count = 0;
-
-                // Start a periodic timer.
-                tid = StartTimer(payload, 10, true);
-
             }
 
-            async Task HandleTimeout()
+            private void InitOnEntry()
             {
-                count++;
-                this.Assert(count <= 10);
+                this.count = 0;
 
-                if (count == 10)
+                // Start a periodic timer.
+                this.tid = this.StartTimer(this.payload, 10, true);
+            }
+
+            private async Task HandleTimeout()
+            {
+                this.count++;
+                this.Assert(this.count <= 10);
+
+                if (this.count == 10)
                 {
-                    await StopTimer(tid, flush: true);
+                    await this.StopTimer(this.tid, flush: true);
                 }
             }
         }
@@ -55,10 +58,11 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
             var config = Configuration.Create().WithNumberOfIterations(1000);
             ModelTimerMachine.NumStepsToSkip = 1;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(T1));
             });
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
     }
 }

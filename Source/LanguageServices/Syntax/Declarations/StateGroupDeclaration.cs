@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal sealed class StateGroupDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The machine parent node.
         /// </summary>
@@ -63,16 +61,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token RightCurlyBracketToken;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="StateGroupDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="groupNode">StateGroupDeclaration</param>
         internal StateGroupDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
             StateGroupDeclaration groupNode)
             : base(program)
@@ -120,18 +111,19 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Debug.WriteLine("Exception was thrown during rewriting:");
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                Error.ReportAndExit("Failed to rewrite state group '{0}' of machine '{1}'.",
-                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+                Error.ReportAndExit(
+                    "Failed to rewrite state group '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text,
+                    this.Machine.Identifier.TextUnit.Text);
             }
 
             text += GetIndent(indentLevel) + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.StateGroupKeyword.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.StateGroupKeyword.TextUnit.Line);
         }
 
         /// <summary>
-        /// Sanity checking:
-        /// -- no duplicate states and groups
+        /// Sanity checking: no duplicate states and groups.
         /// </summary>
         internal void CheckDeclaration()
         {
@@ -142,9 +134,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     throw new RewritingException(
                         $"Multiple declarations of the state '{decl.Identifier.Text}'" + Environment.NewLine +
-                        $"File: {Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
-                        $"Lines: {statesSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}"
-                        );
+                        $"File: {this.Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
+                        $"Lines: {statesSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}");
                 }
                 else
                 {
@@ -159,10 +150,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     throw new RewritingException(
                         $"Multiple declarations of the state group '{decl.Identifier.Text}'" + Environment.NewLine +
-                        $"File: {Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
-                        $"Lines: {groupsSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}"
-                        );
-
+                        $"File: {this.Program.GetSyntaxTree().FilePath}" + Environment.NewLine +
+                        $"Lines: {groupsSeen[decl.Identifier.Text].Identifier.TextUnit.Line} and {decl.Identifier.TextUnit.Line}");
                 }
                 else
                 {
@@ -173,19 +162,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.StateGroupDeclarations.ForEach(g => g.CheckDeclaration());
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Returns the rewritten state group declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenStateGroupDeclaration(int indentLevel)
         {
             var indent = GetIndent(indentLevel);
             string text = indent;
-            
+
             if (this.Group != null)
             {
                 // When inside a group, the state should be made public.
@@ -222,7 +206,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
-
-        #endregion
     }
 }

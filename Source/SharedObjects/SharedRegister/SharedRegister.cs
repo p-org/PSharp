@@ -18,7 +18,8 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
         /// <param name="value">Initial value</param>
-        public static ISharedRegister<T> Create<T>(PSharpRuntime runtime, T value = default) where T : struct
+        public static ISharedRegister<T> Create<T>(PSharpRuntime runtime, T value = default)
+            where T : struct
         {
             if (runtime is ProductionRuntime)
             {

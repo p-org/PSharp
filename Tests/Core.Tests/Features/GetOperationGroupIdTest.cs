@@ -14,61 +14,69 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public GetOperationGroupIdTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        static Guid OperationGroup = Guid.NewGuid();
+        private static Guid OperationGroup = Guid.NewGuid();
 
-        class E : Event
+        private class E : Event
         {
             public MachineId Id;
 
-            public E() { }
+            public E()
+            {
+            }
 
             public E(MachineId id)
             {
-                Id = id;
+                this.Id = id;
             }
         }
 
-        class M1 : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
-                Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
+            }
+
+            private void InitOnEntry()
+            {
+                var id = this.Runtime.GetCurrentOperationGroupId(this.Id);
+                this.Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
             }
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                Runtime.SendEvent(Id, new E(Id), OperationGroup);
             }
 
-            void CheckEvent()
+            private void InitOnEntry()
             {
-                var id = Runtime.GetCurrentOperationGroupId(Id);
-                Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
+                this.Runtime.SendEvent(this.Id, new E(this.Id), OperationGroup);
+            }
+
+            private void CheckEvent()
+            {
+                var id = this.Runtime.GetCurrentOperationGroupId(this.Id);
+                this.Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
             }
         }
 
         private void AssertSucceeded(Type machine)
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(true);
@@ -80,19 +88,19 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestGetOperationGroupIdNotSet()
         {
-            AssertSucceeded(typeof(M1));
+            this.AssertSucceeded(typeof(M1));
         }
 
         [Fact]
         public void TestGetOperationGroupIdSet()
         {
-            AssertSucceeded(typeof(M2));
+            this.AssertSucceeded(typeof(M2));
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Default logger.
         /// </summary>
-        private ILogger DefaultLogger;
+        private readonly ILogger DefaultLogger;
 
         /// <summary>
         /// Installed logger.
@@ -24,71 +24,63 @@ namespace Microsoft.PSharp.IO
         private ILogger InstalledLogger;
 
         /// <summary>
-        /// Creates a new logger that converts logs from an <see cref="ILogger"/> to
-        /// an <see cref="TestingServices.SchedulingStrategies.ILogger"/>.
+        /// Initializes a new instance of the <see cref="SchedulingStrategyLogger"/> class.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         public SchedulingStrategyLogger(Configuration configuration)
         {
             if (configuration.EnableDebugging)
             {
-                DefaultLogger = new ConsoleLogger();
+                this.DefaultLogger = new ConsoleLogger();
             }
             else
             {
-                DefaultLogger = new DisposingLogger();
+                this.DefaultLogger = new DisposingLogger();
             }
 
-            InstalledLogger = DefaultLogger;
+            this.InstalledLogger = this.DefaultLogger;
         }
 
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         public void Write(string value)
         {
-            InstalledLogger.Write(value);
+            this.InstalledLogger.Write(value);
         }
 
         /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
         public void Write(string format, params object[] args)
         {
-            InstalledLogger.Write(format, args);
+            this.InstalledLogger.Write(format, args);
         }
 
         /// <summary>
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public void WriteLine(string value)
         {
-            InstalledLogger.WriteLine(value);
+            this.InstalledLogger.WriteLine(value);
         }
 
         /// <summary>
         /// Writes the text representation of the specified array of objects,
         /// followed by the current line terminator.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
         public void WriteLine(string format, params object[] args)
         {
-            InstalledLogger.WriteLine(format, args);
+            this.InstalledLogger.WriteLine(format, args);
         }
 
         /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
-        /// <param name="logger">ILogger</param>
         internal void SetLogger(ILogger logger)
         {
-            InstalledLogger = logger;
+            this.InstalledLogger = logger;
         }
 
         /// <summary>
@@ -96,7 +88,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         internal void ResetToDefaultLogger()
         {
-            InstalledLogger = DefaultLogger;
+            this.InstalledLogger = this.DefaultLogger;
         }
     }
 }

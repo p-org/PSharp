@@ -14,31 +14,36 @@ namespace Microsoft.PSharp.Core.Tests
     {
         public CreateMachineIdFromNameTest(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E : Event { }
-
-        class Conf : Event
         {
-            public TaskCompletionSource<bool> tcs;
+        }
+
+        private class E : Event
+        {
+        }
+
+        private class Conf : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
 
             public Conf(TaskCompletionSource<bool> tcs)
             {
-                this.tcs = tcs;
+                this.Tcs = tcs;
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
-
-            void InitOnEntry()
+            private class Init : MachineState
             {
-                if(this.ReceivedEvent is Conf)
+            }
+
+            private void InitOnEntry()
+            {
+                if (this.ReceivedEvent is Conf)
                 {
-                    (this.ReceivedEvent as Conf).tcs.SetResult(true);
+                    (this.ReceivedEvent as Conf).Tcs.SetResult(true);
                 }
             }
         }
@@ -46,11 +51,12 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestCreateWithId1()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -65,17 +71,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestCreateWithId2()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -91,29 +98,34 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M2 : Machine
+        private class M2 : Machine
         {
             [Start]
-            class S : MachineState { }
+            private class S : MachineState
+            {
+            }
         }
 
-        class M3 : Machine
+        private class M3 : Machine
         {
             [Start]
-            class S : MachineState { }
+            private class S : MachineState
+            {
+            }
         }
 
         [Fact]
         public void TestCreateWithId4()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -134,17 +146,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
         [Fact]
         public void TestCreateWithId5()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -166,51 +179,56 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class E2 : Event
+        private class E2 : Event
         {
-            public MachineId mid;
+            public MachineId Mid;
 
             public E2(MachineId mid)
             {
-                this.mid = mid;
+                this.Mid = mid;
             }
         }
 
-        class M4 : Machine
+        private class M4 : Machine
         {
             [Start]
             [OnEventDoAction(typeof(Conf), nameof(Process))]
-            class S : MachineState { }
-
-            void Process()
+            private class S : MachineState
             {
-                (this.ReceivedEvent as Conf).tcs.SetResult(true);
+            }
+
+            private void Process()
+            {
+                (this.ReceivedEvent as Conf).Tcs.SetResult(true);
             }
         }
 
         [Fact]
         public void TestCreateWithId9()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var m1 = r.CreateMachineIdFromName(typeof(M4), "M4");
                 var m2 = r.CreateMachineIdFromName(typeof(M4), "M4");
                 Assert.True(m1.Equals(m2));
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M6 : Machine
+        private class M6 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
                 this.CreateMachine(m, typeof(M4), "friendly");
@@ -220,11 +238,12 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestCreateWithId10()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -237,16 +256,18 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.True(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
 
-        class M7 : Machine
+        private class M7 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 await this.Runtime.CreateMachineAndExecute(typeof(M6));
                 var m = this.Runtime.CreateMachineIdFromName(typeof(M4), "M4");
@@ -257,11 +278,12 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact]
         public void TestCreateWithId11()
         {
-            var config = base.GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) => {
+            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += delegate
+                r.OnFailure += (ex) =>
                 {
                     failed = true;
                     tcs.SetResult(false);
@@ -273,7 +295,7 @@ namespace Microsoft.PSharp.Core.Tests
                 Assert.False(failed);
             });
 
-            base.Run(config, test);
+            this.Run(config, test);
         }
     }
 }

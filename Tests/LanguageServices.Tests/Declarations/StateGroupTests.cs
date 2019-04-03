@@ -9,8 +9,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class StateGroupTests
     {
-        #region correct tests
-
         [Fact]
         public void TestMachineStateGroupDeclaration()
         {
@@ -1391,10 +1389,6 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        #endregion
-
-        #region failure tests
-
         [Fact]
         public void TestMachineStateDeclarationWithMoreThanOneEntry()
         {
@@ -1995,7 +1989,5 @@ group G.G2 { }
 }";
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
-
-        #endregion
     }
 }

@@ -8,8 +8,7 @@ using System;
 namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
 {
     /// <summary>
-    /// Default random number generator that uses the
-    /// <see cref="System.Random"/> generator.
+    /// Default random number generator that uses the <see cref="System.Random"/> generator.
     /// </summary>
     public class DefaultRandomNumberGenerator : IRandomNumberGenerator
     {
@@ -28,32 +27,33 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public int Seed
         {
-            get => RandomSeed;
+            get => this.RandomSeed;
 
             set
             {
-                RandomSeed = value;
-                Random = new Random(RandomSeed);
+                this.RandomSeed = value;
+                this.Random = new Random(this.RandomSeed);
             }
         }
 
         /// <summary>
-        /// Initializes with a time-dependent seed.
+        /// Initializes a new instance of the <see cref="DefaultRandomNumberGenerator"/> class.
+        /// It uses a time-dependent seed.
         /// </summary>
         public DefaultRandomNumberGenerator()
         {
-            RandomSeed = DateTime.Now.Millisecond;
-            Random = new Random(RandomSeed);
+            this.RandomSeed = DateTime.Now.Millisecond;
+            this.Random = new Random(this.RandomSeed);
         }
 
         /// <summary>
-        /// Initializes with the given seed.
+        /// Initializes a new instance of the <see cref="DefaultRandomNumberGenerator"/> class.
+        /// It uses the specified seed.
         /// </summary>
-        /// <param name="seed">Seed value</param>
         public DefaultRandomNumberGenerator(int seed)
         {
-            RandomSeed = seed;
-            Random = new Random(seed);
+            this.RandomSeed = seed;
+            this.Random = new Random(seed);
         }
 
         /// <summary>
@@ -61,16 +61,16 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// </summary>
         public int Next()
         {
-            return Random.Next();
+            return this.Random.Next();
         }
 
         /// <summary>
-        /// Returns a non-negative random number less than maxValue.
+        /// Returns a non-negative random number less than the specified max value.
         /// </summary>
-        /// <param name="maxValue">Exclusive upper bound</param>
+        /// <param name="maxValue">Exclusive upper bound.</param>
         public int Next(int maxValue)
         {
-            return Random.Next(maxValue);
+            return this.Random.Next(maxValue);
         }
     }
 }

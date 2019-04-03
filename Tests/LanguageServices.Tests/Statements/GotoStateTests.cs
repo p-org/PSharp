@@ -97,7 +97,7 @@ this.Goto<S2>();
 }
 }";
             // Note: original formatting is preserved for CSharp rewriting.
-            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram:false);
+            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram: false);
         }
 
         [Fact]
@@ -150,7 +150,7 @@ namespace Foo
     }
 }";
             // Note: original formatting is preserved for CSharp rewriting.
-            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram:false);
+            LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram: false);
         }
     }
 }

@@ -14,16 +14,21 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public TimerLivenessTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class TimeoutReceivedEvent : Event { }
+        private class TimeoutReceivedEvent : Event
+        {
+        }
 
-        class Client : Machine
+        private class Client : Machine
         {
             [Start]
             [OnEntry(nameof(Initialize))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-            private class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
             private void Initialize()
             {
@@ -36,31 +41,36 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class LivenessMonitor : Monitor
+        private class LivenessMonitor : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(TimeoutReceivedEvent), typeof(TimeoutReceived))]
-            class NoTimeoutReceived : MonitorState { }
+            private class NoTimeoutReceived : MonitorState
+            {
+            }
 
             [Cold]
-            class TimeoutReceived : MonitorState { }
+            private class TimeoutReceived : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestTimerLiveness()
         {
-            var configuration = base.GetConfiguration();
+            var configuration = GetConfiguration();
             configuration.LivenessTemperatureThreshold = 150;
             configuration.MaxSchedulingSteps = 300;
             configuration.SchedulingIterations = 1000;
 
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));
             });
 
-            base.AssertSucceeded(configuration, test);
+            this.AssertSucceeded(configuration, test);
         }
     }
 }

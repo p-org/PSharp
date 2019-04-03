@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
         /// <summary>
         /// If the next operation is <see cref="OperationType.Receive"/>
-        /// then this gives the step index of the corresponding Send. 
+        /// then this gives the step index of the corresponding Send.
         /// </summary>
         public ulong NextOperationMatchingSendIndex { get; internal set; }
 
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Unique id of the group of operations that
         /// contains the next operation.
         /// </summary>
-        public Guid NextOperationGroupId => OperationGroupId;
+        public Guid NextOperationGroupId => this.OperationGroupId;
 
         /// <summary>
         /// Monotonically increasing operation count for the current event handler.
@@ -81,56 +81,51 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool SkipNextReceiveSchedulingPoint;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="SchedulableInfo"/> class.
         /// </summary>
-        /// <param name="mid">MachineId</param>
         internal SchedulableInfo(MachineId mid)
             : base(mid)
         {
-            IsEnabled = false;
-            IsActive = false;
-            IsEventHandlerRunning = false;
-            SkipNextReceiveSchedulingPoint = false;
-            NextOperationType = OperationType.Start;
-            NextTargetType = OperationTargetType.Schedulable;
-            NextTargetId = mid.Value;
-            OperationCount = 0;
-            EventHandlerOperationCount = 0;
+            this.IsEnabled = false;
+            this.IsActive = false;
+            this.IsEventHandlerRunning = false;
+            this.SkipNextReceiveSchedulingPoint = false;
+            this.NextOperationType = OperationType.Start;
+            this.NextTargetType = OperationTargetType.Schedulable;
+            this.NextTargetId = mid.Value;
+            this.OperationCount = 0;
+            this.EventHandlerOperationCount = 0;
         }
 
         /// <summary>
         /// Sets the next operation to schedule.
         /// </summary>
-        /// <param name="operationType">Type of the operation.</param>
-        /// <param name="targetType">Type of the target of the operation.</param>
-        /// <param name="targetId">Id of the target.</param>
         internal void SetNextOperation(OperationType operationType, OperationTargetType targetType, ulong targetId)
         {
-            NextOperationType = operationType;
-            NextTargetType = targetType;
-            NextTargetId = targetId;
-            OperationCount++;
-            EventHandlerOperationCount++;
+            this.NextOperationType = operationType;
+            this.NextTargetType = targetType;
+            this.NextTargetId = targetId;
+            this.OperationCount++;
+            this.EventHandlerOperationCount++;
         }
 
         /// <summary>
-        /// Notify that an event handler has been created and will
-        /// run on the specified task id.
+        /// Notify that an event handler has been created and will run on the specified task id.
         /// </summary>
-        /// <param name="taskId">TaskId</param>
+        /// <param name="taskId">The task id.</param>
         /// <param name="sendIndex">The index of the send that caused the event handler to be restarted, or 0 if this does not apply.</param>
         internal void NotifyEventHandlerCreated(int taskId, int sendIndex)
         {
-            TaskId = taskId;
-            IsEnabled = true;
-            IsWaitingToReceive = false;
-            IsActive = false;
-            IsEventHandlerRunning = false;
-            NextOperationMatchingSendIndex = (ulong)sendIndex;
-            IsInsideOnExit = false;
-            CurrentActionCalledTransitionStatement = false;
-            ProgramCounter = 0;
-            EventHandlerOperationCount = 0;
+            this.TaskId = taskId;
+            this.IsEnabled = true;
+            this.IsWaitingToReceive = false;
+            this.IsActive = false;
+            this.IsEventHandlerRunning = false;
+            this.NextOperationMatchingSendIndex = (ulong)sendIndex;
+            this.IsInsideOnExit = false;
+            this.CurrentActionCalledTransitionStatement = false;
+            this.ProgramCounter = 0;
+            this.EventHandlerOperationCount = 0;
         }
 
         /// <summary>
@@ -138,10 +133,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal void NotifyEventHandlerCompleted()
         {
-            IsEnabled = false;
-            IsEventHandlerRunning = false;
-            SkipNextReceiveSchedulingPoint = true;
-            NextOperationMatchingSendIndex = 0;
+            this.IsEnabled = false;
+            this.IsEventHandlerRunning = false;
+            this.SkipNextReceiveSchedulingPoint = true;
+            this.NextOperationMatchingSendIndex = 0;
         }
     }
 }

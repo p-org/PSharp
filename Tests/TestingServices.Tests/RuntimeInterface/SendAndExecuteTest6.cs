@@ -15,13 +15,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public SendAndExecuteTest6(ITestOutputHelper output)
             : base(output)
-        { }
-
-        class E : Event
         {
         }
 
-        class Config : Event
+        private class E : Event
+        {
+        }
+
+        private class Config : Event
         {
             public bool HandleException;
 
@@ -31,13 +32,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class Harness : Machine
+        private class Harness : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(M), this.ReceivedEvent);
                 var handled = await this.Runtime.SendEventAndExecute(m, new E());
@@ -52,67 +55,76 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class M : Machine
+        private class M : Machine
         {
-            bool HandleException = false;
+            private bool HandleException = false;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(HandleE))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            void InitOnEntry()
+            private void InitOnEntry()
             {
                 this.HandleException = (this.ReceivedEvent as Config).HandleException;
             }
 
-            void HandleE()
+            private void HandleE()
             {
                 throw new Exception();
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                return HandleException ? OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException;
+                return this.HandleException ? OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException;
             }
         }
 
-        class SE_Returns : Event { }
+        private class SE_Returns : Event
+        {
+        }
 
-        class SafetyMonitor : Monitor
+        private class SafetyMonitor : Monitor
         {
             [Start]
             [Hot]
             [OnEventGotoState(typeof(SE_Returns), typeof(Done))]
-            class Init : MonitorState { }
+            private class Init : MonitorState
+            {
+            }
 
             [Cold]
-            class Done : MonitorState { }
-
+            private class Done : MonitorState
+            {
+            }
         }
 
         [Fact]
         public void TestHandledExceptionOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(true));
             });
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            base.AssertSucceeded(config, test);
+            this.AssertSucceeded(config, test);
         }
 
         [Fact]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(Harness), new Config(false));
             });
 
             var config = Configuration.Create();
-            base.AssertFailed(config, test, 1, bugReports =>
+            this.AssertFailed(config, test, 1, bugReports =>
             {
                 foreach (var report in bugReports)
                 {
@@ -124,6 +136,5 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 return true;
             }, true);
         }
-
     }
 }

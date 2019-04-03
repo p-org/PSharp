@@ -1,35 +1,44 @@
-﻿using System.Collections;
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
-    class EventDeclarations : IEnumerable<EventDeclaration>
+    internal class EventDeclarations : IEnumerable<EventDeclaration>
     {
-        // Must keep these in declaration order.
-        private List<EventDeclaration> declarations = new List<EventDeclaration>();
+        /// <summary>
+        /// Must keep these in declaration order.
+        /// </summary>
+        private readonly List<EventDeclaration> Declarations;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventDeclarations"/> class.
+        /// </summary>
         internal EventDeclarations()
         {
+            this.Declarations = new List<EventDeclaration>();
         }
 
         internal void Add(EventDeclaration eventDeclaration, bool isExtern = false)
         {
             eventDeclaration.IsExtern = isExtern;
-            this.declarations.Add(eventDeclaration);
+            this.Declarations.Add(eventDeclaration);
         }
 
         internal bool Find(string name, out EventDeclaration eventDeclaration)
         {
-            eventDeclaration = this.declarations.Find(decl => decl.Identifier.TextUnit.Text == name);
+            eventDeclaration = this.Declarations.Find(decl => decl.Identifier.TextUnit.Text == name);
             return eventDeclaration != null;
         }
 
         /// <summary>
         /// Returns all event decls from base to most fully derived (including <paramref name="node"/>).
         /// </summary>
-        /// <param name="node">The EventDeclaration to evaluate</param>
-        /// <returns></returns>
         internal static IEnumerable<EventDeclaration> EnumerateInheritance(EventDeclaration node)
         {
             var list = new List<EventDeclaration>() { node };
@@ -37,16 +46,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 list.Add(node.BaseClassDecl);
             }
+
             list.Reverse();
             return list.ToArray();
         }
 
-        #region IEnumerable<EventDeclaration>
+        public IEnumerator<EventDeclaration> GetEnumerator() => this.Declarations.Where(decl => !decl.IsExtern).GetEnumerator();
 
-        public IEnumerator<EventDeclaration> GetEnumerator() => this.declarations.Where(decl => !decl.IsExtern).GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        #endregion IEnumerable<EventDeclaration>
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
     }
 }

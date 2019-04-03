@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Rewriting.CSharp;
 
 namespace Microsoft.PSharp.LanguageServices
@@ -21,8 +22,6 @@ namespace Microsoft.PSharp.LanguageServices
     /// </summary>
     public sealed class CSharpProgram : AbstractPSharpProgram
     {
-        #region fields
-
         /// <summary>
         /// List of event identifiers.
         /// </summary>
@@ -33,15 +32,9 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         internal List<ClassDeclarationSyntax> MachineIdentifiers;
 
-        #endregion
-
-        #region public API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CSharpProgram"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="tree">SyntaxTree</param>
         public CSharpProgram(PSharpProject project, SyntaxTree tree)
             : base(project, tree)
         {
@@ -59,22 +52,18 @@ namespace Microsoft.PSharp.LanguageServices
 
             if (Debug.IsEnabled)
             {
-                base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
+                CompilationContext.PrintSyntaxTree(this.GetSyntaxTree());
             }
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Rewrites the P# statements to C#.
         /// </summary>
         private void RewriteStatements()
         {
-            //new RaiseRewriter(this).Rewrite();
-            //new GotoStateRewriter(this).Rewrite();
-            //new PopRewriter(this).Rewrite();
+            // new RaiseRewriter(this).Rewrite();
+            // new GotoStateRewriter(this).Rewrite();
+            // new PopRewriter(this).Rewrite();
         }
 
         /// <summary>
@@ -86,19 +75,18 @@ namespace Microsoft.PSharp.LanguageServices
             Dictionary<Type, List<Type>> passDependencies = new Dictionary<Type, List<Type>>();
             HashSet<Queue<Type>> snapshot = new HashSet<Queue<Type>>();
 
-            foreach (var assembly in base.Project.CompilationContext.CustomCompilerPassAssemblies)
+            foreach (var assembly in this.Project.CompilationContext.CustomCompilerPassAssemblies)
             {
-                foreach (var pass in this.FindCustomRewritingPasses(assembly, typeof(CustomCSharpRewritingPass)))
+                foreach (var pass in FindCustomRewritingPasses(assembly, typeof(CustomCSharpRewritingPassAttribute)))
                 {
                     rewritingPasses.Enqueue(pass);
-                    passDependencies.Add(pass, this.FindDependenciesOfPass(pass));
+                    passDependencies.Add(pass, FindDependenciesOfPass(pass));
                 }
             }
 
             while (rewritingPasses.Count > 0)
             {
                 Type nextPass = rewritingPasses.Dequeue();
-
 
                 bool allDependenciesDone = true;
                 foreach (var dependency in passDependencies[nextPass])
@@ -143,10 +131,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// Finds the custom rewriting passes with the specified attribute.
         /// Returns null if no such method is found.
         /// </summary>
-        /// <param name="assembly">Assembly</param>
-        /// <param name="attribute">Type</param>
-        /// <returns>Types</returns>
-        private List<Type> FindCustomRewritingPasses(Assembly assembly, Type attribute)
+        private static List<Type> FindCustomRewritingPasses(Assembly assembly, Type attribute)
         {
             List<Type> passes = null;
 
@@ -165,22 +150,18 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Finds the dependencies of the specified pass.
         /// </summary>
-        /// <param name="pass">Pass</param>
-        /// <returns>Types</returns>
-        private List<Type> FindDependenciesOfPass(Type pass)
+        private static List<Type> FindDependenciesOfPass(Type pass)
         {
             var result = new List<Type>();
 
-            if (pass.IsDefined(typeof(RewritingPassDependency), false))
+            if (pass.IsDefined(typeof(RewritingPassDependencyAttribute), false))
             {
-                var dependencyAttribute = pass.GetCustomAttribute(
-                    typeof(RewritingPassDependency), false) as RewritingPassDependency;
+                var dependencyAttribute = pass.GetCustomAttribute(typeof(RewritingPassDependencyAttribute), false)
+                    as RewritingPassDependencyAttribute;
                 result.AddRange(dependencyAttribute.Dependencies);
             }
 
             return result;
         }
-
-        #endregion
     }
 }

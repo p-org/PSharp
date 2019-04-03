@@ -23,7 +23,11 @@ namespace Microsoft.PSharp
 
             while (state.DeclaringType != null)
             {
-                if (!state.DeclaringType.IsSubclassOf(typeof(StateGroup))) break;
+                if (!state.DeclaringType.IsSubclassOf(typeof(StateGroup)))
+                {
+                    break;
+                }
+
                 name = string.Format("{0}.{1}", state.DeclaringType.Name, name);
                 state = state.DeclaringType;
             }

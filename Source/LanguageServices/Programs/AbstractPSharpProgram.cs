@@ -14,8 +14,6 @@ namespace Microsoft.PSharp.LanguageServices
     /// </summary>
     public abstract class AbstractPSharpProgram : IPSharpProgram
     {
-        #region fields
-        
         /// <summary>
         /// The project that this program belongs to.
         /// </summary>
@@ -26,24 +24,14 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private SyntaxTree SyntaxTree;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="AbstractPSharpProgram"/> class.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="tree">SyntaxTree</param>
         internal AbstractPSharpProgram(PSharpProject project, SyntaxTree tree)
         {
             this.Project = project;
             this.SyntaxTree = tree;
         }
-
-        #endregion
-
-        #region public API
 
         /// <summary>
         /// Rewrites the P# program to the C#-IR.
@@ -53,7 +41,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Returns the project of the P# program.
         /// </summary>
-        /// <returns>PSharpProject</returns>
         public PSharpProject GetProject()
         {
             return this.Project;
@@ -62,7 +49,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Returns the syntax tree of the P# program.
         /// </summary>
-        /// <returns>SyntaxTree</returns>
         public SyntaxTree GetSyntaxTree()
         {
             return this.SyntaxTree;
@@ -71,26 +57,19 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Updates the syntax tree of the P# program.
         /// </summary>
-        /// <param name="text">Text</param>
         public void UpdateSyntaxTree(string text)
         {
             var project = this.Project.CompilationContext.GetProjectWithName(this.Project.Name);
             this.SyntaxTree = this.Project.CompilationContext.ReplaceSyntaxTree(this.SyntaxTree, text, project);
         }
 
-        #endregion
-
-        #region protected API
-
         /// <summary>
         /// Creates a new library using syntax node.
         /// </summary>
-        /// <param name="name">Library name</param>
-        /// <returns>UsingDirectiveSyntax</returns>
-        protected UsingDirectiveSyntax CreateLibrary(string name)
+        protected static UsingDirectiveSyntax CreateLibrary(string name)
         {
             var leading = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(" "));
-            var trailing = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(""));
+            var trailing = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(string.Empty));
 
             var identifier = SyntaxFactory.Identifier(leading, name, trailing);
             var identifierName = SyntaxFactory.IdentifierName(identifier);
@@ -101,7 +80,5 @@ namespace Microsoft.PSharp.LanguageServices
 
             return usingDirective;
         }
-
-        #endregion
     }
 }

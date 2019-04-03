@@ -9,10 +9,13 @@ using Microsoft.PSharp.Deprecated.Timers;
 
 namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
 {
+#pragma warning disable SA1402 // FileMayOnlyContainASingleType
     /// <summary>
     /// Signals next timeout period
     /// </summary>
-    internal class RepeatTimeoutEvent : Event { }
+    internal class RepeatTimeoutEvent : Event
+    {
+    }
 
     /// <summary>
     /// A timer model, used for testing purposes.
@@ -44,14 +47,16 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
         [OnEntry(nameof(InitializeTimer))]
         [OnEventDoAction(typeof(HaltTimerEvent), nameof(DisposeTimer))]
         [OnEventDoAction(typeof(RepeatTimeoutEvent), nameof(SendTimeout))]
-        private class Init : MachineState { }
+        private class Init : MachineState
+        {
+        }
 
         private void InitializeTimer()
         {
-            var e = (this.ReceivedEvent as InitTimerEvent);
-            this.client = e.client;
+            var e = this.ReceivedEvent as InitTimerEvent;
+            this.client = e.Client;
             this.IsPeriodic = e.IsPeriodic;
-            this.tid = e.tid;
+            this.tid = e.Tid;
             this.Send(this.Id, new RepeatTimeoutEvent());
         }
 
@@ -65,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
                 // Probability of firing timeout is atmost 1/N
                 if ((this.RandomInteger(NumStepsToSkip) == 0) && this.FairRandom())
                 {
-                    this.Send(this.client, new TimerElapsedEvent(tid));
+                    this.Send(this.client, new TimerElapsedEvent(this.tid));
                 }
                 else
                 {
@@ -77,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
                 // Probability of firing timeout is atmost 1/N
                 if ((this.RandomInteger(NumStepsToSkip) == 0) && this.FairRandom())
                 {
-                    this.Send(this.client, new TimerElapsedEvent(tid));
+                    this.Send(this.client, new TimerElapsedEvent(this.tid));
                 }
 
                 this.Send(this.Id, new RepeatTimeoutEvent());
@@ -86,14 +91,14 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
 
         private void DisposeTimer()
         {
-            HaltTimerEvent e = (this.ReceivedEvent as HaltTimerEvent);
+            HaltTimerEvent e = this.ReceivedEvent as HaltTimerEvent;
 
             // The client attempting to stop this timer must be the one who created it.
-            this.Assert(e.client == this.client);
+            this.Assert(e.Client == this.client);
 
             // If the client wants to flush the inbox, send a markup event.
             // This marks the endpoint of all timeout events sent by this machine.
-            if (e.flush)
+            if (e.Flush)
             {
                 this.Send(this.client, new TimeoutFlushEvent());
             }
@@ -102,4 +107,5 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
             this.Raise(new Halt());
         }
     }
+#pragma warning restore SA1402 // FileMayOnlyContainASingleType
 }

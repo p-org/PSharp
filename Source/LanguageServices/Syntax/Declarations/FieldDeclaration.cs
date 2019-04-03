@@ -15,8 +15,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     /// </summary>
     internal class FieldDeclaration : PSharpSyntaxNode
     {
-        #region fields
-
         /// <summary>
         /// The machine parent node.
         /// </summary>
@@ -42,16 +40,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token SemicolonToken;
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the <see cref="FieldDeclaration"/> class.
         /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="modSet">Modifier set</param>
         internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode, ModifierSet modSet)
             : base(program)
         {
@@ -76,21 +67,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Debug.WriteLine("Exception was thrown during rewriting:");
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                Error.ReportAndExit("Failed to rewrite field '{0}' of machine '{1}'.",
-                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+                Error.ReportAndExit(
+                    "Failed to rewrite field '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text,
+                    this.Machine.Identifier.TextUnit.Text);
             }
 
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+            this.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         /// Returns the rewritten field declaration.
         /// </summary>
-        /// <returns>Text</returns>
         private string GetRewrittenFieldDeclaration()
         {
             string text = string.Empty;
@@ -113,7 +101,5 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
-
-        #endregion
     }
 }

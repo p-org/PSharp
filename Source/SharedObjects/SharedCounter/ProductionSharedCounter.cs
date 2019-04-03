@@ -15,15 +15,14 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The value of the shared counter.
         /// </summary>
-        volatile int Counter;
+        private volatile int Counter;
 
         /// <summary>
-        /// Initializes the shared counter.
+        /// Initializes a new instance of the <see cref="ProductionSharedCounter"/> class.
         /// </summary>
-        /// <param name="value">Initial value</param>
         public ProductionSharedCounter(int value)
         {
-            Counter = value;
+            this.Counter = value;
         }
 
         /// <summary>
@@ -31,7 +30,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Increment()
         {
-            Interlocked.Increment(ref Counter);
+            Interlocked.Increment(ref this.Counter);
         }
 
         /// <summary>
@@ -39,47 +38,28 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public void Decrement()
         {
-            Interlocked.Decrement(ref Counter);
+            Interlocked.Decrement(ref this.Counter);
         }
 
         /// <summary>
         /// Gets the current value of the shared counter.
         /// </summary>
-        /// <returns>Current value</returns>
-        public int GetValue()
-        {
-            return Counter;
-        }
+        public int GetValue() => this.Counter;
 
         /// <summary>
         /// Adds a value to the counter atomically.
         /// </summary>
-        /// <param name="value">Value to add</param>
-        /// <returns>The new value of the counter</returns>
-        public int Add(int value)
-        {
-            return Interlocked.Add(ref Counter, value);
-        }
+        public int Add(int value) => Interlocked.Add(ref this.Counter, value);
 
         /// <summary>
         /// Sets the counter to a value atomically.
         /// </summary>
-        /// <param name="value">Value to set</param>
-        /// <returns>The original value of the counter</returns>
-        public int Exchange(int value)
-        {
-            return Interlocked.Exchange(ref Counter, value);
-        }
+        public int Exchange(int value) => Interlocked.Exchange(ref this.Counter, value);
 
         /// <summary>
         /// Sets the counter to a value atomically if it is equal to a given value.
         /// </summary>
-        /// <param name="value">Value to set</param>
-        /// <param name="comparand">Value to compare against</param>
-        /// <returns>The original value of the counter</returns>
-        public int CompareExchange(int value, int comparand)
-        {
-            return Interlocked.CompareExchange(ref Counter, value, comparand);
-        }
+        public int CompareExchange(int value, int comparand) =>
+            Interlocked.CompareExchange(ref this.Counter, value, comparand);
     }
 }

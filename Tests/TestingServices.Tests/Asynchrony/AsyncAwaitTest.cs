@@ -14,18 +14,23 @@ namespace Microsoft.PSharp.TestingServices.Tests
     {
         public AsyncAwaitTest(ITestOutputHelper output)
             : base(output)
-        { }
+        {
+        }
 
-        class E : Event { }
+        private class E : Event
+        {
+        }
 
-        class M : Machine
+        private class M : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(E))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 this.Send(this.Id, new E());
                 await Task.Delay(2);
@@ -33,14 +38,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        class N : Machine
+        private class N : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [IgnoreEvents(typeof(E))]
-            class Init : MachineState { }
+            private class Init : MachineState
+            {
+            }
 
-            async Task InitOnEntry()
+            private async Task InitOnEntry()
             {
                 this.Send(this.Id, new E());
                 await Task.Delay(20).ConfigureAwait(false);
@@ -51,22 +58,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestAsyncDelay()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(M));
             });
 
-            base.AssertSucceeded(test);
+            this.AssertSucceeded(test);
         }
 
         [Fact]
         public void TestAsyncDelayWithOtherSynchronizationContext()
         {
-            var test = new Action<PSharpRuntime>((r) => {
+            var test = new Action<PSharpRuntime>((r) =>
+            {
                 r.CreateMachine(typeof(N));
             });
 
             var bugReport = "Detected synchronization context that is not controlled by the P# runtime.";
-            base.AssertFailed(test, bugReport, true);
+            this.AssertFailed(test, bugReport, true);
         }
     }
 }
